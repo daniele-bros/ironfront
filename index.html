@@ -984,7 +984,7 @@ let _paused=false;
 // ═══════════════════════════════════════════════════════
 // SOUND ENGINE — procedural Web Audio (no external files)
 // ═══════════════════════════════════════════════════════
-let _audioCtx=null, _soundOn=true, _masterGain=null, _lastSndT={};
+let _audioCtx=null, _soundOn=true, _masterGain=null, _lastSndT={}, _reverb=null, _reverbGain=null;
 function _initAudio(){
   if(_audioCtx)return;
   try{
@@ -992,7 +992,14 @@ function _initAudio(){
     _masterGain=_audioCtx.createGain();
     _masterGain.gain.value=0.55;
     _masterGain.connect(_audioCtx.destination);
-  }catch(e){_audioCtx=null;}
+    // procedural convolution reverb — gives reports/explosions a real spatial tail
+    const _sr=_audioCtx.sampleRate, _irLen=Math.floor(_sr*1.3);
+    const _ir=_audioCtx.createBuffer(2,_irLen,_sr);
+    for(let ch=0;ch<2;ch++){const d=_ir.getChannelData(ch);for(let i=0;i<_irLen;i++){d[i]=(Math.random()*2-1)*Math.pow(1-i/_irLen,2.6);}}
+    _reverb=_audioCtx.createConvolver();_reverb.buffer=_ir;
+    _reverbGain=_audioCtx.createGain();_reverbGain.gain.value=0.85;
+    _reverb.connect(_reverbGain);_reverbGain.connect(_masterGain);
+  }catch(e){_audioCtx=null;_reverb=null;}
 }
 // resume on first user gesture (browsers block autoplay)
 function _resumeAudio(){ if(_audioCtx&&_audioCtx.state==='suspended')_audioCtx.resume(); }
@@ -1014,32 +1021,32 @@ function _throttle(key,ms){
 function playShoot(){
   if(!_soundOn)return; _initAudio(); _resumeAudio(); if(!_audioCtx)return;
   if(!_throttle('shoot',38))return;
-  const t=_audioCtx.currentTime, sr=_audioCtx.sampleRate;
-  // ── Layer 1: sharp muzzle crack (filtered noise transient) ──
-  const crackDur=0.05;
-  const cb=_audioCtx.createBuffer(1,sr*crackDur,sr);
+  const t=_audioCtx.currentTime, sr=_audioCtx.sampleRate, rev=_reverb;
+  // ── Layer 1: ultra-sharp muzzle crack (near-instant transient) ──
+  const crackDur=0.03;
+  const cb=_audioCtx.createBuffer(1,Math.floor(sr*crackDur),sr);
   const cd=cb.getChannelData(0);
-  for(let i=0;i<cd.length;i++){cd[i]=(Math.random()*2-1)*Math.pow(1-i/cd.length,1.2);}
+  for(let i=0;i<cd.length;i++){cd[i]=(Math.random()*2-1)*Math.pow(1-i/cd.length,0.6);}
   const cs=_audioCtx.createBufferSource();cs.buffer=cb;
-  const chp=_audioCtx.createBiquadFilter();chp.type='highpass';chp.frequency.value=900;
-  const cg=_audioCtx.createGain();cg.gain.setValueAtTime(0.55,t);cg.gain.exponentialRampToValueAtTime(0.001,t+crackDur);
-  cs.connect(chp);chp.connect(cg);cg.connect(_masterGain);cs.start(t);
-  // ── Layer 2: body of the blast (lowpassed noise, longer) ──
-  const bodyDur=0.22;
-  const bb=_audioCtx.createBuffer(1,sr*bodyDur,sr);
+  const chp=_audioCtx.createBiquadFilter();chp.type='highpass';chp.frequency.value=1200;
+  const cg=_audioCtx.createGain();cg.gain.setValueAtTime(0.7,t);cg.gain.exponentialRampToValueAtTime(0.001,t+crackDur);
+  cs.connect(chp);chp.connect(cg);cg.connect(_masterGain);if(rev)cg.connect(rev);cs.start(t);
+  // ── Layer 2: blast body (lowpassed noise) — also sent to reverb for the report tail ──
+  const bodyDur=0.3;
+  const bb=_audioCtx.createBuffer(1,Math.floor(sr*bodyDur),sr);
   const bd=bb.getChannelData(0);
-  for(let i=0;i<bd.length;i++){bd[i]=(Math.random()*2-1)*Math.pow(1-i/bd.length,2.2);}
+  for(let i=0;i<bd.length;i++){bd[i]=(Math.random()*2-1)*Math.pow(1-i/bd.length,2.0);}
   const bs=_audioCtx.createBufferSource();bs.buffer=bb;
   const blp=_audioCtx.createBiquadFilter();blp.type='lowpass';
-  blp.frequency.setValueAtTime(1600,t);blp.frequency.exponentialRampToValueAtTime(300,t+bodyDur);
-  const bg=_audioCtx.createGain();bg.gain.setValueAtTime(0.5,t);bg.gain.exponentialRampToValueAtTime(0.001,t+bodyDur);
-  bs.connect(blp);blp.connect(bg);bg.connect(_masterGain);bs.start(t);
+  blp.frequency.setValueAtTime(1800,t);blp.frequency.exponentialRampToValueAtTime(220,t+bodyDur);
+  const bg=_audioCtx.createGain();bg.gain.setValueAtTime(0.6,t);bg.gain.exponentialRampToValueAtTime(0.001,t+bodyDur);
+  bs.connect(blp);blp.connect(bg);bg.connect(_masterGain);if(rev)bg.connect(rev);bs.start(t);
   // ── Layer 3: deep cannon concussion thump (the boom you feel) ──
   const o=_audioCtx.createOscillator();o.type='sine';
   const og=_audioCtx.createGain();
-  o.frequency.setValueAtTime(210,t);o.frequency.exponentialRampToValueAtTime(38,t+0.16);
-  og.gain.setValueAtTime(0.95,t);og.gain.exponentialRampToValueAtTime(0.001,t+0.19);
-  o.connect(og);og.connect(_masterGain);o.start(t);o.stop(t+0.20);
+  o.frequency.setValueAtTime(220,t);o.frequency.exponentialRampToValueAtTime(34,t+0.18);
+  og.gain.setValueAtTime(1.0,t);og.gain.exponentialRampToValueAtTime(0.001,t+0.22);
+  o.connect(og);og.connect(_masterGain);if(rev)og.connect(rev);o.start(t);o.stop(t+0.23);
 }
 
 function playExplosion(){
@@ -1058,13 +1065,13 @@ function playExplosion(){
   const lp=_audioCtx.createBiquadFilter();lp.type='lowpass';
   lp.frequency.setValueAtTime(2400,t);lp.frequency.exponentialRampToValueAtTime(90,t+0.6);
   const g1=_audioCtx.createGain();g1.gain.setValueAtTime(0.95,t);g1.gain.exponentialRampToValueAtTime(0.001,t+d1);
-  s1.connect(lp);lp.connect(g1);g1.connect(_masterGain);s1.start(t);
-  // ── Deep sub boom (the chest-thump) ──
+  s1.connect(lp);lp.connect(g1);g1.connect(_masterGain);if(_reverb)g1.connect(_reverb);s1.start(t);
+  // ── Deep sub boom (the chest-thump) — deeper, longer, with reverb tail ──
   const o=_audioCtx.createOscillator();o.type='sine';
   const og=_audioCtx.createGain();
-  o.frequency.setValueAtTime(110,t);o.frequency.exponentialRampToValueAtTime(28,t+0.55);
-  og.gain.setValueAtTime(0.85,t);og.gain.exponentialRampToValueAtTime(0.001,t+0.6);
-  o.connect(og);og.connect(_masterGain);o.start(t);o.stop(t+0.6);
+  o.frequency.setValueAtTime(120,t);o.frequency.exponentialRampToValueAtTime(24,t+0.7);
+  og.gain.setValueAtTime(0.95,t);og.gain.exponentialRampToValueAtTime(0.001,t+0.75);
+  o.connect(og);og.connect(_masterGain);if(_reverb)og.connect(_reverb);o.start(t);o.stop(t+0.76);
   // ── Crackle/debris tail ──
   const d2=0.5;
   const b2=_audioCtx.createBuffer(1,sr*d2,sr);
@@ -1075,7 +1082,7 @@ function playExplosion(){
   const s2=_audioCtx.createBufferSource();s2.buffer=b2;
   const bp=_audioCtx.createBiquadFilter();bp.type='bandpass';bp.frequency.value=1800;
   const g2=_audioCtx.createGain();g2.gain.setValueAtTime(0.4,t+0.05);g2.gain.exponentialRampToValueAtTime(0.001,t+0.05+d2);
-  s2.connect(bp);bp.connect(g2);g2.connect(_masterGain);s2.start(t+0.05);
+  s2.connect(bp);bp.connect(g2);g2.connect(_masterGain);if(_reverb)g2.connect(_reverb);s2.start(t+0.05);
 }
 
 function playHit(pen){
@@ -1126,33 +1133,40 @@ function _startEngine(){
   if(!_soundOn){return;} _initAudio(); _resumeAudio(); if(!_audioCtx||_engine)return;
   const t=_audioCtx.currentTime, sr=_audioCtx.sampleRate;
   const g=_audioCtx.createGain(); g.gain.setValueAtTime(0.0001,t); g.connect(_masterGain);
-  const osc=_audioCtx.createOscillator(); osc.type='sawtooth'; osc.frequency.setValueAtTime(52,t);
-  const nb=_audioCtx.createBuffer(1,sr,sr); const nd=nb.getChannelData(0);
-  for(let i=0;i<nd.length;i++)nd[i]=(Math.random()*2-1)*0.5;
-  const noise=_audioCtx.createBufferSource(); noise.buffer=nb; noise.loop=true;
-  const lp=_audioCtx.createBiquadFilter(); lp.type='lowpass'; lp.frequency.setValueAtTime(300,t);
-  const chug=_audioCtx.createGain(); chug.gain.setValueAtTime(1,t);
-  const lfo=_audioCtx.createOscillator(); lfo.type='sine'; lfo.frequency.setValueAtTime(7,t);
-  const lfoG=_audioCtx.createGain(); lfoG.gain.setValueAtTime(0.4,t);
-  lfo.connect(lfoG); lfoG.connect(chug.gain);
-  osc.connect(lp); noise.connect(lp); lp.connect(chug); chug.connect(g);
-  osc.start(t); noise.start(t); lfo.start(t);
-  g.gain.exponentialRampToValueAtTime(0.09,t+0.45); // fade up to idle
-  _engine={g,osc,noise,lfo,lfoG,lp,chug};
+  // Diesel combustion pulse-train: evenly-spaced damped "knocks" in a looping buffer.
+  // playbackRate then drives RPM (chug rate + pitch rise together), like a real engine.
+  const len=Math.floor(sr*1.0), thumps=13;
+  const nb=_audioCtx.createBuffer(1,len,sr); const d=nb.getChannelData(0);
+  for(let k=0;k<thumps;k++){
+    const start=Math.floor((k/thumps)*len), dur=Math.floor(sr*0.05);
+    for(let i=0;i<dur && start+i<len;i++){
+      const env=Math.exp(-i/(sr*0.013));
+      d[start+i]+=(Math.sin(2*Math.PI*66*i/sr)*0.85+(Math.random()*2-1)*0.28)*env;
+    }
+  }
+  const src=_audioCtx.createBufferSource(); src.buffer=nb; src.loop=true; src.playbackRate.setValueAtTime(1,t);
+  const lp=_audioCtx.createBiquadFilter(); lp.type='lowpass'; lp.frequency.setValueAtTime(280,t); lp.Q.value=4;
+  // steady low sub rumble beneath the chug
+  const sub=_audioCtx.createOscillator(); sub.type='sine'; sub.frequency.setValueAtTime(42,t);
+  const subG=_audioCtx.createGain(); subG.gain.setValueAtTime(0.5,t);
+  src.connect(lp); lp.connect(g); sub.connect(subG); subG.connect(g);
+  src.start(t); sub.start(t);
+  g.gain.exponentialRampToValueAtTime(0.085,t+0.45); // fade up to idle
+  _engine={g,src,lp,sub,subG};
 }
 function _setEngine(throttle){
   if(!_engine||!_audioCtx)return;
   throttle=Math.max(0,Math.min(1,throttle));
   const t=_audioCtx.currentTime;
-  _engine.g.gain.setTargetAtTime(0.075+throttle*0.13,t,0.08);
-  _engine.osc.frequency.setTargetAtTime(50+throttle*72,t,0.10);
-  _engine.lfo.frequency.setTargetAtTime(6.5+throttle*9,t,0.12);
-  _engine.lp.frequency.setTargetAtTime(270+throttle*560,t,0.10);
+  _engine.g.gain.setTargetAtTime(0.07+throttle*0.12,t,0.10);
+  _engine.src.playbackRate.setTargetAtTime(1+throttle*1.5,t,0.12); // RPM up
+  _engine.lp.frequency.setTargetAtTime(250+throttle*620,t,0.10);
+  _engine.sub.frequency.setTargetAtTime(40+throttle*46,t,0.12);
 }
 function _stopEngine(){
   if(!_engine)return; const e=_engine; _engine=null;
   try{ const t=_audioCtx.currentTime; e.g.gain.cancelScheduledValues(t); e.g.gain.setTargetAtTime(0.0001,t,0.12);
-    setTimeout(function(){try{e.osc.stop();e.noise.stop();e.lfo.stop();e.g.disconnect();}catch(_){}}, 420);
+    setTimeout(function(){try{e.src.stop();e.sub.stop();e.g.disconnect();}catch(_){}}, 420);
   }catch(_){}
 }
 
