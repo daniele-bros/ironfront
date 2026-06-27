@@ -1536,27 +1536,9 @@ function buildGarage(){
       c.className='nav-card'+(gameMode===m.id?' selected-mode':'');
       if(gameMode===m.id){c.style.borderColor='var(--khaki)';c.style.background='#1a2410';}
       c.innerHTML='<div class="nav-icon">'+m.icon+'</div><div class="nav-title" style="font-size:13px;">'+m.title+'</div><div class="nav-sub">'+m.sub+'</div>';
-      c.onclick=(function(mid){return function(){gameMode=mid;buildGarage();};})(m.id);
+      c.onclick=(function(mid){return function(){gameMode=mid; if(mid==='1v1pick'){openDuelArena();} else {buildGarage();}};})(m.id);
       mgrid.appendChild(c);
     });
-    // Opponent picker — only shown for the 1v1 PICK FOE mode
-    let dp=document.getElementById('duel-picker');
-    if(!dp){
-      dp=document.createElement('div');dp.id='duel-picker';
-      dp.style.cssText='width:100%;max-width:700px;margin:2px auto 14px;display:none;flex-direction:column;align-items:center;gap:6px;';
-      dp.innerHTML='<div style="font-family:Oswald,sans-serif;letter-spacing:2px;color:#e8843a;font-size:12px;">⚔ CHOOSE YOUR OPPONENT</div>';
-      const sel=document.createElement('select');sel.id='duel-select';
-      sel.style.cssText='background:#0c1506;color:#c8a84a;border:2px solid #3a5018;border-radius:5px;font-family:\'Share Tech Mono\',monospace;font-size:13px;padding:8px 12px;min-width:300px;cursor:pointer;';
-      TANK_DEFS.forEach(t=>{const o=document.createElement('option');o.value=t.id;o.textContent=t.name+'  ·  '+t.nation+'  ·  Tier '+t.tier;sel.appendChild(o);});
-      sel.onchange=()=>{duelEnemyId=sel.value;};
-      dp.appendChild(sel);
-      mgrid.parentNode.insertBefore(dp,mgrid.nextSibling);
-    }
-    if(gameMode==='1v1pick'){
-      if(!duelEnemyId)duelEnemyId=activeTankId;
-      const sel=document.getElementById('duel-select');if(sel)sel.value=duelEnemyId;
-      dp.style.display='flex';
-    } else { dp.style.display='none'; }
   }
     ensureValidMap();
   const availMaps=getAvailableMaps();
@@ -1571,6 +1553,59 @@ function buildGarage(){
 }
 
 
+
+// ── 1v1 PICK FOE: full-screen opponent selection arena ──
+function openDuelArena(){
+  gameMode='1v1pick';
+  if(!duelEnemyId)duelEnemyId=activeTankId;
+  let ov=document.getElementById('duel-arena');
+  if(!ov){
+    ov=document.createElement('div');ov.id='duel-arena';
+    ov.style.cssText='position:fixed;inset:0;z-index:300;background:linear-gradient(180deg,#0a0f06,#05080a);display:none;flex-direction:column;';
+    ov.innerHTML='<div style="display:flex;align-items:center;justify-content:space-between;padding:14px 22px;border-bottom:2px solid #2a3818;background:#0c1206;gap:12px;">'
+      +'<div style="font-family:Oswald,sans-serif;font-size:22px;font-weight:700;letter-spacing:3px;color:#e8843a;white-space:nowrap;">⚔ CHOOSE YOUR OPPONENT</div>'
+      +'<input id="duel-search" placeholder="Search tanks…" style="background:#0c1506;color:#c8a84a;border:1px solid #3a5018;border-radius:4px;font-family:monospace;font-size:13px;padding:7px 10px;flex:1;max-width:240px;">'
+      +'<button onclick="closeDuelArena()" style="background:transparent;border:2px solid #c8a84b;color:#c8a84b;font-weight:900;font-size:16px;width:34px;height:34px;border-radius:5px;cursor:pointer;flex:none;">✕</button>'
+      +'</div>'
+      +'<div id="duel-grid" style="flex:1;overflow-y:auto;display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:10px;padding:16px 22px 96px;align-content:start;"></div>'
+      +'<div style="position:fixed;bottom:0;left:0;right:0;padding:12px 22px;background:linear-gradient(0deg,#05080a 40%,rgba(5,8,10,0));display:flex;justify-content:center;">'
+      +'<button id="duel-fight-btn" onclick="duelDeploy()" style="background:linear-gradient(135deg,#7a1010,#3a0606);color:#fff;border:2px solid #e83030;font-family:Oswald,sans-serif;font-size:16px;font-weight:700;letter-spacing:2px;padding:12px 40px;border-radius:6px;cursor:pointer;box-shadow:0 0 24px rgba(232,48,48,.35);">⚔ FIGHT</button>'
+      +'</div>';
+    document.body.appendChild(ov);
+    const s=document.getElementById('duel-search');if(s)s.addEventListener('input',renderDuelGrid);
+  }
+  ov.style.display='flex';
+  const s=document.getElementById('duel-search');if(s)s.value='';
+  renderDuelGrid();
+}
+function closeDuelArena(){const ov=document.getElementById('duel-arena');if(ov)ov.style.display='none';}
+function _duelFightLabel(){
+  const fb=document.getElementById('duel-fight-btn');if(!fb)return;
+  const d=TANK_DEFS.find(t=>t.id===duelEnemyId);
+  fb.textContent=d?('⚔ FIGHT '+d.name.toUpperCase()):'⚔ FIGHT';
+}
+function renderDuelGrid(){
+  const grid=document.getElementById('duel-grid');if(!grid)return;
+  const ql=((document.getElementById('duel-search')||{}).value||'').toLowerCase().trim();
+  grid.innerHTML='';
+  let shown=0;
+  TANK_DEFS.forEach(t=>{
+    if(ql&&!(t.name.toLowerCase().includes(ql)||(t.nation||'').toLowerCase().includes(ql)||(t.tier||'').toLowerCase()===ql))return;
+    shown++;
+    const selected=duelEnemyId===t.id, boss=t.id==='ratte';
+    const card=document.createElement('div');
+    card.style.cssText='background:'+(selected?'#2a1408':'#0c1506')+';border:2px solid '+(selected?'#e83030':(boss?'#a06020':'#26331a'))+';border-radius:6px;padding:8px;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:3px;';
+    const cv=document.createElement('canvas');cv.width=120;cv.height=64;
+    try{drawTankPreview(cv,t);}catch(e){}
+    card.appendChild(cv);
+    const nm=document.createElement('div');nm.style.cssText='font-family:Oswald,sans-serif;font-size:12px;color:#e8e0c0;text-align:center;line-height:1.1;';nm.textContent=t.name;card.appendChild(nm);
+    const meta=document.createElement('div');meta.style.cssText='font-size:10px;color:'+(boss?'#e8a040':'#8a9070')+';text-align:center;';meta.textContent=t.nation+' · '+t.tier+(boss?' · 👑BOSS':'');card.appendChild(meta);
+    card.onclick=()=>{duelEnemyId=t.id;renderDuelGrid();_duelFightLabel();};
+    grid.appendChild(card);
+  });
+  _duelFightLabel();
+}
+function duelDeploy(){closeDuelArena();gameMode='1v1pick';ensureValidMap();startGame();}
 
 function resetProgress(){
   // handled by showModal above
