@@ -3075,14 +3075,14 @@ function render(){
   for(const p of particles)if(p.type==='fire'||p.type==='spark'||(!p.type&&!_SMOKE_COLORS.has(p.color)))drawPart(p);
 
   ctx.restore();
-  // ── Cinematic color grade (per-map, LUT-style): overlay tint then shadow crush ──
+  // ── Clean vibrant arcade grade: overlay lifts saturation+contrast, soft-light keeps it bright (no muddy crush) ──
   if(selectedMap){
     const _gd=selectedMap.gd;
-    const _tint=_gd==='snow'?'rgba(120,140,180,.16)':_gd==='sand'?'rgba(255,180,90,.13)':(_gd==='ash'||_gd==='rubble')?'rgba(120,90,70,.17)':_gd==='jungle'?'rgba(40,80,40,.18)':'rgba(150,170,80,.10)';
+    const _tint=_gd==='snow'?'rgba(150,185,225,.12)':_gd==='sand'?'rgba(255,205,115,.12)':(_gd==='ash'||_gd==='rubble')?'rgba(175,150,120,.10)':_gd==='jungle'?'rgba(80,165,75,.13)':'rgba(150,205,95,.12)';
     ctx.globalCompositeOperation='overlay';
     ctx.fillStyle=_tint;ctx.fillRect(0,0,W,H);
-    ctx.globalCompositeOperation='multiply';
-    ctx.fillStyle='rgba(12,16,30,.12)';ctx.fillRect(0,0,W,H);
+    ctx.globalCompositeOperation='soft-light';
+    ctx.fillStyle='rgba(255,250,235,.16)';ctx.fillRect(0,0,W,H);
     ctx.globalCompositeOperation='source-over';
   }
   // Edge vignette (screen-space, after world restore)
@@ -3122,14 +3122,14 @@ function render(){
   _lw.addColorStop(1,'rgba(40,60,110,0.10)');
   ctx.fillStyle=_lw;ctx.fillRect(0,0,W,H);
   const vg=ctx.createRadialGradient(W*.5,H*.5,Math.min(W,H)*.2,W*.5,H*.5,Math.max(W,H)*.8);
-  vg.addColorStop(0,'rgba(0,0,0,0)');vg.addColorStop(.65,'rgba(0,0,0,.12)');vg.addColorStop(1,'rgba(0,0,0,.72)');
+  vg.addColorStop(0,'rgba(0,0,0,0)');vg.addColorStop(.7,'rgba(0,0,0,.05)');vg.addColorStop(1,'rgba(0,0,0,.42)');
   ctx.fillStyle=vg;ctx.fillRect(0,0,W,H);
   // Corner crush (extra darkening at 4 corners)
   const cc=ctx.createRadialGradient(0,0,0,0,0,Math.max(W,H)*.5);
-  cc.addColorStop(0,'rgba(0,0,0,.35)');cc.addColorStop(1,'rgba(0,0,0,0)');
+  cc.addColorStop(0,'rgba(0,0,0,.16)');cc.addColorStop(1,'rgba(0,0,0,0)');
   ctx.fillStyle=cc;ctx.fillRect(0,0,W*.4,H*.4);
   const cc2=ctx.createRadialGradient(W,H,0,W,H,Math.max(W,H)*.5);
-  cc2.addColorStop(0,'rgba(0,0,0,.35)');cc2.addColorStop(1,'rgba(0,0,0,0)');
+  cc2.addColorStop(0,'rgba(0,0,0,.16)');cc2.addColorStop(1,'rgba(0,0,0,0)');
   ctx.fillStyle=cc2;ctx.fillRect(W*.6,H*.6,W*.4,H*.4);
   // Compass rose (top center)
   _drawBushStatus();
@@ -3413,7 +3413,7 @@ function _addWorldVariation(g,m,rng){
     med:['rgba(160,130,60,.12)','rgba(120,90,30,.18)'],
   };
   const pal=palettes[gd]||palettes.field;
-  for(let i=0;i<80;i++){
+  for(let i=0;i<50;i++){
     const x=rng()*WW,y=rng()*WH,rx=80+rng()*300,ry=50+rng()*180;
     g.fillStyle=pal[Math.floor(rng()*pal.length)];
     g.beginPath();g.ellipse(x,y,rx,ry,rng()*Math.PI,0,Math.PI*2);g.fill();
@@ -3440,11 +3440,11 @@ function _addWorldVariation(g,m,rng){
     }
   }
 
-  // ── Scorched battle decals (charred blast marks) ──
-  for(let i=0;i<22;i++){
+  // ── Scorched battle decals (charred blast marks) — sparse so the ground stays clean ──
+  for(let i=0;i<9;i++){
     const x=rng()*WW,y=rng()*WH,r=22+rng()*60;
     const sg=g.createRadialGradient(x,y,r*.1,x,y,r);
-    sg.addColorStop(0,'rgba(18,12,8,.5)');sg.addColorStop(.55,'rgba(28,20,12,.28)');sg.addColorStop(1,'rgba(20,14,8,0)');
+    sg.addColorStop(0,'rgba(18,12,8,.32)');sg.addColorStop(.55,'rgba(28,20,12,.16)');sg.addColorStop(1,'rgba(20,14,8,0)');
     g.fillStyle=sg;g.beginPath();g.ellipse(x,y,r,r*(.7+rng()*.3),rng()*Math.PI,0,Math.PI*2);g.fill();
   }
 
