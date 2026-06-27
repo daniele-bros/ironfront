@@ -476,9 +476,9 @@ const TANK_DEFS = [
   // ══ CUSTOM ══
 
   // ══ GERMANY (13 tanks) ══
-  {id:'pz1',    name:'Panzer I',       nation:'🇩🇪 Germany',hp:140,armor:12,pen:18, dmg:25, speed:4.5,rot:2.6,reload:1.2,ammo:40,color:'#7a7040',tier:'I',  price:0,   desc:'Starter. Twin MG burst fire x6!'},
-  {id:'pz2',    name:'Panzer II',      nation:'🇩🇪 Germany',hp:220,armor:20,pen:50, dmg:40, speed:4.0,rot:2.4,reload:1.8,ammo:180,color:'#7a6e3a',tier:'II', price:200, desc:'Light tank. 4-round autocannon burst.'},
-  {id:'pz3',    name:'Panzer III',     nation:'🇩🇪 Germany',hp:320,armor:35,pen:75, dmg:110,speed:3.5,rot:2.1,reload:2.1,ammo:99,color:'#7a6830',tier:'III',price:400, desc:'Reliable mid-tier German medium.'},
+  {id:'pz1',    name:'Panzer I',       nation:'🇩🇪 Germany',hp:140,armor:12,pen:18, dmg:25, speed:4.5,rot:2.6,reload:1.2,ammo:40,color:'#4a4d4a',tier:'I',  price:0,   desc:'Starter. Twin MG burst fire x6!'},
+  {id:'pz2',    name:'Panzer II',      nation:'🇩🇪 Germany',hp:220,armor:20,pen:50, dmg:40, speed:4.0,rot:2.4,reload:1.8,ammo:180,color:'#494c49',tier:'II', price:200, desc:'Light tank. 4-round autocannon burst.'},
+  {id:'pz3',    name:'Panzer III',     nation:'🇩🇪 Germany',hp:320,armor:35,pen:75, dmg:110,speed:3.5,rot:2.1,reload:2.1,ammo:99,color:'#4a4d4a',tier:'III',price:400, desc:'Reliable mid-tier German medium.'},
   {id:'pz4f1',  name:'Panzer IV F1',   nation:'🇩🇪 Germany',hp:380,armor:50,pen:95, dmg:150,speed:3.4,rot:2.0,reload:2.2,ammo:87,color:'#6e6228',tier:'IV', price:600, desc:'Short 75mm. Good infantry support.'},
   {id:'pz4',    name:'Panzer IV H',    nation:'🇩🇪 Germany',hp:450,armor:80,pen:120,dmg:175,speed:3.2,rot:1.9,reload:2.3,ammo:87,color:'#6a5e2a',tier:'V',  price:900, desc:'Long 75mm. Schurzen side armour.'},
   {id:'stug3',  name:'StuG III G',     nation:'🇩🇪 Germany',hp:400,armor:80,pen:125,dmg:165,speed:3.6,rot:1.8,reload:2.2,ammo:54,color:'#645a24',tier:'V',  price:850, desc:'No turret. Low profile tank destroyer.'},
@@ -512,7 +512,7 @@ const TANK_DEFS = [
   {id:'m4a3e2', name:'M4A3E2 Jumbo',  nation:'🇺🇸 USA',    hp:620,armor:100,pen:105,dmg:165,speed:2.8,rot:1.8,reload:2.5,ammo:104,color:'#4a5e3e',tier:'VI', price:1100,desc:'Assault Sherman. Heavy frontal armour.'},
   {id:'m4a3e8', name:'M4A3E8 Easy Eight',nation:'🇺🇸 USA', hp:560,armor:63,pen:120,dmg:175,speed:3.7,rot:2.1,reload:2.3,ammo:71,color:'#4e5e3e',tier:'VI', price:1100,desc:'Best Sherman. HVSS suspension.'},
   {id:'hellcat',name:'M18 Hellcat',    nation:'🇺🇸 USA',    hp:300,armor:25,pen:160,dmg:200,speed:5.5,rot:2.8,reload:2.0,ammo:45,color:'#586040',tier:'VI', price:1000,desc:'Fastest WW2 TD. Glass cannon.'},
-  {id:'firefly',name:'Sherman Firefly',nation:'🇺🇸 USA',    hp:480,armor:50,pen:165,dmg:210,speed:3.3,rot:1.9,reload:2.8,ammo:77,color:'#546048',tier:'VI', price:1200,desc:'17-pdr gun. Tiger killer Sherman.'},
+  {id:'firefly',name:'Sherman Firefly',nation:'🇬🇧 Britain',hp:480,armor:50,pen:165,dmg:210,speed:3.3,rot:1.9,reload:2.8,ammo:77,color:'#4a5a30',tier:'VI', price:1200,desc:'17-pdr gun. Tiger killer Sherman.'},
   {id:'m36',    name:'M36 Jackson',    nation:'🇺🇸 USA',    hp:340,armor:30,pen:180,dmg:260,speed:3.6,rot:1.9,reload:3.0,ammo:47,color:'#546448',tier:'VII',price:1800,desc:'90mm TD. Best US tank destroyer.'},
   {id:'t29',    name:'T29 Heavy',      nation:'🇺🇸 USA',    hp:760,armor:115,pen:165,dmg:250,speed:2.5,rot:1.6,reload:3.2,ammo:63,color:'#485e38',tier:'VII',price:2000,desc:'Experimental US heavy. 105mm gun.'},
   {id:'m26',    name:'M26 Pershing',   nation:'🇺🇸 USA',    hp:720,armor:102,pen:170,dmg:240,speed:2.8,rot:1.7,reload:3.2,ammo:70,color:'#485a38',tier:'VII',price:2200,desc:'Heavy tank. Americas Tiger hunter.'},
@@ -521,8 +521,8 @@ const TANK_DEFS = [
 
   // ══ BRITAIN (12 tanks) ══
   {id:'mkvi',   name:'Mk.VI Light',    nation:'🇬🇧 Britain',hp:120,armor:14,pen:20, dmg:30, speed:5.2,rot:3.0,reload:1.2,ammo:2520,color:'#5a6838',tier:'I',  price:0,   desc:'British starter. MG burst x6. Very fast.'},
-  {id:'crusader',name:'Crusader III',  nation:'🇬🇧 Britain',hp:240,armor:32,pen:65, dmg:90, speed:4.4,rot:2.5,reload:2.0,ammo:110,color:'#546230',tier:'III',price:400, desc:'Fast cruiser. Desert warrior.'},
-  {id:'matilda2',name:'Matilda II',    nation:'🇬🇧 Britain',hp:420,armor:78,pen:60, dmg:105,speed:2.2,rot:1.5,reload:2.4,ammo:92,color:'#4a5a28',tier:'IV', price:600, desc:'Queen of the Desert. Heavy infantry tank.'},
+  {id:'crusader',name:'Crusader III',  nation:'🇬🇧 Britain',hp:240,armor:32,pen:65, dmg:90, speed:4.4,rot:2.5,reload:2.0,ammo:110,color:'#b9974f',tier:'III',price:400, desc:'Fast cruiser. Desert warrior.'},
+  {id:'matilda2',name:'Matilda II',    nation:'🇬🇧 Britain',hp:420,armor:78,pen:60, dmg:105,speed:2.2,rot:1.5,reload:2.4,ammo:92,color:'#b9974f',tier:'IV', price:600, desc:'Queen of the Desert. Heavy infantry tank.'},
   {id:'valentine',name:'Valentine',   nation:'🇬🇧 Britain',hp:340,armor:65,pen:75, dmg:115,speed:2.8,rot:1.8,reload:2.3,ammo:61,color:'#506030',tier:'IV', price:700, desc:'Reliable infantry tank. Lend-lease too.'},
   {id:'cromwell',name:'Cromwell IV',   nation:'🇬🇧 Britain',hp:500,armor:64,pen:110,dmg:155,speed:4.0,rot:2.2,reload:2.2,ammo:75,color:'#485e28',tier:'V',  price:950, desc:'Fastest medium. Rolls-Royce Meteor.'},
   {id:'centaur', name:'Centaur IV',    nation:'🇬🇧 Britain',hp:480,armor:60,pen:105,dmg:160,speed:3.8,rot:2.1,reload:2.3,ammo:51,color:'#445a24',tier:'V',  price:900, desc:'Close-support 95mm howitzer.'},
@@ -530,7 +530,7 @@ const TANK_DEFS = [
   {id:'churchill4',name:'Churchill IV',nation:'🇬🇧 Britain',hp:680,armor:102,pen:85,dmg:145,speed:2.2,rot:1.5,reload:2.6,ammo:84,color:'#3c5820',tier:'VI', price:1200,desc:'Heavy infantry tank. Huge HP pool.'},
   {id:'achilles', name:'Achilles IIc', nation:'🇬🇧 Britain',hp:370,armor:38,pen:165,dmg:215,speed:3.6,rot:1.9,reload:2.8,ammo:48,color:'#425e22',tier:'VI', price:1300,desc:'British M10 with 17-pdr. Tiger slayer.'},
   {id:'comet',   name:'Comet I',       nation:'🇬🇧 Britain',hp:620,armor:76,pen:145,dmg:195,speed:3.8,rot:2.0,reload:2.5,ammo:61,color:'#3a5418',tier:'VII',price:2000,desc:'Best British cruiser. 77mm HV gun.'},
-  {id:'firefly_b',name:'Firefly VC',   nation:'🇬🇧 Britain',hp:500,armor:50,pen:175,dmg:220,speed:3.2,rot:1.9,reload:2.9,ammo:77,color:'#344e14',tier:'VII',price:1900,desc:'17-pdr Sherman. Feared by Tiger crews.'},
+  {id:'firefly_b',name:'Firefly VC',   nation:'🇬🇧 Britain',hp:500,armor:50,pen:175,dmg:220,speed:3.2,rot:1.9,reload:2.9,ammo:77,color:'#4a5a30',tier:'VII',price:1900,desc:'17-pdr Sherman. Feared by Tiger crews.'},
   {id:'tortoise', name:'Tortoise',     nation:'🇬🇧 Britain',hp:1200,armor:230,pen:210,dmg:360,speed:1.5,rot:1.0,reload:4.5,ammo:60,color:'#2c4410',tier:'IX', price:5000,desc:'32-pdr fortress. Nearly indestructible.'},
 
   // ══ MODERN TIER XI — 10,000 COINS ══
@@ -601,9 +601,9 @@ const TANK_DEFS = [
 
   // ══ FRANCE (5 tanks) ══
   {id:'r35',     name:'Renault R35',   nation:'🇫🇷 France',  hp:150,armor:40, pen:22, dmg:35, speed:2.5,rot:1.9,reload:2.5,ammo:100,color:'#7a8040',tier:'I',  price:0,   desc:'Starter. Slow but well-armoured infantry tank.'},
-  {id:'somua',   name:'SOMUA S35',     nation:'🇫🇷 France',  hp:280,armor:56, pen:55, dmg:90, speed:2.8,rot:1.9,reload:2.3,ammo:118,color:'#6a7838',tier:'III', price:450, desc:'Best cavalry tank of 1940. Excellent armor.'},
+  {id:'somua',   name:'SOMUA S35',     nation:'🇫🇷 France',  hp:280,armor:56, pen:55, dmg:90, speed:2.8,rot:1.9,reload:2.3,ammo:118,color:'#6a7838',tier:'IV', price:450, desc:'Best cavalry tank of 1940. Excellent armor.'},
   {id:'b1bis',   name:'B1 bis',        nation:'🇫🇷 France',  hp:380,armor:60, pen:45, dmg:105,speed:2.2,rot:1.6,reload:3.0,ammo:74,color:'#627030',tier:'IV',  price:700, desc:'Heavy infantry tank. Two guns. Fortress.'},
-  {id:'arl44',   name:'ARL 44',        nation:'🇫🇷 France',  hp:580,armor:120,pen:110,dmg:160,speed:2.5,rot:1.5,reload:2.8,ammo:30,color:'#586828',tier:'VI',  price:1200,desc:'Post-war transitional heavy. Huge front armor.'},
+  {id:'arl44',   name:'ARL 44',        nation:'🇫🇷 France',  hp:580,armor:120,pen:110,dmg:160,speed:2.5,rot:1.5,reload:2.8,ammo:30,color:'#586828',tier:'V',  price:1200,desc:'Post-war transitional heavy. Huge front armor.'},
   {id:'amx13',   name:'AMX 13',        nation:'🇫🇷 France',  hp:260,armor:25, pen:140,dmg:175,speed:4.8,rot:2.6,reload:1.5,ammo:36,color:'#6a7838',tier:'VI',  price:1000,desc:'Fast autoloader! 6-shot clip. Glass cannon.'},
 
   // ══ JAPAN (5 tanks) ══
@@ -611,7 +611,7 @@ const TANK_DEFS = [
   {id:'hago',    name:'Type 95 Ha-Go', nation:'🇯🇵 Japan',   hp:170,armor:16, pen:35, dmg:55, speed:4.2,rot:2.4,reload:2.0,ammo:123,color:'#606028',tier:'II',  price:250, desc:'Most produced Japanese light tank.'},
   {id:'chiha',   name:'Type 97 Chi-Ha',nation:'🇯🇵 Japan',   hp:260,armor:25, pen:55, dmg:85, speed:3.4,rot:2.0,reload:2.2,ammo:120,color:'#585820',tier:'III', price:500, desc:'Standard Japanese medium. Backbone of IJA.'},
   {id:'chinu',   name:'Type 3 Chi-Nu', nation:'🇯🇵 Japan',   hp:360,armor:50, pen:90, dmg:130,speed:3.2,rot:1.9,reload:2.4,ammo:70,color:'#505018',tier:'V',  price:850, desc:'Best WW2 Japanese medium. 75mm gun.'},
-  {id:'oi',      name:'O-I',           nation:'🇯🇵 Japan',   hp:650,armor:110,pen:85, dmg:155,speed:1.9,rot:1.2,reload:3.2,ammo:120,color:'#484810',tier:'VI',  price:1300,desc:'Massive super-heavy. Multiple turrets. Slow.'},
+  {id:'oi',      name:'O-I',           nation:'🇯🇵 Japan',   hp:650,armor:110,pen:85, dmg:155,speed:1.9,rot:1.2,reload:3.2,ammo:120,color:'#484810',tier:'VI',  price:1300,desc:'120-ton super-heavy prototype. 105mm gun. Slow.'},
 
   // ══ CHINA (5 tanks) ══
   {id:'vickers_e',name:'Vickers Mk. E',nation:'🇨🇳 China',   hp:130,armor:17, pen:32, dmg:48, speed:4.0,rot:2.3,reload:2.0,ammo:49,color:'#5a6030',tier:'II',  price:0,   desc:'Starter. British export used by China.'},
@@ -693,13 +693,13 @@ const TANK_DEFS = [
   {id:'t110e4',name:'T110E4',nation:'🇺🇸 USA',hp:1400,armor:102,pen:268,dmg:400,speed:2.4,rot:1.3,reload:3.5,ammo:30,color:'#2c3e2a',tier:'X',price:5200,desc:'Open-top tier X TD. Flexible.'},
   {id:'t57heavy',name:'T57 Heavy',nation:'🇺🇸 USA',hp:1600,armor:230,pen:252,dmg:400,speed:2.2,rot:1.4,reload:1.8,ammo:40,color:'#263828',tier:'X',price:6000,desc:'4-round autoloader heavy. Clip = death.'},
   {id:'xm551',name:'XM551 Sheridan',nation:'🇺🇸 USA',hp:1050,armor:38,pen:268,dmg:360,speed:4.8,rot:2.4,reload:3.5,ammo:29,color:'#3c5032',tier:'X',price:5500,desc:'152mm light monster. Fast.'},
-  {id:'bat_pat',name:'Bat.-Châtillon 12 t',nation:'🇺🇸 USA',hp:540,armor:40,pen:155,dmg:185,speed:5.2,rot:2.6,reload:1.6,ammo:30,color:'#485c3e',tier:'VIII',price:2400,desc:'Fast scout. 3-shell burst.'},
+  {id:'bat_pat',name:'Bat.-Châtillon 12 t',nation:'🇫🇷 France',hp:540,armor:40,pen:155,dmg:185,speed:5.2,rot:2.6,reload:1.6,ammo:30,color:'#485c3e',tier:'VIII',price:2400,desc:'Fast scout. 3-shell burst.'},
   {id:'m4improved',name:'M4 Improved',nation:'🇺🇸 USA',hp:520,armor:55,pen:105,dmg:162,speed:3.5,rot:2.0,reload:2.3,ammo:90,color:'#4e5e44',tier:'V',price:750,desc:'Uparmoured early Sherman.'},
   {id:'carden',name:'Carden Loyd Mk.VI',nation:'🇬🇧 Britain',hp:80,armor:9,pen:14,dmg:18,speed:4.0,rot:2.5,reload:1.1,ammo:1000,color:'#506238',tier:'I',price:0,desc:'British starter tankette.'},
   {id:'vickers_med',name:'Vickers Medium Mk.I',nation:'🇬🇧 Britain',hp:180,armor:8,pen:30,dmg:52,speed:3.8,rot:2.2,reload:1.6,ammo:84,color:'#485a30',tier:'II',price:200,desc:'Inter-war cruiser. Fast.'},
   {id:'a13',name:'A13 Mk.I',nation:'🇬🇧 Britain',hp:210,armor:14,pen:52,dmg:70,speed:4.5,rot:2.4,reload:1.9,ammo:87,color:'#445a2a',tier:'III',price:380,desc:'Christie suspension cruiser.'},
   {id:'tetrarch',name:'Tetrarch',nation:'🇬🇧 Britain',hp:190,armor:16,pen:48,dmg:65,speed:5.0,rot:2.6,reload:1.8,ammo:50,color:'#4c6030',tier:'III',price:350,desc:'Airborne light tank. Very fast.'},
-  {id:'churchillI',name:'Churchill I',nation:'🇬🇧 Britain',hp:500,armor:102,pen:52,dmg:95,speed:1.8,rot:1.3,reload:2.6,ammo:84,color:'#3e5822',tier:'V',price:900,desc:'76mm QF. Heavily armored.'},
+  {id:'churchillI',name:'Churchill I',nation:'🇬🇧 Britain',hp:500,armor:102,pen:62,dmg:95,speed:1.8,rot:1.3,reload:2.6,ammo:84,color:'#3e5822',tier:'V',price:900,desc:'76mm QF. Heavily armored.'},
   {id:'charioteer',name:'Charioteer',nation:'🇬🇧 Britain',hp:540,armor:40,pen:148,dmg:188,speed:4.0,rot:1.9,reload:2.7,ammo:40,color:'#3a5420',tier:'VII',price:1700,desc:'Cromwell hull, 20-pdr TD.'},
   {id:'black_prince',name:'Black Prince',nation:'🇬🇧 Britain',hp:750,armor:152,pen:85,dmg:155,speed:2.0,rot:1.4,reload:2.8,ammo:89,color:'#344a1c',tier:'VII',price:1700,desc:'Churchill evolution. Super heavy.'},
   {id:'at15',name:'AT 15',nation:'🇬🇧 Britain',hp:1100,armor:228,pen:148,dmg:245,speed:2.0,rot:1.0,reload:3.2,ammo:72,color:'#2e4418',tier:'IX',price:3500,desc:'Bunker-like assault tank.'},
@@ -2935,13 +2935,18 @@ function render(){
 
   // Allied tanks
   if(allies){for(const a of allies)if(a.hp>0){
+    const _am=(a.size||30)*4+60;
+    if(a.x<camX-_am||a.x>camX+W+_am||a.y<camY-_am||a.y>camY+H+_am)continue;
     drawTankFull(ctx,a.x,a.y,a.angle,a.turretAngle,a.size,a.color,false,a.hp/a.maxHp,a.name,false,null);
     ctx.save();ctx.translate(a.x,a.y);ctx.beginPath();ctx.arc(0,0,a.size+6,0,Math.PI*2);
     ctx.strokeStyle='rgba(46,204,113,.7)';ctx.lineWidth=2;ctx.setLineDash([5,4]);ctx.stroke();ctx.setLineDash([]);
     ctx.restore();
   }}
 
-  for(const e of enemies)if(e.hp>0)drawTankFull(ctx,e.x,e.y,e.angle,e.turretAngle,e.size,e.color,false,e.hp/e.maxHp,e.name,e.schurzen,e.id||e.name);
+  for(const e of enemies){if(e.hp<=0)continue;
+    const _m=(e.size||30)*4+60; // cull off-screen tanks (margin covers the largest silhouette incl. Ratte)
+    if(e.x<camX-_m||e.x>camX+W+_m||e.y<camY-_m||e.y>camY+H+_m)continue;
+    drawTankFull(ctx,e.x,e.y,e.angle,e.turretAngle,e.size,e.color,false,e.hp/e.maxHp,e.name,e.schurzen,e.id||e.name);}
 
     drawTankFull(ctx,player.x,player.y,player.angle,player.turretAngle,player.size,player.color,true,player.hp/player.maxHp,player.name,false,player.id);
 
@@ -2997,6 +3002,16 @@ function render(){
   for(const p of particles)if(p.type==='fire'||p.type==='spark'||(!p.type&&!['#555','#5a4a2a','#9a8050','#b8c8d8','#443022','#777'].includes(p.color)))drawPart(p);
 
   ctx.restore();
+  // ── Cinematic color grade (per-map, LUT-style): overlay tint then shadow crush ──
+  if(selectedMap){
+    const _gd=selectedMap.gd;
+    const _tint=_gd==='snow'?'rgba(120,140,180,.16)':_gd==='sand'?'rgba(255,180,90,.13)':(_gd==='ash'||_gd==='rubble')?'rgba(120,90,70,.17)':_gd==='jungle'?'rgba(40,80,40,.18)':'rgba(150,170,80,.10)';
+    ctx.globalCompositeOperation='overlay';
+    ctx.fillStyle=_tint;ctx.fillRect(0,0,W,H);
+    ctx.globalCompositeOperation='multiply';
+    ctx.fillStyle='rgba(12,16,30,.12)';ctx.fillRect(0,0,W,H);
+    ctx.globalCompositeOperation='source-over';
+  }
   // Edge vignette (screen-space, after world restore)
   // Layered vignette: soft inner + hard corner darkening
   // ── NUKE FLASH ──
@@ -3525,7 +3540,7 @@ const TANK_PROFILES={
   t28:      {hl:1.80,hw:1.00,tr:0.38,ty:0.32,bl:0.95,bw:0.090,muzzle:false,boxy:false,sk:false},
   kv1:      {hl:1.88,hw:1.00,tr:0.42,ty:0.36,bl:1.05,bw:0.105,muzzle:false,boxy:false,sk:false},
   su85:     {hl:1.75,hw:0.88,tr:0.22,ty:0.18,bl:1.10,bw:0.095,muzzle:false,boxy:true,  sk:false},
-  kv2:      {hl:1.88,hw:1.00,tr:0.50,ty:0.46,bl:0.85,bw:0.130,muzzle:false,boxy:true,  sk:false},
+  kv2:      {hl:1.88,hw:1.00,tr:0.50,ty:0.46,bl:1.15,bw:0.130,muzzle:false,boxy:true,  sk:false},
   su100:    {hl:1.80,hw:0.90,tr:0.22,ty:0.18,bl:1.20,bw:0.100,muzzle:false,boxy:true,  sk:false},
   is3:      {hl:1.95,hw:1.00,tr:0.46,ty:0.40,bl:1.28,bw:0.120,muzzle:false,boxy:false,sk:false},
   isu152:   {hl:1.95,hw:1.00,tr:0.26,ty:0.20,bl:1.10,bw:0.145,muzzle:false,boxy:true,  sk:false},
@@ -3560,7 +3575,7 @@ const TANK_PROFILES={
   hago:   {hl:1.48,hw:0.75,tr:0.28,ty:0.22,bl:0.82,bw:0.078,muzzle:false,boxy:false,sk:false},
   chiha:  {hl:1.65,hw:0.82,tr:0.33,ty:0.28,bl:0.92,bw:0.088,muzzle:false,boxy:false,sk:false},
   chinu:  {hl:1.70,hw:0.85,tr:0.35,ty:0.30,bl:0.98,bw:0.090,muzzle:false,boxy:false,sk:false},
-  oi:     {hl:2.10,hw:1.10,tr:0.50,ty:0.44,bl:0.90,bw:0.110,muzzle:false,boxy:true, sk:false},
+  oi:     {hl:2.10,hw:1.10,tr:0.50,ty:0.44,bl:1.05,bw:0.110,muzzle:false,boxy:true, sk:false},
   // China
   vickers_e:{hl:1.50,hw:0.78,tr:0.30,ty:0.25,bl:0.85,bw:0.082,muzzle:false,boxy:false,sk:false},
   chiha_cn: {hl:1.65,hw:0.82,tr:0.33,ty:0.28,bl:0.92,bw:0.088,muzzle:false,boxy:false,sk:false},
@@ -3911,11 +3926,6 @@ function _hull(c,size,col,p,isPlayer,tankId){
   c.fillStyle=camoCol;
   const cps=[[.15,.3,.45,.32],[-.28,-.25,.38,.28],[.05,-.4,.3,.25],[ -.35,.1,.28,.22],[.28,-.15,.22,.2]];
   for(const[cx2,cy2,rx2,ry2] of cps){c.beginPath();c.ellipse(cx2*hl,cy2*hw,rx2*hl*.5,ry2*hw*.8,cseed*.1,0,Math.PI*2);c.fill();}
-  // Camo pattern
-  const cr2=parseInt(col.slice(1,3),16),cg2=parseInt(col.slice(3,5),16),cb2=parseInt(col.slice(5,7),16);
-  const camoA=`rgba(${Math.max(0,cr2-30)|0},${Math.max(0,cg2-26)|0},${Math.max(0,cb2-20)|0},.42)`;
-  c.fillStyle=camoA;
-  [[.15,.28,.42,.30],[-.26,-.24,.36,.26],[.06,-.38,.28,.24],[-.33,.12,.26,.20],[.26,-.14,.20,.18]].forEach(([px,py,rx,ry])=>{c.beginPath();c.ellipse(px*hl,py*hw,rx*hl*.5,ry*hw*.8,cr2*.1,0,Math.PI*2);c.fill();});
   // front slope highlight
   c.fillStyle='rgba(255,255,255,.10)';
   c.beginPath();c.moveTo(fr*.82,-hw*.72);c.lineTo(fr,-hw*.45);c.lineTo(fr,hw*.45);c.lineTo(fr*.82,hw*.72);c.closePath();c.fill();
