@@ -3464,23 +3464,25 @@ function drawObstacles(){
       }
     }else if(o.w){
       if(o.type==='building'||o.type==='wall'){
-        // Tiger Tank style building: chunky rect with roof lines and shadow
+        // 3D extruded block: side faces + roof, lit by the global sun
         const bx=o.x,by=o.y,bw=o.w,bh=o.h;
-        // Tiger Tank style: clean flat gray buildings
-        // Drop shadow
-        ctx.fillStyle='rgba(0,0,0,.3)';ctx.fillRect(bx+5,by+6,bw,bh);
-        // Main wall - bright warm gray
-        ctx.fillStyle='#9a9888';ctx.fillRect(bx,by,bw,bh);
-        // Darker roof border frame
-        ctx.fillStyle='#6a6858';
-        ctx.fillRect(bx,by,bw,5);ctx.fillRect(bx,by+bh-5,bw,5);
-        ctx.fillRect(bx,by,5,bh);ctx.fillRect(bx+bw-5,by,5,bh);
-        // Inner lighter center
-        ctx.fillStyle='#b0ae9c';ctx.fillRect(bx+5,by+5,bw-10,bh-10);
-        // Clean dark outline
-        ctx.strokeStyle='#3a3828';ctx.lineWidth=2;ctx.strokeRect(bx,by,bw,bh);
-        // Window hint
-        if(bw>30&&bh>30){ctx.fillStyle='rgba(50,60,80,.5)';ctx.fillRect(bx+bw*.25,by+bh*.25,bw*.2,bh*.25);ctx.fillRect(bx+bw*.55,by+bh*.25,bw*.2,bh*.25);}
+        const _sx=-LIGHT.x*10,_sy=-LIGHT.y*10; // extrusion/shadow throw (down-right)
+        // long ground shadow
+        ctx.fillStyle='rgba(0,0,0,.32)';ctx.fillRect(bx+_sx*1.4,by+_sy*1.4,bw,bh);
+        // extruded right + bottom side faces (the shadow-side walls)
+        ctx.fillStyle='#4a463a';
+        ctx.beginPath();ctx.moveTo(bx+bw,by);ctx.lineTo(bx+bw+_sx,by+_sy);ctx.lineTo(bx+bw+_sx,by+bh+_sy);ctx.lineTo(bx+bw,by+bh);ctx.closePath();ctx.fill();
+        ctx.fillStyle='#3c3930';
+        ctx.beginPath();ctx.moveTo(bx,by+bh);ctx.lineTo(bx+_sx,by+bh+_sy);ctx.lineTo(bx+bw+_sx,by+bh+_sy);ctx.lineTo(bx+bw,by+bh);ctx.closePath();ctx.fill();
+        // roof with directional gradient (lit toward the sun)
+        const _roof=ctx.createLinearGradient(bx+LIGHT.x*bw*.5,by+LIGHT.y*bh*.5,bx-LIGHT.x*bw*.5,by-LIGHT.y*bh*.5);
+        _roof.addColorStop(0,'#bdbaa6');_roof.addColorStop(1,'#7e7c6c');
+        ctx.fillStyle=_roof;ctx.fillRect(bx,by,bw,bh);
+        // roof frame + outline
+        ctx.fillStyle='#6a6858';ctx.fillRect(bx,by,bw,4);ctx.fillRect(bx,by+bh-4,bw,4);ctx.fillRect(bx,by,4,bh);ctx.fillRect(bx+bw-4,by,4,bh);
+        ctx.strokeStyle='#2e2c20';ctx.lineWidth=2;ctx.strokeRect(bx,by,bw,bh);
+        // window hints
+        if(bw>30&&bh>30){ctx.fillStyle='rgba(40,55,80,.55)';ctx.fillRect(bx+bw*.25,by+bh*.3,bw*.18,bh*.22);ctx.fillRect(bx+bw*.57,by+bh*.3,bw*.18,bh*.22);}
       } else {
         // hedge / rubble / other
         ctx.fillStyle=o.color;ctx.fillRect(o.x,o.y,o.w,o.h);ctx.strokeRect(o.x,o.y,o.w,o.h);
@@ -3688,6 +3690,19 @@ function drawTankFull(c,x,y,angle,tAngle,size,color,isPlayer,hpFrac,name,_sk,tan
     _turret(c,size,color,p,tankId);
     c.restore();
   }
+
+  // ── directional rim/spec light: one global sun brightens the lit side, shades the far side ──
+  c.save();
+  c.rotate(angle);
+  c.beginPath();c.ellipse(0,0,size*p.hl*0.95,size*p.hw*1.18,0,0,Math.PI*2);c.clip();
+  c.rotate(-angle);
+  const _lr=size*p.hl;
+  const _rimg=c.createLinearGradient(LIGHT.x*_lr,LIGHT.y*_lr,-LIGHT.x*_lr,-LIGHT.y*_lr);
+  _rimg.addColorStop(0,'rgba(255,244,214,.20)');
+  _rimg.addColorStop(.45,'rgba(255,255,255,0)');
+  _rimg.addColorStop(1,'rgba(0,8,24,.24)');
+  c.fillStyle=_rimg;c.fillRect(-_lr*1.4,-_lr*1.4,_lr*2.8,_lr*2.8);
+  c.restore();
 
   // HP bar + label (screen-space, unrotated)
   if(!isPlayer){
