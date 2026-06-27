@@ -2861,16 +2861,26 @@ function render(){
 
 
   for(const c of craters){
-    // Crater rim highlight
-    ctx.beginPath();ctx.arc(c.x,c.y,c.r*1.08,0,Math.PI*2);
-    ctx.fillStyle='rgba(60,40,20,.25)';ctx.fill();
-    // Crater pit
-    const cg=ctx.createRadialGradient(c.x-c.r*.15,c.y-c.r*.15,c.r*.05,c.x,c.y,c.r);
-    cg.addColorStop(0,'rgba(0,0,0,.75)');cg.addColorStop(0.7,'rgba(0,0,0,.5)');cg.addColorStop(1,'rgba(0,0,0,.08)');
-    ctx.beginPath();ctx.arc(c.x,c.y,c.r,0,Math.PI*2);ctx.fillStyle=cg;ctx.fill();
-    // Scorch ring
-    ctx.beginPath();ctx.arc(c.x,c.y,c.r*.6,0,Math.PI*2);
-    ctx.strokeStyle='rgba(80,40,10,.4)';ctx.lineWidth=2;ctx.stroke();
+    const cr=c.r;
+    // ejecta debris ring — deterministic from position so it's stable per crater (no flicker)
+    const seed=c.x*12.9898+c.y*78.233;
+    for(let k=0;k<10;k++){
+      let h=Math.sin(seed+k*2.4)*43758.5453; const rnd=h-Math.floor(h);
+      let h2=Math.sin(seed+k*7.1)*24634.6345; const rnd2=h2-Math.floor(h2);
+      const a=k/10*Math.PI*2+rnd*0.55, dist=cr*(1.0+rnd2*0.35);
+      const ex=c.x+Math.cos(a)*dist, ey=c.y+Math.sin(a)*dist, es=cr*(0.06+rnd2*0.12);
+      ctx.fillStyle=`rgba(22,15,9,${0.30+rnd*0.25})`;
+      ctx.beginPath();ctx.ellipse(ex,ey,es,es*0.7,a,0,Math.PI*2);ctx.fill();
+    }
+    // scorched outer halo + warm blast lip
+    ctx.beginPath();ctx.arc(c.x,c.y,cr*1.08,0,Math.PI*2);ctx.fillStyle='rgba(40,26,12,.30)';ctx.fill();
+    ctx.beginPath();ctx.arc(c.x,c.y,cr*.96,0,Math.PI*2);ctx.strokeStyle='rgba(120,60,20,.30)';ctx.lineWidth=2;ctx.stroke();
+    // dark pit, near-black at the centre
+    const cg=ctx.createRadialGradient(c.x-cr*.15,c.y-cr*.15,cr*.05,c.x,c.y,cr);
+    cg.addColorStop(0,'rgba(0,0,0,.88)');cg.addColorStop(0.55,'rgba(10,6,3,.6)');cg.addColorStop(1,'rgba(0,0,0,.06)');
+    ctx.beginPath();ctx.arc(c.x,c.y,cr,0,Math.PI*2);ctx.fillStyle=cg;ctx.fill();
+    // inner scorch ring
+    ctx.beginPath();ctx.arc(c.x,c.y,cr*.55,0,Math.PI*2);ctx.strokeStyle='rgba(70,35,8,.4)';ctx.lineWidth=1.5;ctx.stroke();
   }
   // ── TREAD MARKS: tank tracks pressed into the ground ──
   for(let ti=treadMarks.length-1;ti>=0;ti--){
@@ -3390,8 +3400,16 @@ function _drawRoads(g,m){
   const roadCol=m.gd==='sand'?'#c8a838':m.gd==='snow'?'#a8b8c8':m.gd==='rubble'||m.gd==='ash'?'#706858':'#c0a848';
   const roadEdge=m.gd==='sand'?'#a88828':m.gd==='snow'?'#889098':'#9a8030';
   g.lineCap='round';
+  // Sunken shoulder AO (wider dark stroke under the road so it reads as worn/recessed)
+  g.strokeStyle='rgba(0,0,0,.28)';g.lineWidth=54;
+  g.beginPath();g.moveTo(0,WH*.34);g.bezierCurveTo(WW*.25,WH*.32,WW*.5,WH*.38,WW*.75,WH*.35);g.bezierCurveTo(WW*.88,WH*.33,WW*.94,WH*.36,WW,WH*.35);g.stroke();
+  g.beginPath();g.moveTo(WW*.54,0);g.bezierCurveTo(WW*.52,WH*.25,WW*.56,WH*.5,WW*.53,WH*.75);g.bezierCurveTo(WW*.51,WH*.88,WW*.54,WH*.94,WW*.53,WH);g.stroke();
   // Road fill
   g.strokeStyle=roadCol;g.lineWidth=42;
+  g.beginPath();g.moveTo(0,WH*.34);g.bezierCurveTo(WW*.25,WH*.32,WW*.5,WH*.38,WW*.75,WH*.35);g.bezierCurveTo(WW*.88,WH*.33,WW*.94,WH*.36,WW,WH*.35);g.stroke();
+  g.beginPath();g.moveTo(WW*.54,0);g.bezierCurveTo(WW*.52,WH*.25,WW*.56,WH*.5,WW*.53,WH*.75);g.bezierCurveTo(WW*.51,WH*.88,WW*.54,WH*.94,WW*.53,WH);g.stroke();
+  // Lighter crown down the centre (cambered road catches the light)
+  g.strokeStyle=lc(roadCol,.06);g.lineWidth=24;
   g.beginPath();g.moveTo(0,WH*.34);g.bezierCurveTo(WW*.25,WH*.32,WW*.5,WH*.38,WW*.75,WH*.35);g.bezierCurveTo(WW*.88,WH*.33,WW*.94,WH*.36,WW,WH*.35);g.stroke();
   g.beginPath();g.moveTo(WW*.54,0);g.bezierCurveTo(WW*.52,WH*.25,WW*.56,WH*.5,WW*.53,WH*.75);g.bezierCurveTo(WW*.51,WH*.88,WW*.54,WH*.94,WW*.53,WH);g.stroke();
   // Road edges
