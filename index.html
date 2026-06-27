@@ -816,6 +816,8 @@ const TANK_DEFS = [
 
 // Tank Destroyer IDs — turret locked to hull direction
 const _tdIds=new Set(['stug3','jpz4','nashorn','jpz6','su85','su100','su122','isu122','isu152','jpanther','ferdinand','obj268','archer']);
+const _otIds=new Set(['m10','m36','achilles','borsig_wt','waffentrager','grille15','rhmborsig','su130pm']);
+const _SMOKE_COLORS=new Set(['#555','#5a4a2a','#9a8050','#b8c8d8','#443022','#777']);
 
 const MAPS = [
   {id:'stalingrad',name:'STALINGRAD',year:'1942–43',desc:'Ruined city blocks\nClose-quarters carnage',trait:'🏙 Urban — tight streets',    bg:'#5a4838',ac:'#6a5848',den:50,eb:{hp:1.0},gd:'rubble',fog:false,mud:false,factions:['soviet','german']},
@@ -1135,6 +1137,8 @@ let nukes=0,nukeFlash=0,nukeArmed=false;
 let gameMode='wave'; // 'wave' or '1v1'
 let totalAmmo,currentAmmo;
 let camX=0,camY=0;
+// Global scene light direction — points toward the sun (upper-left). Shadows throw the opposite way.
+const LIGHT={x:-0.6,y:-0.78};
 const WW=4800,WH=4800;
 
 // ════════════════════════════════════════
@@ -2891,7 +2895,7 @@ function render(){
   drawObstacles();
 
   // smoke/debris behind tanks
-  for(const p of particles)if(p.type==='smoke'||p.type==='wave'||(!p.type&&['#555','#5a4a2a','#9a8050','#b8c8d8','#443022','#777'].includes(p.color)))drawPart(p);
+  for(const p of particles)if(p.type==='smoke'||p.type==='wave'||(!p.type&&_SMOKE_COLORS.has(p.color)))drawPart(p);
 
   // ── BULLETS: physical tracer lines with glow core ──
   for(const b of bullets){
@@ -2999,7 +3003,7 @@ function render(){
   }
 
   // fire + sparks in front
-  for(const p of particles)if(p.type==='fire'||p.type==='spark'||(!p.type&&!['#555','#5a4a2a','#9a8050','#b8c8d8','#443022','#777'].includes(p.color)))drawPart(p);
+  for(const p of particles)if(p.type==='fire'||p.type==='spark'||(!p.type&&!_SMOKE_COLORS.has(p.color)))drawPart(p);
 
   ctx.restore();
   // ── Cinematic color grade (per-map, LUT-style): overlay tint then shadow crush ──
@@ -3439,17 +3443,20 @@ function drawObstacles(){
     if(o.r!==undefined){
       if(o.type==='tree'){
         const tx=o.x+o.r, ty=o.y+o.r, tr=o.r;
-        // Tiger Tank style: clean drop shadow + 3 circle layers
-        ctx.fillStyle='rgba(0,0,0,.22)';ctx.beginPath();ctx.ellipse(tx+tr*.4,ty+tr*.45,tr*.9,tr*.55,0.2,0,Math.PI*2);ctx.fill();
-        // Outer dark ring
-        ctx.fillStyle='#1a4010';ctx.beginPath();ctx.arc(tx,ty,tr,0,Math.PI*2);ctx.fill();
-        ctx.strokeStyle='#0e2808';ctx.lineWidth=2;ctx.stroke();
-        // Main bright green
-        ctx.fillStyle='#2d6b1e';ctx.beginPath();ctx.arc(tx,ty,tr*.88,0,Math.PI*2);ctx.fill();
-        // Inner lighter cluster (top-left offset for 3D feel)
-        ctx.fillStyle='#3d8b2a';ctx.beginPath();ctx.arc(tx-tr*.15,ty-tr*.18,tr*.58,0,Math.PI*2);ctx.fill();
-        // Bright highlight spot
-        ctx.fillStyle='rgba(80,168,40,.45)';ctx.beginPath();ctx.arc(tx-tr*.22,ty-tr*.28,tr*.28,0,Math.PI*2);ctx.fill();
+        // drop shadow thrown along the global light vector (down-right)
+        ctx.fillStyle='rgba(0,0,0,.30)';ctx.beginPath();ctx.ellipse(tx-LIGHT.x*tr*.75,ty-LIGHT.y*tr*.75,tr*.98,tr*.6,0,0,Math.PI*2);ctx.fill();
+        // canopy as a lit sphere — highlight toward the sun
+        const _hx=tx+LIGHT.x*tr*.4,_hy=ty+LIGHT.y*tr*.4;
+        const trg=ctx.createRadialGradient(_hx,_hy,tr*.1,tx,ty,tr);
+        trg.addColorStop(0,'#57a838');trg.addColorStop(.55,'#2d6b1e');trg.addColorStop(1,'#163a0e');
+        ctx.fillStyle=trg;ctx.beginPath();ctx.arc(tx,ty,tr,0,Math.PI*2);ctx.fill();
+        ctx.strokeStyle='#0e2808';ctx.lineWidth=1.5;ctx.stroke();
+        // clump lobes break the perfect-circle silhouette
+        ctx.fillStyle='#245e16';
+        ctx.beginPath();ctx.arc(tx-LIGHT.x*tr*.5,ty-LIGHT.y*tr*.5,tr*.42,0,Math.PI*2);ctx.fill();
+        ctx.beginPath();ctx.arc(tx+LIGHT.y*tr*.45,ty-LIGHT.x*tr*.45,tr*.3,0,Math.PI*2);ctx.fill();
+        // bright specular toward the sun
+        ctx.fillStyle='rgba(150,210,90,.5)';ctx.beginPath();ctx.arc(_hx,_hy,tr*.24,0,Math.PI*2);ctx.fill();
       } else {
         // Rock
         ctx.fillStyle=o.color;ctx.beginPath();ctx.arc(o.x+o.r,o.y+o.r,o.r,0,Math.PI*2);ctx.fill();ctx.stroke();
@@ -3642,15 +3649,19 @@ function drawTankFull(c,x,y,angle,tAngle,size,color,isPlayer,hpFrac,name,_sk,tan
 
   c.save();c.translate(x,y);
 
-  // ground shadow (offset to simulate sun from upper-left)
-  c.save();c.rotate(angle);
-  const sg=c.createRadialGradient(7,9,0,7,9,size*p.hl*.72);
-  sg.addColorStop(0,'rgba(0,0,0,.48)');sg.addColorStop(.7,'rgba(0,0,0,.22)');sg.addColorStop(1,'rgba(0,0,0,0)');
+  // ground cast shadow — thrown along the global light vector so every tank's shadow points the same way
+  c.save();
+  c.translate(-LIGHT.x*size*0.55,-LIGHT.y*size*0.55);
+  c.rotate(angle);
+  const sg=c.createRadialGradient(0,0,0,0,0,size*p.hl*.80);
+  sg.addColorStop(0,'rgba(0,0,0,.46)');sg.addColorStop(.65,'rgba(0,0,0,.22)');sg.addColorStop(1,'rgba(0,0,0,0)');
   c.fillStyle=sg;
-  c.beginPath();c.ellipse(7,9,size*p.hl*.70,size*p.hw*.58,0,0,Math.PI*2);c.fill();
-  // tighter core shadow directly under the hull for a grounded look
+  c.beginPath();c.ellipse(0,0,size*p.hl*.76,size*p.hw*.62,0,0,Math.PI*2);c.fill();
+  c.restore();
+  // tight contact AO directly under the hull for a grounded look
+  c.save();c.rotate(angle);
   c.fillStyle='rgba(0,0,0,.30)';
-  c.beginPath();c.ellipse(3,4,size*p.hl*.55,size*p.hw*.62,0,0,Math.PI*2);c.fill();
+  c.beginPath();c.ellipse(0,0,size*p.hl*.55,size*p.hw*.60,0,0,Math.PI*2);c.fill();
   c.restore();
 
   // hull + tracks (rotates with movement angle)
@@ -3660,15 +3671,13 @@ function drawTankFull(c,x,y,angle,tAngle,size,color,isPlayer,hpFrac,name,_sk,tan
   c.restore();
 
   // Tank destroyers: casemate fixed to hull (no rotating turret)
-  const _TD_IDS=new Set(['stug3','jpz4','nashorn','jpz6','su85','su100','su122','isu122','isu152','jpanther','ferdinand','obj268','archer']);
-  const _OT_IDS=new Set(['m10','m36','achilles','borsig_wt','waffentrager','grille15','rhmborsig','su130pm']);
-  const _isTD=tankId&&_TD_IDS.has(tankId);
+  const _isTD=tankId&&_tdIds.has(tankId);
   if(_isTD){
     // Fixed casemate — rotates with hull only
     c.save();c.rotate(angle);
     _casemate(c,size,color,p,tankId);
     c.restore();
-  } else if(_OT_IDS&&_OT_IDS.has(tankId)){
+  } else if(_otIds.has(tankId)){
     // Open-top rotating turret (M10, M36, Achilles, Waffenträger)
     c.save();c.rotate(tAngle);
     _openTurret(c,size,color,p,tankId);
@@ -4212,10 +4221,6 @@ function _skirts(c,size,col,p){
   const hl=size*p.hl, hw=size*p.hw, tk=hw*.28;
   const skH=tk*.6, skY=hw+tk*.7+2;
   c.fillStyle=dc(col,.22);c.globalAlpha=.85;
-  [-1,1].forEach(side=>{
-    c.fillRect(-hl*.44,side*skY-skH*.5*(side>0?-1:1)-skH*.5*(side<0?-1:1),hl*.86,skH);
-  });
-  // simpler: just two rects
   c.fillRect(-hl*.44,-skY-skH,hl*.86,skH);
   c.fillRect(-hl*.44, skY,    hl*.86,skH);
   // panel bolts
