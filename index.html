@@ -1135,6 +1135,7 @@ let bushes=[],playerInBush=false,spotTimer=0,spotted=false;
 let mortars=0,mortarProjs=[],mortarArmed=false;
 let nukes=0,nukeFlash=0,nukeArmed=false;
 let gameMode='wave'; // 'wave' or '1v1'
+let duelEnemyId=null; // chosen opponent for 1v1 PICK FOE mode
 let totalAmmo,currentAmmo;
 let camX=0,camY=0;
 // Global scene light direction — points toward the sun (upper-left). Shadows throw the opposite way.
@@ -1529,7 +1530,7 @@ function buildGarage(){
   const mgrid=document.getElementById('mode-grid-visible')||document.getElementById('mode-grid');
   if(mgrid){
     mgrid.innerHTML='';
-    const MODES=[{id:'wave',icon:'\u2694',title:'WAVE BATTLE',sub:'7v7 Endless waves. Earn coins.'},{id:'1v1',icon:'\uD83C\uDFAF',title:'1v1 DUEL',sub:'Fight your own tank. Pure skill.'},{id:'1v7',icon:'\uD83D\uDD25',title:'1v7 LAST STAND',sub:'Solo vs 7 enemies. No mercy.'},{id:'1v100',icon:'\uD83D\uDC80',title:'100v1 APOCALYPSE',sub:'You vs 100 tanks. Survive!'},{id:'1v1000',icon:'\uD83D\uDCB0',title:'1v1000 GOLD RUSH',sub:'1000 tanks · 1000🏷 per kill.'},{id:'rattewaves',icon:'\u2620\uFE0F',title:'RATTE WAVES',sub:'Endless Rattes. +10k HP per wave!'}];
+    const MODES=[{id:'wave',icon:'\u2694',title:'WAVE BATTLE',sub:'7v7 Endless waves. Earn coins.'},{id:'1v1',icon:'\uD83C\uDFAF',title:'1v1 DUEL',sub:'Fight your own tank. Pure skill.'},{id:'1v1pick',icon:'\u2694\uFE0F',title:'1v1 PICK FOE',sub:'Duel ANY tank you choose.'},{id:'1v7',icon:'\uD83D\uDD25',title:'1v7 LAST STAND',sub:'Solo vs 7 enemies. No mercy.'},{id:'1v100',icon:'\uD83D\uDC80',title:'100v1 APOCALYPSE',sub:'You vs 100 tanks. Survive!'},{id:'1v1000',icon:'\uD83D\uDCB0',title:'1v1000 GOLD RUSH',sub:'1000 tanks · 1000🏷 per kill.'},{id:'rattewaves',icon:'\u2620\uFE0F',title:'RATTE WAVES',sub:'Endless Rattes. +10k HP per wave!'}];
     MODES.forEach(function(m){
       const c=document.createElement('div');
       c.className='nav-card'+(gameMode===m.id?' selected-mode':'');
@@ -1538,6 +1539,24 @@ function buildGarage(){
       c.onclick=(function(mid){return function(){gameMode=mid;buildGarage();};})(m.id);
       mgrid.appendChild(c);
     });
+    // Opponent picker — only shown for the 1v1 PICK FOE mode
+    let dp=document.getElementById('duel-picker');
+    if(!dp){
+      dp=document.createElement('div');dp.id='duel-picker';
+      dp.style.cssText='width:100%;max-width:700px;margin:2px auto 14px;display:none;flex-direction:column;align-items:center;gap:6px;';
+      dp.innerHTML='<div style="font-family:Oswald,sans-serif;letter-spacing:2px;color:#e8843a;font-size:12px;">⚔ CHOOSE YOUR OPPONENT</div>';
+      const sel=document.createElement('select');sel.id='duel-select';
+      sel.style.cssText='background:#0c1506;color:#c8a84a;border:2px solid #3a5018;border-radius:5px;font-family:\'Share Tech Mono\',monospace;font-size:13px;padding:8px 12px;min-width:300px;cursor:pointer;';
+      TANK_DEFS.forEach(t=>{const o=document.createElement('option');o.value=t.id;o.textContent=t.name+'  ·  '+t.nation+'  ·  Tier '+t.tier;sel.appendChild(o);});
+      sel.onchange=()=>{duelEnemyId=sel.value;};
+      dp.appendChild(sel);
+      mgrid.parentNode.insertBefore(dp,mgrid.nextSibling);
+    }
+    if(gameMode==='1v1pick'){
+      if(!duelEnemyId)duelEnemyId=activeTankId;
+      const sel=document.getElementById('duel-select');if(sel)sel.value=duelEnemyId;
+      dp.style.display='flex';
+    } else { dp.style.display='none'; }
   }
     ensureValidMap();
   const availMaps=getAvailableMaps();
@@ -1573,6 +1592,7 @@ function startGame(){
   state='game';score=0;kills=0;wave=1;waveSpawning=false;gameRunning=true;_paused=false;
   // Translate the chosen game mode into the spawn battleMode
   if(gameMode==='1v1')battleMode='1v1';
+  else if(gameMode==='1v1pick')battleMode='1v1pick';
   else if(gameMode==='1v7')battleMode='1v7';
   else if(gameMode==='1v100')battleMode='1v100';
   else if(gameMode==='1v1000'){battleMode='1v1000';window.__remaining1000=1000;}
@@ -1683,6 +1703,21 @@ function spawnWave(){
       speed:0.8,rotSpeed:0.4,size:48,color:'#5a5838',name:'ratte',schurzen:false,_isRatte:true});
     waveSpawning=false;
     addKillFeed('\u2620\uFE0F WAVE '+wave+' \u2014 RATTE ('+rhp.toLocaleString()+' HP)');
+    (document.getElementById('hud-en')||{}).textContent=enemies.length;
+    return;
+  }
+  // ── 1v1 PICK FOE: duel a single tank of the player's choosing ──
+  if(battleMode==='1v1pick'){
+    const def=TANK_DEFS.find(t=>t.id===duelEnemyId)||TANK_DEFS.find(t=>t.id===activeTankId)||TANK_DEFS[0];
+    const ehp=def.id==='ratte'?80000:def.hp; // cap the otherwise-indestructible Ratte so the duel is winnable
+    const a=Math.random()*Math.PI*2,d=720;
+    const ex=Math.max(60,Math.min(WW-60,player.x+Math.cos(a)*d));
+    const ey=Math.max(60,Math.min(WH-60,player.y+Math.sin(a)*d));
+    enemies.push({x:ex,y:ey,angle:Math.random()*Math.PI*2,turretAngle:0,
+      hp:ehp,maxHp:ehp,armor:def.armor,pen:def.pen,dmg:def.dmg,
+      speed:def.speed,rotSpeed:def.rot,size:def.id==='ratte'?48:26,color:def.color,name:def.name,id:def.id,
+      _isRatte:def.id==='ratte',shootCD:120+Math.random()*90,state:'approach'});
+    waveSpawning=false;
     (document.getElementById('hud-en')||{}).textContent=enemies.length;
     return;
   }
