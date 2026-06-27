@@ -1095,6 +1095,12 @@ function playHit(pen){
     o2.frequency.setValueAtTime(620,t);o2.frequency.exponentialRampToValueAtTime(310,t+0.1);
     g2.gain.setValueAtTime(0.2,t);g2.gain.exponentialRampToValueAtTime(0.001,t+0.1);
     o2.connect(g2);g2.connect(_masterGain);o2.start(t);o2.stop(t+0.11);
+    // low impact thud so a solid hit has weight
+    const o3=_audioCtx.createOscillator();o3.type='sine';
+    const g3=_audioCtx.createGain();
+    o3.frequency.setValueAtTime(120,t);o3.frequency.exponentialRampToValueAtTime(40,t+0.12);
+    g3.gain.setValueAtTime(0.45,t);g3.gain.exponentialRampToValueAtTime(0.001,t+0.14);
+    o3.connect(g3);g3.connect(_masterGain);o3.start(t);o3.stop(t+0.15);
   } else {
     // RICOCHET: bright ringing 'tang' that pitches down (the classic spark off armor)
     const o=_audioCtx.createOscillator();o.type='triangle';
@@ -1112,6 +1118,42 @@ function playHit(pen){
     const ng=_audioCtx.createGain();ng.gain.setValueAtTime(0.25,t);ng.gain.exponentialRampToValueAtTime(0.001,t+nd);
     ns.connect(nhp);nhp.connect(ng);ng.connect(_masterGain);ns.start(t);
   }
+}
+
+// ── Continuous engine: idle drone that revs up when the tank moves ──
+let _engine=null;
+function _startEngine(){
+  if(!_soundOn){return;} _initAudio(); _resumeAudio(); if(!_audioCtx||_engine)return;
+  const t=_audioCtx.currentTime, sr=_audioCtx.sampleRate;
+  const g=_audioCtx.createGain(); g.gain.setValueAtTime(0.0001,t); g.connect(_masterGain);
+  const osc=_audioCtx.createOscillator(); osc.type='sawtooth'; osc.frequency.setValueAtTime(52,t);
+  const nb=_audioCtx.createBuffer(1,sr,sr); const nd=nb.getChannelData(0);
+  for(let i=0;i<nd.length;i++)nd[i]=(Math.random()*2-1)*0.5;
+  const noise=_audioCtx.createBufferSource(); noise.buffer=nb; noise.loop=true;
+  const lp=_audioCtx.createBiquadFilter(); lp.type='lowpass'; lp.frequency.setValueAtTime(300,t);
+  const chug=_audioCtx.createGain(); chug.gain.setValueAtTime(1,t);
+  const lfo=_audioCtx.createOscillator(); lfo.type='sine'; lfo.frequency.setValueAtTime(7,t);
+  const lfoG=_audioCtx.createGain(); lfoG.gain.setValueAtTime(0.4,t);
+  lfo.connect(lfoG); lfoG.connect(chug.gain);
+  osc.connect(lp); noise.connect(lp); lp.connect(chug); chug.connect(g);
+  osc.start(t); noise.start(t); lfo.start(t);
+  g.gain.exponentialRampToValueAtTime(0.09,t+0.45); // fade up to idle
+  _engine={g,osc,noise,lfo,lfoG,lp,chug};
+}
+function _setEngine(throttle){
+  if(!_engine||!_audioCtx)return;
+  throttle=Math.max(0,Math.min(1,throttle));
+  const t=_audioCtx.currentTime;
+  _engine.g.gain.setTargetAtTime(0.075+throttle*0.13,t,0.08);
+  _engine.osc.frequency.setTargetAtTime(50+throttle*72,t,0.10);
+  _engine.lfo.frequency.setTargetAtTime(6.5+throttle*9,t,0.12);
+  _engine.lp.frequency.setTargetAtTime(270+throttle*560,t,0.10);
+}
+function _stopEngine(){
+  if(!_engine)return; const e=_engine; _engine=null;
+  try{ const t=_audioCtx.currentTime; e.g.gain.cancelScheduledValues(t); e.g.gain.setTargetAtTime(0.0001,t,0.12);
+    setTimeout(function(){try{e.osc.stop();e.noise.stop();e.lfo.stop();e.g.disconnect();}catch(_){}}, 420);
+  }catch(_){}
 }
 
 function playGameOver(){
@@ -1659,6 +1701,7 @@ function startGame(){
   mortarProjs=[];mortarArmed=false;nukeFlash=0;nukeArmed=false;closeArtyMap();
   artyShells=[];artyTarget={x:WW/2,y:WH/2};nukeArmed=false;
   spawnWave();
+  _startEngine();
   buildAmmoRow();
   (document.getElementById('hud-tname')||{}).textContent=t.name;
   (document.getElementById('hud-tier')||{}).textContent=t.tier;
@@ -2388,6 +2431,7 @@ function updatePlayer(dt){
   if(keys['KeyA']||keys['ArrowLeft']) dx-=1;
   if(keys['KeyD']||keys['ArrowRight'])dx+=1;
   let moving=dx!==0||dy!==0;
+  { const _boost=(keys['ShiftLeft']||keys['ShiftRight'])&&!mud; _setEngine(moving?(_boost?1:0.6):0); }
   if(moving){
     const len=Math.hypot(dx,dy);
     dx/=len;dy/=len;
@@ -2488,6 +2532,7 @@ function effectiveArmor(baseArmor, bx, by, bvx, bvy, tx, ty, tAngle){
 function togglePause(){
   if(state!=='game'||!gameRunning){return;}
   _paused=!_paused;
+  if(_paused)_setEngine(0); // drop engine to idle while paused
   // clear held inputs so nothing fires on resume
   _fireHeld=false;
   if(typeof keys!=='undefined')for(const k in keys)delete keys[k];
@@ -4637,7 +4682,7 @@ function updateTeamBar(aliveAllies, aliveEnemies){
 function exitBattle(){
   closeArtyMap();
   if(reloadInt){clearInterval(reloadInt);reloadInt=null;}
-  gameRunning=false;state='over';
+  gameRunning=false;state='over';_stopEngine();
   document.body.removeAttribute('data-state');
   (document.getElementById('btn-exit-battle')||{style:{}}).style.display='none';
   (document.getElementById('over-title')||{}).textContent='RETREATED';
@@ -4650,7 +4695,7 @@ function exitBattle(){
 }
 
 function gameOver(){playGameOver();
-  gameRunning=false;state='over';
+  gameRunning=false;state='over';_stopEngine();
   (document.getElementById('btn-exit-battle')||{style:{}}).style.display='none';
   totalScore+=score;saveData();
   (document.getElementById('over-title')||{}).textContent=player.hp>0?'VICTORY':'DESTROYED';
