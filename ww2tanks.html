@@ -3078,11 +3078,14 @@ function render(){
   // ── Clean vibrant arcade grade: overlay lifts saturation+contrast, soft-light keeps it bright (no muddy crush) ──
   if(selectedMap){
     const _gd=selectedMap.gd;
-    const _tint=_gd==='snow'?'rgba(150,185,225,.12)':_gd==='sand'?'rgba(255,205,115,.12)':(_gd==='ash'||_gd==='rubble')?'rgba(175,150,120,.10)':_gd==='jungle'?'rgba(80,165,75,.13)':'rgba(150,205,95,.12)';
+    const _tint=_gd==='snow'?'rgba(150,190,230,.18)':_gd==='sand'?'rgba(255,200,100,.20)':(_gd==='ash'||_gd==='rubble')?'rgba(180,150,115,.16)':_gd==='jungle'?'rgba(75,175,70,.20)':'rgba(150,210,90,.20)';
+    // overlay (twice) really punches saturation + contrast
     ctx.globalCompositeOperation='overlay';
     ctx.fillStyle=_tint;ctx.fillRect(0,0,W,H);
+    ctx.fillStyle=_tint;ctx.fillRect(0,0,W,H);
+    // a touch of warm brightness so it stays clean, not crushed
     ctx.globalCompositeOperation='soft-light';
-    ctx.fillStyle='rgba(255,250,235,.16)';ctx.fillRect(0,0,W,H);
+    ctx.fillStyle='rgba(255,250,235,.12)';ctx.fillRect(0,0,W,H);
     ctx.globalCompositeOperation='source-over';
   }
   // Edge vignette (screen-space, after world restore)
@@ -3413,7 +3416,7 @@ function _addWorldVariation(g,m,rng){
     med:['rgba(160,130,60,.12)','rgba(120,90,30,.18)'],
   };
   const pal=palettes[gd]||palettes.field;
-  for(let i=0;i<50;i++){
+  for(let i=0;i<34;i++){
     const x=rng()*WW,y=rng()*WH,rx=80+rng()*300,ry=50+rng()*180;
     g.fillStyle=pal[Math.floor(rng()*pal.length)];
     g.beginPath();g.ellipse(x,y,rx,ry,rng()*Math.PI,0,Math.PI*2);g.fill();
@@ -3423,7 +3426,7 @@ function _addWorldVariation(g,m,rng){
   const lush=(gd==='field'||gd==='grass'||gd==='med'||gd==='jungle');
   if(lush){
     const bush=gd==='jungle'?['#14300c','#1c4010','#0e2408']:['#3a5c1a','#476e20','#2c4814'];
-    for(let i=0;i<46;i++){
+    for(let i=0;i<22;i++){
       const x=rng()*WW,y=rng()*WH,r=14+rng()*30;
       g.fillStyle='rgba(0,0,0,.22)';g.beginPath();g.ellipse(x+r*.3,y+r*.32,r*.95,r*.6,0,0,Math.PI*2);g.fill();
       for(let k=0;k<4;k++){const a=k/4*Math.PI*2;g.fillStyle=bush[k%bush.length];g.beginPath();g.arc(x+Math.cos(a)*r*.42,y+Math.sin(a)*r*.42,r*.55,0,Math.PI*2);g.fill();}
@@ -3737,10 +3740,10 @@ function drawTankFull(c,x,y,angle,tAngle,size,color,isPlayer,hpFrac,name,_sk,tan
   c.fillStyle=sg;
   c.beginPath();c.ellipse(0,0,size*p.hl*.76,size*p.hw*.62,0,0,Math.PI*2);c.fill();
   c.restore();
-  // tight contact AO directly under the hull for a grounded look
+  // tight contact AO directly under the hull for a grounded, punchy look
   c.save();c.rotate(angle);
-  c.fillStyle='rgba(0,0,0,.30)';
-  c.beginPath();c.ellipse(0,0,size*p.hl*.55,size*p.hw*.60,0,0,Math.PI*2);c.fill();
+  c.fillStyle='rgba(0,0,0,.42)';
+  c.beginPath();c.ellipse(0,0,size*p.hl*.56,size*p.hw*.62,0,0,Math.PI*2);c.fill();
   c.restore();
 
   // hull + tracks (rotates with movement angle)
@@ -4004,7 +4007,7 @@ function _hull(c,size,col,p,isPlayer,tankId){
   c.lineTo(fr*.55,    hw*.95);
   c.lineTo(re,        hw*.95);
   c.closePath();c.fill();
-  c.strokeStyle=isPlayer?'rgba(74,143,192,.9)':'rgba(0,0,0,.55)';c.lineWidth=isPlayer?1.8:1;c.stroke();
+  c.strokeStyle=isPlayer?'rgba(90,170,225,.95)':'rgba(0,0,0,.72)';c.lineWidth=isPlayer?2:1.5;c.stroke();
 
   // top surface gradient (lighter centre strip = top lighting)
   const sg=c.createLinearGradient(0,-hw,0,hw);
