@@ -3326,9 +3326,9 @@ function buildGround(){
 function _renderTile(t,S,m,rng){
   const gd=m.gd;
   if(gd==='field'||gd==='grass'){
-    // Layered green base with mottled patches for organic depth
-    const cols=['#5e8a24','#6a9828','#74a42e','#567f1e','#7aac34','#4e7518'];
-    for(let i=0;i<55;i++){const x=rng()*S,y=rng()*S,r=18+rng()*70;t.fillStyle=cols[i%cols.length];t.globalAlpha=.55+rng()*.45;t.beginPath();t.ellipse(x,y,r,r*(.55+rng()*.5),rng()*Math.PI,0,Math.PI*2);t.fill();}
+    // Clean green base — tight tonal range + smaller mottles so the field reads uniform, not blobby
+    const cols=['#5f8a26','#669228','#5b8522','#6a9a2c','#577f20','#638e26'];
+    for(let i=0;i<46;i++){const x=rng()*S,y=rng()*S,r=14+rng()*42;t.fillStyle=cols[i%cols.length];t.globalAlpha=.35+rng()*.30;t.beginPath();t.ellipse(x,y,r,r*(.6+rng()*.4),rng()*Math.PI,0,Math.PI*2);t.fill();}
     t.globalAlpha=1;
     // Soft mottled shadow patches (uneven ground)
     for(let i=0;i<22;i++){t.fillStyle=`rgba(20,40,8,${.06+rng()*.10})`;t.beginPath();t.ellipse(rng()*S,rng()*S,30+rng()*80,20+rng()*50,rng()*Math.PI,0,Math.PI*2);t.fill();}
@@ -3416,11 +3416,13 @@ function _addWorldVariation(g,m,rng){
     med:['rgba(160,130,60,.12)','rgba(120,90,30,.18)'],
   };
   const pal=palettes[gd]||palettes.field;
-  for(let i=0;i<34;i++){
-    const x=rng()*WW,y=rng()*WH,rx=80+rng()*300,ry=50+rng()*180;
+  g.globalAlpha=0.5;
+  for(let i=0;i<16;i++){
+    const x=rng()*WW,y=rng()*WH,rx=45+rng()*70,ry=30+rng()*45;
     g.fillStyle=pal[Math.floor(rng()*pal.length)];
     g.beginPath();g.ellipse(x,y,rx,ry,rng()*Math.PI,0,Math.PI*2);g.fill();
   }
+  g.globalAlpha=1;
 
   // ── Environmental decals: foliage clumps / rocks per terrain ──
   const lush=(gd==='field'||gd==='grass'||gd==='med'||gd==='jungle');
@@ -3523,20 +3525,20 @@ function drawObstacles(){
     if(o.r!==undefined){
       if(o.type==='tree'){
         const tx=o.x+o.r, ty=o.y+o.r, tr=o.r;
-        // drop shadow thrown along the global light vector (down-right)
-        ctx.fillStyle='rgba(0,0,0,.30)';ctx.beginPath();ctx.ellipse(tx-LIGHT.x*tr*.75,ty-LIGHT.y*tr*.75,tr*.98,tr*.6,0,0,Math.PI*2);ctx.fill();
-        // canopy as a lit sphere — highlight toward the sun
-        const _hx=tx+LIGHT.x*tr*.4,_hy=ty+LIGHT.y*tr*.4;
-        const trg=ctx.createRadialGradient(_hx,_hy,tr*.1,tx,ty,tr);
-        trg.addColorStop(0,'#57a838');trg.addColorStop(.55,'#2d6b1e');trg.addColorStop(1,'#163a0e');
-        ctx.fillStyle=trg;ctx.beginPath();ctx.arc(tx,ty,tr,0,Math.PI*2);ctx.fill();
-        ctx.strokeStyle='#0e2808';ctx.lineWidth=1.5;ctx.stroke();
-        // clump lobes break the perfect-circle silhouette
-        ctx.fillStyle='#245e16';
-        ctx.beginPath();ctx.arc(tx-LIGHT.x*tr*.5,ty-LIGHT.y*tr*.5,tr*.42,0,Math.PI*2);ctx.fill();
-        ctx.beginPath();ctx.arc(tx+LIGHT.y*tr*.45,ty-LIGHT.x*tr*.45,tr*.3,0,Math.PI*2);ctx.fill();
-        // bright specular toward the sun
-        ctx.fillStyle='rgba(150,210,90,.5)';ctx.beginPath();ctx.arc(_hx,_hy,tr*.24,0,Math.PI*2);ctx.fill();
+        // crisp drop shadow thrown along the light vector
+        ctx.fillStyle='rgba(0,0,0,.34)';ctx.beginPath();ctx.ellipse(tx-LIGHT.x*tr*.7,ty-LIGHT.y*tr*.7,tr*.9,tr*.56,0,0,Math.PI*2);ctx.fill();
+        // canopy — rich saturated sphere with a crisp dark rim + slight gap so trees read as distinct
+        const _hx=tx+LIGHT.x*tr*.42,_hy=ty+LIGHT.y*tr*.42;
+        const trg=ctx.createRadialGradient(_hx,_hy,tr*.08,tx,ty,tr*.94);
+        trg.addColorStop(0,'#4e9a2c');trg.addColorStop(.5,'#236619');trg.addColorStop(1,'#0f3009');
+        ctx.fillStyle=trg;ctx.beginPath();ctx.arc(tx,ty,tr*.94,0,Math.PI*2);ctx.fill();
+        ctx.strokeStyle='#0a2206';ctx.lineWidth=2;ctx.stroke();
+        // darker leafy clump lobes
+        ctx.fillStyle='#1c5011';
+        ctx.beginPath();ctx.arc(tx-LIGHT.x*tr*.46,ty-LIGHT.y*tr*.46,tr*.34,0,Math.PI*2);ctx.fill();
+        ctx.beginPath();ctx.arc(tx+LIGHT.y*tr*.42,ty-LIGHT.x*tr*.42,tr*.24,0,Math.PI*2);ctx.fill();
+        // crisp sun specular
+        ctx.fillStyle='rgba(175,228,115,.55)';ctx.beginPath();ctx.arc(_hx,_hy,tr*.19,0,Math.PI*2);ctx.fill();
       } else {
         // Rock
         ctx.fillStyle=o.color;ctx.beginPath();ctx.arc(o.x+o.r,o.y+o.r,o.r,0,Math.PI*2);ctx.fill();ctx.stroke();
@@ -4017,9 +4019,9 @@ function _hull(c,size,col,p,isPlayer,tankId){
   c.moveTo(re+2,    -hw*.7);c.lineTo(fr*.5,-hw*.7);c.lineTo(fr*.78,-hw*.5);
   c.lineTo(fr*.78,   hw*.5);c.lineTo(fr*.5, hw*.7);c.lineTo(re+2,  hw*.7);
   c.closePath();c.fill();
-  // specular sheen band along the upper hull (sun-catch) for a metal-plate feel
+  // specular sheen band along the upper hull (sun-catch) for a glossy metal-plate feel
   const spg=c.createLinearGradient(0,-hw*.7,0,-hw*.05);
-  spg.addColorStop(0,'rgba(255,255,255,.16)');spg.addColorStop(1,'rgba(255,255,255,0)');
+  spg.addColorStop(0,'rgba(255,255,255,.28)');spg.addColorStop(1,'rgba(255,255,255,0)');
   c.fillStyle=spg;
   c.beginPath();c.moveTo(re+hl*.1,-hw*.66);c.lineTo(fr*.62,-hw*.66);c.lineTo(fr*.7,-hw*.3);c.lineTo(re+hl*.1,-hw*.3);c.closePath();c.fill();
 
@@ -4262,7 +4264,7 @@ function _turret(c,size,col,p,tankId){
     c.strokeStyle='rgba(0,0,0,.45)';c.lineWidth=1;c.stroke();
     // metallic gloss highlight
     const tgl=c.createLinearGradient(-rx*.3,-ry*.5,rx*.2,ry*.3);
-    tgl.addColorStop(0,'rgba(255,255,255,.14)');tgl.addColorStop(.5,'rgba(255,255,255,.05)');tgl.addColorStop(1,'rgba(0,0,0,.08)');
+    tgl.addColorStop(0,'rgba(255,255,255,.24)');tgl.addColorStop(.5,'rgba(255,255,255,.08)');tgl.addColorStop(1,'rgba(0,0,0,.12)');
     c.fillStyle=tgl;
     c.beginPath();c.ellipse(-rx*.05,-ry*.15,rx*.55,ry*.42,-.3,0,Math.PI*2);c.fill();
     // ring of bolts around the turret rim
