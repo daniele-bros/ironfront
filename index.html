@@ -1865,7 +1865,6 @@ function setupInput(){
 }
 
 function tryShoot(){
-  if(player.id==='ratte'){currentAmmo=Math.max(currentAmmo,40);}
   // FV4005 machine-gun: bypass reload, use fast frame cooldown
   if(player.id==='fv4005'){
     if(_mgCooldown>0||currentAmmo<=0||state!=='game')return;
@@ -1895,30 +1894,21 @@ function tryShoot(){
   // Shooting reveals player from bush
   if(playerInBush){spotted=true;spotTimer=240;} // 4 seconds spotted
   canShoot=false;
-  if(player.id!=='ratte'){currentAmmo--;updateAmmoRow();}
+  currentAmmo--;updateAmmoRow();
 
-  const isRatte=player.id==='ratte';
-  const isHydra=false;
-  const burst=isRatte?2:(['pz1','mkvi','type94']).includes(player.id)?6:(['pz2','m3stuart','m5stuart','amx13']).includes(player.id)?4:(['tvp']).includes(player.id)?3:1;
-  const burstDelay=isRatte?400:80;
+  const burst=(['pz1','mkvi','type94']).includes(player.id)?6:(['pz2','m3stuart','m5stuart','amx13']).includes(player.id)?4:(['tvp']).includes(player.id)?3:1;
+  const burstDelay=80;
 
   for(let i=0;i<burst;i++){
     setTimeout(()=>{
-      if(!gameRunning)return;
+      if(!gameRunning||state!=='game'||!player)return;
       const angle=_tdIds&&_tdIds.has(player.id)?player.angle:player.turretAngle; // casemate=hull, others=turret
-      let spread;
-      if(isRatte){
-        // Ratte twin barrels: shot 0 goes slightly left, shot 1 slightly right
-        spread=i===0?-0.025:0.025;
-      } else {
-        spread=(burst>1?(i-(burst-1)/2)*0.04:0);
-      }
-      const speed=isRatte?18:14;
+      const spread=(burst>1?(i-(burst-1)/2)*0.04:0);
+      const speed=14;
       bullets.push({x:player.x+Math.cos(angle)*player.size,y:player.y+Math.sin(angle)*player.size,
         vx:Math.cos(angle+spread)*speed,vy:Math.sin(angle+spread)*speed,
         owner:'player',dmg:player.dmg,pen:player.pen,life:140,trail:[],fullDmg:player.id==='fv4005'});
       spawnMuzzle(player.x,player.y,angle+spread);
-      if(isRatte) camShake=Math.max(camShake,12); // Ratte: massive shake
     },i*burstDelay);
   }
 
@@ -2312,7 +2302,6 @@ function update(dt){
 }
 
 function updatePlayer(dt){
-  if(player&&player.id==='ratte'&&battleMode!=='rattewaves'){player.hp=999999999;player.armor=99999;}
   if(!selectedMap)return;
   const mud=selectedMap.mud;
   const spd=player.moveSpeed*(mud?0.55:1)*((keys['ShiftLeft']||keys['ShiftRight'])&&!mud?1.6:1);
@@ -2910,7 +2899,7 @@ function render(){
   // ── BULLETS: physical tracer lines with glow core ──
   for(const b of bullets){
     const isP=b.owner==='player',isA=b.owner==='ally';
-    const isH=isP&&player.id==='ratte';
+    const isH=false;
     // Colors per faction
     const coreCol = isH?'#ff8800':isP?'#ffffff':isA?'#aaffaa':'#ff4400';
     const glowCol  = isH?'rgba(255,120,0,.95)':isP?'rgba(255,230,60,.95)':isA?'rgba(60,255,100,.7)':'rgba(255,50,0,.85)';
@@ -4490,11 +4479,9 @@ function updateCoinsHud(){(document.getElementById('coins-hud')||{}).textContent
 function buildAmmoRow(){
   const atxt=document.getElementById('ammo-text');
   if(atxt&&player){
-    if(player.id==='ratte')atxt.textContent='∞';
-    else atxt.textContent=currentAmmo+' / '+totalAmmo;
+    atxt.textContent=currentAmmo+' / '+totalAmmo;
   }
   const r=document.getElementById('ammo-row');r.innerHTML='';
-  if(player&&player.id==='ratte'){return;}
   if(totalAmmo>=9999){
     r.innerHTML='<span style="font-family:Oswald,sans-serif;font-size:22px;color:#ff5500;letter-spacing:4px;text-shadow:0 0 12px rgba(255,85,0,.6)">∞ UNLIMITED</span>';
     return;
