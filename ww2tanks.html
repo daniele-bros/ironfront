@@ -2944,6 +2944,8 @@ function spawnMuzzle(x,y,a){playShoot();
   // Bright double flash ring
   particles.push({type:'wave',x:mx,y:my,r:2,maxR:34,life:9,maxLife:9,alpha:1,vx:0,vy:0,color:'rgba(255,240,150,.95)'});
   particles.push({type:'wave',x:mx,y:my,r:1,maxR:18,life:6,maxLife:6,alpha:1,vx:0,vy:0,color:'rgba(255,255,255,.9)'});
+  // Punchy white-hot core flash (additive fire) for a crisp muzzle bloom
+  particles.push({type:'fire',x:mx,y:my,vx:Math.cos(a)*2,vy:Math.sin(a)*2,life:5,maxLife:5,alpha:1,r:15,color:'#fff7d0'});
   // Directional muzzle-flash cone (fire shooting forward)
   for(let i=0;i<16;i++){
     const aa=a+(Math.random()-.5)*.55,s=5+Math.random()*9;
@@ -3418,9 +3420,9 @@ function _renderTile(t,S,m,rng){
     // Scattered small pebbles
     for(let i=0;i<40;i++){const x=rng()*S,y=rng()*S,r=.8+rng()*1.6;t.fillStyle=`rgba(110,100,90,${.3+rng()*.2})`;t.beginPath();t.arc(x,y,r,0,Math.PI*2);t.fill();t.fillStyle='rgba(0,0,0,.15)';t.beginPath();t.arc(x+r*.4,y+r*.4,r*.5,0,Math.PI*2);t.fill();}
   } else if(gd==='sand'){
-    // Desert: warm sandy base with dune shading
-    const cols=['#c8a848','#d0b050','#b89838','#c0a040','#d6b85a','#ad8f34'];
-    for(let i=0;i<50;i++){t.fillStyle=cols[i%cols.length];t.globalAlpha=.6+rng()*.4;t.beginPath();t.ellipse(rng()*S,rng()*S,20+rng()*95,8+rng()*42,rng()*Math.PI,0,Math.PI*2);t.fill();}
+    // Desert: clean warm sand — tight tonal range + smaller mottles
+    const cols=['#cbab4d','#c3a345','#d0b052','#bd9c3e','#c7a749','#d4b75a'];
+    for(let i=0;i<44;i++){t.fillStyle=cols[i%cols.length];t.globalAlpha=.35+rng()*.30;t.beginPath();t.ellipse(rng()*S,rng()*S,16+rng()*44,8+rng()*26,rng()*Math.PI,0,Math.PI*2);t.fill();}
     t.globalAlpha=1;
     // Soft dune shadow bands
     for(let i=0;i<16;i++){t.fillStyle=`rgba(120,90,30,${.07+rng()*.08})`;t.beginPath();t.ellipse(rng()*S,rng()*S,50+rng()*90,16+rng()*30,rng()*Math.PI,0,Math.PI*2);t.fill();}
@@ -3435,9 +3437,9 @@ function _renderTile(t,S,m,rng){
     // Small rocks
     for(let i=0;i<24;i++){const x=rng()*S,y=rng()*S,r=1.5+rng()*3;t.fillStyle=`rgba(150,125,80,${.4})`;t.beginPath();t.arc(x,y,r,0,Math.PI*2);t.fill();t.fillStyle='rgba(0,0,0,.18)';t.beginPath();t.arc(x+r*.4,y+r*.4,r*.55,0,Math.PI*2);t.fill();}
   } else if(gd==='snow'){
-    // Snow: clean white-blue with drift shading and sparkle
-    const cols=['#c8d8e8','#d8e8f0','#b8c8d8','#e0eef8','#cfe0ee','#aebfd2'];
-    for(let i=0;i<50;i++){t.fillStyle=cols[i%cols.length];t.globalAlpha=.6+rng()*.4;t.beginPath();t.ellipse(rng()*S,rng()*S,25+rng()*100,12+rng()*52,rng()*Math.PI,0,Math.PI*2);t.fill();}
+    // Snow: clean white-blue — tight tonal range + smaller mottles
+    const cols=['#cfdeec','#d8e6f0','#c6d6e6','#dce9f3','#cad9e8','#bfd0e2'];
+    for(let i=0;i<44;i++){t.fillStyle=cols[i%cols.length];t.globalAlpha=.35+rng()*.30;t.beginPath();t.ellipse(rng()*S,rng()*S,16+rng()*46,10+rng()*28,rng()*Math.PI,0,Math.PI*2);t.fill();}
     t.globalAlpha=1;
     // Blue drift shadows
     for(let i=0;i<18;i++){t.fillStyle=`rgba(90,120,165,${.06+rng()*.09})`;t.beginPath();t.ellipse(rng()*S,rng()*S,40+rng()*90,16+rng()*36,rng()*Math.PI,0,Math.PI*2);t.fill();}
