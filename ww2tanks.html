@@ -2706,7 +2706,8 @@ function updateEnemies(dt){
       particles.push({type:'smoke',x:e.x+(Math.random()-.5)*e.size,y:e.y+(Math.random()-.5)*e.size,vx:(Math.random()-.5)*.5,vy:-0.6-Math.random(),life:25+Math.random()*15,maxLife:40,alpha:1,r:5+Math.random()*8,color:er<0.25?'#cc3300':'#444'});
     e.shootCD-=dt;
     if(e.shootCD<=0&&dist<420&&!playerHidden&&selectedMap){
-      e.shootCD=120+Math.random()*100;
+      // enemies reload at the same rate as the player (small jitter to avoid robotic sync)
+      e.shootCD=(player&&player.reloadTime?player.reloadTime:140)+Math.random()*20;
       const sp=dist>350?0.25:0.12,sa=ta+(Math.random()-.5)*sp;
       bullets.push({x:e.x+Math.cos(sa)*e.size,y:e.y+Math.sin(sa)*e.size,vx:Math.cos(sa)*9,vy:Math.sin(sa)*9,owner:'enemy',dmg:e.dmg,pen:e.pen,life:140,trail:[]});
     }
