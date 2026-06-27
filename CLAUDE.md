@@ -7,8 +7,9 @@ file. No build step, no dependencies — open the file in a browser to play.
 ## Branching — work off `main`
 
 - **Develop directly on `main`.** Commit and push changes to `main`; keep it
-  up to date as the single source of truth. Do not spin up long-lived feature
-  branches unless explicitly asked.
+  up to date as the single source of truth.
+- **No pull requests.** Do not create PRs and do not suggest creating them.
+  Do not spin up feature branches. Work only on `main`.
 - `git push -u origin main` after committing.
 - `main` is the deploy branch — GitHub Pages serves from it, so anything pushed
   to `main` goes live.
