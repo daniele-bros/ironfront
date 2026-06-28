@@ -1085,6 +1085,53 @@ function playExplosion(){
   s2.connect(bp);bp.connect(g2);g2.connect(_masterGain);if(_reverb)g2.connect(_reverb);s2.start(t+0.05);
 }
 
+// Air-raid siren when a nuke is launched (wailing two-tone)
+function playNukeAlarm(){
+  if(!_soundOn)return; _initAudio(); _resumeAudio(); if(!_audioCtx)return;
+  const t=_audioCtx.currentTime, dur=1.9;
+  const g=_audioCtx.createGain();
+  g.gain.setValueAtTime(0.0001,t);
+  g.gain.exponentialRampToValueAtTime(0.30,t+0.15);
+  g.gain.setValueAtTime(0.30,t+dur-0.35);
+  g.gain.exponentialRampToValueAtTime(0.001,t+dur);
+  const lp=_audioCtx.createBiquadFilter();lp.type='lowpass';lp.frequency.value=1700;
+  lp.connect(g);g.connect(_masterGain);if(_reverb)g.connect(_reverb);
+  [0,1.6].forEach(function(det){
+    const o=_audioCtx.createOscillator();o.type='sawtooth';const base=430+det;
+    o.frequency.setValueAtTime(base,t);
+    o.frequency.linearRampToValueAtTime(810,t+0.48);
+    o.frequency.linearRampToValueAtTime(base,t+0.95);
+    o.frequency.linearRampToValueAtTime(810,t+1.43);
+    o.frequency.linearRampToValueAtTime(base,t+dur);
+    o.connect(lp);o.start(t);o.stop(t+dur);
+  });
+}
+
+// Massive nuclear detonation — sharp flash crack, colossal sub boom, long roaring shockwave + reverb
+function playNukeBlast(){
+  if(!_soundOn)return; _initAudio(); _resumeAudio(); if(!_audioCtx)return;
+  const t=_audioCtx.currentTime, sr=_audioCtx.sampleRate, rev=_reverb;
+  // 1: sharp initial flash crack
+  const cd2=0.09, cb=_audioCtx.createBuffer(1,Math.floor(sr*cd2),sr), c=cb.getChannelData(0);
+  for(let i=0;i<c.length;i++)c[i]=(Math.random()*2-1)*Math.pow(1-i/c.length,0.5);
+  const cs=_audioCtx.createBufferSource();cs.buffer=cb;
+  const chp=_audioCtx.createBiquadFilter();chp.type='highpass';chp.frequency.value=700;
+  const cg=_audioCtx.createGain();cg.gain.setValueAtTime(0.65,t);cg.gain.exponentialRampToValueAtTime(0.001,t+cd2);
+  cs.connect(chp);chp.connect(cg);cg.connect(_masterGain);cs.start(t);
+  // 2: enormous deep sub boom that drops very low over ~2.5s
+  const o=_audioCtx.createOscillator();o.type='sine';const og=_audioCtx.createGain();
+  o.frequency.setValueAtTime(95,t);o.frequency.exponentialRampToValueAtTime(16,t+2.5);
+  og.gain.setValueAtTime(0.0001,t);og.gain.exponentialRampToValueAtTime(0.8,t+0.05);og.gain.exponentialRampToValueAtTime(0.001,t+2.7);
+  o.connect(og);og.connect(_masterGain);if(rev)og.connect(rev);o.start(t);o.stop(t+2.8);
+  // 3: huge roaring shockwave — long noise sweeping from bright to deep rumble
+  const d=3.2, nb=_audioCtx.createBuffer(1,Math.floor(sr*d),sr), nd=nb.getChannelData(0);
+  for(let i=0;i<nd.length;i++)nd[i]=(Math.random()*2-1)*Math.pow(1-i/nd.length,0.7);
+  const ns=_audioCtx.createBufferSource();ns.buffer=nb;
+  const lp=_audioCtx.createBiquadFilter();lp.type='lowpass';lp.frequency.setValueAtTime(2000,t);lp.frequency.exponentialRampToValueAtTime(100,t+d);
+  const ng=_audioCtx.createGain();ng.gain.setValueAtTime(0.0001,t);ng.gain.exponentialRampToValueAtTime(0.8,t+0.1);ng.gain.exponentialRampToValueAtTime(0.001,t+d);
+  ns.connect(lp);lp.connect(ng);ng.connect(_masterGain);if(rev)ng.connect(rev);ns.start(t);
+}
+
 function playHit(pen){
   if(!_soundOn)return; _initAudio(); _resumeAudio(); if(!_audioCtx)return;
   if(!_throttle('hit',35))return;
@@ -2365,8 +2412,10 @@ function launchNuke(){
   nukeFlash=90; // frames of flash effect
   camShake=Math.max(camShake,30);
   addKillFeed('☢ NUCLEAR STRIKE INCOMING!');
-  // Delay the kill — let the flash build first
+  playNukeAlarm(); // wailing air-raid siren on launch
+  // Delay the kill — let the flash + siren build first
   setTimeout(()=>{
+    playNukeBlast(); // the bomb goes off
     let killed=0;
     for(const e of enemies){
       if(e.hp<=0)continue;
