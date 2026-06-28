@@ -1799,7 +1799,7 @@ function spawnWave(){
     const ry=Math.max(120,Math.min(WH-120,player.y+Math.sin(a)*d));
     enemies.push({x:rx,y:ry,angle:Math.PI,turretAngle:Math.PI,
       hp:rhp,maxHp:rhp,armor:200,pen:1200,dmg:1800,
-      speed:0.8,rotSpeed:0.4,size:48,color:'#5a5838',name:'ratte',schurzen:false,_isRatte:true});
+      speed:0.8,rotSpeed:0.4,size:48,color:'#5a5838',name:'ratte',schurzen:false,_isRatte:true,reload:2.5});
     waveSpawning=false;
     addKillFeed('\u2620\uFE0F WAVE '+wave+' \u2014 RATTE ('+rhp.toLocaleString()+' HP)');
     (document.getElementById('hud-en')||{}).textContent=enemies.length;
