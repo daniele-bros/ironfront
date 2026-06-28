@@ -1085,25 +1085,31 @@ function playExplosion(){
   s2.connect(bp);bp.connect(g2);g2.connect(_masterGain);if(_reverb)g2.connect(_reverb);s2.start(t+0.05);
 }
 
-// Air-raid siren when a nuke is launched (wailing two-tone)
+// Realistic mechanical air-raid siren on nuke launch: a rich dual-tone chord
+// (fundamental + a perfect fifth, each doubled & detuned to beat) that wails up
+// SLOWLY as the motor spins up, then holds — no fast cartoon warble.
 function playNukeAlarm(){
   if(!_soundOn)return; _initAudio(); _resumeAudio(); if(!_audioCtx)return;
-  const t=_audioCtx.currentTime, dur=1.9;
+  const t=_audioCtx.currentTime, dur=2.8;
   const g=_audioCtx.createGain();
   g.gain.setValueAtTime(0.0001,t);
-  g.gain.exponentialRampToValueAtTime(0.30,t+0.15);
-  g.gain.setValueAtTime(0.30,t+dur-0.35);
-  g.gain.exponentialRampToValueAtTime(0.001,t+dur);
-  const lp=_audioCtx.createBiquadFilter();lp.type='lowpass';lp.frequency.value=1700;
+  g.gain.exponentialRampToValueAtTime(0.24,t+0.45);  // slow swell as it winds up
+  g.gain.setValueAtTime(0.24,t+dur-0.6);
+  g.gain.exponentialRampToValueAtTime(0.001,t+dur);  // wind-down tail
+  // moderate lowpass: tame harshness but keep the piercing harmonics of the rotor
+  const lp=_audioCtx.createBiquadFilter();lp.type='lowpass';lp.frequency.value=2800;lp.Q.value=0.5;
   lp.connect(g);g.connect(_masterGain);if(_reverb)g.connect(_reverb);
-  [0,1.6].forEach(function(det){
-    const o=_audioCtx.createOscillator();o.type='sawtooth';const base=430+det;
-    o.frequency.setValueAtTime(base,t);
-    o.frequency.linearRampToValueAtTime(810,t+0.48);
-    o.frequency.linearRampToValueAtTime(base,t+0.95);
-    o.frequency.linearRampToValueAtTime(810,t+1.43);
-    o.frequency.linearRampToValueAtTime(base,t+dur);
-    o.connect(lp);o.start(t);o.stop(t+dur);
+  // four sawtooth voices: fundamental + a fifth (1.5x), each doubled with a few cents
+  // of detune so they beat like a real multi-port siren
+  const voices=[{mult:1.0,det:-5},{mult:1.0,det:6},{mult:1.5,det:-4},{mult:1.5,det:5}];
+  voices.forEach(function(v){
+    const o=_audioCtx.createOscillator();o.type='sawtooth';o.detune.value=v.det;
+    const f0=290*v.mult, f1=540*v.mult;
+    o.frequency.setValueAtTime(f0,t);
+    o.frequency.linearRampToValueAtTime(f1,t+1.6); // SLOW spin-up over 1.6s
+    o.frequency.setValueAtTime(f1,t+dur);          // then hold steady at full
+    const vg=_audioCtx.createGain();vg.gain.value=v.mult>1?0.6:1.0; // fifth a touch quieter
+    o.connect(vg);vg.connect(lp);o.start(t);o.stop(t+dur);
   });
 }
 
@@ -2429,7 +2435,7 @@ function launchNuke(){
       craters.push({x:camX+Math.random()*W,y:camY+Math.random()*H,r:30+Math.random()*50});
     }
     if(killed>0)addKillFeed('☢ '+killed+' destroyed by nuclear strike!');
-  },800);
+  },1500);
   saveData();
 }
 
