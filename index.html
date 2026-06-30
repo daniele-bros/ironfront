@@ -3225,9 +3225,8 @@ function render(){
   if(selectedMap){
     const _gd=selectedMap.gd;
     const _tint=_gd==='snow'?'rgba(150,190,230,.18)':_gd==='sand'?'rgba(255,200,100,.20)':(_gd==='ash'||_gd==='rubble')?'rgba(180,150,115,.16)':_gd==='jungle'?'rgba(75,175,70,.20)':'rgba(150,210,90,.20)';
-    // overlay (twice) really punches saturation + contrast
+    // single overlay for vibrancy without amplifying terrain mottling into blobs
     ctx.globalCompositeOperation='overlay';
-    ctx.fillStyle=_tint;ctx.fillRect(0,0,W,H);
     ctx.fillStyle=_tint;ctx.fillRect(0,0,W,H);
     // a touch of warm brightness so it stays clean, not crushed
     ctx.globalCompositeOperation='soft-light';
@@ -3473,11 +3472,11 @@ function _renderTile(t,S,m,rng){
   const gd=m.gd;
   if(gd==='field'||gd==='grass'){
     // Clean green base — tight tonal range + smaller mottles so the field reads uniform, not blobby
-    const cols=['#5f8a26','#669228','#5b8522','#6a9a2c','#577f20','#638e26'];
-    for(let i=0;i<46;i++){const x=rng()*S,y=rng()*S,r=14+rng()*42;t.fillStyle=cols[i%cols.length];t.globalAlpha=.35+rng()*.30;t.beginPath();t.ellipse(x,y,r,r*(.6+rng()*.4),rng()*Math.PI,0,Math.PI*2);t.fill();}
+    const cols=['#608c26','#5c8723','#649128','#5a8522','#628e25','#5e8924'];
+    for(let i=0;i<54;i++){const x=rng()*S,y=rng()*S,r=9+rng()*22;t.fillStyle=cols[i%cols.length];t.globalAlpha=.22+rng()*.22;t.beginPath();t.ellipse(x,y,r,r*(.7+rng()*.3),rng()*Math.PI,0,Math.PI*2);t.fill();}
     t.globalAlpha=1;
-    // Soft mottled shadow patches (uneven ground)
-    for(let i=0;i<22;i++){t.fillStyle=`rgba(20,40,8,${.06+rng()*.10})`;t.beginPath();t.ellipse(rng()*S,rng()*S,30+rng()*80,20+rng()*50,rng()*Math.PI,0,Math.PI*2);t.fill();}
+    // Subtle small shadow speckle (uneven ground) — small + faint so it doesn't blob
+    for(let i=0;i<16;i++){t.fillStyle=`rgba(22,42,10,${.04+rng()*.06})`;t.beginPath();t.ellipse(rng()*S,rng()*S,14+rng()*30,10+rng()*20,rng()*Math.PI,0,Math.PI*2);t.fill();}
     // Directional grass blades (short strokes, sun from upper-left)
     for(let i=0;i<340;i++){
       const x=rng()*S,y=rng()*S,len=2+rng()*4,ang=-0.5+rng()*1.0;
