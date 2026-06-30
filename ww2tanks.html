@@ -4520,16 +4520,14 @@ function drawPart(p){
   }
 
   if(p.type==='smoke'){
-    // Volumetric-style smoke: multiple radial gradients, rotated
+    // Soft, clean smoke puff — gentle radial falloff, lighter so it doesn't read as a flat grey blob
     ctx.save();
     const age=1-lifeRatio;
-    const opacity=lifeRatio*0.6;
-    ctx.globalAlpha=opacity;
-    // Smoke darkens as it ages
-    const v=Math.floor(90+age*(-50));
-    const sg=ctx.createRadialGradient(p.x,p.y,p.r*.1,p.x,p.y,p.r);
-    sg.addColorStop(0,`rgba(${v+30},${v+28},${v+20},.75)`);
-    sg.addColorStop(.5,`rgba(${v},${v-5},${v-12},.4)`);
+    ctx.globalAlpha=lifeRatio*0.5;
+    const v=Math.floor(112+age*(-46)); // ages 112 -> 66
+    const sg=ctx.createRadialGradient(p.x,p.y,p.r*.04,p.x,p.y,p.r);
+    sg.addColorStop(0,`rgba(${v+24},${v+22},${v+17},.52)`);
+    sg.addColorStop(.42,`rgba(${v},${v-4},${v-10},.28)`);
     sg.addColorStop(1,'rgba(0,0,0,0)');
     ctx.fillStyle=sg;
     ctx.beginPath();ctx.arc(p.x,p.y,p.r,0,Math.PI*2);ctx.fill();
