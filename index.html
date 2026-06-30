@@ -3471,60 +3471,48 @@ function buildGround(){
 function _renderTile(t,S,m,rng){
   const gd=m.gd;
   if(gd==='field'||gd==='grass'){
-    // Clean green base — tight tonal range + smaller mottles so the field reads uniform, not blobby
-    const cols=['#608c26','#5c8723','#649128','#5a8522','#628e25','#5e8924'];
-    for(let i=0;i<54;i++){const x=rng()*S,y=rng()*S,r=9+rng()*22;t.fillStyle=cols[i%cols.length];t.globalAlpha=.22+rng()*.22;t.beginPath();t.ellipse(x,y,r,r*(.7+rng()*.3),rng()*Math.PI,0,Math.PI*2);t.fill();}
-    t.globalAlpha=1;
-    // Subtle small shadow speckle (uneven ground) — small + faint so it doesn't blob
-    for(let i=0;i<16;i++){t.fillStyle=`rgba(22,42,10,${.04+rng()*.06})`;t.beginPath();t.ellipse(rng()*S,rng()*S,14+rng()*30,10+rng()*20,rng()*Math.PI,0,Math.PI*2);t.fill();}
-    // Directional grass blades (short strokes, sun from upper-left)
-    for(let i=0;i<340;i++){
-      const x=rng()*S,y=rng()*S,len=2+rng()*4,ang=-0.5+rng()*1.0;
-      const shade=rng();
-      t.strokeStyle=shade<.5?`rgba(${90+rng()*40|0},${140+rng()*45|0},${30+rng()*25|0},${.35+rng()*.3})`:`rgba(${50+rng()*30|0},${85+rng()*30|0},${15+rng()*20|0},${.3+rng()*.3})`;
-      t.lineWidth=.8+rng()*.7;
-      t.beginPath();t.moveTo(x,y);t.lineTo(x+Math.sin(ang)*len,y-Math.cos(ang)*len);t.stroke();
-    }
-    // Tiny bright highlight tips (catch the light)
-    for(let i=0;i<90;i++){const x=rng()*S,y=rng()*S;t.fillStyle=`rgba(150,200,70,${.22+rng()*.28})`;t.beginPath();t.arc(x,y,.8+rng()*1.4,0,Math.PI*2);t.fill();}
-    // Worn dirt spots with darker rims
-    for(let i=0;i<14;i++){
-      const x=rng()*S,y=rng()*S,r=10+rng()*32;
-      t.fillStyle=`rgba(120,92,42,${.20+rng()*.16})`;t.beginPath();t.ellipse(x,y,r,r*.62,rng()*Math.PI,0,Math.PI*2);t.fill();
-      t.fillStyle=`rgba(80,60,28,${.12})`;t.beginPath();t.ellipse(x,y,r*.6,r*.4,rng()*Math.PI,0,Math.PI*2);t.fill();
-    }
-    // Scattered small pebbles
-    for(let i=0;i<40;i++){const x=rng()*S,y=rng()*S,r=.8+rng()*1.6;t.fillStyle=`rgba(110,100,90,${.3+rng()*.2})`;t.beginPath();t.arc(x,y,r,0,Math.PI*2);t.fill();t.fillStyle='rgba(0,0,0,.15)';t.beginPath();t.arc(x+r*.4,y+r*.4,r*.5,0,Math.PI*2);t.fill();}
+    // CLEAN uniform grass (Tiger Tank style): solid base + fine even grain, no big blobs.
+    t.fillStyle='#5f8d27';t.fillRect(0,0,S,S);
+    // fine grain speckle — tiny low-contrast flecks; detailed but uniform & seamless when tiled
+    for(let i=0;i<1600;i++){const x=rng()*S,y=rng()*S;
+      t.fillStyle=rng()<.5?`rgba(112,152,56,${.05+rng()*.09})`:`rgba(58,93,27,${.05+rng()*.09})`;
+      t.fillRect(x,y,1,1);}
+    // sparse short grass blades — low contrast, evenly scattered
+    for(let i=0;i<240;i++){const x=rng()*S,y=rng()*S,len=2+rng()*3,ang=-0.4+rng()*0.8;
+      t.strokeStyle=`rgba(${82+rng()*42|0},${132+rng()*38|0},${36+rng()*24|0},${.16+rng()*.16})`;
+      t.lineWidth=.8;t.beginPath();t.moveTo(x,y);t.lineTo(x+Math.sin(ang)*len,y-Math.cos(ang)*len);t.stroke();}
+    // faint highlight tips catching the light
+    for(let i=0;i<70;i++){const x=rng()*S,y=rng()*S;t.fillStyle=`rgba(162,206,82,${.13+rng()*.15})`;t.beginPath();t.arc(x,y,.7+rng()*1,0,Math.PI*2);t.fill();}
+    // occasional tiny pebble
+    for(let i=0;i<20;i++){const x=rng()*S,y=rng()*S,r=.8+rng()*1.3;t.fillStyle='rgba(108,98,88,.26)';t.beginPath();t.arc(x,y,r,0,Math.PI*2);t.fill();}
   } else if(gd==='sand'){
-    // Desert: clean warm sand — tight tonal range + smaller mottles
-    const cols=['#cbab4d','#c3a345','#d0b052','#bd9c3e','#c7a749','#d4b75a'];
-    for(let i=0;i<44;i++){t.fillStyle=cols[i%cols.length];t.globalAlpha=.35+rng()*.30;t.beginPath();t.ellipse(rng()*S,rng()*S,16+rng()*44,8+rng()*26,rng()*Math.PI,0,Math.PI*2);t.fill();}
-    t.globalAlpha=1;
-    // Soft dune shadow bands
-    for(let i=0;i<16;i++){t.fillStyle=`rgba(120,90,30,${.07+rng()*.08})`;t.beginPath();t.ellipse(rng()*S,rng()*S,50+rng()*90,16+rng()*30,rng()*Math.PI,0,Math.PI*2);t.fill();}
-    // Wind ripples (paired light/dark for relief)
-    t.lineWidth=1.2;
-    for(let i=0;i<26;i++){const y=rng()*S,freq=.01+rng()*.015,amp=4+rng()*7;
-      t.strokeStyle=`rgba(210,180,90,${.14+rng()*.1})`;t.beginPath();t.moveTo(0,y);for(let x=0;x<S;x+=8)t.lineTo(x,y+Math.sin(x*freq)*amp);t.stroke();
-      t.strokeStyle=`rgba(140,105,40,${.12+rng()*.08})`;t.beginPath();t.moveTo(0,y+1.5);for(let x=0;x<S;x+=8)t.lineTo(x,y+1.5+Math.sin(x*freq)*amp);t.stroke();
-    }
-    // Fine sand grain (sparkle)
-    for(let i=0;i<120;i++){const x=rng()*S,y=rng()*S;t.fillStyle=rng()<.5?`rgba(240,215,140,${.25+rng()*.3})`:`rgba(120,90,30,${.25+rng()*.25})`;t.beginPath();t.arc(x,y,.6+rng()*1.5,0,Math.PI*2);t.fill();}
-    // Small rocks
-    for(let i=0;i<24;i++){const x=rng()*S,y=rng()*S,r=1.5+rng()*3;t.fillStyle=`rgba(150,125,80,${.4})`;t.beginPath();t.arc(x,y,r,0,Math.PI*2);t.fill();t.fillStyle='rgba(0,0,0,.18)';t.beginPath();t.arc(x+r*.4,y+r*.4,r*.55,0,Math.PI*2);t.fill();}
+    // CLEAN warm desert (Tiger Tank style): solid base + fine grain + faint wind ripples, no blobs.
+    t.fillStyle='#cbab4d';t.fillRect(0,0,S,S);
+    // fine sand grain — tiny low-contrast flecks, seamless when tiled
+    for(let i=0;i<1700;i++){const x=rng()*S,y=rng()*S;
+      t.fillStyle=rng()<.5?`rgba(224,200,128,${.06+rng()*.10})`:`rgba(150,118,52,${.05+rng()*.09})`;
+      t.fillRect(x,y,1,1);}
+    // faint wind ripples — thin even lines for subtle relief (no big shadow bands)
+    t.lineWidth=1;
+    for(let i=0;i<22;i++){const y=rng()*S,freq=.01+rng()*.012,amp=3+rng()*5;
+      t.strokeStyle=`rgba(214,186,98,${.08+rng()*.06})`;t.beginPath();t.moveTo(0,y);for(let x=0;x<S;x+=8)t.lineTo(x,y+Math.sin(x*freq)*amp);t.stroke();
+      t.strokeStyle=`rgba(150,114,46,${.06+rng()*.05})`;t.beginPath();t.moveTo(0,y+1.5);for(let x=0;x<S;x+=8)t.lineTo(x,y+1.5+Math.sin(x*freq)*amp);t.stroke();}
+    // bright sparkle + occasional small rock
+    for(let i=0;i<70;i++){const x=rng()*S,y=rng()*S;t.fillStyle=`rgba(244,222,150,${.18+rng()*.2})`;t.beginPath();t.arc(x,y,.6+rng()*1,0,Math.PI*2);t.fill();}
+    for(let i=0;i<16;i++){const x=rng()*S,y=rng()*S,r=1.4+rng()*2.4;t.fillStyle='rgba(150,125,80,.4)';t.beginPath();t.arc(x,y,r,0,Math.PI*2);t.fill();t.fillStyle='rgba(0,0,0,.16)';t.beginPath();t.arc(x+r*.4,y+r*.4,r*.5,0,Math.PI*2);t.fill();}
   } else if(gd==='snow'){
-    // Snow: clean white-blue — tight tonal range + smaller mottles
-    const cols=['#cfdeec','#d8e6f0','#c6d6e6','#dce9f3','#cad9e8','#bfd0e2'];
-    for(let i=0;i<44;i++){t.fillStyle=cols[i%cols.length];t.globalAlpha=.35+rng()*.30;t.beginPath();t.ellipse(rng()*S,rng()*S,16+rng()*46,10+rng()*28,rng()*Math.PI,0,Math.PI*2);t.fill();}
-    t.globalAlpha=1;
-    // Blue drift shadows
-    for(let i=0;i<18;i++){t.fillStyle=`rgba(90,120,165,${.06+rng()*.09})`;t.beginPath();t.ellipse(rng()*S,rng()*S,40+rng()*90,16+rng()*36,rng()*Math.PI,0,Math.PI*2);t.fill();}
-    // Wind-carved snow lines
-    t.lineWidth=1.2;
-    for(let i=0;i<20;i++){const y=rng()*S;t.strokeStyle=`rgba(255,255,255,${.18+rng()*.12})`;t.beginPath();t.moveTo(0,y);t.quadraticCurveTo(rng()*S,y-6+rng()*12,S,y+rng()*8-4);t.stroke();
-      t.strokeStyle=`rgba(110,140,180,${.08})`;t.beginPath();t.moveTo(0,y+1.5);t.quadraticCurveTo(rng()*S,y+1.5-6+rng()*12,S,y+1.5+rng()*8-4);t.stroke();}
-    // Sparkly ice crystals
-    for(let i=0;i<70;i++){const x=rng()*S,y=rng()*S;t.fillStyle=`rgba(255,255,255,${.4+rng()*.5})`;t.beginPath();t.arc(x,y,.6+rng()*1.3,0,Math.PI*2);t.fill();}
+    // CLEAN snow (Tiger Tank style): solid base + fine grain + faint wind lines, no drift blobs.
+    t.fillStyle='#d3e0ee';t.fillRect(0,0,S,S);
+    // fine grain — subtle cool flecks
+    for(let i=0;i<1500;i++){const x=rng()*S,y=rng()*S;
+      t.fillStyle=rng()<.5?`rgba(255,255,255,${.10+rng()*.14})`:`rgba(150,172,200,${.05+rng()*.08})`;
+      t.fillRect(x,y,1,1);}
+    // faint wind-carved lines for subtle relief
+    t.lineWidth=1;
+    for(let i=0;i<18;i++){const y=rng()*S;t.strokeStyle=`rgba(255,255,255,${.12+rng()*.10})`;t.beginPath();t.moveTo(0,y);t.quadraticCurveTo(rng()*S,y-5+rng()*10,S,y+rng()*6-3);t.stroke();
+      t.strokeStyle=`rgba(120,148,186,${.06})`;t.beginPath();t.moveTo(0,y+1.5);t.quadraticCurveTo(rng()*S,y+1.5-5+rng()*10,S,y+1.5+rng()*6-3);t.stroke();}
+    // sparkly ice crystals
+    for(let i=0;i<60;i++){const x=rng()*S,y=rng()*S;t.fillStyle=`rgba(255,255,255,${.35+rng()*.45})`;t.beginPath();t.arc(x,y,.6+rng()*1.1,0,Math.PI*2);t.fill();}
   } else if(gd==='rubble'||gd==='ash'){
     const dark=gd==='ash';
     // Concrete slabs
@@ -3533,23 +3521,23 @@ function _renderTile(t,S,m,rng){
     for(let i=0;i<80;i++){const r=dark?8+rng()*12:20+rng()*15,g=dark?4+rng()*6:10+rng()*8,b=dark?3+rng()*4:7+rng()*6;t.fillStyle=`rgba(${r|0},${g|0},${b|0},.45)`;t.fillRect(rng()*S,rng()*S,2+rng()*7,2+rng()*5);}
     if(dark){for(let i=0;i<15;i++){t.fillStyle=`rgba(${160+rng()*60|0},${40+rng()*30|0},8,.25)`;t.beginPath();t.arc(rng()*S,rng()*S,1+rng()*2,0,Math.PI*2);t.fill();}}
   } else if(gd==='jungle'){
-    // dense jungle floor — tight dark-green range, smaller mottles for a clean (not blobby) base
-    const cols=['#0e1a09','#12200b','#0c1707','#16240f','#101d0a'];
-    t.globalAlpha=.6;
-    for(let i=0;i<48;i++){t.fillStyle=cols[i%cols.length];t.beginPath();t.ellipse(rng()*S,rng()*S,14+rng()*42,9+rng()*26,rng()*Math.PI,0,Math.PI*2);t.fill();}
-    t.globalAlpha=1;
-    for(let i=0;i<15;i++){t.fillStyle=`rgba(50,90,25,${.06+rng()*.07})`;t.beginPath();t.arc(rng()*S,rng()*S,5+rng()*18,0,Math.PI*2);t.fill();}
-    t.lineWidth=1;for(let i=0;i<25;i++){const x=rng()*S,y=rng()*S,l=15+rng()*40;t.strokeStyle=`rgba(55,38,14,.22)`;t.beginPath();t.moveTo(x,y);t.bezierCurveTo(x+rng()*20-10,y+l*.3,x+l*.4,y+l*.6,x+l,y+rng()*10-5);t.stroke();}
-    for(let i=0;i<20;i++){t.fillStyle=`rgba(25,14,6,.3)`;t.beginPath();t.ellipse(rng()*S,rng()*S,10+rng()*35,6+rng()*18,rng()*Math.PI,0,Math.PI*2);t.fill();}
+    // CLEAN dense jungle floor: solid dark-green base + fine grain + sparse vines, no blobs.
+    t.fillStyle='#11200a';t.fillRect(0,0,S,S);
+    for(let i=0;i<1500;i++){const x=rng()*S,y=rng()*S;
+      t.fillStyle=rng()<.5?`rgba(40,80,24,${.07+rng()*.10})`:`rgba(8,20,5,${.10+rng()*.14})`;
+      t.fillRect(x,y,1,1);}
+    // sparse vine strokes for organic detail
+    t.lineWidth=1;for(let i=0;i<22;i++){const x=rng()*S,y=rng()*S,l=12+rng()*32;t.strokeStyle=`rgba(45,70,22,.18)`;t.beginPath();t.moveTo(x,y);t.bezierCurveTo(x+rng()*18-9,y+l*.3,x+l*.4,y+l*.6,x+l,y+rng()*8-4);t.stroke();}
+    for(let i=0;i<50;i++){const x=rng()*S,y=rng()*S;t.fillStyle=`rgba(70,120,40,${.12+rng()*.14})`;t.beginPath();t.arc(x,y,.7+rng()*1.2,0,Math.PI*2);t.fill();}
   } else if(gd==='med'){
-    // Mediterranean dry earth — tight tonal range, smaller mottles for a clean base
-    const cols=['#5d4d22','#5a4a20','#604f24','#574620','#624e24'];
-    t.globalAlpha=.6;
-    for(let i=0;i<46;i++){t.fillStyle=cols[i%cols.length];t.beginPath();t.ellipse(rng()*S,rng()*S,14+rng()*42,8+rng()*24,rng()*Math.PI,0,Math.PI*2);t.fill();}
-    t.globalAlpha=1;
-    for(let i=0;i<30;i++){t.fillStyle=`rgba(${75+rng()*20|0},${70+rng()*18|0},${32+rng()*12|0},.32)`;t.fillRect(rng()*S,rng()*S,5+rng()*28,4+rng()*18);}
-    t.lineWidth=1;for(let i=0;i<150;i++){const x=rng()*S,y=rng()*S,l=2+rng()*7;t.strokeStyle=`rgba(${88+rng()*28|0},${78+rng()*22|0},18,.22)`;t.beginPath();t.moveTo(x,y);t.lineTo(x+(rng()-.5)*4,y-l);t.stroke();}
-    for(let i=0;i<15;i++){t.fillStyle=`rgba(115,68,28,.08)`;t.beginPath();t.ellipse(rng()*S,rng()*S,8+rng()*28,4+rng()*14,rng()*Math.PI,0,Math.PI*2);t.fill();}
+    // CLEAN Mediterranean dry earth: solid base + fine grain + faint dry-grass flecks, no blobs.
+    t.fillStyle='#5d4d22';t.fillRect(0,0,S,S);
+    for(let i=0;i<1600;i++){const x=rng()*S,y=rng()*S;
+      t.fillStyle=rng()<.5?`rgba(120,104,48,${.06+rng()*.10})`:`rgba(70,56,24,${.06+rng()*.10})`;
+      t.fillRect(x,y,1,1);}
+    // tiny dry-grass tufts, low contrast
+    t.lineWidth=.8;for(let i=0;i<160;i++){const x=rng()*S,y=rng()*S,l=2+rng()*5;t.strokeStyle=`rgba(${96+rng()*26|0},${86+rng()*20|0},26,.16)`;t.beginPath();t.moveTo(x,y);t.lineTo(x+(rng()-.5)*3,y-l);t.stroke();}
+    for(let i=0;i<40;i++){const x=rng()*S,y=rng()*S;t.fillStyle=`rgba(150,128,60,${.12+rng()*.14})`;t.beginPath();t.arc(x,y,.6+rng()*1,0,Math.PI*2);t.fill();}
   }
 }
 
@@ -3567,9 +3555,10 @@ function _addWorldVariation(g,m,rng){
     med:['rgba(160,130,60,.12)','rgba(120,90,30,.18)'],
   };
   const pal=palettes[gd]||palettes.field;
-  g.globalAlpha=0.5;
-  for(let i=0;i<16;i++){
-    const x=rng()*WW,y=rng()*WH,rx=45+rng()*70,ry=30+rng()*45;
+  // Keep large-scale variation VERY subtle so the clean tile base stays uniform (no blobs)
+  g.globalAlpha=0.22;
+  for(let i=0;i<8;i++){
+    const x=rng()*WW,y=rng()*WH,rx=120+rng()*180,ry=80+rng()*120;
     g.fillStyle=pal[Math.floor(rng()*pal.length)];
     g.beginPath();g.ellipse(x,y,rx,ry,rng()*Math.PI,0,Math.PI*2);g.fill();
   }
