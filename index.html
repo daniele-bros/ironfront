@@ -2076,6 +2076,7 @@ function tryShoot(){
           vx:Math.cos(a2)*sp,vy:Math.sin(a2)*sp,
           owner:'player',dmg:player.dmg,pen:player.pen,life:140,trail:[],fullDmg:true});
         spawnMuzzle(player.x,player.y,a2);
+        if(player)player.recoil=Math.max(player.recoil||0,player.size*0.16);
         camShake=Math.max(camShake,4);
       };})(_b), _b*45);
     }
@@ -2102,6 +2103,7 @@ function tryShoot(){
         vx:Math.cos(angle+spread)*speed,vy:Math.sin(angle+spread)*speed,
         owner:'player',dmg:player.dmg,pen:player.pen,life:140,trail:[],fullDmg:player.id==='fv4005'});
       spawnMuzzle(player.x,player.y,angle+spread);
+      if(player)player.recoil=Math.max(player.recoil||0,player.size*0.22);
     },i*burstDelay);
   }
 
@@ -2486,6 +2488,11 @@ function loop(ts){
 // ════════════════════════════════════════
 function update(dt){
   if(playerShield>0)playerShield-=dt;
+  // decay recoil kickback + hit-flash on every tank
+  const _rd=Math.pow(0.62,dt), _fd=Math.pow(0.80,dt);
+  if(player){if(player.recoil)player.recoil*=_rd;if(player.hitFlash)player.hitFlash*=_fd;}
+  if(enemies)for(const _e of enemies){if(_e.recoil)_e.recoil*=_rd;if(_e.hitFlash)_e.hitFlash*=_fd;}
+  if(allies)for(const _a of allies){if(_a.recoil)_a.recoil*=_rd;if(_a.hitFlash)_a.hitFlash*=_fd;}
   updatePlayer(dt);updateEnemies(dt);updateAllies(dt);updateBullets(dt);updateParticles(dt);updateMortars(dt);checkWave();updateHUD();updateMortarHud();updateNukeHud();
   // Machine-gun cooldown tick
   if(_mgCooldown>0)_mgCooldown-=dt;
@@ -2699,6 +2706,7 @@ function updateAllies(dt){
     const aimAngle=angleDiff(ta,a.turretAngle);
     if(a.shootCD<=0&&inRange&&Math.abs(aimAngle)<0.22){
       a.shootCD=22+Math.random()*18; // very fast reload
+      a.recoil=a.size*0.2;
       const spread=dist>400?0.04:0.015; // very accurate
       const sa=ta+(Math.random()-.5)*spread;
       const spd=16;
@@ -2773,6 +2781,7 @@ function updateEnemies(dt){
       e.shootCD=(e.reload?e.reload*60:Math.max(60,Math.min(390,Math.round((0.9+e.dmg*0.0125)*60))))+Math.random()*15;
       const sp=dist>350?0.25:0.12,sa=ta+(Math.random()-.5)*sp;
       bullets.push({x:e.x+Math.cos(sa)*e.size,y:e.y+Math.sin(sa)*e.size,vx:Math.cos(sa)*9,vy:Math.sin(sa)*9,owner:'enemy',dmg:e.dmg,pen:e.pen,life:140,trail:[]});
+      e.recoil=e.size*0.2;
     }
   }
 }
@@ -2811,6 +2820,7 @@ function updateBullets(dt){
           const _ea=effectiveArmor(e.armor,b.x,b.y,b.vx,b.vy,e.x,e.y,e.angle);
           const pen=b.pen-_ea.armor;
           e.hp-=(b.fullDmg||pen>0)?b.dmg:0;
+          e.hitFlash=1;
           spawnHitFx(b.x,b.y,pen>0);
           if(e.hp<=0){
             spawnExplosion(e.x,e.y);craters.push({x:e.x,y:e.y,r:e.size*1.4});camShake=Math.max(camShake,6);
@@ -2834,6 +2844,7 @@ function updateBullets(dt){
         const a=allies[j];if(a.hp<=0)continue;
         if(_bulletHitsCircle(b,a.x,a.y,a.size)){
           a.hp=Math.max(0,a.hp-b.dmg*0.6);
+          a.hitFlash=1;
           spawnHitFx(b.x,b.y,false);
           if(a.hp<=0){spawnExplosion(a.x,a.y);allies.splice(j,1);}
           bullets.splice(i,1);break;
@@ -2849,6 +2860,7 @@ function updateBullets(dt){
           const _ea=effectiveArmor(e.armor,b.x,b.y,b.vx,b.vy,e.x,e.y,e.angle);
           const pen=b.pen-_ea.armor;
           e.hp-=(b.fullDmg||pen>0)?b.dmg:0;
+          e.hitFlash=1;
           spawnHitFx(b.x,b.y,pen>0);
           if(e.hp<=0){spawnExplosion(e.x,e.y);craters.push({x:e.x,y:e.y,r:e.size*1.4});camShake=Math.max(camShake,6);enemies.splice(j,1);(document.getElementById('hud-en')||{}).textContent=enemies.length;}
           ahit=true;break;
@@ -2875,6 +2887,7 @@ function updateBullets(dt){
           const _ea=effectiveArmor(e.armor,b.x,b.y,b.vx,b.vy,e.x,e.y,e.angle);
           const pen=b.pen-_ea.armor;
           e.hp-=(b.fullDmg||pen>0)?b.dmg:0;
+          e.hitFlash=1;
           spawnHitFx(b.x,b.y,pen>0);
           if(e.hp<=0){
             let reward=1000;
@@ -2896,6 +2909,7 @@ function updateBullets(dt){
         const pen=b.pen-_pea.armor;
         const rangeFactor=Math.min(1.0,Math.hypot(b.x-player.x,b.y-player.y)/350);
         player.hp=Math.max(0,player.hp-((b.fullDmg||pen>0)?b.dmg*(0.6+rangeFactor*0.3):0));
+        player.hitFlash=1;
         spawnHitFx(b.x,b.y,pen>0);flashDamage();
         if(player.hp<=0)gameOver();
         bullets.splice(i,1);
@@ -3142,7 +3156,7 @@ function render(){
   if(allies){for(const a of allies)if(a.hp>0){
     const _am=(a.size||30)*4+60;
     if(a.x<camX-_am||a.x>camX+W+_am||a.y<camY-_am||a.y>camY+H+_am)continue;
-    drawTankFull(ctx,a.x,a.y,a.angle,a.turretAngle,a.size,a.color,false,a.hp/a.maxHp,a.name,false,null);
+    drawTankFull(ctx,a.x,a.y,a.angle,a.turretAngle,a.size,a.color,false,a.hp/a.maxHp,a.name,false,null,a.recoil||0,a.hitFlash||0);
     ctx.save();ctx.translate(a.x,a.y);ctx.beginPath();ctx.arc(0,0,a.size+6,0,Math.PI*2);
     ctx.strokeStyle='rgba(46,204,113,.7)';ctx.lineWidth=2;ctx.setLineDash([5,4]);ctx.stroke();ctx.setLineDash([]);
     ctx.restore();
@@ -3151,9 +3165,9 @@ function render(){
   for(const e of enemies){if(e.hp<=0)continue;
     const _m=(e.size||30)*4+60; // cull off-screen tanks (margin covers the largest silhouette incl. Ratte)
     if(e.x<camX-_m||e.x>camX+W+_m||e.y<camY-_m||e.y>camY+H+_m)continue;
-    drawTankFull(ctx,e.x,e.y,e.angle,e.turretAngle,e.size,e.color,false,e.hp/e.maxHp,e.name,e.schurzen,e.id||e.name);}
+    drawTankFull(ctx,e.x,e.y,e.angle,e.turretAngle,e.size,e.color,false,e.hp/e.maxHp,e.name,e.schurzen,e.id||e.name,e.recoil||0,e.hitFlash||0);}
 
-    drawTankFull(ctx,player.x,player.y,player.angle,player.turretAngle,player.size,player.color,true,player.hp/player.maxHp,player.name,false,player.id);
+    drawTankFull(ctx,player.x,player.y,player.angle,player.turretAngle,player.size,player.color,true,player.hp/player.maxHp,player.name,false,player.id,player.recoil||0,player.hitFlash||0);
 
   // ── ARTY SPLASH EXPLOSIONS ──
   for(let _ai=artyShells.length-1;_ai>=0;_ai--){
@@ -3866,8 +3880,9 @@ function dc(h,a){let r=parseInt(h.slice(1,3),16),g=parseInt(h.slice(3,5),16),b=p
 function lightenColor(h,a){return lc(h,a);}
 function darkenColor(h,a){return dc(h,a);}
 
-function drawTankFull(c,x,y,angle,tAngle,size,color,isPlayer,hpFrac,name,_sk,tankId){
+function drawTankFull(c,x,y,angle,tAngle,size,color,isPlayer,hpFrac,name,_sk,tankId,recoil,flash){
   const p=getProfile(tankId);
+  recoil=recoil||0; flash=flash||0;
 
   c.save();c.translate(x,y);
 
@@ -3895,18 +3910,18 @@ function drawTankFull(c,x,y,angle,tAngle,size,color,isPlayer,hpFrac,name,_sk,tan
   // Tank destroyers: casemate fixed to hull (no rotating turret)
   const _isTD=tankId&&_tdIds.has(tankId);
   if(_isTD){
-    // Fixed casemate — rotates with hull only
-    c.save();c.rotate(angle);
+    // Fixed casemate — rotates with hull only; recoil kicks it back along the hull axis
+    c.save();c.rotate(angle);c.translate(-recoil,0);
     _casemate(c,size,color,p,tankId);
     c.restore();
   } else if(_otIds.has(tankId)){
     // Open-top rotating turret (M10, M36, Achilles, Waffenträger)
-    c.save();c.rotate(tAngle);
+    c.save();c.rotate(tAngle);c.translate(-recoil,0);
     _openTurret(c,size,color,p,tankId);
     c.restore();
   } else {
-    // Normal enclosed turret (rotates with mouse)
-    c.save();c.rotate(tAngle);
+    // Normal enclosed turret (rotates with mouse); recoil kicks it back along the gun
+    c.save();c.rotate(tAngle);c.translate(-recoil,0);
     _turret(c,size,color,p,tankId);
     c.restore();
   }
@@ -3923,6 +3938,16 @@ function drawTankFull(c,x,y,angle,tAngle,size,color,isPlayer,hpFrac,name,_sk,tan
   _rimg.addColorStop(1,'rgba(0,8,24,.24)');
   c.fillStyle=_rimg;c.fillRect(-_lr*1.4,-_lr*1.4,_lr*2.8,_lr*2.8);
   c.restore();
+
+  // ── hit flash: tank lights up warm-white briefly when struck ──
+  if(flash>0){
+    c.save();c.rotate(angle);
+    c.beginPath();c.ellipse(0,0,size*p.hl*0.96,size*p.hw*1.2,0,0,Math.PI*2);c.clip();
+    c.globalCompositeOperation='lighter';
+    c.fillStyle='rgba(255,238,205,'+Math.min(0.7,flash)+')';
+    c.fillRect(-_lr*1.3,-_lr*1.3,_lr*2.6,_lr*2.6);
+    c.restore();
+  }
 
   // HP bar + label (screen-space, unrotated)
   if(!isPlayer){
