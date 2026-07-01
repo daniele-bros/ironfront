@@ -1762,9 +1762,8 @@ function startGame(){
   const _ar=document.getElementById('hud-ammo-reload');if(_ar)_ar.style.display='flex';
   const t=TANK_DEFS.find(x=>x.id===activeTankId)||TANK_DEFS[0];
   totalAmmo=currentAmmo=t.ammo;canShoot=true;_mgCooldown=0;
-  // Mode ammo overrides: 100 rounds in the 1v100 modes, infinite in 1v1000
-  if(battleMode==='1v100'||battleMode==='1v100pick'){ totalAmmo=currentAmmo=100; }
-  else if(battleMode==='1v1000'){ totalAmmo=currentAmmo=99999; } // ∞ (shows as UNLIMITED)
+  // Mode ammo overrides: infinite ammo in the swarm modes (1v100, 100x pick, 1v1000)
+  if(battleMode==='1v100'||battleMode==='1v100pick'||battleMode==='1v1000'){ totalAmmo=currentAmmo=99999; } // ∞ (shows as UNLIMITED)
   if(reloadInt){clearInterval(reloadInt);reloadInt=null;}
   const _rb2=document.getElementById('relbar');if(_rb2)_rb2.style.width='100%';
   buildObstacles();
