@@ -4154,11 +4154,10 @@ function _hull(c,size,col,p,isPlayer,tankId){
   c.beginPath();
   c.moveTo(re,       -hw*.95);
   if(_pike){
-    c.lineTo(fr*.5,   -hw*.95);
-    c.lineTo(fr*.72,  -hw*.60);
-    c.lineTo(fr*1.16,  0);      // forward apex — the pike point
-    c.lineTo(fr*.72,   hw*.60);
-    c.lineTo(fr*.5,    hw*.95);
+    // single shallow wedge each side -> a clean pointed glacis (not a gabled "house")
+    c.lineTo(fr*.42,  -hw*.95);
+    c.lineTo(fr*1.06,  0);      // forward apex — the pike point
+    c.lineTo(fr*.42,   hw*.95);
   } else {
     c.lineTo(fr*.55,  -hw*.95);
     c.lineTo(fr*.82,  -hw*.72);
@@ -4196,11 +4195,11 @@ function _hull(c,size,col,p,isPlayer,tankId){
   if(_pike){
     // two angled pike plates (lit upper / shaded lower) + central ridge — the IS-3 look
     c.fillStyle='rgba(255,255,255,.13)';
-    c.beginPath();c.moveTo(fr*.72,-hw*.60);c.lineTo(fr*1.16,0);c.lineTo(fr*.72,0);c.closePath();c.fill();
+    c.beginPath();c.moveTo(fr*.42,-hw*.95);c.lineTo(fr*1.06,0);c.lineTo(fr*.42,0);c.closePath();c.fill();
     c.fillStyle='rgba(0,0,0,.16)';
-    c.beginPath();c.moveTo(fr*.72,hw*.60);c.lineTo(fr*1.16,0);c.lineTo(fr*.72,0);c.closePath();c.fill();
+    c.beginPath();c.moveTo(fr*.42,hw*.95);c.lineTo(fr*1.06,0);c.lineTo(fr*.42,0);c.closePath();c.fill();
     c.strokeStyle='rgba(0,0,0,.42)';c.lineWidth=1.1;
-    c.beginPath();c.moveTo(fr*1.16,0);c.lineTo(fr*.5,0);c.stroke();
+    c.beginPath();c.moveTo(fr*1.06,0);c.lineTo(fr*.42,0);c.stroke();
   } else {
     c.fillStyle='rgba(255,255,255,.10)';
     c.beginPath();c.moveTo(fr*.82,-hw*.72);c.lineTo(fr,-hw*.45);c.lineTo(fr,hw*.45);c.lineTo(fr*.82,hw*.72);c.closePath();c.fill();
