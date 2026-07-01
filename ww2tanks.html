@@ -4148,16 +4148,25 @@ function _hull(c,size,col,p,isPlayer,tankId){
   });
 
   // ── HULL BODY ──
-  // Trapezoidal top-down shape: slightly narrower at front
+  // Pike-nose tanks (IS-3, T-10) get a pointed triangular front glacis; others a trapezoid.
+  const _pike=(tankId==='is3'||tankId==='t10');
   c.fillStyle=dc(col,.05);
   c.beginPath();
   c.moveTo(re,       -hw*.95);
-  c.lineTo(fr*.55,   -hw*.95);
-  c.lineTo(fr*.82,   -hw*.72);
-  c.lineTo(fr,       -hw*.45);
-  c.lineTo(fr,        hw*.45);
-  c.lineTo(fr*.82,    hw*.72);
-  c.lineTo(fr*.55,    hw*.95);
+  if(_pike){
+    c.lineTo(fr*.5,   -hw*.95);
+    c.lineTo(fr*.72,  -hw*.60);
+    c.lineTo(fr*1.16,  0);      // forward apex — the pike point
+    c.lineTo(fr*.72,   hw*.60);
+    c.lineTo(fr*.5,    hw*.95);
+  } else {
+    c.lineTo(fr*.55,  -hw*.95);
+    c.lineTo(fr*.82,  -hw*.72);
+    c.lineTo(fr,      -hw*.45);
+    c.lineTo(fr,       hw*.45);
+    c.lineTo(fr*.82,   hw*.72);
+    c.lineTo(fr*.55,   hw*.95);
+  }
   c.lineTo(re,        hw*.95);
   c.closePath();c.fill();
   c.strokeStyle=isPlayer?'rgba(90,170,225,.95)':'rgba(0,0,0,.72)';c.lineWidth=isPlayer?2:1.5;c.stroke();
@@ -4184,8 +4193,18 @@ function _hull(c,size,col,p,isPlayer,tankId){
   const cps=[[.15,.3,.45,.32],[-.28,-.25,.38,.28],[.05,-.4,.3,.25],[ -.35,.1,.28,.22],[.28,-.15,.22,.2]];
   for(const[cx2,cy2,rx2,ry2] of cps){c.beginPath();c.ellipse(cx2*hl,cy2*hw,rx2*hl*.5,ry2*hw*.8,cseed*.1,0,Math.PI*2);c.fill();}
   // front slope highlight
-  c.fillStyle='rgba(255,255,255,.10)';
-  c.beginPath();c.moveTo(fr*.82,-hw*.72);c.lineTo(fr,-hw*.45);c.lineTo(fr,hw*.45);c.lineTo(fr*.82,hw*.72);c.closePath();c.fill();
+  if(_pike){
+    // two angled pike plates (lit upper / shaded lower) + central ridge — the IS-3 look
+    c.fillStyle='rgba(255,255,255,.13)';
+    c.beginPath();c.moveTo(fr*.72,-hw*.60);c.lineTo(fr*1.16,0);c.lineTo(fr*.72,0);c.closePath();c.fill();
+    c.fillStyle='rgba(0,0,0,.16)';
+    c.beginPath();c.moveTo(fr*.72,hw*.60);c.lineTo(fr*1.16,0);c.lineTo(fr*.72,0);c.closePath();c.fill();
+    c.strokeStyle='rgba(0,0,0,.42)';c.lineWidth=1.1;
+    c.beginPath();c.moveTo(fr*1.16,0);c.lineTo(fr*.5,0);c.stroke();
+  } else {
+    c.fillStyle='rgba(255,255,255,.10)';
+    c.beginPath();c.moveTo(fr*.82,-hw*.72);c.lineTo(fr,-hw*.45);c.lineTo(fr,hw*.45);c.lineTo(fr*.82,hw*.72);c.closePath();c.fill();
+  }
   // inner edge ambient-occlusion: darken just inside the hull outline for a beveled, solid look
   c.save();
   c.beginPath();
