@@ -1257,7 +1257,8 @@ let bushes=[],playerInBush=false,spotTimer=0,spotted=false;
 let mortars=0,mortarProjs=[],mortarArmed=false;
 let nukes=0,nukeFlash=0,nukeArmed=false;
 let gameMode='wave'; // 'wave' or '1v1'
-let duelEnemyId=null; // chosen opponent for 1v1 PICK FOE mode
+let duelEnemyId=null; // chosen opponent for the PICK FOE modes
+let duelMode='1v1pick'; // which pick mode the arena is choosing for ('1v1pick' | '1v100pick')
 let totalAmmo,currentAmmo;
 let camX=0,camY=0;
 // Global scene light direction — points toward the sun (upper-left). Shadows throw the opposite way.
@@ -1652,13 +1653,13 @@ function buildGarage(){
   const mgrid=document.getElementById('mode-grid-visible')||document.getElementById('mode-grid');
   if(mgrid){
     mgrid.innerHTML='';
-    const MODES=[{id:'wave',icon:'\u2694',title:'WAVE BATTLE',sub:'7v7 Endless waves. Earn coins.'},{id:'1v1',icon:'\uD83C\uDFAF',title:'1v1 DUEL',sub:'Fight your own tank. Pure skill.'},{id:'1v1pick',icon:'\u2694\uFE0F',title:'1v1 PICK FOE',sub:'Duel ANY tank you choose.'},{id:'1v7',icon:'\uD83D\uDD25',title:'1v7 LAST STAND',sub:'Solo vs 7 enemies. No mercy.'},{id:'1v100',icon:'\uD83D\uDC80',title:'100v1 APOCALYPSE',sub:'You vs 100 tanks. Survive!'},{id:'1v1000',icon:'\uD83D\uDCB0',title:'1v1000 GOLD RUSH',sub:'1000 tanks · 1000🏷 per kill.'},{id:'rattewaves',icon:'\u2620\uFE0F',title:'RATTE WAVES',sub:'Endless Rattes. +10k HP per wave!'}];
+    const MODES=[{id:'wave',icon:'\u2694',title:'WAVE BATTLE',sub:'7v7 Endless waves. Earn coins.'},{id:'1v1',icon:'\uD83C\uDFAF',title:'1v1 DUEL',sub:'Fight your own tank. Pure skill.'},{id:'1v1pick',icon:'\u2694\uFE0F',title:'1v1 PICK FOE',sub:'Duel ANY tank you choose.'},{id:'1v7',icon:'\uD83D\uDD25',title:'1v7 LAST STAND',sub:'Solo vs 7 enemies. No mercy.'},{id:'1v100',icon:'\uD83D\uDC80',title:'100v1 APOCALYPSE',sub:'You vs 100 tanks. Survive!'},{id:'1v100pick',icon:'\uD83D\uDCAF',title:'100\u00D7 PICK FOE',sub:'Fight 100 of ANY tank you choose.'},{id:'1v1000',icon:'\uD83D\uDCB0',title:'1v1000 GOLD RUSH',sub:'1000 tanks · 1000🏷 per kill.'},{id:'rattewaves',icon:'\u2620\uFE0F',title:'RATTE WAVES',sub:'Endless Rattes. +10k HP per wave!'}];
     MODES.forEach(function(m){
       const c=document.createElement('div');
       c.className='nav-card'+(gameMode===m.id?' selected-mode':'');
       if(gameMode===m.id){c.style.borderColor='var(--khaki)';c.style.background='#1a2410';}
       c.innerHTML='<div class="nav-icon">'+m.icon+'</div><div class="nav-title" style="font-size:13px;">'+m.title+'</div><div class="nav-sub">'+m.sub+'</div>';
-      c.onclick=(function(mid){return function(){gameMode=mid; if(mid==='1v1pick'){openDuelArena();} else {buildGarage();}};})(m.id);
+      c.onclick=(function(mid){return function(){gameMode=mid; if(mid==='1v1pick'||mid==='1v100pick'){openDuelArena(mid);} else {buildGarage();}};})(m.id);
       mgrid.appendChild(c);
     });
   }
@@ -1677,8 +1678,9 @@ function buildGarage(){
 
 
 // ── 1v1 PICK FOE: full-screen opponent selection arena ──
-function openDuelArena(){
-  gameMode='1v1pick';
+function openDuelArena(mode){
+  duelMode=mode||'1v1pick';
+  gameMode=duelMode;
   if(!duelEnemyId)duelEnemyId=activeTankId;
   let ov=document.getElementById('duel-arena');
   if(!ov){
@@ -1704,7 +1706,8 @@ function closeDuelArena(){const ov=document.getElementById('duel-arena');if(ov)o
 function _duelFightLabel(){
   const fb=document.getElementById('duel-fight-btn');if(!fb)return;
   const d=TANK_DEFS.find(t=>t.id===duelEnemyId);
-  fb.textContent=d?('⚔ FIGHT '+d.name.toUpperCase()):'⚔ FIGHT';
+  const pre=duelMode==='1v100pick'?'⚔ FIGHT 100× ':'⚔ FIGHT ';
+  fb.textContent=d?(pre+d.name.toUpperCase()):'⚔ FIGHT';
 }
 function renderDuelGrid(){
   const grid=document.getElementById('duel-grid');if(!grid)return;
@@ -1727,7 +1730,7 @@ function renderDuelGrid(){
   });
   _duelFightLabel();
 }
-function duelDeploy(){closeDuelArena();gameMode='1v1pick';ensureValidMap();startGame();}
+function duelDeploy(){closeDuelArena();gameMode=duelMode;ensureValidMap();startGame();}
 
 function resetProgress(){
   // handled by showModal above
@@ -1750,6 +1753,7 @@ function startGame(){
   // Translate the chosen game mode into the spawn battleMode
   if(gameMode==='1v1')battleMode='1v1';
   else if(gameMode==='1v1pick')battleMode='1v1pick';
+  else if(gameMode==='1v100pick')battleMode='1v100pick';
   else if(gameMode==='1v7')battleMode='1v7';
   else if(gameMode==='1v100')battleMode='1v100';
   else if(gameMode==='1v1000'){battleMode='1v1000';window.__remaining1000=1000;}
@@ -1875,6 +1879,24 @@ function spawnWave(){
       hp:ehp,maxHp:ehp,armor:def.armor,pen:def.pen,dmg:def.dmg,
       speed:def.speed,rotSpeed:def.rot,size:def.id==='ratte'?48:26,color:def.color,name:def.name,id:def.id,
       reload:def.reload,_isRatte:def.id==='ratte',shootCD:120+Math.random()*90,state:'approach'});
+    waveSpawning=false;
+    (document.getElementById('hud-en')||{}).textContent=enemies.length;
+    return;
+  }
+  // ── 1v100 PICK: fight 100 of one chosen tank ──
+  if(battleMode==='1v100pick'){
+    const def=TANK_DEFS.find(t=>t.id===duelEnemyId)||TANK_DEFS.find(t=>t.id===activeTankId)||TANK_DEFS[0];
+    const isR=def.id==='ratte';
+    const ehp=isR?80000:def.hp; // cap the otherwise-indestructible Ratte
+    for(let i=0;i<100;i++){
+      const a=Math.random()*Math.PI*2, d=340+Math.random()*1700;
+      const ex=Math.max(60,Math.min(WW-60,player.x+Math.cos(a)*d));
+      const ey=Math.max(60,Math.min(WH-60,player.y+Math.sin(a)*d));
+      enemies.push({x:ex,y:ey,angle:Math.random()*Math.PI*2,turretAngle:0,
+        hp:ehp,maxHp:ehp,armor:def.armor,pen:def.pen,dmg:def.dmg,
+        speed:def.speed,rotSpeed:def.rot,size:isR?48:26,color:def.color,name:def.name,id:def.id,
+        reload:def.reload,_isRatte:isR,shootCD:150+Math.random()*260,state:'approach'}); // staggered so 100 guns don't fire at once
+    }
     waveSpawning=false;
     (document.getElementById('hud-en')||{}).textContent=enemies.length;
     return;
