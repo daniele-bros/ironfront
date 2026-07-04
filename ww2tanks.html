@@ -2376,12 +2376,14 @@ function mortarExplode(x,y){
       e.hp=Math.max(0,e.hp-dmg);
       if(e.hp<=0){
         spawnExplosion(e.x,e.y);
-        kills++;score+=100;coins+=80;updateCoinsHud();
+        const _rw=e._isRatte?500000:1000; // full coins per kill, same as a normal kill
+        kills++;totalKills++;score+=_rw;coins+=_rw;updateCoinsHud();
         addKillFeed('💥 '+e.name+' — mortar!');
         camShake=Math.max(camShake,8);
       }
     }
   }
+  saveData();
   addKillFeed('💥 Mortar shell detonated!');
 }
 
@@ -2477,7 +2479,8 @@ function launchNuke(){
     for(const e of enemies){
       if(e.hp<=0)continue;
       e.hp=0;spawnExplosion(e.x,e.y);
-      kills++;score+=150;coins+=120;updateCoinsHud();
+      const _rw=e._isRatte?500000:1000; // full coins per kill, same as a normal kill
+      kills++;totalKills++;score+=_rw;coins+=_rw;updateCoinsHud();
       addKillFeed('☢ '+e.name+' — vaporised!');
       killed++;
     }
@@ -2485,7 +2488,7 @@ function launchNuke(){
     for(let i=0;i<12;i++){
       craters.push({x:camX+Math.random()*W,y:camY+Math.random()*H,r:30+Math.random()*50});
     }
-    if(killed>0)addKillFeed('☢ '+killed+' destroyed by nuclear strike!');
+    if(killed>0){addKillFeed('☢ '+killed+' destroyed by nuclear strike!');saveData();}
   },1500);
   saveData();
 }
