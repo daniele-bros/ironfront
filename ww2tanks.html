@@ -1883,7 +1883,7 @@ function buildObstacles(){
   const m=selectedMap,rng=sr(MAPS.indexOf(m)*137+42),d=m.den;
   if(m.id==='stalingrad'||m.id==='berlin'){
     for(let i=0;i<d;i++)obstacles.push({x:rng()*WW,y:rng()*WH,w:50+rng()*100,h:50+rng()*100,type:'building',color:m.id==='berlin'?'#281818':'#302418'});
-    for(let i=0;i<18;i++)obstacles.push({x:rng()*WW,y:rng()*WH,w:20+rng()*45,h:10+rng()*18,type:'rubble',color:'#403020'});
+    for(let i=0;i<8;i++)obstacles.push({x:rng()*WW,y:rng()*WH,w:20+rng()*45,h:10+rng()*18,type:'rubble',color:'#514434'});
   } else if(m.id==='kursk'){
     for(let i=0;i<d;i++)obstacles.push({x:rng()*WW,y:rng()*WH,r:8+rng()*16,type:'rock',color:'#505030'});
   } else if(m.id==='normandy'){
@@ -3338,13 +3338,13 @@ function render(){
   // ── Clean vibrant arcade grade: overlay lifts saturation+contrast, soft-light keeps it bright (no muddy crush) ──
   if(selectedMap){
     const _gd=selectedMap.gd;
-    const _tint=_gd==='snow'?'rgba(150,190,230,.18)':_gd==='sand'?'rgba(255,200,100,.20)':(_gd==='ash'||_gd==='rubble')?'rgba(180,150,115,.16)':_gd==='jungle'?'rgba(75,175,70,.20)':'rgba(150,210,90,.20)';
+    const _tint=_gd==='snow'?'rgba(150,190,230,.18)':_gd==='sand'?'rgba(255,200,100,.18)':(_gd==='ash'||_gd==='rubble')?'rgba(120,140,152,.13)':_gd==='jungle'?'rgba(75,175,70,.20)':'rgba(150,210,90,.20)';
     // single overlay for vibrancy without amplifying terrain mottling into blobs
     ctx.globalCompositeOperation='overlay';
     ctx.fillStyle=_tint;ctx.fillRect(0,0,W,H);
     // a touch of warm brightness so it stays clean, not crushed
     ctx.globalCompositeOperation='soft-light';
-    ctx.fillStyle='rgba(255,250,235,.12)';ctx.fillRect(0,0,W,H);
+    ctx.fillStyle='rgba(255,250,235,.07)';ctx.fillRect(0,0,W,H);
     ctx.globalCompositeOperation='source-over';
   }
   // Edge vignette (screen-space, after world restore)
@@ -3379,19 +3379,19 @@ function render(){
   ctx.restore();
   // ── Warm directional sun light wash (upper-left), cool lower-right ──
   const _lw=ctx.createLinearGradient(0,0,W,H);
-  _lw.addColorStop(0,'rgba(255,225,150,0.07)');
+  _lw.addColorStop(0,'rgba(255,225,150,0.045)');
   _lw.addColorStop(0.5,'rgba(255,255,255,0)');
-  _lw.addColorStop(1,'rgba(40,60,110,0.10)');
+  _lw.addColorStop(1,'rgba(40,60,110,0.09)');
   ctx.fillStyle=_lw;ctx.fillRect(0,0,W,H);
   const vg=ctx.createRadialGradient(W*.5,H*.5,Math.min(W,H)*.2,W*.5,H*.5,Math.max(W,H)*.8);
-  vg.addColorStop(0,'rgba(0,0,0,0)');vg.addColorStop(.7,'rgba(0,0,0,.05)');vg.addColorStop(1,'rgba(0,0,0,.42)');
+  vg.addColorStop(0,'rgba(0,0,0,0)');vg.addColorStop(.7,'rgba(0,0,0,.03)');vg.addColorStop(1,'rgba(0,0,0,.26)');
   ctx.fillStyle=vg;ctx.fillRect(0,0,W,H);
   // Corner crush (extra darkening at 4 corners)
   const cc=ctx.createRadialGradient(0,0,0,0,0,Math.max(W,H)*.5);
-  cc.addColorStop(0,'rgba(0,0,0,.16)');cc.addColorStop(1,'rgba(0,0,0,0)');
+  cc.addColorStop(0,'rgba(0,0,0,.09)');cc.addColorStop(1,'rgba(0,0,0,0)');
   ctx.fillStyle=cc;ctx.fillRect(0,0,W*.4,H*.4);
   const cc2=ctx.createRadialGradient(W,H,0,W,H,Math.max(W,H)*.5);
-  cc2.addColorStop(0,'rgba(0,0,0,.16)');cc2.addColorStop(1,'rgba(0,0,0,0)');
+  cc2.addColorStop(0,'rgba(0,0,0,.09)');cc2.addColorStop(1,'rgba(0,0,0,0)');
   ctx.fillStyle=cc2;ctx.fillRect(W*.6,H*.6,W*.4,H*.4);
   // Compass rose (top center)
   _drawBushStatus();
@@ -3630,23 +3630,25 @@ function _renderTile(t,S,m,rng){
   } else if(gd==='rubble'||gd==='ash'){
     // CLEAN bombed-ground (Tiger Tank style): solid base + fine grain + faint slab seams, no big blobs.
     const dark=gd==='ash';
-    t.fillStyle=dark?'#2b2419':'#4a3f31';t.fillRect(0,0,S,S);
+    // Cool packed-concrete base (lighter than the tanks so olive hulls + tan roads read against it)
+    t.fillStyle=dark?'#332c22':'#615c52';t.fillRect(0,0,S,S);
     // fine grit — tiny low-contrast flecks, seamless when tiled
     for(let i=0;i<1600;i++){const x=rng()*S,y=rng()*S;
       t.fillStyle=dark
-        ?(rng()<.5?`rgba(74,62,44,${.06+rng()*.10})`:`rgba(18,14,10,${.10+rng()*.14})`)
-        :(rng()<.5?`rgba(120,104,84,${.06+rng()*.10})`:`rgba(46,38,28,${.07+rng()*.11})`);
+        ?(rng()<.5?`rgba(88,76,56,${.06+rng()*.10})`:`rgba(22,18,13,${.10+rng()*.14})`)
+        :(rng()<.5?`rgba(140,134,122,${.07+rng()*.11})`:`rgba(60,54,46,${.08+rng()*.12})`);
       t.fillRect(x,y,1,1);}
     // faint cracked-slab seams — thin even lines for concrete relief (no filled blocks)
-    t.lineWidth=1;t.strokeStyle=dark?'rgba(12,9,6,.30)':'rgba(30,24,17,.28)';
+    t.lineWidth=1;t.strokeStyle=dark?'rgba(14,10,7,.32)':'rgba(38,32,24,.30)';
     for(let i=0;i<26;i++){const x=rng()*S,y=rng()*S,l=18+rng()*70,hv=rng()<.5;
       t.beginPath();t.moveTo(x,y);hv?t.lineTo(x+l,y+(rng()-.5)*6):t.lineTo(x+(rng()-.5)*6,y+l);t.stroke();}
-    // scattered small rubble chunks — subtle, evenly spread
-    for(let i=0;i<48;i++){const x=rng()*S,y=rng()*S,w=2+rng()*5,h=2+rng()*4;
-      t.fillStyle=dark?`rgba(58,48,34,${.20+rng()*.16})`:`rgba(96,84,66,${.20+rng()*.18})`;t.fillRect(x,y,w,h);
-      t.fillStyle='rgba(0,0,0,.14)';t.fillRect(x+.6,y+h,w,1);}
+    // scattered small rubble chunks — read as intentional debris: some clearly darker, some clearly lighter than base
+    for(let i=0;i<48;i++){const x=rng()*S,y=rng()*S,w=2+rng()*5,h=2+rng()*4,litc=rng()<.5;
+      t.fillStyle=dark?(litc?`rgba(108,96,74,${.22+rng()*.16})`:`rgba(40,32,22,${.24+rng()*.18})`)
+                      :(litc?`rgba(168,160,146,${.22+rng()*.16})`:`rgba(74,66,54,${.24+rng()*.18})`);t.fillRect(x,y,w,h);
+      t.fillStyle='rgba(0,0,0,.16)';t.fillRect(x+.6,y+h,w,1);}
     // catch-light on some chunks
-    for(let i=0;i<30;i++){const x=rng()*S,y=rng()*S;t.fillStyle=dark?`rgba(140,120,90,${.10+rng()*.12})`:`rgba(176,158,128,${.13+rng()*.15})`;t.beginPath();t.arc(x,y,.6+rng()*1,0,Math.PI*2);t.fill();}
+    for(let i=0;i<30;i++){const x=rng()*S,y=rng()*S;t.fillStyle=dark?`rgba(150,130,98,${.10+rng()*.12})`:`rgba(198,190,172,${.14+rng()*.16})`;t.beginPath();t.arc(x,y,.6+rng()*1,0,Math.PI*2);t.fill();}
     // ash: faint smouldering embers
     if(dark){for(let i=0;i<15;i++){t.fillStyle=`rgba(${160+rng()*60|0},${40+rng()*30|0},8,.22)`;t.beginPath();t.arc(rng()*S,rng()*S,1+rng()*1.6,0,Math.PI*2);t.fill();}}
   } else if(gd==='jungle'){
@@ -3819,26 +3821,28 @@ function drawObstacles(){
         // 3D extruded block: side faces + roof, lit by the global sun
         const bx=o.x,by=o.y,bw=o.w,bh=o.h;
         const _sx=-LIGHT.x*10,_sy=-LIGHT.y*10; // extrusion/shadow throw (down-right)
-        // long ground shadow
-        ctx.fillStyle='rgba(0,0,0,.32)';ctx.fillRect(bx+_sx*1.4,by+_sy*1.4,bw,bh);
-        // extruded right + bottom side faces (the shadow-side walls)
-        ctx.fillStyle='#4a463a';
+        // long, hard ground shadow — sells the block as solid, standing cover
+        ctx.fillStyle='rgba(0,0,0,.42)';ctx.fillRect(bx+_sx*1.8,by+_sy*1.8,bw,bh);
+        // extruded right + bottom side faces (the shadow-side walls) — deep range for real light-to-dark
+        ctx.fillStyle='#3a362c';
         ctx.beginPath();ctx.moveTo(bx+bw,by);ctx.lineTo(bx+bw+_sx,by+_sy);ctx.lineTo(bx+bw+_sx,by+bh+_sy);ctx.lineTo(bx+bw,by+bh);ctx.closePath();ctx.fill();
-        ctx.fillStyle='#3c3930';
+        ctx.fillStyle='#2c2a22';
         ctx.beginPath();ctx.moveTo(bx,by+bh);ctx.lineTo(bx+_sx,by+bh+_sy);ctx.lineTo(bx+bw+_sx,by+bh+_sy);ctx.lineTo(bx+bw,by+bh);ctx.closePath();ctx.fill();
-        // roof with directional gradient (lit toward the sun)
+        // roof with directional gradient (lit toward the sun) — bright, cool so it pops off warm ground
         const _roof=ctx.createLinearGradient(bx+LIGHT.x*bw*.5,by+LIGHT.y*bh*.5,bx-LIGHT.x*bw*.5,by-LIGHT.y*bh*.5);
-        _roof.addColorStop(0,'#bdbaa6');_roof.addColorStop(1,'#7e7c6c');
+        _roof.addColorStop(0,'#d8d2c0');_roof.addColorStop(1,'#9a9788');
         ctx.fillStyle=_roof;ctx.fillRect(bx,by,bw,bh);
         // roof frame + outline
-        ctx.fillStyle='#6a6858';ctx.fillRect(bx,by,bw,4);ctx.fillRect(bx,by+bh-4,bw,4);ctx.fillRect(bx,by,4,bh);ctx.fillRect(bx+bw-4,by,4,bh);
-        ctx.strokeStyle='#2e2c20';ctx.lineWidth=2;ctx.strokeRect(bx,by,bw,bh);
+        ctx.fillStyle='#7a7868';ctx.fillRect(bx,by,bw,4);ctx.fillRect(bx,by+bh-4,bw,4);ctx.fillRect(bx,by,4,bh);ctx.fillRect(bx+bw-4,by,4,bh);
+        ctx.strokeStyle='#1a1810';ctx.lineWidth=3;ctx.strokeRect(bx,by,bw,bh);
         // window hints
         if(bw>30&&bh>30){ctx.fillStyle='rgba(40,55,80,.55)';ctx.fillRect(bx+bw*.25,by+bh*.3,bw*.18,bh*.22);ctx.fillRect(bx+bw*.57,by+bh*.3,bw*.18,bh*.22);}
       } else {
-        // hedge / rubble / other
-        ctx.fillStyle=o.color;ctx.fillRect(o.x,o.y,o.w,o.h);ctx.strokeRect(o.x,o.y,o.w,o.h);
-        ctx.fillStyle='rgba(255,255,255,.04)';ctx.fillRect(o.x,o.y,o.w,3);
+        // hedge / rubble / other — small cast shadow + lit top edge so it reads as a raised chunk, not a stain
+        ctx.fillStyle='rgba(0,0,0,.28)';ctx.fillRect(o.x-LIGHT.x*4,o.y-LIGHT.y*4,o.w,o.h);
+        ctx.fillStyle=o.color;ctx.fillRect(o.x,o.y,o.w,o.h);
+        ctx.strokeStyle='rgba(0,0,0,.5)';ctx.lineWidth=1.5;ctx.strokeRect(o.x,o.y,o.w,o.h);
+        ctx.fillStyle='rgba(255,255,255,.10)';ctx.fillRect(o.x,o.y,o.w,3);
       }
     }
   }
