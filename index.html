@@ -1292,6 +1292,9 @@ window.onload=()=>{
   // Defer heavy garage build so page is interactive immediately
   setTimeout(()=>{try{buildGarage();}catch(e){console.error('buildGarage:',e);}},50);
   window.addEventListener('resize',resize);
+  // Re-size the canvas whenever the arena itself changes size (layout changes —
+  // e.g. home->battle — don't fire a window resize, which left half the map black).
+  try{ if(window.ResizeObserver){ const _ro=new ResizeObserver(()=>resize()); const _aw=document.getElementById('arena-wrap'); if(_aw)_ro.observe(_aw); } }catch(e){}
   setupInput();
   // Wire buttons (also done via inline onclick as backup)
   ['btn-deploy','btn-retry'].forEach(id=>{const b=document.getElementById(id);if(b)b.onclick=startGame;});
@@ -1749,6 +1752,7 @@ function startGame(){
   const hb=document.getElementById('hud-bot');if(hb)hb.style.display='flex';
   // Belt-and-suspenders: force-hide garage with inline style
   document.body.setAttribute('data-state','game');
+  resize(); // ensure the canvas matches the (now full-size) arena before the first frame
   state='game';score=0;kills=0;wave=1;waveSpawning=false;gameRunning=true;_paused=false;
   // Translate the chosen game mode into the spawn battleMode
   if(gameMode==='1v1')battleMode='1v1';
