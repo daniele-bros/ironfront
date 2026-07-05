@@ -619,7 +619,7 @@ const TANK_DEFS = [
   {id:'somua',   name:'SOMUA S35',     nation:'🇫🇷 France',  hp:280,armor:56, pen:55, dmg:90, speed:3.6,rot:2.2,reload:2.3,ammo:118,color:'#6a7838',tier:'IV', price:450, desc:'Best cavalry tank of 1940. Fast & well-armored.'},
   {id:'b1bis',   name:'B1 bis',        nation:'🇫🇷 France',  hp:380,armor:60, pen:45, dmg:105,speed:2.2,rot:1.6,reload:3.0,ammo:74,color:'#627030',tier:'IV',  price:700, desc:'Heavy infantry tank. Two guns. Fortress.'},
   {id:'arl44',   name:'ARL 44',        nation:'🇫🇷 France',  hp:580,armor:120,pen:110,dmg:160,speed:2.5,rot:1.5,reload:2.8,ammo:30,color:'#586828',tier:'V',  price:1200,desc:'Post-war transitional heavy. Huge front armor.'},
-  {id:'amx13',   name:'AMX 13',        nation:'🇫🇷 France',  hp:260,armor:25, pen:140,dmg:175,speed:4.8,rot:2.6,reload:1.5,ammo:36,color:'#6a7838',tier:'VI',  price:1000,desc:'Fast autoloader! 6-shot clip. Glass cannon.'},
+  {id:'amx13clip',   name:'AMX 13',        nation:'🇫🇷 France',  hp:260,armor:25, pen:140,dmg:175,speed:4.8,rot:2.6,reload:1.5,ammo:36,color:'#6a7838',tier:'VI',  price:1000,desc:'Fast autoloader! 6-shot clip. Glass cannon.'},
 
   // ══ JAPAN (5 tanks) ══
   {id:'type94',  name:'Type 94 TK',    nation:'🇯🇵 Japan',   hp:100,armor:12, pen:15, dmg:22, speed:4.6,rot:2.6,reload:1.2,ammo:60,color:'#686830',tier:'I',  price:0,   desc:'Starter tankette. Fragile but very fast. 6-shot burst!'},
@@ -633,7 +633,7 @@ const TANK_DEFS = [
   {id:'chiha_cn', name:'Type 97 (PLA)', nation:'🇨🇳 China',  hp:270,armor:25, pen:55, dmg:85, speed:3.3,rot:1.9,reload:2.2,ammo:120,color:'#526028',tier:'III', price:450, desc:'Captured Japanese Chi-Ha in PLA service.'},
   {id:'m4a4_cn',  name:'M4A4 (China)', nation:'🇨🇳 China',   hp:480,armor:50, pen:95, dmg:150,speed:3.4,rot:1.9,reload:2.4,ammo:90,color:'#485820',tier:'V',  price:850, desc:'US lend-lease Sherman used by China.'},
   {id:'is2_cn',   name:'IS-2 (PLA)',   nation:'🇨🇳 China',   hp:750,armor:120,pen:170,dmg:280,speed:2.1,rot:1.4,reload:4.0,ammo:28,color:'#3c4e18',tier:'VII', price:2100,desc:'Soviet-supplied IS-2. Powerful heavy.'},
-  {id:'type59',   name:'Type 59',      nation:'🇨🇳 China',   hp:820,armor:100,pen:175,dmg:250,speed:3.0,rot:1.7,reload:3.2,ammo:22,color:'#344414',tier:'VIII',price:3200,desc:'Iconic Chinese MBT. T-54 derivative.'},
+  {id:'type59mbt',   name:'Type 59',      nation:'🇨🇳 China',   hp:820,armor:100,pen:175,dmg:250,speed:3.0,rot:1.7,reload:3.2,ammo:22,color:'#344414',tier:'VIII',price:3200,desc:'Iconic Chinese MBT. T-54 derivative.'},
 
   // ══ SWEDEN (5 tanks) ══
   {id:'strv21',  name:'Strv fm/21',    nation:'🇸🇪 Sweden',  hp:120,armor:14, pen:20, dmg:30, speed:3.8,rot:2.2,reload:1.8,ammo:100,color:'#607842',tier:'I',  price:0,   desc:'Starter. German-origin Swedish light tank.'},
@@ -702,7 +702,7 @@ const TANK_DEFS = [
   {id:'t95',name:'T95',nation:'🇺🇸 USA',hp:1200,armor:305,pen:210,dmg:375,speed:1.3,rot:0.8,reload:3.8,ammo:24,color:'#344838',tier:'IX',price:3500,desc:'Doom turtle. 305mm front. Slow.'},
   {id:'t54e1',name:'T54E1',nation:'🇺🇸 USA',hp:1050,armor:120,pen:200,dmg:300,speed:2.8,rot:1.7,reload:1.9,ammo:36,color:'#3e5038',tier:'IX',price:3600,desc:'4-shell autoloader. Flexible.'},
   {id:'m46patton',name:'M46 Patton',nation:'🇺🇸 USA',hp:1100,armor:102,pen:205,dmg:315,speed:3.0,rot:1.7,reload:3.0,ammo:70,color:'#3a4c36',tier:'IX',price:3600,desc:'Tier IX US medium. Accurate.'},
-  {id:'m48patton',name:'M48A5 Patton',nation:'🇺🇸 USA',hp:1400,armor:130,pen:252,dmg:360,speed:2.8,rot:1.7,reload:2.8,ammo:20,color:'#344632',tier:'X',price:5500,desc:'Top US medium. Great gun dep.'},
+  {id:'m48a5patton',name:'M48A5 Patton',nation:'🇺🇸 USA',hp:1400,armor:130,pen:252,dmg:360,speed:2.8,rot:1.7,reload:2.8,ammo:20,color:'#344632',tier:'X',price:5500,desc:'Top US medium. Great gun dep.'},
   {id:'t110e5',name:'T110E5',nation:'🇺🇸 USA',hp:1800,armor:250,pen:258,dmg:400,speed:2.6,rot:1.5,reload:3.5,ammo:36,color:'#2e4030',tier:'X',price:5800,desc:'Tier X US heavy. Cuppola weak.'},
   {id:'t110e3',name:'T110E3',nation:'🇺🇸 USA',hp:1600,armor:305,pen:268,dmg:420,speed:2.0,rot:1.0,reload:3.8,ammo:30,color:'#283c2c',tier:'X',price:5500,desc:'Frontal fortress TD. Unmovable.'},
   {id:'t110e4',name:'T110E4',nation:'🇺🇸 USA',hp:1400,armor:102,pen:268,dmg:400,speed:2.4,rot:1.3,reload:3.5,ammo:30,color:'#2c3e2a',tier:'X',price:5200,desc:'Open-top tier X TD. Flexible.'},
@@ -718,7 +718,7 @@ const TANK_DEFS = [
   {id:'charioteer',name:'Charioteer',nation:'🇬🇧 Britain',hp:540,armor:40,pen:148,dmg:188,speed:4.0,rot:1.9,reload:2.7,ammo:40,color:'#3a5420',tier:'VII',price:1700,desc:'Cromwell hull, 20-pdr TD.'},
   {id:'black_prince',name:'Black Prince',nation:'🇬🇧 Britain',hp:750,armor:152,pen:85,dmg:155,speed:2.0,rot:1.4,reload:2.8,ammo:89,color:'#344a1c',tier:'VII',price:1700,desc:'Churchill evolution. Super heavy.'},
   {id:'at15',name:'AT 15',nation:'🇬🇧 Britain',hp:1100,armor:228,pen:148,dmg:245,speed:2.0,rot:1.0,reload:3.2,ammo:72,color:'#2e4418',tier:'IX',price:3500,desc:'Bunker-like assault tank.'},
-  {id:'conqueror',name:'Conqueror',nation:'🇬🇧 Britain',hp:1400,armor:180,pen:235,dmg:370,speed:2.4,rot:1.4,reload:3.5,ammo:18,color:'#283e14',tier:'IX',price:3600,desc:'Tier IX UK heavy. 120mm.'},
+  {id:'conqueror_ix',name:'Conqueror',nation:'🇬🇧 Britain',hp:1400,armor:180,pen:235,dmg:370,speed:2.4,rot:1.4,reload:3.5,ammo:18,color:'#283e14',tier:'IX',price:3600,desc:'Tier IX UK heavy. 120mm.'},
   {id:'fv215b',name:'FV215b',nation:'🇬🇧 Britain',hp:1800,armor:254,pen:265,dmg:415,speed:2.2,rot:1.3,reload:3.5,ammo:30,color:'#223812',tier:'X',price:6000,desc:'Tier X British heavy. Mythical.'},
   {id:'fv4202',name:'FV4202',nation:'🇬🇧 Britain',hp:1400,armor:120,pen:248,dmg:340,speed:3.0,rot:1.7,reload:2.8,ammo:46,color:'#263c14',tier:'X',price:5500,desc:'British Tier X medium. Fast.'},
   {id:'fv183',name:'FV183 DEATHSTAR',nation:'🇬🇧 Britain',hp:1600,armor:254,pen:268,dmg:1750,speed:2.0,rot:1.0,reload:22.0,ammo:12,color:'#1e3010',tier:'X',price:6500,desc:'183mm. One shots everything. Meme.'},
@@ -738,7 +738,7 @@ const TANK_DEFS = [
   {id:'amx50_100',name:'AMX 50 100',nation:'🇫🇷 France',hp:850,armor:90,pen:218,dmg:290,speed:3.2,rot:1.7,reload:1.8,ammo:56,color:'#426030',tier:'VIII',price:2600,desc:'6-round autoloader. Devastating.'},
   {id:'amxm4_54',name:'AMX M4 mle. 54',nation:'🇫🇷 France',hp:1600,armor:280,pen:248,dmg:380,speed:2.2,rot:1.3,reload:3.2,ammo:35,color:'#3a5826',tier:'X',price:6000,desc:'Tier X French brawler heavy.'},
   {id:'amx50b',name:'AMX 50 B',nation:'🇫🇷 France',hp:1800,armor:200,pen:248,dmg:400,speed:2.8,rot:1.6,reload:1.8,ammo:56,color:'#345222',tier:'X',price:6000,desc:'4-shot autoloader heavy. Clip of pain.'},
-  {id:'amx30',name:'AMX-30 B',nation:'🇫🇷 France',hp:1400,armor:80,pen:252,dmg:340,speed:3.4,rot:1.9,reload:2.8,ammo:20,color:'#3a5020',tier:'X',price:5500,desc:'French Tier X medium. Fast.'},
+  {id:'amx30b',name:'AMX-30 B',nation:'🇫🇷 France',hp:1400,armor:80,pen:252,dmg:340,speed:3.4,rot:1.9,reload:2.8,ammo:20,color:'#3a5020',tier:'X',price:5500,desc:'French Tier X medium. Fast.'},
   {id:'amxcda',name:'AMX CDA 105',nation:'🇫🇷 France',hp:820,armor:42,pen:195,dmg:265,speed:3.4,rot:1.8,reload:2.8,ammo:37,color:'#445c28',tier:'VIII',price:2500,desc:'Fast French TD. 105mm.'},
   {id:'foch',name:'Foch',nation:'🇫🇷 France',hp:1100,armor:50,pen:248,dmg:380,speed:3.2,rot:1.6,reload:3.0,ammo:48,color:'#3c5420',tier:'IX',price:3500,desc:'Tier IX French casemate TD.'},
   {id:'foch155',name:'Foch 155',nation:'🇫🇷 France',hp:1400,armor:60,pen:258,dmg:750,speed:2.8,rot:1.4,reload:2.0,ammo:39,color:'#344c1c',tier:'X',price:6000,desc:'3-round 155mm autoloader TD.'},
@@ -753,9 +753,9 @@ const TANK_DEFS = [
   {id:'o_ni',name:'O-Ni',nation:'🇯🇵 Japan',hp:720,armor:150,pen:80,dmg:162,speed:1.6,rot:1.1,reload:3.0,ammo:120,color:'#4c4a10',tier:'VI',price:1200,desc:'Huge super-heavy with turrets.'},
   {id:'o_ho',name:'O-Ho',nation:'🇯🇵 Japan',hp:880,armor:200,pen:78,dmg:172,speed:1.5,rot:1.0,reload:3.2,ammo:120,color:'#443e0c',tier:'VII',price:1700,desc:'Largest Japanese WW2 heavy.'},
   {id:'sta1',name:'STA-1',nation:'🇯🇵 Japan',hp:980,armor:90,pen:178,dmg:258,speed:3.2,rot:1.8,reload:2.8,ammo:70,color:'#3e4010',tier:'VIII',price:2500,desc:'Post-war Japan. Accurate gun.'},
-  {id:'type61',name:'Type 61',nation:'🇯🇵 Japan',hp:1100,armor:115,pen:195,dmg:295,speed:3.2,rot:1.8,reload:2.8,ammo:20,color:'#383c0e',tier:'IX',price:3500,desc:'Tier IX Japanese. 90mm.'},
+  {id:'type61_ix',name:'Type 61',nation:'🇯🇵 Japan',hp:1100,armor:115,pen:195,dmg:295,speed:3.2,rot:1.8,reload:2.8,ammo:20,color:'#383c0e',tier:'IX',price:3500,desc:'Tier IX Japanese. 90mm.'},
   {id:'stbI',name:'STB-1',nation:'🇯🇵 Japan',hp:1400,armor:105,pen:248,dmg:340,speed:3.5,rot:2.0,reload:2.6,ammo:54,color:'#30380c',tier:'X',price:5500,desc:'Tier X. Hydropneumatic suspension.'},
-  {id:'type10',name:'Type 10',nation:'🇯🇵 Japan',hp:1350,armor:138,pen:250,dmg:320,speed:3.2,rot:1.9,reload:2.5,ammo:22,color:'#2c340a',tier:'X',price:5500,desc:'Modern Japanese main battle.'},
+  {id:'type10x',name:'Type 10',nation:'🇯🇵 Japan',hp:1350,armor:138,pen:250,dmg:320,speed:3.2,rot:1.9,reload:2.5,ammo:22,color:'#2c340a',tier:'X',price:5500,desc:'Modern Japanese main battle.'},
   {id:'shptII',name:'STA-2',nation:'🇯🇵 Japan',hp:880,armor:52,pen:185,dmg:248,speed:3.8,rot:2.0,reload:2.5,ammo:70,color:'#3c4010',tier:'VIII',price:2400,desc:'Japanese premium sniper.'},
   {id:'kuromatsu',name:'Kuromatsu (Black Pine)',nation:'🇯🇵 Japan',hp:580,armor:55,pen:125,dmg:178,speed:3.0,rot:1.7,reload:2.5,ammo:60,color:'#4a4e12',tier:'VII',price:1500,desc:'Fictional Japanese TD concept.'},
   {id:'type91',name:'Type 91 Heavy',nation:'🇯🇵 Japan',hp:320,armor:35,pen:65,dmg:108,speed:2.2,rot:1.5,reload:2.4,ammo:80,color:'#666230',tier:'V',price:850,desc:'WW1-era Japanese heavy.'},
@@ -852,11 +852,11 @@ function getTankFaction(id){
     amx13f3:'french',lorr155:'french'};
   if(artySPG[id]) return artySPG[id];
   const soviet=['ms1','t26','t60','bt7','t70','t28','a20','t34','kv1','su85','t34_85m','kv85','t3485','kv2','kv4','su76','su100','su122','isu122','is2','is1','is3','isu152','obj252','t44','su130pm','obj279','t54','obj140','obj430','obj268','obj277','t62a'];
-  const american=['t1cunn','m2light','m3stuart','m5stuart','m3lee','m4a2','m4improved','m4a1','m10','m41walker','m6heavy','m4a3e2','m4a3e8','hellcat','bat_pat','firefly','m36','m26e4','t29','m26','t69','t28heavy','t28proto','m46patton','t95','t54e1','t34us','m48patton','t110e5','t110e3','t110e4','t57heavy','xm551'];
-  const british=['carden','vickers_med','mkvi','a13','tetrarch','crusader','aec_mk2','matilda2','valentine','churchillI','cromwell','centaur','archer','churchill4','achilles','charioteer','black_prince','comet','firefly_b','at15','conqueror','fv215b','fv4202','fv183','fv4005','badger','supercon','fv4211','tortoise'];
-  const french=['ft17','r35','fcm36','amx38','amx40','amxm4','amx65t','amxcda','amxm4_51','lor40t','amx13','amxm4_54','amx50_100','amx13_90','elceven','amx50b','amx30','foch','bat25t','char_futur','foch155','arl44','b1bis','somua'];
-  const japanese=['nac1','type94','type89','hago','nc_27','type2','chiha','type91','chinu','o_ni','type4chito','oi','o_ho','type5chiri','kuromatsu','sta1','shptII','type61','stbI','type10'];
-  const chinese=['renault_otsu','type94_cn','t26_cn','vickers_e','m5_cn','chiha_cn','t34_cn','m4a4_cn','wz132','59_pat','is2_cn','t34_3','is3_cn','wz111','type59','t54_mod1','wz120','wz111_5a','wz113','type121','wz131','wz113g'];
+  const american=['t1cunn','m2light','m3stuart','m5stuart','m3lee','m4a2','m4improved','m4a1','m10','m41walker','m6heavy','m4a3e2','m4a3e8','hellcat','bat_pat','firefly','m36','m26e4','t29','m26','t69','t28heavy','t28proto','m46patton','t95','t54e1','t34us','m48patton','m48a5patton','t110e5','t110e3','t110e4','t57heavy','xm551'];
+  const british=['carden','vickers_med','mkvi','a13','tetrarch','crusader','aec_mk2','matilda2','valentine','churchillI','cromwell','centaur','archer','churchill4','achilles','charioteer','black_prince','comet','firefly_b','at15','conqueror','conqueror_ix','fv215b','fv4202','fv183','fv4005','badger','supercon','fv4211','tortoise'];
+  const french=['ft17','r35','fcm36','amx38','amx40','amxm4','amx65t','amxcda','amxm4_51','lor40t','amx13','amx13clip','amxm4_54','amx50_100','amx13_90','elceven','amx50b','amx30','amx30b','foch','bat25t','char_futur','foch155','arl44','b1bis','somua'];
+  const japanese=['nac1','type94','type89','hago','nc_27','type2','chiha','type91','chinu','o_ni','type4chito','oi','o_ho','type5chiri','kuromatsu','sta1','shptII','type61','type61_ix','stbI','type10','type10x'];
+  const chinese=['renault_otsu','type94_cn','t26_cn','vickers_e','m5_cn','chiha_cn','t34_cn','m4a4_cn','wz132','59_pat','is2_cn','t34_3','is3_cn','wz111','type59','type59mbt','t54_mod1','wz120','wz111_5a','wz113','type121','wz131','wz113g'];
   const swedish=['pvlv42','strv21','strv_m37','strv38','pvkv_m43','ikv72','lago','strv42','pvkv_IV','ikv65','strv74','leo','strv_s1','strv81','emil1','emil2','krv','udes03','udes15','strv103b','strv105'];
   const czech=['kodiak'];
   if(soviet.includes(id)) return 'soviet';
