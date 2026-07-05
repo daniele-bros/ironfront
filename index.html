@@ -1144,6 +1144,51 @@ function playNukeBlast(){
   ns.connect(lp);lp.connect(ng);ng.connect(_masterGain);if(rev)ng.connect(rev);ns.start(t);
 }
 
+// Short UI blip for menu/button clicks
+function playUiClick(){
+  if(!_soundOn)return; _initAudio(); _resumeAudio(); if(!_audioCtx)return;
+  if(!_throttle('ui',35))return;
+  const t=_audioCtx.currentTime;
+  const o=_audioCtx.createOscillator();o.type='square';
+  const g=_audioCtx.createGain();
+  o.frequency.setValueAtTime(660,t);o.frequency.exponentialRampToValueAtTime(920,t+0.03);
+  g.gain.setValueAtTime(0.11,t);g.gain.exponentialRampToValueAtTime(0.001,t+0.07);
+  const lp=_audioCtx.createBiquadFilter();lp.type='lowpass';lp.frequency.value=2600;
+  o.connect(lp);lp.connect(g);g.connect(_masterGain);o.start(t);o.stop(t+0.08);
+}
+// Mechanical "clack" when the gun finishes reloading
+function playReloadReady(){
+  if(!_soundOn)return; _initAudio(); _resumeAudio(); if(!_audioCtx)return;
+  const t=_audioCtx.currentTime, sr=_audioCtx.sampleRate;
+  [0,0.055].forEach(function(off){
+    const nb=_audioCtx.createBuffer(1,Math.floor(sr*0.03),sr),d=nb.getChannelData(0);
+    for(let i=0;i<d.length;i++)d[i]=(Math.random()*2-1)*Math.pow(1-i/d.length,3);
+    const s=_audioCtx.createBufferSource();s.buffer=nb;
+    const bp=_audioCtx.createBiquadFilter();bp.type='bandpass';bp.frequency.value=2200;bp.Q.value=1.2;
+    const g=_audioCtx.createGain();g.gain.setValueAtTime(0.2,t+off);g.gain.exponentialRampToValueAtTime(0.001,t+off+0.05);
+    s.connect(bp);bp.connect(g);g.connect(_masterGain);s.start(t+off);
+  });
+}
+// Rising two-note alert when a new wave begins
+function playWaveStart(){
+  if(!_soundOn)return; _initAudio(); _resumeAudio(); if(!_audioCtx)return;
+  const t=_audioCtx.currentTime;
+  [[523,0],[784,0.14]].forEach(function(n){
+    const o=_audioCtx.createOscillator();o.type='triangle';
+    const g=_audioCtx.createGain();
+    o.frequency.setValueAtTime(n[0],t+n[1]);
+    g.gain.setValueAtTime(0.0001,t+n[1]);g.gain.exponentialRampToValueAtTime(0.18,t+n[1]+0.03);g.gain.exponentialRampToValueAtTime(0.001,t+n[1]+0.3);
+    o.connect(g);g.connect(_masterGain);if(_reverb)g.connect(_reverb);o.start(t+n[1]);o.stop(t+n[1]+0.32);
+  });
+}
+// Play a soft blip on any menu/button click (not the game canvas)
+if(typeof document!=='undefined'){
+  document.addEventListener('click',function(e){
+    const el=e.target&&e.target.closest&&e.target.closest('button,.nav-card,.mcard,.tcard,.buybtn,.tree-node');
+    if(el)playUiClick();
+  },true);
+}
+
 function playHit(pen){
   if(!_soundOn)return; _initAudio(); _resumeAudio(); if(!_audioCtx)return;
   if(!_throttle('hit',35))return;
@@ -2162,7 +2207,7 @@ function tryShoot(){
     const _now=(typeof performance!=='undefined'?performance.now():Date.now());
     const _frac=Math.min(1,(_now-_rStart)/_rDur);
     const _rb=document.getElementById('relbar');if(_rb)_rb.style.width=(_frac*100)+'%';
-    if(_frac>=1){clearInterval(reloadInt);reloadInt=null;canShoot=true;}
+    if(_frac>=1){clearInterval(reloadInt);reloadInt=null;canShoot=true;playReloadReady();}
   },1000/60);
 }
 
@@ -2279,7 +2324,7 @@ function _fireArtyShell(tx,ty){
     const _frac=Math.min(1,(_now-_rStart)/_rDur);
     const _rb=document.getElementById('relbar');
     if(_rb)_rb.style.width=(_frac*100)+'%';
-    if(_frac>=1){clearInterval(reloadInt);reloadInt=null;canShoot=true;}
+    if(_frac>=1){clearInterval(reloadInt);reloadInt=null;canShoot=true;playReloadReady();}
   },1000/60);
 }
 
@@ -4829,7 +4874,7 @@ function checkWave(){
     const pt=getPlayerTierNum();const rn=Object.keys(TIER_NUM).find(k=>TIER_NUM[k]===pt)||'V';
     const b=document.getElementById('wave-banner');
     b.innerHTML='WAVE '+wave+' · VICTORY<div style="font-size:13px;letter-spacing:2px;margin-top:6px;color:var(--cream)">Tier '+rn+' enemies incoming · Repairs complete</div>';
-    b.style.display='block';
+    b.style.display='block';playWaveStart();
     setTimeout(()=>{b.style.display='none';if(gameRunning){spawnWave();waveSpawning=false;}},2500);
   }
 }
