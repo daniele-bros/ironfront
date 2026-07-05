@@ -707,7 +707,7 @@ const TANK_DEFS = [
   {id:'fv215b',name:'FV215b',nation:'🇬🇧 Britain',hp:1800,armor:254,pen:265,dmg:415,speed:2.2,rot:1.3,reload:3.5,ammo:30,color:'#223812',tier:'X',price:6000,desc:'Tier X British heavy. Mythical.'},
   {id:'fv4202',name:'FV4202',nation:'🇬🇧 Britain',hp:1400,armor:120,pen:248,dmg:340,speed:3.0,rot:1.7,reload:2.8,ammo:46,color:'#263c14',tier:'X',price:5500,desc:'British Tier X medium. Fast.'},
   {id:'fv183',name:'FV183 DEATHSTAR',nation:'🇬🇧 Britain',hp:1600,armor:254,pen:268,dmg:1750,speed:2.0,rot:1.0,reload:22.0,ammo:12,color:'#1e3010',tier:'X',price:6500,desc:'183mm. One shots everything. Meme.'},
-  {id:'fv4005',name:'FV4005 Stage II',nation:'🇬🇧 Britain',hp:1450,armor:250,pen:268,dmg:2000,speed:3.0,rot:1.3,reload:0.05,ammo:10000,color:'#243412',tier:'X',price:6000,desc:'183mm AUTOCANNON. 30-round bursts! 2000 dmg/round, no reload, heavy armour.'},
+  {id:'fv4005',name:'FV4005 Stage II',nation:'🇬🇧 Britain',hp:1450,armor:250,pen:268,dmg:2000,speed:3.0,rot:1.3,reload:0.05,ammo:10000,color:'#243412',tier:'X',price:6000,desc:'183mm AUTOCANNON. 40-round PIERCING bursts — shells punch through multiple tanks! 2000 dmg, heavy armour.'},
   {id:'badger',name:'Badger',nation:'🇬🇧 Britain',hp:1600,armor:285,pen:258,dmg:395,speed:2.2,rot:1.1,reload:3.5,ammo:36,color:'#1e2e0e',tier:'X',price:5800,desc:'Tier X British AT. Fortress.'},
   {id:'supercon',name:'Super Conqueror',nation:'🇬🇧 Britain',hp:2000,armor:305,pen:268,dmg:440,speed:2.2,rot:1.3,reload:3.5,ammo:35,color:'#1a2c0c',tier:'X',price:6200,desc:'Best-armored British heavy.'},
   {id:'fv4211',name:'FV4211',nation:'🇬🇧 Britain',hp:1500,armor:152,pen:250,dmg:365,speed:2.8,rot:1.6,reload:3.0,ammo:40,color:'#223810',tier:'X',price:5600,desc:'British experimental heavy.'},
@@ -2113,7 +2113,7 @@ function tryShoot(){
     const ang=player.turretAngle;
     const sp=12;
     // ── 10-ROUND BURST: rapid salvo of shells fired ~50ms apart ──
-    const _burstN=30;
+    const _burstN=40;
     for(let _b=0;_b<_burstN;_b++){
       setTimeout((function(idx){return function(){
         if(!gameRunning||!player||currentAmmo<=0)return;
@@ -2121,7 +2121,7 @@ function tryShoot(){
         const a2=player.turretAngle+(Math.random()-0.5)*0.06;
         bullets.push({x:player.x+Math.cos(a2)*player.size,y:player.y+Math.sin(a2)*player.size,
           vx:Math.cos(a2)*sp,vy:Math.sin(a2)*sp,
-          owner:'player',dmg:player.dmg,pen:player.pen,life:140,trail:[],fullDmg:true});
+          owner:'player',dmg:player.dmg,pen:player.pen,life:140,trail:[],fullDmg:true,pierce:true}); // shells punch through multiple tanks
         spawnMuzzle(player.x,player.y,a2);
         if(player)player.recoil=Math.max(player.recoil||0,player.size*0.16);
         camShake=Math.max(camShake,4);
@@ -2931,14 +2931,17 @@ function updateBullets(dt){
     }
     if(b.owner==='player'){
       let hit=false;
+      if(b.pierce)b.hitSet=b.hitSet||new Set(); // piercing shells damage each tank once, then keep flying
       for(let j=enemies.length-1;j>=0;j--){
         const e=enemies[j];if(e.hp<=0)continue;
+        if(b.pierce&&b.hitSet.has(e))continue;
         if(_bulletHitsCircle(b,e.x,e.y,e.size)){
           const _ea=effectiveArmor(e.armor,b.x,b.y,b.vx,b.vy,e.x,e.y,e.angle);
           const pen=b.pen-_ea.armor;
           e.hp-=(b.fullDmg||pen>0)?b.dmg:0;
           e.hitFlash=1;
           spawnHitFx(b.x,b.y,pen>0);
+          if(b.pierce)b.hitSet.add(e);
           if(e.hp<=0){
             let reward=1000;
             if(e._isRatte){reward=500000;addKillFeed('\uD83D\uDC80 RATTE KILL! +500,000 \uD83C\uDFF7');}
@@ -2949,10 +2952,11 @@ function updateBullets(dt){
             spawnExplosion(e.x,e.y);craters.push({x:e.x,y:e.y,r:e.size*1.4});
             enemies.splice(j,1);(document.getElementById('hud-en')||{}).textContent=enemies.length;
           }
-          hit=true;break;
+          hit=true;
+          if(!b.pierce)break; // piercing shells pass through and keep hitting tanks along their path
         }
       }
-      if(hit){bullets.splice(i,1);continue;}
+      if(hit&&!b.pierce){bullets.splice(i,1);continue;}
     }else{
       if(_bulletHitsCircle(b,player.x,player.y,player.size)&&playerShield<=0){
         const _pea=effectiveArmor(player.armor,b.x,b.y,b.vx,b.vy,player.x,player.y,player.angle);
