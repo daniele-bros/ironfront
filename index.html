@@ -3628,12 +3628,27 @@ function _renderTile(t,S,m,rng){
     // sparkly ice crystals
     for(let i=0;i<60;i++){const x=rng()*S,y=rng()*S;t.fillStyle=`rgba(255,255,255,${.35+rng()*.45})`;t.beginPath();t.arc(x,y,.6+rng()*1.1,0,Math.PI*2);t.fill();}
   } else if(gd==='rubble'||gd==='ash'){
+    // CLEAN bombed-ground (Tiger Tank style): solid base + fine grain + faint slab seams, no big blobs.
     const dark=gd==='ash';
-    // Concrete slabs
-    for(let i=0;i<40;i++){const v=dark?8+rng()*18:30+rng()*28;t.fillStyle=`rgba(${v|0},${v*.9|0},${v*.85|0},.55)`;t.fillRect(rng()*S,rng()*S,10+rng()*70,8+rng()*45);if(rng()<.35){t.strokeStyle='rgba(0,0,0,.2)';t.lineWidth=.6;t.beginPath();t.moveTo(rng()*S,rng()*S*.3);t.lineTo(rng()*S,rng()*S+S*.3);t.stroke();}}
-    // Debris
-    for(let i=0;i<80;i++){const r=dark?8+rng()*12:20+rng()*15,g=dark?4+rng()*6:10+rng()*8,b=dark?3+rng()*4:7+rng()*6;t.fillStyle=`rgba(${r|0},${g|0},${b|0},.45)`;t.fillRect(rng()*S,rng()*S,2+rng()*7,2+rng()*5);}
-    if(dark){for(let i=0;i<15;i++){t.fillStyle=`rgba(${160+rng()*60|0},${40+rng()*30|0},8,.25)`;t.beginPath();t.arc(rng()*S,rng()*S,1+rng()*2,0,Math.PI*2);t.fill();}}
+    t.fillStyle=dark?'#2b2419':'#4a3f31';t.fillRect(0,0,S,S);
+    // fine grit — tiny low-contrast flecks, seamless when tiled
+    for(let i=0;i<1600;i++){const x=rng()*S,y=rng()*S;
+      t.fillStyle=dark
+        ?(rng()<.5?`rgba(74,62,44,${.06+rng()*.10})`:`rgba(18,14,10,${.10+rng()*.14})`)
+        :(rng()<.5?`rgba(120,104,84,${.06+rng()*.10})`:`rgba(46,38,28,${.07+rng()*.11})`);
+      t.fillRect(x,y,1,1);}
+    // faint cracked-slab seams — thin even lines for concrete relief (no filled blocks)
+    t.lineWidth=1;t.strokeStyle=dark?'rgba(12,9,6,.30)':'rgba(30,24,17,.28)';
+    for(let i=0;i<26;i++){const x=rng()*S,y=rng()*S,l=18+rng()*70,hv=rng()<.5;
+      t.beginPath();t.moveTo(x,y);hv?t.lineTo(x+l,y+(rng()-.5)*6):t.lineTo(x+(rng()-.5)*6,y+l);t.stroke();}
+    // scattered small rubble chunks — subtle, evenly spread
+    for(let i=0;i<48;i++){const x=rng()*S,y=rng()*S,w=2+rng()*5,h=2+rng()*4;
+      t.fillStyle=dark?`rgba(58,48,34,${.20+rng()*.16})`:`rgba(96,84,66,${.20+rng()*.18})`;t.fillRect(x,y,w,h);
+      t.fillStyle='rgba(0,0,0,.14)';t.fillRect(x+.6,y+h,w,1);}
+    // catch-light on some chunks
+    for(let i=0;i<30;i++){const x=rng()*S,y=rng()*S;t.fillStyle=dark?`rgba(140,120,90,${.10+rng()*.12})`:`rgba(176,158,128,${.13+rng()*.15})`;t.beginPath();t.arc(x,y,.6+rng()*1,0,Math.PI*2);t.fill();}
+    // ash: faint smouldering embers
+    if(dark){for(let i=0;i<15;i++){t.fillStyle=`rgba(${160+rng()*60|0},${40+rng()*30|0},8,.22)`;t.beginPath();t.arc(rng()*S,rng()*S,1+rng()*1.6,0,Math.PI*2);t.fill();}}
   } else if(gd==='jungle'){
     // CLEAN dense jungle floor: solid dark-green base + fine grain + sparse vines, no blobs.
     t.fillStyle='#11200a';t.fillRect(0,0,S,S);
