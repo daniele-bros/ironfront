@@ -3684,10 +3684,11 @@ function _addWorldVariation(g,m,rng){
     med:['rgba(160,130,60,.12)','rgba(120,90,30,.18)'],
   };
   const pal=palettes[gd]||palettes.field;
-  // Keep large-scale variation VERY subtle so the clean tile base stays uniform (no blobs)
-  g.globalAlpha=0.22;
-  for(let i=0;i<8;i++){
-    const x=rng()*WW,y=rng()*WH,rx=120+rng()*180,ry=80+rng()*120;
+  // Keep large-scale variation VERY subtle so the clean tile base stays uniform (no blobs).
+  // Big, soft, low-alpha patches only — enough to break tiling repetition, not enough to read as shapes.
+  g.globalAlpha=0.13;
+  for(let i=0;i<6;i++){
+    const x=rng()*WW,y=rng()*WH,rx=260+rng()*260,ry=180+rng()*200;
     g.fillStyle=pal[Math.floor(rng()*pal.length)];
     g.beginPath();g.ellipse(x,y,rx,ry,rng()*Math.PI,0,Math.PI*2);g.fill();
   }
