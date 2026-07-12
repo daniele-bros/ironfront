@@ -5009,7 +5009,7 @@ const TREE_LAYOUT = {
     ['su100','is2','is1','isu122'],
     ['is3','isu152','obj252','t44'],
     ['su130pm','obj279','t54'],
-    ['is3','obj140','obj430','obj268','obj277','t62a'],
+    ['obj140','obj430','obj268','obj277','t62a'],
     []],
   american:[
     ['t1cunn'],
@@ -5021,7 +5021,7 @@ const TREE_LAYOUT = {
     ['firefly','m36','m26e4'],
     ['t29','m26','t69','t28heavy','t28proto'],
     ['m46patton','t95','t54e1','t34us'],
-    ['m48patton','t110e5','t110e3','t110e4','t57heavy','xm551'],
+    ['m48a5patton','t110e5','t110e3','t110e4','t57heavy','xm551'],
     []],
   british:[
     ['carden'],
@@ -5031,7 +5031,7 @@ const TREE_LAYOUT = {
     ['churchillI','cromwell','centaur'],
     ['archer','churchill4','achilles','charioteer'],
     ['black_prince','comet','firefly_b'],
-    ['at15','conqueror'],
+    ['at15','conqueror_ix'],
     ['fv215b','fv4202','fv183','fv4005','badger','supercon','fv4211'],
     ['tortoise'],
     []],
@@ -5041,9 +5041,9 @@ const TREE_LAYOUT = {
     ['amx38','amx40'],
     ['amxm4'],
     ['amx65t','amxcda'],
-    ['amxm4_51','lor40t','amx13'],
+    ['amxm4_51','lor40t','amx13clip'],
     ['amxm4_54','amx50_100','amx13_90','elceven'],
-    ['amx50b','amx30','foch','bat25t','char_futur','foch155'],
+    ['amx50b','amx30b','foch','bat25t','char_futur','foch155'],
     []],
   japanese:[
     ['nac1','type94'],
@@ -5053,8 +5053,8 @@ const TREE_LAYOUT = {
     ['o_ni','type4chito'],
     ['oi','o_ho','type5chiri','kuromatsu'],
     ['sta1','shptII'],
-    ['type61'],
-    ['stbI','type10']],
+    ['type61_ix'],
+    ['stbI','type10x']],
   chinese:[
     ['renault_otsu','type94_cn'],
     ['t26_cn','vickers_e'],
@@ -5063,7 +5063,7 @@ const TREE_LAYOUT = {
     ['wz132','59_pat'],
     ['is2_cn','t34_3'],
     ['is3_cn','wz111'],
-    ['type59','t54_mod1','wz120'],
+    ['type59mbt','t54_mod1','wz120'],
     ['wz111_5a','wz113','type121','wz131'],
     ['wz113g']],
   swedish:[
@@ -5207,7 +5207,7 @@ function treeShowNation(nation){
       card.onclick=function(){
         if(active)return;
         if(owned){ activeTankId=tid; ensureValidMap(); saveData(); treeShowNation(nation); return; }
-        if(!unlocked){ addKillFeed('Unlock a Tier '+ti+' tank first'); return; }
+        if(!unlocked){ addKillFeed('Unlock a Tier '+(ti+1)+' tank first'); return; }
         if(coins>=t.price){ coins-=t.price; ownedTanks.add(tid); activeTankId=tid; ensureValidMap(); saveData(); treeShowNation(nation); }
         else { addKillFeed('Need '+t.price.toLocaleString()+' \u{1F3F7}'); }
       };
