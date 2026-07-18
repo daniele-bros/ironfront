@@ -2058,9 +2058,9 @@ function spawnWave(){
     const ay=Math.max(60,Math.min(WH-60,player.y+Math.sin(a)*d));
     allies.push({x:ax,y:ay,angle:rng()*Math.PI*2,turretAngle:0,_ts:allyTierScale,
       hp:at.hp*allyTierScale*3*(1+wave*0.08),maxHp:at.hp*allyTierScale*3*(1+wave*0.08),
-      armor:at.armor*allyTierScale*2,pen:at.pen*allyTierScale*2,dmg:at.dmg*allyTierScale*2,
+      armor:at.armor*allyTierScale*2,pen:at.pen*allyTierScale*2,dmg:at.dmg*allyTierScale*1.3,
       speed:at.speed*0.75,rotSpeed:at.rot*0.9,size:at.size,color:at.color,name:at.name,
-      shootCD:20+rng()*20}); // faster first shot
+      shootCD:90+rng()*330}); // staggered opening fire so allies don't alpha-strike the whole wave at once
   } // end ally loop
 
 
@@ -2826,18 +2826,19 @@ function updateAllies(dt){
 
     // ── SHOOT: aggressive cooldown, good accuracy, scales with distance ──
     a.shootCD=(a.shootCD||0)-dt;
-    const inRange=dist<650;
+    const inRange=dist<560;
     const aimAngle=angleDiff(ta,a.turretAngle);
     if(a.shootCD<=0&&inRange&&Math.abs(aimAngle)<0.22){
-      a.shootCD=22+Math.random()*18; // very fast reload
+      // Support fire: allies chip in at a realistic reload cadence, but the PLAYER clears the field.
+      a.shootCD=240+Math.random()*140;
       a.recoil=a.size*0.2;
-      const spread=dist>400?0.04:0.015; // very accurate
+      const spread=dist>400?0.10:0.05; // supporting fire, not pinpoint — some shots miss
       const sa=ta+(Math.random()-.5)*spread;
       const spd=16;
       bullets.push({
         x:a.x+Math.cos(sa)*a.size,y:a.y+Math.sin(sa)*a.size,
         vx:Math.cos(sa)*spd,vy:Math.sin(sa)*spd,
-        owner:'ally',dmg:a.dmg*1.8,pen:a.pen*1.6,life:160,trail:[]
+        owner:'ally',dmg:a.dmg*0.6,pen:a.pen*1.05,life:160,trail:[]
       });
       spawnMuzzle(a.x,a.y,sa);
     }
