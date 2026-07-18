@@ -4562,8 +4562,10 @@ function _turretShape(id,p){
   if(H('t34','t44','t54','t55','type59','wz120','wz131','wz132','59_pat')) return 'hex';
   // Rounded cast turrets — Sherman / KV / IS / Pershing / British cruisers
   if(H('sherman','m4a','m4improved','firefly','kv','is1','is2','m26','cromwell','comet','centaur','centurion','conqueror','charioteer','t29','black_prince','m6heavy','pershing')) return 'cast';
-  // Angular sloped hex — Tiger II / Panther family
+  // Angular sloped hex — Tiger II / Panther family (Tiger II checked before Tiger I below)
   if(H('tiger2','panther','panth','e50','e75')) return 'angular';
+  // Tiger I — cylindrical horseshoe turret with a flat front and side cupola ("donut")
+  if(H('tiger')) return 'tiger';
   // Iconic boxes that the profile flag misses
   if(['pz3','pz4','e_pz3','e_pz4','churchillI','churchill4','matilda2','valentine','maus','e_maus','e100'].includes(id)) return 'boxy';
   return p.boxy?'boxy':'round';
@@ -4645,6 +4647,22 @@ function _turret(c,size,col,p,tankId){
     c.lineTo(rx*1.06,0);c.lineTo(rx*.8,ry*.5);c.lineTo(rx*.15,ry*.9);c.lineTo(-rx*.82,ry*.55);c.closePath();c.fill();
     c.strokeStyle=_RIM;c.lineWidth=1.4;c.stroke();
     _gloss();
+  } else if(_ts==='tiger'){
+    // Tiger I — cylindrical "horseshoe" turret: rounded rear & sides, flat front face at the mantlet.
+    // The arc sweeps front-bottom → rear → front-top; closePath draws the flat front chord.
+    c.beginPath();
+    c.ellipse(-rx*.08,0,rx*1.02,ry*.98,0,Math.PI*0.30,Math.PI*1.70,false);
+    c.closePath();c.fill();
+    c.strokeStyle=_RIM;c.lineWidth=1.4;c.stroke();
+    _gloss();
+    // signature commander's cupola — a raised ring ("donut") set to the rear-left, clear of the gun
+    const cux=-rx*.55, cuy=-ry*.42, cur=ry*.4;
+    c.fillStyle='rgba(0,0,0,.34)';c.beginPath();c.arc(cux+1.2,cuy+1.6,cur,0,Math.PI*2);c.fill();    // drop shadow
+    c.fillStyle=lc(col,.12);c.beginPath();c.arc(cux,cuy,cur,0,Math.PI*2);c.fill();                  // raised drum
+    c.strokeStyle='rgba(0,0,0,.55)';c.lineWidth=1.4;c.stroke();
+    c.fillStyle=dc(col,.42);c.beginPath();c.arc(cux,cuy,cur*.5,0,Math.PI*2);c.fill();               // deep hollow centre → donut
+    c.strokeStyle='rgba(0,0,0,.5)';c.lineWidth=.9;c.stroke();
+    c.fillStyle='rgba(255,255,255,.18)';c.beginPath();c.arc(cux-cur*.34,cuy-cur*.34,cur*.26,0,Math.PI*2);c.fill(); // sun-catch
   } else if(_ts==='osc'){
     // AMX-13 style oscillating turret — lower ring + raised tilting upper block
     c.beginPath();c.roundRect(-rx,-ry*.82,rx*2,ry*1.64,ry*.34);c.fill();
@@ -4663,17 +4681,24 @@ function _turret(c,size,col,p,tankId){
     for(let bi=0;bi<_nb;bi++){const a=bi/_nb*Math.PI*2;c.beginPath();c.arc(Math.cos(a)*rx*.86,Math.sin(a)*ry*.86,Math.max(.6,ry*.07),0,Math.PI*2);c.fill();}
   }
 
-  // commander's hatch (skip on oscillating — the block already reads busy)
-  if(_ts!=='osc'){
+  // commander's hatch (skip on oscillating & Tiger — those draw their own cupola/detail)
+  if(_ts!=='osc'&&_ts!=='tiger'){
     c.fillStyle=dc(col,.18);c.beginPath();c.arc(-rx*.12,0,ry*.24,0,Math.PI*2);c.fill();
     c.strokeStyle='rgba(0,0,0,.3)';c.lineWidth=.8;c.stroke();
     c.fillStyle=dc(col,.32);c.beginPath();c.arc(-rx*.12,0,ry*.13,0,Math.PI*2);c.fill();
   }
 
   // mantlet — placement follows the turret's front for each shape
-  const mx=(_ts==='dome')?rx*.72:(_ts==='wedge')?rx*.72:(_ts==='angular')?rx*.66:(_ts==='osc')?rx*.6:(_ts==='boxy')?rx*.6:(_ts==='hex'||_ts==='cast')?rx*.6:rx*.52;
-  c.fillStyle=dc(col,.15);c.beginPath();c.ellipse(mx,0,ry*.38,ry*.34,0,0,Math.PI*2);c.fill();
-  c.strokeStyle='rgba(0,0,0,.25)';c.lineWidth=.7;c.stroke();
+  const mx=(_ts==='dome')?rx*.72:(_ts==='wedge')?rx*.72:(_ts==='angular')?rx*.66:(_ts==='osc')?rx*.6:(_ts==='boxy')?rx*.6:(_ts==='tiger')?rx*.58:(_ts==='hex'||_ts==='cast')?rx*.6:rx*.52;
+  c.fillStyle=dc(col,.15);
+  if(_ts==='tiger'){
+    // Tiger's flat mantlet bar spanning the flat front face
+    c.beginPath();c.roundRect(mx-ry*.17,-ry*.62,ry*.34,ry*1.24,ry*.10);c.fill();
+    c.strokeStyle='rgba(0,0,0,.28)';c.lineWidth=.8;c.stroke();
+  } else {
+    c.beginPath();c.ellipse(mx,0,ry*.38,ry*.34,0,0,Math.PI*2);c.fill();
+    c.strokeStyle='rgba(0,0,0,.25)';c.lineWidth=.7;c.stroke();
+  }
 
   // gun barrel
   const bs=mx-ry*.1;
