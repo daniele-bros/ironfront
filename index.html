@@ -4313,18 +4313,18 @@ function _hull(c,size,col,p,isPlayer,tankId){
   c.moveTo(re+2,    -hw*.7);c.lineTo(fr*.5,-hw*.7);c.lineTo(fr*.78,-hw*.5);
   c.lineTo(fr*.78,   hw*.5);c.lineTo(fr*.5, hw*.7);c.lineTo(re+2,  hw*.7);
   c.closePath();c.fill();
-  // specular sheen band along the upper hull (sun-catch) for a glossy metal-plate feel
+  // specular sheen band along the upper hull (sun-catch) — subtle so the deck reads as matte steel, not gloss
   const spg=c.createLinearGradient(0,-hw*.7,0,-hw*.05);
-  spg.addColorStop(0,'rgba(255,255,255,.28)');spg.addColorStop(1,'rgba(255,255,255,0)');
+  spg.addColorStop(0,'rgba(255,255,255,.13)');spg.addColorStop(1,'rgba(255,255,255,0)');
   c.fillStyle=spg;
   c.beginPath();c.moveTo(re+hl*.1,-hw*.66);c.lineTo(fr*.62,-hw*.66);c.lineTo(fr*.7,-hw*.3);c.lineTo(re+hl*.1,-hw*.3);c.closePath();c.fill();
 
   // Camo pattern — 5 random darker blobs per tank (seeded by tank color)
   const cr=parseInt(col.slice(1,3),16),cg=parseInt(col.slice(3,5),16),cb=parseInt(col.slice(5,7),16);
   const cseed=cr*3+cg*7+cb*11;
-  const camoCol=`rgba(${Math.max(0,cr-28)|0},${Math.max(0,cg-24)|0},${Math.max(0,cb-18)|0},.45)`;
+  const camoCol=`rgba(${Math.max(0,cr-28)|0},${Math.max(0,cg-24)|0},${Math.max(0,cb-18)|0},.24)`;
   c.fillStyle=camoCol;
-  const cps=[[.15,.3,.45,.32],[-.28,-.25,.38,.28],[.05,-.4,.3,.25],[ -.35,.1,.28,.22],[.28,-.15,.22,.2]];
+  const cps=[[.15,.3,.42,.30],[-.28,-.25,.34,.26],[.05,-.4,.28,.24],[ -.35,.1,.26,.20]];
   for(const[cx2,cy2,rx2,ry2] of cps){c.beginPath();c.ellipse(cx2*hl,cy2*hw,rx2*hl*.5,ry2*hw*.8,cseed*.1,0,Math.PI*2);c.fill();}
   // front slope highlight
   if(_pike){
@@ -4363,10 +4363,33 @@ function _hull(c,size,col,p,isPlayer,tankId){
     c.beginPath();c.arc(bx-.4, hw*.82-.4,_boltR*.5,0,Math.PI*2);c.fill();
   }
 
-  // engine deck hatches (rear)
-  c.fillStyle='rgba(0,0,0,.13)';c.fillRect(re+2,-hw*.75,hl*.3,hw*1.5);
-  c.strokeStyle='rgba(0,0,0,.18)';c.lineWidth=.7;
-  for(let vy=-hw*.65;vy<hw*.65;vy+=7){c.beginPath();c.moveTo(re+3,vy);c.lineTo(re+hl*.28,vy);c.stroke();}
+  // ── REALISTIC TOP DECK (Tiger-Tank style): bolted armour deck with a framed rear engine
+  //    grille, front driver's hatches and crisp plate seams so the top reads as real steel. ──
+  const _dT=-hw*.80, _dB=hw*.80;
+  // longitudinal centre seam + transverse plate seams divide the deck into distinct plates
+  c.strokeStyle='rgba(0,0,0,.24)';c.lineWidth=1;
+  c.beginPath();c.moveTo(re+hl*.36,0);c.lineTo(fr*.74,0);c.stroke();
+  [re+hl*.36, fr*.44].forEach(px=>{c.beginPath();c.moveTo(px,_dT);c.lineTo(px,_dB);c.stroke();});
+
+  // REAR ENGINE DECK — recessed grille panel with even cooling louvers (the tank's radiator deck)
+  const _egX=re+hl*.045, _egW=hl*.30;
+  const _eg=c.createLinearGradient(0,_dT,0,_dB);
+  _eg.addColorStop(0,dc(col,.20));_eg.addColorStop(.5,dc(col,.11));_eg.addColorStop(1,dc(col,.22));
+  c.fillStyle=_eg;c.fillRect(_egX,_dT,_egW,_dB-_dT);
+  c.strokeStyle='rgba(0,0,0,.42)';c.lineWidth=1;c.strokeRect(_egX,_dT,_egW,_dB-_dT);
+  const _lstep=Math.max(3,hw*.19);
+  for(let ly=_dT+3; ly<_dB-1; ly+=_lstep){
+    c.strokeStyle='rgba(0,0,0,.34)';c.lineWidth=1.1;c.beginPath();c.moveTo(_egX+2,ly);c.lineTo(_egX+_egW-2,ly);c.stroke();
+    c.strokeStyle='rgba(255,255,255,.10)';c.lineWidth=.7;c.beginPath();c.moveTo(_egX+2,ly-.9);c.lineTo(_egX+_egW-2,ly-.9);c.stroke();
+  }
+
+  // FRONT DRIVER'S / RADIO HATCHES — two round hatches on the front deck ahead of the turret
+  const _hyO=hw*.42, _hxF=fr*.54, _hR=Math.max(2,hw*.17);
+  [-_hyO,_hyO].forEach(hyy=>{
+    c.fillStyle=dc(col,.16);c.beginPath();c.arc(_hxF,hyy,_hR,0,Math.PI*2);c.fill();
+    c.strokeStyle='rgba(0,0,0,.34)';c.lineWidth=.8;c.stroke();
+    c.fillStyle='rgba(255,255,255,.12)';c.beginPath();c.arc(_hxF-_hR*.3,hyy-_hR*.3,_hR*.42,0,Math.PI*2);c.fill();
+  });
 
   // exhaust (Tiger/IS-2)
   if(tankId==='tiger'||tankId==='tiger2'||tankId==='is2'){
@@ -4526,7 +4549,7 @@ function _openTurret(c,size,col,p,tankId){
 function _turret(c,size,col,p,tankId){
   if(tankId==='ratte'){_ratteTurret(c,size,col,p);return;}
   const rx=size*p.tr, ry=size*p.ty;
-  const bl=size*p.bl,  bw=size*p.bw;
+  const bl=size*p.bl,  bw=size*p.bw*1.3; // thicker barrel so the gun reads as a real cannon, not a wire
 
   // drop shadow beneath the turret so it reads as raised above the hull
   c.save();
