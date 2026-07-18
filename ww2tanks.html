@@ -4546,6 +4546,28 @@ function _openTurret(c,size,col,p,tankId){
   c.fillStyle='#222';c.fillRect(-rx*.5,-ry*.82,rx*.04,ry*.22);
 }
 
+// Pick a historically-shaped turret silhouette for a tank by model / family.
+// Ordered most-specific first; substrings catch enemy 'e_' variants and family members.
+function _turretShape(id,p){
+  id=id||'';
+  const H=(...s)=>s.some(x=>id.indexOf(x)>=0);
+  // French oscillating autoloaders — two-part tilting turret
+  if(H('amx13','amx50','amxm4','lor40t','bat25t','elceven','char_futur')) return 'osc';
+  // Flat wide "frying-pan" cast domes — IS-3 / T-10 pike heavies & late Soviet
+  if(['is3','t10','is4','is7','obj268','obj277','obj279','obj430','obj140','obj260','t62a','is3_cn'].includes(id)) return 'dome';
+  // Modern / Cold-War angular wedge MBTs
+  if(H('abrams','leo2','leopard1','challeng','leclerc','merkava','armata','kf51','type99','type10','type74','m60patton','chieftain','of40','strv103','strv105','vickersmbt','pz61','amx30','xm551','m48patton','m48a5','m46patton','m103','t110','t57heavy','stb','emil','krv','udes')||id==='k2') return 'wedge';
+  // Soviet / Chinese cast hexagonal mediums (T-34 family and descendants)
+  if(H('t34','t44','t54','t55','type59','wz120','wz131','wz132','59_pat')) return 'hex';
+  // Rounded cast turrets — Sherman / KV / IS / Pershing / British cruisers
+  if(H('sherman','m4a','m4improved','firefly','kv','is1','is2','m26','cromwell','comet','centaur','centurion','conqueror','charioteer','t29','black_prince','m6heavy','pershing')) return 'cast';
+  // Angular sloped hex — Tiger II / Panther family
+  if(H('tiger2','panther','panth','e50','e75')) return 'angular';
+  // Iconic boxes that the profile flag misses
+  if(['pz3','pz4','e_pz3','e_pz4','churchillI','churchill4','matilda2','valentine','maus','e_maus','e100'].includes(id)) return 'boxy';
+  return p.boxy?'boxy':'round';
+}
+
 function _turret(c,size,col,p,tankId){
   if(tankId==='ratte'){_ratteTurret(c,size,col,p);return;}
   const rx=size*p.tr, ry=size*p.ty;
@@ -4561,55 +4583,94 @@ function _turret(c,size,col,p,tankId){
   const tg=c.createRadialGradient(-rx*.1,-ry*.1,ry*.05,0,0,rx*1.1);
   tg.addColorStop(0,lc(col,.22));tg.addColorStop(.55,col);tg.addColorStop(1,dc(col,.25));
   c.fillStyle=tg;
+  const _ts=_turretShape(tankId,p);
+  // shared raised sun-catch gloss for cast/rounded shapes
+  const _gloss=()=>{const g=c.createLinearGradient(-rx*.3,-ry*.5,rx*.2,ry*.3);g.addColorStop(0,'rgba(255,255,255,.22)');g.addColorStop(.5,'rgba(255,255,255,.07)');g.addColorStop(1,'rgba(0,0,0,.10)');c.fillStyle=g;c.beginPath();c.ellipse(-rx*.05,-ry*.15,rx*.52,ry*.4,-.3,0,Math.PI*2);c.fill();};
+  const _RIM='rgba(0,0,0,.5)';
 
-  if(p.boxy){
-    // Boxy Tiger-style rectangular turret
+  if(_ts==='boxy'){
+    // Boxy Tiger-style rectangular turret (Pz III/IV, Tiger I, Maus, Churchill)
     c.beginPath();
-    c.moveTo(-rx,      -ry*.9);
-    c.lineTo( rx*.55,  -ry*.9);
-    c.lineTo( rx,      -ry*.5);
-    c.lineTo( rx,       ry*.5);
-    c.lineTo( rx*.55,   ry*.9);
-    c.lineTo(-rx,       ry*.9);
-    c.closePath();c.fill();
-    c.strokeStyle='rgba(0,0,0,.45)';c.lineWidth=1;c.stroke();
-    // lit top bevel (sun-catch along the upper edge) for a forged-steel look
-    const beg=c.createLinearGradient(0,-ry*.9,0,-ry*.2);
-    beg.addColorStop(0,'rgba(255,255,255,.20)');beg.addColorStop(1,'rgba(255,255,255,0)');
-    c.fillStyle=beg;
-    c.beginPath();c.moveTo(-rx,-ry*.9);c.lineTo(rx*.55,-ry*.9);c.lineTo(rx,-ry*.5);c.lineTo(rx,-ry*.18);c.lineTo(-rx,-ry*.18);c.closePath();c.fill();
-    // panel line
+    c.moveTo(-rx,-ry*.9);c.lineTo(rx*.55,-ry*.9);c.lineTo(rx,-ry*.5);
+    c.lineTo(rx,ry*.5);c.lineTo(rx*.55,ry*.9);c.lineTo(-rx,ry*.9);c.closePath();c.fill();
+    c.strokeStyle=_RIM;c.lineWidth=1.3;c.stroke();
+    const beg=c.createLinearGradient(0,-ry*.9,0,-ry*.2);beg.addColorStop(0,'rgba(255,255,255,.20)');beg.addColorStop(1,'rgba(255,255,255,0)');
+    c.fillStyle=beg;c.beginPath();c.moveTo(-rx,-ry*.9);c.lineTo(rx*.55,-ry*.9);c.lineTo(rx,-ry*.5);c.lineTo(rx,-ry*.18);c.lineTo(-rx,-ry*.18);c.closePath();c.fill();
     c.strokeStyle='rgba(0,0,0,.15)';c.lineWidth=.8;
     c.beginPath();c.moveTo(-rx*.2,-ry*.9);c.lineTo(-rx*.2,ry*.9);c.stroke();
     c.beginPath();c.moveTo(rx*.3,-ry*.6);c.lineTo(rx*.3,ry*.6);c.stroke();
-    // corner rivets
     c.fillStyle='rgba(0,0,0,.30)';
     [[-rx*.82,-ry*.7],[-rx*.82,ry*.7],[rx*.3,-ry*.72],[rx*.3,ry*.72]].forEach(([bx,by])=>{c.beginPath();c.arc(bx,by,Math.max(.6,ry*.09),0,Math.PI*2);c.fill();});
+  } else if(_ts==='hex'){
+    // T-34 hexagonal cast turret — widest at the mid-front, tapered rear
+    c.beginPath();
+    c.moveTo(-rx*.86,-ry*.5);c.lineTo(-rx*.12,-ry*.96);c.lineTo(rx*.62,-ry*.84);
+    c.lineTo(rx,-ry*.30);c.lineTo(rx,ry*.30);c.lineTo(rx*.62,ry*.84);
+    c.lineTo(-rx*.12,ry*.96);c.lineTo(-rx*.86,ry*.5);c.closePath();c.fill();
+    c.strokeStyle=_RIM;c.lineWidth=1.4;c.stroke();
+    _gloss();
+    c.strokeStyle='rgba(0,0,0,.16)';c.lineWidth=.8;c.beginPath();c.moveTo(-rx*.6,0);c.lineTo(rx*.72,0);c.stroke();
+  } else if(_ts==='cast'){
+    // Rounded cast turret with a full rear bustle — Sherman / KV / IS / Pershing
+    c.beginPath();
+    c.moveTo(-rx*.45,-ry);c.lineTo(rx*.5,-ry*.9);
+    c.quadraticCurveTo(rx*1.05,-ry*.5,rx*1.05,0);
+    c.quadraticCurveTo(rx*1.05,ry*.5,rx*.5,ry*.9);
+    c.lineTo(-rx*.45,ry);
+    c.quadraticCurveTo(-rx*1.1,ry*.62,-rx*1.1,0);
+    c.quadraticCurveTo(-rx*1.1,-ry*.62,-rx*.45,-ry);c.closePath();c.fill();
+    c.strokeStyle=_RIM;c.lineWidth=1.4;c.stroke();
+    _gloss();
+  } else if(_ts==='dome'){
+    // Flat, wide "frying-pan" cast dome — IS-3 / T-10
+    c.beginPath();c.ellipse(rx*.05,0,rx*1.06,ry*.95,0,0,Math.PI*2);c.fill();
+    c.strokeStyle=_RIM;c.lineWidth=1.4;c.stroke();
+    const dg=c.createRadialGradient(-rx*.15,-ry*.2,ry*.1,0,0,rx);
+    dg.addColorStop(0,'rgba(255,255,255,.24)');dg.addColorStop(.6,'rgba(255,255,255,.03)');dg.addColorStop(1,'rgba(0,0,0,.14)');
+    c.fillStyle=dg;c.beginPath();c.ellipse(rx*.05,0,rx*1.02,ry*.9,0,0,Math.PI*2);c.fill();
+  } else if(_ts==='wedge'){
+    // Modern MBT — long, low, angular wedge turret sloping to the mantlet
+    c.beginPath();
+    c.moveTo(-rx*.92,-ry*.8);c.lineTo(rx*.3,-ry*.84);c.lineTo(rx*1.04,-ry*.26);
+    c.lineTo(rx*1.04,ry*.26);c.lineTo(rx*.3,ry*.84);c.lineTo(-rx*.92,ry*.8);c.closePath();c.fill();
+    c.strokeStyle=_RIM;c.lineWidth=1.4;c.stroke();
+    const wg=c.createLinearGradient(0,-ry*.8,0,0);wg.addColorStop(0,'rgba(255,255,255,.16)');wg.addColorStop(1,'rgba(255,255,255,0)');
+    c.fillStyle=wg;c.beginPath();c.moveTo(-rx*.92,-ry*.8);c.lineTo(rx*.3,-ry*.84);c.lineTo(rx*1.04,-ry*.26);c.lineTo(rx*1.04,-ry*.04);c.lineTo(-rx*.92,-ry*.04);c.closePath();c.fill();
+    c.strokeStyle='rgba(0,0,0,.18)';c.lineWidth=.8;c.beginPath();c.moveTo(rx*.3,-ry*.84);c.lineTo(rx*.3,ry*.84);c.stroke();
+  } else if(_ts==='angular'){
+    // Tiger II / Panther — sloped hexagon coming to a rounded point at the mantlet
+    c.beginPath();
+    c.moveTo(-rx*.82,-ry*.55);c.lineTo(rx*.15,-ry*.9);c.lineTo(rx*.8,-ry*.5);
+    c.lineTo(rx*1.06,0);c.lineTo(rx*.8,ry*.5);c.lineTo(rx*.15,ry*.9);c.lineTo(-rx*.82,ry*.55);c.closePath();c.fill();
+    c.strokeStyle=_RIM;c.lineWidth=1.4;c.stroke();
+    _gloss();
+  } else if(_ts==='osc'){
+    // AMX-13 style oscillating turret — lower ring + raised tilting upper block
+    c.beginPath();c.roundRect(-rx,-ry*.82,rx*2,ry*1.64,ry*.34);c.fill();
+    c.strokeStyle=_RIM;c.lineWidth=1.2;c.stroke();
+    c.fillStyle=lc(col,.07);
+    c.beginPath();c.roundRect(-rx*.5,-ry*.6,rx*1.55,ry*1.2,ry*.14);c.fill();
+    c.strokeStyle='rgba(0,0,0,.4)';c.lineWidth=1;c.stroke();
+    const og=c.createLinearGradient(0,-ry*.6,0,0);og.addColorStop(0,'rgba(255,255,255,.18)');og.addColorStop(1,'rgba(255,255,255,0)');
+    c.fillStyle=og;c.fillRect(-rx*.5,-ry*.6,rx*1.55,ry*.5);
   } else {
-    // Rounded turret
+    // Rounded turret (default — light tanks, early tanks, armoured cars)
     c.beginPath();c.ellipse(0,0,rx,ry,0,0,Math.PI*2);c.fill();
     c.strokeStyle='rgba(0,0,0,.45)';c.lineWidth=1;c.stroke();
-    // metallic gloss highlight
-    const tgl=c.createLinearGradient(-rx*.3,-ry*.5,rx*.2,ry*.3);
-    tgl.addColorStop(0,'rgba(255,255,255,.24)');tgl.addColorStop(.5,'rgba(255,255,255,.08)');tgl.addColorStop(1,'rgba(0,0,0,.12)');
-    c.fillStyle=tgl;
-    c.beginPath();c.ellipse(-rx*.05,-ry*.15,rx*.55,ry*.42,-.3,0,Math.PI*2);c.fill();
-    // ring of bolts around the turret rim
-    c.fillStyle='rgba(0,0,0,.28)';
-    const _nb=10;
-    for(let bi=0;bi<_nb;bi++){
-      const a=bi/_nb*Math.PI*2;
-      c.beginPath();c.arc(Math.cos(a)*rx*.86,Math.sin(a)*ry*.86,Math.max(.6,ry*.07),0,Math.PI*2);c.fill();
-    }
+    _gloss();
+    c.fillStyle='rgba(0,0,0,.28)';const _nb=10;
+    for(let bi=0;bi<_nb;bi++){const a=bi/_nb*Math.PI*2;c.beginPath();c.arc(Math.cos(a)*rx*.86,Math.sin(a)*ry*.86,Math.max(.6,ry*.07),0,Math.PI*2);c.fill();}
   }
 
-  // commander's hatch
-  c.fillStyle=dc(col,.18);c.beginPath();c.arc(-rx*.12,0,ry*.24,0,Math.PI*2);c.fill();
-  c.strokeStyle='rgba(0,0,0,.3)';c.lineWidth=.8;c.stroke();
-  c.fillStyle=dc(col,.32);c.beginPath();c.arc(-rx*.12,0,ry*.13,0,Math.PI*2);c.fill();
+  // commander's hatch (skip on oscillating — the block already reads busy)
+  if(_ts!=='osc'){
+    c.fillStyle=dc(col,.18);c.beginPath();c.arc(-rx*.12,0,ry*.24,0,Math.PI*2);c.fill();
+    c.strokeStyle='rgba(0,0,0,.3)';c.lineWidth=.8;c.stroke();
+    c.fillStyle=dc(col,.32);c.beginPath();c.arc(-rx*.12,0,ry*.13,0,Math.PI*2);c.fill();
+  }
 
-  // mantlet
-  const mx=p.boxy?rx*.6:rx*.52;
+  // mantlet — placement follows the turret's front for each shape
+  const mx=(_ts==='dome')?rx*.72:(_ts==='wedge')?rx*.72:(_ts==='angular')?rx*.66:(_ts==='osc')?rx*.6:(_ts==='boxy')?rx*.6:(_ts==='hex'||_ts==='cast')?rx*.6:rx*.52;
   c.fillStyle=dc(col,.15);c.beginPath();c.ellipse(mx,0,ry*.38,ry*.34,0,0,Math.PI*2);c.fill();
   c.strokeStyle='rgba(0,0,0,.25)';c.lineWidth=.7;c.stroke();
 
