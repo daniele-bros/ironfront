@@ -852,7 +852,7 @@ function getTankFaction(id){
     amx13f3:'french',lorr155:'french'};
   if(artySPG[id]) return artySPG[id];
   const soviet=['ms1','t26','t60','bt7','t70','t28','a20','t34','kv1','su85','t34_85m','kv85','t3485','kv2','kv4','su76','su100','su122','isu122','is2','is1','is3','isu152','obj252','t44','su130pm','obj279','t54','obj140','obj430','obj268','obj277','t62a'];
-  const american=['t1cunn','m2light','m3stuart','m5stuart','m3lee','m4a2','m4improved','m4a1','m10','m41walker','m6heavy','m4a3e2','m4a3e8','hellcat','bat_pat','firefly','m36','m26e4','t29','m26','t69','t28heavy','t28proto','m46patton','t95','t54e1','t34us','m48patton','m48a5patton','t110e5','t110e3','t110e4','t57heavy','xm551'];
+  const american=['t1cunn','m2light','m3stuart','m5stuart','m3lee','m4a2','m4improved','m4a1','m10','m41walker','m6heavy','m4a3e2','m4a3e8','hellcat','bat_pat','firefly','m36','m26e4','t29','m26','t69','t28heavy','t28proto','m46patton','t95','t54e1','t34us','t30','m48patton','m48a5patton','t110e5','t110e3','t110e4','t57heavy','xm551'];
   const british=['carden','vickers_med','mkvi','a13','tetrarch','crusader','aec_mk2','matilda2','valentine','churchillI','cromwell','centaur','archer','churchill4','achilles','charioteer','black_prince','comet','firefly_b','at15','conqueror','conqueror_ix','fv215b','fv4202','fv183','fv4005','badger','supercon','fv4211','tortoise'];
   const french=['ft17','r35','fcm36','amx38','amx40','amxm4','amx65t','amxcda','amxm4_51','lor40t','amx13','amx13clip','amxm4_54','amx50_100','amx13_90','elceven','amx50b','amx30','amx30b','foch','bat25t','char_futur','foch155','arl44','b1bis','somua'];
   const japanese=['nac1','type94','type89','hago','nc_27','type2','chiha','type91','chinu','o_ni','type4chito','oi','o_ho','type5chiri','kuromatsu','sta1','shptII','type61','type61_ix','stbI','type10','type10x'];
@@ -5129,7 +5129,7 @@ const TREE_LAYOUT = {
     ['m4a1','m10','m41walker'],
     ['m6heavy','m4a3e2','m4a3e8','hellcat','bat_pat'],
     ['firefly','m36','m26e4'],
-    ['t29','m26','t69','t28heavy','t28proto'],
+    ['t29','m26','t69','t28heavy','t28proto','t30'],
     ['m46patton','t95','t54e1','t34us'],
     ['m48a5patton','t110e5','t110e3','t110e4','t57heavy','xm551'],
     []],
@@ -5149,8 +5149,8 @@ const TREE_LAYOUT = {
     ['ft17','r35'],
     ['fcm36'],
     ['amx38','amx40'],
-    ['amxm4'],
-    ['amx65t','amxcda'],
+    ['amxm4','somua','b1bis'],
+    ['amx65t','amxcda','arl44'],
     ['amxm4_51','lor40t','amx13clip'],
     ['amxm4_54','amx50_100','amx13_90','elceven'],
     ['amx50b','amx30b','foch','bat25t','char_futur','foch155'],
