@@ -717,6 +717,9 @@ const TANK_DEFS = [
   {id:'churchillI',name:'Churchill I',nation:'🇬🇧 Britain',hp:500,armor:102,pen:62,dmg:95,speed:1.8,rot:1.3,reload:2.6,ammo:84,color:'#3e5822',tier:'V',price:900,desc:'2-pdr + hull howitzer. Heavily armored.'},
   {id:'charioteer',name:'Charioteer',nation:'🇬🇧 Britain',hp:540,armor:40,pen:148,dmg:188,speed:4.0,rot:1.9,reload:2.7,ammo:40,color:'#3a5420',tier:'VII',price:1700,desc:'Cromwell hull, 20-pdr TD.'},
   {id:'black_prince',name:'Black Prince',nation:'🇬🇧 Britain',hp:750,armor:152,pen:85,dmg:155,speed:2.0,rot:1.4,reload:2.8,ammo:89,color:'#344a1c',tier:'VII',price:1700,desc:'Churchill evolution. Super heavy.'},
+  {id:'at5',name:'AT 5',nation:'🇬🇧 Britain',hp:520,armor:165,pen:105,dmg:125,speed:2.2,rot:1.2,reload:2.2,ammo:60,color:'#3a5222',tier:'V',price:1000,desc:'British assault TD. Thick casemate front.'},
+  {id:'at8',name:'AT 8',nation:'🇬🇧 Britain',hp:650,armor:185,pen:128,dmg:150,speed:2.1,rot:1.1,reload:2.0,ammo:65,color:'#344c1e',tier:'VI',price:1400,desc:'Fast-firing 17-pdr casemate TD.'},
+  {id:'at7',name:'AT 7',nation:'🇬🇧 Britain',hp:820,armor:200,pen:148,dmg:200,speed:2.0,rot:1.1,reload:2.6,ammo:68,color:'#30481a',tier:'VII',price:2100,desc:'Heavily-armored British assault TD.'},
   {id:'at15',name:'AT 15',nation:'🇬🇧 Britain',hp:1100,armor:228,pen:148,dmg:245,speed:2.0,rot:1.0,reload:3.2,ammo:72,color:'#2e4418',tier:'IX',price:3500,desc:'Bunker-like assault tank.'},
   {id:'conqueror_ix',name:'Conqueror',nation:'🇬🇧 Britain',hp:1400,armor:180,pen:235,dmg:370,speed:2.4,rot:1.4,reload:3.5,ammo:18,color:'#283e14',tier:'IX',price:3600,desc:'Tier IX UK heavy. 120mm.'},
   {id:'fv215b',name:'FV215b',nation:'🇬🇧 Britain',hp:1800,armor:254,pen:265,dmg:415,speed:2.2,rot:1.3,reload:3.5,ammo:30,color:'#223812',tier:'X',price:6000,desc:'Tier X British heavy. Mythical.'},
@@ -830,7 +833,7 @@ const TANK_DEFS = [
 ];
 
 // Tank Destroyer IDs — turret locked to hull direction
-const _tdIds=new Set(['stug3','jpz4','nashorn','jpz6','su85','su100','su122','isu122','isu152','jpanther','ferdinand','obj268','archer']);
+const _tdIds=new Set(['stug3','jpz4','nashorn','jpz6','su85','su100','su122','isu122','isu152','jpanther','ferdinand','obj268','archer','at5','at8','at7','at15']);
 const _otIds=new Set(['m10','m36','achilles','borsig_wt','waffentrager','grille15','rhmborsig','su130pm']);
 const _SMOKE_COLORS=new Set(['#555','#5a4a2a','#9a8050','#b8c8d8','#443022','#777']);
 
@@ -853,7 +856,7 @@ function getTankFaction(id){
   if(artySPG[id]) return artySPG[id];
   const soviet=['ms1','t26','t60','bt7','t70','t28','a20','t34','kv1','su85','t34_85m','kv85','t3485','kv2','kv4','su76','su100','su122','isu122','is2','is1','is3','isu152','obj252','t44','su130pm','obj279','t54','obj140','obj430','obj268','obj277','t62a'];
   const american=['t1cunn','m2light','m3stuart','m5stuart','m3lee','m4a2','m4improved','m4a1','m10','m41walker','m6heavy','m4a3e2','m4a3e8','hellcat','bat_pat','firefly','m36','m26e4','t29','m26','t69','t28heavy','t28proto','m46patton','t95','t54e1','t34us','t30','m48patton','m48a5patton','t110e5','t110e3','t110e4','t57heavy','xm551'];
-  const british=['carden','vickers_med','mkvi','a13','tetrarch','crusader','aec_mk2','matilda2','valentine','churchillI','cromwell','centaur','archer','churchill4','achilles','charioteer','black_prince','comet','firefly_b','at15','conqueror','conqueror_ix','fv215b','fv4202','fv183','fv4005','badger','supercon','fv4211','tortoise'];
+  const british=['carden','vickers_med','mkvi','a13','tetrarch','crusader','aec_mk2','matilda2','valentine','churchillI','cromwell','centaur','archer','churchill4','achilles','charioteer','black_prince','comet','firefly_b','at5','at8','at7','at15','conqueror','conqueror_ix','fv215b','fv4202','fv183','fv4005','badger','supercon','fv4211','tortoise'];
   const french=['ft17','r35','fcm36','amx38','amx40','amxm4','amx65t','amxcda','amxm4_51','lor40t','amx13','amx13clip','amxm4_54','amx50_100','amx13_90','elceven','amx50b','amx30','amx30b','foch','bat25t','char_futur','foch155','arl44','b1bis','somua'];
   const japanese=['nac1','type94','type89','hago','nc_27','type2','chiha','type91','chinu','o_ni','type4chito','oi','o_ho','type5chiri','kuromatsu','sta1','shptII','type61','type61_ix','stbI','type10','type10x'];
   const chinese=['renault_otsu','type94_cn','t26_cn','vickers_e','m5_cn','chiha_cn','t34_cn','m4a4_cn','wz132','59_pat','is2_cn','t34_3','is3_cn','wz111','type59','type59mbt','t54_mod1','wz120','wz111_5a','wz113','type121','wz131','wz113g'];
@@ -3986,6 +3989,10 @@ const TANK_PROFILES={
   m1abrams:{hl:2.00,hw:1.02,tr:0.46,ty:0.40,bl:1.20,bw:0.112,muzzle:true,boxy:false,sk:false},
   kf51:    {hl:2.05,hw:1.05,tr:0.48,ty:0.42,bl:1.22,bw:0.115,muzzle:true,boxy:true, sk:false},
   // Default
+  at5: {hl:1.72,hw:0.94,tr:0.30,ty:0.24,bl:0.92,bw:0.110,muzzle:false,boxy:true,sk:false},
+  at8: {hl:1.82,hw:0.97,tr:0.30,ty:0.24,bl:0.98,bw:0.118,muzzle:false,boxy:true,sk:false},
+  at7: {hl:1.90,hw:1.00,tr:0.30,ty:0.24,bl:1.04,bw:0.125,muzzle:false,boxy:true,sk:false},
+  at15:{hl:1.96,hw:1.03,tr:0.30,ty:0.24,bl:1.10,bw:0.132,muzzle:false,boxy:true,sk:false},
   default:{hl:1.65,hw:0.85,tr:0.33,ty:0.28,bl:0.95,bw:0.090,muzzle:false,boxy:false,sk:false},
 };
 function getProfile(id){return TANK_PROFILES[id]||TANK_PROFILES.default;}
@@ -4752,7 +4759,7 @@ function drawTankPreview(cv,t){
   c.rotate(-Math.PI/2);
   c.fillStyle='rgba(0,0,0,.18)';c.beginPath();c.ellipse(2,3,size*p.hl*.55,size*p.hw*.5,0,0,Math.PI*2);c.fill();
   c.save();_hull(c,size,t.color,p,false,t.id);if(p.sk)_skirts(c,size,t.color,p);c.restore();
-  const _pTD=new Set(['stug3','jpz4','nashorn','jpz6','su85','su100','su122','isu122','isu152','jpanther','ferdinand','obj268','archer']);
+  const _pTD=new Set(['stug3','jpz4','nashorn','jpz6','su85','su100','su122','isu122','isu152','jpanther','ferdinand','obj268','archer','at5','at8','at7','at15']);
   const _pOT=new Set(['m10','m36','achilles','borsig_wt','waffentrager','grille15','rhmborsig','su130pm']);
   if(_pTD.has(t.id)){c.save();_casemate(c,size,t.color,p,t.id);c.restore();}
   else if(_pOT.has(t.id)){c.save();_openTurret(c,size,t.color,p,t.id);c.restore();}
@@ -5138,9 +5145,9 @@ const TREE_LAYOUT = {
     ['vickers_med','mkvi'],
     ['a13','tetrarch','crusader'],
     ['aec_mk2','matilda2','valentine'],
-    ['churchillI','cromwell','centaur'],
-    ['archer','churchill4','achilles','charioteer'],
-    ['black_prince','comet','firefly_b'],
+    ['churchillI','cromwell','centaur','at5'],
+    ['archer','churchill4','achilles','charioteer','at8'],
+    ['black_prince','comet','firefly_b','at7'],
     ['at15','conqueror_ix'],
     ['fv215b','fv4202','fv183','fv4005','badger','supercon','fv4211'],
     ['tortoise'],
