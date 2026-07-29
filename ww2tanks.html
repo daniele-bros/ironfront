@@ -745,6 +745,14 @@ const TANK_DEFS = [
   {id:'smk',name:'SMK',nation:'🇷🇺 USSR',hp:680,armor:75,pen:105,dmg:160,speed:2.4,rot:1.4,reload:2.8,ammo:70,color:'#42541e',tier:'V',price:900,desc:'Twin-turret KV predecessor.'},
   {id:'sturer',name:'Sturer Emil',nation:'🇩🇪 Germany',hp:480,armor:50,pen:200,dmg:380,speed:2.4,rot:1.3,reload:5.0,ammo:25,color:'#6a6030',tier:'VI',price:1500,desc:'Tall German TD. Monster 12.8cm.'},
   {id:'t92',name:'T92 Light',nation:'🇺🇸 USA',hp:620,armor:40,pen:175,dmg:135,speed:5.2,rot:3.0,reload:2.4,ammo:50,color:'#46543a',tier:'VII',price:2000,desc:'Fast US scout light.'},
+  {id:'is7',name:'IS-7',nation:'🇷🇺 USSR',hp:1500,armor:250,pen:250,dmg:440,speed:2.6,rot:1.4,reload:4.0,ammo:30,color:'#37481a',tier:'X',price:5500,desc:'Soviet super-heavy. Domed turret, 130mm.'},
+  {id:'is4',name:'IS-4',nation:'🇷🇺 USSR',hp:1400,armor:258,pen:246,dmg:440,speed:2.2,rot:1.2,reload:4.4,ammo:30,color:'#3a4a1c',tier:'IX',price:3600,desc:'Heavily-armored Soviet heavy.'},
+  {id:'elc',name:'ELC AMX',nation:'🇫🇷 France',hp:300,armor:30,pen:155,dmg:240,speed:5.6,rot:3.4,reload:4.0,ammo:34,color:'#4a5628',tier:'V',price:1000,desc:'Tiny French tank destroyer. Big gun.'},
+  {id:'fcm50',name:'FCM 50t',nation:'🇫🇷 France',hp:1350,armor:120,pen:232,dmg:320,speed:3.2,rot:1.7,reload:3.0,ammo:42,color:'#3c4c22',tier:'VIII',price:3000,desc:'Fast French heavy tank.'},
+  {id:'t25',name:'T25',nation:'🇺🇸 USA',hp:780,armor:90,pen:175,dmg:240,speed:4.0,rot:2.2,reload:2.8,ammo:50,color:'#48543a',tier:'VII',price:2000,desc:'Fast US medium. Pershing precursor.'},
+  {id:'ram2',name:'Ram II',nation:'🇬🇧 Britain',hp:480,armor:88,pen:105,dmg:135,speed:3.4,rot:2.0,reload:2.2,ammo:60,color:'#38501e',tier:'V',price:900,desc:'Canadian-built cruiser tank.'},
+  {id:'keho',name:'Ke-Ho',nation:'🇯🇵 Japan',hp:340,armor:40,pen:90,dmg:75,speed:4.6,rot:2.8,reload:1.6,ammo:90,color:'#5a5a24',tier:'IV',price:550,desc:'Late Japanese light. Nimble.'},
+  {id:'pz4_70',name:'Pz.IV/70(V)',nation:'🇩🇪 Germany',hp:620,armor:80,pen:175,dmg:200,speed:2.8,rot:1.6,reload:3.0,ammo:44,color:'#5e5824',tier:'VI',price:1400,desc:'Casemate Panzer IV TD. Long 75mm.'},
   {id:'conqueror_ix',name:'Conqueror',nation:'🇬🇧 Britain',hp:1400,armor:180,pen:235,dmg:370,speed:2.4,rot:1.4,reload:3.5,ammo:18,color:'#283e14',tier:'IX',price:3600,desc:'Tier IX UK heavy. 120mm.'},
   {id:'fv215b',name:'FV215b',nation:'🇬🇧 Britain',hp:1800,armor:254,pen:265,dmg:415,speed:2.2,rot:1.3,reload:3.5,ammo:30,color:'#223812',tier:'X',price:6000,desc:'Tier X British heavy. Mythical.'},
   {id:'fv4202',name:'FV4202',nation:'🇬🇧 Britain',hp:1400,armor:120,pen:248,dmg:340,speed:3.0,rot:1.7,reload:2.8,ammo:46,color:'#263c14',tier:'X',price:5500,desc:'British Tier X medium. Fast.'},
@@ -857,7 +865,7 @@ const TANK_DEFS = [
 ];
 
 // Tank Destroyer IDs — turret locked to hull direction
-const _tdIds=new Set(['stug3','jpz4','nashorn','jpz6','su85','su100','su122','isu122','isu152','jpanther','ferdinand','obj268','archer','at5','at8','at7','at15','obj704','hori','su100y','brummbar','sturer']);
+const _tdIds=new Set(['stug3','jpz4','nashorn','jpz6','su85','su100','su122','isu122','isu152','jpanther','ferdinand','obj268','archer','at5','at8','at7','at15','obj704','hori','su100y','brummbar','sturer','pz4_70']);
 const _otIds=new Set(['m10','m36','achilles','borsig_wt','waffentrager','grille15','rhmborsig','su130pm']);
 // Tanks that fire guided HOMING MISSILES instead of shells (gun-launched ATGMs / dedicated launchers)
 const _missileIds=new Set(['m551','xm551','t14armata','kf51','it1']);
@@ -905,11 +913,11 @@ function getTankFaction(id){
     sexton:'british',fv304:'british',cgc:'british',
     amx13f3:'french',lorr155:'french'};
   if(artySPG[id]) return artySPG[id];
-  const soviet=['ms1','t26','t60','bt7','t70','t28','a20','t34','kv1','su85','t34_85m','kv85','t3485','kv2','kv4','su76','su100','su122','isu122','is2','is1','is3','isu152','obj252','t44','su130pm','obj279','t54','obj140','obj430','obj268','obj277','t62a','t50','obj704','t35','kv5','su100y','it1','kv1s','smk'];
-  const american=['t1cunn','m2light','m3stuart','m5stuart','m3lee','m4a2','m4improved','m4a1','m10','m41walker','m6heavy','m4a3e2','m4a3e8','hellcat','bat_pat','firefly','m36','m26e4','t29','m26','t69','t28heavy','t28proto','m46patton','t95','t54e1','t34us','t30','m48patton','m48a5patton','t110e5','t110e3','t110e4','t57heavy','xm551','m24','m22','m2med','t92'];
-  const british=['carden','vickers_med','mkvi','a13','tetrarch','crusader','aec_mk2','matilda2','valentine','churchillI','cromwell','centaur','archer','churchill4','achilles','charioteer','black_prince','comet','firefly_b','at5','at8','at7','at15','conqueror','conqueror_ix','fv215b','fv4202','fv183','fv4005','badger','supercon','fv4211','tortoise','excelsior','tog2','caernarvon'];
-  const french=['ft17','r35','fcm36','amx38','amx40','amxm4','amx65t','amxcda','amxm4_51','lor40t','amx13','amx13clip','amxm4_54','amx50_100','amx13_90','elceven','amx50b','amx30','amx30b','foch','bat25t','char_futur','foch155','arl44','b1bis','somua','char2c'];
-  const japanese=['nac1','type94','type89','hago','nc_27','type2','chiha','type91','chinu','o_ni','type4chito','oi','o_ho','type5chiri','kuromatsu','sta1','shptII','type61','type61_ix','stbI','type10','type10x','hori'];
+  const soviet=['ms1','t26','t60','bt7','t70','t28','a20','t34','kv1','su85','t34_85m','kv85','t3485','kv2','kv4','su76','su100','su122','isu122','is2','is1','is3','isu152','obj252','t44','su130pm','obj279','t54','obj140','obj430','obj268','obj277','t62a','t50','obj704','t35','kv5','su100y','it1','kv1s','smk','is7','is4'];
+  const american=['t1cunn','m2light','m3stuart','m5stuart','m3lee','m4a2','m4improved','m4a1','m10','m41walker','m6heavy','m4a3e2','m4a3e8','hellcat','bat_pat','firefly','m36','m26e4','t29','m26','t69','t28heavy','t28proto','m46patton','t95','t54e1','t34us','t30','m48patton','m48a5patton','t110e5','t110e3','t110e4','t57heavy','xm551','m24','m22','m2med','t92','t25'];
+  const british=['carden','vickers_med','mkvi','a13','tetrarch','crusader','aec_mk2','matilda2','valentine','churchillI','cromwell','centaur','archer','churchill4','achilles','charioteer','black_prince','comet','firefly_b','at5','at8','at7','at15','conqueror','conqueror_ix','fv215b','fv4202','fv183','fv4005','badger','supercon','fv4211','tortoise','excelsior','tog2','caernarvon','ram2'];
+  const french=['ft17','r35','fcm36','amx38','amx40','amxm4','amx65t','amxcda','amxm4_51','lor40t','amx13','amx13clip','amxm4_54','amx50_100','amx13_90','elceven','amx50b','amx30','amx30b','foch','bat25t','char_futur','foch155','arl44','b1bis','somua','char2c','elc','fcm50'];
+  const japanese=['nac1','type94','type89','hago','nc_27','type2','chiha','type91','chinu','o_ni','type4chito','oi','o_ho','type5chiri','kuromatsu','sta1','shptII','type61','type61_ix','stbI','type10','type10x','hori','keho'];
   const chinese=['renault_otsu','type94_cn','t26_cn','vickers_e','m5_cn','chiha_cn','t34_cn','m4a4_cn','wz132','59_pat','is2_cn','t34_3','is3_cn','wz111','type59','type59mbt','t54_mod1','wz120','wz111_5a','wz113','type121','wz131','wz113g'];
   const swedish=['pvlv42','strv21','strv_m37','strv38','pvkv_m43','ikv72','lago','strv42','pvkv_IV','ikv65','strv74','leo','strv_s1','strv81','emil1','emil2','krv','udes03','udes15','strv103b','strv105'];
   const czech=['kodiak'];
@@ -4083,6 +4091,14 @@ const TANK_PROFILES={
   kv1s: {hl:1.85,hw:0.98,tr:0.42,ty:0.36,bl:1.05,bw:0.105,muzzle:false,boxy:false,sk:true},
   smk:  {hl:2.00,hw:0.94,tr:0.36,ty:0.30,bl:0.85,bw:0.090,muzzle:false,boxy:false,sk:false},
   sturer:{hl:1.90,hw:0.90,tr:0.30,ty:0.24,bl:1.30,bw:0.100,muzzle:false,boxy:true,sk:false},
+  is7:  {hl:2.00,hw:1.02,tr:0.44,ty:0.36,bl:1.20,bw:0.110,muzzle:false,boxy:false,sk:true},
+  is4:  {hl:2.00,hw:1.02,tr:0.44,ty:0.36,bl:1.20,bw:0.110,muzzle:false,boxy:false,sk:true},
+  elc:  {hl:1.25,hw:0.68,tr:0.30,ty:0.24,bl:0.90,bw:0.090,muzzle:false,boxy:false,sk:false},
+  fcm50:{hl:1.95,hw:0.96,tr:0.40,ty:0.34,bl:1.10,bw:0.105,muzzle:false,boxy:false,sk:false},
+  t25:  {hl:1.72,hw:0.88,tr:0.37,ty:0.31,bl:1.00,bw:0.095,muzzle:false,boxy:false,sk:false},
+  ram2: {hl:1.65,hw:0.86,tr:0.34,ty:0.28,bl:0.85,bw:0.090,muzzle:false,boxy:false,sk:false},
+  keho: {hl:1.40,hw:0.74,tr:0.28,ty:0.23,bl:0.60,bw:0.075,muzzle:false,boxy:false,sk:false},
+  pz4_70:{hl:1.75,hw:0.90,tr:0.30,ty:0.24,bl:1.20,bw:0.100,muzzle:false,boxy:true,sk:true},
   t92:  {hl:1.55,hw:0.80,tr:0.30,ty:0.25,bl:0.85,bw:0.085,muzzle:false,boxy:false,sk:false},
   it1:  {hl:1.75,hw:0.88,tr:0.34,ty:0.26,bl:0.50,bw:0.060,muzzle:false,boxy:false,sk:false},
   luchs:{hl:1.40,hw:0.74,tr:0.26,ty:0.22,bl:0.60,bw:0.075,muzzle:false,boxy:false,sk:false},
@@ -4863,7 +4879,7 @@ function drawTankPreview(cv,t){
   c.rotate(-Math.PI/2);
   c.fillStyle='rgba(0,0,0,.18)';c.beginPath();c.ellipse(2,3,size*p.hl*.55,size*p.hw*.5,0,0,Math.PI*2);c.fill();
   c.save();_hull(c,size,t.color,p,false,t.id);if(p.sk)_skirts(c,size,t.color,p);c.restore();
-  const _pTD=new Set(['stug3','jpz4','nashorn','jpz6','su85','su100','su122','isu122','isu152','jpanther','ferdinand','obj268','archer','at5','at8','at7','at15','obj704','hori','su100y','brummbar','sturer']);
+  const _pTD=new Set(['stug3','jpz4','nashorn','jpz6','su85','su100','su122','isu122','isu152','jpanther','ferdinand','obj268','archer','at5','at8','at7','at15','obj704','hori','su100y','brummbar','sturer','pz4_70']);
   const _pOT=new Set(['m10','m36','achilles','borsig_wt','waffentrager','grille15','rhmborsig','su130pm']);
   if(_pTD.has(t.id)){c.save();_casemate(c,size,t.color,p,t.id);c.restore();}
   else if(_pOT.has(t.id)){c.save();_openTurret(c,size,t.color,p,t.id);c.restore();}
@@ -5235,7 +5251,7 @@ const TREE_LAYOUT = {
     ['pz3','pz38t'],
     ['pz4f1','hetzer','marder3','vk3001p','luchs'],
     ['pz4','stug3','vk3601h'],
-    ['panther','jpz4','tiger','portige','e25','brummbar','sturer'],
+    ['panther','jpz4','tiger','portige','e25','brummbar','sturer','pz4_70'],
     ['nashorn','panther2','jpanther','sturmtiger'],
     ['tiger2','ferdinand','borsig_wt','lowe'],
     ['jpz6','e75','e50','rhmborsig'],
@@ -5250,8 +5266,8 @@ const TREE_LAYOUT = {
     ['kv85','t3485','kv2','kv4','su100y','kv1s'],
     ['su100','is2','is1','isu122','it1'],
     ['is3','isu152','obj252','t44','kv5'],
-    ['su130pm','obj279','t54','obj704'],
-    ['obj140','obj430','obj268','obj277','t62a'],
+    ['su130pm','obj279','t54','obj704','is4'],
+    ['obj140','obj430','obj268','obj277','t62a','is7'],
     []],
   american:[
     ['t1cunn'],
@@ -5260,7 +5276,7 @@ const TREE_LAYOUT = {
     ['m3lee','m4a2','m4improved'],
     ['m4a1','m10','m41walker','m24'],
     ['m6heavy','m4a3e2','m4a3e8','hellcat','bat_pat'],
-    ['firefly','m36','m26e4','t92'],
+    ['firefly','m36','m26e4','t92','t25'],
     ['t29','m26','t69','t28heavy','t28proto','t30'],
     ['m46patton','t95','t54e1','t34us'],
     ['m48a5patton','t110e5','t110e3','t110e4','t57heavy','xm551'],
@@ -5270,7 +5286,7 @@ const TREE_LAYOUT = {
     ['vickers_med','mkvi'],
     ['a13','tetrarch','crusader'],
     ['aec_mk2','matilda2','valentine'],
-    ['churchillI','cromwell','centaur','at5','excelsior'],
+    ['churchillI','cromwell','centaur','at5','excelsior','ram2'],
     ['archer','churchill4','achilles','charioteer','at8','tog2'],
     ['black_prince','comet','firefly_b','at7'],
     ['at15','conqueror_ix','caernarvon'],
@@ -5282,16 +5298,16 @@ const TREE_LAYOUT = {
     ['fcm36'],
     ['amx38','amx40'],
     ['amxm4','somua','b1bis'],
-    ['amx65t','amxcda','arl44'],
+    ['amx65t','amxcda','arl44','elc'],
     ['amxm4_51','lor40t','amx13clip','char2c'],
     ['amxm4_54','amx50_100','amx13_90','elceven'],
-    ['amx50b','amx30b','foch','bat25t','char_futur','foch155'],
+    ['amx50b','amx30b','foch','bat25t','char_futur','foch155','fcm50'],
     []],
   japanese:[
     ['nac1','type94'],
     ['type89','hago','nc_27'],
     ['type2','chiha'],
-    ['chinu','type91'],
+    ['chinu','type91','keho'],
     ['o_ni','type4chito'],
     ['oi','o_ho','type5chiri','kuromatsu'],
     ['sta1','shptII','hori'],
