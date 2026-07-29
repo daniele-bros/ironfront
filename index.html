@@ -887,14 +887,26 @@ function _launchMissile(x,y,ang,owner,dmg,size){
 }
 // Per-frame missile guidance: steer velocity toward the nearest valid target and trail smoke.
 function _homeMissile(b,dt){
-  let best=null,bd=1e9;
-  const scan=arr=>{ if(!arr)return; for(const t of arr){ if(t.hp<=0)continue; const d=Math.hypot(t.x-b.x,t.y-b.y); if(d<bd){bd=d;best=t;} } };
-  if(b.owner==='enemy'){ scan(allies); if(player&&player.hp>0){const d=Math.hypot(player.x-b.x,player.y-b.y); if(d<bd){bd=d;best=player;}} }
-  else { scan(enemies); }
+  // Aim point: PLAYER missiles fly toward the crosshair (you steer them onto the tank you want);
+  // enemy missiles auto-home to the player/allies.
+  let tx,ty;
+  if(b.owner==='enemy'){
+    let best=null,bd=1e9;
+    const scan=arr=>{ if(!arr)return; for(const t of arr){ if(t.hp<=0)continue; const d=Math.hypot(t.x-b.x,t.y-b.y); if(d<bd){bd=d;best=t;} } };
+    scan(allies); if(player&&player.hp>0){const d=Math.hypot(player.x-b.x,player.y-b.y); if(d<bd){bd=d;best=player;}}
+    if(best){tx=best.x;ty=best.y;}
+  } else {
+    // world position under the crosshair
+    tx=mouseX*_mScaleX+camX; ty=mouseY*_mScaleY+camY;
+    // snap-assist: if an enemy sits near the crosshair, lock the aim onto it for a clean hit
+    let near=null,nd=70;
+    if(enemies)for(const e of enemies){ if(e.hp<=0)continue; const d=Math.hypot(e.x-tx,e.y-ty); if(d<nd){nd=d;near=e;} }
+    if(near){tx=near.x;ty=near.y;}
+  }
   const cur=Math.atan2(b.vy,b.vx);
   const spd=Math.min(b.maxspd,Math.hypot(b.vx,b.vy)+0.45*dt);
   let na=cur;
-  if(best){ const desired=Math.atan2(best.y-b.y,best.x-b.x); let d=desired-cur; while(d>Math.PI)d-=2*Math.PI; while(d<-Math.PI)d+=2*Math.PI; na=cur+Math.max(-b.turn,Math.min(b.turn,d))*dt; }
+  if(tx!==undefined){ const desired=Math.atan2(ty-b.y,tx-b.x); let d=desired-cur; while(d>Math.PI)d-=2*Math.PI; while(d<-Math.PI)d+=2*Math.PI; na=cur+Math.max(-b.turn,Math.min(b.turn,d))*dt; }
   b.vx=Math.cos(na)*spd; b.vy=Math.sin(na)*spd;
   b._smoke=(b._smoke||0)-dt;
   if(b._smoke<=0){ b._smoke=2; if(particles.length<600){ particles.push({x:b.x-Math.cos(na)*6,y:b.y-Math.sin(na)*6,vx:(Math.random()-.5)*.6,vy:(Math.random()-.5)*.6,life:22,maxLife:22,alpha:.5,r:2.4+Math.random()*2,color:'#8a8a82'}); } }
@@ -1058,7 +1070,7 @@ let canvas,ctx,W,H,mmCanvas,mmCtx;
 let player,enemies,allies,bullets,particles,craters,obstacles,treadMarks=[];
 let score,kills,wave,gameRunning,waveSpawning;
 let battleMode='7v7';
-let keys={},mouseX=0,mouseY=0;
+let keys={},mouseX=0,mouseY=0,_mScaleX=1,_mScaleY=1;
 let treeNation='german';
 let _fireHeld=false;
 let _paused=false;
@@ -2232,6 +2244,7 @@ function setupInput(){
       const wx=(e.clientX-r.left)*(canvas.width/r.width)+camX;
       const wy=(e.clientY-r.top)*(canvas.height/r.height)+camY;}
     const r=canvas.getBoundingClientRect();mouseX=e.clientX-r.left;mouseY=e.clientY-r.top;
+    _mScaleX=canvas.width/r.width;_mScaleY=canvas.height/r.height;
     const ch=document.getElementById('crosshair');ch.style.left=mouseX+'px';ch.style.top=mouseY+'px';
   });
   canvas.addEventListener('mousedown',e=>{
