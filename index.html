@@ -735,6 +735,7 @@ const TANK_DEFS = [
   {id:'char2c',name:'Char 2C',nation:'🇫🇷 France',hp:900,armor:90,pen:150,dmg:230,speed:1.8,rot:1.0,reload:3.4,ammo:40,color:'#3a4c22',tier:'VI',price:1500,desc:'French land battleship. Enormous.'},
   {id:'brummbar',name:'Brummbär',nation:'🇩🇪 Germany',hp:620,armor:100,pen:130,dmg:330,speed:2.4,rot:1.4,reload:4.0,ammo:38,color:'#6a6030',tier:'VI',price:1400,desc:'Sturmpanzer IV. 15cm brawler.'},
   {id:'m2med',name:'M2 Medium',nation:'🇺🇸 USA',hp:260,armor:32,pen:64,dmg:50,speed:4.2,rot:2.4,reload:1.4,ammo:100,color:'#4e5a38',tier:'III',price:400,desc:'Pre-war US medium. Many MGs.'},
+  {id:'it1',name:'IT-1',nation:'🇷🇺 USSR',hp:720,armor:120,pen:400,dmg:330,speed:3.2,rot:1.8,reload:5.0,ammo:15,color:'#3a4c1c',tier:'VII',price:2200,desc:'Soviet missile tank. Guided ATGMs only.'},
   {id:'conqueror_ix',name:'Conqueror',nation:'🇬🇧 Britain',hp:1400,armor:180,pen:235,dmg:370,speed:2.4,rot:1.4,reload:3.5,ammo:18,color:'#283e14',tier:'IX',price:3600,desc:'Tier IX UK heavy. 120mm.'},
   {id:'fv215b',name:'FV215b',nation:'🇬🇧 Britain',hp:1800,armor:254,pen:265,dmg:415,speed:2.2,rot:1.3,reload:3.5,ammo:30,color:'#223812',tier:'X',price:6000,desc:'Tier X British heavy. Mythical.'},
   {id:'fv4202',name:'FV4202',nation:'🇬🇧 Britain',hp:1400,armor:120,pen:248,dmg:340,speed:3.0,rot:1.7,reload:2.8,ammo:46,color:'#263c14',tier:'X',price:5500,desc:'British Tier X medium. Fast.'},
@@ -849,6 +850,33 @@ const TANK_DEFS = [
 // Tank Destroyer IDs — turret locked to hull direction
 const _tdIds=new Set(['stug3','jpz4','nashorn','jpz6','su85','su100','su122','isu122','isu152','jpanther','ferdinand','obj268','archer','at5','at8','at7','at15','obj704','hori','su100y','brummbar']);
 const _otIds=new Set(['m10','m36','achilles','borsig_wt','waffentrager','grille15','rhmborsig','su130pm']);
+// Tanks that fire guided HOMING MISSILES instead of shells (gun-launched ATGMs / dedicated launchers)
+const _missileIds=new Set(['m551','xm551','t14armata','kf51','it1']);
+// Launch a homing missile: slow off the rail, accelerates, steers to the nearest target, HEAT warhead ignores armour.
+function _launchMissile(x,y,ang,owner,dmg,size){
+  bullets.push({
+    x:x+Math.cos(ang)*size, y:y+Math.sin(ang)*size,
+    vx:Math.cos(ang)*6.5, vy:Math.sin(ang)*6.5,
+    owner, dmg:dmg*1.5, pen:9999, fullDmg:true,
+    life:230, trail:[], missile:true, homing:true, turn:0.075, maxspd:15, _smoke:0
+  });
+  spawnMuzzle(x,y,ang);
+  camShake=Math.max(camShake,5);
+}
+// Per-frame missile guidance: steer velocity toward the nearest valid target and trail smoke.
+function _homeMissile(b,dt){
+  let best=null,bd=1e9;
+  const scan=arr=>{ if(!arr)return; for(const t of arr){ if(t.hp<=0)continue; const d=Math.hypot(t.x-b.x,t.y-b.y); if(d<bd){bd=d;best=t;} } };
+  if(b.owner==='enemy'){ scan(allies); if(player&&player.hp>0){const d=Math.hypot(player.x-b.x,player.y-b.y); if(d<bd){bd=d;best=player;}} }
+  else { scan(enemies); }
+  const cur=Math.atan2(b.vy,b.vx);
+  const spd=Math.min(b.maxspd,Math.hypot(b.vx,b.vy)+0.45*dt);
+  let na=cur;
+  if(best){ const desired=Math.atan2(best.y-b.y,best.x-b.x); let d=desired-cur; while(d>Math.PI)d-=2*Math.PI; while(d<-Math.PI)d+=2*Math.PI; na=cur+Math.max(-b.turn,Math.min(b.turn,d))*dt; }
+  b.vx=Math.cos(na)*spd; b.vy=Math.sin(na)*spd;
+  b._smoke=(b._smoke||0)-dt;
+  if(b._smoke<=0){ b._smoke=2; if(particles.length<600){ particles.push({x:b.x-Math.cos(na)*6,y:b.y-Math.sin(na)*6,vx:(Math.random()-.5)*.6,vy:(Math.random()-.5)*.6,life:22,maxLife:22,alpha:.5,r:2.4+Math.random()*2,color:'#8a8a82'}); } }
+}
 const _SMOKE_COLORS=new Set(['#555','#5a4a2a','#9a8050','#b8c8d8','#443022','#777']);
 
 const MAPS = [
@@ -868,7 +896,7 @@ function getTankFaction(id){
     sexton:'british',fv304:'british',cgc:'british',
     amx13f3:'french',lorr155:'french'};
   if(artySPG[id]) return artySPG[id];
-  const soviet=['ms1','t26','t60','bt7','t70','t28','a20','t34','kv1','su85','t34_85m','kv85','t3485','kv2','kv4','su76','su100','su122','isu122','is2','is1','is3','isu152','obj252','t44','su130pm','obj279','t54','obj140','obj430','obj268','obj277','t62a','t50','obj704','t35','kv5','su100y'];
+  const soviet=['ms1','t26','t60','bt7','t70','t28','a20','t34','kv1','su85','t34_85m','kv85','t3485','kv2','kv4','su76','su100','su122','isu122','is2','is1','is3','isu152','obj252','t44','su130pm','obj279','t54','obj140','obj430','obj268','obj277','t62a','t50','obj704','t35','kv5','su100y','it1'];
   const american=['t1cunn','m2light','m3stuart','m5stuart','m3lee','m4a2','m4improved','m4a1','m10','m41walker','m6heavy','m4a3e2','m4a3e8','hellcat','bat_pat','firefly','m36','m26e4','t29','m26','t69','t28heavy','t28proto','m46patton','t95','t54e1','t34us','t30','m48patton','m48a5patton','t110e5','t110e3','t110e4','t57heavy','xm551','m24','m22','m2med'];
   const british=['carden','vickers_med','mkvi','a13','tetrarch','crusader','aec_mk2','matilda2','valentine','churchillI','cromwell','centaur','archer','churchill4','achilles','charioteer','black_prince','comet','firefly_b','at5','at8','at7','at15','conqueror','conqueror_ix','fv215b','fv4202','fv183','fv4005','badger','supercon','fv4211','tortoise','excelsior'];
   const french=['ft17','r35','fcm36','amx38','amx40','amxm4','amx65t','amxcda','amxm4_51','lor40t','amx13','amx13clip','amxm4_54','amx50_100','amx13_90','elceven','amx50b','amx30','amx30b','foch','bat25t','char_futur','foch155','arl44','b1bis','somua','char2c'];
@@ -2214,6 +2242,12 @@ function tryShoot(){
   canShoot=false;
   currentAmmo--;updateAmmoRow();
 
+  // Missile tanks launch a guided homing missile instead of a shell
+  if(_missileIds.has(player.id)){
+    const angle=_tdIds&&_tdIds.has(player.id)?player.angle:player.turretAngle;
+    _launchMissile(player.x,player.y,angle,'player',player.dmg,player.size);
+    if(player)player.recoil=Math.max(player.recoil||0,player.size*0.24);
+  } else {
   const burst=(['pz1','mkvi','type94']).includes(player.id)?6:(['pz2','m3stuart','m5stuart','amx13']).includes(player.id)?4:(['tvp']).includes(player.id)?3:1;
   const burstDelay=80;
 
@@ -2229,6 +2263,7 @@ function tryShoot(){
       spawnMuzzle(player.x,player.y,angle+spread);
       if(player)player.recoil=Math.max(player.recoil||0,player.size*0.22);
     },i*burstDelay);
+  }
   }
 
   const _rStart=(typeof performance!=='undefined'?performance.now():Date.now());
@@ -2922,7 +2957,8 @@ function updateEnemies(dt){
       // derive it from damage. Small jitter avoids robotic synchronized volleys.
       e.shootCD=(e.reload?e.reload*60:Math.max(60,Math.min(390,Math.round((0.9+e.dmg*0.0125)*60))))+Math.random()*15;
       const sp=dist>350?0.25:0.12,sa=ta+(Math.random()-.5)*sp;
-      bullets.push({x:e.x+Math.cos(sa)*e.size,y:e.y+Math.sin(sa)*e.size,vx:Math.cos(sa)*9,vy:Math.sin(sa)*9,owner:'enemy',dmg:e.dmg,pen:e.pen,life:140,trail:[]});
+      if(e.id&&_missileIds.has(e.id)){ _launchMissile(e.x,e.y,ta,'enemy',e.dmg,e.size); }
+      else bullets.push({x:e.x+Math.cos(sa)*e.size,y:e.y+Math.sin(sa)*e.size,vx:Math.cos(sa)*9,vy:Math.sin(sa)*9,owner:'enemy',dmg:e.dmg,pen:e.pen,life:140,trail:[]});
       e.recoil=e.size*0.2;
     }
   }
@@ -2947,6 +2983,7 @@ function _bulletHitsCircle(b, cx, cy, radius){
 function updateBullets(dt){
   for(let i=bullets.length-1;i>=0;i--){
     const b=bullets[i];
+    if(b.missile&&b.homing)_homeMissile(b,dt); // guide missiles toward their target before moving
     b.trail.push({x:b.x,y:b.y});if(b.trail.length>16)b.trail.shift();
     const _bpx=b.x,_bpy=b.y; // previous position for swept collision
     b.x+=b.vx*dt;b.y+=b.vy*dt;b.life-=dt;
@@ -3236,6 +3273,7 @@ function render(){
 
   // ── BULLETS: physical tracer lines with glow core ──
   for(const b of bullets){
+    if(b.missile){ _drawMissile(b); continue; }
     const isP=b.owner==='player',isA=b.owner==='ally';
     const isH=false;
     // Colors per faction
@@ -4009,6 +4047,7 @@ const TANK_PROFILES={
   char2c:{hl:2.30,hw:0.95,tr:0.36,ty:0.30,bl:0.85,bw:0.090,muzzle:false,boxy:false,sk:false},
   brummbar:{hl:1.70,hw:0.95,tr:0.30,ty:0.24,bl:0.80,bw:0.120,muzzle:false,boxy:true,sk:false},
   m2med:{hl:1.55,hw:0.82,tr:0.30,ty:0.25,bl:0.65,bw:0.080,muzzle:false,boxy:false,sk:false},
+  it1:  {hl:1.75,hw:0.88,tr:0.34,ty:0.26,bl:0.50,bw:0.060,muzzle:false,boxy:false,sk:false},
   luchs:{hl:1.40,hw:0.74,tr:0.26,ty:0.22,bl:0.60,bw:0.075,muzzle:false,boxy:false,sk:false},
   m22:  {hl:1.30,hw:0.70,tr:0.24,ty:0.20,bl:0.55,bw:0.070,muzzle:false,boxy:false,sk:false},
   m24:  {hl:1.55,hw:0.80,tr:0.30,ty:0.25,bl:0.85,bw:0.085,muzzle:false,boxy:false,sk:false},
@@ -4796,6 +4835,27 @@ function drawTankPreview(cv,t){
 }
 
 
+function _drawMissile(b){
+  const ang=Math.atan2(b.vy,b.vx);
+  ctx.save();ctx.translate(b.x,b.y);ctx.rotate(ang);
+  // exhaust flame
+  ctx.shadowBlur=14;ctx.shadowColor='rgba(255,150,40,.9)';
+  const fl=6+Math.random()*5;
+  const fg=ctx.createLinearGradient(-6-fl,0,-6,0);
+  fg.addColorStop(0,'rgba(255,70,0,0)');fg.addColorStop(.5,'rgba(255,150,30,.85)');fg.addColorStop(1,'rgba(255,240,190,.95)');
+  ctx.fillStyle=fg;ctx.beginPath();ctx.moveTo(-6,-2.3);ctx.lineTo(-6-fl,0);ctx.lineTo(-6,2.3);ctx.closePath();ctx.fill();
+  ctx.shadowBlur=0;
+  // fins
+  ctx.fillStyle='#8f9088';
+  ctx.beginPath();ctx.moveTo(-5,-2);ctx.lineTo(-9,-4.2);ctx.lineTo(-5,-0.4);ctx.closePath();ctx.fill();
+  ctx.beginPath();ctx.moveTo(-5,2);ctx.lineTo(-9,4.2);ctx.lineTo(-5,0.4);ctx.closePath();ctx.fill();
+  // body
+  ctx.fillStyle='#dcdcd4';ctx.beginPath();ctx.roundRect(-6,-2,12,4,1.4);ctx.fill();
+  ctx.strokeStyle='rgba(0,0,0,.5)';ctx.lineWidth=.8;ctx.stroke();
+  // red nose cone
+  ctx.fillStyle='#c33a2c';ctx.beginPath();ctx.moveTo(6,-2);ctx.lineTo(10.5,0);ctx.lineTo(6,2);ctx.closePath();ctx.fill();
+  ctx.restore();
+}
 function drawPart(p){
   const lifeRatio=p.life/p.maxLife;
 
@@ -5151,7 +5211,7 @@ const TREE_LAYOUT = {
     ['a20','t34','su122','t50'],
     ['kv1','su85','t34_85m','t35'],
     ['kv85','t3485','kv2','kv4','su100y'],
-    ['su100','is2','is1','isu122'],
+    ['su100','is2','is1','isu122','it1'],
     ['is3','isu152','obj252','t44','kv5'],
     ['su130pm','obj279','t54','obj704'],
     ['obj140','obj430','obj268','obj277','t62a'],
