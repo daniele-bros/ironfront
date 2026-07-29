@@ -206,6 +206,9 @@ body[data-state="mode"] #screen-title { display:none!important; }
     </div>
     <!-- Mortar + Nuke buttons row (pointer-events:auto so they're clickable) -->
     <div id="battle-weapons" style="display:flex;gap:8px;padding:4px 10px 8px;pointer-events:auto;">
+      <button id="btn-weapon" onclick="toggleWeapon()" title="Switch main gun / missile (Q)" style="background:linear-gradient(135deg,#2a2a4a,#141428);color:#c8a84b;border:1.5px solid #6060a0;font-family:'Oswald',sans-serif;font-size:12px;font-weight:700;letter-spacing:1px;padding:7px 14px;border-radius:3px;cursor:pointer;display:none;">
+        🔫 MAIN GUN <span style="font-size:10px;opacity:.7;">[Q]</span>
+      </button>
       <button id="btn-mortar" onclick="quickMortar()" style="background:linear-gradient(135deg,#5a2a0a,#3a1a06);color:#f0a050;border:1.5px solid #a05020;font-family:'Oswald',sans-serif;font-size:12px;font-weight:700;letter-spacing:1px;padding:7px 14px;border-radius:3px;cursor:pointer;display:none;">
         💥 MORTAR <span id="mortar-count" style="font-size:10px;opacity:.8;">×0</span>
       </button>
@@ -1909,6 +1912,9 @@ function startGame(){
   // TD indicator
   const _tdHudEl=document.getElementById('hud-tname');
   if(_tdHudEl&&player&&_tdIds&&_tdIds.has(player.id)){_tdHudEl.title='Tank Destroyer — hull locked to gun';}
+  // Missile tanks start on their main gun; the weapon-switch button (press Q or click) swaps to missiles
+  weaponMode = 'gun';
+  updateWeaponHud();
   updateCoinsHud();
   (document.getElementById('btn-exit-battle')||{style:{}}).style.display='block';
 }
@@ -2178,11 +2184,30 @@ function getAllyPool(){
 // ════════════════════════════════════════
 // INPUT
 // ════════════════════════════════════════
+// ── Weapon mode (main gun ↔ guided missile) for missile-capable tanks ──
+let weaponMode='gun';
+function canUseMissile(){ return !!(player && _missileIds.has(player.id)); }
+function toggleWeapon(){
+  if(!canUseMissile())return;
+  weaponMode = (weaponMode==='missile') ? 'gun' : 'missile';
+  updateWeaponHud();
+  if(typeof playUiClick==='function')playUiClick();
+}
+function updateWeaponHud(){
+  const el=document.getElementById('btn-weapon'); if(!el)return;
+  if(!canUseMissile()){ el.style.display='none'; return; }
+  el.style.display='inline-block';
+  const miss = weaponMode==='missile';
+  el.innerHTML = (miss?'🚀 MISSILE':'🔫 MAIN GUN')+' <span style="font-size:10px;opacity:.7;">[Q]</span>';
+  el.style.borderColor = miss?'#ff8040':'#6060a0';
+  el.style.color = miss?'#ff9a5a':'#c8a84b';
+}
 function setupInput(){
   window.addEventListener('keydown',e=>{
     keys[e.code]=true;
     if(e.key)keys[e.key]=true;
     if(e.code==='Space'){e.preventDefault();tryShoot();}
+    if(e.code==='KeyQ'){e.preventDefault();toggleWeapon();}
     if(['KeyW','KeyA','KeyS','KeyD','ArrowUp','ArrowDown','ArrowLeft','ArrowRight'].includes(e.code))e.preventDefault();
   });
   window.addEventListener('keyup',e=>{keys[e.code]=false;if(e.key)keys[e.key]=false;});
@@ -2248,8 +2273,8 @@ function tryShoot(){
   canShoot=false;
   currentAmmo--;updateAmmoRow();
 
-  // Missile tanks launch a guided homing missile instead of a shell
-  if(_missileIds.has(player.id)){
+  // Missile tanks launch a guided homing missile when MISSILE mode is selected (toggle with Q)
+  if(_missileIds.has(player.id)&&weaponMode==='missile'){
     const angle=_tdIds&&_tdIds.has(player.id)?player.angle:player.turretAngle;
     _launchMissile(player.x,player.y,angle,'player',player.dmg,player.size);
     if(player)player.recoil=Math.max(player.recoil||0,player.size*0.24);
