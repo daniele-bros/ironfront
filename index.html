@@ -753,6 +753,11 @@ const TANK_DEFS = [
   {id:'ram2',name:'Ram II',nation:'🇬🇧 Britain',hp:480,armor:88,pen:105,dmg:135,speed:3.4,rot:2.0,reload:2.2,ammo:60,color:'#38501e',tier:'V',price:900,desc:'Canadian-built cruiser tank.'},
   {id:'keho',name:'Ke-Ho',nation:'🇯🇵 Japan',hp:340,armor:40,pen:90,dmg:75,speed:4.6,rot:2.8,reload:1.6,ammo:90,color:'#5a5a24',tier:'IV',price:550,desc:'Late Japanese light. Nimble.'},
   {id:'pz4_70',name:'Pz.IV/70(V)',nation:'🇩🇪 Germany',hp:620,armor:80,pen:175,dmg:200,speed:2.8,rot:1.6,reload:3.0,ammo:44,color:'#5e5824',tier:'VI',price:1400,desc:'Casemate Panzer IV TD. Long 75mm.'},
+  {id:'obj907',name:'Object 907',nation:'🇷🇺 USSR',hp:1500,armor:195,pen:264,dmg:320,speed:3.4,rot:1.9,reload:2.4,ammo:40,color:'#3a4c1c',tier:'X',price:5500,desc:'Soviet reward medium. Sloped hull.'},
+  {id:'cent71',name:'Centurion 7/1',nation:'🇬🇧 Britain',hp:1350,armor:200,pen:268,dmg:230,speed:3.0,rot:1.7,reload:2.4,ammo:65,color:'#30441a',tier:'IX',price:3600,desc:'British medium. Accurate 105mm.'},
+  {id:'mauschen',name:'Mäuschen',nation:'🇩🇪 Germany',hp:1450,armor:220,pen:246,dmg:400,speed:2.4,rot:1.3,reload:4.4,ammo:34,color:'#5e6048',tier:'IX',price:3600,desc:'German super-heavy prototype.'},
+  {id:'amx13_105',name:'AMX 13 105',nation:'🇫🇷 France',hp:1200,armor:40,pen:260,dmg:320,speed:4.6,rot:2.6,reload:3.0,ammo:36,color:'#4a5628',tier:'X',price:5500,desc:'French autoloader light. 105mm clip.'},
+  {id:'t95e6',name:'T95E6',nation:'🇺🇸 USA',hp:1900,armor:230,pen:258,dmg:320,speed:3.4,rot:1.9,reload:2.6,ammo:40,color:'#46523a',tier:'X',price:5500,desc:'US medium prototype. Tough.'},
   {id:'conqueror_ix',name:'Conqueror',nation:'🇬🇧 Britain',hp:1400,armor:180,pen:235,dmg:370,speed:2.4,rot:1.4,reload:3.5,ammo:18,color:'#283e14',tier:'IX',price:3600,desc:'Tier IX UK heavy. 120mm.'},
   {id:'fv215b',name:'FV215b',nation:'🇬🇧 Britain',hp:1800,armor:254,pen:265,dmg:415,speed:2.2,rot:1.3,reload:3.5,ammo:30,color:'#223812',tier:'X',price:6000,desc:'Tier X British heavy. Mythical.'},
   {id:'fv4202',name:'FV4202',nation:'🇬🇧 Britain',hp:1400,armor:120,pen:248,dmg:340,speed:3.0,rot:1.7,reload:2.8,ammo:46,color:'#263c14',tier:'X',price:5500,desc:'British Tier X medium. Fast.'},
@@ -913,10 +918,10 @@ function getTankFaction(id){
     sexton:'british',fv304:'british',cgc:'british',
     amx13f3:'french',lorr155:'french'};
   if(artySPG[id]) return artySPG[id];
-  const soviet=['ms1','t26','t60','bt7','t70','t28','a20','t34','kv1','su85','t34_85m','kv85','t3485','kv2','kv4','su76','su100','su122','isu122','is2','is1','is3','isu152','obj252','t44','su130pm','obj279','t54','obj140','obj430','obj268','obj277','t62a','t50','obj704','t35','kv5','su100y','it1','kv1s','smk','is7','is4'];
-  const american=['t1cunn','m2light','m3stuart','m5stuart','m3lee','m4a2','m4improved','m4a1','m10','m41walker','m6heavy','m4a3e2','m4a3e8','hellcat','bat_pat','firefly','m36','m26e4','t29','m26','t69','t28heavy','t28proto','m46patton','t95','t54e1','t34us','t30','m48patton','m48a5patton','t110e5','t110e3','t110e4','t57heavy','xm551','m24','m22','m2med','t92','t25'];
-  const british=['carden','vickers_med','mkvi','a13','tetrarch','crusader','aec_mk2','matilda2','valentine','churchillI','cromwell','centaur','archer','churchill4','achilles','charioteer','black_prince','comet','firefly_b','at5','at8','at7','at15','conqueror','conqueror_ix','fv215b','fv4202','fv183','fv4005','badger','supercon','fv4211','tortoise','excelsior','tog2','caernarvon','ram2'];
-  const french=['ft17','r35','fcm36','amx38','amx40','amxm4','amx65t','amxcda','amxm4_51','lor40t','amx13','amx13clip','amxm4_54','amx50_100','amx13_90','elceven','amx50b','amx30','amx30b','foch','bat25t','char_futur','foch155','arl44','b1bis','somua','char2c','elc','fcm50'];
+  const soviet=['ms1','t26','t60','bt7','t70','t28','a20','t34','kv1','su85','t34_85m','kv85','t3485','kv2','kv4','su76','su100','su122','isu122','is2','is1','is3','isu152','obj252','t44','su130pm','obj279','t54','obj140','obj430','obj268','obj277','t62a','t50','obj704','t35','kv5','su100y','it1','kv1s','smk','is7','is4','obj907'];
+  const american=['t1cunn','m2light','m3stuart','m5stuart','m3lee','m4a2','m4improved','m4a1','m10','m41walker','m6heavy','m4a3e2','m4a3e8','hellcat','bat_pat','firefly','m36','m26e4','t29','m26','t69','t28heavy','t28proto','m46patton','t95','t54e1','t34us','t30','m48patton','m48a5patton','t110e5','t110e3','t110e4','t57heavy','xm551','m24','m22','m2med','t92','t25','t95e6'];
+  const british=['carden','vickers_med','mkvi','a13','tetrarch','crusader','aec_mk2','matilda2','valentine','churchillI','cromwell','centaur','archer','churchill4','achilles','charioteer','black_prince','comet','firefly_b','at5','at8','at7','at15','conqueror','conqueror_ix','fv215b','fv4202','fv183','fv4005','badger','supercon','fv4211','tortoise','excelsior','tog2','caernarvon','ram2','cent71'];
+  const french=['ft17','r35','fcm36','amx38','amx40','amxm4','amx65t','amxcda','amxm4_51','lor40t','amx13','amx13clip','amxm4_54','amx50_100','amx13_90','elceven','amx50b','amx30','amx30b','foch','bat25t','char_futur','foch155','arl44','b1bis','somua','char2c','elc','fcm50','amx13_105'];
   const japanese=['nac1','type94','type89','hago','nc_27','type2','chiha','type91','chinu','o_ni','type4chito','oi','o_ho','type5chiri','kuromatsu','sta1','shptII','type61','type61_ix','stbI','type10','type10x','hori','keho'];
   const chinese=['renault_otsu','type94_cn','t26_cn','vickers_e','m5_cn','chiha_cn','t34_cn','m4a4_cn','wz132','59_pat','is2_cn','t34_3','is3_cn','wz111','type59','type59mbt','t54_mod1','wz120','wz111_5a','wz113','type121','wz131','wz113g'];
   const swedish=['pvlv42','strv21','strv_m37','strv38','pvkv_m43','ikv72','lago','strv42','pvkv_IV','ikv65','strv74','leo','strv_s1','strv81','emil1','emil2','krv','udes03','udes15','strv103b','strv105'];
@@ -4098,6 +4103,11 @@ const TANK_PROFILES={
   t25:  {hl:1.72,hw:0.88,tr:0.37,ty:0.31,bl:1.00,bw:0.095,muzzle:false,boxy:false,sk:false},
   ram2: {hl:1.65,hw:0.86,tr:0.34,ty:0.28,bl:0.85,bw:0.090,muzzle:false,boxy:false,sk:false},
   keho: {hl:1.40,hw:0.74,tr:0.28,ty:0.23,bl:0.60,bw:0.075,muzzle:false,boxy:false,sk:false},
+  obj907:{hl:1.80,hw:0.90,tr:0.38,ty:0.32,bl:1.05,bw:0.100,muzzle:false,boxy:false,sk:false},
+  cent71:{hl:1.90,hw:0.94,tr:0.40,ty:0.34,bl:1.15,bw:0.105,muzzle:false,boxy:false,sk:false},
+  mauschen:{hl:2.10,hw:1.05,tr:0.46,ty:0.40,bl:1.10,bw:0.110,muzzle:false,boxy:true,sk:false},
+  amx13_105:{hl:1.70,hw:0.82,tr:0.32,ty:0.26,bl:1.10,bw:0.090,muzzle:false,boxy:false,sk:false},
+  t95e6:{hl:1.88,hw:0.96,tr:0.40,ty:0.34,bl:1.10,bw:0.105,muzzle:false,boxy:false,sk:false},
   pz4_70:{hl:1.75,hw:0.90,tr:0.30,ty:0.24,bl:1.20,bw:0.100,muzzle:false,boxy:true,sk:true},
   t92:  {hl:1.55,hw:0.80,tr:0.30,ty:0.25,bl:0.85,bw:0.085,muzzle:false,boxy:false,sk:false},
   it1:  {hl:1.75,hw:0.88,tr:0.34,ty:0.26,bl:0.50,bw:0.060,muzzle:false,boxy:false,sk:false},
@@ -5254,7 +5264,7 @@ const TREE_LAYOUT = {
     ['panther','jpz4','tiger','portige','e25','brummbar','sturer','pz4_70'],
     ['nashorn','panther2','jpanther','sturmtiger'],
     ['tiger2','ferdinand','borsig_wt','lowe'],
-    ['jpz6','e75','e50','rhmborsig'],
+    ['jpz6','e75','e50','rhmborsig','mauschen'],
     ['maus','e100','grille15','waffentrager','jagdmaus','vk7201'],
     []],
   soviet:[
@@ -5267,7 +5277,7 @@ const TREE_LAYOUT = {
     ['su100','is2','is1','isu122','it1'],
     ['is3','isu152','obj252','t44','kv5'],
     ['su130pm','obj279','t54','obj704','is4'],
-    ['obj140','obj430','obj268','obj277','t62a','is7'],
+    ['obj140','obj430','obj268','obj277','t62a','is7','obj907'],
     []],
   american:[
     ['t1cunn'],
@@ -5279,7 +5289,7 @@ const TREE_LAYOUT = {
     ['firefly','m36','m26e4','t92','t25'],
     ['t29','m26','t69','t28heavy','t28proto','t30'],
     ['m46patton','t95','t54e1','t34us'],
-    ['m48a5patton','t110e5','t110e3','t110e4','t57heavy','xm551'],
+    ['m48a5patton','t110e5','t110e3','t110e4','t57heavy','xm551','t95e6'],
     []],
   british:[
     ['carden'],
@@ -5290,7 +5300,7 @@ const TREE_LAYOUT = {
     ['archer','churchill4','achilles','charioteer','at8','tog2'],
     ['black_prince','comet','firefly_b','at7'],
     ['at15','conqueror_ix','caernarvon'],
-    ['fv215b','fv4202','fv183','fv4005','badger','supercon','fv4211'],
+    ['fv215b','fv4202','fv183','fv4005','badger','supercon','fv4211','cent71'],
     ['tortoise'],
     []],
   french:[
@@ -5302,7 +5312,7 @@ const TREE_LAYOUT = {
     ['amxm4_51','lor40t','amx13clip','char2c'],
     ['amxm4_54','amx50_100','amx13_90','elceven'],
     ['amx50b','amx30b','foch','bat25t','char_futur','foch155','fcm50'],
-    []],
+    ['amx13_105']],
   japanese:[
     ['nac1','type94'],
     ['type89','hago','nc_27'],
