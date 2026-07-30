@@ -446,6 +446,8 @@ body[data-state="mode"] #screen-title { display:none!important; }
     <button class="tnav-btn" id="tnav-se"   onclick="treeShowNation('swedish')">&#127480;&#127466; SE</button>
     <button class="tnav-btn" id="tnav-cz"   onclick="treeShowNation('czech')">&#127464;&#127487; CZ</button>
     <button class="tnav-btn" id="tnav-it"   onclick="treeShowNation('italian')">&#127470;&#127481; IT</button>
+    <button class="tnav-btn" id="tnav-pl"   onclick="treeShowNation('polish')">&#127477;&#127473; PL</button>
+    <button class="tnav-btn" id="tnav-hu"   onclick="treeShowNation('hungarian')">&#127469;&#127482; HU</button>
     <button class="tnav-btn" id="tnav-mod" onclick="treeShowNation('modern')" style="border-color:rgba(200,168,75,.5);color:var(--khaki)">&#9881; MODERN ERA</button>
   <button class="tnav-btn" id="tnav-cw" onclick="treeShowNation('coldwar')" style="border-color:rgba(200,168,75,.5);color:var(--khaki)">&#9762; COLD WAR</button>
     <button class="tnav-btn" id="tnav-arty" onclick="treeShowNation('artillery')" style="border-color:rgba(255,120,20,.5);color:#ff8020;">&#128165; ARTILLERY</button>
@@ -676,6 +678,22 @@ const TANK_DEFS = [
   {id:'sem10525',name:'Semovente 105/25',nation:'🇮🇹 Italy',hp:480,armor:75,pen:140,dmg:200,speed:2.8,rot:1.6,reload:3.2,ammo:40,color:'#5e5e36',tier:'VI',price:1300,desc:'Italian casemate TD. 105mm.'},
   {id:'p43',name:'P43',nation:'🇮🇹 Italy',hp:620,armor:90,pen:150,dmg:200,speed:2.8,rot:1.7,reload:2.8,ammo:50,color:'#66643a',tier:'VI',price:1400,desc:'Italian heavy tank project.'},
   {id:'progetto',name:'Progetto 46',nation:'🇮🇹 Italy',hp:1250,armor:90,pen:232,dmg:240,speed:4.0,rot:2.2,reload:2.6,ammo:55,color:'#5e5c34',tier:'VIII',price:3000,desc:'Fast Italian autoloader medium.'},
+  {id:'tks',name:'TKS',nation:'🇵🇱 Poland',hp:90,armor:12,pen:22,dmg:26,speed:4.6,rot:2.8,reload:1.4,ammo:80,color:'#5a6448',tier:'I',price:0,desc:'Polish tankette.'},
+  {id:'p7tp',name:'7TP',nation:'🇵🇱 Poland',hp:160,armor:20,pen:42,dmg:55,speed:4.0,rot:2.4,reload:1.8,ammo:60,color:'#586048',tier:'II',price:300,desc:'Polish light. 37mm Bofors.'},
+  {id:'p10tp',name:'10TP',nation:'🇵🇱 Poland',hp:230,armor:24,pen:55,dmg:70,speed:4.4,rot:2.4,reload:2.0,ammo:60,color:'#556046',tier:'III',price:450,desc:'Polish fast cruiser prototype.'},
+  {id:'p14tp',name:'14TP',nation:'🇵🇱 Poland',hp:320,armor:40,pen:72,dmg:95,speed:3.8,rot:2.1,reload:2.2,ammo:60,color:'#54604a',tier:'IV',price:650,desc:'Polish medium prototype.'},
+  {id:'p25tp',name:'25TP',nation:'🇵🇱 Poland',hp:420,armor:55,pen:100,dmg:135,speed:3.4,rot:1.9,reload:2.4,ammo:60,color:'#526048',tier:'V',price:900,desc:'Polish medium project.'},
+  {id:'p40tp',name:'40TP Habicha',nation:'🇵🇱 Poland',hp:620,armor:90,pen:130,dmg:180,speed:2.8,rot:1.6,reload:2.8,ammo:50,color:'#4e5c44',tier:'VI',price:1300,desc:'Polish heavy project.'},
+  {id:'p45tp',name:'45TP Habicha',nation:'🇵🇱 Poland',hp:820,armor:130,pen:165,dmg:240,speed:2.6,rot:1.5,reload:3.0,ammo:45,color:'#4c5a42',tier:'VII',price:2000,desc:'Polish heavy. Three MGs.'},
+  {id:'p53tp',name:'53TP',nation:'🇵🇱 Poland',hp:1250,armor:180,pen:220,dmg:320,speed:2.6,rot:1.4,reload:3.4,ammo:40,color:'#4a583e',tier:'VIII',price:3000,desc:'Polish heavy. Menžela design.'},
+  {id:'toldi1',name:'Toldi I',nation:'🇭🇺 Hungary',hp:100,armor:14,pen:30,dmg:32,speed:4.4,rot:2.6,reload:1.5,ammo:70,color:'#6a6640',tier:'I',price:0,desc:'Hungarian light. 20mm.'},
+  {id:'toldi2',name:'Toldi IIa',nation:'🇭🇺 Hungary',hp:170,armor:20,pen:45,dmg:55,speed:4.2,rot:2.4,reload:1.9,ammo:60,color:'#686638',tier:'II',price:300,desc:'Up-gunned Toldi. 40mm.'},
+  {id:'turan1',name:'Turán I',nation:'🇭🇺 Hungary',hp:250,armor:40,pen:58,dmg:85,speed:3.6,rot:2.0,reload:2.2,ammo:64,color:'#6c6a3c',tier:'III',price:450,desc:'Hungarian medium. 40mm.'},
+  {id:'turan2',name:'Turán II',nation:'🇭🇺 Hungary',hp:340,armor:50,pen:80,dmg:120,speed:3.4,rot:1.9,reload:2.4,ammo:60,color:'#6a683a',tier:'IV',price:650,desc:'Hungarian medium. 75mm.'},
+  {id:'zrinyi',name:'Zrínyi II',nation:'🇭🇺 Hungary',hp:400,armor:60,pen:110,dmg:200,speed:3.0,rot:1.7,reload:3.2,ammo:40,color:'#64643a',tier:'V',price:900,desc:'Hungarian assault gun. 105mm.'},
+  {id:'turan3',name:'Turán III',nation:'🇭🇺 Hungary',hp:480,armor:70,pen:120,dmg:160,speed:3.3,rot:1.9,reload:2.4,ammo:55,color:'#66643a',tier:'VI',price:1300,desc:'Final Turán. Long 75mm.'},
+  {id:'tas',name:'Tas',nation:'🇭🇺 Hungary',hp:820,armor:120,pen:165,dmg:240,speed:2.8,rot:1.6,reload:3.0,ammo:45,color:'#5e5e36',tier:'VII',price:2000,desc:'Hungarian medium/heavy. 75mm.'},
+  {id:'tasr',name:'Tas Rohamlöveg',nation:'🇭🇺 Hungary',hp:1000,armor:130,pen:220,dmg:320,speed:2.6,rot:1.5,reload:3.6,ammo:40,color:'#5c5c34',tier:'VIII',price:2800,desc:'Hungarian casemate TD. 88mm.'},
   {id:'ferdinand',name:'Ferdinand',nation:'🇩🇪 Germany',hp:750,armor:200,pen:182,dmg:278,speed:1.8,rot:1.0,reload:3.5,ammo:50,color:'#585220',tier:'VIII',price:2500,desc:'200mm front. 88mm L/71. Legend.'},
   {id:'e75',name:'E-75',nation:'🇩🇪 Germany',hp:1100,armor:185,pen:198,dmg:338,speed:1.9,rot:1.2,reload:3.8,ammo:68,color:'#4e4818',tier:'IX',price:3800,desc:'Super-heavy concept. Near-impenetrable.'},
   {id:'e50',name:'E-50',nation:'🇩🇪 Germany',hp:980,armor:120,pen:212,dmg:298,speed:2.4,rot:1.5,reload:3.0,ammo:60,color:'#5a5422',tier:'IX',price:3500,desc:'E-series medium. Accurate brawler.'},
@@ -887,7 +905,7 @@ const TANK_DEFS = [
 ];
 
 // Tank Destroyer IDs — turret locked to hull direction
-const _tdIds=new Set(['stug3','jpz4','nashorn','jpz6','su85','su100','su122','isu122','isu152','jpanther','ferdinand','obj268','archer','at5','at8','at7','at15','obj704','hori','su100y','brummbar','sturer','pz4_70','jpanther2','honi1','honi3','horo','nato','su152','jgpze100','sem7518','sem10525']);
+const _tdIds=new Set(['stug3','jpz4','nashorn','jpz6','su85','su100','su122','isu122','isu152','jpanther','ferdinand','obj268','archer','at5','at8','at7','at15','obj704','hori','su100y','brummbar','sturer','pz4_70','jpanther2','honi1','honi3','horo','nato','su152','jgpze100','sem7518','sem10525','zrinyi','tasr']);
 const _otIds=new Set(['m10','m36','achilles','borsig_wt','waffentrager','grille15','rhmborsig','su130pm']);
 // Tanks that fire guided HOMING MISSILES instead of shells (gun-launched ATGMs / dedicated launchers)
 const _missileIds=new Set(['m551','xm551','t14armata','kf51','it1']);
@@ -931,12 +949,12 @@ function _homeMissile(b,dt){
 const _SMOKE_COLORS=new Set(['#555','#5a4a2a','#9a8050','#b8c8d8','#443022','#777']);
 
 const MAPS = [
-  {id:'stalingrad',name:'STALINGRAD',year:'1942–43',desc:'Ruined city blocks\nClose-quarters carnage',trait:'🏙 Urban — tight streets',    bg:'#5a4838',ac:'#6a5848',den:50,eb:{hp:1.0},gd:'rubble',fog:false,mud:false,factions:['soviet','german','italian']},
-  {id:'kursk',     name:'KURSK',     year:'1943',   desc:'Open steppe fields\nMassive tank battle',  trait:'🌾 Open — many enemies',       bg:'#4a6018',ac:'#5a7028',den:12,eb:{hp:1.2},gd:'field', fog:false,mud:false,factions:['soviet','german','italian']},
-  {id:'normandy',  name:'NORMANDY',  year:'1944',   desc:'Hedgerows & beaches\nAmerican breakout',   trait:'🌿 Hedgerows — ambushes',      bg:'#3a5810',ac:'#4a6820',den:35,eb:{hp:1.1},gd:'grass', fog:false,mud:false,factions:['american','british','french','swedish','german','italian']},
-  {id:'el-alamein',name:'EL ALAMEIN',year:'1942',   desc:'Open desert sands\nLong-range tank duels', trait:'🏜 Desert — far sightlines',   bg:'#a08028',ac:'#b09038',den:10,eb:{hp:0.9},gd:'sand',  fog:false,mud:false,factions:['american','british','french','german','italian']},
-  {id:'ardennes',  name:'ARDENNES',  year:'1944–45',desc:'Dense winter forest\nBattle of the Bulge', trait:'❄ Snow — movement slowed',     bg:'#b8c8d8',ac:'#c8d8e8',den:70,eb:{hp:1.0},gd:'snow',  fog:true, mud:true, factions:['american','british','french','swedish','german','italian']},
-  {id:'berlin',    name:'BERLIN',    year:'1945',   desc:'Ruined capital\nFinal push, elite tanks',   trait:'💀 Berlin — maximum difficulty',bg:'#383028',ac:'#484038',den:45,eb:{hp:1.5},gd:'ash',  fog:false,mud:false,factions:['soviet','german','italian']},
+  {id:'stalingrad',name:'STALINGRAD',year:'1942–43',desc:'Ruined city blocks\nClose-quarters carnage',trait:'🏙 Urban — tight streets',    bg:'#5a4838',ac:'#6a5848',den:50,eb:{hp:1.0},gd:'rubble',fog:false,mud:false,factions:['soviet','german','italian','polish','hungarian']},
+  {id:'kursk',     name:'KURSK',     year:'1943',   desc:'Open steppe fields\nMassive tank battle',  trait:'🌾 Open — many enemies',       bg:'#4a6018',ac:'#5a7028',den:12,eb:{hp:1.2},gd:'field', fog:false,mud:false,factions:['soviet','german','italian','polish','hungarian']},
+  {id:'normandy',  name:'NORMANDY',  year:'1944',   desc:'Hedgerows & beaches\nAmerican breakout',   trait:'🌿 Hedgerows — ambushes',      bg:'#3a5810',ac:'#4a6820',den:35,eb:{hp:1.1},gd:'grass', fog:false,mud:false,factions:['american','british','french','swedish','german','italian','polish','hungarian']},
+  {id:'el-alamein',name:'EL ALAMEIN',year:'1942',   desc:'Open desert sands\nLong-range tank duels', trait:'🏜 Desert — far sightlines',   bg:'#a08028',ac:'#b09038',den:10,eb:{hp:0.9},gd:'sand',  fog:false,mud:false,factions:['american','british','french','german','italian','polish','hungarian']},
+  {id:'ardennes',  name:'ARDENNES',  year:'1944–45',desc:'Dense winter forest\nBattle of the Bulge', trait:'❄ Snow — movement slowed',     bg:'#b8c8d8',ac:'#c8d8e8',den:70,eb:{hp:1.0},gd:'snow',  fog:true, mud:true, factions:['american','british','french','swedish','german','italian','polish','hungarian']},
+  {id:'berlin',    name:'BERLIN',    year:'1945',   desc:'Ruined capital\nFinal push, elite tanks',   trait:'💀 Berlin — maximum difficulty',bg:'#383028',ac:'#484038',den:45,eb:{hp:1.5},gd:'ash',  fog:false,mud:false,factions:['soviet','german','italian','polish','hungarian']},
   {id:'pacific',   name:'PACIFIC',   year:'1942–45',desc:'Jungle islands\nUSMC vs Imperial Japan',   trait:'🌴 Jungle — dense cover',      bg:'#1a3808',ac:'#284818',den:55,eb:{hp:1.0},gd:'jungle',fog:false,mud:false,factions:['japanese','chinese']}];
 
 // Which faction does a tank belong to?
@@ -954,6 +972,8 @@ function getTankFaction(id){
   const japanese=['nac1','type94','type89','hago','nc_27','type2','chiha','type91','chinu','o_ni','type4chito','oi','o_ho','type5chiri','kuromatsu','sta1','shptII','type61','type61_ix','stbI','type10','type10x','hori','keho','honi1','honi3','horo','nato'];
   const chinese=['renault_otsu','type94_cn','t26_cn','vickers_e','m5_cn','chiha_cn','t34_cn','m4a4_cn','wz132','59_pat','is2_cn','t34_3','is3_cn','wz111','type59','type59mbt','t54_mod1','wz120','wz111_5a','wz113','type121','wz131','wz113g'];
   const swedish=['pvlv42','strv21','strv_m37','strv38','pvkv_m43','ikv72','lago','strv42','pvkv_IV','ikv65','strv74','leo','strv_s1','strv81','emil1','emil2','krv','udes03','udes15','strv103b','strv105'];
+  const polish=['tks','p7tp','p10tp','p14tp','p25tp','p40tp','p45tp','p53tp'];
+  const hungarian=['toldi1','toldi2','turan1','turan2','zrinyi','turan3','tas','tasr'];
   const italian=['l3_33','m11_39','m13_40','m14_41','sem7518','p40','sem10525','p43','of40','progetto'];
   const czech=['kodiak'];
   if(soviet.includes(id)) return 'soviet';
@@ -963,6 +983,8 @@ function getTankFaction(id){
   if(japanese.includes(id)) return 'japanese';
   if(chinese.includes(id)) return 'chinese';
   if(swedish.includes(id)) return 'swedish';
+  if(polish.includes(id)) return 'polish';
+  if(hungarian.includes(id)) return 'hungarian';
   if(italian.includes(id)) return 'italian';
   if(czech.includes(id)) return 'czech';
   return 'german';
@@ -1647,7 +1669,7 @@ function hideSections(){
 }
 function _renderFilterRow(){
   const row=document.getElementById('filter-row');if(!row)return;
-  const nations=[['all','ALL'],['german','🇩🇪'],['soviet','🇷🇺'],['american','🇺🇸'],['british','🇬🇧'],['french','🇫🇷'],['japanese','🇯🇵'],['chinese','🇨🇳'],['swedish','🇸🇪'],['czech','🇨🇿'],['italian','🇮🇹'],['owned','OWNED'],['affordable','🪙 BUY']];
+  const nations=[['all','ALL'],['german','🇩🇪'],['soviet','🇷🇺'],['american','🇺🇸'],['british','🇬🇧'],['french','🇫🇷'],['japanese','🇯🇵'],['chinese','🇨🇳'],['swedish','🇸🇪'],['czech','🇨🇿'],['italian','🇮🇹'],['polish','🇵🇱'],['hungarian','🇭🇺'],['owned','OWNED'],['affordable','🪙 BUY']];
   row.innerHTML='';
   nations.forEach(([val,lbl])=>{
     const b=document.createElement('button');
@@ -1969,7 +1991,7 @@ function startGame(){
 function getEnemyPool(){
   const f=getTankFaction(activeTankId);
   if(f==='chinese') return ENEMY_JAPAN;
-  const axis=['german','japanese','italian'];
+  const axis=['german','japanese','italian','hungarian'];
   return axis.includes(f)?ENEMY_ALLIED:ENEMY_AXIS;
 }
 
@@ -2218,6 +2240,14 @@ function getAllyPool(){
   if(f==='chinese') return [{name:'T-34(PLA)',hp:300,armor:45,pen:80,dmg:130,speed:3.5,rot:2.0,color:'#485820',size:15,schurzen:false},{name:'Sherman(cn)',hp:280,armor:50,pen:90,dmg:140,speed:3.3,rot:1.9,color:'#5a6848',size:14,schurzen:false},{name:'IS-2(PLA)',hp:600,armor:120,pen:165,dmg:260,speed:2.1,rot:1.4,color:'#3c4e18',size:20,schurzen:false}];
   if(f==='swedish') return [{name:'Strv m/42',hp:340,armor:55,pen:85,dmg:140,speed:3.2,rot:1.9,color:'#507038',size:14,schurzen:false},{name:'Strv 74',hp:440,armor:65,pen:120,dmg:165,speed:3.5,rot:2.0,color:'#486830',size:15,schurzen:false},{name:'Emil I',hp:550,armor:140,pen:150,dmg:200,speed:2.5,rot:1.5,color:'#406028',size:17,schurzen:false}];
   if(f==='czech') return [{name:'LT vz.38',hp:220,armor:25,pen:55,dmg:78,speed:3.7,rot:2.2,color:'#586868',size:12,schurzen:false},{name:'T-25',hp:420,armor:55,pen:100,dmg:150,speed:3.5,rot:2.0,color:'#485858',size:15,schurzen:false},{name:'TVP',hp:540,armor:65,pen:130,dmg:185,speed:3.3,rot:1.9,color:'#405050',size:17,schurzen:false}];
+  if(f==='polish') return [
+    {name:'7TP',hp:160,armor:20,pen:42,dmg:55,speed:4.0,rot:2.4,color:'#586048',size:12,schurzen:false},
+    {name:'25TP',hp:420,armor:55,pen:100,dmg:135,speed:3.4,rot:1.9,color:'#526048',size:14,schurzen:false},
+    {name:'45TP',hp:820,armor:130,pen:165,dmg:240,speed:2.6,rot:1.5,color:'#4c5a42',size:18,schurzen:false}];
+  if(f==='hungarian') return [
+    {name:'Toldi',hp:170,armor:20,pen:45,dmg:55,speed:4.2,rot:2.4,color:'#686638',size:12,schurzen:false},
+    {name:'Turán II',hp:340,armor:50,pen:80,dmg:120,speed:3.4,rot:1.9,color:'#6a683a',size:14,schurzen:false},
+    {name:'Tas',hp:820,armor:120,pen:165,dmg:240,speed:2.8,rot:1.6,color:'#5e5e36',size:17,schurzen:false}];
   if(f==='italian') return [
     {name:'M13/40',hp:230,armor:42,pen:58,dmg:80,speed:3.4,rot:2.0,color:'#6c6a3c',size:13,schurzen:false},
     {name:'P26/40',hp:420,armor:60,pen:100,dmg:135,speed:3.0,rot:1.8,color:'#68663a',size:15,schurzen:false},
@@ -4175,6 +4205,22 @@ const TANK_PROFILES={
   sem10525:{hl:1.68,hw:0.86,tr:0.28,ty:0.22,bl:1.00,bw:0.110,muzzle:false,boxy:true,sk:false},
   p43:{hl:1.80,hw:0.92,tr:0.36,ty:0.30,bl:0.95,bw:0.095,muzzle:false,boxy:false,sk:false},
   progetto:{hl:1.78,hw:0.90,tr:0.38,ty:0.32,bl:1.10,bw:0.100,muzzle:false,boxy:false,sk:false},
+  tks:{hl:1.20,hw:0.66,tr:0.22,ty:0.18,bl:0.45,bw:0.065,muzzle:false,boxy:false,sk:false},
+  p7tp:{hl:1.42,hw:0.76,tr:0.26,ty:0.21,bl:0.55,bw:0.075,muzzle:false,boxy:false,sk:false},
+  p10tp:{hl:1.50,hw:0.78,tr:0.28,ty:0.23,bl:0.62,bw:0.078,muzzle:false,boxy:false,sk:false},
+  p14tp:{hl:1.58,hw:0.82,tr:0.30,ty:0.24,bl:0.78,bw:0.082,muzzle:false,boxy:false,sk:false},
+  p25tp:{hl:1.65,hw:0.85,tr:0.34,ty:0.28,bl:0.88,bw:0.088,muzzle:false,boxy:false,sk:false},
+  p40tp:{hl:1.80,hw:0.92,tr:0.38,ty:0.32,bl:0.95,bw:0.095,muzzle:false,boxy:false,sk:false},
+  p45tp:{hl:1.88,hw:0.96,tr:0.40,ty:0.34,bl:1.05,bw:0.100,muzzle:false,boxy:false,sk:true},
+  p53tp:{hl:1.98,hw:1.00,tr:0.44,ty:0.38,bl:1.20,bw:0.110,muzzle:false,boxy:false,sk:true},
+  toldi1:{hl:1.25,hw:0.68,tr:0.24,ty:0.20,bl:0.50,bw:0.070,muzzle:false,boxy:false,sk:false},
+  toldi2:{hl:1.40,hw:0.74,tr:0.26,ty:0.22,bl:0.58,bw:0.075,muzzle:false,boxy:false,sk:false},
+  turan1:{hl:1.55,hw:0.82,tr:0.30,ty:0.24,bl:0.72,bw:0.082,muzzle:false,boxy:false,sk:false},
+  turan2:{hl:1.60,hw:0.84,tr:0.32,ty:0.26,bl:0.82,bw:0.086,muzzle:false,boxy:false,sk:false},
+  zrinyi:{hl:1.62,hw:0.84,tr:0.28,ty:0.22,bl:0.90,bw:0.105,muzzle:false,boxy:true,sk:false},
+  turan3:{hl:1.66,hw:0.86,tr:0.34,ty:0.28,bl:0.95,bw:0.088,muzzle:false,boxy:false,sk:false},
+  tas:{hl:1.85,hw:0.94,tr:0.38,ty:0.32,bl:1.05,bw:0.098,muzzle:false,boxy:false,sk:false},
+  tasr:{hl:1.90,hw:0.96,tr:0.30,ty:0.24,bl:1.20,bw:0.110,muzzle:false,boxy:true,sk:false},
   default:{hl:1.65,hw:0.85,tr:0.33,ty:0.28,bl:0.95,bw:0.090,muzzle:false,boxy:false,sk:false},
 };
 function getProfile(id){return TANK_PROFILES[id]||TANK_PROFILES.default;}
@@ -4941,7 +4987,7 @@ function drawTankPreview(cv,t){
   c.rotate(-Math.PI/2);
   c.fillStyle='rgba(0,0,0,.18)';c.beginPath();c.ellipse(2,3,size*p.hl*.55,size*p.hw*.5,0,0,Math.PI*2);c.fill();
   c.save();_hull(c,size,t.color,p,false,t.id);if(p.sk)_skirts(c,size,t.color,p);c.restore();
-  const _pTD=new Set(['stug3','jpz4','nashorn','jpz6','su85','su100','su122','isu122','isu152','jpanther','ferdinand','obj268','archer','at5','at8','at7','at15','obj704','hori','su100y','brummbar','sturer','pz4_70','jpanther2','honi1','honi3','horo','nato','su152','jgpze100','sem7518','sem10525']);
+  const _pTD=new Set(['stug3','jpz4','nashorn','jpz6','su85','su100','su122','isu122','isu152','jpanther','ferdinand','obj268','archer','at5','at8','at7','at15','obj704','hori','su100y','brummbar','sturer','pz4_70','jpanther2','honi1','honi3','horo','nato','su152','jgpze100','sem7518','sem10525','zrinyi','tasr']);
   const _pOT=new Set(['m10','m36','achilles','borsig_wt','waffentrager','grille15','rhmborsig','su130pm']);
   if(_pTD.has(t.id)){c.save();_casemate(c,size,t.color,p,t.id);c.restore();}
   else if(_pOT.has(t.id)){c.save();_openTurret(c,size,t.color,p,t.id);c.restore();}
@@ -5398,6 +5444,24 @@ const TREE_LAYOUT = {
     ['udes03','udes15','strv103b','strv105']],
   czech:[
     ['kodiak']],
+  polish:[
+    ['tks'],
+    ['p7tp'],
+    ['p10tp'],
+    ['p14tp'],
+    ['p25tp'],
+    ['p40tp'],
+    ['p45tp'],
+    ['p53tp']],
+  hungarian:[
+    ['toldi1'],
+    ['toldi2'],
+    ['turan1'],
+    ['turan2'],
+    ['zrinyi'],
+    ['turan3'],
+    ['tas'],
+    ['tasr']],
   italian:[
     ['l3_33'],
     ['m11_39'],
@@ -5446,6 +5510,8 @@ const TIER_NAMES = {
   swedish: ['Tier I','Tier II','Tier III','Tier IV','Tier V','Tier VI','Tier VII','Tier VIII','Tier IX','Tier X','Modern'],
   czech:   ['Tier VIII'],
   italian: ['Tier I','Tier II','Tier III','Tier IV','Tier V','Tier VI','Tier VII','Tier VIII'],
+  polish:  ['Tier I','Tier II','Tier III','Tier IV','Tier V','Tier VI','Tier VII','Tier VIII'],
+  hungarian: ['Tier I','Tier II','Tier III','Tier IV','Tier V','Tier VI','Tier VII','Tier VIII'],
   modern:  ['Modern Era'],
   artillery:['Tier III-IV','Tier V-VI','Tier VIII-X'],
 };
@@ -5453,7 +5519,7 @@ const TIER_NAMES = {
 function treeShowNation(nation){
   treeNation=nation;
   ['de','ussr','us','gb','fr','jp','cn','se','pl','cz','it','cu','mod','cw','arty'].forEach(n=>{const el=document.getElementById('tnav-'+n);if(el)el.classList.remove('active');});
-  const map={german:'de',soviet:'ussr',american:'us',british:'gb',french:'fr',japanese:'jp',chinese:'cn',swedish:'se',czech:'cz',italian:'it',modern:'mod',coldwar:'cw',artillery:'arty'};
+  const map={german:'de',soviet:'ussr',american:'us',british:'gb',french:'fr',japanese:'jp',chinese:'cn',swedish:'se',czech:'cz',italian:'it',polish:'pl',hungarian:'hu',modern:'mod',coldwar:'cw',artillery:'arty'};
   const btn=document.getElementById('tnav-'+(map[nation]||nation));if(btn)btn.classList.add('active');
   const cbar=document.getElementById('tree-coins-bar');if(cbar)cbar.textContent=coins.toLocaleString()+' \u{1F3F7}';
 
