@@ -337,6 +337,12 @@ body[data-state="mode"] #screen-title { display:none!important; }
       <div class="nav-sub">Select your tank</div>
     </div>
 
+    <div class="nav-card" onclick="showMissileBay()">
+      <div class="nav-icon">&#128640;</div>
+      <div class="nav-title">MISSILE BAY</div>
+      <div class="nav-sub">Buy &amp; equip missiles</div>
+    </div>
+
     <div class="nav-card" onclick="showMapSelect()">
       <div class="nav-icon">&#128205;</div>
       <div class="nav-title" style="font-size:13px;letter-spacing:1px;">BATTLEFIELDS</div>
@@ -363,6 +369,17 @@ body[data-state="mode"] #screen-title { display:none!important; }
     </div>
     <div id="filter-row"></div>
     <div class="tank-shelf" id="tank-shelf"></div>
+  </div>
+
+  <div id="missile-bay-section" style="display:none;width:100%;max-width:700px;">
+    <div class="sec-lbl" style="display:flex;justify-content:space-between;">
+      <span>&#128640; MISSILE BAY</span>
+      <span onclick="hideSections()" style="cursor:pointer;color:var(--dim);">&#10005; CLOSE</span>
+    </div>
+    <div style="font-family:'Share Tech Mono',monospace;font-size:11px;color:#6a8a4a;letter-spacing:1px;margin:0 0 12px;line-height:1.6;">
+      Guided-missile loadouts for missile-capable tanks (KF51, T-14, Sheridan, IT-1). Equip one, then press <b style="color:#c8a84b;">Q</b> in battle to switch to it.
+    </div>
+    <div id="missile-shelf" style="display:flex;flex-direction:column;gap:10px;"></div>
   </div>
 
   <div id="map-select-section" style="display:none;width:100%;max-width:700px;">
@@ -1127,6 +1144,11 @@ function _homeMissile(b,dt){
     const scan=arr=>{ if(!arr)return; for(const t of arr){ if(t.hp<=0)continue; const d=Math.hypot(t.x-b.x,t.y-b.y); if(d<bd){bd=d;best=t;} } };
     scan(allies); if(player&&player.hp>0){const d=Math.hypot(player.x-b.x,player.y-b.y); if(d<bd){bd=d;best=player;}}
     if(best){tx=best.x;ty=best.y;}
+  } else if(b.autohome){
+    // Swarm wingmen: auto-home to the nearest enemy instead of the crosshair
+    let best=null,bd=1e9;
+    if(enemies)for(const e of enemies){ if(e.hp<=0)continue; const d=Math.hypot(e.x-b.x,e.y-b.y); if(d<bd){bd=d;best=e;} }
+    if(best){tx=best.x;ty=best.y;}
   } else {
     // world position under the crosshair
     tx=mouseX*_mScaleX+camX; ty=mouseY*_mScaleY+camY;
@@ -1142,6 +1164,30 @@ function _homeMissile(b,dt){
   b.vx=Math.cos(na)*spd; b.vy=Math.sin(na)*spd;
   b._smoke=(b._smoke||0)-dt;
   if(b._smoke<=0){ b._smoke=2; if(particles.length<600){ particles.push({x:b.x-Math.cos(na)*6,y:b.y-Math.sin(na)*6,vx:(Math.random()-.5)*.6,vy:(Math.random()-.5)*.6,life:22,maxLife:22,alpha:.5,r:2.4+Math.random()*2,color:'#8a8a82'}); } }
+}
+
+// ── Purchasable guided-missile loadouts ────────────────────────────────────
+// dmg = multiplier on the tank's shell damage; maxspd/turn/life tune the flight;
+// splash = blast radius on impact (0 = single target); count = missiles per launch.
+const MISSILE_TYPES=[
+  {id:'std',    name:'HEAT-FS (Standard)', price:0,     dmg:1.5, maxspd:6, turn:0.15, life:520, splash:0,  count:1, color:'#c8a84b', desc:'Balanced guided HEAT round. Reliable all-rounder — comes with every missile tank.'},
+  {id:'swift',  name:'Swift ATGM',         price:8000,  dmg:1.25,maxspd:9, turn:0.22, life:460, splash:0,  count:1, color:'#5ad0ff', desc:'Fast and razor-agile — snaps onto weaving targets. Lighter warhead.'},
+  {id:'tandem', name:'Tandem Charge',      price:14000, dmg:2.3, maxspd:6, turn:0.16, life:520, splash:34, count:1, color:'#ff9a5a', desc:'Dual warhead defeats heavy armour and bursts for a small blast on impact.'},
+  {id:'thermo', name:'Thermobaric',        price:22000, dmg:2.0, maxspd:5, turn:0.12, life:560, splash:90, count:1, color:'#ff5a30', desc:'Slow but devastating — a huge fireball that scorches clustered tanks.'},
+  {id:'swarm',  name:'Swarm Salvo',        price:30000, dmg:0.9, maxspd:8, turn:0.19, life:440, splash:0,  count:3, color:'#b070ff', desc:'Launches three at once: you fly the lead missile, two wingmen auto-home to enemies.'},
+];
+function getMissileType(){ return MISSILE_TYPES.find(m=>m.id===selectedMissile)||MISSILE_TYPES[0]; }
+// AoE detonation for splash warheads — falls off linearly to the blast edge.
+function _missileDetonate(b){
+  if(!b.splash||b.splash<=0)return;
+  spawnExplosion(b.x,b.y);craters.push({x:b.x,y:b.y,r:Math.min(60,b.splash*0.5)});camShake=Math.max(camShake,7);
+  const R=b.splash,dmg=b.dmg;
+  if(b.owner==='enemy'){
+    if(player&&player.hp>0){const d=Math.hypot(player.x-b.x,player.y-b.y);if(d<R){player.hp=Math.max(0,player.hp-dmg*(1-d/R)*0.6);player.hitFlash=1;flashDamage();if(player.hp<=0)gameOver();}}
+    if(allies)for(let j=allies.length-1;j>=0;j--){const a=allies[j];const d=Math.hypot(a.x-b.x,a.y-b.y);if(d<R){a.hp=Math.max(0,a.hp-dmg*(1-d/R)*0.6);if(a.hp<=0){spawnExplosion(a.x,a.y);allies.splice(j,1);}}}
+  }else{
+    for(let j=enemies.length-1;j>=0;j--){const e=enemies[j];if(e.hp<=0)continue;const d=Math.hypot(e.x-b.x,e.y-b.y);if(d<R){e.hp-=dmg*(1-d/R);e.hitFlash=1;if(e.hp<=0){coins+=1000;totalKills++;score+=1000;kills++;updateCoinsHud();spawnExplosion(e.x,e.y);craters.push({x:e.x,y:e.y,r:e.size*1.4});enemies.splice(j,1);(document.getElementById('hud-en')||{}).textContent=enemies.length;_on1v1000Kill();}}}
+  }
 }
 const _SMOKE_COLORS=new Set(['#555','#5a4a2a','#9a8050','#b8c8d8','#443022','#777']);
 
@@ -1291,7 +1337,7 @@ function getPlayerTierNum(){
 // ════════════════════════════════════════
 // PERSISTENCE
 // ════════════════════════════════════════
-function saveData(){localStorage.setItem('ironfront',JSON.stringify({coins,owned:[...ownedTanks],activeTankId,totalKills,totalScore,mortars,nukes}));}
+function saveData(){localStorage.setItem('ironfront',JSON.stringify({coins,owned:[...ownedTanks],activeTankId,totalKills,totalScore,mortars,nukes,missiles:[...ownedMissiles],selMissile:selectedMissile}));}
 // Fresh-start roster: one cheap tank per nation
 var STARTER_TANKS=['pz1','t26','m3stuart','mkvi','r35','type94','vickers_e','strv21'];
 function loadData(){
@@ -1318,6 +1364,10 @@ function loadData(){
     // Active tank must be one we own (and never the Ratte)
     if(d.activeTankId && d.activeTankId!=='ratte' && ownedTanks.has(d.activeTankId)) activeTankId=d.activeTankId;
     else activeTankId=owned[0];
+    // Missile loadouts — always keep the free standard round owned
+    let om=(d.missiles||[]).filter(id=>MISSILE_TYPES.some(m=>m.id===id));
+    om.push('std'); ownedMissiles=new Set(om);
+    selectedMissile=(d.selMissile&&ownedMissiles.has(d.selMissile))?d.selMissile:'std';
   }catch(e){
     coins=0; mortars=0; nukes=0; totalKills=0; totalScore=0;
     ownedTanks=new Set(STARTER_TANKS.filter(id=>TANK_DEFS.some(t=>t.id===id)));
@@ -1329,6 +1379,8 @@ function loadData(){
 // STATE
 // ════════════════════════════════════════
 let coins=99999,ownedTanks=new Set(TANK_DEFS.filter(t=>!new Set(['ratte','m1abrams','kf51','leo2a7','t14armata','challenger3','leclerc_xlr','type10','k2','merkava4','type99a','abramsx','mgcs','t90m','obj195','vt4','ztq15','arjun2','k3panther','ariete2','carmel']).has(t.id)).map(t=>t.id)),activeTankId='tiger',totalKills=0,totalScore=0;
+// Owned missile loadouts + the one currently equipped (persisted).
+let ownedMissiles=new Set(['std']),selectedMissile='std';
 let selectedMap=null;
 let state='home';
 let canvas,ctx,W,H,mmCanvas,mmCtx;
@@ -1898,8 +1950,10 @@ function showTankSelect(){
   const ts=document.getElementById('tank-select-section');
   const ms=document.getElementById('map-select-section');
   const sg=document.getElementById('screen-garage');
+  const mb0=document.getElementById('missile-bay-section');
   if(nav)nav.style.display='none';
   if(ms)ms.style.display='none';
+  if(mb0)mb0.style.display='none';
   if(ts)ts.style.display='block';
   if(sg)sg.scrollTop=0;
   try{_renderTankShelf();}catch(e){console.warn('tank shelf:',e);}
@@ -1910,17 +1964,80 @@ function showMapSelect(){
   const ms2=document.getElementById('map-select-section');
   const ts2=document.getElementById('tank-select-section');
   const sg2=document.getElementById('screen-garage');
+  const mb2=document.getElementById('missile-bay-section');
   if(nav2)nav2.style.display='none';
   if(ts2)ts2.style.display='none';
+  if(mb2)mb2.style.display='none';
   if(ms2)ms2.style.display='block';
   if(sg2)sg2.scrollTop=0;}
 function hideSections(){
   const nav3=document.getElementById('nav-section');
   const ts3=document.getElementById('tank-select-section');
   const ms3=document.getElementById('map-select-section');
+  const mb3=document.getElementById('missile-bay-section');
   if(ts3)ts3.style.display='none';
   if(ms3)ms3.style.display='none';
+  if(mb3)mb3.style.display='none';
   if(nav3)nav3.style.display='';
+}
+function showMissileBay(){
+  const nav=document.getElementById('nav-section');
+  const mb=document.getElementById('missile-bay-section');
+  const ts=document.getElementById('tank-select-section');
+  const ms=document.getElementById('map-select-section');
+  const sg=document.getElementById('screen-garage');
+  if(nav)nav.style.display='none';
+  if(ts)ts.style.display='none';
+  if(ms)ms.style.display='none';
+  if(mb)mb.style.display='block';
+  if(sg)sg.scrollTop=0;
+  buildMissileBay();
+}
+function buildMissileBay(){
+  const shelf=document.getElementById('missile-shelf'); if(!shelf)return;
+  shelf.innerHTML='';
+  MISSILE_TYPES.forEach(mt=>{
+    const owned=ownedMissiles.has(mt.id), equipped=selectedMissile===mt.id, afford=coins>=mt.price;
+    const card=document.createElement('div');
+    card.style.cssText='border:1.5px solid '+(equipped?mt.color:'#2a3a18')+';border-radius:6px;background:'+(equipped?'rgba(40,50,24,.5)':'#0b1206')+';padding:12px 14px;display:flex;align-items:center;gap:14px;';
+    const stat=(l,v)=>'<span style="color:#6a8a4a;">'+l+'</span> <b style="color:#c8d8a8;">'+v+'</b>';
+    card.innerHTML=
+      '<div style="font-size:30px;line-height:1;filter:drop-shadow(0 0 6px '+mt.color+');">&#128640;</div>'+
+      '<div style="flex:1;min-width:0;">'+
+        '<div style="font-family:Oswald,sans-serif;font-size:16px;font-weight:700;letter-spacing:1px;color:'+mt.color+';">'+mt.name+(equipped?' <span style="font-size:10px;color:#8ac060;">◆ EQUIPPED</span>':'')+'</div>'+
+        '<div style="font-family:Share Tech Mono,monospace;font-size:10px;color:#7a9a5a;margin:3px 0 5px;line-height:1.5;">'+mt.desc+'</div>'+
+        '<div style="font-family:Share Tech Mono,monospace;font-size:10px;letter-spacing:1px;display:flex;gap:12px;flex-wrap:wrap;">'+
+          stat('DMG','x'+mt.dmg)+stat('SPD',mt.maxspd)+stat('TURN',mt.turn)+(mt.splash?stat('BLAST',mt.splash):'')+(mt.count>1?stat('SALVO',mt.count):'')+
+        '</div>'+
+      '</div>'+
+      '<div style="text-align:right;min-width:96px;"></div>';
+    const btnWrap=card.lastChild;
+    if(!owned){
+      const price=document.createElement('div');
+      price.style.cssText='font-family:Share Tech Mono,monospace;font-size:12px;color:'+(afford?'#e8c84a':'#a05040')+';margin-bottom:6px;';
+      price.textContent=mt.price.toLocaleString()+' 🏷';
+      btnWrap.appendChild(price);
+    }
+    const b=document.createElement('button');
+    b.style.cssText='font-family:Oswald,sans-serif;font-size:12px;font-weight:700;letter-spacing:1px;padding:7px 16px;border-radius:3px;cursor:pointer;border:1.5px solid;';
+    if(equipped){ b.textContent='EQUIPPED'; b.disabled=true; b.style.borderColor='#5a7038'; b.style.background='transparent'; b.style.color='#8ac060'; b.style.cursor='default'; }
+    else if(owned){ b.textContent='EQUIP'; b.style.borderColor=mt.color; b.style.background='transparent'; b.style.color=mt.color; b.onclick=()=>equipMissile(mt.id); }
+    else if(afford){ b.textContent='BUY'; b.style.borderColor='#c8a84b'; b.style.background='linear-gradient(135deg,#2a2a10,#141406)'; b.style.color='#e8c84a'; b.onclick=()=>buyMissile(mt.id); }
+    else { b.textContent='LOCKED'; b.disabled=true; b.style.borderColor='#3a2a1a'; b.style.background='transparent'; b.style.color='#6a4a3a'; b.style.cursor='default'; }
+    btnWrap.appendChild(b);
+    shelf.appendChild(card);
+  });
+}
+function buyMissile(id){
+  const mt=MISSILE_TYPES.find(m=>m.id===id); if(!mt||ownedMissiles.has(id)||coins<mt.price)return;
+  coins-=mt.price; ownedMissiles.add(id); selectedMissile=id;
+  saveData(); if(typeof playUiClick==='function')playUiClick();
+  buildMissileBay(); const gc=document.getElementById('garage-coins'); if(gc)gc.textContent=coins.toLocaleString()+' 🏷';
+}
+function equipMissile(id){
+  if(!ownedMissiles.has(id))return;
+  selectedMissile=id; saveData(); if(typeof playUiClick==='function')playUiClick();
+  buildMissileBay(); if(typeof updateWeaponHud==='function')updateWeaponHud();
 }
 function _renderFilterRow(){
   const row=document.getElementById('filter-row');if(!row)return;
@@ -2045,6 +2162,7 @@ function _renderTankShelf(){
 
 
 function buildGarage(){
+  if(typeof hideSections==='function')hideSections(); // always open on the nav grid
   (document.getElementById('garage-coins')||{}).textContent=coins.toLocaleString()+' 🪙';
   // Update grenade display
       // Tank shelf
@@ -2545,9 +2663,10 @@ function updateWeaponHud(){
   if(!canUseMissile()){ el.style.display='none'; return; }
   el.style.display='inline-block';
   const miss = weaponMode==='missile';
-  el.innerHTML = (miss?'🚀 MISSILE':'🔫 MAIN GUN')+' <span style="font-size:10px;opacity:.7;">[Q]</span>';
-  el.style.borderColor = miss?'#ff8040':'#6060a0';
-  el.style.color = miss?'#ff9a5a':'#c8a84b';
+  const mt=getMissileType();
+  el.innerHTML = (miss?('🚀 '+mt.name.toUpperCase()):'🔫 MAIN GUN')+' <span style="font-size:10px;opacity:.7;">[Q]</span>';
+  el.style.borderColor = miss?(mt.color||'#ff8040'):'#6060a0';
+  el.style.color = miss?(mt.color||'#ff9a5a'):'#c8a84b';
 }
 function setupInput(){
   window.addEventListener('keydown',e=>{
@@ -2626,10 +2745,18 @@ function tryShoot(){
   // Missile tanks launch a guided homing missile when MISSILE mode is selected (toggle with Q)
   if(_useMissile){
     const angle=_tdIds&&_tdIds.has(player.id)?player.angle:player.turretAngle;
-    const m=_launchMissile(player.x,player.y,angle,'player',player.dmg,player.size);
-    // Hand the camera to the missile — you now fly it with the mouse. More agile
-    // and longer-legged than a fire-and-forget shot so you can steer it home.
-    if(m){ m.turn=0.15; m.maxspd=6; m.life=520; m.driven=true; drivenMissile=m; }
+    const mt=getMissileType();
+    const n=Math.max(1,mt.count||1);
+    for(let k=0;k<n;k++){
+      const spread=(n>1?(k-(n-1)/2)*0.16:0);
+      const m=_launchMissile(player.x,player.y,angle+spread,'player',player.dmg,player.size);
+      if(!m)continue;
+      // Apply the equipped loadout's stats to each missile
+      m.dmg=player.dmg*mt.dmg; m.maxspd=mt.maxspd; m.turn=mt.turn; m.life=mt.life;
+      m.splash=mt.splash||0; m.mcolor=mt.color;
+      // You fly the lead missile with the mouse; any wingmen auto-home to enemies.
+      if(k===0){ m.driven=true; drivenMissile=m; } else { m.autohome=true; }
+    }
     if(player)player.recoil=Math.max(player.recoil||0,player.size*0.24);
     _beginReload('missile');
   } else {
@@ -3375,8 +3502,8 @@ function updateBullets(dt){
     const _bpx=b.x,_bpy=b.y; // previous position for swept collision
     b.x+=b.vx*dt;b.y+=b.vy*dt;b.life-=dt;
     b._px=_bpx;b._py=_bpy;
-    if(b.x<0||b.x>WW||b.y<0||b.y>WH||b.life<=0){bullets.splice(i,1);continue;}
-    if(bulletHitsObs(b)){spawnSparks(b.x,b.y);bullets.splice(i,1);continue;}
+    if(b.x<0||b.x>WW||b.y<0||b.y>WH||b.life<=0){if(b.missile&&b.splash>0)_missileDetonate(b);bullets.splice(i,1);continue;}
+    if(bulletHitsObs(b)){spawnSparks(b.x,b.y);if(b.missile&&b.splash>0)_missileDetonate(b);bullets.splice(i,1);continue;}
     // Ally bullets damage enemies
     if(b.owner==='ally'){
       let hit=false;
@@ -3431,11 +3558,15 @@ function updateBullets(dt){
     }
     // ── PLAYER bullets damage enemies (piercing shells pass through multiple) ──
     if(b.owner==='player'){
-      let hit=false;
+      let hit=false,detonated=false;
       if(b.pierce)b.hitSet=b.hitSet||new Set(); // piercing shells damage each tank once, then keep flying
       for(let j=enemies.length-1;j>=0;j--){
         const e=enemies[j];if(e.hp<=0)continue;
         if(b.pierce&&b.hitSet.has(e))continue;
+        if(b.missile&&b.splash>0&&_bulletHitsCircle(b,e.x,e.y,e.size)){
+          // Splash warhead: blast handles all damage/kills in radius
+          _missileDetonate(b);bullets.splice(i,1);detonated=true;break;
+        }
         if(_bulletHitsCircle(b,e.x,e.y,e.size)){
           const _ea=effectiveArmor(e.armor,b.x,b.y,b.vx,b.vy,e.x,e.y,e.angle);
           const pen=b.pen-_ea.armor;
@@ -3459,6 +3590,7 @@ function updateBullets(dt){
           if(!b.pierce)break; // piercing shells pass through and keep hitting tanks along their path
         }
       }
+      if(detonated)continue;
       if(hit&&!b.pierce){bullets.splice(i,1);continue;}
     }
   }
@@ -5486,8 +5618,8 @@ function _drawMissile(b){
   // body
   ctx.fillStyle='#dcdcd4';ctx.beginPath();ctx.roundRect(-6,-2,12,4,1.4);ctx.fill();
   ctx.strokeStyle='rgba(0,0,0,.5)';ctx.lineWidth=.8;ctx.stroke();
-  // red nose cone
-  ctx.fillStyle='#c33a2c';ctx.beginPath();ctx.moveTo(6,-2);ctx.lineTo(10.5,0);ctx.lineTo(6,2);ctx.closePath();ctx.fill();
+  // nose cone — tinted by the equipped loadout
+  ctx.fillStyle=b.mcolor||'#c33a2c';ctx.beginPath();ctx.moveTo(6,-2);ctx.lineTo(10.5,0);ctx.lineTo(6,2);ctx.closePath();ctx.fill();
   ctx.restore();
 }
 function drawPart(p){
