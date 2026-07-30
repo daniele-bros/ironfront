@@ -1205,7 +1205,9 @@ function _missileDetonate(b,hit){
   }else{
     for(let j=enemies.length-1;j>=0;j--){const e=enemies[j];if(e.hp<=0)continue;const a=amt(e);if(a<=0)continue;
       e.hp-=a;e.hitFlash=1;spawnHitFx(b.x,b.y,true);
+      if(battleMode==='testrange') _dmgPopup(e.x,e.y-e.size,'-'+Math.round(a),'#ffd24a');
       if(e.hp<=0){
+        if(e._dummy){ spawnExplosion(e.x,e.y);craters.push({x:e.x,y:e.y,r:e.size*1.4}); e.hp=0;e._respawn=140; continue; }
         let reward=1000;
         if(e._isRatte){reward=500000;addKillFeed('💀 RATTE KILL! +500,000 🏷');}
         coins+=reward;totalKills++;score+=reward;kills++;
@@ -1783,6 +1785,9 @@ let camX=0,camY=0;
 // Missile-cam: when the player launches a guided missile it becomes the camera
 // focus and is flown with the mouse until it hits or burns out.
 let drivenMissile=null;
+// Floating hit-damage numbers (used by the test range) — world coords, drift up.
+let _dmgPops=[];
+function _dmgPopup(wx,wy,txt,color){ _dmgPops.push({x:wx,y:wy,txt,color,life:55}); if(_dmgPops.length>60)_dmgPops.shift(); }
 // Global scene light direction — points toward the sun (upper-left). Shadows throw the opposite way.
 const LIGHT={x:-0.6,y:-0.78};
 const WW=4800,WH=4800;
@@ -2276,7 +2281,7 @@ function buildGarage(){
   const mgrid=document.getElementById('mode-grid-visible')||document.getElementById('mode-grid');
   if(mgrid){
     mgrid.innerHTML='';
-    const MODES=[{id:'wave',icon:'\u2694',title:'WAVE BATTLE',sub:'7v7 Endless waves. Earn coins.'},{id:'1v1',icon:'\uD83C\uDFAF',title:'1v1 DUEL',sub:'Fight your own tank. Pure skill.'},{id:'1v1pick',icon:'\u2694\uFE0F',title:'1v1 PICK FOE',sub:'Duel ANY tank you choose.'},{id:'1v7',icon:'\uD83D\uDD25',title:'1v7 LAST STAND',sub:'Solo vs 7 enemies. No mercy.'},{id:'1v100',icon:'\uD83D\uDC80',title:'100v1 APOCALYPSE',sub:'You vs 100 tanks. Survive!'},{id:'1v100pick',icon:'\uD83D\uDCAF',title:'100\u00D7 PICK FOE',sub:'Fight 100 of ANY tank you choose.'},{id:'1v1000pick',icon:'\u2620\uFE0F',title:'1000\u00D7 PICK FOE',sub:'Fight 1000 of ANY tank \u2014 all at once!'},{id:'1v1000',icon:'\uD83D\uDCB0',title:'1v1000 GOLD RUSH',sub:'1000 tanks · 1000🏷 per kill.'},{id:'rattewaves',icon:'\u2620\uFE0F',title:'RATTE WAVES',sub:'Endless Rattes. +10k HP per wave!'}];
+    const MODES=[{id:'wave',icon:'\u2694',title:'WAVE BATTLE',sub:'7v7 Endless waves. Earn coins.'},{id:'1v1',icon:'\uD83C\uDFAF',title:'1v1 DUEL',sub:'Fight your own tank. Pure skill.'},{id:'1v1pick',icon:'\u2694\uFE0F',title:'1v1 PICK FOE',sub:'Duel ANY tank you choose.'},{id:'1v7',icon:'\uD83D\uDD25',title:'1v7 LAST STAND',sub:'Solo vs 7 enemies. No mercy.'},{id:'1v100',icon:'\uD83D\uDC80',title:'100v1 APOCALYPSE',sub:'You vs 100 tanks. Survive!'},{id:'1v100pick',icon:'\uD83D\uDCAF',title:'100\u00D7 PICK FOE',sub:'Fight 100 of ANY tank you choose.'},{id:'1v1000pick',icon:'\u2620\uFE0F',title:'1000\u00D7 PICK FOE',sub:'Fight 1000 of ANY tank \u2014 all at once!'},{id:'1v1000',icon:'\uD83D\uDCB0',title:'1v1000 GOLD RUSH',sub:'1000 tanks · 1000🏷 per kill.'},{id:'rattewaves',icon:'\u2620\uFE0F',title:'RATTE WAVES',sub:'Endless Rattes. +10k HP per wave!'},{id:'testrange',icon:'\uD83C\uDFAF',title:'TEST RANGE',sub:'Practice \u2014 fire at stationary tanks.'}];
     MODES.forEach(function(m){
       const c=document.createElement('div');
       c.className='nav-card'+(gameMode===m.id?' selected-mode':'');
@@ -2383,12 +2388,14 @@ function startGame(){
   else if(gameMode==='1v100')battleMode='1v100';
   else if(gameMode==='1v1000'){battleMode='1v1000';window.__remaining1000=1000;}
   else if(gameMode==='rattewaves')battleMode='rattewaves';
+  else if(gameMode==='testrange')battleMode='testrange';
   else battleMode='7v7'; // wave
   const _ar=document.getElementById('hud-ammo-reload');if(_ar)_ar.style.display='flex';
   const t=TANK_DEFS.find(x=>x.id===activeTankId)||TANK_DEFS[0];
   totalAmmo=currentAmmo=t.ammo;canShoot=true;_mgCooldown=0;missileAmmo=missileCapacity;
-  // Mode ammo overrides: infinite ammo in the swarm modes (1v100, 100x pick, 1v1000)
+  // Mode ammo overrides: infinite ammo in the swarm modes (1v100, 100x pick, 1v1000) and the test range
   if(battleMode==='1v100'||battleMode==='1v100pick'||battleMode==='1v1000'||battleMode==='1v1000pick'){ totalAmmo=currentAmmo=99999; } // ∞ (shows as UNLIMITED)
+  if(battleMode==='testrange'){ totalAmmo=currentAmmo=99999; missileAmmo=999; } // practice: unlimited ammo
   if(reloadInt){clearInterval(reloadInt);reloadInt=null;}
   missileReady=true;canShoot=true;
   const _rb2=document.getElementById('relbar');if(_rb2)_rb2.style.width='100%';
@@ -2401,7 +2408,7 @@ function startGame(){
   // RATTE WAVES: player gets a fixed 4,000 HP pool
   if(battleMode==='rattewaves'){const _base=(t.id==='ratte')?4000:t.hp; player.hp=_base+4000; player.maxHp=_base+4000;}
   camX=player.x-W/2;camY=player.y-H/2;
-  bullets=[];particles=[];craters=[];treadMarks=[];allies=[];playerShield=180;drivenMissile=null;
+  bullets=[];particles=[];craters=[];treadMarks=[];allies=[];playerShield=180;drivenMissile=null;_dmgPops=[];
   playerInBush=false;spotted=false;spotTimer=0;
   mortarProjs=[];mortarArmed=false;nukeFlash=0;nukeArmed=false;closeArtyMap();
   artyShells=[];artyTarget={x:WW/2,y:WH/2};nukeArmed=false;
@@ -2481,6 +2488,13 @@ function buildObstacles(){
 // SPAWN WAVE
 // ════════════════════════════════════════
 
+function _resetTestRange(){
+  if(battleMode!=='testrange'||!player)return;
+  player.hp=player.maxHp; currentAmmo=totalAmmo; missileAmmo=999; playerShield=120;
+  if(typeof updateAmmoRow==='function')updateAmmoRow();
+  if(typeof updateWeaponHud==='function')updateWeaponHud();
+  spawnWave(); // rebuild the target line around the player's current position
+}
 function spawnWave(){
   if(!selectedMap){if(typeof ensureValidMap==='function')ensureValidMap();if(!selectedMap)selectedMap=MAPS[0];}
   enemies=[];allies=[];
@@ -2497,6 +2511,29 @@ function spawnWave(){
     waveSpawning=false;
     addKillFeed('\u2620\uFE0F WAVE '+wave+' \u2014 RATTE ('+rhp.toLocaleString()+' HP)');
     (document.getElementById('hud-en')||{}).textContent=enemies.length;
+    return;
+  }
+  // ── TEST RANGE: a firing line of stationary target tanks (War Thunder style) ──
+  if(battleMode==='testrange'){
+    const wantTiers=['I','III','V','VII','VIII','IX','X','XI'];
+    const lineup=[];
+    for(const tr of wantTiers){ const cands=TANK_DEFS.filter(t=>t.tier===tr&&t.id!=='ratte'); if(cands.length)lineup.push(cands[Math.floor(cands.length/2)]); }
+    const n=lineup.length, gap=150, rowY=Math.max(120,player.y-235);
+    const startX=player.x-(n-1)*gap/2;
+    lineup.forEach((def,i)=>{
+      const ex=Math.max(90,Math.min(WW-90,startX+i*gap));
+      const ey=Math.max(90,Math.min(WH-90,rowY));
+      const fa=Math.atan2(player.y-ey,player.x-ex); // face the player so you shoot their front
+      enemies.push({x:ex,y:ey,angle:fa,turretAngle:fa,
+        hp:def.hp,maxHp:def.hp,armor:def.armor,pen:def.pen,dmg:def.dmg,
+        speed:def.speed,rotSpeed:def.rot,size:def.id==='ratte'?48:26,color:def.color,name:def.name,id:def.id,
+        reload:def.reload,_dummy:true,_respawn:0});
+    });
+    // Turn the player to face the firing line so the targets are dead ahead on deploy
+    if(player){ player.angle=-Math.PI/2; player.turretAngle=-Math.PI/2; }
+    waveSpawning=false;
+    (document.getElementById('hud-en')||{}).textContent=enemies.length;
+    addKillFeed('🎯 TEST RANGE — press R to reset targets');
     return;
   }
   // ── 1v1 PICK FOE: duel a single tank of the player's choosing ──
@@ -2741,6 +2778,7 @@ function setupInput(){
     if(e.key)keys[e.key]=true;
     if(e.code==='Space'){e.preventDefault();tryShoot();}
     if(e.code==='KeyQ'){e.preventDefault();toggleWeapon();}
+    if(e.code==='KeyR'&&battleMode==='testrange'&&state==='game'){e.preventDefault();_resetTestRange();}
     if(['KeyW','KeyA','KeyS','KeyD','ArrowUp','ArrowDown','ArrowLeft','ArrowRight'].includes(e.code))e.preventDefault();
   });
   window.addEventListener('keyup',e=>{keys[e.code]=false;if(e.key)keys[e.key]=false;});
@@ -3487,6 +3525,12 @@ function updateAllies(dt){
 
 function updateEnemies(dt){
   for(const e of enemies){
+    // Test-range dummies: fully passive. Sit still, never shoot, respawn after death.
+    if(e._dummy){
+      if(e.recoil)e.recoil=Math.max(0,e.recoil-dt);
+      if(e.hp<=0){ e._respawn=(e._respawn||0)-dt; if(e._respawn<=0){ e.hp=e.maxHp; e.hitFlash=0; } }
+      continue;
+    }
     if(e.hp<=0)continue;
 
     // ── Find closest target (player or any ally) ──
@@ -3644,11 +3688,15 @@ function updateBullets(dt){
         if(_bulletHitsCircle(b,e.x,e.y,e.size)){
           const _ea=effectiveArmor(e.armor,b.x,b.y,b.vx,b.vy,e.x,e.y,e.angle);
           const pen=b.pen-_ea.armor;
-          e.hp-=(b.fullDmg||pen>0)?b.dmg:0;
+          const penetrated=b.fullDmg||pen>0;
+          const dealt=penetrated?b.dmg:0;
+          e.hp-=dealt;
           e.hitFlash=1;
-          spawnHitFx(b.x,b.y,pen>0);
+          spawnHitFx(b.x,b.y,penetrated);
+          if(battleMode==='testrange') _dmgPopup(b.x,b.y-e.size, penetrated?('-'+Math.round(dealt)):'BOUNCE', penetrated?'#ffd24a':'#8ab4ff');
           if(b.pierce)b.hitSet.add(e);
           if(e.hp<=0){
+            if(e._dummy){ spawnExplosion(e.x,e.y);craters.push({x:e.x,y:e.y,r:e.size*1.4});camShake=Math.max(camShake,5); e.hp=0;e._respawn=140; } else {
             let reward=1000;
             if(e._isRatte){reward=500000;addKillFeed('\uD83D\uDC80 RATTE KILL! +500,000 \uD83C\uDFF7');}
             coins+=reward;totalKills++;score+=reward;kills++;
@@ -3659,6 +3707,7 @@ function updateBullets(dt){
             spawnExplosion(e.x,e.y);craters.push({x:e.x,y:e.y,r:e.size*1.4});
             enemies.splice(j,1);(document.getElementById('hud-en')||{}).textContent=enemies.length;
             _on1v1000Kill();
+            }
           }
           hit=true;
           if(!b.pierce)break; // piercing shells pass through and keep hitting tanks along their path
@@ -4013,6 +4062,27 @@ function render(){
     ctx.fillStyle='rgba(150,235,255,.95)';
     ctx.fillText('◈ MISSILE CAM — STEER WITH MOUSE',W/2,30);
     ctx.textAlign='left';
+    ctx.restore();
+  }
+  // ── Floating hit-damage numbers (test range) ──
+  if(_dmgPops.length){
+    ctx.save();ctx.textAlign='center';ctx.font='bold 15px Oswald,sans-serif';
+    for(let i=_dmgPops.length-1;i>=0;i--){
+      const dp=_dmgPops[i];dp.life--;
+      if(dp.life<=0){_dmgPops.splice(i,1);continue;}
+      const sx=dp.x-camX, sy=dp.y-camY-(55-dp.life)*0.7;
+      ctx.globalAlpha=Math.min(1,dp.life/22);
+      ctx.fillStyle='rgba(0,0,0,.7)';ctx.fillText(dp.txt,sx+1,sy+1);
+      ctx.fillStyle=dp.color;ctx.fillText(dp.txt,sx,sy);
+    }
+    ctx.restore();
+  }
+  // ── Test-range hint banner ──
+  if(battleMode==='testrange'&&state==='game'){
+    ctx.save();ctx.textAlign='center';ctx.font='12px Oswald,sans-serif';
+    ctx.fillStyle='rgba(10,14,8,.55)';ctx.fillRect(W/2-215,H-30,430,22);
+    ctx.fillStyle='rgba(200,220,150,.9)';
+    ctx.fillText('🎯 TEST RANGE — targets don’t fire back · press R to reset',W/2,H-14);
     ctx.restore();
   }
   // Edge vignette (screen-space, after world restore)
@@ -5953,6 +6023,7 @@ function _on1v1000Kill(){
 
 function checkWave(){
   if(!gameRunning||waveSpawning) return;
+  if(battleMode==='testrange') return; // practice range never ends or advances waves
   const aliveEnemies=enemies.filter(e=>e.hp>0).length;
   const aliveAllies=(allies||[]).filter(a=>a.hp>0).length;
   // Update team bar
