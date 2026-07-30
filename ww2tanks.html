@@ -3330,8 +3330,13 @@ function updatePlayer(dt){
   if(keys['KeyS']||keys['ArrowDown']) dy+=1;
   if(keys['KeyA']||keys['ArrowLeft']) dx-=1;
   if(keys['KeyD']||keys['ArrowRight'])dx+=1;
-  // While flying a missile the crew is heads-down at the sight — the tank holds position.
-  if(drivenMissile){ dx=0; dy=0; }
+  // While flying a missile the crew is heads-down at the sight, so the tank holds
+  // position — but pressing any movement key breaks off: the missile switches to
+  // auto-home and control (and the camera) snap straight back to the tank.
+  if(drivenMissile){
+    if(dx!==0||dy!==0){ if(bullets.indexOf(drivenMissile)>=0) drivenMissile.autohome=true; drivenMissile=null; }
+    else { dx=0; dy=0; }
+  }
   let moving=dx!==0||dy!==0;
   { const _boost=(keys['ShiftLeft']||keys['ShiftRight'])&&!mud; _setEngine(moving?(_boost?1:0.6):0); }
   if(moving){
@@ -4098,9 +4103,9 @@ function render(){
     // banner
     ctx.font='bold 15px Oswald,sans-serif';ctx.textAlign='center';
     const life=Math.max(0,Math.round(drivenMissile.life/60*100)/100);
-    ctx.fillStyle='rgba(10,20,26,.55)';ctx.fillRect(W/2-140,12,280,26);
+    ctx.fillStyle='rgba(10,20,26,.55)';ctx.fillRect(W/2-215,12,430,26);
     ctx.fillStyle='rgba(150,235,255,.95)';
-    ctx.fillText('◈ MISSILE CAM — STEER WITH MOUSE',W/2,30);
+    ctx.fillText('◈ MISSILE CAM — MOUSE STEERS · WASD RETURNS TO TANK',W/2,30);
     ctx.textAlign='left';
     ctx.restore();
   }
