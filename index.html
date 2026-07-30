@@ -448,8 +448,18 @@ body[data-state="mode"] #screen-title { display:none!important; }
     <button class="tnav-btn" id="tnav-it"   onclick="treeShowNation('italian')">&#127470;&#127481; IT</button>
     <button class="tnav-btn" id="tnav-pl"   onclick="treeShowNation('polish')">&#127477;&#127473; PL</button>
     <button class="tnav-btn" id="tnav-hu"   onclick="treeShowNation('hungarian')">&#127469;&#127482; HU</button>
-    <button class="tnav-btn" id="tnav-hyb"  onclick="treeShowNation('hybrid')">&#127760; INTL</button>
-    <button class="tnav-btn" id="tnav-hyb2" onclick="treeShowNation('hybrid2')">&#127760; COAL</button>
+    <button class="tnav-btn" id="tnav-romania" onclick="treeShowNation('romania')">&#127479;&#127476; RO</button>
+    <button class="tnav-btn" id="tnav-australia" onclick="treeShowNation('australia')">&#127462;&#127482; AU</button>
+    <button class="tnav-btn" id="tnav-argentina" onclick="treeShowNation('argentina')">&#127462;&#127479; AR</button>
+    <button class="tnav-btn" id="tnav-swiss" onclick="treeShowNation('swiss')">&#127464;&#127469; CH</button>
+    <button class="tnav-btn" id="tnav-israel" onclick="treeShowNation('israel')">&#127470;&#127473; IL</button>
+    <button class="tnav-btn" id="tnav-yugoslavia" onclick="treeShowNation('yugoslavia')">&#127479;&#127480; YU</button>
+    <button class="tnav-btn" id="tnav-spain" onclick="treeShowNation('spain')">&#127466;&#127480; ES</button>
+    <button class="tnav-btn" id="tnav-finland" onclick="treeShowNation('finland')">&#127467;&#127470; FI</button>
+    <button class="tnav-btn" id="tnav-brazil" onclick="treeShowNation('brazil')">&#127463;&#127479; BR</button>
+    <button class="tnav-btn" id="tnav-safrica" onclick="treeShowNation('safrica')">&#127487;&#127462; ZA</button>
+    <button class="tnav-btn" id="tnav-turkey" onclick="treeShowNation('turkey')">&#127481;&#127479; TR</button>
+    <button class="tnav-btn" id="tnav-ukraine" onclick="treeShowNation('ukraine')">&#127482;&#127462; UA</button>
     <button class="tnav-btn" id="tnav-blitz" onclick="treeShowNation('blitz')">&#9889; HYBRID</button>
     <button class="tnav-btn" id="tnav-mod" onclick="treeShowNation('modern')" style="border-color:rgba(200,168,75,.5);color:var(--khaki)">&#9881; MODERN ERA</button>
   <button class="tnav-btn" id="tnav-cw" onclick="treeShowNation('coldwar')" style="border-color:rgba(200,168,75,.5);color:var(--khaki)">&#9762; COLD WAR</button>
@@ -1003,8 +1013,18 @@ function getTankFaction(id){
   const chinese=['renault_otsu','type94_cn','t26_cn','vickers_e','m5_cn','chiha_cn','t34_cn','m4a4_cn','wz132','59_pat','is2_cn','t34_3','is3_cn','wz111','type59','type59mbt','t54_mod1','wz120','wz111_5a','wz113','type121','wz131','wz113g'];
   const swedish=['pvlv42','strv21','strv_m37','strv38','pvkv_m43','ikv72','lago','strv42','pvkv_IV','ikv65','strv74','leo','strv_s1','strv81','emil1','emil2','krv','udes03','udes15','strv103b','strv105'];
   const blitz=['ac_wedge','highlander','ocelote','rebelde','taygete','celeno','ac_atlas'];
-  const hybrid2=['verdeja','l62','bt42','x1a2','tamoyo','olifant','rooikat','osorio','altay','oplot'];
-  const hybrid=['r2','tacam','maresal','sentinel1','sentinel4','tam','pz58','shotkal','m84','magach7'];
+  const romania=['r2','tacam','maresal'];
+  const australia=['sentinel1','sentinel4'];
+  const argentina=['tam'];
+  const swiss=['pz58'];
+  const israel=['shotkal','magach7'];
+  const yugoslavia=['m84'];
+  const spain=['verdeja'];
+  const finland=['l62','bt42'];
+  const brazil=['x1a2','tamoyo','osorio'];
+  const safrica=['olifant','rooikat'];
+  const turkey=['altay'];
+  const ukraine=['oplot'];
   const polish=['tks','p7tp','p10tp','p14tp','p25tp','p40tp','p45tp','p53tp'];
   const hungarian=['toldi1','toldi2','turan1','turan2','zrinyi','turan3','tas','tasr'];
   const italian=['l3_33','m11_39','m13_40','m14_41','sem7518','p40','sem10525','p43','of40','progetto'];
@@ -1017,8 +1037,18 @@ function getTankFaction(id){
   if(chinese.includes(id)) return 'chinese';
   if(swedish.includes(id)) return 'swedish';
   if(blitz.includes(id)) return 'blitz';
-  if(hybrid2.includes(id)) return 'hybrid2';
-  if(hybrid.includes(id)) return 'hybrid';
+  if(romania.includes(id)) return 'romania';
+  if(australia.includes(id)) return 'australia';
+  if(argentina.includes(id)) return 'argentina';
+  if(swiss.includes(id)) return 'swiss';
+  if(israel.includes(id)) return 'israel';
+  if(yugoslavia.includes(id)) return 'yugoslavia';
+  if(spain.includes(id)) return 'spain';
+  if(finland.includes(id)) return 'finland';
+  if(brazil.includes(id)) return 'brazil';
+  if(safrica.includes(id)) return 'safrica';
+  if(turkey.includes(id)) return 'turkey';
+  if(ukraine.includes(id)) return 'ukraine';
   if(polish.includes(id)) return 'polish';
   if(hungarian.includes(id)) return 'hungarian';
   if(italian.includes(id)) return 'italian';
@@ -1030,7 +1060,8 @@ function getTankFaction(id){
 function getAvailableMaps(){
   const f=getTankFaction(activeTankId);
   if(f==='german') return MAPS.filter(m=>m.id!=='pacific');
-  return MAPS.filter(m=>m.factions.includes(f));
+  const avail=MAPS.filter(m=>m.factions.includes(f));
+  return avail.length?avail:MAPS.filter(m=>m.id!=='pacific');
 }
 function ensureValidMap(){
   const avail=getAvailableMaps();
@@ -1705,7 +1736,7 @@ function hideSections(){
 }
 function _renderFilterRow(){
   const row=document.getElementById('filter-row');if(!row)return;
-  const nations=[['all','ALL'],['german','🇩🇪'],['soviet','🇷🇺'],['american','🇺🇸'],['british','🇬🇧'],['french','🇫🇷'],['japanese','🇯🇵'],['chinese','🇨🇳'],['swedish','🇸🇪'],['czech','🇨🇿'],['italian','🇮🇹'],['polish','🇵🇱'],['hungarian','🇭🇺'],['hybrid','🌍'],['hybrid2','🌐'],['blitz','⚡'],['owned','OWNED'],['affordable','🪙 BUY']];
+  const nations=[['all','ALL'],['german','🇩🇪'],['soviet','🇷🇺'],['american','🇺🇸'],['british','🇬🇧'],['french','🇫🇷'],['japanese','🇯🇵'],['chinese','🇨🇳'],['swedish','🇸🇪'],['czech','🇨🇿'],['italian','🇮🇹'],['polish','🇵🇱'],['hungarian','🇭🇺'],['romania','🇷🇴'],['australia','🇦🇺'],['argentina','🇦🇷'],['swiss','🇨🇭'],['israel','🇮🇱'],['yugoslavia','🇷🇸'],['spain','🇪🇸'],['finland','🇫🇮'],['brazil','🇧🇷'],['safrica','🇿🇦'],['turkey','🇹🇷'],['ukraine','🇺🇦'],['blitz','⚡'],['owned','OWNED'],['affordable','🪙 BUY']];
   row.innerHTML='';
   nations.forEach(([val,lbl])=>{
     const b=document.createElement('button');
@@ -2027,7 +2058,7 @@ function startGame(){
 function getEnemyPool(){
   const f=getTankFaction(activeTankId);
   if(f==='chinese') return ENEMY_JAPAN;
-  const axis=['german','japanese','italian','hungarian'];
+  const axis=['german','japanese','italian','hungarian','romania','finland'];
   return axis.includes(f)?ENEMY_ALLIED:ENEMY_AXIS;
 }
 
@@ -5536,27 +5567,38 @@ const TREE_LAYOUT = {
     ['taygete'],
     ['celeno'],
     ['ac_atlas']],
-  hybrid2:[
-    ['verdeja'],
-    ['l62'],
-    ['bt42'],
-    ['x1a2'],
-    ['tamoyo'],
-    ['olifant'],
-    ['rooikat'],
-    ['osorio'],
-    ['altay','oplot']],
-  hybrid:[
+  romania:[
     ['r2'],
     ['tacam'],
-    ['maresal'],
+    ['maresal']],
+  australia:[
     ['sentinel1'],
-    ['sentinel4'],
-    ['tam'],
-    ['pz58'],
+    ['sentinel4']],
+  argentina:[
+    ['tam']],
+  swiss:[
+    ['pz58']],
+  israel:[
     ['shotkal'],
-    ['m84'],
     ['magach7']],
+  yugoslavia:[
+    ['m84']],
+  spain:[
+    ['verdeja']],
+  finland:[
+    ['l62'],
+    ['bt42']],
+  brazil:[
+    ['x1a2'],
+    ['tamoyo'],
+    ['osorio']],
+  safrica:[
+    ['olifant'],
+    ['rooikat']],
+  turkey:[
+    ['altay']],
+  ukraine:[
+    ['oplot']],
   hungarian:[
     ['toldi1'],
     ['toldi2'],
@@ -5616,8 +5658,18 @@ const TIER_NAMES = {
   italian: ['Tier I','Tier II','Tier III','Tier IV','Tier V','Tier VI','Tier VII','Tier VIII'],
   polish:  ['Tier I','Tier II','Tier III','Tier IV','Tier V','Tier VI','Tier VII','Tier VIII'],
   hungarian: ['Tier I','Tier II','Tier III','Tier IV','Tier V','Tier VI','Tier VII','Tier VIII'],
-  hybrid:  ['Tier II','Tier III','Tier IV','Tier IV','Tier V','Tier VI','Tier VII','Tier VIII','Tier IX','Tier X'],
-  hybrid2: ['Tier II','Tier III','Tier IV','Tier V','Tier VI','Tier VII','Tier VIII','Tier IX','Tier X'],
+  romania: ['Tier II','Tier III','Tier IV'],
+  australia:['Tier IV','Tier V'],
+  argentina:['Tier VI'],
+  swiss:   ['Tier VII'],
+  israel:  ['Tier VIII','Tier X'],
+  yugoslavia:['Tier IX'],
+  spain:   ['Tier II'],
+  finland: ['Tier III','Tier IV'],
+  brazil:  ['Tier V','Tier VI','Tier IX'],
+  safrica: ['Tier VII','Tier VIII'],
+  turkey:  ['Tier X'],
+  ukraine: ['Tier X'],
   blitz:   ['Tier IV','Tier V','Tier VI','Tier VII','Tier VIII','Tier IX','Tier X'],
   modern:  ['Modern Era'],
   artillery:['Tier III-IV','Tier V-VI','Tier VIII-X'],
@@ -5625,8 +5677,8 @@ const TIER_NAMES = {
 
 function treeShowNation(nation){
   treeNation=nation;
-  ['de','ussr','us','gb','fr','jp','cn','se','pl','cz','it','cu','mod','cw','arty'].forEach(n=>{const el=document.getElementById('tnav-'+n);if(el)el.classList.remove('active');});
-  const map={german:'de',soviet:'ussr',american:'us',british:'gb',french:'fr',japanese:'jp',chinese:'cn',swedish:'se',czech:'cz',italian:'it',polish:'pl',hungarian:'hu',hybrid:'hyb',hybrid2:'hyb2',blitz:'blitz',modern:'mod',coldwar:'cw',artillery:'arty'};
+  ['de','ussr','us','gb','fr','jp','cn','se','pl','cz','it','hu','blitz','mod','cw','arty','romania','australia','argentina','swiss','israel','yugoslavia','spain','finland','brazil','safrica','turkey','ukraine'].forEach(n=>{const el=document.getElementById('tnav-'+n);if(el)el.classList.remove('active');});
+  const map={german:'de',soviet:'ussr',american:'us',british:'gb',french:'fr',japanese:'jp',chinese:'cn',swedish:'se',czech:'cz',italian:'it',polish:'pl',hungarian:'hu',blitz:'blitz',modern:'mod',coldwar:'cw',artillery:'arty'};
   const btn=document.getElementById('tnav-'+(map[nation]||nation));if(btn)btn.classList.add('active');
   const cbar=document.getElementById('tree-coins-bar');if(cbar)cbar.textContent=coins.toLocaleString()+' \u{1F3F7}';
 
