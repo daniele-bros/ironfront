@@ -477,6 +477,7 @@ body[data-state="mode"] #screen-title { display:none!important; }
     <button class="tnav-btn" id="tnav-safrica" onclick="treeShowNation('safrica')">&#127487;&#127462; ZA</button>
     <button class="tnav-btn" id="tnav-turkey" onclick="treeShowNation('turkey')">&#127481;&#127479; TR</button>
     <button class="tnav-btn" id="tnav-ukraine" onclick="treeShowNation('ukraine')">&#127482;&#127462; UA</button>
+    <button class="tnav-btn" id="tnav-carrier" onclick="treeShowNation('carrier')" style="border-color:rgba(120,160,90,.5);color:#9ab060">&#128666; IFV CARRIERS</button>
     <button class="tnav-btn" id="tnav-blitz" onclick="treeShowNation('blitz')">&#9889; HYBRID</button>
     <button class="tnav-btn" id="tnav-mod" onclick="treeShowNation('modern')" style="border-color:rgba(200,168,75,.5);color:var(--khaki)">&#9881; MODERN ERA</button>
   <button class="tnav-btn" id="tnav-cw" onclick="treeShowNation('coldwar')" style="border-color:rgba(200,168,75,.5);color:var(--khaki)">&#9762; COLD WAR</button>
@@ -1114,13 +1115,24 @@ const TANK_DEFS = [
   {id:'oplot_m', name:'Oplot-M', nation:'🇺🇦', hp:1480,armor:222,pen:282,dmg:466,speed:3.5,rot:1.9,reload:4.8,ammo:45,color:'#48543a',tier:'X',price:10000,desc:'Latest T-84 with Duplet ERA and a panoramic sight.'},
   {id:'yatagan', name:'T-84 Yatagan', nation:'🇺🇦', hp:1480,armor:222,pen:282,dmg:466,speed:3.5,rot:1.9,reload:4.8,ammo:45,color:'#48543a',tier:'X',price:10000,desc:'Export T-84 with a NATO 120mm autoloaded turret.'},
   {id:'t84120', name:'T-84-120', nation:'🇺🇦', hp:1480,armor:222,pen:282,dmg:466,speed:3.5,rot:1.9,reload:4.8,ammo:45,color:'#48543a',tier:'X',price:10000,desc:'Ukrainian T-84 study with a 120mm smoothbore.'},
+  // ══ IFV / TRACKED CARRIERS ══
+  {id:'m113a1', name:'M113', nation:'🇺🇸', hp:300,armor:25,pen:45,dmg:22,speed:4.4,rot:2.6,reload:1.6,ammo:200,color:'#4a5838',tier:'IV',price:750,desc:'Ubiquitous US tracked APC. Rapid .50 cal — troops’ battlefield taxi.'},
+  {id:'bmd1', name:'BMD-1', nation:'🇷🇺', hp:380,armor:30,pen:95,dmg:42,speed:4.8,rot:2.7,reload:2.0,ammo:120,color:'#3e5228',tier:'V',price:1200,desc:'Soviet airborne IFV. Low-pressure 73mm gun plus a Malyutka ATGM rail.'},
+  {id:'bmp1', name:'BMP-1', nation:'🇷🇺', hp:520,armor:45,pen:120,dmg:58,speed:4.4,rot:2.5,reload:2.2,ammo:120,color:'#40521f',tier:'VI',price:1800,desc:'First modern IFV. 73mm 2A28 and a Sagger missile over the barrel.'},
+  {id:'marder', name:'Marder 1A3', nation:'🇩🇪', hp:640,armor:64,pen:100,dmg:42,speed:4.2,rot:2.4,reload:1.8,ammo:300,color:'#5a5e30',tier:'VII',price:2800,desc:'West German IFV. Rapid 20mm autocannon with a MILAN ATGM launcher.'},
+  {id:'bmp2', name:'BMP-2', nation:'🇷🇺', hp:640,armor:58,pen:110,dmg:40,speed:4.4,rot:2.5,reload:1.8,ammo:300,color:'#42521f',tier:'VII',price:2800,desc:'Up-gunned BMP with a stabilised 30mm 2A42 and a Spandrel ATGM.'},
+  {id:'warrior', name:'FV510 Warrior', nation:'🇬🇧', hp:720,armor:68,pen:120,dmg:55,speed:4.0,rot:2.3,reload:2.0,ammo:220,color:'#3a4a1c',tier:'VII',price:2800,desc:'British tracked IFV. Punchy 30mm RARDEN cannon, no missiles.'},
+  {id:'bradley', name:'M2A3 Bradley', nation:'🇺🇸', hp:820,armor:74,pen:135,dmg:48,speed:4.2,rot:2.4,reload:1.8,ammo:300,color:'#48543a',tier:'VIII',price:4200,desc:'US IFV. 25mm Bushmaster chain gun plus a twin TOW missile launcher.'},
+  {id:'cv90', name:'CV9040', nation:'🇸🇪', hp:780,armor:72,pen:155,dmg:82,speed:4.3,rot:2.4,reload:2.4,ammo:240,color:'#465228',tier:'VIII',price:4200,desc:'Swedish IFV with a hard-hitting 40mm Bofors autocannon.'},
+  {id:'bmp3', name:'BMP-3', nation:'🇷🇺', hp:940,armor:92,pen:165,dmg:55,speed:4.2,rot:2.4,reload:2.0,ammo:300,color:'#42501e',tier:'IX',price:6500,desc:'Heaviest BMP. 100mm gun-launcher, coax 30mm and gun-fired missiles.'},
+  {id:'puma', name:'Puma', nation:'🇩🇪', hp:1080,armor:132,pen:195,dmg:70,speed:4.2,rot:2.4,reload:1.8,ammo:300,color:'#525e36',tier:'X',price:10000,desc:'Modern German IFV. Airburst 30mm autocannon and a Spike LR missile.'},
 ];
 
 // Tank Destroyer IDs — turret locked to hull direction
 const _tdIds=new Set(['stug3','jpz4','nashorn','jpz6','su85','su100','su122','isu122','isu152','jpanther','ferdinand','obj268','archer','at5','at8','at7','at15','obj704','hori','su100y','brummbar','sturer','pz4_70','jpanther2','honi1','honi3','horo','nato','su152','jgpze100','sem7518','sem10525','zrinyi','tasr','tacam','maresal','vdc_ro','sk105','vca155','g13','stu40','g6']);
 const _otIds=new Set(['m10','m36','achilles','borsig_wt','waffentrager','grille15','rhmborsig','su130pm']);
 // Tanks that fire guided HOMING MISSILES instead of shells (gun-launched ATGMs / dedicated launchers)
-const _missileIds=new Set(['m551','xm551','t14armata','kf51','it1']);
+const _missileIds=new Set(['m551','xm551','t14armata','kf51','it1','bmd1','bmp1','marder','bmp2','bradley','bmp3','puma']);
 // Launch a homing missile: slow off the rail, accelerates, steers to the nearest target, HEAT warhead ignores armour.
 function _launchMissile(x,y,ang,owner,dmg,size){
   const b={
@@ -1234,6 +1246,7 @@ function getTankFaction(id){
   const hungarian=['toldi1','toldi2','turan1','turan2','zrinyi','turan3','tas','tasr'];
   const italian=['l3_33','m11_39','m13_40','m14_41','sem7518','p40','sem10525','p43','of40','progetto'];
   const czech=['kodiak'];
+  const carrier=['m113a1','bmd1','bmp1','marder','bmp2','warrior','bradley','cv90','bmp3','puma'];
   if(soviet.includes(id)) return 'soviet';
   if(american.includes(id)) return 'american';
   if(british.includes(id)) return 'british';
@@ -1258,6 +1271,7 @@ function getTankFaction(id){
   if(hungarian.includes(id)) return 'hungarian';
   if(italian.includes(id)) return 'italian';
   if(czech.includes(id)) return 'czech';
+  if(carrier.includes(id)) return 'carrier';
   return 'german';
 }
 
@@ -1339,7 +1353,7 @@ function getPlayerTierNum(){
 // ════════════════════════════════════════
 // PERSISTENCE
 // ════════════════════════════════════════
-function saveData(){localStorage.setItem('ironfront',JSON.stringify({coins,owned:[...ownedTanks],activeTankId,totalKills,totalScore,mortars,nukes,missiles:[...ownedMissiles],selMissile:selectedMissile}));}
+function saveData(){localStorage.setItem('ironfront',JSON.stringify({coins,owned:[...ownedTanks],activeTankId,totalKills,totalScore,mortars,nukes,missiles:[...ownedMissiles],selMissile:selectedMissile,mslCap:missileCapacity}));}
 // Fresh-start roster: one cheap tank per nation
 var STARTER_TANKS=['pz1','t26','m3stuart','mkvi','r35','type94','vickers_e','strv21'];
 function loadData(){
@@ -1370,6 +1384,7 @@ function loadData(){
     let om=(d.missiles||[]).filter(id=>MISSILE_TYPES.some(m=>m.id===id));
     om.push('std'); ownedMissiles=new Set(om);
     selectedMissile=(d.selMissile&&ownedMissiles.has(d.selMissile))?d.selMissile:'std';
+    missileCapacity=Math.max(6,d.mslCap||6);
   }catch(e){
     coins=0; mortars=0; nukes=0; totalKills=0; totalScore=0;
     ownedTanks=new Set(STARTER_TANKS.filter(id=>TANK_DEFS.some(t=>t.id===id)));
@@ -1383,6 +1398,9 @@ function loadData(){
 let coins=99999,ownedTanks=new Set(TANK_DEFS.filter(t=>!new Set(['ratte','m1abrams','kf51','leo2a7','t14armata','challenger3','leclerc_xlr','type10','k2','merkava4','type99a','abramsx','mgcs','t90m','obj195','vt4','ztq15','arjun2','k3panther','ariete2','carmel']).has(t.id)).map(t=>t.id)),activeTankId='tiger',totalKills=0,totalScore=0;
 // Owned missile loadouts + the one currently equipped (persisted).
 let ownedMissiles=new Set(['std']),selectedMissile='std';
+// Missile magazine: capacity is bought/upgraded (persisted); missileAmmo is the
+// per-battle count, refilled to capacity each deployment.
+let missileCapacity=6,missileAmmo=6;
 let selectedMap=null;
 let state='home';
 let canvas,ctx,W,H,mmCanvas,mmCtx;
@@ -1995,9 +2013,35 @@ function showMissileBay(){
   if(sg)sg.scrollTop=0;
   buildMissileBay();
 }
+const MSL_AMMO_STEP=4, MSL_AMMO_COST=5000; // +4 missiles per purchase
 function buildMissileBay(){
   const shelf=document.getElementById('missile-shelf'); if(!shelf)return;
   shelf.innerHTML='';
+  // ── Missile magazine capacity (buy more missile ammo) ──
+  {
+    const afford=coins>=MSL_AMMO_COST;
+    const row=document.createElement('div');
+    row.style.cssText='border:1.5px solid #6060a0;border-radius:6px;background:rgba(30,30,60,.35);padding:12px 14px;display:flex;align-items:center;gap:14px;margin-bottom:4px;';
+    row.innerHTML=
+      '<div style="font-size:30px;line-height:1;filter:drop-shadow(0 0 6px #8080d0);">&#127993;</div>'+
+      '<div style="flex:1;min-width:0;">'+
+        '<div style="font-family:Oswald,sans-serif;font-size:16px;font-weight:700;letter-spacing:1px;color:#a0a0e0;">MISSILE AMMO</div>'+
+        '<div style="font-family:Share Tech Mono,monospace;font-size:10px;color:#8a8ac0;margin:3px 0 5px;line-height:1.5;">Missiles carried per battle (refilled each deployment). Buy to expand your magazine.</div>'+
+        '<div style="font-family:Share Tech Mono,monospace;font-size:11px;letter-spacing:1px;"><span style="color:#8a8ac0;">CAPACITY</span> <b style="color:#d8d8ff;">'+missileCapacity+' missiles</b></div>'+
+      '</div>'+
+      '<div style="text-align:right;min-width:96px;"></div>';
+    const w=row.lastChild;
+    const price=document.createElement('div');
+    price.style.cssText='font-family:Share Tech Mono,monospace;font-size:12px;color:'+(afford?'#e8c84a':'#a05040')+';margin-bottom:6px;';
+    price.textContent=MSL_AMMO_COST.toLocaleString()+' 🏷';
+    w.appendChild(price);
+    const bb=document.createElement('button');
+    bb.style.cssText='font-family:Oswald,sans-serif;font-size:12px;font-weight:700;letter-spacing:1px;padding:7px 16px;border-radius:3px;cursor:pointer;border:1.5px solid;';
+    if(afford){ bb.textContent='+'+MSL_AMMO_STEP+' AMMO'; bb.style.borderColor='#8080d0'; bb.style.background='linear-gradient(135deg,#20204a,#12122a)'; bb.style.color='#c0c0ff'; bb.onclick=()=>buyMissileAmmo(); }
+    else { bb.textContent='LOCKED'; bb.disabled=true; bb.style.borderColor='#3a2a1a'; bb.style.background='transparent'; bb.style.color='#6a4a3a'; bb.style.cursor='default'; }
+    w.appendChild(bb);
+    shelf.appendChild(row);
+  }
   MISSILE_TYPES.forEach(mt=>{
     const owned=ownedMissiles.has(mt.id), equipped=selectedMissile===mt.id, afford=coins>=mt.price;
     const card=document.createElement('div');
@@ -2041,9 +2085,15 @@ function equipMissile(id){
   selectedMissile=id; saveData(); if(typeof playUiClick==='function')playUiClick();
   buildMissileBay(); if(typeof updateWeaponHud==='function')updateWeaponHud();
 }
+function buyMissileAmmo(){
+  if(coins<MSL_AMMO_COST)return;
+  coins-=MSL_AMMO_COST; missileCapacity+=MSL_AMMO_STEP;
+  saveData(); if(typeof playUiClick==='function')playUiClick();
+  buildMissileBay(); const gc=document.getElementById('garage-coins'); if(gc)gc.textContent=coins.toLocaleString()+' 🏷';
+}
 function _renderFilterRow(){
   const row=document.getElementById('filter-row');if(!row)return;
-  const nations=[['all','ALL'],['german','🇩🇪'],['soviet','🇷🇺'],['american','🇺🇸'],['british','🇬🇧'],['french','🇫🇷'],['japanese','🇯🇵'],['chinese','🇨🇳'],['swedish','🇸🇪'],['czech','🇨🇿'],['italian','🇮🇹'],['polish','🇵🇱'],['hungarian','🇭🇺'],['romania','🇷🇴'],['australia','🇦🇺'],['argentina','🇦🇷'],['swiss','🇨🇭'],['israel','🇮🇱'],['yugoslavia','🇷🇸'],['spain','🇪🇸'],['finland','🇫🇮'],['brazil','🇧🇷'],['safrica','🇿🇦'],['turkey','🇹🇷'],['ukraine','🇺🇦'],['blitz','⚡'],['owned','OWNED'],['affordable','🪙 BUY']];
+  const nations=[['all','ALL'],['german','🇩🇪'],['soviet','🇷🇺'],['american','🇺🇸'],['british','🇬🇧'],['french','🇫🇷'],['japanese','🇯🇵'],['chinese','🇨🇳'],['swedish','🇸🇪'],['czech','🇨🇿'],['italian','🇮🇹'],['polish','🇵🇱'],['hungarian','🇭🇺'],['romania','🇷🇴'],['australia','🇦🇺'],['argentina','🇦🇷'],['swiss','🇨🇭'],['israel','🇮🇱'],['yugoslavia','🇷🇸'],['spain','🇪🇸'],['finland','🇫🇮'],['brazil','🇧🇷'],['safrica','🇿🇦'],['turkey','🇹🇷'],['ukraine','🇺🇦'],['carrier','🚚'],['blitz','⚡'],['owned','OWNED'],['affordable','🪙 BUY']];
   row.innerHTML='';
   nations.forEach(([val,lbl])=>{
     const b=document.createElement('button');
@@ -2321,7 +2371,7 @@ function startGame(){
   else battleMode='7v7'; // wave
   const _ar=document.getElementById('hud-ammo-reload');if(_ar)_ar.style.display='flex';
   const t=TANK_DEFS.find(x=>x.id===activeTankId)||TANK_DEFS[0];
-  totalAmmo=currentAmmo=t.ammo;canShoot=true;_mgCooldown=0;
+  totalAmmo=currentAmmo=t.ammo;canShoot=true;_mgCooldown=0;missileAmmo=missileCapacity;
   // Mode ammo overrides: infinite ammo in the swarm modes (1v100, 100x pick, 1v1000)
   if(battleMode==='1v100'||battleMode==='1v100pick'||battleMode==='1v1000'||battleMode==='1v1000pick'){ totalAmmo=currentAmmo=99999; } // ∞ (shows as UNLIMITED)
   if(reloadInt){clearInterval(reloadInt);reloadInt=null;}
@@ -2666,7 +2716,7 @@ function updateWeaponHud(){
   el.style.display='inline-block';
   const miss = weaponMode==='missile';
   const mt=getMissileType();
-  el.innerHTML = (miss?('🚀 '+mt.name.toUpperCase()):'🔫 MAIN GUN')+' <span style="font-size:10px;opacity:.7;">[Q]</span>';
+  el.innerHTML = (miss?('🚀 '+mt.name.toUpperCase()+' <span style="font-size:11px;opacity:.9;">×'+missileAmmo+'</span>'):'🔫 MAIN GUN')+' <span style="font-size:10px;opacity:.7;">[Q]</span>';
   el.style.borderColor = miss?(mt.color||'#ff8040'):'#6060a0';
   el.style.color = miss?(mt.color||'#ff9a5a'):'#c8a84b';
 }
@@ -2736,13 +2786,13 @@ function tryShoot(){
     return;
   }
   const _useMissile=_missileIds.has(player.id)&&weaponMode==='missile';
-  if(currentAmmo<=0||state!=='game')return;
-  // Gun and missile have independent reloads — check only the selected weapon.
-  if(_useMissile){ if(!missileReady)return; } else { if(!canShoot)return; }
+  if(state!=='game')return;
+  // Gun and missile have independent reloads AND independent ammo pools.
+  if(_useMissile){ if(!missileReady||missileAmmo<=0)return; } else { if(!canShoot||currentAmmo<=0)return; }
 
   // Shooting reveals player from bush
   if(playerInBush){spotted=true;spotTimer=240;} // 4 seconds spotted
-  currentAmmo--;updateAmmoRow();
+  if(_useMissile){ missileAmmo--; updateWeaponHud(); } else { currentAmmo--; updateAmmoRow(); }
 
   // Missile tanks launch a guided homing missile when MISSILE mode is selected (toggle with Q)
   if(_useMissile){
@@ -2762,7 +2812,10 @@ function tryShoot(){
     if(player)player.recoil=Math.max(player.recoil||0,player.size*0.24);
     _beginReload('missile');
   } else {
-  const burst=(['pz1','mkvi','type94']).includes(player.id)?6:(['pz2','m3stuart','m5stuart','amx13']).includes(player.id)?4:(['tvp']).includes(player.id)?3:1;
+  // Autocannon burst counts — IFV/carrier chain guns rip off rapid bursts.
+  const _burst6=['pz1','mkvi','type94','m113a1','marder','bmp2','bradley','bmp3','puma'];
+  const _burst4=['pz2','m3stuart','m5stuart','amx13','bmd1','bmp1','cv90'];
+  const burst=_burst6.includes(player.id)?6:_burst4.includes(player.id)?4:player.id==='warrior'?5:(['tvp']).includes(player.id)?3:1;
   const burstDelay=80;
 
   for(let i=0;i<burst;i++){
@@ -4828,6 +4881,16 @@ const TANK_PROFILES={
   oplot_m:{hl:2.02,hw:1.03,tr:0.46,ty:0.39,bl:1.28,bw:0.113,muzzle:true,boxy:false,sk:false},
   yatagan:{hl:2.02,hw:1.03,tr:0.46,ty:0.39,bl:1.28,bw:0.113,muzzle:true,boxy:false,sk:false},
   t84120:{hl:2.02,hw:1.03,tr:0.46,ty:0.39,bl:1.28,bw:0.113,muzzle:true,boxy:false,sk:false},
+  m113a1:{hl:1.5,hw:0.88,tr:0.24,ty:0.2,bl:0.55,bw:0.075,muzzle:false,boxy:true,sk:false},
+  bmd1:{hl:1.55,hw:0.86,tr:0.3,ty:0.24,bl:0.85,bw:0.09,muzzle:false,boxy:false,sk:false},
+  bmp1:{hl:1.7,hw:0.9,tr:0.3,ty:0.22,bl:0.95,bw:0.092,muzzle:false,boxy:false,sk:false},
+  marder:{hl:1.72,hw:0.92,tr:0.28,ty:0.22,bl:0.8,bw:0.08,muzzle:false,boxy:true,sk:false},
+  bmp2:{hl:1.7,hw:0.9,tr:0.3,ty:0.24,bl:0.85,bw:0.082,muzzle:false,boxy:false,sk:false},
+  warrior:{hl:1.66,hw:0.9,tr:0.3,ty:0.24,bl:0.82,bw:0.084,muzzle:false,boxy:true,sk:false},
+  bradley:{hl:1.72,hw:0.94,tr:0.32,ty:0.26,bl:0.82,bw:0.084,muzzle:false,boxy:true,sk:false},
+  cv90:{hl:1.78,hw:0.92,tr:0.34,ty:0.27,bl:0.95,bw:0.09,muzzle:false,boxy:false,sk:false},
+  bmp3:{hl:1.8,hw:0.96,tr:0.34,ty:0.26,bl:1.0,bw:0.095,muzzle:false,boxy:false,sk:false},
+  puma:{hl:1.82,hw:0.98,tr:0.34,ty:0.27,bl:0.85,bw:0.085,muzzle:false,boxy:true,sk:false},
   default:{hl:1.65,hw:0.85,tr:0.33,ty:0.28,bl:0.95,bw:0.090,muzzle:false,boxy:false,sk:false},
 };
 function getProfile(id){return TANK_PROFILES[id]||TANK_PROFILES.default;}
@@ -6207,6 +6270,14 @@ const TREE_LAYOUT = {
     ['chieftainmk10','t72b','leopard2av','m1abrams_cw','pt91'],
     ['challenger1','merkava3','type90'],
     ['t80u','challenger2cw','leopard2a4','merkava4cw','m1a2sep']],
+  carrier:[
+    ['m113a1'],
+    ['bmd1'],
+    ['bmp1'],
+    ['marder','bmp2','warrior'],
+    ['bradley','cv90'],
+    ['bmp3'],
+    ['puma']],
   artillery:[
     ['wespe','su26','sexton','m7_priest'],
     ['hummel','su14','amx13f3','fv304'],
@@ -6243,12 +6314,13 @@ const TIER_NAMES = {
   ukraine: ['Tier VI','Tier VII','Tier VIII','Tier IX','Tier X'],
   blitz:   ['Tier IV','Tier V','Tier VI','Tier VII','Tier VIII','Tier IX','Tier X'],
   modern:  ['Modern Era'],
+  carrier: ['Tier IV','Tier V','Tier VI','Tier VII','Tier VIII','Tier IX','Tier X'],
   artillery:['Tier III-IV','Tier V-VI','Tier VIII-X'],
 };
 
 function treeShowNation(nation){
   treeNation=nation;
-  ['de','ussr','us','gb','fr','jp','cn','se','pl','cz','it','hu','blitz','mod','cw','arty','romania','australia','argentina','swiss','israel','yugoslavia','spain','finland','brazil','safrica','turkey','ukraine'].forEach(n=>{const el=document.getElementById('tnav-'+n);if(el)el.classList.remove('active');});
+  ['de','ussr','us','gb','fr','jp','cn','se','pl','cz','it','hu','blitz','mod','cw','arty','romania','australia','argentina','swiss','israel','yugoslavia','spain','finland','brazil','safrica','turkey','ukraine','carrier'].forEach(n=>{const el=document.getElementById('tnav-'+n);if(el)el.classList.remove('active');});
   const map={german:'de',soviet:'ussr',american:'us',british:'gb',french:'fr',japanese:'jp',chinese:'cn',swedish:'se',czech:'cz',italian:'it',polish:'pl',hungarian:'hu',blitz:'blitz',modern:'mod',coldwar:'cw',artillery:'arty'};
   const btn=document.getElementById('tnav-'+(map[nation]||nation));if(btn)btn.classList.add('active');
   const cbar=document.getElementById('tree-coins-bar');if(cbar)cbar.textContent=coins.toLocaleString()+' \u{1F3F7}';
