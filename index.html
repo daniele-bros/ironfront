@@ -1189,6 +1189,12 @@ const MISSILE_TYPES=[
   {id:'thermo', name:'Thermobaric',        price:22000, dmg:2.0, maxspd:5, turn:0.12, life:560, splash:90, count:1, color:'#ff5a30', desc:'Slow but devastating — a huge fireball that scorches clustered tanks.'},
   {id:'du',     name:'Depleted Uranium',   price:26000, dmg:2.7, maxspd:8, turn:0.13, life:520, splash:16, count:1, color:'#c8ff40', desc:'Dense kinetic penetrator — massive damage and a pyrophoric spark that ignites on hit.'},
   {id:'swarm',  name:'Swarm Salvo',        price:30000, dmg:0.9, maxspd:8, turn:0.19, life:440, splash:0,  count:3, color:'#b070ff', desc:'Launches three at once: you fly the lead missile, two wingmen auto-home to enemies.'},
+  {id:'napalm', name:'Incendiary',         price:24000, dmg:1.2, maxspd:6, turn:0.14, life:520, splash:30, count:1, color:'#ff8020', fire:true, desc:'Splashes burning fuel that keeps scorching anything caught in the flames.'},
+  {id:'cluster',name:'Cluster Munition',   price:28000, dmg:1.4, maxspd:6, turn:0.14, life:500, splash:140,count:1, color:'#c0e070', desc:'Scatters bomblets over a wide area — clears packed formations in one hit.'},
+  {id:'cryo',   name:'Cryo Warhead',       price:32000, dmg:1.3, maxspd:6, turn:0.15, life:520, splash:48, count:1, color:'#60e0ff', freeze:220, desc:'Flash-freezes the blast zone, locking tanks in place for a few seconds.'},
+  {id:'plasma', name:'Plasma Lance',       price:36000, dmg:2.4, maxspd:14,turn:0.24, life:420, splash:0,  count:1, color:'#9a6aff', desc:'Blistering-fast energy dart — hard to miss and punches straight through.'},
+  {id:'javelin',name:'Javelin (Top-Attack)',price:40000,dmg:3.4, maxspd:7, turn:0.20, life:480, splash:24, count:1, color:'#ff6ac8', desc:'Top-attack fire-and-forget — dives onto the roof for the heaviest single hit.'},
+  {id:'hydra',  name:'Hydra MIRV',         price:46000, dmg:0.8, maxspd:8, turn:0.19, life:440, splash:0,  count:5, color:'#70d0b0', desc:'Fires five warheads at once: you fly the lead, four wingmen auto-home.'},
 ];
 function getMissileType(){ return MISSILE_TYPES.find(m=>m.id===selectedMissile)||MISSILE_TYPES[0]; }
 // Detonate a splash warhead. The directly-struck target (hit) always takes FULL
@@ -1199,6 +1205,10 @@ function _missileDetonate(b,hit){
   spawnExplosion(b.x,b.y);craters.push({x:b.x,y:b.y,r:Math.min(60,Math.max(14,(b.splash||0)*0.5))});camShake=Math.max(camShake,7);
   const R=b.splash||0,dmg=b.dmg;
   const amt=(t)=>{ if(t===hit)return dmg; if(R<=0)return 0; const d=Math.hypot(t.x-b.x,t.y-b.y); return d<R?dmg*(1-d/R):0; };
+  // Incendiary: leave a burning patch that deals damage-over-time
+  if(b.fire){ fireZones.push({x:b.x,y:b.y,r:Math.max(46,R),owner:b.owner==='enemy'?'enemy':'player',dps:Math.max(20,dmg*0.06),life:360,_tick:0}); }
+  // Cryo: freeze tanks caught in the blast for a few seconds
+  if(b.freeze){ if(b.owner!=='enemy'&&enemies)for(const e of enemies){ if(e.hp>0&&Math.hypot(e.x-b.x,e.y-b.y)<Math.max(R,40)){ e._frozen=b.freeze; } } }
   if(b.owner==='enemy'){
     if(player&&player.hp>0){const a=amt(player);if(a>0){player.hp=Math.max(0,player.hp-a*0.6);player.hitFlash=1;flashDamage();if(player.hp<=0)gameOver();}}
     if(allies)for(let j=allies.length-1;j>=0;j--){const al=allies[j];const a=amt(al);if(a>0){al.hp=Math.max(0,al.hp-a*0.6);al.hitFlash=1;if(al.hp<=0){spawnExplosion(al.x,al.y);allies.splice(j,1);}}}
@@ -1788,6 +1798,23 @@ let drivenMissile=null;
 // Floating hit-damage numbers (used by the test range) — world coords, drift up.
 let _dmgPops=[];
 function _dmgPopup(wx,wy,txt,color){ _dmgPops.push({x:wx,y:wy,txt,color,life:55}); if(_dmgPops.length>60)_dmgPops.shift(); }
+// Burning ground patches left by incendiary missiles — deal damage-over-time.
+let fireZones=[];
+function updateFireZones(dt){
+  for(let i=fireZones.length-1;i>=0;i--){
+    const z=fireZones[i]; z.life-=dt;
+    if(z.life<=0){ fireZones.splice(i,1); continue; }
+    // flame flicker particles
+    if(particles.length<600&&Math.random()<0.6){ const a=Math.random()*6.283,r=Math.random()*z.r; particles.push({type:'fire',x:z.x+Math.cos(a)*r,y:z.y+Math.sin(a)*r,vx:(Math.random()-.5)*.4,vy:-0.8-Math.random(),life:12+Math.random()*10,maxLife:22,alpha:1,r:3+Math.random()*4,color:Math.random()<.5?'#ff6a20':'#ffb040'}); }
+    if((z._tick=(z._tick||0)-dt)>0) continue; z._tick=8; // apply DoT ~7x/sec
+    if(z.owner==='player'){
+      for(let j=enemies.length-1;j>=0;j--){ const e=enemies[j]; if(e.hp<=0)continue; if(Math.hypot(e.x-z.x,e.y-z.y)<z.r+e.size*0.4){ e.hp-=z.dps; e.hitFlash=Math.max(e.hitFlash||0,0.5);
+        if(e.hp<=0){ if(e._dummy){ spawnExplosion(e.x,e.y); e.hp=0; e._respawn=140; } else { coins+=1000;totalKills++;score+=1000;kills++;updateCoinsHud(); if(battleMode!=='testrange')addKillFeed(`${e.name} BURNED +1000🏷`); spawnExplosion(e.x,e.y);enemies.splice(j,1);(document.getElementById('hud-en')||{}).textContent=enemies.length;_on1v1000Kill(); } } } }
+    } else {
+      if(player&&player.hp>0&&Math.hypot(player.x-z.x,player.y-z.y)<z.r+player.size*0.4){ player.hp=Math.max(0,player.hp-z.dps*0.6); player.hitFlash=1; if(player.hp<=0)gameOver(); }
+    }
+  }
+}
 // Global scene light direction — points toward the sun (upper-left). Shadows throw the opposite way.
 const LIGHT={x:-0.6,y:-0.78};
 const WW=4800,WH=4800;
@@ -2408,7 +2435,7 @@ function startGame(){
   // RATTE WAVES: player gets a fixed 4,000 HP pool
   if(battleMode==='rattewaves'){const _base=(t.id==='ratte')?4000:t.hp; player.hp=_base+4000; player.maxHp=_base+4000;}
   camX=player.x-W/2;camY=player.y-H/2;
-  bullets=[];particles=[];craters=[];treadMarks=[];allies=[];playerShield=180;drivenMissile=null;_dmgPops=[];
+  bullets=[];particles=[];craters=[];treadMarks=[];allies=[];playerShield=180;drivenMissile=null;_dmgPops=[];fireZones=[];
   playerInBush=false;spotted=false;spotTimer=0;
   mortarProjs=[];mortarArmed=false;nukeFlash=0;nukeArmed=false;closeArtyMap();
   artyShells=[];artyTarget={x:WW/2,y:WH/2};nukeArmed=false;
@@ -2862,7 +2889,7 @@ function tryShoot(){
       if(!m)continue;
       // Apply the equipped loadout's stats to each missile
       m.dmg=baseDmg*mt.dmg; m.maxspd=mt.maxspd; m.turn=mt.turn; m.life=mt.life;
-      m.splash=mt.splash||0; m.mcolor=mt.color;
+      m.splash=mt.splash||0; m.mcolor=mt.color; m.fire=mt.fire||false; m.freeze=mt.freeze||0;
       // You fly the lead missile with the mouse; any wingmen auto-home to enemies.
       if(k===0){ m.driven=true; drivenMissile=m; } else { m.autohome=true; }
     }
@@ -3284,7 +3311,7 @@ function update(dt){
   if(player){if(player.recoil)player.recoil*=_rd;if(player.hitFlash)player.hitFlash*=_fd;}
   if(enemies)for(const _e of enemies){if(_e.recoil)_e.recoil*=_rd;if(_e.hitFlash)_e.hitFlash*=_fd;}
   if(allies)for(const _a of allies){if(_a.recoil)_a.recoil*=_rd;if(_a.hitFlash)_a.hitFlash*=_fd;}
-  updatePlayer(dt);updateEnemies(dt);updateAllies(dt);updateBullets(dt);updateParticles(dt);updateMortars(dt);checkWave();updateHUD();updateMortarHud();updateNukeHud();
+  updatePlayer(dt);updateEnemies(dt);updateAllies(dt);updateBullets(dt);updateFireZones(dt);updateParticles(dt);updateMortars(dt);checkWave();updateHUD();updateMortarHud();updateNukeHud();
   // Machine-gun cooldown tick
   if(_mgCooldown>0)_mgCooldown-=dt;
   // Auto-fire while fire button held
@@ -3532,6 +3559,8 @@ function updateEnemies(dt){
       continue;
     }
     if(e.hp<=0)continue;
+    // Cryo-frozen: locked in place, can't move or shoot until it thaws
+    if(e._frozen>0){ e._frozen-=dt; if(e.recoil)e.recoil=Math.max(0,e.recoil-dt); continue; }
 
     // ── Find closest target (player or any ally) ──
     let target={x:player.x,y:player.y,hp:player.hp};
@@ -3865,6 +3894,15 @@ function render(){
     ctx.save();ctx.beginPath();ctx.arc(player.x,player.y,360,0,Math.PI*2);ctx.clip();drawGround();ctx.restore();
   }else drawGround();
 
+  // ── Burning incendiary patches (drawn on the ground, under tanks) ──
+  for(const z of fireZones){
+    const fade=Math.min(1,z.life/60);
+    const g=ctx.createRadialGradient(z.x,z.y,z.r*0.15,z.x,z.y,z.r);
+    g.addColorStop(0,'rgba(255,150,40,'+(0.34*fade)+')');
+    g.addColorStop(0.6,'rgba(220,70,20,'+(0.22*fade)+')');
+    g.addColorStop(1,'rgba(80,20,10,0)');
+    ctx.fillStyle=g;ctx.beginPath();ctx.arc(z.x,z.y,z.r,0,Math.PI*2);ctx.fill();
+  }
 
   for(const c of craters){
     const cr=c.r;
@@ -3967,7 +4005,9 @@ function render(){
   for(const e of enemies){if(e.hp<=0)continue;
     const _m=(e.size||30)*4+60; // cull off-screen tanks (margin covers the largest silhouette incl. Ratte)
     if(e.x<camX-_m||e.x>camX+W+_m||e.y<camY-_m||e.y>camY+H+_m)continue;
-    drawTankFull(ctx,e.x,e.y,e.angle,e.turretAngle,e.size,e.color,false,e.hp/e.maxHp,e.name,e.schurzen,e.id||e.name,e.recoil||0,e.hitFlash||0);}
+    drawTankFull(ctx,e.x,e.y,e.angle,e.turretAngle,e.size,e.color,false,e.hp/e.maxHp,e.name,e.schurzen,e.id||e.name,e.recoil||0,e.hitFlash||0);
+    // Cryo-frozen: icy blue shell
+    if(e._frozen>0){ ctx.save();ctx.globalAlpha=Math.min(0.6,e._frozen/300+0.25);ctx.strokeStyle='#a8ecff';ctx.lineWidth=2.5;ctx.beginPath();ctx.arc(e.x,e.y,e.size*1.05,0,Math.PI*2);ctx.stroke();ctx.fillStyle='rgba(150,225,255,.18)';ctx.beginPath();ctx.arc(e.x,e.y,e.size*1.05,0,Math.PI*2);ctx.fill();ctx.restore(); }}
 
     drawTankFull(ctx,player.x,player.y,player.angle,player.turretAngle,player.size,player.color,true,player.hp/player.maxHp,player.name,false,player.id,player.recoil||0,player.hitFlash||0);
 
