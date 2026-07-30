@@ -659,6 +659,7 @@ const TANK_DEFS = [
   {id:'portige',name:'VK 45.01 (P)',nation:'🇩🇪 Germany',hp:680,armor:95,pen:138,dmg:198,speed:2.4,rot:1.5,reload:2.9,ammo:80,color:'#787238',tier:'VI',price:1300,desc:'Porsche Tiger. Electric drive.'},
   {id:'panther2',name:'Panther II',nation:'🇩🇪 Germany',hp:620,armor:90,pen:158,dmg:208,speed:2.9,rot:1.7,reload:2.8,ammo:80,color:'#686238',tier:'VII',price:1600,desc:'Improved Panther. Sloped perfection.'},
   {id:'jpanther',name:'JagdPanther',nation:'🇩🇪 Germany',hp:520,armor:80,pen:162,dmg:222,speed:3.0,rot:1.5,reload:2.9,ammo:57,color:'#5e5c24',tier:'VII',price:1700,desc:'Panther TD. Best tier VII TD.'},
+  {id:'jpanther2',name:'Jagdpanther II',nation:'🇩🇪 Germany',hp:1000,armor:160,pen:245,dmg:380,speed:2.4,rot:1.3,reload:4.2,ammo:44,color:'#4e4c1e',tier:'VIII',price:2600,desc:'Up-armored Panther TD. 12.8cm gun.'},
   {id:'ferdinand',name:'Ferdinand',nation:'🇩🇪 Germany',hp:750,armor:200,pen:182,dmg:278,speed:1.8,rot:1.0,reload:3.5,ammo:50,color:'#585220',tier:'VIII',price:2500,desc:'200mm front. 88mm L/71. Legend.'},
   {id:'e75',name:'E-75',nation:'🇩🇪 Germany',hp:1100,armor:185,pen:198,dmg:338,speed:1.9,rot:1.2,reload:3.8,ammo:68,color:'#4e4818',tier:'IX',price:3800,desc:'Super-heavy concept. Near-impenetrable.'},
   {id:'e50',name:'E-50',nation:'🇩🇪 Germany',hp:980,armor:120,pen:212,dmg:298,speed:2.4,rot:1.5,reload:3.0,ammo:60,color:'#5a5422',tier:'IX',price:3500,desc:'E-series medium. Accurate brawler.'},
@@ -870,7 +871,7 @@ const TANK_DEFS = [
 ];
 
 // Tank Destroyer IDs — turret locked to hull direction
-const _tdIds=new Set(['stug3','jpz4','nashorn','jpz6','su85','su100','su122','isu122','isu152','jpanther','ferdinand','obj268','archer','at5','at8','at7','at15','obj704','hori','su100y','brummbar','sturer','pz4_70']);
+const _tdIds=new Set(['stug3','jpz4','nashorn','jpz6','su85','su100','su122','isu122','isu152','jpanther','ferdinand','obj268','archer','at5','at8','at7','at15','obj704','hori','su100y','brummbar','sturer','pz4_70','jpanther2']);
 const _otIds=new Set(['m10','m36','achilles','borsig_wt','waffentrager','grille15','rhmborsig','su130pm']);
 // Tanks that fire guided HOMING MISSILES instead of shells (gun-launched ATGMs / dedicated launchers)
 const _missileIds=new Set(['m551','xm551','t14armata','kf51','it1']);
@@ -4136,6 +4137,7 @@ const TANK_PROFILES={
   at8: {hl:1.82,hw:0.97,tr:0.30,ty:0.24,bl:0.98,bw:0.118,muzzle:false,boxy:true,sk:false},
   at7: {hl:1.90,hw:1.00,tr:0.30,ty:0.24,bl:1.04,bw:0.125,muzzle:false,boxy:true,sk:false},
   at15:{hl:1.96,hw:1.03,tr:0.30,ty:0.24,bl:1.10,bw:0.132,muzzle:false,boxy:true,sk:false},
+  jpanther2:{hl:1.95,hw:0.94,tr:0.30,ty:0.24,bl:1.25,bw:0.105,muzzle:false,boxy:true,sk:true},
   default:{hl:1.65,hw:0.85,tr:0.33,ty:0.28,bl:0.95,bw:0.090,muzzle:false,boxy:false,sk:false},
 };
 function getProfile(id){return TANK_PROFILES[id]||TANK_PROFILES.default;}
@@ -4902,7 +4904,7 @@ function drawTankPreview(cv,t){
   c.rotate(-Math.PI/2);
   c.fillStyle='rgba(0,0,0,.18)';c.beginPath();c.ellipse(2,3,size*p.hl*.55,size*p.hw*.5,0,0,Math.PI*2);c.fill();
   c.save();_hull(c,size,t.color,p,false,t.id);if(p.sk)_skirts(c,size,t.color,p);c.restore();
-  const _pTD=new Set(['stug3','jpz4','nashorn','jpz6','su85','su100','su122','isu122','isu152','jpanther','ferdinand','obj268','archer','at5','at8','at7','at15','obj704','hori','su100y','brummbar','sturer','pz4_70']);
+  const _pTD=new Set(['stug3','jpz4','nashorn','jpz6','su85','su100','su122','isu122','isu152','jpanther','ferdinand','obj268','archer','at5','at8','at7','at15','obj704','hori','su100y','brummbar','sturer','pz4_70','jpanther2']);
   const _pOT=new Set(['m10','m36','achilles','borsig_wt','waffentrager','grille15','rhmborsig','su130pm']);
   if(_pTD.has(t.id)){c.save();_casemate(c,size,t.color,p,t.id);c.restore();}
   else if(_pOT.has(t.id)){c.save();_openTurret(c,size,t.color,p,t.id);c.restore();}
@@ -5276,7 +5278,7 @@ const TREE_LAYOUT = {
     ['pz4','stug3','vk3601h'],
     ['panther','jpz4','tiger','portige','e25','brummbar','sturer','pz4_70'],
     ['nashorn','panther2','jpanther','sturmtiger'],
-    ['tiger2','ferdinand','borsig_wt','lowe'],
+    ['tiger2','ferdinand','borsig_wt','lowe','jpanther2'],
     ['jpz6','e75','e50','rhmborsig','mauschen'],
     ['maus','e100','grille15','waffentrager','jagdmaus','vk7201'],
     []],
