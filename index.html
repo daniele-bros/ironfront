@@ -1191,16 +1191,31 @@ const MISSILE_TYPES=[
   {id:'swarm',  name:'Swarm Salvo',        price:30000, dmg:0.9, maxspd:8, turn:0.19, life:440, splash:0,  count:3, color:'#b070ff', desc:'Launches three at once: you fly the lead missile, two wingmen auto-home to enemies.'},
 ];
 function getMissileType(){ return MISSILE_TYPES.find(m=>m.id===selectedMissile)||MISSILE_TYPES[0]; }
-// AoE detonation for splash warheads — falls off linearly to the blast edge.
-function _missileDetonate(b){
-  if(!b.splash||b.splash<=0)return;
-  spawnExplosion(b.x,b.y);craters.push({x:b.x,y:b.y,r:Math.min(60,b.splash*0.5)});camShake=Math.max(camShake,7);
-  const R=b.splash,dmg=b.dmg;
+// Detonate a splash warhead. The directly-struck target (hit) always takes FULL
+// damage; everyone else in the blast radius takes damage that falls off to the
+// edge. (Small-radius rounds like HEAT/DU would otherwise deal ~0 to the tank
+// they hit, since that tank sits a full body-radius from the impact point.)
+function _missileDetonate(b,hit){
+  spawnExplosion(b.x,b.y);craters.push({x:b.x,y:b.y,r:Math.min(60,Math.max(14,(b.splash||0)*0.5))});camShake=Math.max(camShake,7);
+  const R=b.splash||0,dmg=b.dmg;
+  const amt=(t)=>{ if(t===hit)return dmg; if(R<=0)return 0; const d=Math.hypot(t.x-b.x,t.y-b.y); return d<R?dmg*(1-d/R):0; };
   if(b.owner==='enemy'){
-    if(player&&player.hp>0){const d=Math.hypot(player.x-b.x,player.y-b.y);if(d<R){player.hp=Math.max(0,player.hp-dmg*(1-d/R)*0.6);player.hitFlash=1;flashDamage();if(player.hp<=0)gameOver();}}
-    if(allies)for(let j=allies.length-1;j>=0;j--){const a=allies[j];const d=Math.hypot(a.x-b.x,a.y-b.y);if(d<R){a.hp=Math.max(0,a.hp-dmg*(1-d/R)*0.6);if(a.hp<=0){spawnExplosion(a.x,a.y);allies.splice(j,1);}}}
+    if(player&&player.hp>0){const a=amt(player);if(a>0){player.hp=Math.max(0,player.hp-a*0.6);player.hitFlash=1;flashDamage();if(player.hp<=0)gameOver();}}
+    if(allies)for(let j=allies.length-1;j>=0;j--){const al=allies[j];const a=amt(al);if(a>0){al.hp=Math.max(0,al.hp-a*0.6);al.hitFlash=1;if(al.hp<=0){spawnExplosion(al.x,al.y);allies.splice(j,1);}}}
   }else{
-    for(let j=enemies.length-1;j>=0;j--){const e=enemies[j];if(e.hp<=0)continue;const d=Math.hypot(e.x-b.x,e.y-b.y);if(d<R){e.hp-=dmg*(1-d/R);e.hitFlash=1;if(e.hp<=0){coins+=1000;totalKills++;score+=1000;kills++;updateCoinsHud();spawnExplosion(e.x,e.y);craters.push({x:e.x,y:e.y,r:e.size*1.4});enemies.splice(j,1);(document.getElementById('hud-en')||{}).textContent=enemies.length;_on1v1000Kill();}}}
+    for(let j=enemies.length-1;j>=0;j--){const e=enemies[j];if(e.hp<=0)continue;const a=amt(e);if(a<=0)continue;
+      e.hp-=a;e.hitFlash=1;spawnHitFx(b.x,b.y,true);
+      if(e.hp<=0){
+        let reward=1000;
+        if(e._isRatte){reward=500000;addKillFeed('💀 RATTE KILL! +500,000 🏷');}
+        coins+=reward;totalKills++;score+=reward;kills++;
+        if(_throttle('coinsave',1000))saveData();
+        updateCoinsHud();showCoinPopup(e.x-camX,e.y-camY,'+'+reward+'🏷');
+        addKillFeed(`${e.name} DESTROYED +${reward}🏷`);
+        spawnExplosion(e.x,e.y);craters.push({x:e.x,y:e.y,r:e.size*1.4});
+        enemies.splice(j,1);(document.getElementById('hud-en')||{}).textContent=enemies.length;_on1v1000Kill();
+      }
+    }
   }
 }
 const _SMOKE_COLORS=new Set(['#555','#5a4a2a','#9a8050','#b8c8d8','#443022','#777']);
@@ -2799,12 +2814,16 @@ function tryShoot(){
     const angle=_tdIds&&_tdIds.has(player.id)?player.angle:player.turretAngle;
     const mt=getMissileType();
     const n=Math.max(1,mt.count||1);
+    // ATGMs are a heavy warhead in their own right — don't scale off a tiny
+    // autocannon shell (IFV carriers have very low per-shell gun damage), so
+    // floor the base so every missile tank's ATGM actually hits hard.
+    const baseDmg=Math.max(player.dmg,340);
     for(let k=0;k<n;k++){
       const spread=(n>1?(k-(n-1)/2)*0.16:0);
       const m=_launchMissile(player.x,player.y,angle+spread,'player',player.dmg,player.size);
       if(!m)continue;
       // Apply the equipped loadout's stats to each missile
-      m.dmg=player.dmg*mt.dmg; m.maxspd=mt.maxspd; m.turn=mt.turn; m.life=mt.life;
+      m.dmg=baseDmg*mt.dmg; m.maxspd=mt.maxspd; m.turn=mt.turn; m.life=mt.life;
       m.splash=mt.splash||0; m.mcolor=mt.color;
       // You fly the lead missile with the mouse; any wingmen auto-home to enemies.
       if(k===0){ m.driven=true; drivenMissile=m; } else { m.autohome=true; }
@@ -3619,8 +3638,8 @@ function updateBullets(dt){
         const e=enemies[j];if(e.hp<=0)continue;
         if(b.pierce&&b.hitSet.has(e))continue;
         if(b.missile&&b.splash>0&&_bulletHitsCircle(b,e.x,e.y,e.size)){
-          // Splash warhead: blast handles all damage/kills in radius
-          _missileDetonate(b);bullets.splice(i,1);detonated=true;break;
+          // Splash warhead: struck tank takes full damage, others get falloff
+          _missileDetonate(b,e);bullets.splice(i,1);detonated=true;break;
         }
         if(_bulletHitsCircle(b,e.x,e.y,e.size)){
           const _ea=effectiveArmor(e.armor,b.x,b.y,b.vx,b.vy,e.x,e.y,e.angle);
