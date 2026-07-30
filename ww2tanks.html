@@ -1172,8 +1172,10 @@ function _homeMissile(b,dt){
 const MISSILE_TYPES=[
   {id:'std',    name:'HEAT-FS (Standard)', price:0,     dmg:1.5, maxspd:6, turn:0.15, life:520, splash:0,  count:1, color:'#c8a84b', desc:'Balanced guided HEAT round. Reliable all-rounder — comes with every missile tank.'},
   {id:'swift',  name:'Swift ATGM',         price:8000,  dmg:1.25,maxspd:9, turn:0.22, life:460, splash:0,  count:1, color:'#5ad0ff', desc:'Fast and razor-agile — snaps onto weaving targets. Lighter warhead.'},
+  {id:'heat',   name:'HEAT Warhead',       price:12000, dmg:1.9, maxspd:6, turn:0.15, life:520, splash:20, count:1, color:'#ffb020', desc:'Shaped-charge jet burns clean through armour and bursts with a focused blast on impact.'},
   {id:'tandem', name:'Tandem Charge',      price:14000, dmg:2.3, maxspd:6, turn:0.16, life:520, splash:34, count:1, color:'#ff9a5a', desc:'Dual warhead defeats heavy armour and bursts for a small blast on impact.'},
   {id:'thermo', name:'Thermobaric',        price:22000, dmg:2.0, maxspd:5, turn:0.12, life:560, splash:90, count:1, color:'#ff5a30', desc:'Slow but devastating — a huge fireball that scorches clustered tanks.'},
+  {id:'du',     name:'Depleted Uranium',   price:26000, dmg:2.7, maxspd:8, turn:0.13, life:520, splash:16, count:1, color:'#c8ff40', desc:'Dense kinetic penetrator — massive damage and a pyrophoric spark that ignites on hit.'},
   {id:'swarm',  name:'Swarm Salvo',        price:30000, dmg:0.9, maxspd:8, turn:0.19, life:440, splash:0,  count:3, color:'#b070ff', desc:'Launches three at once: you fly the lead missile, two wingmen auto-home to enemies.'},
 ];
 function getMissileType(){ return MISSILE_TYPES.find(m=>m.id===selectedMissile)||MISSILE_TYPES[0]; }
