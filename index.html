@@ -1657,6 +1657,34 @@ function toggleSound(){
 let _mgCooldown=0;
 let groundCanvas=null;
 let canShoot=true,reloadInt=null,playerShield=0,camShake=0,camShakeX=0,camShakeY=0;
+// Main gun and guided missile reload on SEPARATE timers, so you can fire the gun
+// while the missile is still reloading (and vice-versa). canShoot = gun ready.
+let missileReady=true;
+let _gunReloadStart=0,_gunReloadDur=0,_mslReloadStart=0,_mslReloadDur=0;
+function _now(){return (typeof performance!=='undefined'?performance.now():Date.now());}
+function _updateRelbar(){
+  const rb=document.getElementById('relbar'); if(!rb)return;
+  const t=_now(); let frac;
+  if(_missileIds&&player&&_missileIds.has(player.id)&&weaponMode==='missile')
+    frac = missileReady?1:Math.min(1,(t-_mslReloadStart)/_mslReloadDur);
+  else
+    frac = canShoot?1:Math.min(1,(t-_gunReloadStart)/_gunReloadDur);
+  rb.style.width=(frac*100)+'%';
+}
+function _beginReload(kind){
+  const dur=player.reloadTime*(1000/60)*(kind==='missile'?1.6:1);
+  if(kind==='missile'){ missileReady=false; _mslReloadStart=_now(); _mslReloadDur=dur; }
+  else { canShoot=false; _gunReloadStart=_now(); _gunReloadDur=dur; }
+  if(reloadInt)return;
+  reloadInt=setInterval(()=>{
+    if(!player||!gameRunning){clearInterval(reloadInt);reloadInt=null;return;}
+    const t=_now();
+    if(!canShoot && t-_gunReloadStart>=_gunReloadDur){ canShoot=true; if(weaponMode!=='missile')playReloadReady(); }
+    if(!missileReady && t-_mslReloadStart>=_mslReloadDur){ missileReady=true; if(weaponMode==='missile')playReloadReady(); }
+    _updateRelbar();
+    if(canShoot && missileReady){ clearInterval(reloadInt); reloadInt=null; }
+  },1000/60);
+}
 let bushes=[],playerInBush=false,spotTimer=0,spotted=false;
 let mortars=0,mortarProjs=[],mortarArmed=false;
 let nukes=0,nukeFlash=0,nukeArmed=false;
@@ -2177,6 +2205,7 @@ function startGame(){
   // Mode ammo overrides: infinite ammo in the swarm modes (1v100, 100x pick, 1v1000)
   if(battleMode==='1v100'||battleMode==='1v100pick'||battleMode==='1v1000'||battleMode==='1v1000pick'){ totalAmmo=currentAmmo=99999; } // ∞ (shows as UNLIMITED)
   if(reloadInt){clearInterval(reloadInt);reloadInt=null;}
+  missileReady=true;canShoot=true;
   const _rb2=document.getElementById('relbar');if(_rb2)_rb2.style.width='100%';
   buildObstacles();
   groundCanvas=null;buildGround();
@@ -2508,6 +2537,7 @@ function toggleWeapon(){
   if(!canUseMissile())return;
   weaponMode = (weaponMode==='missile') ? 'gun' : 'missile';
   updateWeaponHud();
+  _updateRelbar(); // reload bar reflects the newly-selected weapon's timer
   if(typeof playUiClick==='function')playUiClick();
 }
 function updateWeaponHud(){
@@ -2584,21 +2614,24 @@ function tryShoot(){
     const _rb=document.getElementById('relbar');if(_rb)_rb.style.width='100%';
     return;
   }
-  if(!canShoot||currentAmmo<=0||state!=='game')return;
+  const _useMissile=_missileIds.has(player.id)&&weaponMode==='missile';
+  if(currentAmmo<=0||state!=='game')return;
+  // Gun and missile have independent reloads — check only the selected weapon.
+  if(_useMissile){ if(!missileReady)return; } else { if(!canShoot)return; }
 
   // Shooting reveals player from bush
   if(playerInBush){spotted=true;spotTimer=240;} // 4 seconds spotted
-  canShoot=false;
   currentAmmo--;updateAmmoRow();
 
   // Missile tanks launch a guided homing missile when MISSILE mode is selected (toggle with Q)
-  if(_missileIds.has(player.id)&&weaponMode==='missile'){
+  if(_useMissile){
     const angle=_tdIds&&_tdIds.has(player.id)?player.angle:player.turretAngle;
     const m=_launchMissile(player.x,player.y,angle,'player',player.dmg,player.size);
     // Hand the camera to the missile — you now fly it with the mouse. More agile
     // and longer-legged than a fire-and-forget shot so you can steer it home.
     if(m){ m.turn=0.13; m.maxspd=13; m.life=320; m.driven=true; drivenMissile=m; }
     if(player)player.recoil=Math.max(player.recoil||0,player.size*0.24);
+    _beginReload('missile');
   } else {
   const burst=(['pz1','mkvi','type94']).includes(player.id)?6:(['pz2','m3stuart','m5stuart','amx13']).includes(player.id)?4:(['tvp']).includes(player.id)?3:1;
   const burstDelay=80;
@@ -2616,18 +2649,9 @@ function tryShoot(){
       if(player)player.recoil=Math.max(player.recoil||0,player.size*0.22);
     },i*burstDelay);
   }
+  _beginReload('gun');
   }
-
-  const _rStart=(typeof performance!=='undefined'?performance.now():Date.now());
-  const _rDur=player.reloadTime*(1000/60); // reloadTime is in frames; convert to ms
-  const _rb3=document.getElementById('relbar');if(_rb3)_rb3.style.width='0%';
-  reloadInt=setInterval(()=>{
-    if(!player||!gameRunning){clearInterval(reloadInt);reloadInt=null;return;}
-    const _now=(typeof performance!=='undefined'?performance.now():Date.now());
-    const _frac=Math.min(1,(_now-_rStart)/_rDur);
-    const _rb=document.getElementById('relbar');if(_rb)_rb.style.width=(_frac*100)+'%';
-    if(_frac>=1){clearInterval(reloadInt);reloadInt=null;canShoot=true;playReloadReady();}
-  },1000/60);
+  _updateRelbar();
 }
 
 // ════════════════════════════════════════
