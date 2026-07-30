@@ -1106,14 +1106,16 @@ const _otIds=new Set(['m10','m36','achilles','borsig_wt','waffentrager','grille1
 const _missileIds=new Set(['m551','xm551','t14armata','kf51','it1']);
 // Launch a homing missile: slow off the rail, accelerates, steers to the nearest target, HEAT warhead ignores armour.
 function _launchMissile(x,y,ang,owner,dmg,size){
-  bullets.push({
+  const b={
     x:x+Math.cos(ang)*size, y:y+Math.sin(ang)*size,
     vx:Math.cos(ang)*6.5, vy:Math.sin(ang)*6.5,
     owner, dmg:dmg*1.5, pen:9999, fullDmg:true,
     life:230, trail:[], missile:true, homing:true, turn:0.075, maxspd:15, _smoke:0
-  });
+  };
+  bullets.push(b);
   spawnMuzzle(x,y,ang);
   camShake=Math.max(camShake,5);
+  return b;
 }
 // Per-frame missile guidance: steer velocity toward the nearest valid target and trail smoke.
 function _homeMissile(b,dt){
@@ -1663,6 +1665,9 @@ let duelEnemyId=null; // chosen opponent for the PICK FOE modes
 let duelMode='1v1pick'; // which pick mode the arena is choosing for ('1v1pick' | '1v100pick')
 let totalAmmo,currentAmmo;
 let camX=0,camY=0;
+// Missile-cam: when the player launches a guided missile it becomes the camera
+// focus and is flown with the mouse until it hits or burns out.
+let drivenMissile=null;
 // Global scene light direction — points toward the sun (upper-left). Shadows throw the opposite way.
 const LIGHT={x:-0.6,y:-0.78};
 const WW=4800,WH=4800;
@@ -2182,7 +2187,7 @@ function startGame(){
   // RATTE WAVES: player gets a fixed 4,000 HP pool
   if(battleMode==='rattewaves'){const _base=(t.id==='ratte')?4000:t.hp; player.hp=_base+4000; player.maxHp=_base+4000;}
   camX=player.x-W/2;camY=player.y-H/2;
-  bullets=[];particles=[];craters=[];treadMarks=[];allies=[];playerShield=180;
+  bullets=[];particles=[];craters=[];treadMarks=[];allies=[];playerShield=180;drivenMissile=null;
   playerInBush=false;spotted=false;spotTimer=0;
   mortarProjs=[];mortarArmed=false;nukeFlash=0;nukeArmed=false;closeArtyMap();
   artyShells=[];artyTarget={x:WW/2,y:WH/2};nukeArmed=false;
@@ -2589,7 +2594,10 @@ function tryShoot(){
   // Missile tanks launch a guided homing missile when MISSILE mode is selected (toggle with Q)
   if(_missileIds.has(player.id)&&weaponMode==='missile'){
     const angle=_tdIds&&_tdIds.has(player.id)?player.angle:player.turretAngle;
-    _launchMissile(player.x,player.y,angle,'player',player.dmg,player.size);
+    const m=_launchMissile(player.x,player.y,angle,'player',player.dmg,player.size);
+    // Hand the camera to the missile — you now fly it with the mouse. More agile
+    // and longer-legged than a fire-and-forget shot so you can steer it home.
+    if(m){ m.turn=0.13; m.maxspd=13; m.life=320; m.driven=true; drivenMissile=m; }
     if(player)player.recoil=Math.max(player.recoil||0,player.size*0.24);
   } else {
   const burst=(['pz1','mkvi','type94']).includes(player.id)?6:(['pz2','m3stuart','m5stuart','amx13']).includes(player.id)?4:(['tvp']).includes(player.id)?3:1;
@@ -3032,6 +3040,8 @@ function updatePlayer(dt){
   if(keys['KeyS']||keys['ArrowDown']) dy+=1;
   if(keys['KeyA']||keys['ArrowLeft']) dx-=1;
   if(keys['KeyD']||keys['ArrowRight'])dx+=1;
+  // While flying a missile the crew is heads-down at the sight — the tank holds position.
+  if(drivenMissile){ dx=0; dy=0; }
   let moving=dx!==0||dy!==0;
   { const _boost=(keys['ShiftLeft']||keys['ShiftRight'])&&!mud; _setEngine(moving?(_boost?1:0.6):0); }
   if(moving){
@@ -3077,6 +3087,15 @@ function updatePlayer(dt){
 
   camX=Math.max(0,Math.min(WW-W,player.x-W/2));
   camY=Math.max(0,Math.min(WH-H,player.y-H/2));
+  // Missile-cam override: if a driven missile is still in flight, follow it so the
+  // crosshair aims from the missile's viewpoint. It's cleared when the missile is gone.
+  if(drivenMissile){
+    if(drivenMissile.life<=0||bullets.indexOf(drivenMissile)<0){ drivenMissile=null; }
+    else{
+      camX=Math.max(0,Math.min(WW-W,drivenMissile.x-W/2));
+      camY=Math.max(0,Math.min(WH-H,drivenMissile.y-H/2));
+    }
+  }
   // Bush concealment check
   playerInBush=false;
   for(const b of bushes){
@@ -3724,6 +3743,15 @@ function render(){
   // fire + sparks in front
   for(const p of particles)if(p.type==='fire'||p.type==='spark'||(!p.type&&!_SMOKE_COLORS.has(p.color)))drawPart(p);
 
+  // ── Missile-cam: highlight the missile you're flying (world-space) ──
+  if(drivenMissile&&drivenMissile.life>0&&bullets.indexOf(drivenMissile)>=0){
+    const mm=drivenMissile, t=(mm.life%30)/30, rr=13+t*7;
+    ctx.strokeStyle='rgba(120,230,255,'+(0.8-t*0.6)+')';ctx.lineWidth=2;
+    ctx.beginPath();ctx.arc(mm.x,mm.y,rr,0,Math.PI*2);ctx.stroke();
+    ctx.strokeStyle='rgba(120,230,255,.9)';ctx.lineWidth=1.5;
+    for(let k=0;k<4;k++){const a=k*Math.PI/2;ctx.beginPath();ctx.moveTo(mm.x+Math.cos(a)*9,mm.y+Math.sin(a)*9);ctx.lineTo(mm.x+Math.cos(a)*16,mm.y+Math.sin(a)*16);ctx.stroke();}
+  }
+
   ctx.restore();
   // ── Clean vibrant arcade grade: overlay lifts saturation+contrast, soft-light keeps it bright (no muddy crush) ──
   if(selectedMap){
@@ -3736,6 +3764,26 @@ function render(){
     ctx.globalCompositeOperation='soft-light';
     ctx.fillStyle='rgba(255,250,235,.07)';ctx.fillRect(0,0,W,H);
     ctx.globalCompositeOperation='source-over';
+  }
+  // ── Missile-cam HUD (screen-space) ──
+  if(drivenMissile&&drivenMissile.life>0&&bullets.indexOf(drivenMissile)>=0){
+    // cyan scanline tint at the edges to sell the "through the seeker" look
+    ctx.save();
+    const vg=ctx.createRadialGradient(W/2,H/2,Math.min(W,H)*0.25,W/2,H/2,Math.max(W,H)*0.62);
+    vg.addColorStop(0,'rgba(60,200,255,0)');vg.addColorStop(1,'rgba(30,160,220,.16)');
+    ctx.fillStyle=vg;ctx.fillRect(0,0,W,H);
+    // corner brackets
+    ctx.strokeStyle='rgba(120,230,255,.7)';ctx.lineWidth=2;const pad=26,ln=26;
+    const corner=(x,y,sx,sy)=>{ctx.beginPath();ctx.moveTo(x+sx*ln,y);ctx.lineTo(x,y);ctx.lineTo(x,y+sy*ln);ctx.stroke();};
+    corner(pad,pad,1,1);corner(W-pad,pad,-1,1);corner(pad,H-pad,1,-1);corner(W-pad,H-pad,-1,-1);
+    // banner
+    ctx.font='bold 15px Oswald,sans-serif';ctx.textAlign='center';
+    const life=Math.max(0,Math.round(drivenMissile.life/60*100)/100);
+    ctx.fillStyle='rgba(10,20,26,.55)';ctx.fillRect(W/2-140,12,280,26);
+    ctx.fillStyle='rgba(150,235,255,.95)';
+    ctx.fillText('◈ MISSILE CAM — STEER WITH MOUSE',W/2,30);
+    ctx.textAlign='left';
+    ctx.restore();
   }
   // Edge vignette (screen-space, after world restore)
   // Layered vignette: soft inner + hard corner darkening
