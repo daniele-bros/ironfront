@@ -2629,7 +2629,7 @@ function tryShoot(){
     const m=_launchMissile(player.x,player.y,angle,'player',player.dmg,player.size);
     // Hand the camera to the missile — you now fly it with the mouse. More agile
     // and longer-legged than a fire-and-forget shot so you can steer it home.
-    if(m){ m.turn=0.13; m.maxspd=13; m.life=320; m.driven=true; drivenMissile=m; }
+    if(m){ m.turn=0.15; m.maxspd=8; m.life=420; m.driven=true; drivenMissile=m; }
     if(player)player.recoil=Math.max(player.recoil||0,player.size*0.24);
     _beginReload('missile');
   } else {
