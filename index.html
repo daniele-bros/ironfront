@@ -1115,6 +1115,7 @@ const MISSILE_TYPES=[
   {id:'tesla',  name:'Chain Lightning',    price:50000, dmg:1.6, maxspd:8, turn:0.20, life:460, splash:0,  count:1, color:'#c0a0ff', chain:4, desc:'Arcs from the target to nearby tanks, each jump a little weaker.'},
   {id:'vortex', name:'Singularity',        price:58000, dmg:1.8, maxspd:6, turn:0.15, life:520, splash:60, count:1, color:'#a060ff', pull:true, desc:'Collapses a gravity well that drags tanks together, then detonates.'},
   {id:'quake',  name:'Seismic Charge',     price:62000, dmg:2.4, maxspd:5, turn:0.12, life:560, splash:150,count:1, color:'#e08040', fire:true, desc:'Ground-rupturing blast — massive area damage and lingering flames.'},
+  {id:'madjack',name:'Mad Jack Churchill',  price:70000, dmg:3.6, maxspd:14,turn:0.19, life:480, splash:0,  count:1, color:'#c0d0e0', pierce:true, heal:0.35, chain:2, desc:'A flying claymore that charges sword-first through the whole enemy line, healing with every cut. "Any officer who goes into action without his sword is improperly dressed."'},
 ];
 function getMissileType(){ return MISSILE_TYPES.find(m=>m.id===selectedMissile)||MISSILE_TYPES[0]; }
 // Detonate a splash warhead. The directly-struck target (hit) always takes FULL
