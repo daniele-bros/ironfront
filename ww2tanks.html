@@ -464,18 +464,9 @@ body[data-state="mode"] #screen-title { display:none!important; }
     <button class="tnav-btn" id="tnav-cz"   onclick="treeShowNation('czech')">&#127464;&#127487; CZ</button>
     <button class="tnav-btn" id="tnav-it"   onclick="treeShowNation('italian')">&#127470;&#127481; IT</button>
     <button class="tnav-btn" id="tnav-pl"   onclick="treeShowNation('polish')">&#127477;&#127473; PL</button>
-    <button class="tnav-btn" id="tnav-hu"   onclick="treeShowNation('hungarian')">&#127469;&#127482; HU</button>
-    <button class="tnav-btn" id="tnav-romania" onclick="treeShowNation('romania')">&#127479;&#127476; RO</button>
     <button class="tnav-btn" id="tnav-australia" onclick="treeShowNation('australia')">&#127462;&#127482; AU</button>
-    <button class="tnav-btn" id="tnav-argentina" onclick="treeShowNation('argentina')">&#127462;&#127479; AR</button>
     <button class="tnav-btn" id="tnav-swiss" onclick="treeShowNation('swiss')">&#127464;&#127469; CH</button>
-    <button class="tnav-btn" id="tnav-israel" onclick="treeShowNation('israel')">&#127470;&#127473; IL</button>
-    <button class="tnav-btn" id="tnav-yugoslavia" onclick="treeShowNation('yugoslavia')">&#127479;&#127480; YU</button>
-    <button class="tnav-btn" id="tnav-spain" onclick="treeShowNation('spain')">&#127466;&#127480; ES</button>
     <button class="tnav-btn" id="tnav-finland" onclick="treeShowNation('finland')">&#127467;&#127470; FI</button>
-    <button class="tnav-btn" id="tnav-brazil" onclick="treeShowNation('brazil')">&#127463;&#127479; BR</button>
-    <button class="tnav-btn" id="tnav-safrica" onclick="treeShowNation('safrica')">&#127487;&#127462; ZA</button>
-    <button class="tnav-btn" id="tnav-turkey" onclick="treeShowNation('turkey')">&#127481;&#127479; TR</button>
     <button class="tnav-btn" id="tnav-ukraine" onclick="treeShowNation('ukraine')">&#127482;&#127462; UA</button>
     <button class="tnav-btn" id="tnav-carrier" onclick="treeShowNation('carrier')" style="border-color:rgba(120,160,90,.5);color:#9ab060">&#128666; IFV CARRIERS</button>
     <button class="tnav-btn" id="tnav-mslcarrier" onclick="treeShowNation('mslcarrier')" style="border-color:rgba(150,110,200,.5);color:#b090e0">&#128640; MSL CARRIERS</button>
@@ -719,33 +710,11 @@ const TANK_DEFS = [
   {id:'p40tp',name:'40TP Habicha',nation:'🇵🇱 Poland',hp:620,armor:90,pen:130,dmg:180,speed:2.8,rot:1.6,reload:2.8,ammo:50,color:'#4e5c44',tier:'VI',price:1300,desc:'Polish heavy project.'},
   {id:'p45tp',name:'45TP Habicha',nation:'🇵🇱 Poland',hp:820,armor:130,pen:165,dmg:240,speed:2.6,rot:1.5,reload:3.0,ammo:45,color:'#4c5a42',tier:'VII',price:2000,desc:'Polish heavy. Three MGs.'},
   {id:'p53tp',name:'53TP',nation:'🇵🇱 Poland',hp:1250,armor:180,pen:220,dmg:320,speed:2.6,rot:1.4,reload:3.4,ammo:40,color:'#4a583e',tier:'VIII',price:3000,desc:'Polish heavy. Menžela design.'},
-  {id:'toldi1',name:'Toldi I',nation:'🇭🇺 Hungary',hp:100,armor:14,pen:30,dmg:32,speed:4.4,rot:2.6,reload:1.5,ammo:70,color:'#6a6640',tier:'I',price:0,desc:'Hungarian light. 20mm.'},
-  {id:'toldi2',name:'Toldi IIa',nation:'🇭🇺 Hungary',hp:170,armor:20,pen:45,dmg:55,speed:4.2,rot:2.4,reload:1.9,ammo:60,color:'#686638',tier:'II',price:300,desc:'Up-gunned Toldi. 40mm.'},
-  {id:'turan1',name:'Turán I',nation:'🇭🇺 Hungary',hp:250,armor:40,pen:58,dmg:85,speed:3.6,rot:2.0,reload:2.2,ammo:64,color:'#6c6a3c',tier:'III',price:450,desc:'Hungarian medium. 40mm.'},
-  {id:'turan2',name:'Turán II',nation:'🇭🇺 Hungary',hp:340,armor:50,pen:80,dmg:120,speed:3.4,rot:1.9,reload:2.4,ammo:60,color:'#6a683a',tier:'IV',price:650,desc:'Hungarian medium. 75mm.'},
-  {id:'zrinyi',name:'Zrínyi II',nation:'🇭🇺 Hungary',hp:400,armor:60,pen:110,dmg:200,speed:3.0,rot:1.7,reload:3.2,ammo:40,color:'#64643a',tier:'V',price:900,desc:'Hungarian assault gun. 105mm.'},
-  {id:'turan3',name:'Turán III',nation:'🇭🇺 Hungary',hp:480,armor:70,pen:120,dmg:160,speed:3.3,rot:1.9,reload:2.4,ammo:55,color:'#66643a',tier:'VI',price:1300,desc:'Final Turán. Long 75mm.'},
-  {id:'tas',name:'Tas',nation:'🇭🇺 Hungary',hp:820,armor:120,pen:165,dmg:240,speed:2.8,rot:1.6,reload:3.0,ammo:45,color:'#5e5e36',tier:'VII',price:2000,desc:'Hungarian medium/heavy. 75mm.'},
-  {id:'tasr',name:'Tas Rohamlöveg',nation:'🇭🇺 Hungary',hp:1000,armor:130,pen:220,dmg:320,speed:2.6,rot:1.5,reload:3.6,ammo:40,color:'#5c5c34',tier:'VIII',price:2800,desc:'Hungarian casemate TD. 88mm.'},
-  {id:'r2',name:'R-2',nation:'🇷🇴 Romania',hp:160,armor:25,pen:42,dmg:55,speed:4.0,rot:2.4,reload:1.9,ammo:60,color:'#5a6040',tier:'II',price:300,desc:'Romanian Škoda light.'},
-  {id:'tacam',name:'TACAM T-60',nation:'🇷🇴 Romania',hp:220,armor:30,pen:75,dmg:110,speed:3.2,rot:1.8,reload:2.4,ammo:44,color:'#586038',tier:'III',price:450,desc:'Romanian casemate TD.'},
-  {id:'maresal',name:'Mareșal M05',nation:'🇷🇴 Romania',hp:300,armor:45,pen:110,dmg:150,speed:3.4,rot:1.9,reload:2.6,ammo:40,color:'#566036',tier:'IV',price:700,desc:'Romanian TD. Inspired the Hetzer.'},
   {id:'sentinel1',name:'Sentinel AC1',nation:'🇦🇺 Australia',hp:320,armor:65,pen:72,dmg:95,speed:3.6,rot:2.0,reload:2.2,ammo:60,color:'#5a6842',tier:'IV',price:650,desc:'Australian cruiser tank.'},
   {id:'sentinel4',name:'Sentinel AC4',nation:'🇦🇺 Australia',hp:420,armor:65,pen:130,dmg:175,speed:3.5,rot:2.0,reload:2.6,ammo:55,color:'#586640',tier:'V',price:900,desc:'Sentinel with 17-pdr.'},
-  {id:'tam',name:'TAM',nation:'🇦🇷 Argentina',hp:640,armor:50,pen:175,dmg:200,speed:4.4,rot:2.4,reload:2.4,ammo:55,color:'#5c6444',tier:'VI',price:1300,desc:'Argentine medium. Marder-based.'},
   {id:'pz58',name:'Panzer 58',nation:'🇨🇭 Switzerland',hp:900,armor:120,pen:200,dmg:240,speed:3.4,rot:1.9,reload:2.8,ammo:50,color:'#586048',tier:'VII',price:2000,desc:'Swiss medium tank.'},
-  {id:'shotkal',name:'Sho’t Kal',nation:'🇮🇱 Israel',hp:1250,armor:180,pen:226,dmg:280,speed:3.0,rot:1.7,reload:2.8,ammo:55,color:'#54603c',tier:'VIII',price:3000,desc:'Israeli up-gunned Centurion.'},
-  {id:'m84',name:'M-84',nation:'🇷🇸 Yugoslavia',hp:1450,armor:210,pen:268,dmg:320,speed:3.6,rot:2.0,reload:3.0,ammo:42,color:'#4e5a3a',tier:'IX',price:3600,desc:'Yugoslav T-72 derivative.'},
-  {id:'magach7',name:'Magach 7C',nation:'🇮🇱 Israel',hp:1600,armor:260,pen:290,dmg:380,speed:3.2,rot:1.9,reload:3.4,ammo:40,color:'#525e3a',tier:'X',price:5500,desc:'Israeli up-armored M60.'},
-  {id:'verdeja',name:'Verdeja 1',nation:'🇪🇸 Spain',hp:170,armor:25,pen:45,dmg:55,speed:4.0,rot:2.4,reload:1.9,ammo:60,color:'#606440',tier:'II',price:300,desc:'Spanish light tank.'},
   {id:'l62',name:'Landsverk L-62',nation:'🇫🇮 Finland',hp:240,armor:28,pen:58,dmg:72,speed:4.2,rot:2.4,reload:2.0,ammo:60,color:'#5c6640',tier:'III',price:450,desc:'Finnish anti-air/light.'},
   {id:'bt42',name:'BT-42',nation:'🇫🇮 Finland',hp:300,armor:35,pen:95,dmg:200,speed:3.8,rot:2.0,reload:3.4,ammo:36,color:'#5a6238',tier:'IV',price:700,desc:'Finnish assault gun. 114mm.'},
-  {id:'x1a2',name:'X1A2',nation:'🇧🇷 Brazil',hp:420,armor:40,pen:130,dmg:150,speed:4.6,rot:2.6,reload:2.4,ammo:55,color:'#586644',tier:'V',price:900,desc:'Brazilian light. Stuart-derived.'},
-  {id:'tamoyo',name:'MB-3 Tamoyo',nation:'🇧🇷 Brazil',hp:640,armor:60,pen:175,dmg:200,speed:4.2,rot:2.4,reload:2.4,ammo:55,color:'#566444',tier:'VI',price:1300,desc:'Brazilian medium tank.'},
-  {id:'olifant',name:'Olifant Mk1B',nation:'🇿🇦 S.Africa',hp:900,armor:130,pen:210,dmg:240,speed:3.2,rot:1.8,reload:2.8,ammo:50,color:'#546038',tier:'VII',price:2000,desc:'S.African upgraded Centurion.'},
-  {id:'rooikat',name:'Rooikat',nation:'🇿🇦 S.Africa',hp:850,armor:40,pen:230,dmg:280,speed:5.4,rot:2.4,reload:3.0,ammo:48,color:'#586640',tier:'VIII',price:3000,desc:'S.African wheeled fighting vehicle.'},
-  {id:'osorio',name:'EE-T1 Osório',nation:'🇧🇷 Brazil',hp:1450,armor:180,pen:268,dmg:320,speed:4.0,rot:2.2,reload:2.8,ammo:45,color:'#4e5a3a',tier:'IX',price:3600,desc:'Brazilian export MBT prototype.'},
-  {id:'altay',name:'Altay',nation:'🇹🇷 Turkey',hp:1650,armor:260,pen:300,dmg:400,speed:3.6,rot:2.0,reload:3.2,ammo:40,color:'#525e38',tier:'X',price:5500,desc:'Turkish modern MBT. 120mm.'},
   {id:'oplot',name:'T-84 Oplot',nation:'🇺🇦 Ukraine',hp:1550,armor:250,pen:300,dmg:420,speed:3.8,rot:2.0,reload:3.4,ammo:38,color:'#4c5836',tier:'X',price:5500,desc:'Ukrainian MBT. Autoloader 125mm.'},
   {id:'ac_wedge',name:'AC Wedge',nation:'⚡ Hybrid',hp:380,armor:60,pen:90,dmg:110,speed:3.8,rot:2.2,reload:2.2,ammo:50,color:'#5a5a5a',tier:'IV',price:650,desc:'Hybrid Nation Tier IV. Wedge turret.'},
   {id:'ac_atlas',name:'AC Atlas',nation:'⚡ Hybrid',hp:1900,armor:270,pen:300,dmg:420,speed:3.0,rot:1.6,reload:3.6,ammo:34,color:'#54545a',tier:'X',price:6000,desc:'AC-07. Hybrid Nation Tier X heavy.'},
@@ -986,16 +955,6 @@ const TANK_DEFS = [
   {id:'k1_88', name:'K1 88-Tank', nation:'🇰🇷', hp:1260,armor:186,pen:255,dmg:406,speed:3.4,rot:1.9,reload:4.6,ammo:48,color:'#48543a',tier:'IX',price:6500,desc:'South Korean MBT. 105mm, hydropneumatic suspension.'},
   {id:'strv104', name:'Strv 104', nation:'🇸🇪', hp:890,armor:126,pen:192,dmg:288,speed:3.4,rot:1.9,reload:3.8,ammo:55,color:'#525c40',tier:'VII',price:2800,desc:'Swedish Centurion rebuild. 105mm L7, laser rangefinder.'},
   // -- romania +10 --
-  {id:'r1_ro', name:'R-1', nation:'🇷🇴', hp:122,armor:9,pen:42,dmg:32,speed:5.2,rot:2.9,reload:1.1,ammo:48,color:'#5a6448',tier:'I',price:100,desc:'Czech-built AH-IV tankette in Romanian service.'},
-  {id:'r35ro', name:'Vânătorul R-35', nation:'🇷🇴', hp:196,armor:15,pen:58,dmg:46,speed:4.8,rot:2.7,reload:1.5,ammo:72,color:'#5a6448',tier:'II',price:250,desc:'Romanian R-35 light rearmed with a 45mm gun.'},
-  {id:'vdc_ro', name:'Vânătorul de Care', nation:'🇷🇴', hp:513,armor:82,pen:151,dmg:224,speed:3.4,rot:2.1,reload:3.4,ammo:50,color:'#4e5636',tier:'V',price:1200,desc:'R-35 converted to a Soviet-gun tank destroyer.'},
-  {id:'tr77', name:'TR-77', nation:'🇷🇴', hp:710,armor:96,pen:162,dmg:228,speed:3.5,rot:2.0,reload:3.4,ammo:50,color:'#525c40',tier:'VI',price:1800,desc:'Romanian T-55 development with local improvements.'},
-  {id:'tr580', name:'TR-580', nation:'🇷🇴', hp:890,armor:126,pen:192,dmg:288,speed:3.4,rot:1.9,reload:3.8,ammo:55,color:'#525c40',tier:'VII',price:2800,desc:'Romanian MBT with six road wheels, 100mm gun.'},
-  {id:'tr85', name:'TR-85', nation:'🇷🇴', hp:1060,armor:156,pen:216,dmg:336,speed:3.3,rot:1.9,reload:4.2,ammo:52,color:'#525c40',tier:'VIII',price:4200,desc:'Main Romanian Cold War MBT. 100mm rifled gun.'},
-  {id:'tr85m1', name:'TR-85M1 Bizonul', nation:'🇷🇴', hp:1260,armor:186,pen:246,dmg:406,speed:3.3,rot:1.9,reload:4.6,ammo:48,color:'#525c40',tier:'IX',price:6500,desc:'Modernized TR-85 with composite armor and FCS.'},
-  {id:'tm800', name:'TM-800', nation:'🇷🇴', hp:1260,armor:186,pen:255,dmg:406,speed:3.4,rot:1.9,reload:4.6,ammo:48,color:'#48543a',tier:'IX',price:6500,desc:'Romanian prototype MBT with autoloader trials.'},
-  {id:'tr125', name:'TR-125', nation:'🇷🇴', hp:1480,armor:222,pen:282,dmg:466,speed:3.5,rot:1.9,reload:4.8,ammo:45,color:'#48543a',tier:'X',price:10000,desc:'Romanian T-72 derivative, lengthened hull, 125mm.'},
-  {id:'tr2000', name:'TR-2000', nation:'🇷🇴', hp:1480,armor:222,pen:282,dmg:466,speed:3.5,rot:1.9,reload:4.8,ammo:45,color:'#48543a',tier:'X',price:10000,desc:'Proposed Romanian next-gen MBT. Western FCS.'},
   // -- australia +10 --
   {id:'carrier_au', name:'Universal Carrier', nation:'🇦🇺', hp:122,armor:9,pen:42,dmg:32,speed:5.2,rot:2.9,reload:1.1,ammo:48,color:'#5a6448',tier:'I',price:100,desc:'Ubiquitous tracked carrier with a Bren gun.'},
   {id:'ac1_au', name:'AC I Sentinel', nation:'🇦🇺', hp:340,armor:34,pen:82,dmg:115,speed:3.8,rot:2.2,reload:2.2,ammo:50,color:'#525c40',tier:'III',price:450,desc:'First Australian cruiser tank. Cast hull, 2-pdr.'},
@@ -1008,16 +967,6 @@ const TANK_DEFS = [
   {id:'leo_as1', name:'Leopard AS1', nation:'🇦🇺', hp:1060,armor:156,pen:216,dmg:336,speed:3.3,rot:1.9,reload:4.2,ammo:52,color:'#525c40',tier:'VIII',price:4200,desc:'Australian Leopard 1. 105mm, thermal sights.'},
   {id:'m1a1aim', name:'M1A1 AIM Abrams', nation:'🇦🇺', hp:1480,armor:222,pen:282,dmg:466,speed:3.5,rot:1.9,reload:4.8,ammo:45,color:'#48543a',tier:'X',price:10000,desc:'Australian Abrams. 120mm M256, DU-free armor.'},
   // -- argentina +10 --
-  {id:'dl43', name:'Nahuel DL-43', nation:'🇦🇷', hp:440,armor:52,pen:105,dmg:155,speed:3.6,rot:2.1,reload:2.6,ammo:55,color:'#525c40',tier:'IV',price:750,desc:'Indigenous WW2-era Argentine medium tank. 75mm.'},
-  {id:'amx13_ar', name:'AMX-13 (Arg)', nation:'🇦🇷', hp:360,armor:36,pen:105,dmg:131,speed:4.2,rot:2.4,reload:2.1,ammo:66,color:'#5a6448',tier:'IV',price:750,desc:'French light with oscillating autoloader turret.'},
-  {id:'sherman_rep', name:'Sherman Repotenciado', nation:'🇦🇷', hp:570,armor:74,pen:132,dmg:190,speed:3.6,rot:2.1,reload:3.0,ammo:50,color:'#525c40',tier:'V',price:1200,desc:'Argentine Sherman rebuild with a French 105mm.'},
-  {id:'patagon', name:'Patagón', nation:'🇦🇷', hp:467,armor:51,pen:132,dmg:161,speed:4.2,rot:2.4,reload:2.5,ammo:60,color:'#5a6448',tier:'V',price:1200,desc:'AMX-13 hull with a Scorpion 90mm turret.'},
-  {id:'sk105', name:'SK-105 Kürassier', nation:'🇦🇷', hp:513,armor:82,pen:151,dmg:224,speed:3.4,rot:2.1,reload:3.4,ammo:50,color:'#4e5636',tier:'V',price:1200,desc:'Austrian light tank destroyer, oscillating turret.'},
-  {id:'vctp', name:'VCTP', nation:'🇦🇷', hp:582,armor:67,pen:162,dmg:193,speed:4.1,rot:2.3,reload:2.8,ammo:60,color:'#5a6448',tier:'VI',price:1800,desc:'TAM-based IFV with a 20mm autocannon.'},
-  {id:'vca155', name:'VCA 155 Palmaria', nation:'🇦🇷', hp:639,armor:107,pen:186,dmg:269,speed:3.3,rot:2.0,reload:3.9,ammo:50,color:'#4e5636',tier:'VI',price:1800,desc:'TAM chassis self-propelled 155mm howitzer.'},
-  {id:'tam2c', name:'TAM 2C', nation:'🇦🇷', hp:890,armor:126,pen:192,dmg:288,speed:3.4,rot:1.9,reload:3.8,ammo:55,color:'#525c40',tier:'VII',price:2800,desc:'Upgraded TAM. Composite armor, modern FCS.'},
-  {id:'tam2ip', name:'TAM 2IP', nation:'🇦🇷', hp:1060,armor:156,pen:216,dmg:336,speed:3.3,rot:1.9,reload:4.2,ammo:52,color:'#525c40',tier:'VIII',price:4200,desc:'TAM with add-on passive armor package.'},
-  {id:'tam2c40', name:'TAM 2C40', nation:'🇦🇷', hp:1260,armor:186,pen:255,dmg:406,speed:3.4,rot:1.9,reload:4.6,ammo:48,color:'#48543a',tier:'IX',price:6500,desc:'TAM rearmed with a 120mm smoothbore and autoloader.'},
   // -- swiss +10 --
   {id:'pz39', name:'Panzer 39', nation:'🇨🇭', hp:278,armor:23,pen:82,dmg:97,speed:4.4,rot:2.5,reload:1.8,ammo:60,color:'#5a6448',tier:'III',price:450,desc:'Czech LTH bought by Switzerland. 24mm autocannon.'},
   {id:'nk1', name:'NK I', nation:'🇨🇭', hp:440,armor:52,pen:105,dmg:155,speed:3.6,rot:2.1,reload:2.6,ammo:55,color:'#525c40',tier:'IV',price:750,desc:'Swiss Nahkampfkanone prototype medium tank.'},
@@ -1030,38 +979,8 @@ const TANK_DEFS = [
   {id:'pz87', name:'Panzer 87', nation:'🇨🇭', hp:1480,armor:222,pen:282,dmg:466,speed:3.5,rot:1.9,reload:4.8,ammo:45,color:'#48543a',tier:'X',price:10000,desc:'Swiss-built Leopard 2. 120mm smoothbore.'},
   {id:'pz68_2000', name:'Panzer 68/2000', nation:'🇨🇭', hp:1480,armor:222,pen:282,dmg:466,speed:3.5,rot:1.9,reload:4.8,ammo:45,color:'#48543a',tier:'X',price:10000,desc:'Proposed Swiss MBT modernization study.'},
   // -- israel +10 --
-  {id:'sherman_idf', name:'M4 Sherman (IDF)', nation:'🇮🇱', hp:570,armor:74,pen:132,dmg:190,speed:3.6,rot:2.1,reload:3.0,ammo:50,color:'#525c40',tier:'V',price:1200,desc:'Early IDF Sherman used in 1948 and 1956.'},
-  {id:'sherman_m50', name:'Sherman M-50', nation:'🇮🇱', hp:710,armor:96,pen:162,dmg:228,speed:3.5,rot:2.0,reload:3.4,ammo:50,color:'#525c40',tier:'VI',price:1800,desc:'Israeli Sherman rearmed with a French 75mm.'},
-  {id:'sherman_m51', name:'Sherman M-51', nation:'🇮🇱', hp:890,armor:126,pen:192,dmg:288,speed:3.4,rot:1.9,reload:3.8,ammo:55,color:'#525c40',tier:'VII',price:2800,desc:'"Isherman" with a cut-down 105mm gun.'},
-  {id:'tiran4', name:'Tiran 4', nation:'🇮🇱', hp:890,armor:126,pen:192,dmg:288,speed:3.4,rot:1.9,reload:3.8,ammo:55,color:'#525c40',tier:'VII',price:2800,desc:'Captured T-54 rebuilt to Israeli standards.'},
-  {id:'tiran5', name:'Tiran 5', nation:'🇮🇱', hp:1060,armor:156,pen:216,dmg:336,speed:3.3,rot:1.9,reload:4.2,ammo:52,color:'#525c40',tier:'VIII',price:4200,desc:'Captured T-55 with a 105mm L7 conversion.'},
-  {id:'magach3', name:'Magach 3', nation:'🇮🇱', hp:1060,armor:156,pen:216,dmg:336,speed:3.3,rot:1.9,reload:4.2,ammo:52,color:'#525c40',tier:'VIII',price:4200,desc:'Israeli M48 with 105mm gun and Blazer ERA.'},
-  {id:'magach6b', name:'Magach 6B', nation:'🇮🇱', hp:1260,armor:186,pen:246,dmg:406,speed:3.3,rot:1.9,reload:4.6,ammo:48,color:'#525c40',tier:'IX',price:6500,desc:'Upgraded M60 with reactive armor and new FCS.'},
-  {id:'merkava2', name:'Merkava Mk.2', nation:'🇮🇱', hp:1612,armor:251,pen:246,dmg:446,speed:2.8,rot:1.6,reload:5.2,ammo:48,color:'#4a5438',tier:'IX',price:6500,desc:'Israeli MBT improved for urban and low-intensity war.'},
-  {id:'sabra', name:'Sabra', nation:'🇮🇱', hp:1260,armor:186,pen:255,dmg:406,speed:3.4,rot:1.9,reload:4.6,ammo:48,color:'#48543a',tier:'IX',price:6500,desc:'Magach-based export MBT with a 120mm smoothbore.'},
-  {id:'merkava4b', name:'Merkava Mk.4 Barak', nation:'🇮🇱', hp:1480,armor:222,pen:282,dmg:466,speed:3.5,rot:1.9,reload:4.8,ammo:45,color:'#48543a',tier:'X',price:10000,desc:'Latest Merkava with AI sensors and Trophy APS.'},
   // -- yugoslavia +10 --
-  {id:'lt35_yu', name:'LT vz.35 (Yugo)', nation:'🇷🇸', hp:196,armor:15,pen:58,dmg:46,speed:4.8,rot:2.7,reload:1.5,ammo:72,color:'#5a6448',tier:'II',price:250,desc:'Czech light tanks bought by the Royal Yugoslav Army.'},
-  {id:'sherman_yu', name:'Sherman (JNA)', nation:'🇷🇸', hp:570,armor:74,pen:132,dmg:190,speed:3.6,rot:2.1,reload:3.0,ammo:50,color:'#525c40',tier:'V',price:1200,desc:'Postwar Yugoslav Sherman in JNA service.'},
-  {id:'t34_yu', name:'T-34-85 (JNA)', nation:'🇷🇸', hp:570,armor:74,pen:132,dmg:190,speed:3.6,rot:2.1,reload:3.0,ammo:50,color:'#525c40',tier:'V',price:1200,desc:'Soviet medium, backbone of the early JNA.'},
-  {id:'t54_yu', name:'T-54 (JNA)', nation:'🇷🇸', hp:710,armor:96,pen:162,dmg:228,speed:3.5,rot:2.0,reload:3.4,ammo:50,color:'#525c40',tier:'VI',price:1800,desc:'Licensed Soviet medium in Yugoslav service.'},
-  {id:'m47_yu', name:'M47 (JNA)', nation:'🇷🇸', hp:710,armor:96,pen:162,dmg:228,speed:3.5,rot:2.0,reload:3.4,ammo:50,color:'#525c40',tier:'VI',price:1800,desc:'US Patton supplied under military aid.'},
-  {id:'m80', name:'M-80 (fire support)', nation:'🇷🇸', hp:729,armor:88,pen:192,dmg:244,speed:4.0,rot:2.2,reload:3.1,ammo:66,color:'#5a6448',tier:'VII',price:2800,desc:'Yugoslav IFV in a fire-support role.'},
-  {id:'t72_yu', name:'T-72 (JNA)', nation:'🇷🇸', hp:1060,armor:156,pen:216,dmg:336,speed:3.3,rot:1.9,reload:4.2,ammo:52,color:'#525c40',tier:'VIII',price:4200,desc:'Soviet MBT operated before local production.'},
-  {id:'m84a', name:'M-84A', nation:'🇷🇸', hp:1260,armor:186,pen:246,dmg:406,speed:3.3,rot:1.9,reload:4.6,ammo:48,color:'#525c40',tier:'IX',price:6500,desc:'Improved Yugoslav M-84 with better FCS and engine.'},
-  {id:'m84as', name:'M-84AS', nation:'🇷🇸', hp:1480,armor:222,pen:282,dmg:466,speed:3.5,rot:1.9,reload:4.8,ammo:45,color:'#48543a',tier:'X',price:10000,desc:'Serbian M-84 upgrade with ERA and thermal optics.'},
-  {id:'vihor', name:'M-91 Vihor', nation:'🇷🇸', hp:1480,armor:222,pen:282,dmg:466,speed:3.5,rot:1.9,reload:4.8,ammo:45,color:'#48543a',tier:'X',price:10000,desc:'Yugoslav prototype MBT, national successor to the M-84.'},
   // -- spain +10 --
-  {id:'panzer_es', name:'Panzer I (Spain)', nation:'🇪🇸', hp:122,armor:9,pen:42,dmg:32,speed:5.2,rot:2.9,reload:1.1,ammo:48,color:'#5a6448',tier:'I',price:100,desc:'Condor Legion Pz I used in the Civil War.'},
-  {id:'trubia', name:'Trubia A4', nation:'🇪🇸', hp:196,armor:15,pen:58,dmg:46,speed:4.8,rot:2.7,reload:1.5,ammo:72,color:'#5a6448',tier:'II',price:250,desc:'Early Spanish indigenous light tank.'},
-  {id:'t26_es', name:'T-26 (Spain)', nation:'🇪🇸', hp:278,armor:23,pen:82,dmg:97,speed:4.4,rot:2.5,reload:1.8,ammo:60,color:'#5a6448',tier:'III',price:450,desc:'Soviet-supplied Republican light tank. 45mm.'},
-  {id:'verdeja2', name:'Verdeja 2', nation:'🇪🇸', hp:278,armor:23,pen:82,dmg:97,speed:4.4,rot:2.5,reload:1.8,ammo:60,color:'#5a6448',tier:'III',price:450,desc:'Improved Spanish Verdeja with a 45mm gun.'},
-  {id:'m47e', name:'M47E', nation:'🇪🇸', hp:710,armor:96,pen:162,dmg:228,speed:3.5,rot:2.0,reload:3.4,ammo:50,color:'#525c40',tier:'VI',price:1800,desc:'Spanish M47 with a local diesel repower.'},
-  {id:'amx30e', name:'AMX-30E', nation:'🇪🇸', hp:890,armor:126,pen:192,dmg:288,speed:3.4,rot:1.9,reload:3.8,ammo:55,color:'#525c40',tier:'VII',price:2800,desc:'Spanish-built AMX-30. 105mm, licence production.'},
-  {id:'m48e', name:'M48A5E', nation:'🇪🇸', hp:890,armor:126,pen:192,dmg:288,speed:3.4,rot:1.9,reload:3.8,ammo:55,color:'#525c40',tier:'VII',price:2800,desc:'Spanish M48 upgraded to the 105mm standard.'},
-  {id:'lince', name:'Lince', nation:'🇪🇸', hp:1060,armor:156,pen:224,dmg:336,speed:3.4,rot:1.9,reload:4.2,ammo:52,color:'#48543a',tier:'VIII',price:4200,desc:'Cancelled Spanish MBT, Leopard/Lion technology.'},
-  {id:'leopard2e', name:'Leopard 2E', nation:'🇪🇸', hp:1480,armor:222,pen:282,dmg:466,speed:3.5,rot:1.9,reload:4.8,ammo:45,color:'#48543a',tier:'X',price:10000,desc:'Spanish Leopard 2A6 with extra turret armor.'},
-  {id:'pizarro', name:'Pizarro', nation:'🇪🇸', hp:467,armor:51,pen:132,dmg:161,speed:4.2,rot:2.4,reload:2.5,ammo:60,color:'#5a6448',tier:'V',price:1200,desc:'Spanish-Austrian IFV with a 30mm autocannon.'},
   // -- finland +10 --
   {id:'ft_fi', name:'Renault FT (Fin)', nation:'🇫🇮', hp:122,armor:9,pen:42,dmg:32,speed:5.2,rot:2.9,reload:1.1,ammo:48,color:'#5a6448',tier:'I',price:100,desc:'Finland’s first tanks, used into the 1940s.'},
   {id:'vickers_fi', name:'Vickers 6-ton (Fin)', nation:'🇫🇮', hp:196,armor:15,pen:58,dmg:46,speed:4.8,rot:2.7,reload:1.5,ammo:72,color:'#5a6448',tier:'II',price:250,desc:'Finnish Vickers rearmed with a Bofors 37mm.'},
@@ -1074,38 +993,8 @@ const TANK_DEFS = [
   {id:'leo2a4_fi', name:'Leopard 2A4 (Fin)', nation:'🇫🇮', hp:1260,armor:186,pen:255,dmg:406,speed:3.4,rot:1.9,reload:4.6,ammo:48,color:'#48543a',tier:'IX',price:6500,desc:'Finland’s main MBT, bought from Germany.'},
   {id:'leo2a6_fi', name:'Leopard 2A6 (Fin)', nation:'🇫🇮', hp:1480,armor:222,pen:282,dmg:466,speed:3.5,rot:1.9,reload:4.8,ammo:45,color:'#48543a',tier:'X',price:10000,desc:'Finnish Leopard 2A6 with the long L/55 gun.'},
   // -- brazil +10 --
-  {id:'m3_br', name:'M3 Stuart (Bra)', nation:'🇧🇷', hp:278,armor:23,pen:82,dmg:97,speed:4.4,rot:2.5,reload:1.8,ammo:60,color:'#5a6448',tier:'III',price:450,desc:'WW2 US light, long the Brazilian army workhorse.'},
-  {id:'x1', name:'X1', nation:'🇧🇷', hp:360,armor:36,pen:105,dmg:131,speed:4.2,rot:2.4,reload:2.1,ammo:66,color:'#5a6448',tier:'IV',price:750,desc:'Brazilian Stuart rebuild with a 90mm gun.'},
-  {id:'x1a', name:'X1A', nation:'🇧🇷', hp:360,armor:36,pen:105,dmg:131,speed:4.2,rot:2.4,reload:2.1,ammo:66,color:'#5a6448',tier:'IV',price:750,desc:'Improved X1 with a new engine and turret.'},
-  {id:'m41_br', name:'M41 Walker Bulldog', nation:'🇧🇷', hp:467,armor:51,pen:132,dmg:161,speed:4.2,rot:2.4,reload:2.5,ammo:60,color:'#5a6448',tier:'V',price:1200,desc:'Brazilian-upgraded M41 with a Cockerill 90mm.'},
-  {id:'cascavel', name:'EE-9 Cascavel', nation:'🇧🇷', hp:467,armor:51,pen:132,dmg:161,speed:4.2,rot:2.4,reload:2.5,ammo:60,color:'#5a6448',tier:'V',price:1200,desc:'Engesa 6x6 armored car with a 90mm gun.'},
-  {id:'tamoyo3', name:'Tamoyo 3', nation:'🇧🇷', hp:890,armor:126,pen:192,dmg:288,speed:3.4,rot:1.9,reload:3.8,ammo:55,color:'#525c40',tier:'VII',price:2800,desc:'Improved Tamoyo prototype with a 105mm gun.'},
-  {id:'leopard1_br', name:'Leopard 1 (Bra)', nation:'🇧🇷', hp:890,armor:126,pen:192,dmg:288,speed:3.4,rot:1.9,reload:3.8,ammo:55,color:'#525c40',tier:'VII',price:2800,desc:'Brazilian Leopard 1A1/A5 in modern service.'},
-  {id:'charrua', name:'EE-T1 Osório P1', nation:'🇧🇷', hp:1060,armor:156,pen:224,dmg:336,speed:3.4,rot:1.9,reload:4.2,ammo:52,color:'#48543a',tier:'VIII',price:4200,desc:'First Osório prototype with a 105mm gun.'},
-  {id:'m60_br', name:'M60A3 (Bra)', nation:'🇧🇷', hp:1060,armor:156,pen:216,dmg:336,speed:3.3,rot:1.9,reload:4.2,ammo:52,color:'#525c40',tier:'VIII',price:4200,desc:'US Patton in Brazilian service. 105mm.'},
-  {id:'osorio2', name:'Osório MB-3', nation:'🇧🇷', hp:1480,armor:222,pen:282,dmg:466,speed:3.5,rot:1.9,reload:4.8,ammo:45,color:'#48543a',tier:'X',price:10000,desc:'Production Osório with a 120mm smoothbore turret.'},
   // -- safrica +10 --
-  {id:'marmon', name:'Marmon-Herrington', nation:'🇿🇦', hp:196,armor:15,pen:58,dmg:46,speed:4.8,rot:2.7,reload:1.5,ammo:72,color:'#5a6448',tier:'II',price:250,desc:'South African WW2 armored car. Light and fast.'},
-  {id:'eland', name:'Eland-90', nation:'🇿🇦', hp:360,armor:36,pen:105,dmg:131,speed:4.2,rot:2.4,reload:2.1,ammo:66,color:'#5a6448',tier:'IV',price:750,desc:'South African Panhard with a 90mm gun.'},
-  {id:'ratel90', name:'Ratel-90', nation:'🇿🇦', hp:467,armor:51,pen:132,dmg:161,speed:4.2,rot:2.4,reload:2.5,ammo:60,color:'#5a6448',tier:'V',price:1200,desc:'6x6 infantry fighting vehicle with a 90mm gun.'},
-  {id:'centurion_za', name:'Centurion (SA)', nation:'🇿🇦', hp:710,armor:96,pen:162,dmg:228,speed:3.5,rot:2.0,reload:3.4,ammo:50,color:'#525c40',tier:'VI',price:1800,desc:'South African Centurion, base of the Olifant line.'},
-  {id:'g6', name:'G6 Rhino', nation:'🇿🇦', hp:639,armor:107,pen:186,dmg:269,speed:3.3,rot:2.0,reload:3.9,ammo:50,color:'#4e5636',tier:'VI',price:1800,desc:'Wheeled 155mm self-propelled howitzer.'},
-  {id:'olifant1a', name:'Olifant Mk.1A', nation:'🇿🇦', hp:890,armor:126,pen:192,dmg:288,speed:3.4,rot:1.9,reload:3.8,ammo:55,color:'#525c40',tier:'VII',price:2800,desc:'Rebuilt Centurion with an L7 105mm and diesel.'},
-  {id:'olifant1b', name:'Olifant Mk.1B', nation:'🇿🇦', hp:1060,armor:156,pen:216,dmg:336,speed:3.3,rot:1.9,reload:4.2,ammo:52,color:'#525c40',tier:'VIII',price:4200,desc:'Heavily upgraded Olifant with torsion-bar suspension.'},
-  {id:'rooikat105', name:'Rooikat 105', nation:'🇿🇦', hp:869,armor:109,pen:216,dmg:285,speed:3.9,rot:2.2,reload:3.4,ammo:62,color:'#5a6448',tier:'VIII',price:4200,desc:'Rooikat armored car up-gunned to a 105mm.'},
-  {id:'olifant2', name:'Olifant Mk.2', nation:'🇿🇦', hp:1260,armor:186,pen:255,dmg:406,speed:3.4,rot:1.9,reload:4.6,ammo:48,color:'#48543a',tier:'IX',price:6500,desc:'Modernized Olifant with a new turret and FCS.'},
-  {id:'ttd', name:'TTD Loki', nation:'🇿🇦', hp:1480,armor:222,pen:282,dmg:466,speed:3.5,rot:1.9,reload:4.8,ammo:45,color:'#48543a',tier:'X',price:10000,desc:'South African MBT technology demonstrator.'},
   // -- turkey +10 --
-  {id:'tulpar', name:'Tulpar', nation:'🇹🇷', hp:467,armor:51,pen:132,dmg:161,speed:4.2,rot:2.4,reload:2.5,ammo:60,color:'#5a6448',tier:'V',price:1200,desc:'Turkish tracked IFV, light and mobile.'},
-  {id:'fnss', name:'FNSS Kaplan', nation:'🇹🇷', hp:582,armor:67,pen:162,dmg:193,speed:4.1,rot:2.3,reload:2.8,ammo:60,color:'#5a6448',tier:'VI',price:1800,desc:'Turkish medium-weight tank with a 105mm gun.'},
-  {id:'m47_tr', name:'M47 (Türk)', nation:'🇹🇷', hp:710,armor:96,pen:162,dmg:228,speed:3.5,rot:2.0,reload:3.4,ammo:50,color:'#525c40',tier:'VI',price:1800,desc:'US Patton, long a mainstay of the Turkish army.'},
-  {id:'leopard1_tr', name:'Leopard 1T', nation:'🇹🇷', hp:890,armor:126,pen:192,dmg:288,speed:3.4,rot:1.9,reload:3.8,ammo:55,color:'#525c40',tier:'VII',price:2800,desc:'Turkish Leopard 1 with the Volkan fire control.'},
-  {id:'m48_tr', name:'M48A5T2', nation:'🇹🇷', hp:890,armor:126,pen:192,dmg:288,speed:3.4,rot:1.9,reload:3.8,ammo:55,color:'#525c40',tier:'VII',price:2800,desc:'Turkish M48 rebuild with a 105mm gun.'},
-  {id:'m60_tr', name:'M60T Sabra', nation:'🇹🇷', hp:1060,armor:156,pen:216,dmg:336,speed:3.3,rot:1.9,reload:4.2,ammo:52,color:'#525c40',tier:'VIII',price:4200,desc:'Israeli-upgraded M60 with a 120mm and armor package.'},
-  {id:'namt', name:'Kaplan MT', nation:'🇹🇷', hp:869,armor:109,pen:216,dmg:285,speed:3.9,rot:2.2,reload:3.4,ammo:62,color:'#5a6448',tier:'VIII',price:4200,desc:'Turkish-Indonesian medium tank with a 105mm two-man turret.'},
-  {id:'pt16', name:'PT-16', nation:'🇹🇷', hp:1260,armor:186,pen:255,dmg:406,speed:3.4,rot:1.9,reload:4.6,ammo:48,color:'#48543a',tier:'IX',price:6500,desc:'Otokar prototype MBT with a 120mm smoothbore.'},
-  {id:'leo2a4_tr', name:'Leopard 2A4TR', nation:'🇹🇷', hp:1260,armor:186,pen:255,dmg:406,speed:3.4,rot:1.9,reload:4.6,ammo:48,color:'#48543a',tier:'IX',price:6500,desc:'Turkish Leopard 2A4 with local armor upgrades.'},
-  {id:'altay_t1', name:'Altay T1', nation:'🇹🇷', hp:1480,armor:222,pen:282,dmg:466,speed:3.5,rot:1.9,reload:4.8,ammo:45,color:'#48543a',tier:'X',price:10000,desc:'Serial Altay with an Aselsan FCS and 120mm L/55.'},
   // -- ukraine +10 --
   {id:'t55agm', name:'T-55AGM', nation:'🇺🇦', hp:710,armor:96,pen:162,dmg:228,speed:3.5,rot:2.0,reload:3.4,ammo:50,color:'#525c40',tier:'VI',price:1800,desc:'Ukrainian deep T-55 upgrade with a 125mm autoloader.'},
   {id:'t64bv', name:'T-64BV', nation:'🇺🇦', hp:890,armor:126,pen:192,dmg:288,speed:3.4,rot:1.9,reload:3.8,ammo:55,color:'#525c40',tier:'VII',price:2800,desc:'Ukrainian T-64 with Kontakt-1 reactive armor.'},
@@ -1151,10 +1040,21 @@ const TANK_DEFS = [
   {id:'centauro', name:'B1 Centauro', nation:'🇮🇹', hp:1030,armor:90,pen:275,dmg:285,speed:4.3,rot:2.2,reload:3.2,ammo:70,color:'#525a44',tier:'VIII',price:4200,desc:'Italian 8x8 tank destroyer with a stabilised 105mm gun.'},
   {id:'type16', name:'Type 16 MCV', nation:'🇯🇵', hp:1220,armor:110,pen:295,dmg:345,speed:4.3,rot:2.2,reload:3.4,ammo:70,color:'#525a44',tier:'IX',price:6500,desc:'Japanese wheeled combat vehicle with a 105mm gun.'},
   {id:'centauro2', name:'Centauro II', nation:'🇮🇹', hp:1440,armor:135,pen:320,dmg:425,speed:4.4,rot:2.2,reload:3.6,ammo:60,color:'#525a44',tier:'X',price:10000,desc:'Latest Italian 8x8 mounting a 120mm smoothbore.'},
+  // ══ CZECH EXPANSION ══
+  {id:'ltvz34', name:'LT vz. 34', nation:'🇨🇿', hp:127,armor:11,pen:42,dmg:38,speed:4.8,rot:2.7,reload:1.4,ammo:40,color:'#4a5844',tier:'I',price:100,desc:'First Czechoslovak-built light tank. 37mm gun.'},
+  {id:'ltvz35c', name:'LT vz. 35', nation:'🇨🇿', hp:204,armor:17,pen:58,dmg:55,speed:4.6,rot:2.6,reload:1.8,ammo:60,color:'#4a5844',tier:'II',price:250,desc:'Riveted Czech light tank widely exported before the war.'},
+  {id:'ltvz38c', name:'LT vz. 38', nation:'🇨🇿', hp:289,armor:27,pen:82,dmg:115,speed:4.3,rot:2.5,reload:2.1,ammo:50,color:'#4a5844',tier:'III',price:450,desc:'Superb Czech light — served the Wehrmacht as the Panzer 38(t).'},
+  {id:'skoda_t21', name:'Škoda T 21', nation:'🇨🇿', hp:440,armor:52,pen:105,dmg:155,speed:3.7,rot:2.2,reload:2.5,ammo:55,color:'#4a5844',tier:'IV',price:750,desc:'Czech medium prototype, the root of the Turán line.'},
+  {id:'skoda_t24', name:'Škoda T 24', nation:'🇨🇿', hp:560,armor:74,pen:132,dmg:190,speed:3.6,rot:2.1,reload:2.9,ammo:50,color:'#4a5844',tier:'V',price:1200,desc:'Improved Škoda medium with a sloped welded hull.'},
+  {id:'skoda_t25', name:'Škoda T 25', nation:'🇨🇿', hp:710,armor:96,pen:162,dmg:228,speed:3.5,rot:2.0,reload:3.3,ammo:50,color:'#4a5844',tier:'VI',price:1800,desc:'Fast Czech medium with a 75mm autoloader concept.'},
+  {id:'konstrukta', name:'Konštrukta T-34/100', nation:'🇨🇿', hp:890,armor:126,pen:192,dmg:288,speed:3.4,rot:1.9,reload:3.7,ammo:55,color:'#4a5844',tier:'VII',price:2800,desc:'Postwar Czech T-34 rebuild with a potent 100mm gun.'},
+  {id:'tvp_vtu', name:'TVP VTU Koncept', nation:'🇨🇿', hp:1060,armor:156,pen:216,dmg:336,speed:3.4,rot:1.9,reload:4.1,ammo:52,color:'#4a5844',tier:'VIII',price:4200,desc:'Czech medium project — fast, low, quick-firing 88mm.'},
+  {id:'skoda_t50', name:'Škoda T 50', nation:'🇨🇿', hp:1260,armor:186,pen:246,dmg:406,speed:3.4,rot:1.9,reload:4.5,ammo:48,color:'#4a5844',tier:'IX',price:6500,desc:'Autoloading Czech medium with an oscillating turret.'},
+  {id:'tvp_t50', name:'TVP T 50/51', nation:'🇨🇿', hp:1480,armor:222,pen:272,dmg:466,speed:3.4,rot:1.9,reload:4.7,ammo:45,color:'#4a5844',tier:'X',price:10000,desc:'Pinnacle Czech medium: blistering DPM from a clip-fed 100mm.'},
 ];
 
 // Tank Destroyer IDs — turret locked to hull direction
-const _tdIds=new Set(['stug3','jpz4','nashorn','jpz6','su85','su100','su122','isu122','isu152','jpanther','ferdinand','obj268','archer','at5','at8','at7','at15','obj704','hori','su100y','brummbar','sturer','pz4_70','jpanther2','honi1','honi3','horo','nato','su152','jgpze100','sem7518','sem10525','zrinyi','tasr','tacam','maresal','vdc_ro','sk105','vca155','g13','stu40','g6']);
+const _tdIds=new Set(['stug3','jpz4','nashorn','jpz6','su85','su100','su122','isu122','isu152','jpanther','ferdinand','obj268','archer','at5','at8','at7','at15','obj704','hori','su100y','brummbar','sturer','pz4_70','jpanther2','honi1','honi3','horo','nato','su152','jgpze100','sem7518','sem10525','g13','stu40']);
 const _otIds=new Set(['m10','m36','achilles','borsig_wt','waffentrager','grille15','rhmborsig','su130pm']);
 // Tanks that fire guided HOMING MISSILES instead of shells (gun-launched ATGMs / dedicated launchers)
 const _missileIds=new Set(['m551','xm551','t14armata','kf51','it1','wiesel_tow','malyutka_c','m901','swingfire','shturm_s','jaguar1','jaguar2','shturm_sm','khrizantema','spikenlos','brdm2','lav25','bmd1','bmp1','marder','bmp2','bradley','bmp3','puma']);
@@ -1282,22 +1182,13 @@ function getTankFaction(id){
   const chinese=['renault_otsu','type94_cn','t26_cn','vickers_e','m5_cn','chiha_cn','t34_cn','m4a4_cn','wz132','59_pat','is2_cn','t34_3','is3_cn','wz111','type59','type59mbt','t54_mod1','wz120','wz111_5a','wz113','type121','wz131','wz113g'];
   const swedish=['pvlv42','strv21','strv_m37','strv38','pvkv_m43','ikv72','lago','strv42','pvkv_IV','ikv65','strv74','leo','strv_s1','strv81','emil1','emil2','krv','udes03','udes15','strv103b','strv105'];
   const blitz=['ac_wedge','highlander','ocelote','rebelde','taygete','celeno','ac_atlas'];
-  const romania=['r2','tacam','maresal','r1_ro','r35ro','vdc_ro','tr77','tr580','tr85','tr85m1','tm800','tr125','tr2000'];
   const australia=['sentinel1','sentinel4','carrier_au','ac1_au','skink_au','matilda_frog','m113fsv','ac3_au','ac4_au','cent_au','leo_as1','m1a1aim'];
-  const argentina=['tam','dl43','amx13_ar','sherman_rep','patagon','sk105','vctp','vca155','tam2c','tam2ip','tam2c40'];
   const swiss=['pz58','pz39','nk1','nk2','g13','pz57','nk3','pz68','pz68_88','pz87','pz68_2000'];
-  const israel=['shotkal','magach7','sherman_idf','sherman_m50','sherman_m51','tiran4','tiran5','magach3','magach6b','merkava2','sabra','merkava4b'];
-  const yugoslavia=['m84','lt35_yu','sherman_yu','t34_yu','t54_yu','m47_yu','m80','t72_yu','m84a','m84as','vihor'];
-  const spain=['verdeja','panzer_es','trubia','t26_es','verdeja2','m47e','amx30e','m48e','lince','leopard2e','pizarro'];
   const finland=['l62','bt42','ft_fi','vickers_fi','t26_fi','stu40','t34_fi','kv1_fi','t54_fi','t72m1_fi','leo2a4_fi','leo2a6_fi'];
-  const brazil=['x1a2','tamoyo','osorio','m3_br','x1','x1a','m41_br','cascavel','tamoyo3','leopard1_br','charrua','m60_br','osorio2'];
-  const safrica=['olifant','rooikat','marmon','eland','ratel90','centurion_za','g6','olifant1a','olifant1b','rooikat105','olifant2','ttd'];
-  const turkey=['altay','tulpar','fnss','m47_tr','leopard1_tr','m48_tr','m60_tr','namt','pt16','leo2a4_tr','altay_t1'];
   const ukraine=['oplot','t55agm','t64bv','t72amt','t64_ua','bulat2','t80ud','t84','oplot_m','yatagan','t84120'];
   const polish=['tks','p7tp','p10tp','p14tp','p25tp','p40tp','p45tp','p53tp'];
-  const hungarian=['toldi1','toldi2','turan1','turan2','zrinyi','turan3','tas','tasr'];
   const italian=['l3_33','m11_39','m13_40','m14_41','sem7518','p40','sem10525','p43','of40','progetto'];
-  const czech=['kodiak'];
+  const czech=['kodiak','ltvz34','ltvz35c','ltvz38c','skoda_t21','skoda_t24','skoda_t25','konstrukta','tvp_vtu','skoda_t50','tvp_t50'];
   const carrier=['m113a1','bmd1','bmp1','marder','bmp2','warrior','bradley','cv90','bmp3','puma'];
   const mslcarrier=['wiesel_tow','malyutka_c','m901','swingfire','shturm_s','jaguar1','jaguar2','shturm_sm','khrizantema','spikenlos'];
   const armcar=['rolls_ac','sdkfz222','ferret','sdkfz234','brdm2','aml90','lav25','centauro','type16','centauro2'];
@@ -1309,20 +1200,11 @@ function getTankFaction(id){
   if(chinese.includes(id)) return 'chinese';
   if(swedish.includes(id)) return 'swedish';
   if(blitz.includes(id)) return 'blitz';
-  if(romania.includes(id)) return 'romania';
   if(australia.includes(id)) return 'australia';
-  if(argentina.includes(id)) return 'argentina';
   if(swiss.includes(id)) return 'swiss';
-  if(israel.includes(id)) return 'israel';
-  if(yugoslavia.includes(id)) return 'yugoslavia';
-  if(spain.includes(id)) return 'spain';
   if(finland.includes(id)) return 'finland';
-  if(brazil.includes(id)) return 'brazil';
-  if(safrica.includes(id)) return 'safrica';
-  if(turkey.includes(id)) return 'turkey';
   if(ukraine.includes(id)) return 'ukraine';
   if(polish.includes(id)) return 'polish';
-  if(hungarian.includes(id)) return 'hungarian';
   if(italian.includes(id)) return 'italian';
   if(czech.includes(id)) return 'czech';
   if(carrier.includes(id)) return 'carrier';
@@ -2169,7 +2051,7 @@ function buyMissileAmmo(){
 }
 function _renderFilterRow(){
   const row=document.getElementById('filter-row');if(!row)return;
-  const nations=[['all','ALL'],['german','🇩🇪'],['soviet','🇷🇺'],['american','🇺🇸'],['british','🇬🇧'],['french','🇫🇷'],['japanese','🇯🇵'],['chinese','🇨🇳'],['swedish','🇸🇪'],['czech','🇨🇿'],['italian','🇮🇹'],['polish','🇵🇱'],['hungarian','🇭🇺'],['romania','🇷🇴'],['australia','🇦🇺'],['argentina','🇦🇷'],['swiss','🇨🇭'],['israel','🇮🇱'],['yugoslavia','🇷🇸'],['spain','🇪🇸'],['finland','🇫🇮'],['brazil','🇧🇷'],['safrica','🇿🇦'],['turkey','🇹🇷'],['ukraine','🇺🇦'],['carrier','🚚'],['mslcarrier','🚀'],['armcar','🚗'],['blitz','⚡'],['owned','OWNED'],['affordable','🪙 BUY']];
+  const nations=[['all','ALL'],['german','🇩🇪'],['soviet','🇷🇺'],['american','🇺🇸'],['british','🇬🇧'],['french','🇫🇷'],['japanese','🇯🇵'],['chinese','🇨🇳'],['swedish','🇸🇪'],['czech','🇨🇿'],['italian','🇮🇹'],['polish','🇵🇱'],['🇷🇴'],['australia','🇦🇺'],['🇦🇷'],['swiss','🇨🇭'],['🇮🇱'],['🇷🇸'],['🇪🇸'],['finland','🇫🇮'],['🇧🇷'],['🇿🇦'],['🇹🇷'],['ukraine','🇺🇦'],['carrier','🚚'],['mslcarrier','🚀'],['armcar','🚗'],['blitz','⚡'],['owned','OWNED'],['affordable','🪙 BUY']];
   row.innerHTML='';
   nations.forEach(([val,lbl])=>{
     const b=document.createElement('button');
@@ -2495,7 +2377,7 @@ function startGame(){
 function getEnemyPool(){
   const f=getTankFaction(activeTankId);
   if(f==='chinese') return ENEMY_JAPAN;
-  const axis=['german','japanese','italian','hungarian','romania','finland'];
+  const axis=['german','japanese','italian','finland'];
   return axis.includes(f)?ENEMY_ALLIED:ENEMY_AXIS;
 }
 
@@ -2790,10 +2672,6 @@ function getAllyPool(){
     {name:'7TP',hp:160,armor:20,pen:42,dmg:55,speed:4.0,rot:2.4,color:'#586048',size:12,schurzen:false},
     {name:'25TP',hp:420,armor:55,pen:100,dmg:135,speed:3.4,rot:1.9,color:'#526048',size:14,schurzen:false},
     {name:'45TP',hp:820,armor:130,pen:165,dmg:240,speed:2.6,rot:1.5,color:'#4c5a42',size:18,schurzen:false}];
-  if(f==='hungarian') return [
-    {name:'Toldi',hp:170,armor:20,pen:45,dmg:55,speed:4.2,rot:2.4,color:'#686638',size:12,schurzen:false},
-    {name:'Turán II',hp:340,armor:50,pen:80,dmg:120,speed:3.4,rot:1.9,color:'#6a683a',size:14,schurzen:false},
-    {name:'Tas',hp:820,armor:120,pen:165,dmg:240,speed:2.8,rot:1.6,color:'#5e5e36',size:17,schurzen:false}];
   if(f==='italian') return [
     {name:'M13/40',hp:230,armor:42,pen:58,dmg:80,speed:3.4,rot:2.0,color:'#6c6a3c',size:13,schurzen:false},
     {name:'P26/40',hp:420,armor:60,pen:100,dmg:135,speed:3.0,rot:1.8,color:'#68663a',size:15,schurzen:false},
@@ -4869,33 +4747,11 @@ const TANK_PROFILES={
   p40tp:{hl:1.80,hw:0.92,tr:0.38,ty:0.32,bl:0.95,bw:0.095,muzzle:false,boxy:false,sk:false},
   p45tp:{hl:1.88,hw:0.96,tr:0.40,ty:0.34,bl:1.05,bw:0.100,muzzle:false,boxy:false,sk:true},
   p53tp:{hl:1.98,hw:1.00,tr:0.44,ty:0.38,bl:1.20,bw:0.110,muzzle:false,boxy:false,sk:true},
-  toldi1:{hl:1.25,hw:0.68,tr:0.24,ty:0.20,bl:0.50,bw:0.070,muzzle:false,boxy:false,sk:false},
-  toldi2:{hl:1.40,hw:0.74,tr:0.26,ty:0.22,bl:0.58,bw:0.075,muzzle:false,boxy:false,sk:false},
-  turan1:{hl:1.55,hw:0.82,tr:0.30,ty:0.24,bl:0.72,bw:0.082,muzzle:false,boxy:false,sk:false},
-  turan2:{hl:1.60,hw:0.84,tr:0.32,ty:0.26,bl:0.82,bw:0.086,muzzle:false,boxy:false,sk:false},
-  zrinyi:{hl:1.62,hw:0.84,tr:0.28,ty:0.22,bl:0.90,bw:0.105,muzzle:false,boxy:true,sk:false},
-  turan3:{hl:1.66,hw:0.86,tr:0.34,ty:0.28,bl:0.95,bw:0.088,muzzle:false,boxy:false,sk:false},
-  tas:{hl:1.85,hw:0.94,tr:0.38,ty:0.32,bl:1.05,bw:0.098,muzzle:false,boxy:false,sk:false},
-  tasr:{hl:1.90,hw:0.96,tr:0.30,ty:0.24,bl:1.20,bw:0.110,muzzle:false,boxy:true,sk:false},
-  r2:{hl:1.42,hw:0.76,tr:0.26,ty:0.21,bl:0.55,bw:0.075,muzzle:false,boxy:false,sk:false},
-  tacam:{hl:1.45,hw:0.78,tr:0.26,ty:0.20,bl:0.85,bw:0.095,muzzle:false,boxy:true,sk:false},
-  maresal:{hl:1.55,hw:0.82,tr:0.28,ty:0.22,bl:0.90,bw:0.100,muzzle:false,boxy:true,sk:false},
   sentinel1:{hl:1.62,hw:0.84,tr:0.32,ty:0.26,bl:0.78,bw:0.084,muzzle:false,boxy:false,sk:false},
   sentinel4:{hl:1.66,hw:0.86,tr:0.34,ty:0.28,bl:0.95,bw:0.090,muzzle:false,boxy:false,sk:false},
-  tam:{hl:1.70,hw:0.84,tr:0.36,ty:0.30,bl:1.05,bw:0.092,muzzle:false,boxy:false,sk:false},
   pz58:{hl:1.85,hw:0.94,tr:0.40,ty:0.34,bl:1.10,bw:0.100,muzzle:false,boxy:false,sk:false},
-  shotkal:{hl:1.92,hw:0.96,tr:0.42,ty:0.36,bl:1.20,bw:0.105,muzzle:false,boxy:false,sk:false},
-  m84:{hl:1.90,hw:0.98,tr:0.42,ty:0.34,bl:1.20,bw:0.108,muzzle:false,boxy:false,sk:false},
-  magach7:{hl:1.95,hw:1.00,tr:0.44,ty:0.36,bl:1.25,bw:0.110,muzzle:false,boxy:false,sk:false},
-  verdeja:{hl:1.42,hw:0.76,tr:0.26,ty:0.21,bl:0.55,bw:0.075,muzzle:false,boxy:false,sk:false},
   l62:{hl:1.50,hw:0.78,tr:0.28,ty:0.23,bl:0.62,bw:0.078,muzzle:false,boxy:false,sk:false},
   bt42:{hl:1.55,hw:0.80,tr:0.30,ty:0.24,bl:0.70,bw:0.115,muzzle:false,boxy:false,sk:false},
-  x1a2:{hl:1.55,hw:0.80,tr:0.30,ty:0.25,bl:0.85,bw:0.084,muzzle:false,boxy:false,sk:false},
-  tamoyo:{hl:1.70,hw:0.86,tr:0.36,ty:0.30,bl:1.00,bw:0.090,muzzle:false,boxy:false,sk:false},
-  olifant:{hl:1.92,hw:0.96,tr:0.42,ty:0.36,bl:1.20,bw:0.105,muzzle:false,boxy:false,sk:false},
-  rooikat:{hl:1.95,hw:0.86,tr:0.36,ty:0.30,bl:1.15,bw:0.092,muzzle:false,boxy:false,sk:false},
-  osorio:{hl:1.90,hw:0.98,tr:0.42,ty:0.34,bl:1.20,bw:0.108,muzzle:false,boxy:false,sk:false},
-  altay:{hl:1.98,hw:1.02,tr:0.44,ty:0.36,bl:1.25,bw:0.112,muzzle:false,boxy:false,sk:false},
   oplot:{hl:1.92,hw:1.00,tr:0.44,ty:0.36,bl:1.25,bw:0.110,muzzle:false,boxy:false,sk:false},
   ac_wedge:{hl:1.72,hw:0.86,tr:0.38,ty:0.32,bl:0.90,bw:0.092,muzzle:false,boxy:false,sk:false},
   highlander:{hl:1.75,hw:0.88,tr:0.38,ty:0.32,bl:1.00,bw:0.095,muzzle:false,boxy:false,sk:false},
@@ -4924,16 +4780,6 @@ const TANK_PROFILES={
   ztz88:{hl:1.94,hw:0.98,tr:0.43,ty:0.36,bl:1.2,bw:0.108,muzzle:false,boxy:false,sk:false},
   k1_88:{hl:1.98,hw:1.0,tr:0.44,ty:0.37,bl:1.25,bw:0.11,muzzle:true,boxy:false,sk:false},
   strv104:{hl:1.88,hw:0.95,tr:0.41,ty:0.35,bl:1.15,bw:0.104,muzzle:false,boxy:false,sk:false},
-  r1_ro:{hl:1.16,hw:0.63,tr:0.26,ty:0.21,bl:0.51,bw:0.075,muzzle:false,boxy:false,sk:false},
-  r35ro:{hl:1.25,hw:0.67,tr:0.28,ty:0.23,bl:0.57,bw:0.078,muzzle:false,boxy:false,sk:false},
-  vdc_ro:{hl:1.74,hw:0.88,tr:0.31,ty:0.25,bl:1.18,bw:0.095,muzzle:false,boxy:true,sk:false},
-  tr77:{hl:1.8,hw:0.92,tr:0.39,ty:0.33,bl:1.1,bw:0.1,muzzle:false,boxy:false,sk:false},
-  tr580:{hl:1.88,hw:0.95,tr:0.41,ty:0.35,bl:1.15,bw:0.104,muzzle:false,boxy:false,sk:false},
-  tr85:{hl:1.94,hw:0.98,tr:0.43,ty:0.36,bl:1.2,bw:0.108,muzzle:false,boxy:false,sk:false},
-  tr85m1:{hl:1.98,hw:1.0,tr:0.44,ty:0.37,bl:1.25,bw:0.11,muzzle:false,boxy:false,sk:false},
-  tm800:{hl:1.98,hw:1.0,tr:0.44,ty:0.37,bl:1.25,bw:0.11,muzzle:true,boxy:false,sk:false},
-  tr125:{hl:2.02,hw:1.03,tr:0.46,ty:0.39,bl:1.28,bw:0.113,muzzle:true,boxy:false,sk:false},
-  tr2000:{hl:2.02,hw:1.03,tr:0.46,ty:0.39,bl:1.28,bw:0.113,muzzle:true,boxy:false,sk:false},
   carrier_au:{hl:1.16,hw:0.63,tr:0.26,ty:0.21,bl:0.51,bw:0.075,muzzle:false,boxy:false,sk:false},
   ac1_au:{hl:1.58,hw:0.82,tr:0.32,ty:0.26,bl:0.85,bw:0.085,muzzle:false,boxy:false,sk:false},
   skink_au:{hl:1.43,hw:0.76,tr:0.34,ty:0.28,bl:0.87,bw:0.09,muzzle:false,boxy:false,sk:false},
@@ -4944,16 +4790,6 @@ const TANK_PROFILES={
   cent_au:{hl:1.88,hw:1.0,tr:0.41,ty:0.35,bl:1.15,bw:0.104,muzzle:false,boxy:false,sk:true},
   leo_as1:{hl:1.94,hw:0.98,tr:0.43,ty:0.36,bl:1.2,bw:0.108,muzzle:false,boxy:false,sk:false},
   m1a1aim:{hl:2.02,hw:1.03,tr:0.46,ty:0.39,bl:1.28,bw:0.113,muzzle:true,boxy:false,sk:false},
-  dl43:{hl:1.66,hw:0.86,tr:0.34,ty:0.28,bl:0.95,bw:0.09,muzzle:false,boxy:false,sk:false},
-  amx13_ar:{hl:1.43,hw:0.76,tr:0.34,ty:0.28,bl:0.87,bw:0.09,muzzle:false,boxy:false,sk:false},
-  sherman_rep:{hl:1.74,hw:0.88,tr:0.37,ty:0.31,bl:1.05,bw:0.095,muzzle:false,boxy:false,sk:false},
-  patagon:{hl:1.5,hw:0.77,tr:0.37,ty:0.31,bl:0.97,bw:0.095,muzzle:false,boxy:false,sk:false},
-  sk105:{hl:1.74,hw:0.88,tr:0.31,ty:0.25,bl:1.18,bw:0.095,muzzle:false,boxy:true,sk:false},
-  vctp:{hl:1.55,hw:0.81,tr:0.39,ty:0.33,bl:1.01,bw:0.1,muzzle:false,boxy:false,sk:false},
-  vca155:{hl:1.8,hw:0.92,tr:0.33,ty:0.27,bl:1.23,bw:0.1,muzzle:false,boxy:true,sk:false},
-  tam2c:{hl:1.88,hw:0.95,tr:0.41,ty:0.35,bl:1.15,bw:0.104,muzzle:false,boxy:false,sk:false},
-  tam2ip:{hl:1.94,hw:0.98,tr:0.43,ty:0.36,bl:1.2,bw:0.108,muzzle:false,boxy:false,sk:false},
-  tam2c40:{hl:1.98,hw:1.0,tr:0.44,ty:0.37,bl:1.25,bw:0.11,muzzle:true,boxy:false,sk:false},
   pz39:{hl:1.36,hw:0.72,tr:0.32,ty:0.26,bl:0.78,bw:0.085,muzzle:false,boxy:false,sk:false},
   nk1:{hl:1.66,hw:0.86,tr:0.34,ty:0.28,bl:0.95,bw:0.09,muzzle:false,boxy:false,sk:false},
   nk2:{hl:1.74,hw:0.88,tr:0.37,ty:0.31,bl:1.05,bw:0.095,muzzle:false,boxy:false,sk:false},
@@ -4964,36 +4800,6 @@ const TANK_PROFILES={
   pz68_88:{hl:1.98,hw:1.0,tr:0.44,ty:0.37,bl:1.25,bw:0.11,muzzle:false,boxy:false,sk:false},
   pz87:{hl:2.02,hw:1.03,tr:0.46,ty:0.39,bl:1.28,bw:0.113,muzzle:true,boxy:false,sk:false},
   pz68_2000:{hl:2.02,hw:1.03,tr:0.46,ty:0.39,bl:1.28,bw:0.113,muzzle:true,boxy:false,sk:false},
-  sherman_idf:{hl:1.74,hw:0.88,tr:0.37,ty:0.31,bl:1.05,bw:0.095,muzzle:false,boxy:false,sk:false},
-  sherman_m50:{hl:1.8,hw:0.92,tr:0.39,ty:0.33,bl:1.1,bw:0.1,muzzle:false,boxy:false,sk:false},
-  sherman_m51:{hl:1.88,hw:0.95,tr:0.41,ty:0.35,bl:1.15,bw:0.104,muzzle:false,boxy:false,sk:false},
-  tiran4:{hl:1.88,hw:0.95,tr:0.41,ty:0.35,bl:1.15,bw:0.104,muzzle:false,boxy:false,sk:false},
-  tiran5:{hl:1.94,hw:0.98,tr:0.43,ty:0.36,bl:1.2,bw:0.108,muzzle:false,boxy:false,sk:false},
-  magach3:{hl:1.94,hw:0.98,tr:0.43,ty:0.36,bl:1.2,bw:0.108,muzzle:false,boxy:false,sk:false},
-  magach6b:{hl:1.98,hw:1.0,tr:0.44,ty:0.37,bl:1.25,bw:0.11,muzzle:false,boxy:false,sk:false},
-  merkava2:{hl:1.98,hw:1.05,tr:0.44,ty:0.37,bl:1.25,bw:0.11,muzzle:false,boxy:false,sk:true},
-  sabra:{hl:1.98,hw:1.0,tr:0.44,ty:0.37,bl:1.25,bw:0.11,muzzle:true,boxy:false,sk:false},
-  merkava4b:{hl:2.02,hw:1.03,tr:0.46,ty:0.39,bl:1.28,bw:0.113,muzzle:true,boxy:false,sk:false},
-  lt35_yu:{hl:1.25,hw:0.67,tr:0.28,ty:0.23,bl:0.57,bw:0.078,muzzle:false,boxy:false,sk:false},
-  sherman_yu:{hl:1.74,hw:0.88,tr:0.37,ty:0.31,bl:1.05,bw:0.095,muzzle:false,boxy:false,sk:false},
-  t34_yu:{hl:1.74,hw:0.88,tr:0.37,ty:0.31,bl:1.05,bw:0.095,muzzle:false,boxy:false,sk:false},
-  t54_yu:{hl:1.8,hw:0.92,tr:0.39,ty:0.33,bl:1.1,bw:0.1,muzzle:false,boxy:false,sk:false},
-  m47_yu:{hl:1.8,hw:0.92,tr:0.39,ty:0.33,bl:1.1,bw:0.1,muzzle:false,boxy:false,sk:false},
-  m80:{hl:1.62,hw:0.84,tr:0.41,ty:0.35,bl:1.06,bw:0.104,muzzle:false,boxy:false,sk:false},
-  t72_yu:{hl:1.94,hw:0.98,tr:0.43,ty:0.36,bl:1.2,bw:0.108,muzzle:false,boxy:false,sk:false},
-  m84a:{hl:1.98,hw:1.0,tr:0.44,ty:0.37,bl:1.25,bw:0.11,muzzle:false,boxy:false,sk:false},
-  m84as:{hl:2.02,hw:1.03,tr:0.46,ty:0.39,bl:1.28,bw:0.113,muzzle:true,boxy:false,sk:false},
-  vihor:{hl:2.02,hw:1.03,tr:0.46,ty:0.39,bl:1.28,bw:0.113,muzzle:true,boxy:false,sk:false},
-  panzer_es:{hl:1.16,hw:0.63,tr:0.26,ty:0.21,bl:0.51,bw:0.075,muzzle:false,boxy:false,sk:false},
-  trubia:{hl:1.25,hw:0.67,tr:0.28,ty:0.23,bl:0.57,bw:0.078,muzzle:false,boxy:false,sk:false},
-  t26_es:{hl:1.36,hw:0.72,tr:0.32,ty:0.26,bl:0.78,bw:0.085,muzzle:false,boxy:false,sk:false},
-  verdeja2:{hl:1.36,hw:0.72,tr:0.32,ty:0.26,bl:0.78,bw:0.085,muzzle:false,boxy:false,sk:false},
-  m47e:{hl:1.8,hw:0.92,tr:0.39,ty:0.33,bl:1.1,bw:0.1,muzzle:false,boxy:false,sk:false},
-  amx30e:{hl:1.88,hw:0.95,tr:0.41,ty:0.35,bl:1.15,bw:0.104,muzzle:false,boxy:false,sk:false},
-  m48e:{hl:1.88,hw:0.95,tr:0.41,ty:0.35,bl:1.15,bw:0.104,muzzle:false,boxy:false,sk:false},
-  lince:{hl:1.94,hw:0.98,tr:0.43,ty:0.36,bl:1.2,bw:0.108,muzzle:true,boxy:false,sk:false},
-  leopard2e:{hl:2.02,hw:1.03,tr:0.46,ty:0.39,bl:1.28,bw:0.113,muzzle:true,boxy:false,sk:false},
-  pizarro:{hl:1.5,hw:0.77,tr:0.37,ty:0.31,bl:0.97,bw:0.095,muzzle:false,boxy:false,sk:false},
   ft_fi:{hl:1.16,hw:0.63,tr:0.26,ty:0.21,bl:0.51,bw:0.075,muzzle:false,boxy:false,sk:false},
   vickers_fi:{hl:1.25,hw:0.67,tr:0.28,ty:0.23,bl:0.57,bw:0.078,muzzle:false,boxy:false,sk:false},
   t26_fi:{hl:1.36,hw:0.72,tr:0.32,ty:0.26,bl:0.78,bw:0.085,muzzle:false,boxy:false,sk:false},
@@ -5004,36 +4810,6 @@ const TANK_PROFILES={
   t72m1_fi:{hl:1.94,hw:0.98,tr:0.43,ty:0.36,bl:1.2,bw:0.108,muzzle:false,boxy:false,sk:false},
   leo2a4_fi:{hl:1.98,hw:1.0,tr:0.44,ty:0.37,bl:1.25,bw:0.11,muzzle:true,boxy:false,sk:false},
   leo2a6_fi:{hl:2.02,hw:1.03,tr:0.46,ty:0.39,bl:1.28,bw:0.113,muzzle:true,boxy:false,sk:false},
-  m3_br:{hl:1.36,hw:0.72,tr:0.32,ty:0.26,bl:0.78,bw:0.085,muzzle:false,boxy:false,sk:false},
-  x1:{hl:1.43,hw:0.76,tr:0.34,ty:0.28,bl:0.87,bw:0.09,muzzle:false,boxy:false,sk:false},
-  x1a:{hl:1.43,hw:0.76,tr:0.34,ty:0.28,bl:0.87,bw:0.09,muzzle:false,boxy:false,sk:false},
-  m41_br:{hl:1.5,hw:0.77,tr:0.37,ty:0.31,bl:0.97,bw:0.095,muzzle:false,boxy:false,sk:false},
-  cascavel:{hl:1.5,hw:0.77,tr:0.37,ty:0.31,bl:0.97,bw:0.095,muzzle:false,boxy:false,sk:false},
-  tamoyo3:{hl:1.88,hw:0.95,tr:0.41,ty:0.35,bl:1.15,bw:0.104,muzzle:false,boxy:false,sk:false},
-  leopard1_br:{hl:1.88,hw:0.95,tr:0.41,ty:0.35,bl:1.15,bw:0.104,muzzle:false,boxy:false,sk:false},
-  charrua:{hl:1.94,hw:0.98,tr:0.43,ty:0.36,bl:1.2,bw:0.108,muzzle:true,boxy:false,sk:false},
-  m60_br:{hl:1.94,hw:0.98,tr:0.43,ty:0.36,bl:1.2,bw:0.108,muzzle:false,boxy:false,sk:false},
-  osorio2:{hl:2.02,hw:1.03,tr:0.46,ty:0.39,bl:1.28,bw:0.113,muzzle:true,boxy:false,sk:false},
-  marmon:{hl:1.25,hw:0.67,tr:0.28,ty:0.23,bl:0.57,bw:0.078,muzzle:false,boxy:false,sk:false},
-  eland:{hl:1.43,hw:0.76,tr:0.34,ty:0.28,bl:0.87,bw:0.09,muzzle:false,boxy:false,sk:false},
-  ratel90:{hl:1.5,hw:0.77,tr:0.37,ty:0.31,bl:0.97,bw:0.095,muzzle:false,boxy:false,sk:false},
-  centurion_za:{hl:1.8,hw:0.92,tr:0.39,ty:0.33,bl:1.1,bw:0.1,muzzle:false,boxy:false,sk:false},
-  g6:{hl:1.8,hw:0.92,tr:0.33,ty:0.27,bl:1.23,bw:0.1,muzzle:false,boxy:true,sk:false},
-  olifant1a:{hl:1.88,hw:0.95,tr:0.41,ty:0.35,bl:1.15,bw:0.104,muzzle:false,boxy:false,sk:false},
-  olifant1b:{hl:1.94,hw:0.98,tr:0.43,ty:0.36,bl:1.2,bw:0.108,muzzle:false,boxy:false,sk:false},
-  rooikat105:{hl:1.67,hw:0.86,tr:0.43,ty:0.36,bl:1.1,bw:0.108,muzzle:false,boxy:false,sk:false},
-  olifant2:{hl:1.98,hw:1.0,tr:0.44,ty:0.37,bl:1.25,bw:0.11,muzzle:true,boxy:false,sk:false},
-  ttd:{hl:2.02,hw:1.03,tr:0.46,ty:0.39,bl:1.28,bw:0.113,muzzle:true,boxy:false,sk:false},
-  tulpar:{hl:1.5,hw:0.77,tr:0.37,ty:0.31,bl:0.97,bw:0.095,muzzle:false,boxy:false,sk:false},
-  fnss:{hl:1.55,hw:0.81,tr:0.39,ty:0.33,bl:1.01,bw:0.1,muzzle:false,boxy:false,sk:false},
-  m47_tr:{hl:1.8,hw:0.92,tr:0.39,ty:0.33,bl:1.1,bw:0.1,muzzle:false,boxy:false,sk:false},
-  leopard1_tr:{hl:1.88,hw:0.95,tr:0.41,ty:0.35,bl:1.15,bw:0.104,muzzle:false,boxy:false,sk:false},
-  m48_tr:{hl:1.88,hw:0.95,tr:0.41,ty:0.35,bl:1.15,bw:0.104,muzzle:false,boxy:false,sk:false},
-  m60_tr:{hl:1.94,hw:0.98,tr:0.43,ty:0.36,bl:1.2,bw:0.108,muzzle:false,boxy:false,sk:false},
-  namt:{hl:1.67,hw:0.86,tr:0.43,ty:0.36,bl:1.1,bw:0.108,muzzle:false,boxy:false,sk:false},
-  pt16:{hl:1.98,hw:1.0,tr:0.44,ty:0.37,bl:1.25,bw:0.11,muzzle:true,boxy:false,sk:false},
-  leo2a4_tr:{hl:1.98,hw:1.0,tr:0.44,ty:0.37,bl:1.25,bw:0.11,muzzle:true,boxy:false,sk:false},
-  altay_t1:{hl:2.02,hw:1.03,tr:0.46,ty:0.39,bl:1.28,bw:0.113,muzzle:true,boxy:false,sk:false},
   t55agm:{hl:1.8,hw:0.92,tr:0.39,ty:0.33,bl:1.1,bw:0.1,muzzle:false,boxy:false,sk:false},
   t64bv:{hl:1.88,hw:0.95,tr:0.41,ty:0.35,bl:1.15,bw:0.104,muzzle:false,boxy:false,sk:false},
   t72amt:{hl:1.88,hw:0.95,tr:0.41,ty:0.35,bl:1.15,bw:0.104,muzzle:false,boxy:false,sk:false},
@@ -5074,6 +4850,16 @@ const TANK_PROFILES={
   centauro:{hl:1.68,hw:0.88,tr:0.34,ty:0.29,bl:1.04,bw:0.099,muzzle:false,boxy:false,sk:false},
   type16:{hl:1.73,hw:0.90,tr:0.36,ty:0.30,bl:1.09,bw:0.102,muzzle:false,boxy:false,sk:false},
   centauro2:{hl:1.78,hw:0.92,tr:0.37,ty:0.31,bl:1.15,bw:0.105,muzzle:false,boxy:false,sk:false},
+  ltvz34:{hl:1.36,hw:0.73,tr:0.26,ty:0.22,bl:0.62,bw:0.074,muzzle:false,boxy:false,sk:false},
+  ltvz35c:{hl:1.42,hw:0.76,tr:0.28,ty:0.23,bl:0.69,bw:0.078,muzzle:false,boxy:false,sk:false},
+  ltvz38c:{hl:1.48,hw:0.79,tr:0.30,ty:0.25,bl:0.76,bw:0.082,muzzle:false,boxy:false,sk:false},
+  skoda_t21:{hl:1.54,hw:0.82,tr:0.32,ty:0.27,bl:0.83,bw:0.086,muzzle:false,boxy:false,sk:false},
+  skoda_t24:{hl:1.60,hw:0.85,tr:0.34,ty:0.29,bl:0.90,bw:0.090,muzzle:false,boxy:false,sk:false},
+  skoda_t25:{hl:1.66,hw:0.88,tr:0.36,ty:0.30,bl:0.97,bw:0.094,muzzle:false,boxy:false,sk:false},
+  konstrukta:{hl:1.72,hw:0.91,tr:0.38,ty:0.32,bl:1.04,bw:0.098,muzzle:false,boxy:false,sk:false},
+  tvp_vtu:{hl:1.78,hw:0.94,tr:0.40,ty:0.34,bl:1.11,bw:0.102,muzzle:false,boxy:false,sk:false},
+  skoda_t50:{hl:1.84,hw:0.97,tr:0.42,ty:0.35,bl:1.18,bw:0.106,muzzle:false,boxy:false,sk:false},
+  tvp_t50:{hl:1.90,hw:1.00,tr:0.44,ty:0.37,bl:1.25,bw:0.110,muzzle:false,boxy:false,sk:false},
   default:{hl:1.65,hw:0.85,tr:0.33,ty:0.28,bl:0.95,bw:0.090,muzzle:false,boxy:false,sk:false},
 };
 function getProfile(id){return TANK_PROFILES[id]||TANK_PROFILES.default;}
@@ -5840,7 +5626,7 @@ function drawTankPreview(cv,t){
   c.rotate(-Math.PI/2);
   c.fillStyle='rgba(0,0,0,.18)';c.beginPath();c.ellipse(2,3,size*p.hl*.55,size*p.hw*.5,0,0,Math.PI*2);c.fill();
   c.save();_hull(c,size,t.color,p,false,t.id);if(p.sk)_skirts(c,size,t.color,p);c.restore();
-  const _pTD=new Set(['stug3','jpz4','nashorn','jpz6','su85','su100','su122','isu122','isu152','jpanther','ferdinand','obj268','archer','at5','at8','at7','at15','obj704','hori','su100y','brummbar','sturer','pz4_70','jpanther2','honi1','honi3','horo','nato','su152','jgpze100','sem7518','sem10525','zrinyi','tasr','tacam','maresal','vdc_ro','sk105','vca155','g13','stu40','g6']);
+  const _pTD=new Set(['stug3','jpz4','nashorn','jpz6','su85','su100','su122','isu122','isu152','jpanther','ferdinand','obj268','archer','at5','at8','at7','at15','obj704','hori','su100y','brummbar','sturer','pz4_70','jpanther2','honi1','honi3','horo','nato','su152','jgpze100','sem7518','sem10525','g13','stu40']);
   const _pOT=new Set(['m10','m36','achilles','borsig_wt','waffentrager','grille15','rhmborsig','su130pm']);
   if(_pTD.has(t.id)){c.save();_casemate(c,size,t.color,p,t.id);c.restore();}
   else if(_pOT.has(t.id)){c.save();_openTurret(c,size,t.color,p,t.id);c.restore();}
@@ -6297,7 +6083,16 @@ const TREE_LAYOUT = {
     ['emil2','krv'],
     ['udes03','udes15','strv103b','strv105']],
   czech:[
-    ['kodiak']],
+    ['ltvz34'],
+    ['ltvz35c'],
+    ['ltvz38c'],
+    ['skoda_t21'],
+    ['skoda_t24'],
+    ['skoda_t25'],
+    ['konstrukta'],
+    ['tvp_vtu','kodiak'],
+    ['skoda_t50'],
+    ['tvp_t50']],
   polish:[
     ['tks'],
     ['p7tp'],
@@ -6315,17 +6110,6 @@ const TREE_LAYOUT = {
     ['taygete'],
     ['celeno'],
     ['ac_atlas']],
-  romania:[
-    ['r1_ro'],
-    ['r2','r35ro'],
-    ['tacam'],
-    ['maresal'],
-    ['vdc_ro'],
-    ['tr77'],
-    ['tr580'],
-    ['tr85'],
-    ['tr85m1','tm800'],
-    ['tr125','tr2000']],
   australia:[
     ['carrier_au'],
     ['ac1_au'],
@@ -6335,13 +6119,6 @@ const TREE_LAYOUT = {
     ['cent_au'],
     ['leo_as1'],
     ['m1a1aim']],
-  argentina:[
-    ['dl43','amx13_ar'],
-    ['sherman_rep','patagon','sk105'],
-    ['tam','vctp','vca155'],
-    ['tam2c'],
-    ['tam2ip'],
-    ['tam2c40']],
   swiss:[
     ['pz39'],
     ['nk1'],
@@ -6351,30 +6128,6 @@ const TREE_LAYOUT = {
     ['pz68'],
     ['pz68_88'],
     ['pz87','pz68_2000']],
-  israel:[
-    ['sherman_idf'],
-    ['sherman_m50'],
-    ['sherman_m51','tiran4'],
-    ['shotkal','tiran5','magach3'],
-    ['magach6b','merkava2','sabra'],
-    ['magach7','merkava4b']],
-  yugoslavia:[
-    ['lt35_yu'],
-    ['sherman_yu','t34_yu'],
-    ['t54_yu','m47_yu'],
-    ['m80'],
-    ['t72_yu'],
-    ['m84','m84a'],
-    ['m84as','vihor']],
-  spain:[
-    ['panzer_es'],
-    ['verdeja','trubia'],
-    ['t26_es','verdeja2'],
-    ['pizarro'],
-    ['m47e'],
-    ['amx30e','m48e'],
-    ['lince'],
-    ['leopard2e']],
   finland:[
     ['ft_fi'],
     ['vickers_fi'],
@@ -6386,46 +6139,12 @@ const TREE_LAYOUT = {
     ['t72m1_fi'],
     ['leo2a4_fi'],
     ['leo2a6_fi']],
-  brazil:[
-    ['m3_br'],
-    ['x1','x1a'],
-    ['x1a2','m41_br','cascavel'],
-    ['tamoyo'],
-    ['tamoyo3','leopard1_br'],
-    ['charrua','m60_br'],
-    ['osorio'],
-    ['osorio2']],
-  safrica:[
-    ['marmon'],
-    ['eland'],
-    ['ratel90'],
-    ['centurion_za','g6'],
-    ['olifant','olifant1a'],
-    ['rooikat','olifant1b','rooikat105'],
-    ['olifant2'],
-    ['ttd']],
-  turkey:[
-    ['tulpar'],
-    ['fnss','m47_tr'],
-    ['leopard1_tr','m48_tr'],
-    ['m60_tr','namt'],
-    ['pt16','leo2a4_tr'],
-    ['altay','altay_t1']],
   ukraine:[
     ['t55agm'],
     ['t64bv','t72amt'],
     ['t64_ua','bulat2'],
     ['t80ud','t84'],
     ['oplot','oplot_m','yatagan','t84120']],
-  hungarian:[
-    ['toldi1'],
-    ['toldi2'],
-    ['turan1'],
-    ['turan2'],
-    ['zrinyi'],
-    ['turan3'],
-    ['tas'],
-    ['tasr']],
   italian:[
     ['l3_33'],
     ['m11_39'],
@@ -6502,21 +6221,12 @@ const TIER_NAMES = {
   japanese:['Tier I','Tier II','Tier III','Tier IV','Tier V','Tier VI','Tier VII','Tier VIII','Tier IX','Tier X','Modern'],
   chinese: ['Tier I','Tier II','Tier III','Tier IV','Tier V','Tier VI','Tier VII','Tier VIII','Tier IX','Tier X','Modern'],
   swedish: ['Tier I','Tier II','Tier III','Tier IV','Tier V','Tier VI','Tier VII','Tier VIII','Tier IX','Tier X','Modern'],
-  czech:   ['Tier VIII'],
+  czech:   ['Tier I','Tier II','Tier III','Tier IV','Tier V','Tier VI','Tier VII','Tier VIII','Tier IX','Tier X'],
   italian: ['Tier I','Tier II','Tier III','Tier IV','Tier V','Tier VI','Tier VII','Tier VIII'],
   polish:  ['Tier I','Tier II','Tier III','Tier IV','Tier V','Tier VI','Tier VII','Tier VIII'],
-  hungarian: ['Tier I','Tier II','Tier III','Tier IV','Tier V','Tier VI','Tier VII','Tier VIII'],
-  romania: ['Tier I','Tier II','Tier III','Tier IV','Tier V','Tier VI','Tier VII','Tier VIII','Tier IX','Tier X'],
   australia: ['Tier I','Tier III','Tier IV','Tier V','Tier VI','Tier VII','Tier VIII','Tier X'],
-  argentina: ['Tier IV','Tier V','Tier VI','Tier VII','Tier VIII','Tier IX'],
   swiss: ['Tier III','Tier IV','Tier V','Tier VI','Tier VII','Tier VIII','Tier IX','Tier X'],
-  israel: ['Tier V','Tier VI','Tier VII','Tier VIII','Tier IX','Tier X'],
-  yugoslavia: ['Tier II','Tier V','Tier VI','Tier VII','Tier VIII','Tier IX','Tier X'],
-  spain: ['Tier I','Tier II','Tier III','Tier V','Tier VI','Tier VII','Tier VIII','Tier X'],
   finland: ['Tier I','Tier II','Tier III','Tier IV','Tier V','Tier VI','Tier VII','Tier VIII','Tier IX','Tier X'],
-  brazil: ['Tier III','Tier IV','Tier V','Tier VI','Tier VII','Tier VIII','Tier IX','Tier X'],
-  safrica: ['Tier II','Tier IV','Tier V','Tier VI','Tier VII','Tier VIII','Tier IX','Tier X'],
-  turkey: ['Tier V','Tier VI','Tier VII','Tier VIII','Tier IX','Tier X'],
   ukraine: ['Tier VI','Tier VII','Tier VIII','Tier IX','Tier X'],
   blitz:   ['Tier IV','Tier V','Tier VI','Tier VII','Tier VIII','Tier IX','Tier X'],
   modern:  ['Modern Era'],
@@ -6528,8 +6238,8 @@ const TIER_NAMES = {
 
 function treeShowNation(nation){
   treeNation=nation;
-  ['de','ussr','us','gb','fr','jp','cn','se','pl','cz','it','hu','blitz','mod','cw','arty','romania','australia','argentina','swiss','israel','yugoslavia','spain','finland','brazil','safrica','turkey','ukraine','carrier','mslcarrier','armcar'].forEach(n=>{const el=document.getElementById('tnav-'+n);if(el)el.classList.remove('active');});
-  const map={german:'de',soviet:'ussr',american:'us',british:'gb',french:'fr',japanese:'jp',chinese:'cn',swedish:'se',czech:'cz',italian:'it',polish:'pl',hungarian:'hu',blitz:'blitz',modern:'mod',coldwar:'cw',artillery:'arty'};
+  ['de','ussr','us','gb','fr','jp','cn','se','pl','cz','it','blitz','mod','cw','arty','australia','swiss','finland','ukraine','carrier','mslcarrier','armcar'].forEach(n=>{const el=document.getElementById('tnav-'+n);if(el)el.classList.remove('active');});
+  const map={german:'de',soviet:'ussr',american:'us',british:'gb',french:'fr',japanese:'jp',chinese:'cn',swedish:'se',czech:'cz',italian:'it',polish:'pl',blitz:'blitz',modern:'mod',coldwar:'cw',artillery:'arty'};
   const btn=document.getElementById('tnav-'+(map[nation]||nation));if(btn)btn.classList.add('active');
   const cbar=document.getElementById('tree-coins-bar');if(cbar)cbar.textContent=coins.toLocaleString()+' \u{1F3F7}';
 
