@@ -474,7 +474,6 @@ body[data-state="mode"] #screen-title { display:none!important; }
     <button class="tnav-btn" id="tnav-blitz" onclick="treeShowNation('blitz')">&#9889; HYBRID</button>
     <button class="tnav-btn" id="tnav-mod" onclick="treeShowNation('modern')" style="border-color:rgba(200,168,75,.5);color:var(--khaki)">&#9881; MODERN ERA</button>
   <button class="tnav-btn" id="tnav-cw" onclick="treeShowNation('coldwar')" style="border-color:rgba(200,168,75,.5);color:var(--khaki)">&#9762; COLD WAR</button>
-    <button class="tnav-btn" id="tnav-arty" onclick="treeShowNation('artillery')" style="border-color:rgba(255,120,20,.5);color:#ff8020;">&#128165; ARTILLERY</button>
     <span id="tree-coins-bar" style="margin-left:auto;color:var(--khaki);font-size:12px;">0 &#127987;</span>
     <button class="sbtn" onclick="openGarage()" style="font-size:10px">&#9664; HOME</button>
   </div>
@@ -911,25 +910,10 @@ const TANK_DEFS = [
   // Britain
   // France
   // Germany SPGs
-  {id:'wespe',    name:'Wespe',       nation:'🇩🇪 Germany',hp:160, armor:12,pen:40, dmg:350, speed:2.4,rot:1.4,reload:5.0,ammo:32,color:'#585830',tier:'III',price:400,  desc:'Light German SPG. 105mm howitzer.'},
-  {id:'hummel',   name:'Hummel',      nation:'🇩🇪 Germany',hp:240, armor:15,pen:60, dmg:550, speed:2.0,rot:1.2,reload:6.0,ammo:40,color:'#504828',tier:'VI', price:1800, desc:'Heavy German SPG. 150mm.'},
-  {id:'gw_panther',name:'GW Panther', nation:'🇩🇪 Germany',hp:380, armor:20,pen:70, dmg:720, speed:1.8,rot:1.0,reload:7.5,ammo:50,color:'#484020',tier:'VIII',price:4000,desc:'German Tier VIII arty.'},
-  {id:'gw_e100',  name:'GW E 100',   nation:'🇩🇪 Germany',hp:620, armor:30,pen:90, dmg:1100,speed:1.2,rot:0.8,reload:9.5,ammo:18,color:'#3c3818',tier:'X',  price:8000, desc:'German Tier X arty.'},
   // USSR SPGs
-  {id:'su26',     name:'SU-26',       nation:'🇷🇺 USSR',   hp:150, armor:10,pen:38, dmg:280, speed:2.6,rot:1.5,reload:5.0,ammo:166,color:'#404828',tier:'III',price:350,  desc:'Light Soviet SPG.'},
-  {id:'su14',     name:'SU-14-2',     nation:'🇷🇺 USSR',   hp:280, armor:14,pen:65, dmg:600, speed:1.6,rot:1.0,reload:7.0,ammo:40,color:'#384020',tier:'VI', price:1800, desc:'Heavy Soviet arty.'},
-  {id:'obj261',   name:'Object 261',  nation:'🇷🇺 USSR',   hp:550, armor:28,pen:88, dmg:980, speed:1.4,rot:0.8,reload:9.0,ammo:30,color:'#303818',tier:'X',  price:8000, desc:'Soviet Tier X arty.'},
   // USA SPGs
-  {id:'m7_priest',name:'M7 Priest',   nation:'🇺🇸 USA',    hp:200, armor:13,pen:42, dmg:320, speed:2.5,rot:1.4,reload:5.5,ammo:69,color:'#585840',tier:'IV', price:600,  desc:'US open-top SPG.'},
-  {id:'m40_m43',  name:'M40/M43',     nation:'🇺🇸 USA',    hp:360, armor:18,pen:72, dmg:680, speed:1.7,rot:1.0,reload:8.0,ammo:40,color:'#4a4a30',tier:'VIII',price:4200,desc:'US Tier VIII SPG.'},
-  {id:'t92_arty', name:'T92 HMC',     nation:'🇺🇸 USA',    hp:580, armor:22,pen:85, dmg:1050,speed:1.2,rot:0.7,reload:10.0,ammo:20, color:'#3a3a28',tier:'X',  price:8500, desc:'US Tier X. 240mm.'},
   // Britain SPGs
-  {id:'sexton',   name:'Sexton I',    nation:'🇬🇧 Britain', hp:180, armor:12,pen:38, dmg:290, speed:2.5,rot:1.4,reload:5.0,ammo:87,color:'#485230',tier:'III',price:380,  desc:'British SPG. 25pdr.'},
-  {id:'fv304',    name:'FV304',       nation:'🇬🇧 Britain', hp:280, armor:15,pen:55, dmg:420, speed:3.2,rot:1.6,reload:5.5,ammo:40,color:'#404a28',tier:'V',  price:1000, desc:'Fast British SPG.'},
-  {id:'cgc',      name:'Conqueror GC',nation:'🇬🇧 Britain', hp:560, armor:26,pen:88, dmg:1000,speed:1.3,rot:0.8,reload:9.5,ammo:36, color:'#384028',tier:'X',  price:8200, desc:'British Tier X.'},
   // France SPGs
-  {id:'amx13f3',  name:'AMX 13 F3',   nation:'🇫🇷 France', hp:250, armor:13,pen:58, dmg:480, speed:2.1,rot:1.2,reload:6.0,ammo:30,color:'#4a4a20',tier:'VI', price:1600, desc:'French SPG. 155mm.'},
-  {id:'lorr155',  name:'Lorraine 155',nation:'🇫🇷 France', hp:380, armor:20,pen:76, dmg:750, speed:1.9,rot:1.0,reload:8.0,ammo:40,color:'#3c3c18',tier:'VIII',price:4000,desc:'French Tier VIII arty.'},
   {id:'ratte',name:'P.1000 Ratte',nation:'🇩🇪 Germany',hp:9999999,armor:360,pen:1200,dmg:10000,speed:1.0,rot:0.5,reload:0.1,ammo:40,color:'#5a5838',tier:'XI',price:0,desc:'1000-ton behemoth. Twin 280mm naval guns. 10,000 dmg! No reload. Indestructible.'},
   // ══ NATION & ERA EXPANSION (auto-generated) ══
   // -- MODERN +10 --
@@ -1168,12 +1152,6 @@ const MAPS = [
 
 // Which faction does a tank belong to?
 function getTankFaction(id){
-  const artySPG={wespe:'german',hummel:'german',gw_panther:'german',gw_e100:'german',
-    su26:'soviet',su14:'soviet',obj261:'soviet',
-    m7_priest:'american',m40_m43:'american',t92_arty:'american',
-    sexton:'british',fv304:'british',cgc:'british',
-    amx13f3:'french',lorr155:'french'};
-  if(artySPG[id]) return artySPG[id];
   const soviet=['ms1','t26','t60','bt7','t70','t28','a20','t34','kv1','su85','t34_85m','kv85','t3485','kv2','kv4','su76','su100','su122','isu122','is2','is1','is3','isu152','obj252','t44','su130pm','obj279','t54','obj140','obj430','obj268','obj277','t62a','t50','obj704','t35','kv5','su100y','it1','kv1s','smk','is7','is4','obj907','su152'];
   const american=['t1cunn','m2light','m3stuart','m5stuart','m3lee','m4a2','m4improved','m4a1','m10','m41walker','m6heavy','m4a3e2','m4a3e8','hellcat','bat_pat','firefly','m36','m26e4','t29','m26','t69','t28heavy','t28proto','m46patton','t95','t54e1','t34us','t30','m48patton','m48a5patton','t110e5','t110e3','t110e4','t57heavy','xm551','m24','m22','m2med','t92','t25','t95e6'];
   const british=['carden','vickers_med','mkvi','a13','tetrarch','crusader','aec_mk2','matilda2','valentine','churchillI','cromwell','centaur','archer','churchill4','achilles','charioteer','black_prince','comet','firefly_b','at5','at8','at7','at15','conqueror','conqueror_ix','fv215b','fv4202','fv183','fv4005','badger','supercon','fv4211','tortoise','excelsior','tog2','caernarvon','ram2','cent71'];
@@ -2837,7 +2815,7 @@ function tryShoot(){
 
 // ─── WoT ARTILLERY MAP ─────────────────────────────────
 let artyShells=[],artyTarget={x:1200,y:1200},artyReticleVisible=false;
-const SPG_IDS=new Set(['wespe','hummel','gw_panther','gw_e100','su26','su14','obj261','m7_priest','m40_m43','t92_arty','sexton','fv304','cgc','amx13f3','lorr155']);
+const SPG_IDS=new Set();
 let artyMapOpen=false;
 
 function openArtyMap(){
@@ -4667,12 +4645,10 @@ const TANK_PROFILES={
   // ── SPG PROFILES ──
   wespe:    {hl:1.70,hw:0.80,tr:0.20,ty:0.16,bl:1.45,bw:0.085,muzzle:false,boxy:true,sk:false},
   hummel:   {hl:1.90,hw:0.92,tr:0.22,ty:0.18,bl:1.65,bw:0.100,muzzle:false,boxy:true,sk:false},
-  gw_panther:{hl:2.00,hw:0.98,tr:0.24,ty:0.20,bl:1.80,bw:0.110,muzzle:false,boxy:true,sk:false},
   gw_e100:  {hl:2.20,hw:1.10,tr:0.28,ty:0.24,bl:2.00,bw:0.130,muzzle:false,boxy:true,sk:false},
   su26:     {hl:1.60,hw:0.78,tr:0.32,ty:0.28,bl:1.30,bw:0.080,muzzle:false,boxy:false,sk:false},
   su14:     {hl:1.95,hw:0.96,tr:0.24,ty:0.20,bl:1.75,bw:0.110,muzzle:false,boxy:true,sk:false},
   obj261:   {hl:2.10,hw:1.02,tr:0.26,ty:0.22,bl:1.85,bw:0.115,muzzle:false,boxy:true,sk:false},
-  m7_priest:{hl:1.75,hw:0.88,tr:0.24,ty:0.20,bl:1.40,bw:0.090,muzzle:false,boxy:true,sk:false},
   m40_m43:  {hl:1.95,hw:0.96,tr:0.26,ty:0.22,bl:1.75,bw:0.108,muzzle:false,boxy:true,sk:false},
   t92_arty: {hl:2.15,hw:1.08,tr:0.28,ty:0.24,bl:1.95,bw:0.125,muzzle:false,boxy:true,sk:false},
   sexton:   {hl:1.72,hw:0.86,tr:0.22,ty:0.18,bl:1.38,bw:0.086,muzzle:false,boxy:true,sk:false},
@@ -6203,12 +6179,6 @@ const TREE_LAYOUT = {
     ['centauro'],
     ['type16'],
     ['centauro2']],
-  artillery:[
-    ['wespe','su26','sexton','m7_priest'],
-    ['hummel','su14','amx13f3','fv304'],
-    ['gw_panther','m40_m43','lorr155'],
-    ['gw_e100','obj261','t92_arty','cgc'],
-  ],
 };
 
 const TIER_NAMES = {
@@ -6233,13 +6203,12 @@ const TIER_NAMES = {
   carrier: ['Tier IV','Tier V','Tier VI','Tier VII','Tier VIII','Tier IX','Tier X'],
   mslcarrier: ['Tier I','Tier II','Tier III','Tier IV','Tier V','Tier VI','Tier VII','Tier VIII','Tier IX','Tier X'],
   armcar: ['Tier I','Tier II','Tier III','Tier IV','Tier V','Tier VI','Tier VII','Tier VIII','Tier IX','Tier X'],
-  artillery:['Tier III-IV','Tier V-VI','Tier VIII-X'],
 };
 
 function treeShowNation(nation){
   treeNation=nation;
-  ['de','ussr','us','gb','fr','jp','cn','se','pl','cz','it','blitz','mod','cw','arty','australia','swiss','finland','ukraine','carrier','mslcarrier','armcar'].forEach(n=>{const el=document.getElementById('tnav-'+n);if(el)el.classList.remove('active');});
-  const map={german:'de',soviet:'ussr',american:'us',british:'gb',french:'fr',japanese:'jp',chinese:'cn',swedish:'se',czech:'cz',italian:'it',polish:'pl',blitz:'blitz',modern:'mod',coldwar:'cw',artillery:'arty'};
+  ['de','ussr','us','gb','fr','jp','cn','se','pl','cz','it','blitz','mod','cw','australia','swiss','finland','ukraine','carrier','mslcarrier','armcar'].forEach(n=>{const el=document.getElementById('tnav-'+n);if(el)el.classList.remove('active');});
+  const map={german:'de',soviet:'ussr',american:'us',british:'gb',french:'fr',japanese:'jp',chinese:'cn',swedish:'se',czech:'cz',italian:'it',polish:'pl',blitz:'blitz',modern:'mod',coldwar:'cw'};
   const btn=document.getElementById('tnav-'+(map[nation]||nation));if(btn)btn.classList.add('active');
   const cbar=document.getElementById('tree-coins-bar');if(cbar)cbar.textContent=coins.toLocaleString()+' \u{1F3F7}';
 
