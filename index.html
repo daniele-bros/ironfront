@@ -3227,6 +3227,8 @@ function updatePlayer(dt){
   if(moving){
     const len=Math.hypot(dx,dy);
     dx/=len;dy/=len;
+    // remember this frame's ram velocity (speed + heading) for collision damage
+    player._ramSpeed=spd; player._ramDX=dx; player._ramDY=dy;
     player.x+=dx*spd*dt;
     player.y+=dy*spd*dt;
     // leave tread marks behind as we drive
@@ -3247,6 +3249,7 @@ function updatePlayer(dt){
     const diff=angleDiff(targetAngle,player.angle);
     player.angle+=Math.sign(diff)*Math.min(Math.abs(diff),player.rotSpeed*0.1*dt);
   }
+  if(!moving)player._ramSpeed=0;
   player.x=Math.max(player.size,Math.min(WW-player.size,player.x));
   player.y=Math.max(player.size,Math.min(WH-player.size,player.y));
   resolveObs(player);resolveTankCollisions();
@@ -3359,9 +3362,11 @@ function _drawPauseOverlay(){
 function resolveTankCollisions(){
   if(!player)return;
   const all=[];
-  if(Array.isArray(enemies))for(const e of enemies)if(e.hp>0)all.push(e);
-  if(Array.isArray(allies))for(const a of allies)if(a.hp>0)all.push(a);
-  for(const o of all){
+  if(Array.isArray(enemies))for(const e of enemies)if(e.hp>0)all.push([e,true]);
+  if(Array.isArray(allies))for(const a of allies)if(a.hp>0)all.push([a,false]);
+  const ramSpd=player._ramSpeed||0;
+  for(const [o,isEnemy] of all){
+    if(o._ramCD>0)o._ramCD--;
     const dx=player.x-o.x, dy=player.y-o.y;
     const dist=Math.hypot(dx,dy);
     const minD=player.size+o.size; // sum of radii
@@ -3370,6 +3375,34 @@ function resolveTankCollisions(){
       const push=(minD-dist);
       player.x+=(dx/dist)*push;
       player.y+=(dy/dist)*push;
+      // ── RAMMING: driving into an enemy hurts it (and you) by impact speed ──
+      // Only a real charge counts: must be moving toward the tank we hit.
+      const towardX=-dx/dist, towardY=-dy/dist; // unit vector from player to o
+      const closing=ramSpd*((player._ramDX||0)*towardX+(player._ramDY||0)*towardY);
+      if(isEnemy && closing>0.4 && !(o._ramCD>0)){
+        o._ramCD=26; // ~0.45s between ram hits on the same tank
+        const massRatio=player.size/o.size; // heavier tanks deal more, take less
+        const oDmg=Math.round(closing*16*massRatio);
+        const pDmg=Math.round(closing*8/massRatio);
+        o.hp-=oDmg; o.hitFlash=1;
+        player.hp=Math.max(0,player.hp-pDmg); player.hitFlash=1;
+        spawnSparks((player.x+o.x)/2,(player.y+o.y)/2);
+        camShake=Math.max(camShake,4);
+        if(battleMode==='testrange') _dmgPopup((player.x+o.x)/2,(player.y+o.y)/2-o.size,'RAM -'+oDmg,'#ff9040');
+        if(o.hp<=0){
+          if(o._dummy){ spawnExplosion(o.x,o.y); o.hp=0; o._respawn=140; }
+          else {
+            let reward=1000; if(o._isRatte){reward=500000;addKillFeed('💀 RATTE KILL! +500,000 🏷');}
+            coins+=reward;totalKills++;score+=reward;kills++; if(_throttle('coinsave',1000))saveData();
+            updateCoinsHud();showCoinPopup(o.x-camX,o.y-camY,'+'+reward+'🏷');
+            addKillFeed(o.name+' RAMMED +'+reward+'🏷');
+            spawnExplosion(o.x,o.y);craters.push({x:o.x,y:o.y,r:o.size*1.4});
+            const idx=enemies.indexOf(o); if(idx>=0)enemies.splice(idx,1);
+            (document.getElementById('hud-en')||{}).textContent=enemies.length; _on1v1000Kill();
+          }
+        }
+        if(player.hp<=0)gameOver();
+      }
     } else if(dist===0){
       // exactly overlapping — nudge sideways
       player.x+=minD;
