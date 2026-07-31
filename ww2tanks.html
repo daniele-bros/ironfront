@@ -1104,6 +1104,12 @@ const MISSILE_TYPES=[
   {id:'plasma', name:'Plasma Lance',       price:36000, dmg:2.4, maxspd:14,turn:0.24, life:420, splash:0,  count:1, color:'#9a6aff', desc:'Blistering-fast energy dart — hard to miss and punches straight through.'},
   {id:'javelin',name:'Javelin (Top-Attack)',price:40000,dmg:3.4, maxspd:7, turn:0.20, life:480, splash:24, count:1, color:'#ff6ac8', desc:'Top-attack fire-and-forget — dives onto the roof for the heaviest single hit.'},
   {id:'hydra',  name:'Hydra MIRV',         price:46000, dmg:0.8, maxspd:8, turn:0.19, life:440, splash:0,  count:5, color:'#70d0b0', desc:'Fires five warheads at once: you fly the lead, four wingmen auto-home.'},
+  {id:'emp',    name:'EMP Burst',          price:34000, dmg:0.6, maxspd:7, turn:0.16, life:500, splash:85, count:1, color:'#40b0ff', freeze:300, desc:'Low damage, but a wide electromagnetic pulse that stuns every tank in range.'},
+  {id:'vampire',name:'Vampire ATGM',       price:38000, dmg:1.8, maxspd:7, turn:0.18, life:480, splash:0,  count:1, color:'#e040a0', heal:0.5, desc:'Siphons the impact — repairs your tank for half the damage it deals.'},
+  {id:'bunker', name:'Bunker Buster',      price:44000, dmg:3.0, maxspd:5, turn:0.13, life:540, splash:40, count:1, color:'#c0a060', desc:'Delayed penetrator — smashes through the toughest armour with a heavy blast.'},
+  {id:'hailstorm',name:'Hailstorm MLRS',   price:52000, dmg:0.7, maxspd:8, turn:0.18, life:420, splash:0,  count:8, color:'#90e0d0', desc:'Eight-rocket barrage: fly the lead, seven wingmen rain onto the enemy.'},
+  {id:'hyper',  name:'Hypersonic Dart',    price:56000, dmg:2.6, maxspd:18,turn:0.16, life:400, splash:0,  count:1, color:'#ff3060', desc:'Near-unmissable — screams to the target almost instantly and punches clean through.'},
+  {id:'davy',   name:'Davy Crockett',      price:66000, dmg:4.0, maxspd:5, turn:0.12, life:560, splash:170,count:1, color:'#ffe020', fire:true, desc:'Tactical mini-nuke — an enormous blast that vaporises everything nearby and leaves the ground ablaze.'},
 ];
 function getMissileType(){ return MISSILE_TYPES.find(m=>m.id===selectedMissile)||MISSILE_TYPES[0]; }
 // Detonate a splash warhead. The directly-struck target (hit) always takes FULL
@@ -2774,7 +2780,7 @@ function tryShoot(){
       if(!m)continue;
       // Apply the equipped loadout's stats to each missile
       m.dmg=baseDmg*mt.dmg; m.maxspd=mt.maxspd; m.turn=mt.turn; m.life=mt.life;
-      m.splash=mt.splash||0; m.mcolor=mt.color; m.fire=mt.fire||false; m.freeze=mt.freeze||0;
+      m.splash=mt.splash||0; m.mcolor=mt.color; m.fire=mt.fire||false; m.freeze=mt.freeze||0; m.heal=mt.heal||0;
       // You fly the lead missile with the mouse; any wingmen auto-home to enemies.
       if(k===0){ m.driven=true; drivenMissile=m; } else { m.autohome=true; }
     }
@@ -3644,6 +3650,7 @@ function updateBullets(dt){
           const dealt=penetrated?b.dmg:0;
           e.hp-=dealt;
           e.hitFlash=1;
+          if(b.heal&&dealt>0&&player&&player.hp>0){ const h=Math.round(dealt*b.heal); player.hp=Math.min(player.maxHp,player.hp+h); _dmgPopup(player.x,player.y-player.size,'+'+h,'#40ff90'); }
           spawnHitFx(b.x,b.y,penetrated);
           if(battleMode==='testrange') _dmgPopup(b.x,b.y-e.size, penetrated?('-'+Math.round(dealt)):'BOUNCE', penetrated?'#ffd24a':'#8ab4ff');
           if(b.pierce)b.hitSet.add(e);
