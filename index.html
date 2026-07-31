@@ -1110,6 +1110,11 @@ const MISSILE_TYPES=[
   {id:'hailstorm',name:'Hailstorm MLRS',   price:52000, dmg:0.7, maxspd:8, turn:0.18, life:420, splash:0,  count:8, color:'#90e0d0', desc:'Eight-rocket barrage: fly the lead, seven wingmen rain onto the enemy.'},
   {id:'hyper',  name:'Hypersonic Dart',    price:56000, dmg:2.6, maxspd:18,turn:0.16, life:400, splash:0,  count:1, color:'#ff3060', desc:'Near-unmissable — screams to the target almost instantly and punches clean through.'},
   {id:'davy',   name:'Davy Crockett',      price:66000, dmg:4.0, maxspd:5, turn:0.12, life:560, splash:170,count:1, color:'#ffe020', fire:true, desc:'Tactical mini-nuke — an enormous blast that vaporises everything nearby and leaves the ground ablaze.'},
+  {id:'frag',   name:'Fragmentation',      price:26000, dmg:1.3, maxspd:7, turn:0.16, life:500, splash:110,count:1, color:'#d0d060', desc:'Bursts into a wide cloud of shrapnel — great against grouped light tanks.'},
+  {id:'rail',   name:'Railgun Lance',      price:48000, dmg:2.2, maxspd:16,turn:0.16, life:420, splash:0,  count:1, color:'#70f0ff', pierce:true, desc:'Hypervelocity slug that skewers every tank in a line and keeps going.'},
+  {id:'tesla',  name:'Chain Lightning',    price:50000, dmg:1.6, maxspd:8, turn:0.20, life:460, splash:0,  count:1, color:'#c0a0ff', chain:4, desc:'Arcs from the target to nearby tanks, each jump a little weaker.'},
+  {id:'vortex', name:'Singularity',        price:58000, dmg:1.8, maxspd:6, turn:0.15, life:520, splash:60, count:1, color:'#a060ff', pull:true, desc:'Collapses a gravity well that drags tanks together, then detonates.'},
+  {id:'quake',  name:'Seismic Charge',     price:62000, dmg:2.4, maxspd:5, turn:0.12, life:560, splash:150,count:1, color:'#e08040', fire:true, desc:'Ground-rupturing blast — massive area damage and lingering flames.'},
 ];
 function getMissileType(){ return MISSILE_TYPES.find(m=>m.id===selectedMissile)||MISSILE_TYPES[0]; }
 // Detonate a splash warhead. The directly-struck target (hit) always takes FULL
@@ -1124,6 +1129,8 @@ function _missileDetonate(b,hit){
   if(b.fire){ fireZones.push({x:b.x,y:b.y,r:Math.max(46,R),owner:b.owner==='enemy'?'enemy':'player',dps:Math.max(20,dmg*0.06),life:360,_tick:0}); }
   // Cryo: freeze tanks caught in the blast for a few seconds
   if(b.freeze){ if(b.owner!=='enemy'&&enemies)for(const e of enemies){ if(e.hp>0&&Math.hypot(e.x-b.x,e.y-b.y)<Math.max(R,40)){ e._frozen=b.freeze; } } }
+  // Singularity: yank nearby tanks toward the impact point
+  if(b.pull&&b.owner!=='enemy'&&enemies){ const PR=R*2.4; for(const e of enemies){ if(e.hp<=0)continue; const d=Math.hypot(e.x-b.x,e.y-b.y); if(d<PR&&d>1){ const f=Math.min(70,(PR-d)*0.55); e.x+=(b.x-e.x)/d*f; e.y+=(b.y-e.y)/d*f; } } }
   if(b.owner==='enemy'){
     if(player&&player.hp>0){const a=amt(player);if(a>0){player.hp=Math.max(0,player.hp-a*0.6);player.hitFlash=1;flashDamage();if(player.hp<=0)gameOver();}}
     if(allies)for(let j=allies.length-1;j>=0;j--){const al=allies[j];const a=amt(al);if(a>0){al.hp=Math.max(0,al.hp-a*0.6);al.hitFlash=1;if(al.hp<=0){spawnExplosion(al.x,al.y);allies.splice(j,1);}}}
@@ -1143,6 +1150,33 @@ function _missileDetonate(b,hit){
         enemies.splice(j,1);(document.getElementById('hud-en')||{}).textContent=enemies.length;_on1v1000Kill();
       }
     }
+  }
+}
+// Destroy an enemy with the normal reward/killfeed (or respawn if a test dummy).
+function _rewardKill(e){
+  if(e._dummy){ spawnExplosion(e.x,e.y); e.hp=0; e._respawn=140; return; }
+  let reward=1000; if(e._isRatte){reward=500000;addKillFeed('💀 RATTE KILL! +500,000 🏷');}
+  coins+=reward;totalKills++;score+=reward;kills++; if(_throttle('coinsave',1000))saveData();
+  updateCoinsHud();showCoinPopup(e.x-camX,e.y-camY,'+'+reward+'🏷');
+  spawnExplosion(e.x,e.y);craters.push({x:e.x,y:e.y,r:e.size*1.4});
+  const idx=enemies.indexOf(e); if(idx>=0)enemies.splice(idx,1);
+  (document.getElementById('hud-en')||{}).textContent=enemies.length; _on1v1000Kill();
+}
+// Chain-lightning: arc from a struck enemy to nearby tanks, weakening each jump.
+function _chainLightning(sx,sy,baseDmg,jumps){
+  let cx=sx,cy=sy; const zapped=new Set();
+  for(let k=0;k<jumps;k++){
+    let best=null,bd=220;
+    for(const e of enemies){ if(e.hp<=0||zapped.has(e))continue; const d=Math.hypot(e.x-cx,e.y-cy); if(d<bd){bd=d;best=e;} }
+    if(!best)break;
+    zapped.add(best);
+    const dmg=Math.round(baseDmg*Math.pow(0.72,k+1));
+    // lightning arc particles
+    const steps=6; for(let s=0;s<=steps;s++){ const t=s/steps; particles.push({type:'spark',x:cx+(best.x-cx)*t+(Math.random()-.5)*10,y:cy+(best.y-cy)*t+(Math.random()-.5)*10,vx:0,vy:0,life:8,maxLife:8,alpha:1,r:2,color:'#a0d8ff'}); }
+    best.hp-=dmg; best.hitFlash=1;
+    if(battleMode==='testrange') _dmgPopup(best.x,best.y-best.size,'⚡-'+dmg,'#8ad0ff');
+    if(best.hp<=0) _rewardKill(best);
+    cx=best.x; cy=best.y;
   }
 }
 const _SMOKE_COLORS=new Set(['#555','#5a4a2a','#9a8050','#b8c8d8','#443022','#777']);
@@ -2781,6 +2815,7 @@ function tryShoot(){
       // Apply the equipped loadout's stats to each missile
       m.dmg=baseDmg*mt.dmg; m.maxspd=mt.maxspd; m.turn=mt.turn; m.life=mt.life;
       m.splash=mt.splash||0; m.mcolor=mt.color; m.fire=mt.fire||false; m.freeze=mt.freeze||0; m.heal=mt.heal||0;
+      m.pierce=mt.pierce||false; m.chain=mt.chain||0; m.pull=mt.pull||false;
       // You fly the lead missile with the mouse; any wingmen auto-home to enemies.
       if(k===0){ m.driven=true; drivenMissile=m; } else { m.autohome=true; }
     }
@@ -3651,6 +3686,7 @@ function updateBullets(dt){
           e.hp-=dealt;
           e.hitFlash=1;
           if(b.heal&&dealt>0&&player&&player.hp>0){ const h=Math.round(dealt*b.heal); player.hp=Math.min(player.maxHp,player.hp+h); _dmgPopup(player.x,player.y-player.size,'+'+h,'#40ff90'); }
+          if(b.chain&&dealt>0){ _chainLightning(e.x,e.y,dealt,b.chain); }
           spawnHitFx(b.x,b.y,penetrated);
           if(battleMode==='testrange') _dmgPopup(b.x,b.y-e.size, penetrated?('-'+Math.round(dealt)):'BOUNCE', penetrated?'#ffd24a':'#8ab4ff');
           if(b.pierce)b.hitSet.add(e);
