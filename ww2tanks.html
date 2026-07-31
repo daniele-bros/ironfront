@@ -478,6 +478,8 @@ body[data-state="mode"] #screen-title { display:none!important; }
     <button class="tnav-btn" id="tnav-turkey" onclick="treeShowNation('turkey')">&#127481;&#127479; TR</button>
     <button class="tnav-btn" id="tnav-ukraine" onclick="treeShowNation('ukraine')">&#127482;&#127462; UA</button>
     <button class="tnav-btn" id="tnav-carrier" onclick="treeShowNation('carrier')" style="border-color:rgba(120,160,90,.5);color:#9ab060">&#128666; IFV CARRIERS</button>
+    <button class="tnav-btn" id="tnav-mslcarrier" onclick="treeShowNation('mslcarrier')" style="border-color:rgba(150,110,200,.5);color:#b090e0">&#128640; MSL CARRIERS</button>
+    <button class="tnav-btn" id="tnav-armcar" onclick="treeShowNation('armcar')" style="border-color:rgba(150,160,90,.5);color:#b0b060">&#128663; ARMORED CARS</button>
     <button class="tnav-btn" id="tnav-blitz" onclick="treeShowNation('blitz')">&#9889; HYBRID</button>
     <button class="tnav-btn" id="tnav-mod" onclick="treeShowNation('modern')" style="border-color:rgba(200,168,75,.5);color:var(--khaki)">&#9881; MODERN ERA</button>
   <button class="tnav-btn" id="tnav-cw" onclick="treeShowNation('coldwar')" style="border-color:rgba(200,168,75,.5);color:var(--khaki)">&#9762; COLD WAR</button>
@@ -1126,13 +1128,36 @@ const TANK_DEFS = [
   {id:'cv90', name:'CV9040', nation:'🇸🇪', hp:780,armor:72,pen:155,dmg:82,speed:4.3,rot:2.4,reload:2.4,ammo:240,color:'#465228',tier:'VIII',price:4200,desc:'Swedish IFV with a hard-hitting 40mm Bofors autocannon.'},
   {id:'bmp3', name:'BMP-3', nation:'🇷🇺', hp:940,armor:92,pen:165,dmg:55,speed:4.2,rot:2.4,reload:2.0,ammo:300,color:'#42501e',tier:'IX',price:6500,desc:'Heaviest BMP. 100mm gun-launcher, coax 30mm and gun-fired missiles.'},
   {id:'puma', name:'Puma', nation:'🇩🇪', hp:1080,armor:132,pen:195,dmg:70,speed:4.2,rot:2.4,reload:1.8,ammo:300,color:'#525e36',tier:'X',price:10000,desc:'Modern German IFV. Airburst 30mm autocannon and a Spike LR missile.'},
+  // ══ MISSILE CARRIERS & ARMORED CARS ══
+  // -- tracked missile carriers --
+  {id:'wiesel_tow', name:'Wiesel 1 TOW', nation:'🇩🇪', hp:160,armor:8,pen:51,dmg:36,speed:5.0,rot:2.8,reload:1.8,ammo:120,color:'#4a5240',tier:'I',price:100,desc:'Air-droppable German tankette carrying a TOW ATGM.'},
+  {id:'malyutka_c', name:'9P110 Malyutka', nation:'🇷🇺', hp:240,armor:12,pen:103,dmg:48,speed:4.8,rot:2.6,reload:2.0,ammo:120,color:'#4a5240',tier:'II',price:250,desc:'Soviet ATGM carrier bristling with six Malyutka rails.'},
+  {id:'m901', name:'M901 ITV', nation:'🇺🇸', hp:330,armor:18,pen:138,dmg:76,speed:4.7,rot:2.5,reload:2.2,ammo:100,color:'#4a5240',tier:'III',price:450,desc:'M113-based Improved TOW Vehicle with an erectable launcher.'},
+  {id:'swingfire', name:'FV438 Swingfire', nation:'🇬🇧', hp:430,armor:25,pen:172,dmg:108,speed:4.6,rot:2.4,reload:2.4,ammo:90,color:'#4a5240',tier:'IV',price:750,desc:'British tracked carrier firing wire-guided Swingfire missiles.'},
+  {id:'shturm_s', name:'9P149 Shturm-S', nation:'🇷🇺', hp:560,armor:33,pen:218,dmg:124,speed:4.6,rot:2.4,reload:2.6,ammo:90,color:'#4a5240',tier:'V',price:1200,desc:'MT-LB-based carrier with a retractable Shturm ATGM arm.'},
+  {id:'jaguar1', name:'Jaguar 1', nation:'🇩🇪', hp:700,armor:42,pen:252,dmg:156,speed:4.5,rot:2.3,reload:2.8,ammo:80,color:'#4a5240',tier:'VI',price:1800,desc:'German tank destroyer with a HOT missile launcher.'},
+  {id:'jaguar2', name:'Jaguar 2', nation:'🇩🇪', hp:860,armor:51,pen:287,dmg:188,speed:4.4,rot:2.3,reload:3.0,ammo:80,color:'#4a5240',tier:'VII',price:2800,desc:'Up-armoured Jaguar mounting the improved TOW system.'},
+  {id:'shturm_sm', name:'9P149M Shturm-SM', nation:'🇷🇺', hp:1030,armor:62,pen:316,dmg:228,speed:4.3,rot:2.2,reload:3.2,ammo:70,color:'#4a5240',tier:'VIII',price:4200,desc:'Modernised Shturm firing thermobaric and tandem Ataka rounds.'},
+  {id:'khrizantema', name:'9P157 Khrizantema-S', nation:'🇷🇺', hp:1220,armor:77,pen:339,dmg:276,speed:4.3,rot:2.2,reload:3.4,ammo:70,color:'#4a5240',tier:'IX',price:6500,desc:'Radar-guided BMP-3 carrier volleying supersonic ATGMs.'},
+  {id:'spikenlos', name:'Wildcat NLOS', nation:'🇮🇱', hp:1440,armor:94,pen:368,dmg:340,speed:4.4,rot:2.2,reload:3.6,ammo:60,color:'#4a5240',tier:'X',price:10000,desc:'Israeli tracked carrier lobbing fibre-optic Spike NLOS missiles.'},
+  // -- armored cars --
+  {id:'rolls_ac', name:'Rolls-Royce AC', nation:'🇬🇧', hp:160,armor:12,pen:45,dmg:22,speed:5.0,rot:2.8,reload:1.8,ammo:120,color:'#525a44',tier:'I',price:100,desc:'WWI-era British armoured car with a turret machine gun.'},
+  {id:'sdkfz222', name:'Sd.Kfz.222', nation:'🇩🇪', hp:240,armor:18,pen:90,dmg:30,speed:4.8,rot:2.6,reload:2.0,ammo:120,color:'#525a44',tier:'II',price:250,desc:'German recon car with a rapid 20mm autocannon.'},
+  {id:'ferret', name:'Ferret Scout Car', nation:'🇬🇧', hp:330,armor:26,pen:120,dmg:47,speed:4.7,rot:2.5,reload:2.2,ammo:100,color:'#525a44',tier:'III',price:450,desc:'Nimble British scout car with a pintle machine gun.'},
+  {id:'sdkfz234', name:'Sd.Kfz.234 Puma', nation:'🇩🇪', hp:430,armor:36,pen:150,dmg:135,speed:4.6,rot:2.4,reload:2.4,ammo:90,color:'#525a44',tier:'IV',price:750,desc:'Fast 8-wheeled German car with a 50mm gun.'},
+  {id:'brdm2', name:'BRDM-2', nation:'🇷🇺', hp:560,armor:48,pen:190,dmg:77,speed:4.6,rot:2.4,reload:2.6,ammo:90,color:'#525a44',tier:'V',price:1200,desc:'Amphibious Soviet scout car — 14.5mm gun and a Sagger ATGM.'},
+  {id:'aml90', name:'Panhard AML-90', nation:'🇫🇷', hp:700,armor:60,pen:220,dmg:195,speed:4.5,rot:2.3,reload:2.8,ammo:80,color:'#525a44',tier:'VI',price:1800,desc:'French 4x4 armoured car packing a punchy 90mm gun.'},
+  {id:'lav25', name:'LAV-25', nation:'🇺🇸', hp:860,armor:74,pen:250,dmg:117,speed:4.4,rot:2.3,reload:3.0,ammo:80,color:'#525a44',tier:'VII',price:2800,desc:'US 8x8 with a 25mm chain gun and a TOW missile option.'},
+  {id:'centauro', name:'B1 Centauro', nation:'🇮🇹', hp:1030,armor:90,pen:275,dmg:285,speed:4.3,rot:2.2,reload:3.2,ammo:70,color:'#525a44',tier:'VIII',price:4200,desc:'Italian 8x8 tank destroyer with a stabilised 105mm gun.'},
+  {id:'type16', name:'Type 16 MCV', nation:'🇯🇵', hp:1220,armor:110,pen:295,dmg:345,speed:4.3,rot:2.2,reload:3.4,ammo:70,color:'#525a44',tier:'IX',price:6500,desc:'Japanese wheeled combat vehicle with a 105mm gun.'},
+  {id:'centauro2', name:'Centauro II', nation:'🇮🇹', hp:1440,armor:135,pen:320,dmg:425,speed:4.4,rot:2.2,reload:3.6,ammo:60,color:'#525a44',tier:'X',price:10000,desc:'Latest Italian 8x8 mounting a 120mm smoothbore.'},
 ];
 
 // Tank Destroyer IDs — turret locked to hull direction
 const _tdIds=new Set(['stug3','jpz4','nashorn','jpz6','su85','su100','su122','isu122','isu152','jpanther','ferdinand','obj268','archer','at5','at8','at7','at15','obj704','hori','su100y','brummbar','sturer','pz4_70','jpanther2','honi1','honi3','horo','nato','su152','jgpze100','sem7518','sem10525','zrinyi','tasr','tacam','maresal','vdc_ro','sk105','vca155','g13','stu40','g6']);
 const _otIds=new Set(['m10','m36','achilles','borsig_wt','waffentrager','grille15','rhmborsig','su130pm']);
 // Tanks that fire guided HOMING MISSILES instead of shells (gun-launched ATGMs / dedicated launchers)
-const _missileIds=new Set(['m551','xm551','t14armata','kf51','it1','bmd1','bmp1','marder','bmp2','bradley','bmp3','puma']);
+const _missileIds=new Set(['m551','xm551','t14armata','kf51','it1','wiesel_tow','malyutka_c','m901','swingfire','shturm_s','jaguar1','jaguar2','shturm_sm','khrizantema','spikenlos','brdm2','lav25','bmd1','bmp1','marder','bmp2','bradley','bmp3','puma']);
 // Launch a homing missile: slow off the rail, accelerates, steers to the nearest target, HEAT warhead ignores armour.
 function _launchMissile(x,y,ang,owner,dmg,size){
   const b={
@@ -1274,6 +1299,8 @@ function getTankFaction(id){
   const italian=['l3_33','m11_39','m13_40','m14_41','sem7518','p40','sem10525','p43','of40','progetto'];
   const czech=['kodiak'];
   const carrier=['m113a1','bmd1','bmp1','marder','bmp2','warrior','bradley','cv90','bmp3','puma'];
+  const mslcarrier=['wiesel_tow','malyutka_c','m901','swingfire','shturm_s','jaguar1','jaguar2','shturm_sm','khrizantema','spikenlos'];
+  const armcar=['rolls_ac','sdkfz222','ferret','sdkfz234','brdm2','aml90','lav25','centauro','type16','centauro2'];
   if(soviet.includes(id)) return 'soviet';
   if(american.includes(id)) return 'american';
   if(british.includes(id)) return 'british';
@@ -1299,6 +1326,8 @@ function getTankFaction(id){
   if(italian.includes(id)) return 'italian';
   if(czech.includes(id)) return 'czech';
   if(carrier.includes(id)) return 'carrier';
+  if(mslcarrier.includes(id)) return 'mslcarrier';
+  if(armcar.includes(id)) return 'armcar';
   return 'german';
 }
 
@@ -2140,7 +2169,7 @@ function buyMissileAmmo(){
 }
 function _renderFilterRow(){
   const row=document.getElementById('filter-row');if(!row)return;
-  const nations=[['all','ALL'],['german','🇩🇪'],['soviet','🇷🇺'],['american','🇺🇸'],['british','🇬🇧'],['french','🇫🇷'],['japanese','🇯🇵'],['chinese','🇨🇳'],['swedish','🇸🇪'],['czech','🇨🇿'],['italian','🇮🇹'],['polish','🇵🇱'],['hungarian','🇭🇺'],['romania','🇷🇴'],['australia','🇦🇺'],['argentina','🇦🇷'],['swiss','🇨🇭'],['israel','🇮🇱'],['yugoslavia','🇷🇸'],['spain','🇪🇸'],['finland','🇫🇮'],['brazil','🇧🇷'],['safrica','🇿🇦'],['turkey','🇹🇷'],['ukraine','🇺🇦'],['carrier','🚚'],['blitz','⚡'],['owned','OWNED'],['affordable','🪙 BUY']];
+  const nations=[['all','ALL'],['german','🇩🇪'],['soviet','🇷🇺'],['american','🇺🇸'],['british','🇬🇧'],['french','🇫🇷'],['japanese','🇯🇵'],['chinese','🇨🇳'],['swedish','🇸🇪'],['czech','🇨🇿'],['italian','🇮🇹'],['polish','🇵🇱'],['hungarian','🇭🇺'],['romania','🇷🇴'],['australia','🇦🇺'],['argentina','🇦🇷'],['swiss','🇨🇭'],['israel','🇮🇱'],['yugoslavia','🇷🇸'],['spain','🇪🇸'],['finland','🇫🇮'],['brazil','🇧🇷'],['safrica','🇿🇦'],['turkey','🇹🇷'],['ukraine','🇺🇦'],['carrier','🚚'],['mslcarrier','🚀'],['armcar','🚗'],['blitz','⚡'],['owned','OWNED'],['affordable','🪙 BUY']];
   row.innerHTML='';
   nations.forEach(([val,lbl])=>{
     const b=document.createElement('button');
@@ -2897,8 +2926,8 @@ function tryShoot(){
     _beginReload('missile');
   } else {
   // Autocannon burst counts — IFV/carrier chain guns rip off rapid bursts.
-  const _burst6=['pz1','mkvi','type94','m113a1','marder','bmp2','bradley','bmp3','puma'];
-  const _burst4=['pz2','m3stuart','m5stuart','amx13','bmd1','bmp1','cv90'];
+  const _burst6=['pz1','mkvi','type94','m113a1','marder','bmp2','bradley','bmp3','puma','rolls_ac','ferret','brdm2','lav25'];
+  const _burst4=['pz2','m3stuart','m5stuart','amx13','bmd1','bmp1','cv90','sdkfz222'];
   const burst=_burst6.includes(player.id)?6:_burst4.includes(player.id)?4:player.id==='warrior'?5:(['tvp']).includes(player.id)?3:1;
   const burstDelay=80;
 
@@ -5025,6 +5054,26 @@ const TANK_PROFILES={
   cv90:{hl:1.78,hw:0.92,tr:0.34,ty:0.27,bl:0.95,bw:0.09,muzzle:false,boxy:false,sk:false},
   bmp3:{hl:1.8,hw:0.96,tr:0.34,ty:0.26,bl:1.0,bw:0.095,muzzle:false,boxy:false,sk:false},
   puma:{hl:1.82,hw:0.98,tr:0.34,ty:0.27,bl:0.85,bw:0.085,muzzle:false,boxy:true,sk:false},
+  wiesel_tow:{hl:1.40,hw:0.82,tr:0.25,ty:0.21,bl:0.60,bw:0.083,muzzle:false,boxy:true,sk:false},
+  malyutka_c:{hl:1.45,hw:0.84,tr:0.26,ty:0.22,bl:0.65,bw:0.086,muzzle:false,boxy:true,sk:false},
+  m901:{hl:1.50,hw:0.86,tr:0.28,ty:0.23,bl:0.70,bw:0.089,muzzle:false,boxy:true,sk:false},
+  swingfire:{hl:1.55,hw:0.88,tr:0.29,ty:0.24,bl:0.75,bw:0.092,muzzle:false,boxy:true,sk:false},
+  shturm_s:{hl:1.60,hw:0.90,tr:0.30,ty:0.25,bl:0.80,bw:0.095,muzzle:false,boxy:true,sk:false},
+  jaguar1:{hl:1.65,hw:0.92,tr:0.31,ty:0.26,bl:0.85,bw:0.098,muzzle:false,boxy:true,sk:false},
+  jaguar2:{hl:1.70,hw:0.94,tr:0.32,ty:0.27,bl:0.90,bw:0.101,muzzle:false,boxy:true,sk:false},
+  shturm_sm:{hl:1.75,hw:0.96,tr:0.34,ty:0.28,bl:0.95,bw:0.104,muzzle:false,boxy:true,sk:false},
+  khrizantema:{hl:1.80,hw:0.98,tr:0.35,ty:0.29,bl:1.00,bw:0.107,muzzle:false,boxy:true,sk:false},
+  spikenlos:{hl:1.85,hw:1.00,tr:0.36,ty:0.30,bl:1.05,bw:0.110,muzzle:false,boxy:true,sk:false},
+  rolls_ac:{hl:1.33,hw:0.74,tr:0.25,ty:0.21,bl:0.66,bw:0.078,muzzle:false,boxy:false,sk:false},
+  sdkfz222:{hl:1.38,hw:0.76,tr:0.27,ty:0.22,bl:0.71,bw:0.081,muzzle:false,boxy:false,sk:false},
+  ferret:{hl:1.43,hw:0.78,tr:0.28,ty:0.23,bl:0.77,bw:0.084,muzzle:false,boxy:false,sk:false},
+  sdkfz234:{hl:1.48,hw:0.80,tr:0.29,ty:0.24,bl:0.82,bw:0.087,muzzle:false,boxy:false,sk:false},
+  brdm2:{hl:1.53,hw:0.82,tr:0.30,ty:0.26,bl:0.88,bw:0.090,muzzle:false,boxy:false,sk:false},
+  aml90:{hl:1.58,hw:0.84,tr:0.32,ty:0.27,bl:0.93,bw:0.093,muzzle:false,boxy:false,sk:false},
+  lav25:{hl:1.63,hw:0.86,tr:0.33,ty:0.28,bl:0.98,bw:0.096,muzzle:false,boxy:false,sk:false},
+  centauro:{hl:1.68,hw:0.88,tr:0.34,ty:0.29,bl:1.04,bw:0.099,muzzle:false,boxy:false,sk:false},
+  type16:{hl:1.73,hw:0.90,tr:0.36,ty:0.30,bl:1.09,bw:0.102,muzzle:false,boxy:false,sk:false},
+  centauro2:{hl:1.78,hw:0.92,tr:0.37,ty:0.31,bl:1.15,bw:0.105,muzzle:false,boxy:false,sk:false},
   default:{hl:1.65,hw:0.85,tr:0.33,ty:0.28,bl:0.95,bw:0.090,muzzle:false,boxy:false,sk:false},
 };
 function getProfile(id){return TANK_PROFILES[id]||TANK_PROFILES.default;}
@@ -6413,6 +6462,28 @@ const TREE_LAYOUT = {
     ['bradley','cv90'],
     ['bmp3'],
     ['puma']],
+  mslcarrier:[
+    ['wiesel_tow'],
+    ['malyutka_c'],
+    ['m901'],
+    ['swingfire'],
+    ['shturm_s'],
+    ['jaguar1'],
+    ['jaguar2'],
+    ['shturm_sm'],
+    ['khrizantema'],
+    ['spikenlos']],
+  armcar:[
+    ['rolls_ac'],
+    ['sdkfz222'],
+    ['ferret'],
+    ['sdkfz234'],
+    ['brdm2'],
+    ['aml90'],
+    ['lav25'],
+    ['centauro'],
+    ['type16'],
+    ['centauro2']],
   artillery:[
     ['wespe','su26','sexton','m7_priest'],
     ['hummel','su14','amx13f3','fv304'],
@@ -6450,12 +6521,14 @@ const TIER_NAMES = {
   blitz:   ['Tier IV','Tier V','Tier VI','Tier VII','Tier VIII','Tier IX','Tier X'],
   modern:  ['Modern Era'],
   carrier: ['Tier IV','Tier V','Tier VI','Tier VII','Tier VIII','Tier IX','Tier X'],
+  mslcarrier: ['Tier I','Tier II','Tier III','Tier IV','Tier V','Tier VI','Tier VII','Tier VIII','Tier IX','Tier X'],
+  armcar: ['Tier I','Tier II','Tier III','Tier IV','Tier V','Tier VI','Tier VII','Tier VIII','Tier IX','Tier X'],
   artillery:['Tier III-IV','Tier V-VI','Tier VIII-X'],
 };
 
 function treeShowNation(nation){
   treeNation=nation;
-  ['de','ussr','us','gb','fr','jp','cn','se','pl','cz','it','hu','blitz','mod','cw','arty','romania','australia','argentina','swiss','israel','yugoslavia','spain','finland','brazil','safrica','turkey','ukraine','carrier'].forEach(n=>{const el=document.getElementById('tnav-'+n);if(el)el.classList.remove('active');});
+  ['de','ussr','us','gb','fr','jp','cn','se','pl','cz','it','hu','blitz','mod','cw','arty','romania','australia','argentina','swiss','israel','yugoslavia','spain','finland','brazil','safrica','turkey','ukraine','carrier','mslcarrier','armcar'].forEach(n=>{const el=document.getElementById('tnav-'+n);if(el)el.classList.remove('active');});
   const map={german:'de',soviet:'ussr',american:'us',british:'gb',french:'fr',japanese:'jp',chinese:'cn',swedish:'se',czech:'cz',italian:'it',polish:'pl',hungarian:'hu',blitz:'blitz',modern:'mod',coldwar:'cw',artillery:'arty'};
   const btn=document.getElementById('tnav-'+(map[nation]||nation));if(btn)btn.classList.add('active');
   const cbar=document.getElementById('tree-coins-bar');if(cbar)cbar.textContent=coins.toLocaleString()+' \u{1F3F7}';
