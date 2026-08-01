@@ -1116,6 +1116,11 @@ const MISSILE_TYPES=[
   {id:'vortex', name:'Singularity',        price:58000, dmg:1.8, maxspd:6, turn:0.15, life:520, splash:60, count:1, color:'#a060ff', pull:true, desc:'Collapses a gravity well that drags tanks together, then detonates.'},
   {id:'quake',  name:'Seismic Charge',     price:62000, dmg:2.4, maxspd:5, turn:0.12, life:560, splash:150,count:1, color:'#e08040', fire:true, desc:'Ground-rupturing blast — massive area damage and lingering flames.'},
   {id:'madjack',name:'Mad Jack Churchill',  price:70000, dmg:3.6, maxspd:14,turn:0.19, life:480, splash:0,  count:1, color:'#c0d0e0', pierce:true, heal:0.35, chain:2, desc:'A flying claymore that charges sword-first through the whole enemy line, healing with every cut. "Any officer who goes into action without his sword is improperly dressed."'},
+  {id:'tar',    name:'Tar Bomb',           price:24000, dmg:1.1, maxspd:6, turn:0.15, life:520, splash:40, count:1, color:'#6a5a3a', slowField:true, desc:'Splatters sticky tar that bogs down and slows every tank caught in the puddle.'},
+  {id:'acid',   name:'Corrosive Acid',     price:30000, dmg:1.2, maxspd:6, turn:0.15, life:520, splash:35, count:1, color:'#a0e030', fire:true, slowField:true, desc:'Eats through hulls with a lingering acid pool that both burns and slows.'},
+  {id:'storm',  name:'Locust Storm',       price:60000, dmg:0.6, maxspd:8, turn:0.19, life:420, splash:0,  count:12,color:'#c0f070', desc:'Unleashes a swarm of twelve rockets — fly the lead, eleven auto-home.'},
+  {id:'overcharge',name:'Overcharge',      price:68000, dmg:4.5, maxspd:9, turn:0.17, life:460, splash:30, count:1, color:'#ff2020', selfDmg:0.08, desc:'Overloads the reactor for a titanic blast — but the recoil scorches your own tank.'},
+  {id:'nova',   name:'Supernova',          price:74000, dmg:2.2, maxspd:5, turn:0.12, life:560, splash:130,count:1, color:'#fff0a0', fire:true, freeze:200, desc:'A miniature star: colossal blast, blinding flames, and a shockwave that freezes the survivors solid.'},
 ];
 function getMissileType(){ return MISSILE_TYPES.find(m=>m.id===selectedMissile)||MISSILE_TYPES[0]; }
 // Detonate a splash warhead. The directly-struck target (hit) always takes FULL
@@ -1126,8 +1131,8 @@ function _missileDetonate(b,hit){
   spawnExplosion(b.x,b.y);craters.push({x:b.x,y:b.y,r:Math.min(60,Math.max(14,(b.splash||0)*0.5))});camShake=Math.max(camShake,7);
   const R=b.splash||0,dmg=b.dmg;
   const amt=(t)=>{ if(t===hit)return dmg; if(R<=0)return 0; const d=Math.hypot(t.x-b.x,t.y-b.y); return d<R?dmg*(1-d/R):0; };
-  // Incendiary: leave a burning patch that deals damage-over-time
-  if(b.fire){ fireZones.push({x:b.x,y:b.y,r:Math.max(46,R),owner:b.owner==='enemy'?'enemy':'player',dps:Math.max(20,dmg*0.06),life:360,_tick:0}); }
+  // Incendiary / tar: leave a ground patch (burning damage and/or a slowing field)
+  if(b.fire||b.slowField){ fireZones.push({x:b.x,y:b.y,r:Math.max(46,R),owner:b.owner==='enemy'?'enemy':'player',dps:b.fire?Math.max(20,dmg*0.06):0,slow:!!b.slowField,life:360,_tick:0}); }
   // Cryo: freeze tanks caught in the blast for a few seconds
   if(b.freeze){ if(b.owner!=='enemy'&&enemies)for(const e of enemies){ if(e.hp>0&&Math.hypot(e.x-b.x,e.y-b.y)<Math.max(R,40)){ e._frozen=b.freeze; } } }
   // Singularity: yank nearby tanks toward the impact point
@@ -1734,14 +1739,19 @@ function updateFireZones(dt){
   for(let i=fireZones.length-1;i>=0;i--){
     const z=fireZones[i]; z.life-=dt;
     if(z.life<=0){ fireZones.splice(i,1); continue; }
-    // flame flicker particles
-    if(particles.length<600&&Math.random()<0.6){ const a=Math.random()*6.283,r=Math.random()*z.r; particles.push({type:'fire',x:z.x+Math.cos(a)*r,y:z.y+Math.sin(a)*r,vx:(Math.random()-.5)*.4,vy:-0.8-Math.random(),life:12+Math.random()*10,maxLife:22,alpha:1,r:3+Math.random()*4,color:Math.random()<.5?'#ff6a20':'#ffb040'}); }
-    if((z._tick=(z._tick||0)-dt)>0) continue; z._tick=8; // apply DoT ~7x/sec
+    // ambient particles: flames for burning zones, dark bubbles for tar/slow-only
+    if(particles.length<600&&Math.random()<0.6){ const a=Math.random()*6.283,r=Math.random()*z.r;
+      if(z.dps>0) particles.push({type:'fire',x:z.x+Math.cos(a)*r,y:z.y+Math.sin(a)*r,vx:(Math.random()-.5)*.4,vy:-0.8-Math.random(),life:12+Math.random()*10,maxLife:22,alpha:1,r:3+Math.random()*4,color:Math.random()<.5?'#ff6a20':'#ffb040'});
+      else particles.push({type:'smoke',x:z.x+Math.cos(a)*r,y:z.y+Math.sin(a)*r,vx:(Math.random()-.5)*.2,vy:-0.2-Math.random()*0.3,life:18+Math.random()*12,maxLife:30,alpha:1,r:3+Math.random()*4,color:'#443022'});
+    }
+    if((z._tick=(z._tick||0)-dt)>0) continue; z._tick=8; // apply effects ~7x/sec
     if(z.owner==='player'){
-      for(let j=enemies.length-1;j>=0;j--){ const e=enemies[j]; if(e.hp<=0)continue; if(Math.hypot(e.x-z.x,e.y-z.y)<z.r+e.size*0.4){ e.hp-=z.dps; e.hitFlash=Math.max(e.hitFlash||0,0.5);
-        if(e.hp<=0){ if(e._dummy){ spawnExplosion(e.x,e.y); e.hp=0; e._respawn=140; } else { coins+=1000;totalKills++;score+=1000;kills++;updateCoinsHud(); if(battleMode!=='testrange')addKillFeed(`${e.name} BURNED +1000🏷`); spawnExplosion(e.x,e.y);enemies.splice(j,1);(document.getElementById('hud-en')||{}).textContent=enemies.length;_on1v1000Kill(); } } } }
+      for(let j=enemies.length-1;j>=0;j--){ const e=enemies[j]; if(e.hp<=0)continue; if(Math.hypot(e.x-z.x,e.y-z.y)<z.r+e.size*0.4){
+        if(z.slow) e._slow=Math.max(e._slow||0,20);
+        if(z.dps>0){ e.hp-=z.dps; e.hitFlash=Math.max(e.hitFlash||0,0.5);
+          if(e.hp<=0) _rewardKill(e); } } }
     } else {
-      if(player&&player.hp>0&&Math.hypot(player.x-z.x,player.y-z.y)<z.r+player.size*0.4){ player.hp=Math.max(0,player.hp-z.dps*0.6); player.hitFlash=1; if(player.hp<=0)gameOver(); }
+      if(z.dps>0&&player&&player.hp>0&&Math.hypot(player.x-z.x,player.y-z.y)<z.r+player.size*0.4){ player.hp=Math.max(0,player.hp-z.dps*0.6); player.hitFlash=1; if(player.hp<=0)gameOver(); }
     }
   }
 }
@@ -2792,11 +2802,13 @@ function tryShoot(){
       // Apply the equipped loadout's stats to each missile
       m.dmg=baseDmg*mt.dmg; m.maxspd=mt.maxspd; m.turn=mt.turn; m.life=mt.life;
       m.splash=mt.splash||0; m.mcolor=mt.color; m.fire=mt.fire||false; m.freeze=mt.freeze||0; m.heal=mt.heal||0;
-      m.pierce=mt.pierce||false; m.chain=mt.chain||0; m.pull=mt.pull||false;
+      m.pierce=mt.pierce||false; m.chain=mt.chain||0; m.pull=mt.pull||false; m.slowField=mt.slowField||false;
       // You fly the lead missile with the mouse; any wingmen auto-home to enemies.
       if(k===0){ m.driven=true; drivenMissile=m; } else { m.autohome=true; }
     }
     if(player)player.recoil=Math.max(player.recoil||0,player.size*0.24);
+    // Overcharge and the like: firing scorches your own tank
+    if(mt.selfDmg&&player){ player.hp=Math.max(1,player.hp-Math.round(player.maxHp*mt.selfDmg)); player.hitFlash=1; if(typeof flashDamage==='function')flashDamage(); }
     _beginReload('missile');
   } else {
   // Autocannon burst counts — IFV/carrier chain guns rip off rapid bursts.
@@ -3520,7 +3532,8 @@ function updateEnemies(dt){
     }
 
     const dx=target.x-e.x,dy=target.y-e.y,dist=bestDist,ta=Math.atan2(dy,dx);
-    const spd=e.speed*dt*(selectedMap&&selectedMap.mud?0.6:1);
+    if(e._slow>0)e._slow-=dt; // tar/acid slow field wears off
+    const spd=e.speed*dt*(selectedMap&&selectedMap.mud?0.6:1)*(e._slow>0?0.4:1);
     if(playerHidden){
       // Enemy lost sight — wander in a random direction
       e.wanderAngle=(e.wanderAngle||e.angle);
