@@ -3587,6 +3587,19 @@ function updateEnemies(dt){
       e.recoil=e.size*0.2;
     }
   }
+  // ── Enemy separation: push overlapping tanks apart so a converged pack spreads
+  //    out into distinct tanks instead of stacking into one invisible blob.
+  //    (Skipped for huge on-screen counts to stay cheap.)
+  if(enemies.length<=160){
+    for(let i=0;i<enemies.length;i++){ const a=enemies[i]; if(a.hp<=0)continue;
+      for(let j=i+1;j<enemies.length;j++){ const c=enemies[j]; if(c.hp<=0)continue;
+        const ddx=a.x-c.x, ddy=a.y-c.y, dd=Math.hypot(ddx,ddy), md=a.size+c.size;
+        if(dd>0&&dd<md){ const push=(md-dd)*0.5, ux=ddx/dd, uy=ddy/dd; a.x+=ux*push; a.y+=uy*push; c.x-=ux*push; c.y-=uy*push; }
+        else if(dd===0){ a.x+=md*0.5; }
+      }
+    }
+    for(const e of enemies){ if(e.hp<=0)continue; e.x=Math.max(e.size,Math.min(WW-e.size,e.x)); e.y=Math.max(e.size,Math.min(WH-e.size,e.y)); }
+  }
 }
 
 function angleDiff(a,b){let d=a-b;while(d>Math.PI)d-=2*Math.PI;while(d<-Math.PI)d+=2*Math.PI;return d;}
