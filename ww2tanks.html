@@ -1777,8 +1777,8 @@ window.onload=()=>{
   canvas=document.getElementById('gameCanvas');
   ctx=canvas?canvas.getContext('2d'):null;
   mmCanvas=document.createElement('canvas');mmCanvas.id='__minimap';
-  mmCanvas.width=150;mmCanvas.height=150;
-  mmCanvas.style.cssText='position:absolute;bottom:12px;right:12px;width:150px;height:150px;border:2px solid rgba(200,168,75,.6);border-radius:4px;background:rgba(0,0,0,.75);z-index:25;box-shadow:0 2px 12px rgba(0,0,0,.6);';
+  mmCanvas.width=200;mmCanvas.height=200;
+  mmCanvas.style.cssText='position:absolute;bottom:12px;right:12px;width:200px;height:200px;border:2px solid rgba(200,168,75,.6);border-radius:4px;background:rgba(0,0,0,.75);z-index:25;box-shadow:0 2px 12px rgba(0,0,0,.6);';
   (document.getElementById('arena-wrap')||{appendChild:()=>{}}).appendChild(mmCanvas);
   mmCtx=mmCanvas?mmCanvas.getContext('2d'):null;
   try{ensureValidMap();}catch(e){console.warn('ensureValidMap:',e);}
@@ -3204,8 +3204,8 @@ function loop(ts){
     mmCanvas=document.getElementById('__minimap');
     if(!mmCanvas){
       mmCanvas=document.createElement('canvas');mmCanvas.id='__minimap';
-      mmCanvas.width=150;mmCanvas.height=150;
-      mmCanvas.style.cssText='position:absolute;bottom:12px;right:12px;width:150px;height:150px;border:2px solid rgba(200,168,75,.6);border-radius:4px;background:rgba(0,0,0,.75);z-index:25;box-shadow:0 2px 12px rgba(0,0,0,.6);';
+      mmCanvas.width=200;mmCanvas.height=200;
+      mmCanvas.style.cssText='position:absolute;bottom:12px;right:12px;width:200px;height:200px;border:2px solid rgba(200,168,75,.6);border-radius:4px;background:rgba(0,0,0,.75);z-index:25;box-shadow:0 2px 12px rgba(0,0,0,.6);';
       const aw=document.getElementById('arena-wrap');if(aw)aw.appendChild(mmCanvas);
     }
     if(mmCanvas)mmCtx=mmCanvas.getContext('2d');
@@ -5838,16 +5838,17 @@ function drawMinimap(){
     mmCtx.fillRect(ox,oy,1.5,1.5);
   }
 
-  // Allies — green dots (smaller, calmer than enemies)
-  if(allies)for(const a of allies){if(a.hp<=0)continue;const ax=a.x*scx,ay=a.y*scy;mmCtx.fillStyle='#2ecc71';mmCtx.beginPath();mmCtx.arc(ax,ay,2.4,0,Math.PI*2);mmCtx.fill();}
+  // Allies — green dots
+  if(allies)for(const a of allies){if(a.hp<=0)continue;const ax=a.x*scx,ay=a.y*scy;mmCtx.fillStyle='#2ecc71';mmCtx.beginPath();mmCtx.arc(ax,ay,1.7,0,Math.PI*2);mmCtx.fill();}
 
-  // Enemies — bright red dots, larger + glowing so threats read instantly (no hp-based fade)
-  mmCtx.save();mmCtx.shadowBlur=4;mmCtx.shadowColor='rgba(255,60,40,.9)';mmCtx.fillStyle='#ff3020';
+  // Enemies — small crisp red dots. Kept tight (no big glow) so that in mass
+  // modes like 100v1 every tank reads as its OWN dot instead of merging into
+  // blobs (which made it look like only ~89 of 100 had spawned).
+  mmCtx.fillStyle='#ff3828';
   for(const e of enemies){if(e.hp<=0)continue;
     const ex=e.x*scx,ey=e.y*scy;
-    mmCtx.beginPath();mmCtx.arc(ex,ey,3.2,0,Math.PI*2);mmCtx.fill();
+    mmCtx.beginPath();mmCtx.arc(ex,ey,1.5,0,Math.PI*2);mmCtx.fill();
   }
-  mmCtx.restore();
 
   // Player — gold arrow pointing in tank direction
   const px=player.x*scx,py=player.y*scy;
