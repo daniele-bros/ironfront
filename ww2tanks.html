@@ -287,6 +287,11 @@ body[data-state="mode"] #screen-title { display:none!important; }
       <div style="font-size:26px;letter-spacing:5px;font-weight:700;">1 VS 7</div>
       <div style="font-family:'Share Tech Mono',monospace;font-size:10px;color:#5a7040;letter-spacing:2px;line-height:1.7;text-align:center;">LAST STAND<br>Solo vs 7 enemies<br>No mercy</div>
     </button>
+    <button onclick="pickMode('1v100')" style="background:#0c1506;border:2px solid #3a5018;border-radius:6px;color:#c8a84a;font-family:'Oswald',sans-serif;cursor:pointer;padding:28px 44px;display:flex;flex-direction:column;align-items:center;gap:10px;transition:all .15s;min-width:190px;" onmouseover="this.style.borderColor='#d020d0';this.style.boxShadow='0 0 28px rgba(208,32,208,.4)';this.style.background='#180818'" onmouseout="this.style.borderColor='#3a5018';this.style.boxShadow='';this.style.background='#0c1506'">
+      <div style="font-size:42px;">&#128128;</div>
+      <div style="font-size:26px;letter-spacing:4px;font-weight:700;">100 VS 1</div>
+      <div style="font-family:'Share Tech Mono',monospace;font-size:10px;color:#5a7040;letter-spacing:2px;line-height:1.7;text-align:center;">APOCALYPSE<br>You vs 100 tanks<br>Can you survive?</div>
+    </button>
     <button onclick="pickMode('1v1000')" style="background:#0c1506;border:2px solid #6a5018;border-radius:6px;color:#e8c84a;font-family:'Oswald',sans-serif;cursor:pointer;padding:28px 44px;display:flex;flex-direction:column;align-items:center;gap:10px;transition:all .15s;min-width:190px;" onmouseover="this.style.borderColor='#ffd700';this.style.boxShadow='0 0 32px rgba(255,215,0,.5)';this.style.background='#1a1608'" onmouseout="this.style.borderColor='#6a5018';this.style.boxShadow='';this.style.background='#0c1506'">
       <div style="font-size:42px;">&#128176;</div>
       <div style="font-size:24px;letter-spacing:3px;font-weight:700;">1 VS 1000</div>
@@ -1908,7 +1913,7 @@ function showModeSelect(){
 function pickMode(mode){
   battleMode=mode;
   // Sync gameMode so startGame's translation agrees
-  gameMode=(mode==='1v1')?'1v1':(mode==='1v7')?'1v7':(mode==='1v1000')?'1v1000':(mode==='rattewaves')?'rattewaves':'wave';
+  gameMode=(mode==='1v1')?'1v1':(mode==='1v7')?'1v7':(mode==='1v100')?'1v100':(mode==='1v1000')?'1v1000':(mode==='rattewaves')?'rattewaves':'wave';
   document.body.setAttribute('data-state','game');
   showScreen('none');
   startGame();
@@ -2244,7 +2249,7 @@ function buildGarage(){
   const mgrid=document.getElementById('mode-grid-visible')||document.getElementById('mode-grid');
   if(mgrid){
     mgrid.innerHTML='';
-    const MODES=[{id:'wave',icon:'\u2694',title:'WAVE BATTLE',sub:'7v7 Endless waves. Earn coins.'},{id:'1v1',icon:'\uD83C\uDFAF',title:'1v1 DUEL',sub:'Fight your own tank. Pure skill.'},{id:'1v1pick',icon:'\u2694\uFE0F',title:'1v1 PICK FOE',sub:'Duel ANY tank you choose.'},{id:'1v7',icon:'\uD83D\uDD25',title:'1v7 LAST STAND',sub:'Solo vs 7 enemies. No mercy.'},{id:'1v100pick',icon:'\uD83D\uDCAF',title:'100\u00D7 PICK FOE',sub:'Fight 100 of ANY tank you choose.'},{id:'1v1000pick',icon:'\u2620\uFE0F',title:'1000\u00D7 PICK FOE',sub:'Fight 1000 of ANY tank \u2014 all at once!'},{id:'1v1000',icon:'\uD83D\uDCB0',title:'1v1000 GOLD RUSH',sub:'1000 tanks · 1000🏷 per kill.'},{id:'rattewaves',icon:'\u2620\uFE0F',title:'RATTE WAVES',sub:'Endless Rattes. +10k HP per wave!'},{id:'testrange',icon:'\uD83C\uDFAF',title:'TEST RANGE',sub:'Practice \u2014 fire at stationary tanks.'}];
+    const MODES=[{id:'wave',icon:'\u2694',title:'WAVE BATTLE',sub:'7v7 Endless waves. Earn coins.'},{id:'1v1',icon:'\uD83C\uDFAF',title:'1v1 DUEL',sub:'Fight your own tank. Pure skill.'},{id:'1v1pick',icon:'\u2694\uFE0F',title:'1v1 PICK FOE',sub:'Duel ANY tank you choose.'},{id:'1v7',icon:'\uD83D\uDD25',title:'1v7 LAST STAND',sub:'Solo vs 7 enemies. No mercy.'},{id:'1v100',icon:'\uD83D\uDC80',title:'100v1 APOCALYPSE',sub:'You vs 100 tanks. Survive!'},{id:'1v100pick',icon:'\uD83D\uDCAF',title:'100\u00D7 PICK FOE',sub:'Fight 100 of ANY tank you choose.'},{id:'1v1000pick',icon:'\u2620\uFE0F',title:'1000\u00D7 PICK FOE',sub:'Fight 1000 of ANY tank \u2014 all at once!'},{id:'1v1000',icon:'\uD83D\uDCB0',title:'1v1000 GOLD RUSH',sub:'1000 tanks · 1000🏷 per kill.'},{id:'rattewaves',icon:'\u2620\uFE0F',title:'RATTE WAVES',sub:'Endless Rattes. +10k HP per wave!'},{id:'testrange',icon:'\uD83C\uDFAF',title:'TEST RANGE',sub:'Practice \u2014 fire at stationary tanks.'}];
     MODES.forEach(function(m){
       const c=document.createElement('div');
       c.className='nav-card'+(gameMode===m.id?' selected-mode':'');
@@ -2348,6 +2353,7 @@ function startGame(){
   else if(gameMode==='1v100pick')battleMode='1v100pick';
   else if(gameMode==='1v1000pick')battleMode='1v1000pick';
   else if(gameMode==='1v7')battleMode='1v7';
+  else if(gameMode==='1v100')battleMode='1v100';
   else if(gameMode==='1v1000'){battleMode='1v1000';window.__remaining1000=1000;}
   else if(gameMode==='rattewaves')battleMode='rattewaves';
   else if(gameMode==='testrange')battleMode='testrange';
@@ -2356,7 +2362,7 @@ function startGame(){
   const t=TANK_DEFS.find(x=>x.id===activeTankId)||TANK_DEFS[0];
   totalAmmo=currentAmmo=t.ammo;canShoot=true;_mgCooldown=0;missileAmmo=missileCapacity;
   // Mode ammo overrides: infinite ammo in the swarm modes (1v100, 100x pick, 1v1000) and the test range
-  if(battleMode==='1v100pick'||battleMode==='1v1000'||battleMode==='1v1000pick'){ totalAmmo=currentAmmo=99999; } // ∞ (shows as UNLIMITED)
+  if(battleMode==='1v100'||battleMode==='1v100pick'||battleMode==='1v1000'||battleMode==='1v1000pick'){ totalAmmo=currentAmmo=99999; } // ∞ (shows as UNLIMITED)
   if(battleMode==='testrange'){ totalAmmo=currentAmmo=99999; missileAmmo=999; } // practice: unlimited ammo
   if(reloadInt){clearInterval(reloadInt);reloadInt=null;}
   missileReady=true;canShoot=true;
@@ -2545,6 +2551,32 @@ function spawnWave(){
         speed:def.speed,rotSpeed:def.rot,size:isR?48:26,color:def.color,name:def.name,id:def.id,
         reload:def.reload,_isRatte:isR,shootCD:180+Math.random()*420,state:'approach'}); // widely staggered fire
     }
+    waveSpawning=false;
+    (document.getElementById('hud-en')||{}).textContent=enemies.length;
+    return;
+  }
+  // ── 100 vs 1 APOCALYPSE ──────────────────────────────────────────────────
+  // Its own spawn: exactly 100 varied tanks, chosen near your tier, placed in a
+  // ring 440–1390px around you so the whole hundred surrounds you and every one
+  // is reachable (none flung to the far corners of the map). Refills each wave.
+  if(battleMode==='1v100'){
+    const pool=(enemyPool&&enemyPool.length)?enemyPool:ENEMY_AXIS;
+    const pt=getPlayerTierNum(), hpBoost=1+Math.min(wave,6)*0.06;
+    for(let i=0;i<100;i++){
+      const tierTarget=Math.max(1,Math.min(10,pt+[-1,-1,0,0,0,1,1][i%7]+Math.floor(wave/4)));
+      let best=Infinity; for(const en of pool){const d=Math.abs(en.tier-tierTarget);if(d<best)best=d;}
+      const cands=pool.filter(en=>Math.abs(en.tier-tierTarget)===best);
+      const et=cands[Math.floor(Math.random()*cands.length)]||pool[0];
+      const ang=(i/100)*Math.PI*2 + (Math.random()-0.5)*0.5;   // even ring + jitter
+      const dd=440+Math.random()*950;                          // 440–1390px, always reachable
+      const ex=Math.max(70,Math.min(WW-70,player.x+Math.cos(ang)*dd));
+      const ey=Math.max(70,Math.min(WH-70,player.y+Math.sin(ang)*dd));
+      enemies.push({x:ex,y:ey,angle:Math.random()*Math.PI*2,turretAngle:0,
+        hp:et.hp*hpBoost,maxHp:et.hp*hpBoost,armor:et.armor,pen:et.pen,dmg:et.dmg,
+        speed:et.speed,rotSpeed:et.rot,size:et.size,color:et.color,name:et.name,id:et.id,schurzen:et.schurzen,
+        shootCD:120+Math.random()*330,state:'approach'});      // staggered opening fire
+    }
+    allies=[];
     waveSpawning=false;
     (document.getElementById('hud-en')||{}).textContent=enemies.length;
     return;
