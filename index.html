@@ -3546,10 +3546,20 @@ function updateEnemies(dt){
       e.y=Math.max(e.size,Math.min(WH-e.size,e.y));
     } else {
       e.state=dist>500?'approach':dist<160?'retreat':'combat';
+      // Far-away stragglers close in faster so the last few can't hide across the map.
+      const mspd=spd*(dist>1400?2.4:dist>900?1.8:1);
+      // Anti-stuck: if an approaching tank stops getting closer (blocked by a
+      // building), detour sideways for a moment to slide around the obstacle.
+      if((e._stuckChk=(e._stuckChk||0)+dt)>=28){
+        if(e._pdist!==undefined&&e.state==='approach'&&dist>e._pdist-5){ e._detour=52; e._detourDir=(Math.random()<0.5?-1:1); }
+        e._pdist=dist; e._stuckChk=0;
+      }
+      let steerAng=ta;
+      if(e._detour>0){ e._detour-=dt; steerAng=ta+(e._detourDir||1)*1.25; }
       if(e.state!=='retreat'){
-        const da=angleDiff(ta,e.angle);
-        e.angle+=Math.sign(da)*Math.min(Math.abs(da),e.rotSpeed*0.04*dt);
-        if(Math.abs(da)<0.65){e.x+=Math.cos(e.angle)*spd*0.75;e.y+=Math.sin(e.angle)*spd*0.75;}
+        const da=angleDiff(steerAng,e.angle);
+        e.angle+=Math.sign(da)*Math.min(Math.abs(da),e.rotSpeed*0.05*dt);
+        if(Math.abs(da)<0.9){e.x+=Math.cos(e.angle)*mspd*0.78;e.y+=Math.sin(e.angle)*mspd*0.78;}
       }else{
       const away=ta+Math.PI,da=angleDiff(away,e.angle);
       e.angle+=Math.sign(da)*Math.min(Math.abs(da),e.rotSpeed*0.04*dt);
@@ -4080,6 +4090,25 @@ function render(){
     ctx.fillStyle='rgba(200,220,150,.9)';
     ctx.fillText('🎯 TEST RANGE — targets don’t fire back · press R to reset',W/2,H-14);
     ctx.restore();
+  }
+  // ── Off-screen enemy indicators: arrows at the screen edge point to enemies
+  //    you can't see, so the last stragglers in mass modes are easy to track down. ──
+  if(player&&state==='game'){
+    const _alive=enemies.filter(e=>e.hp>0);
+    if(_alive.length<=24){
+      const mx=W/2,my=H/2,R=Math.min(W,H)/2-34; let _shown=0;
+      for(const e of _alive){
+        const sx=e.x-camX,sy=e.y-camY;
+        if(sx>=-12&&sx<=W+12&&sy>=-12&&sy<=H+12)continue; // already on screen
+        if(_shown++>=16)break;
+        const ang=Math.atan2(e.y-player.y,e.x-player.x);
+        const ax=mx+Math.cos(ang)*R, ay=my+Math.sin(ang)*R;
+        ctx.save();ctx.translate(ax,ay);ctx.rotate(ang);
+        ctx.fillStyle='rgba(255,60,40,.9)';ctx.strokeStyle='rgba(0,0,0,.5)';ctx.lineWidth=1;
+        ctx.beginPath();ctx.moveTo(11,0);ctx.lineTo(-7,-6);ctx.lineTo(-7,6);ctx.closePath();ctx.fill();ctx.stroke();
+        ctx.restore();
+      }
+    }
   }
   // Edge vignette (screen-space, after world restore)
   // Layered vignette: soft inner + hard corner darkening
