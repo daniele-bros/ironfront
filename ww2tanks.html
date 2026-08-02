@@ -5897,6 +5897,22 @@ function drawMinimap(){
   }
   mmCtx.restore();
 
+  // Player missiles — track your guided/auto-homing missiles across the map.
+  // A ring is drawn on the one it's homing toward so you can see where it's headed.
+  if(bullets)for(const bl of bullets){
+    if(!bl.missile||bl.owner!=='player')continue;
+    const bx=bl.x*scx,by=bl.y*scy, col=bl.mcolor||'#60e0ff';
+    // aim line to its target for auto-homing missiles (nearest enemy)
+    if(bl.autohome){
+      let best=null,bd=1e9; for(const e of enemies){if(e.hp<=0)continue;const d=Math.hypot(e.x-bl.x,e.y-bl.y);if(d<bd){bd=d;best=e;}}
+      if(best){ mmCtx.strokeStyle='rgba(120,230,255,.35)';mmCtx.lineWidth=0.7;mmCtx.beginPath();mmCtx.moveTo(bx,by);mmCtx.lineTo(best.x*scx,best.y*scy);mmCtx.stroke(); }
+    }
+    mmCtx.save();mmCtx.shadowBlur=4;mmCtx.shadowColor=col;mmCtx.fillStyle=col;
+    mmCtx.beginPath();mmCtx.arc(bx,by,2.6,0,Math.PI*2);mmCtx.fill();
+    mmCtx.strokeStyle='rgba(255,255,255,.9)';mmCtx.lineWidth=0.8;mmCtx.stroke();
+    mmCtx.restore();
+  }
+
   // Player — gold arrow pointing in tank direction
   const px=player.x*scx,py=player.y*scy;
   mmCtx.save();mmCtx.translate(px,py);mmCtx.rotate(player.angle);
