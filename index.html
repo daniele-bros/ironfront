@@ -287,6 +287,11 @@ body[data-state="mode"] #screen-title { display:none!important; }
       <div style="font-size:26px;letter-spacing:5px;font-weight:700;">1 VS 7</div>
       <div style="font-family:'Share Tech Mono',monospace;font-size:10px;color:#5a7040;letter-spacing:2px;line-height:1.7;text-align:center;">LAST STAND<br>Solo vs 7 enemies<br>No mercy</div>
     </button>
+    <button onclick="pickMode('1v1000')" style="background:#0c1506;border:2px solid #6a5018;border-radius:6px;color:#e8c84a;font-family:'Oswald',sans-serif;cursor:pointer;padding:28px 44px;display:flex;flex-direction:column;align-items:center;gap:10px;transition:all .15s;min-width:190px;" onmouseover="this.style.borderColor='#ffd700';this.style.boxShadow='0 0 32px rgba(255,215,0,.5)';this.style.background='#1a1608'" onmouseout="this.style.borderColor='#6a5018';this.style.boxShadow='';this.style.background='#0c1506'">
+      <div style="font-size:42px;">&#128176;</div>
+      <div style="font-size:24px;letter-spacing:3px;font-weight:700;">1 VS 1000</div>
+      <div style="font-family:'Share Tech Mono',monospace;font-size:10px;color:#7a6020;letter-spacing:2px;line-height:1.7;text-align:center;">GOLD RUSH<br>1000 tanks · 1000🏷 per kill<br>Get rich or die</div>
+    </button>
     <button onclick="pickMode('rattewaves')" style="background:#150818;border:2px solid #6820a0;border-radius:6px;color:#c060ff;font-family:'Oswald',sans-serif;cursor:pointer;padding:28px 44px;display:flex;flex-direction:column;align-items:center;gap:10px;transition:all .15s;min-width:190px;" onmouseover="this.style.borderColor='#a040ff';this.style.boxShadow='0 0 32px rgba(160,64,255,.5)';this.style.background='#1a0a2a'" onmouseout="this.style.borderColor='#6820a0';this.style.boxShadow='';this.style.background='#150818'">
       <div style="font-size:42px;">☠️</div>
       <div style="font-size:22px;letter-spacing:2px;font-weight:700;">RATTE WAVES</div>
@@ -1714,7 +1719,7 @@ let mortars=0,mortarProjs=[],mortarArmed=false;
 let nukes=0,nukeFlash=0,nukeArmed=false;
 let gameMode='wave'; // 'wave' or '1v1'
 let duelEnemyId=null; // chosen opponent for the PICK FOE modes
-let duelMode='1v1pick'; // which pick mode the arena is choosing for ('1v1pick' | '1v100pick')
+let duelMode='1v1pick'; // which pick mode the arena is choosing for
 let totalAmmo,currentAmmo;
 let camX=0,camY=0;
 // Missile-cam: when the player launches a guided missile it becomes the camera
@@ -1903,7 +1908,7 @@ function showModeSelect(){
 function pickMode(mode){
   battleMode=mode;
   // Sync gameMode so startGame's translation agrees
-  gameMode=(mode==='1v1')?'1v1':(mode==='1v7')?'1v7':(mode==='rattewaves')?'rattewaves':'wave';
+  gameMode=(mode==='1v1')?'1v1':(mode==='1v7')?'1v7':(mode==='1v1000')?'1v1000':(mode==='rattewaves')?'rattewaves':'wave';
   document.body.setAttribute('data-state','game');
   showScreen('none');
   startGame();
@@ -2239,13 +2244,13 @@ function buildGarage(){
   const mgrid=document.getElementById('mode-grid-visible')||document.getElementById('mode-grid');
   if(mgrid){
     mgrid.innerHTML='';
-    const MODES=[{id:'wave',icon:'\u2694',title:'WAVE BATTLE',sub:'7v7 Endless waves. Earn coins.'},{id:'1v1',icon:'\uD83C\uDFAF',title:'1v1 DUEL',sub:'Fight your own tank. Pure skill.'},{id:'1v1pick',icon:'\u2694\uFE0F',title:'1v1 PICK FOE',sub:'Duel ANY tank you choose.'},{id:'1v7',icon:'\uD83D\uDD25',title:'1v7 LAST STAND',sub:'Solo vs 7 enemies. No mercy.'},{id:'1v1000pick',icon:'\u2620\uFE0F',title:'1000\u00D7 PICK FOE',sub:'Fight 1000 of ANY tank \u2014 all at once!'},{id:'rattewaves',icon:'\u2620\uFE0F',title:'RATTE WAVES',sub:'Endless Rattes. +10k HP per wave!'},{id:'testrange',icon:'\uD83C\uDFAF',title:'TEST RANGE',sub:'Practice \u2014 fire at stationary tanks.'}];
+    const MODES=[{id:'wave',icon:'\u2694',title:'WAVE BATTLE',sub:'7v7 Endless waves. Earn coins.'},{id:'1v1',icon:'\uD83C\uDFAF',title:'1v1 DUEL',sub:'Fight your own tank. Pure skill.'},{id:'1v1pick',icon:'\u2694\uFE0F',title:'1v1 PICK FOE',sub:'Duel ANY tank you choose.'},{id:'1v7',icon:'\uD83D\uDD25',title:'1v7 LAST STAND',sub:'Solo vs 7 enemies. No mercy.'},{id:'1v1000',icon:'💰',title:'1v1000 GOLD RUSH',sub:'1000 tanks · 1000🏷 per kill.'},{id:'rattewaves',icon:'\u2620\uFE0F',title:'RATTE WAVES',sub:'Endless Rattes. +10k HP per wave!'},{id:'testrange',icon:'\uD83C\uDFAF',title:'TEST RANGE',sub:'Practice \u2014 fire at stationary tanks.'}];
     MODES.forEach(function(m){
       const c=document.createElement('div');
       c.className='nav-card'+(gameMode===m.id?' selected-mode':'');
       if(gameMode===m.id){c.style.borderColor='var(--khaki)';c.style.background='#1a2410';}
       c.innerHTML='<div class="nav-icon">'+m.icon+'</div><div class="nav-title" style="font-size:13px;">'+m.title+'</div><div class="nav-sub">'+m.sub+'</div>';
-      c.onclick=(function(mid){return function(){gameMode=mid; if(mid==='1v1pick'||mid==='1v1000pick'){openDuelArena(mid);} else {buildGarage();}};})(m.id);
+      c.onclick=(function(mid){return function(){gameMode=mid; if(mid==='1v1pick'){openDuelArena(mid);} else {buildGarage();}};})(m.id);
       mgrid.appendChild(c);
     });
   }
@@ -2292,7 +2297,7 @@ function closeDuelArena(){const ov=document.getElementById('duel-arena');if(ov)o
 function _duelFightLabel(){
   const fb=document.getElementById('duel-fight-btn');if(!fb)return;
   const d=TANK_DEFS.find(t=>t.id===duelEnemyId);
-  const pre=duelMode==='1v1000pick'?'⚔ FIGHT 1000× ':duelMode==='1v100pick'?'⚔ FIGHT 100× ':'⚔ FIGHT ';
+  const pre='⚔ FIGHT ';
   fb.textContent=d?(pre+d.name.toUpperCase()):'⚔ FIGHT';
 }
 function renderDuelGrid(){
@@ -2340,8 +2345,8 @@ function startGame(){
   // Translate the chosen game mode into the spawn battleMode
   if(gameMode==='1v1')battleMode='1v1';
   else if(gameMode==='1v1pick')battleMode='1v1pick';
-  else if(gameMode==='1v1000pick')battleMode='1v1000pick';
   else if(gameMode==='1v7')battleMode='1v7';
+  else if(gameMode==='1v1000'){battleMode='1v1000';window.__remaining1000=1000;}
   else if(gameMode==='rattewaves')battleMode='rattewaves';
   else if(gameMode==='testrange')battleMode='testrange';
   else battleMode='7v7'; // wave
@@ -2349,7 +2354,7 @@ function startGame(){
   const t=TANK_DEFS.find(x=>x.id===activeTankId)||TANK_DEFS[0];
   totalAmmo=currentAmmo=t.ammo;canShoot=true;_mgCooldown=0;missileAmmo=missileCapacity;
   // Mode ammo overrides: infinite ammo in the swarm modes (1v100, 100x pick, 1v1000) and the test range
-  if(battleMode==='1v1000pick'){ totalAmmo=currentAmmo=99999; } // ∞ (shows as UNLIMITED)
+  if(battleMode==='1v1000'){ totalAmmo=currentAmmo=99999; } // ∞ (shows as UNLIMITED)
   if(battleMode==='testrange'){ totalAmmo=currentAmmo=99999; missileAmmo=999; } // practice: unlimited ammo
   if(reloadInt){clearInterval(reloadInt);reloadInt=null;}
   missileReady=true;canShoot=true;
@@ -2506,24 +2511,6 @@ function spawnWave(){
     (document.getElementById('hud-en')||{}).textContent=enemies.length;
     return;
   }
-  // ── 1000× PICK: fight 1000 of one chosen tank, all at once ──
-  if(battleMode==='1v1000pick'){
-    const def=TANK_DEFS.find(t=>t.id===duelEnemyId)||TANK_DEFS.find(t=>t.id===activeTankId)||TANK_DEFS[0];
-    const isR=def.id==='ratte';
-    const ehp=isR?80000:def.hp; // cap the otherwise-indestructible Ratte
-    for(let i=0;i<1000;i++){
-      const a=Math.random()*Math.PI*2, d=360+Math.random()*3400; // spread across the whole map
-      const ex=Math.max(60,Math.min(WW-60,player.x+Math.cos(a)*d));
-      const ey=Math.max(60,Math.min(WH-60,player.y+Math.sin(a)*d));
-      enemies.push({x:ex,y:ey,angle:Math.random()*Math.PI*2,turretAngle:0,
-        hp:ehp,maxHp:ehp,armor:def.armor,pen:def.pen,dmg:def.dmg,
-        speed:def.speed,rotSpeed:def.rot,size:isR?48:26,color:def.color,name:def.name,id:def.id,
-        reload:def.reload,_isRatte:isR,shootCD:180+Math.random()*420,state:'approach'}); // widely staggered fire
-    }
-    waveSpawning=false;
-    (document.getElementById('hud-en')||{}).textContent=enemies.length;
-    return;
-  }
   const hpM=1+Math.min(wave,6)*0.06; // gentle HP creep with waves
   const rng=sr(wave*17+MAPS.indexOf(m)*7);
   // Battle mode determines team sizes
@@ -2537,7 +2524,12 @@ function spawnWave(){
     const modeMap={'1v1':1,'2v2':2,'3v3':3,'4v4':4,'5v5':5,'6v6':6,'7v7':7,'8v8':8};
     _allySide=_enemySide=modeMap[battleMode]||7;
   }
+  // 1v1000: keep ~60 on screen at a time from a pool of 1000 total
   let count=_enemySide;
+  if(battleMode==='1v1000'){
+    if(typeof window.__remaining1000==='undefined')window.__remaining1000=1000;
+    count=Math.min(60,window.__remaining1000);
+  }
   const allyCount=Math.max(0,_allySide-1); // allies = your side minus you
   // Enemy tier matches YOUR tank's tier. Mix: mostly your tier, some +/-1.
   const playerTier=getPlayerTierNum();
