@@ -38,6 +38,9 @@ body[data-state="game"] #screen-title,
 body[data-state="game"] #screen-mode,
 body[data-state="game"] #screen-over,
 body[data-state="game"] #arty-map-overlay { display:none!important; }
+/* During battle only #hud-top and #arena-wrap belong in the body flow; a couple of
+   menu buttons leak in from earlier markup — keep them out so the arena fills the screen. */
+body[data-state="game"] > button { display:none!important; }
 body:not([data-state="game"]) #hud-ammo-reload { display:none!important; }
 body[data-state="game"] #hud-ammo-reload { display:flex!important; }
 body[data-state="game"] #hud-bot { display:flex!important; }
@@ -224,7 +227,8 @@ body[data-state="mode"] #screen-title { display:none!important; }
   <div id="coin-popup"></div>
   <button id="btn-exit-battle" onclick="exitBattle()" title="Exit Battle" style="position:absolute;top:10px;right:10px;z-index:36;background:rgba(10,12,7,.88);color:#c8a84b;border:2px solid #c8a84b;font-weight:900;font-size:18px;width:38px;height:38px;border-radius:5px;cursor:pointer;display:none;line-height:1;">&#10005;</button>
   <!-- MAKE YOUR OWN MAP — editor toolbar -->
-  <div id="mapmaker-bar" style="display:none;position:absolute;top:10px;left:50%;transform:translateX(-50%);z-index:37;background:rgba(8,12,6,.92);border:2px solid #2a4a2a;border-radius:8px;padding:7px 9px;gap:6px;align-items:center;flex-wrap:wrap;justify-content:center;max-width:94vw;box-shadow:0 4px 18px rgba(0,0,0,.5);font-family:'Oswald',sans-serif;">
+  <div id="mapmaker-bar" style="display:none;position:absolute;top:0;left:0;right:0;z-index:37;background:linear-gradient(180deg,rgba(8,14,7,.97),rgba(8,12,6,.9));border-bottom:2px solid #2a4a2a;padding:10px 14px;gap:8px;align-items:center;flex-wrap:wrap;justify-content:center;box-shadow:0 4px 18px rgba(0,0,0,.5);font-family:'Oswald',sans-serif;">
+    <span style="font-family:Oswald,sans-serif;font-size:15px;font-weight:700;letter-spacing:2px;color:#7ff0a0;padding:0 10px 0 4px;white-space:nowrap;">🛠️ MAP MAKER</span>
     <span id="mm-status" style="font-size:12px;letter-spacing:1px;color:#7ad0a0;padding:0 6px;white-space:nowrap;">EDIT</span>
     <button class="mm-tool" data-tool="enemy" onclick="mmPickTool('enemy')" style="cursor:pointer;font-family:inherit;font-size:12px;padding:6px 9px;border-radius:5px;border:1px solid #3a5018;background:#0c1506;color:#d8c078;">&#9876; ENEMY</button>
     <button class="mm-tool" data-tool="ally" onclick="mmPickTool('ally')" style="cursor:pointer;font-family:inherit;font-size:12px;padding:6px 9px;border-radius:5px;border:1px solid #3a5018;background:#0c1506;color:#78b0d8;">&#128737; ALLY</button>
@@ -232,8 +236,10 @@ body[data-state="mode"] #screen-title { display:none!important; }
     <button class="mm-tool" data-tool="rock" onclick="mmPickTool('rock')" style="cursor:pointer;font-family:inherit;font-size:12px;padding:6px 9px;border-radius:5px;border:1px solid #3a5018;background:#0c1506;color:#b0b090;">&#129704; ROCK</button>
     <button class="mm-tool" data-tool="tree" onclick="mmPickTool('tree')" style="cursor:pointer;font-family:inherit;font-size:12px;padding:6px 9px;border-radius:5px;border:1px solid #3a5018;background:#0c1506;color:#88c060;">&#127795; TREE</button>
     <button class="mm-tool" data-tool="erase" onclick="mmPickTool('erase')" style="cursor:pointer;font-family:inherit;font-size:12px;padding:6px 9px;border-radius:5px;border:1px solid #3a5018;background:#0c1506;color:#d88080;">&#129529; ERASE</button>
-    <button onclick="sandboxClear()" style="cursor:pointer;font-family:inherit;font-size:12px;padding:6px 9px;border-radius:5px;border:1px solid #6a3018;background:#180a06;color:#e09070;">&#128465; CLEAR</button>
+    <button class="mm-editonly" onclick="sandboxClear()" style="cursor:pointer;font-family:inherit;font-size:12px;padding:6px 9px;border-radius:5px;border:1px solid #6a3018;background:#180a06;color:#e09070;">&#128465; CLEAR</button>
     <button id="mm-play" onclick="sandboxTogglePlay()" style="cursor:pointer;font-family:inherit;font-size:13px;font-weight:700;letter-spacing:1px;padding:6px 14px;border-radius:5px;border:2px solid #2e8a4e;background:#0c2012;color:#7ff0a0;">&#9654; PLAY</button>
+    <span class="mm-editonly" style="flex-basis:100%;height:0;"></span>
+    <span class="mm-editonly" style="font-family:'Share Tech Mono',monospace;font-size:10px;letter-spacing:1px;color:#6a8a5a;white-space:nowrap;">WASD / arrows = pan the map · click = place · E = play/edit · your tank is parked while editing</span>
   </div>
   <svg id="crosshair" viewBox="0 0 40 40" fill="none">
     <circle cx="20" cy="20" r="7" stroke="rgba(255,220,80,.75)" stroke-width="1.5"/>
@@ -442,8 +448,6 @@ body[data-state="mode"] #screen-title { display:none!important; }
       <div style="font-size:9px;color:var(--dim);letter-spacing:2px;">STOCKED</div>
     </div>
   </div>
-
-</div>
 
   <!-- Danger zone: reset progress (tucked at the bottom of the garage) -->
   <div style="width:100%;max-width:700px;margin-top:30px;padding-top:16px;border-top:1px solid #2a1a10;display:flex;justify-content:center;">
@@ -1741,6 +1745,7 @@ let sandboxTool='building';   // active placement tool: building|rock|tree|hedge
 let sandboxTankId=null;       // which tank the enemy/ally tools drop
 let sandboxAllyId=null;       // remembered ally choice
 let sandboxEdit=true;         // true = editing (tanks frozen), false = playing (they fight)
+let sandboxCamX=0,sandboxCamY=0; // panned camera while editing (tank stays parked)
 let duelMode='1v1pick'; // which pick mode the arena is choosing for
 let totalAmmo,currentAmmo;
 let camX=0,camY=0;
@@ -2354,7 +2359,18 @@ function showMapmakerBar(on){
 }
 function updateMapmakerBar(){
   const bar=document.getElementById('mapmaker-bar');if(!bar)return;
+  // EDIT: full-width top bar with every tool. PLAY: compact centered pill so the
+  // combat HUD (HP/ammo) stays visible while you fight.
+  if(sandboxEdit){
+    bar.style.left='0';bar.style.right='0';bar.style.transform='none';bar.style.borderRadius='0';
+    bar.style.borderBottom='2px solid #2a4a2a';bar.style.borderLeft='none';bar.style.borderRight='none';
+  } else {
+    bar.style.left='50%';bar.style.right='auto';bar.style.transform='translateX(-50%)';bar.style.borderRadius='0 0 8px 8px';
+    bar.style.border='2px solid #6a5020';bar.style.borderTop='none';
+  }
+  bar.querySelectorAll('.mm-editonly').forEach(el=>{ el.style.display=sandboxEdit?'':'none'; });
   bar.querySelectorAll('.mm-tool').forEach(b=>{
+    b.style.display=sandboxEdit?'':'none';
     const on=b.getAttribute('data-tool')===sandboxTool;
     b.style.borderColor=on?'#e8c84a':'#3a5018';
     b.style.background=on?'#2a2410':'#0c1506';
@@ -2385,8 +2401,10 @@ function sandboxTogglePlay(){
     if(sandboxEdit){ e._dummy=true; e.state='approach'; }
     else { e._dummy=false; e.shootCD=60+Math.random()*90; e.hp=e.maxHp; e.hitFlash=0; }
   }
-  if(sandboxEdit){ // returning to edit: heal & calm the field
-    if(player){ player.hp=player.maxHp; }
+  if(sandboxEdit){ // returning to edit: heal & re-center the pan camera on the tank
+    if(player){ player.hp=player.maxHp;
+      sandboxCamX=Math.max(0,Math.min(WW-W,player.x-W/2));
+      sandboxCamY=Math.max(0,Math.min(WH-H,player.y-H/2)); }
   }
   addKillFeed(sandboxEdit?'✎ EDIT MODE — tanks frozen':'▶ PLAY — fight!');
   updateMapmakerBar();
@@ -2563,6 +2581,8 @@ function startGame(){
   if(battleMode==='mapmaker'){
     obstacles=[]; bushes=[];        // clean slate — you build everything
     sandboxEdit=true;               // begin in EDIT mode (tanks frozen)
+    sandboxCamX=Math.max(0,Math.min(WW-W,player.x-W/2));
+    sandboxCamY=Math.max(0,Math.min(WH-H,player.y-H/2));
     showMapmakerBar(true);
     updateMapmakerBar();
   } else {
@@ -2925,6 +2945,7 @@ function setupInput(){
 }
 
 function tryShoot(){
+  if(battleMode==='mapmaker'&&sandboxEdit)return; // sandbox EDIT: clicks place, they don't fire
   const _useMissile=_missileIds.has(player.id)&&weaponMode==='missile';
   if(state!=='game')return;
   // Gun and missile have independent reloads AND independent ammo pools.
@@ -3388,10 +3409,23 @@ function updatePlayer(dt){
   const mud=selectedMap.mud;
   const spd=player.moveSpeed*(mud?0.55:1)*((keys['ShiftLeft']||keys['ShiftRight'])&&!mud?1.6:1);
   let dx=0,dy=0;
+  // Sandbox EDIT: the tank is parked — WASD/arrows pan the camera so you can build
+  // anywhere on the map, but the tank itself never moves (no driving, no firing).
+  const _sbEdit=(battleMode==='mapmaker'&&sandboxEdit);
+  if(_sbEdit){
+    const pan=(player.moveSpeed*3.4)*((keys['ShiftLeft']||keys['ShiftRight'])?2:1);
+    if(keys['KeyW']||keys['ArrowUp'])   sandboxCamY-=pan*dt;
+    if(keys['KeyS']||keys['ArrowDown']) sandboxCamY+=pan*dt;
+    if(keys['KeyA']||keys['ArrowLeft']) sandboxCamX-=pan*dt;
+    if(keys['KeyD']||keys['ArrowRight'])sandboxCamX+=pan*dt;
+    sandboxCamX=Math.max(0,Math.min(WW-W,sandboxCamX));
+    sandboxCamY=Math.max(0,Math.min(WH-H,sandboxCamY));
+  } else {
   if(keys['KeyW']||keys['ArrowUp'])   dy-=1;
   if(keys['KeyS']||keys['ArrowDown']) dy+=1;
   if(keys['KeyA']||keys['ArrowLeft']) dx-=1;
   if(keys['KeyD']||keys['ArrowRight'])dx+=1;
+  }
   // While flying a missile the crew is heads-down at the sight, so the tank holds
   // position — but pressing any movement key breaks off: the missile switches to
   // auto-home and control (and the camera) snap straight back to the tank.
@@ -3447,6 +3481,8 @@ function updatePlayer(dt){
 
   camX=Math.max(0,Math.min(WW-W,player.x-W/2));
   camY=Math.max(0,Math.min(WH-H,player.y-H/2));
+  // Sandbox EDIT: use the panned camera instead of following the parked tank
+  if(battleMode==='mapmaker'&&sandboxEdit){ camX=sandboxCamX; camY=sandboxCamY; }
   // Missile-cam override: if a driven missile is still in flight, follow it so the
   // crosshair aims from the missile's viewpoint. It's cleared when the missile is gone.
   if(drivenMissile){
