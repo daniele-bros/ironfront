@@ -6735,6 +6735,15 @@ window.onload=()=>{
         // clicked a button/HUD/menu — don't fire or aim
         return;
       }
+      // MAKE YOUR OWN MAP: in EDIT mode a canvas click places/erases (never fires)
+      if(typeof battleMode!=='undefined'&&battleMode==='mapmaker'&&typeof sandboxEdit!=='undefined'&&sandboxEdit){
+        var _cv=document.getElementById('gameCanvas'),_r=_cv?_cv.getBoundingClientRect():{left:0,top:0,width:1};
+        var _sx=_cv?_cv.width/_r.width:1, _sy=_cv?_cv.height/_r.height:1;
+        var _wx=(e.clientX-_r.left)*_sx+(typeof camX!=='undefined'?camX:0);
+        var _wy=(e.clientY-_r.top)*_sy+(typeof camY!=='undefined'?camY:0);
+        if(typeof sandboxPlace==='function')sandboxPlace(_wx,_wy);
+        return;
+      }
       aimFrom(e);
       _fireHeld=true;
       // nuke / mortar armed states
@@ -6759,6 +6768,14 @@ window.onload=()=>{
       if(e.target&&e.target.id!=='gameCanvas')return;
       var t=e.touches[0]; if(!t)return;
       var cv=document.getElementById('gameCanvas'); if(cv){var r=cv.getBoundingClientRect();if(typeof mouseX!=='undefined')mouseX=t.clientX-r.left;if(typeof mouseY!=='undefined')mouseY=t.clientY-r.top;}
+      // MAKE YOUR OWN MAP: tap places/erases in EDIT mode
+      if(typeof battleMode!=='undefined'&&battleMode==='mapmaker'&&typeof sandboxEdit!=='undefined'&&sandboxEdit){
+        if(cv){var r2=cv.getBoundingClientRect();var sx=cv.width/r2.width,sy=cv.height/r2.height;
+          var wx=(t.clientX-r2.left)*sx+(typeof camX!=='undefined'?camX:0);
+          var wy=(t.clientY-r2.top)*sy+(typeof camY!=='undefined'?camY:0);
+          if(typeof sandboxPlace==='function')sandboxPlace(wx,wy);}
+        return;
+      }
       if(typeof tryShoot==='function')tryShoot();
     },{passive:true});
   }
