@@ -223,6 +223,18 @@ body[data-state="mode"] #screen-title { display:none!important; }
   <div id="wave-banner"></div>
   <div id="coin-popup"></div>
   <button id="btn-exit-battle" onclick="exitBattle()" title="Exit Battle" style="position:absolute;top:10px;right:10px;z-index:36;background:rgba(10,12,7,.88);color:#c8a84b;border:2px solid #c8a84b;font-weight:900;font-size:18px;width:38px;height:38px;border-radius:5px;cursor:pointer;display:none;line-height:1;">&#10005;</button>
+  <!-- MAKE YOUR OWN MAP — editor toolbar -->
+  <div id="mapmaker-bar" style="display:none;position:absolute;top:10px;left:50%;transform:translateX(-50%);z-index:37;background:rgba(8,12,6,.92);border:2px solid #2a4a2a;border-radius:8px;padding:7px 9px;gap:6px;align-items:center;flex-wrap:wrap;justify-content:center;max-width:94vw;box-shadow:0 4px 18px rgba(0,0,0,.5);font-family:'Oswald',sans-serif;">
+    <span id="mm-status" style="font-size:12px;letter-spacing:1px;color:#7ad0a0;padding:0 6px;white-space:nowrap;">EDIT</span>
+    <button class="mm-tool" data-tool="enemy" onclick="mmPickTool('enemy')" style="cursor:pointer;font-family:inherit;font-size:12px;padding:6px 9px;border-radius:5px;border:1px solid #3a5018;background:#0c1506;color:#d8c078;">&#9876; ENEMY</button>
+    <button class="mm-tool" data-tool="ally" onclick="mmPickTool('ally')" style="cursor:pointer;font-family:inherit;font-size:12px;padding:6px 9px;border-radius:5px;border:1px solid #3a5018;background:#0c1506;color:#78b0d8;">&#128737; ALLY</button>
+    <button class="mm-tool" data-tool="building" onclick="mmPickTool('building')" style="cursor:pointer;font-family:inherit;font-size:12px;padding:6px 9px;border-radius:5px;border:1px solid #3a5018;background:#0c1506;color:#c8b090;">&#127970; BUILDING</button>
+    <button class="mm-tool" data-tool="rock" onclick="mmPickTool('rock')" style="cursor:pointer;font-family:inherit;font-size:12px;padding:6px 9px;border-radius:5px;border:1px solid #3a5018;background:#0c1506;color:#b0b090;">&#129704; ROCK</button>
+    <button class="mm-tool" data-tool="tree" onclick="mmPickTool('tree')" style="cursor:pointer;font-family:inherit;font-size:12px;padding:6px 9px;border-radius:5px;border:1px solid #3a5018;background:#0c1506;color:#88c060;">&#127795; TREE</button>
+    <button class="mm-tool" data-tool="erase" onclick="mmPickTool('erase')" style="cursor:pointer;font-family:inherit;font-size:12px;padding:6px 9px;border-radius:5px;border:1px solid #3a5018;background:#0c1506;color:#d88080;">&#129529; ERASE</button>
+    <button onclick="sandboxClear()" style="cursor:pointer;font-family:inherit;font-size:12px;padding:6px 9px;border-radius:5px;border:1px solid #6a3018;background:#180a06;color:#e09070;">&#128465; CLEAR</button>
+    <button id="mm-play" onclick="sandboxTogglePlay()" style="cursor:pointer;font-family:inherit;font-size:13px;font-weight:700;letter-spacing:1px;padding:6px 14px;border-radius:5px;border:2px solid #2e8a4e;background:#0c2012;color:#7ff0a0;">&#9654; PLAY</button>
+  </div>
   <svg id="crosshair" viewBox="0 0 40 40" fill="none">
     <circle cx="20" cy="20" r="7" stroke="rgba(255,220,80,.75)" stroke-width="1.5"/>
     <circle cx="20" cy="20" r="1.5" fill="rgba(255,220,80,.9)"/>
@@ -301,6 +313,11 @@ body[data-state="mode"] #screen-title { display:none!important; }
       <div style="font-size:42px;">&#128481;</div>
       <div style="font-size:26px;letter-spacing:5px;font-weight:700;">7 VS 7</div>
       <div style="font-family:'Share Tech Mono',monospace;font-size:10px;color:#5a7040;letter-spacing:2px;line-height:1.7;text-align:center;">FULL BATTLE<br>6 allies + you vs 7<br>Total war</div>
+    </button>
+    <button onclick="pickMode('mapmaker')" style="background:#0c1506;border:2px solid #3a5018;border-radius:6px;color:#c8a84a;font-family:'Oswald',sans-serif;cursor:pointer;padding:28px 44px;display:flex;flex-direction:column;align-items:center;gap:10px;transition:all .15s;min-width:190px;" onmouseover="this.style.borderColor='#40c090';this.style.boxShadow='0 0 28px rgba(64,192,144,.35)';this.style.background='#081812'" onmouseout="this.style.borderColor='#3a5018';this.style.boxShadow='';this.style.background='#0c1506'">
+      <div style="font-size:42px;">&#128736;&#65039;</div>
+      <div style="font-size:19px;letter-spacing:2px;font-weight:700;">MAKE YOUR MAP</div>
+      <div style="font-family:'Share Tech Mono',monospace;font-size:10px;color:#5a7040;letter-spacing:2px;line-height:1.7;text-align:center;">SANDBOX<br>Place any tanks<br>&amp; buildings</div>
     </button>
   </div>
   <button onclick="document.getElementById('screen-mode').style.display='none';(document.getElementById('screen-title')||{style:{}}).style.display='flex';" style="margin-top:24px;background:transparent;color:#3a5018;font-family:'Share Tech Mono',monospace;font-size:11px;letter-spacing:3px;padding:8px 20px;border:1px solid #2a3810;border-radius:2px;cursor:pointer;" onmouseover="this.style.color='#8a9a60'" onmouseout="this.style.color='#3a5018'">&#9664; BACK</button>
@@ -1719,6 +1736,11 @@ let mortars=0,mortarProjs=[],mortarArmed=false;
 let nukes=0,nukeFlash=0,nukeArmed=false;
 let gameMode='wave'; // 'wave' or '1v1'
 let duelEnemyId=null; // chosen opponent for the PICK FOE modes
+// ── MAKE YOUR OWN MAP (sandbox) state ──
+let sandboxTool='building';   // active placement tool: building|rock|tree|hedge|enemy|ally|erase
+let sandboxTankId=null;       // which tank the enemy/ally tools drop
+let sandboxAllyId=null;       // remembered ally choice
+let sandboxEdit=true;         // true = editing (tanks frozen), false = playing (they fight)
 let duelMode='1v1pick'; // which pick mode the arena is choosing for
 let totalAmmo,currentAmmo;
 let camX=0,camY=0;
@@ -1908,7 +1930,7 @@ function showModeSelect(){
 function pickMode(mode){
   battleMode=mode;
   // Sync gameMode so startGame's translation agrees
-  gameMode=(mode==='1v1')?'1v1':(mode==='1v7')?'1v7':(mode==='1v1000')?'1v1000':(mode==='rattewaves')?'rattewaves':'wave';
+  gameMode=(mode==='1v1')?'1v1':(mode==='1v7')?'1v7':(mode==='1v1000')?'1v1000':(mode==='rattewaves')?'rattewaves':(mode==='testrange')?'testrange':(mode==='mapmaker')?'mapmaker':'wave';
   document.body.setAttribute('data-state','game');
   showScreen('none');
   startGame();
@@ -2244,7 +2266,7 @@ function buildGarage(){
   const mgrid=document.getElementById('mode-grid-visible')||document.getElementById('mode-grid');
   if(mgrid){
     mgrid.innerHTML='';
-    const MODES=[{id:'wave',icon:'\u2694',title:'WAVE BATTLE',sub:'7v7 Endless waves. Earn coins.'},{id:'1v1',icon:'\uD83C\uDFAF',title:'1v1 DUEL',sub:'Fight your own tank. Pure skill.'},{id:'1v1pick',icon:'\u2694\uFE0F',title:'1v1 PICK FOE',sub:'Duel ANY tank you choose.'},{id:'1v7',icon:'\uD83D\uDD25',title:'1v7 LAST STAND',sub:'Solo vs 7 enemies. No mercy.'},{id:'1v1000',icon:'💰',title:'1v1000 GOLD RUSH',sub:'1000 tanks · 1000🏷 per kill.'},{id:'rattewaves',icon:'\u2620\uFE0F',title:'RATTE WAVES',sub:'Endless Rattes. +10k HP per wave!'},{id:'testrange',icon:'\uD83C\uDFAF',title:'TEST RANGE',sub:'Practice \u2014 fire at stationary tanks.'}];
+    const MODES=[{id:'wave',icon:'\u2694',title:'WAVE BATTLE',sub:'7v7 Endless waves. Earn coins.'},{id:'1v1',icon:'\uD83C\uDFAF',title:'1v1 DUEL',sub:'Fight your own tank. Pure skill.'},{id:'1v1pick',icon:'\u2694\uFE0F',title:'1v1 PICK FOE',sub:'Duel ANY tank you choose.'},{id:'1v7',icon:'\uD83D\uDD25',title:'1v7 LAST STAND',sub:'Solo vs 7 enemies. No mercy.'},{id:'1v1000',icon:'💰',title:'1v1000 GOLD RUSH',sub:'1000 tanks · 1000🏷 per kill.'},{id:'rattewaves',icon:'\u2620\uFE0F',title:'RATTE WAVES',sub:'Endless Rattes. +10k HP per wave!'},{id:'testrange',icon:'\uD83C\uDFAF',title:'TEST RANGE',sub:'Practice \u2014 fire at stationary tanks.'},{id:'mapmaker',icon:'\uD83D\uDEE0\uFE0F',title:'MAKE YOUR OWN MAP',sub:'Place any tanks & buildings you want.'}];
     MODES.forEach(function(m){
       const c=document.createElement('div');
       c.className='nav-card'+(gameMode===m.id?' selected-mode':'');
@@ -2323,6 +2345,150 @@ function renderDuelGrid(){
 }
 function duelDeploy(){closeDuelArena();gameMode=duelMode;ensureValidMap();startGame();}
 
+// ════════════════════════════════════════
+// MAKE YOUR OWN MAP — sandbox editor
+// ════════════════════════════════════════
+function showMapmakerBar(on){
+  const bar=document.getElementById('mapmaker-bar');
+  if(bar)bar.style.display=on?'flex':'none';
+}
+function updateMapmakerBar(){
+  const bar=document.getElementById('mapmaker-bar');if(!bar)return;
+  bar.querySelectorAll('.mm-tool').forEach(b=>{
+    const on=b.getAttribute('data-tool')===sandboxTool;
+    b.style.borderColor=on?'#e8c84a':'#3a5018';
+    b.style.background=on?'#2a2410':'#0c1506';
+  });
+  // Reflect the chosen tank name on the enemy/ally buttons
+  const eName=sandboxTankId?(TANK_DEFS.find(t=>t.id===sandboxTankId)||{}).name:'';
+  const aName=sandboxAllyId?(TANK_DEFS.find(t=>t.id===sandboxAllyId)||{}).name:'';
+  const eb=bar.querySelector('[data-tool="enemy"]'), ab=bar.querySelector('[data-tool="ally"]');
+  if(eb)eb.innerHTML='⚔ ENEMY'+(eName?'<br><span style="font-size:9px;color:#a89060">'+eName+'</span>':'');
+  if(ab)ab.innerHTML='🛡 ALLY'+(aName?'<br><span style="font-size:9px;color:#6090a8">'+aName+'</span>':'');
+  const st=document.getElementById('mm-status');
+  if(st){ st.textContent=sandboxEdit?'✎ EDIT':'▶ PLAYING'; st.style.color=sandboxEdit?'#7ad0a0':'#e8b040'; }
+  const pb=document.getElementById('mm-play');
+  if(pb){
+    if(sandboxEdit){ pb.innerHTML='▶ PLAY'; pb.style.borderColor='#2e8a4e'; pb.style.background='#0c2012'; pb.style.color='#7ff0a0'; }
+    else { pb.innerHTML='✎ EDIT'; pb.style.borderColor='#8a6a2e'; pb.style.background='#20180c'; pb.style.color='#f0d07f'; }
+  }
+}
+function mmPickTool(tool){
+  if(tool==='enemy'||tool==='ally'){ openSandboxPicker(tool); return; }
+  sandboxTool=tool; updateMapmakerBar();
+}
+function sandboxTogglePlay(){
+  sandboxEdit=!sandboxEdit;
+  // Flip every placed tank between frozen dummy (edit) and live combatant (play)
+  for(const e of enemies){
+    if(!e._sandbox)continue;
+    if(sandboxEdit){ e._dummy=true; e.state='approach'; }
+    else { e._dummy=false; e.shootCD=60+Math.random()*90; e.hp=e.maxHp; e.hitFlash=0; }
+  }
+  if(sandboxEdit){ // returning to edit: heal & calm the field
+    if(player){ player.hp=player.maxHp; }
+  }
+  addKillFeed(sandboxEdit?'✎ EDIT MODE — tanks frozen':'▶ PLAY — fight!');
+  updateMapmakerBar();
+}
+function sandboxClear(){
+  enemies=enemies.filter(e=>!e._sandbox);
+  allies=(allies||[]).filter(a=>!a._sandbox);
+  obstacles=obstacles.filter(o=>!o._sandbox);
+  bushes=(bushes||[]).filter(b=>!b._sandbox);
+  (document.getElementById('hud-en')||{}).textContent=enemies.filter(e=>e.hp>0).length;
+  addKillFeed('🗑 Cleared everything you placed');
+}
+function sandboxPlace(wx,wy){
+  wx=Math.max(40,Math.min(WW-40,wx)); wy=Math.max(40,Math.min(WH-40,wy));
+  const t=sandboxTool;
+  if(t==='erase'){
+    // remove the nearest placed thing within 60px
+    let best=null,bd=60*60,bkind=null,barr=null;
+    const scan=(arr,cx,cy,o)=>{const dx=cx-wx,dy=cy-wy,d=dx*dx+dy*dy;if(d<bd){bd=d;best=o;barr=arr;}};
+    enemies.forEach(o=>{if(o._sandbox)scan(enemies,o.x,o.y,o);});
+    (allies||[]).forEach(o=>{if(o._sandbox)scan(allies,o.x,o.y,o);});
+    obstacles.forEach(o=>{if(o._sandbox){const cx=o.r!==undefined?o.x+o.r:o.x+(o.w||0)/2,cy=o.r!==undefined?o.y+o.r:o.y+(o.h||0)/2;scan(obstacles,cx,cy,o);}});
+    (bushes||[]).forEach(o=>{if(o._sandbox)scan(bushes,o.x,o.y,o);});
+    if(best&&barr){const i=barr.indexOf(best);if(i>=0)barr.splice(i,1);}
+    (document.getElementById('hud-en')||{}).textContent=enemies.filter(e=>e.hp>0).length;
+    return;
+  }
+  if(t==='building'){ obstacles.push({x:wx-46,y:wy-32,w:92,h:64,type:'building',color:'#2c2418',_sandbox:true}); return; }
+  if(t==='rock'){ const r=20; obstacles.push({x:wx-r,y:wy-r,r:r,type:'rock',color:'#5a5030',_sandbox:true}); return; }
+  if(t==='tree'){ const r=17; obstacles.push({x:wx-r,y:wy-r,r:r,type:'tree',color:'#1a3010',_sandbox:true}); return; }
+  if(t==='enemy'||t==='ally'){
+    const id=t==='enemy'?sandboxTankId:sandboxAllyId;
+    const def=TANK_DEFS.find(x=>x.id===id);
+    if(!def){ openSandboxPicker(t); return; }
+    const sz=def.id==='ratte'?48:26;
+    const hp=def.id==='ratte'?80000:def.hp;
+    const fa=Math.atan2(player.y-wy,player.x-wx);
+    if(t==='enemy'){
+      enemies.push({x:wx,y:wy,angle:fa,turretAngle:fa,
+        hp:hp,maxHp:hp,armor:def.armor,pen:def.pen,dmg:def.dmg,
+        speed:def.speed,rotSpeed:def.rot,size:sz,color:def.color,name:def.name,id:def.id,
+        reload:def.reload,_isRatte:def.id==='ratte',shootCD:60+Math.random()*90,state:'approach',
+        _sandbox:true,_dummy:sandboxEdit,_respawn:0});
+      (document.getElementById('hud-en')||{}).textContent=enemies.filter(e=>e.hp>0).length;
+    } else {
+      if(!allies)allies=[];
+      allies.push({x:wx,y:wy,angle:fa,turretAngle:fa,_ts:1,
+        hp:hp,maxHp:hp,armor:def.armor,pen:def.pen,dmg:def.dmg,
+        speed:def.speed,rotSpeed:def.rot,size:sz,color:def.color,name:def.name,id:def.id,
+        reload:def.reload,shootCD:60+Math.random()*90,_sandbox:true});
+    }
+    return;
+  }
+}
+// ── Tank chooser for the ENEMY / ALLY tools ──
+function openSandboxPicker(forTool){
+  let ov=document.getElementById('sandbox-picker');
+  if(!ov){
+    ov=document.createElement('div');ov.id='sandbox-picker';
+    ov.style.cssText='position:fixed;inset:0;z-index:320;background:linear-gradient(180deg,#0a0f06,#05080a);display:none;flex-direction:column;';
+    ov.innerHTML='<div style="display:flex;align-items:center;justify-content:space-between;padding:14px 22px;border-bottom:2px solid #2a3818;background:#0c1206;gap:12px;">'
+      +'<div id="sbp-title" style="font-family:Oswald,sans-serif;font-size:22px;font-weight:700;letter-spacing:3px;color:#40c090;white-space:nowrap;">🛠 CHOOSE A TANK</div>'
+      +'<input id="sbp-search" placeholder="Search tanks…" style="background:#0c1506;color:#c8a84a;border:1px solid #3a5018;border-radius:4px;font-family:monospace;font-size:13px;padding:7px 10px;flex:1;max-width:240px;">'
+      +'<button onclick="closeSandboxPicker()" style="background:transparent;border:2px solid #c8a84b;color:#c8a84b;font-weight:900;font-size:16px;width:34px;height:34px;border-radius:5px;cursor:pointer;flex:none;">✕</button>'
+      +'</div>'
+      +'<div id="sbp-grid" style="flex:1;overflow-y:auto;display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:10px;padding:16px 22px 40px;align-content:start;"></div>';
+    document.body.appendChild(ov);
+    const s=document.getElementById('sbp-search');if(s)s.addEventListener('input',renderSandboxGrid);
+  }
+  ov._forTool=forTool||'enemy';
+  const ttl=document.getElementById('sbp-title');
+  if(ttl){ ttl.textContent=(ov._forTool==='ally'?'🛡 CHOOSE AN ALLY':'⚔ CHOOSE AN ENEMY'); ttl.style.color=ov._forTool==='ally'?'#78b0d8':'#e88a4a'; }
+  ov.style.display='flex';
+  const s=document.getElementById('sbp-search');if(s)s.value='';
+  renderSandboxGrid();
+}
+function closeSandboxPicker(){const ov=document.getElementById('sandbox-picker');if(ov)ov.style.display='none';}
+function renderSandboxGrid(){
+  const grid=document.getElementById('sbp-grid');if(!grid)return;
+  const ov=document.getElementById('sandbox-picker');const forTool=(ov&&ov._forTool)||'enemy';
+  const cur=forTool==='ally'?sandboxAllyId:sandboxTankId;
+  const ql=((document.getElementById('sbp-search')||{}).value||'').toLowerCase().trim();
+  grid.innerHTML='';
+  TANK_DEFS.forEach(t=>{
+    if(ql&&!(t.name.toLowerCase().includes(ql)||(t.nation||'').toLowerCase().includes(ql)||(t.tier||'').toLowerCase()===ql))return;
+    const selected=cur===t.id, boss=t.id==='ratte';
+    const card=document.createElement('div');
+    card.style.cssText='background:'+(selected?'#123020':'#0c1506')+';border:2px solid '+(selected?'#40c090':(boss?'#a06020':'#26331a'))+';border-radius:6px;padding:8px;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:3px;';
+    const cv=document.createElement('canvas');cv.width=120;cv.height=64;
+    try{drawTankPreview(cv,t);}catch(e){}
+    card.appendChild(cv);
+    const nm=document.createElement('div');nm.style.cssText='font-family:Oswald,sans-serif;font-size:12px;color:#e8e0c0;text-align:center;line-height:1.1;';nm.textContent=t.name;card.appendChild(nm);
+    const meta=document.createElement('div');meta.style.cssText='font-size:10px;color:'+(boss?'#e8a040':'#8a9070')+';text-align:center;';meta.textContent=t.nation+' · '+t.tier+(boss?' · 👑BOSS':'');card.appendChild(meta);
+    card.onclick=()=>{
+      if(forTool==='ally'){ sandboxAllyId=t.id; sandboxTool='ally'; }
+      else { sandboxTankId=t.id; sandboxTool='enemy'; }
+      closeSandboxPicker(); updateMapmakerBar();
+    };
+    grid.appendChild(card);
+  });
+}
+
 function resetProgress(){
   // handled by showModal above
   coins=0;ownedTanks=new Set(['pz1','t26','m3stuart','mkvi','r35','type94','vickers_e','strv21']);activeTankId='pz1';selectedMap=null;totalKills=0;totalScore=0;mortars=0;nukes=0;
@@ -2349,6 +2515,7 @@ function startGame(){
   else if(gameMode==='1v1000'){battleMode='1v1000';window.__remaining1000=1000;}
   else if(gameMode==='rattewaves')battleMode='rattewaves';
   else if(gameMode==='testrange')battleMode='testrange';
+  else if(gameMode==='mapmaker')battleMode='mapmaker';
   else battleMode='7v7'; // wave
   const _ar=document.getElementById('hud-ammo-reload');if(_ar)_ar.style.display='flex';
   const t=TANK_DEFS.find(x=>x.id===activeTankId)||TANK_DEFS[0];
@@ -2356,6 +2523,7 @@ function startGame(){
   // Mode ammo overrides: infinite ammo in the swarm modes (1v100, 100x pick, 1v1000) and the test range
   if(battleMode==='1v1000'){ totalAmmo=currentAmmo=99999; } // ∞ (shows as UNLIMITED)
   if(battleMode==='testrange'){ totalAmmo=currentAmmo=99999; missileAmmo=999; } // practice: unlimited ammo
+  if(battleMode==='mapmaker'){ totalAmmo=currentAmmo=99999; missileAmmo=999; } // sandbox: unlimited ammo
   if(reloadInt){clearInterval(reloadInt);reloadInt=null;}
   missileReady=true;canShoot=true;
   const _rb2=document.getElementById('relbar');if(_rb2)_rb2.style.width='100%';
@@ -2391,6 +2559,15 @@ function startGame(){
   updateWeaponHud();
   updateCoinsHud();
   (document.getElementById('btn-exit-battle')||{style:{}}).style.display='block';
+  // ── MAKE YOUR OWN MAP: start on a blank field with the editor toolbar ──
+  if(battleMode==='mapmaker'){
+    obstacles=[]; bushes=[];        // clean slate — you build everything
+    sandboxEdit=true;               // begin in EDIT mode (tanks frozen)
+    showMapmakerBar(true);
+    updateMapmakerBar();
+  } else {
+    showMapmakerBar(false);
+  }
 }
 
 // ════════════════════════════════════════
@@ -2494,6 +2671,13 @@ function spawnWave(){
     waveSpawning=false;
     (document.getElementById('hud-en')||{}).textContent=enemies.length;
     addKillFeed('🎯 TEST RANGE — press R to reset targets');
+    return;
+  }
+  // ── MAKE YOUR OWN MAP: empty field — the player places every tank & building ──
+  if(battleMode==='mapmaker'){
+    waveSpawning=false;
+    (document.getElementById('hud-en')||{}).textContent=enemies.length;
+    addKillFeed('🛠 MAKE YOUR OWN MAP — click to place · press E to play/edit');
     return;
   }
   // ── 1v1 PICK FOE: duel a single tank of the player's choosing ──
@@ -2699,6 +2883,7 @@ function setupInput(){
     if(e.code==='Space'){e.preventDefault();tryShoot();}
     if(e.code==='KeyQ'){e.preventDefault();toggleWeapon();}
     if(e.code==='KeyR'&&battleMode==='testrange'&&state==='game'){e.preventDefault();_resetTestRange();}
+    if(e.code==='KeyE'&&battleMode==='mapmaker'&&state==='game'){e.preventDefault();sandboxTogglePlay();}
     if(['KeyW','KeyA','KeyS','KeyD','ArrowUp','ArrowDown','ArrowLeft','ArrowRight'].includes(e.code))e.preventDefault();
   });
   window.addEventListener('keyup',e=>{keys[e.code]=false;if(e.key)keys[e.key]=false;});
@@ -2715,6 +2900,13 @@ function setupInput(){
   });
   canvas.addEventListener('mousedown',e=>{
     if(e.button!==0)return;
+    // MAKE YOUR OWN MAP: in EDIT mode, clicks place/erase instead of firing
+    if(battleMode==='mapmaker'&&sandboxEdit&&state==='game'){
+      const r=canvas.getBoundingClientRect();
+      const wx=(e.clientX-r.left)*(canvas.width/r.width)+camX;
+      const wy=(e.clientY-r.top)*(canvas.height/r.height)+camY;
+      sandboxPlace(wx,wy);return;
+    }
     if(nukeArmed&&state==='game'&&player){
       const r2=canvas.getBoundingClientRect();
       const wx2=(e.clientX-r2.left)*(canvas.width/r2.width)+camX;
@@ -3397,6 +3589,7 @@ function resolveTankCollisions(){
 
 function updateAllies(dt){
   if(!allies) return;
+  if(battleMode==='mapmaker'&&sandboxEdit) return; // sandbox edit: allies stand still
   const alive=enemies.filter(e=>e.hp>0);
   for(let i=allies.length-1;i>=0;i--){
     const a=allies[i];
@@ -4067,6 +4260,16 @@ function render(){
     ctx.fillStyle='rgba(10,14,8,.55)';ctx.fillRect(W/2-215,H-30,430,22);
     ctx.fillStyle='rgba(200,220,150,.9)';
     ctx.fillText('🎯 TEST RANGE — targets don’t fire back · press R to reset',W/2,H-14);
+    ctx.restore();
+  }
+  // ── Map-maker hint banner ──
+  if(battleMode==='mapmaker'&&state==='game'){
+    ctx.save();ctx.textAlign='center';ctx.font='12px Oswald,sans-serif';
+    ctx.fillStyle='rgba(10,14,8,.55)';ctx.fillRect(W/2-250,H-30,500,22);
+    ctx.fillStyle=sandboxEdit?'rgba(140,230,180,.95)':'rgba(240,200,120,.95)';
+    ctx.fillText(sandboxEdit
+      ?'🛠 EDIT — click to place '+sandboxTool.toUpperCase()+' · press E to PLAY'
+      :'▶ PLAYING — press E to return to editing',W/2,H-14);
     ctx.restore();
   }
   // ── Off-screen enemy indicators: arrows at the screen edge point to enemies
@@ -5971,6 +6174,7 @@ function _on1v1000Kill(){
 function checkWave(){
   if(!gameRunning||waveSpawning) return;
   if(battleMode==='testrange') return; // practice range never ends or advances waves
+  if(battleMode==='mapmaker') return; // sandbox never ends or advances waves
   const aliveEnemies=enemies.filter(e=>e.hp>0).length;
   const aliveAllies=(allies||[]).filter(a=>a.hp>0).length;
   // Update team bar
@@ -6017,6 +6221,7 @@ function exitBattle(){
   totalScore+=score;saveData(); // fold this battle's score into lifetime stats (parity with gameOver)
   document.body.removeAttribute('data-state');
   (document.getElementById('btn-exit-battle')||{style:{}}).style.display='none';
+  showMapmakerBar(false);closeSandboxPicker();
   (document.getElementById('over-title')||{}).textContent='RETREATED';
   (document.getElementById('over-details')||{}).innerHTML=
     `<div style="color:var(--cream)">You withdrew from ${selectedMap?selectedMap.name:'battle'}.</div>
@@ -6029,6 +6234,7 @@ function exitBattle(){
 function gameOver(){playGameOver();
   gameRunning=false;state='over';_stopEngine();
   (document.getElementById('btn-exit-battle')||{style:{}}).style.display='none';
+  showMapmakerBar(false);closeSandboxPicker();
   totalScore+=score;saveData();
   (document.getElementById('over-title')||{}).textContent=player.hp>0?'VICTORY':'DESTROYED';
   (document.getElementById('over-details')||{}).innerHTML=
