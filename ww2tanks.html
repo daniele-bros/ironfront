@@ -1138,6 +1138,7 @@ const MISSILE_TYPES=[
   {id:'storm',  name:'Locust Storm',       price:60000, dmg:0.6, maxspd:8, turn:0.19, life:420, splash:0,  count:12,color:'#c0f070', desc:'Unleashes a swarm of twelve rockets — fly the lead, eleven auto-home.'},
   {id:'overcharge',name:'Overcharge',      price:68000, dmg:4.5, maxspd:9, turn:0.17, life:460, splash:30, count:1, color:'#ff2020', selfDmg:0.08, desc:'Overloads the reactor for a titanic blast — but the recoil scorches your own tank.'},
   {id:'nova',   name:'Supernova',          price:74000, dmg:2.2, maxspd:5, turn:0.12, life:560, splash:130,count:1, color:'#fff0a0', fire:true, freeze:200, desc:'A miniature star: colossal blast, blinding flames, and a shockwave that freezes the survivors solid.'},
+  {id:'davy2',  name:'Davy Crockett II',   price:150000,dmg:8.0, maxspd:5, turn:0.12, life:560, splash:170,count:4, color:'#fff060', fire:true, desc:'Four tactical mini-nukes at once — each twice as devastating as the original Davy Crockett. Fly the lead; three more auto-home. Total annihilation.'},
 ];
 function getMissileType(){ return MISSILE_TYPES.find(m=>m.id===selectedMissile)||MISSILE_TYPES[0]; }
 // Detonate a splash warhead. The directly-struck target (hit) always takes FULL
