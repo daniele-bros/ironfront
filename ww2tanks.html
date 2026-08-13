@@ -599,6 +599,7 @@ const TANK_DEFS = [
   {id:'m1abrams',  name:'M1A2 Abrams',     nation:'🇺🇸 USA',         hp:1380,armor:190,pen:265,dmg:440,speed:3.2,rot:1.9,reload:3.4,ammo:42,color:'#485838',tier:'XI',price:10000,desc:'American gas turbine MBT. Composite armor, 120mm M256. 33 mph.'},
   {id:'m1e3', name:'M1E3 Abrams', nation:'🇺🇸', hp:1560,armor:250,pen:340,dmg:520,speed:3.8,rot:2.2,reload:3.0,ammo:42,color:'#3e4e30',tier:'XI',price:12000,desc:"Army's next-gen Abrams. Lighter, modular, autoloader, active protection. 120mm."},
   {id:'kf51',      name:'KF51 Panther',     nation:'🇩🇪 Germany',     hp:1450,armor:225,pen:295,dmg:490,speed:3.0,rot:1.9,reload:3.3,ammo:20,color:'#686840',tier:'XI',price:10000,desc:"Rheinmetall's next-gen MBT. 130mm autoloader. Active protection. 30 mph."},
+  {id:'leviathan', name:'♛ LEVIATHAN', nation:'👑 APEX', hp:30000,armor:900,pen:3000,dmg:10000,speed:3.4,rot:2.0,reload:30,ammo:12,color:'#2c2620',tier:'XI',price:100000000,desc:'Apex-tier prototype. Fires 10,000-damage guided missiles. Colossal 30-second reload — one shot ends anything.'},
   {id:'leo2a7',    name:'Leopard 2A7',      nation:'🇩🇪 Germany',     hp:1350,armor:210,pen:278,dmg:450,speed:3.1,rot:1.9,reload:3.6,ammo:42,color:'#606838',tier:'XI',price:8000, desc:'Upgraded Leopard 2. Enhanced armor package. Germany/NATO standard. 31 mph.'},
   {id:'t14armata', name:'T-14 Armata',      nation:'🇷🇺 Russia',      hp:1500,armor:240,pen:310,dmg:510,speed:3.2,rot:2.0,reload:3.2,ammo:45,color:'#3e5028',tier:'XI',price:12000,desc:'Revolutionary Russian MBT. Unmanned autoloader turret. Hardkill APS. 32 mph.'},
   {id:'challenger3',name:'Challenger 3',    nation:'🇬🇧 Britain',     hp:1420,armor:215,pen:280,dmg:455,speed:2.8,rot:1.8,reload:3.8,ammo:50,color:'#405228',tier:'XI',price:9000, desc:'British MBT upgrade. AJAX fire control. 120mm rifled gun. 28 mph.'},
@@ -1057,7 +1058,7 @@ const TANK_DEFS = [
 const _tdIds=new Set(['stug3','jpz4','nashorn','jpz6','su85','su100','su122','isu122','isu152','jpanther','ferdinand','obj268','archer','at5','at8','at7','at15','obj704','hori','su100y','brummbar','sturer','pz4_70','jpanther2','honi1','honi3','horo','nato','su152','jgpze100','sem7518','sem10525','g13','stu40']);
 const _otIds=new Set(['m10','m36','achilles','borsig_wt','waffentrager','grille15','rhmborsig','su130pm']);
 // Tanks that fire guided HOMING MISSILES instead of shells (gun-launched ATGMs / dedicated launchers)
-const _missileIds=new Set(['m551','xm551','t14armata','kf51','it1','wiesel_tow','malyutka_c','m901','swingfire','shturm_s','jaguar1','jaguar2','shturm_sm','khrizantema','spikenlos','brdm2','lav25','bmd1','bmp1','marder','bmp2','bradley','bmp3','puma']);
+const _missileIds=new Set(['leviathan','m551','xm551','t14armata','kf51','it1','wiesel_tow','malyutka_c','m901','swingfire','shturm_s','jaguar1','jaguar2','shturm_sm','khrizantema','spikenlos','brdm2','lav25','bmd1','bmp1','marder','bmp2','bradley','bmp3','puma']);
 // Launch a homing missile: slow off the rail, accelerates, steers to the nearest target, HEAT warhead ignores armour.
 function _launchMissile(x,y,ang,owner,dmg,size){
   const b={
@@ -4972,6 +4973,7 @@ const TANK_PROFILES={
   // Modern MBTs
   m1abrams:{hl:2.00,hw:1.02,tr:0.46,ty:0.40,bl:1.20,bw:0.112,muzzle:true,boxy:false,sk:false},
   kf51:    {hl:2.05,hw:1.05,tr:0.48,ty:0.42,bl:1.22,bw:0.115,muzzle:true,boxy:true, sk:false},
+  leviathan:{hl:2.70,hw:1.45,tr:0.62,ty:0.54,bl:1.70,bw:0.190,muzzle:true,boxy:true,sk:true},
   // Default
   t35:  {hl:2.10,hw:0.86,tr:0.30,ty:0.24,bl:0.70,bw:0.075,muzzle:false,boxy:false,sk:false},
   kv5:  {hl:2.05,hw:1.02,tr:0.42,ty:0.36,bl:1.15,bw:0.110,muzzle:false,boxy:false,sk:true},
@@ -6464,7 +6466,7 @@ const TREE_LAYOUT = {
     ['of40'],
     ['progetto']],
   modern:[
-    ['m1abrams','kf51','m1e3','abramsx','mgcs'],
+    ['leviathan','m1abrams','kf51','m1e3','abramsx','mgcs'],
     ['leo2a7','t14armata','t90m','obj195'],
     ['challenger3','leclerc_xlr','vt4','ztq15'],
     ['type10','k2','arjun2','k3panther'],
