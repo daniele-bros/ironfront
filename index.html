@@ -931,7 +931,7 @@ const TANK_DEFS = [
   // USA SPGs
   // Britain SPGs
   // France SPGs
-  {id:'ratte',name:'P.1000 Ratte',nation:'🇩🇪 Germany',hp:9999999,armor:360,pen:1200,dmg:10000,speed:1.0,rot:0.5,reload:0.1,ammo:40,color:'#5a5838',tier:'XI',price:0,desc:'1000-ton behemoth. Twin 280mm naval guns. 10,000 dmg! No reload. Indestructible.'},
+  {id:'ratte',name:'P.1000 Ratte',nation:'🇩🇪 Germany',hp:9999999,armor:360,pen:1200,dmg:10000,speed:1.0,rot:0.5,reload:2.5,ammo:40,color:'#5a5838',tier:'XI',price:0,desc:'1000-ton behemoth. Twin 280mm naval guns. 10,000 dmg per shell. Indestructible.'},
   // ══ NATION & ERA EXPANSION (auto-generated) ══
   // -- MODERN +10 --
   {id:'abramsx', name:'Abrams X', nation:'🇺🇸', hp:1540,armor:246,pen:317,dmg:505,speed:3.5,rot:2.0,reload:3.5,ammo:42,color:'#48543a',tier:'XI',price:12000,desc:'US next-gen tech demonstrator. Hybrid drive, XM360 auto-gun.'},
@@ -1165,7 +1165,7 @@ function _missileDetonate(b,hit){
       if(e.hp<=0){
         if(e._dummy){ spawnExplosion(e.x,e.y);craters.push({x:e.x,y:e.y,r:e.size*1.4}); e.hp=0;e._respawn=140; continue; }
         let reward=1000;
-        if(e._isRatte){reward=500000;addKillFeed('💀 RATTE KILL! +500,000 🏷');}
+        if(e._isRatte){reward=10000000;addKillFeed('💀 RATTE KILL! +10,000,000 🏷');}
         coins+=reward;totalKills++;score+=reward;kills++;
         if(_throttle('coinsave',1000))saveData();
         updateCoinsHud();showCoinPopup(e.x-camX,e.y-camY,'+'+reward+'🏷');
@@ -1179,7 +1179,7 @@ function _missileDetonate(b,hit){
 // Destroy an enemy with the normal reward/killfeed (or respawn if a test dummy).
 function _rewardKill(e){
   if(e._dummy){ spawnExplosion(e.x,e.y); e.hp=0; e._respawn=140; return; }
-  let reward=1000; if(e._isRatte){reward=500000;addKillFeed('💀 RATTE KILL! +500,000 🏷');}
+  let reward=1000; if(e._isRatte){reward=10000000;addKillFeed('💀 RATTE KILL! +10,000,000 🏷');}
   coins+=reward;totalKills++;score+=reward;kills++; if(_throttle('coinsave',1000))saveData();
   updateCoinsHud();showCoinPopup(e.x-camX,e.y-camY,'+'+reward+'🏷');
   spawnExplosion(e.x,e.y);craters.push({x:e.x,y:e.y,r:e.size*1.4});
@@ -2671,13 +2671,13 @@ function spawnWave(){
   const m=selectedMap,enemyPool=getEnemyPool();
   // ── RATTE WAVES: endless Ratte bosses, wave 1 = base HP, +10,000 each wave ──
   if(battleMode==='rattewaves'){
-    const rhp=80000+(wave-1)*10000;
+    const rhp=1000000+(wave-1)*10000;
     const a=Math.random()*Math.PI*2, d=950;
     const rx=Math.max(120,Math.min(WW-120,player.x+Math.cos(a)*d));
     const ry=Math.max(120,Math.min(WH-120,player.y+Math.sin(a)*d));
     enemies.push({x:rx,y:ry,angle:Math.PI,turretAngle:Math.PI,
       hp:rhp,maxHp:rhp,armor:200,pen:1200,dmg:1800,
-      speed:0.8,rotSpeed:0.4,size:48,color:'#5a5838',name:'ratte',schurzen:false,_isRatte:true,reload:2.5});
+      speed:0.8,rotSpeed:0.4,size:48,color:'#5a5838',name:'ratte',schurzen:false,_isRatte:true,reload:2.5,shootCD:70+Math.random()*40});
     waveSpawning=false;
     addKillFeed('\u2620\uFE0F WAVE '+wave+' \u2014 RATTE ('+rhp.toLocaleString()+' HP)');
     (document.getElementById('hud-en')||{}).textContent=enemies.length;
@@ -3121,7 +3121,7 @@ function _fireArtyShell(tx,ty){
         const eff=Math.max(0,player.dmg*(1-d/splashR)*.75*(1-e.armor/800));
         e.hp=Math.max(0,e.hp-eff);spawnPart(e.x,e.y,'hit');
         if(e.hp<=0){
-          const reward=e._isRatte?500000:1000;
+          const reward=e._isRatte?10000000:1000;
           coins+=reward;totalKills++;score+=reward;kills++;
           showCoinPopup(e.x-camX,e.y-camY,'+'+reward+'🪙');
           addKillFeed(`${e.name} DESTROYED +${reward}🪙`);
@@ -3245,7 +3245,7 @@ function mortarExplode(x,y){
       e.hp=Math.max(0,e.hp-dmg);
       if(e.hp<=0){
         spawnExplosion(e.x,e.y);
-        const _rw=e._isRatte?500000:1000; // full coins per kill, same as a normal kill
+        const _rw=e._isRatte?10000000:1000; // full coins per kill, same as a normal kill
         kills++;totalKills++;score+=_rw;coins+=_rw;updateCoinsHud();
         addKillFeed('💥 '+e.name+' — mortar!');
         camShake=Math.max(camShake,8);
@@ -3348,7 +3348,7 @@ function launchNuke(){
     for(const e of enemies){
       if(e.hp<=0)continue;
       e.hp=0;spawnExplosion(e.x,e.y);
-      const _rw=e._isRatte?500000:1000; // full coins per kill, same as a normal kill
+      const _rw=e._isRatte?10000000:1000; // full coins per kill, same as a normal kill
       kills++;totalKills++;score+=_rw;coins+=_rw;updateCoinsHud();
       addKillFeed('☢ '+e.name+' — vaporised!');
       killed++;
@@ -3618,7 +3618,7 @@ function resolveTankCollisions(){
         if(o.hp<=0){
           if(o._dummy){ spawnExplosion(o.x,o.y); o.hp=0; o._respawn=140; }
           else {
-            let reward=1000; if(o._isRatte){reward=500000;addKillFeed('💀 RATTE KILL! +500,000 🏷');}
+            let reward=1000; if(o._isRatte){reward=10000000;addKillFeed('💀 RATTE KILL! +10,000,000 🏷');}
             coins+=reward;totalKills++;score+=reward;kills++; if(_throttle('coinsave',1000))saveData();
             updateCoinsHud();showCoinPopup(o.x-camX,o.y-camY,'+'+reward+'🏷');
             addKillFeed(o.name+' RAMMED +'+reward+'🏷');
@@ -3782,7 +3782,8 @@ function updateEnemies(dt){
     if(er<0.5&&Math.random()<(0.5-er)*0.25)
       particles.push({type:'smoke',x:e.x+(Math.random()-.5)*e.size,y:e.y+(Math.random()-.5)*e.size,vx:(Math.random()-.5)*.5,vy:-0.6-Math.random(),life:25+Math.random()*15,maxLife:40,alpha:1,r:5+Math.random()*8,color:er<0.25?'#cc3300':'#444'});
     e.shootCD-=dt;
-    if(e.shootCD<=0&&dist<420&&!playerHidden&&selectedMap){
+    const _fireRange=e._isRatte?760:420; // the Ratte's naval guns reach much farther
+    if(e.shootCD<=0&&dist<_fireRange&&!playerHidden&&selectedMap){
       // each enemy reloads per its OWN gun: light tanks ~1s, heavy big-gun (KV-2 class) ~6s.
       // 1v1-pick foes carry an explicit reload (matches a same-tank player exactly); wave foes
       // derive it from damage. Small jitter avoids robotic synchronized volleys.
@@ -3913,7 +3914,7 @@ function updateBullets(dt){
           if(e.hp<=0){
             if(e._dummy){ spawnExplosion(e.x,e.y);craters.push({x:e.x,y:e.y,r:e.size*1.4});camShake=Math.max(camShake,5); e.hp=0;e._respawn=140; } else {
             let reward=1000;
-            if(e._isRatte){reward=500000;addKillFeed('\uD83D\uDC80 RATTE KILL! +500,000 \uD83C\uDFF7');}
+            if(e._isRatte){reward=10000000;addKillFeed('\uD83D\uDC80 RATTE KILL! +10,000,000 \uD83C\uDFF7');}
             coins+=reward;totalKills++;score+=reward;kills++;
             if(_throttle('coinsave',1000))saveData(); // debounce localStorage writes in mass-kill modes
             updateCoinsHud();
