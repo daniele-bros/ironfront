@@ -6903,7 +6903,7 @@ function _glInit(){
   const gl=_gl;
   _glProg=_glCompile(gl,
     'attribute vec3 aPos;attribute vec3 aNrm;attribute vec4 aCol;attribute vec2 aUV;uniform mat4 uVP;varying vec4 vCol;varying vec3 vNrm;varying vec2 vUV;varying float vD;void main(){gl_Position=uVP*vec4(aPos,1.0);vCol=aCol;vNrm=aNrm;vUV=aUV;vD=gl_Position.w;}',
-    'precision mediump float;varying vec4 vCol;varying vec3 vNrm;varying vec2 vUV;varying float vD;uniform vec3 uLight;uniform vec3 uFog;uniform vec2 uFogR;uniform sampler2D uTex;uniform float uUseTex;void main(){vec4 base=vCol;if(uUseTex>0.5)base=texture2D(uTex,vUV)*vCol;float l=max(dot(normalize(vNrm),normalize(uLight)),0.0);vec3 lit=base.rgb*(0.62+0.5*l);float f=clamp((vD-uFogR.x)/(uFogR.y-uFogR.x),0.0,1.0);gl_FragColor=vec4(mix(lit,uFog,f),base.a);}');
+    'precision mediump float;varying vec4 vCol;varying vec3 vNrm;varying vec2 vUV;varying float vD;uniform vec3 uLight;uniform vec3 uFog;uniform vec2 uFogR;uniform sampler2D uTex;uniform float uUseTex;uniform float uNoFog;void main(){vec4 base=vCol;if(uUseTex>0.5)base=texture2D(uTex,vUV)*vCol;float l=max(dot(normalize(vNrm),normalize(uLight)),0.0);vec3 lit=base.rgb*(vec3(0.55,0.58,0.66)+vec3(0.62,0.57,0.48)*l);float f=clamp((vD-uFogR.x)/(uFogR.y-uFogR.x),0.0,1.0)*(1.0-uNoFog);gl_FragColor=vec4(mix(lit,uFog,f),base.a);}');
   _glPtProg=_glCompile(gl,
     'attribute vec3 aPos;attribute vec4 aCol;attribute float aSize;uniform mat4 uVP;varying vec4 vCol;void main(){vec4 cp=uVP*vec4(aPos,1.0);gl_Position=cp;gl_PointSize=clamp(aSize*820.0/max(cp.w,1.0),1.0,72.0);vCol=aCol;}',
     'precision mediump float;varying vec4 vCol;void main(){vec2 d=gl_PointCoord-vec2(0.5);float r2=dot(d,d);if(r2>0.25)discard;gl_FragColor=vec4(vCol.rgb,vCol.a*(1.0-r2*3.2));}');
@@ -6914,6 +6914,7 @@ function _glInit(){
     vp:gl.getUniformLocation(_glProg,'uVP'), light:gl.getUniformLocation(_glProg,'uLight'),
     fog:gl.getUniformLocation(_glProg,'uFog'), fogR:gl.getUniformLocation(_glProg,'uFogR'),
     tex:gl.getUniformLocation(_glProg,'uTex'), useTex:gl.getUniformLocation(_glProg,'uUseTex'),
+    noFog:gl.getUniformLocation(_glProg,'uNoFog'),
     aPos:gl.getAttribLocation(_glProg,'aPos'), aNrm:gl.getAttribLocation(_glProg,'aNrm'),
     aCol:gl.getAttribLocation(_glProg,'aCol'), aUV:gl.getAttribLocation(_glProg,'aUV'),
     pVP:gl.getUniformLocation(_glPtProg,'uVP'), pPos:gl.getAttribLocation(_glPtProg,'aPos'),
@@ -6937,7 +6938,7 @@ function _glUploadGround(){
 
 // ── geometry batching (12 floats/vert: pos3 nrm3 col4 uv2), persistent typed arrays ──
 function _mkBatch(){return {a:new Float32Array(1<<15),n:0};}
-let _bOp=_mkBatch(),_bTr=_mkBatch(),_bPt=_mkBatch(),_bTex=_mkBatch();
+let _bOp=_mkBatch(),_bTr=_mkBatch(),_bPt=_mkBatch(),_bTex=_mkBatch(),_bSky=_mkBatch();
 function _bGrow(b,need){if(b.n+need>b.a.length){let cap=b.a.length*2;while(cap<b.n+need)cap*=2;const na=new Float32Array(cap);na.set(b.a.subarray(0,b.n));b.a=na;}}
 function _pushV(b,x,y,z,nx,ny,nz,c,a,u,v){_bGrow(b,12);const A=b.a;let i=b.n;A[i]=x;A[i+1]=y;A[i+2]=z;A[i+3]=nx;A[i+4]=ny;A[i+5]=nz;A[i+6]=c[0];A[i+7]=c[1];A[i+8]=c[2];A[i+9]=a;A[i+10]=u||0;A[i+11]=v||0;b.n=i+12;}
 function _pushPt(x,y,z,r,g,bb,a,s){const b=_bPt;_bGrow(b,8);const A=b.a;let i=b.n;A[i]=x;A[i+1]=y;A[i+2]=z;A[i+3]=r;A[i+4]=g;A[i+5]=bb;A[i+6]=a;A[i+7]=s;b.n=i+8;}
@@ -7075,7 +7076,7 @@ function renderGL(){
   if(battleMode==='mapmaker'&&sandboxEdit){camH=820;camBack=600;}
   else if(drivenMissile&&drivenMissile.life>0){camH=300;camBack=240;}
   const eye=[fx,camH,fz+camBack], ctr=[fx,0,fz-40];
-  const proj=_m4Persp(0.96,W/H,20,7000);
+  const proj=_m4Persp(0.96,W/H,20,22000);
   const view=_m4Look(eye,ctr,[0,1,0]);
   _glVP=_m4Mul(proj,view); _glVPInv=_m4Inv(_glVP);
 
@@ -7089,7 +7090,14 @@ function renderGL(){
   gl.enable(gl.BLEND); gl.blendFunc(gl.SRC_ALPHA,gl.ONE_MINUS_SRC_ALPHA);
   gl.disable(gl.CULL_FACE);
 
-  _bOp.n=0; _bTr.n=0; _bPt.n=0; _bTex.n=0;
+  _bOp.n=0; _bTr.n=0; _bPt.n=0; _bTex.n=0; _bSky.n=0;
+
+  // sky backdrop: vertical gradient wall far behind the horizon (fog color at the
+  // horizon so the fogged ground blends into it seamlessly)
+  {const zen=[sky[0]*0.62,sky[1]*0.68,sky[2]*0.85+0.08];
+   const sx0=fx-24000,sx1=fx+24000,szz=fz-14000;
+   _pushV(_bSky,sx0,-100,szz,0,1,0,sky,1);_pushV(_bSky,sx1,-100,szz,0,1,0,sky,1);_pushV(_bSky,sx1,12000,szz,0,1,0,zen,1);
+   _pushV(_bSky,sx0,-100,szz,0,1,0,sky,1);_pushV(_bSky,sx1,12000,szz,0,1,0,zen,1);_pushV(_bSky,sx0,12000,szz,0,1,0,zen,1);}
 
   // ground skirt (beyond map edges) + textured map ground
   _pushGroundQuad(_bOp,-7000,-7000,WW+7000,WH+7000,-2,_shade(mg,0.8),1,false);
@@ -7171,9 +7179,10 @@ function renderGL(){
   gl.uniform1i(_glLoc.tex,0);
   const aPos=_glLoc.aPos,aNrm=_glLoc.aNrm,aCol=_glLoc.aCol,aUV=_glLoc.aUV;
   gl.bindBuffer(gl.ARRAY_BUFFER,_glBuf);
-  function drawBatch(b,useTex,depthWrite){
+  function drawBatch(b,useTex,depthWrite,noFog){
     if(!b.n)return;
     gl.uniform1f(_glLoc.useTex,useTex?1:0);
+    gl.uniform1f(_glLoc.noFog,noFog?1:0);
     gl.depthMask(depthWrite);
     gl.bufferData(gl.ARRAY_BUFFER,b.a.subarray(0,b.n),gl.DYNAMIC_DRAW);
     const ST=12*4;
@@ -7184,6 +7193,7 @@ function renderGL(){
     gl.drawArrays(gl.TRIANGLES,0,b.n/12);
   }
   gl.activeTexture(gl.TEXTURE0);gl.bindTexture(gl.TEXTURE_2D,_glGroundTex);
+  drawBatch(_bSky,false,false,true);
   drawBatch(_bOp,false,true);
   if(_glGroundSrc)drawBatch(_bTex,true,true);
   drawBatch(_bTr,false,false);
