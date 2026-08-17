@@ -6938,10 +6938,11 @@ function _glUploadGround(){
 
 // ── geometry batching (12 floats/vert: pos3 nrm3 col4 uv2), persistent typed arrays ──
 function _mkBatch(){return {a:new Float32Array(1<<15),n:0};}
-let _bOp=_mkBatch(),_bTr=_mkBatch(),_bPt=_mkBatch(),_bTex=_mkBatch(),_bSky=_mkBatch();
+let _bOp=_mkBatch(),_bTr=_mkBatch(),_bPt=_mkBatch(),_bTex=_mkBatch(),_bSky=_mkBatch(),_bPtA=_mkBatch();
 function _bGrow(b,need){if(b.n+need>b.a.length){let cap=b.a.length*2;while(cap<b.n+need)cap*=2;const na=new Float32Array(cap);na.set(b.a.subarray(0,b.n));b.a=na;}}
 function _pushV(b,x,y,z,nx,ny,nz,c,a,u,v){_bGrow(b,12);const A=b.a;let i=b.n;A[i]=x;A[i+1]=y;A[i+2]=z;A[i+3]=nx;A[i+4]=ny;A[i+5]=nz;A[i+6]=c[0];A[i+7]=c[1];A[i+8]=c[2];A[i+9]=a;A[i+10]=u||0;A[i+11]=v||0;b.n=i+12;}
 function _pushPt(x,y,z,r,g,bb,a,s){const b=_bPt;_bGrow(b,8);const A=b.a;let i=b.n;A[i]=x;A[i+1]=y;A[i+2]=z;A[i+3]=r;A[i+4]=g;A[i+5]=bb;A[i+6]=a;A[i+7]=s;b.n=i+8;}
+function _pushPtA(x,y,z,r,g,bb,a,s){const b=_bPtA;_bGrow(b,8);const A=b.a;let i=b.n;A[i]=x;A[i+1]=y;A[i+2]=z;A[i+3]=r;A[i+4]=g;A[i+5]=bb;A[i+6]=a;A[i+7]=s;b.n=i+8;}
 function _pushFlatQuad(b,cx,cz,y,len,wid,ang,col,alpha){
   const ca=Math.cos(ang),sa=Math.sin(ang),hl=len/2,hw=wid/2;
   function P(lx,lz){return [cx+lx*ca-lz*sa, y, cz+lx*sa+lz*ca];}
@@ -7106,6 +7107,16 @@ function _pushTank3D(t,isPlayer){
     _pushOct(_bOp,x-cos_a*hl*0.42+px*hw*0.26,z-sin_a*hl*0.42+pz*hw*0.26,hullY+hullH,s*0.10,s*0.10,s*0.20,a,_shade(base,0.62));
     _pushOct(_bOp,x-cos_a*hl*0.42-px*hw*0.26,z-sin_a*hl*0.42-pz*hw*0.26,hullY+hullH,s*0.10,s*0.10,s*0.20,a,_shade(base,0.62));
   }
+  // camouflage patches on the hull deck (Axis ambush-scheme style, stable per tank)
+  if((fac==='german'||fac==='japanese'||fac==='italian'||fac==='finland')&&(cls==='tank'||cls==='td')){
+    const camoCol=fac==='german'?[base[0]*0.55,base[1]*0.62,base[2]*0.42]:fac==='japanese'?[base[0]*0.7,base[1]*0.58,base[2]*0.36]:[base[0]*0.6,base[1]*0.55,base[2]*0.38];
+    const idk=t.id||t.name||'x';
+    for(let ci=0;ci<3;ci++){
+      const r1=_h01(idk,ci*7+1)-0.5, r2=_h01(idk,ci*13+3)-0.5, r3=_h01(idk,ci*29+5);
+      _pushFlatQuad(_bTr,x+cos_a*hl*r1*0.6+px*hw*r2*0.5,z+sin_a*hl*r1*0.6+pz*hw*r2*0.5,
+        hullY+hullH+0.35,s*(0.35+r3*0.3),s*(0.2+r3*0.2),a+r3*2.6,camoCol,0.55);
+    }
+  }
 
   const trF=((p.tr||0.33)/0.33);
   const topY=hullY+hullH;
@@ -7222,7 +7233,31 @@ function _pushTank3D(t,isPlayer){
     }
     if(p.muzzle)_pushBox(_bOp,tx+Math.cos(ta)*mzOff,tz+Math.sin(ta)*mzOff,gunY-bth*0.4,s*0.24,bth*1.9,bth*1.9,ta,_shade(base,0.42),1);
   }
+  // muzzle flash: bright additive burst at the barrel tip right after firing
+  if((t.recoil||0)>s*0.17){
+    const fx2=tx+Math.cos(ta)*(mzOff+s*0.22), fz2=tz+Math.sin(ta)*(mzOff+s*0.22);
+    _pushPtA(fx2,gunY,fz2,1,0.92,0.6,0.95,s*0.55);
+    _pushPtA(fx2,gunY,fz2,1,0.55,0.15,0.75,s*0.95);
+  }
   if(isPlayer&&cls!=='td'){ _pushBox(_bOp,tx,tz,topY+s*0.36,s*0.28,s*0.28,s*0.12,ta,_rgb('#c8a84b'),1); }
+}
+// simple string hash → 0..1 (stable per tank id, for camo/wreck variation)
+function _h01(str,k){let h=k|0;for(let i=0;i<str.length;i++)h=(h*31+str.charCodeAt(i))|0;return ((h>>>0)%1000)/1000;}
+// ── burned-out wreck: charred hull, popped turret, scorch + smolder ──
+function _pushWreck3D(t){
+  const s=t.size||26, a=t.angle||0, x=t.x, z=t.y;
+  const ch=[0.10,0.09,0.08], ch2=[0.14,0.12,0.10];
+  _pushDecal(_bTr,x,z,0.45,s*1.8,[0.02,0.02,0.02],0.55);
+  _pushBox(_bOp,x,z,0,s*1.45,s*0.95,s*0.30,a,ch,1);
+  _pushBox(_bOp,x,z,s*0.30,s*0.9,s*0.6,s*0.08,a,ch2,1);
+  // turret blown off, lying beside the hull (position stable per wreck)
+  const r1=_h01(t.name||'w',(x|0)+(z|0));
+  const toa=a+1.2+r1*2.6;
+  _pushBox(_bOp,x+Math.cos(toa)*s*1.05,z+Math.sin(toa)*s*1.05,0,s*0.85,s*0.7,s*0.24,a+r1*3,ch2,1);
+  // smolder glow + thin smoke wisp
+  _pushPtA(x,s*0.4,z,1,0.35,0.08,0.20,s*0.35);
+  _pushPt(x,s*0.9,z,0.26,0.25,0.24,0.22,s*0.5);
+  _pushPt(x+2,s*1.5,z,0.24,0.23,0.22,0.14,s*0.65);
 }
 
 // ── main GL frame ──
@@ -7261,7 +7296,7 @@ function renderGL(){
   gl.enable(gl.BLEND); gl.blendFunc(gl.SRC_ALPHA,gl.ONE_MINUS_SRC_ALPHA);
   gl.disable(gl.CULL_FACE);
 
-  _bOp.n=0; _bTr.n=0; _bPt.n=0; _bTex.n=0; _bSky.n=0;
+  _bOp.n=0; _bTr.n=0; _bPt.n=0; _bTex.n=0; _bSky.n=0; _bPtA.n=0;
 
   // sky backdrop: vertical gradient wall far behind the horizon (fog color at the
   // horizon so the fogged ground blends into it seamlessly)
@@ -7303,7 +7338,18 @@ function renderGL(){
       if(o.type==='building'||o.type==='wall'){
         const hh=Math.max(34,Math.min(96,Math.min(o.w,o.h)*0.85));
         _pushBox(_bOp,cx,cz,0,o.w,o.h,hh,0,_rgb('#57523f'),1);
-        _pushBox(_bOp,cx,cz,hh,o.w*1.04,o.h*1.04,4,0,_rgb('#c4bfae'),1);
+        // roof picks up the map palette; chimney block on larger buildings
+        const rc=_rgb('#c4bfae');
+        _pushBox(_bOp,cx,cz,hh,o.w*1.04,o.h*1.04,4,0,[rc[0]*0.85+mg[0]*0.15,rc[1]*0.85+mg[1]*0.15,rc[2]*0.85+mg[2]*0.15],1);
+        if(o.w>60&&o.h>50)_pushBox(_bOp,cx+o.w*0.28,cz-o.h*0.22,hh+4,10,10,12,0,_rgb('#3a352c'),1);
+        // dark window rows on the camera-facing (south) wall
+        if(o.w>44&&hh>40){
+          const wn=Math.max(2,Math.floor(o.w/34));
+          for(let wi=0;wi<wn;wi++){
+            const wx2=cx-o.w/2+o.w*(wi+0.5)/wn;
+            _pushBox(_bOp,wx2,cz+o.h/2+0.6,hh*0.45,o.w/wn*0.42,1.2,hh*0.28,0,[0.10,0.13,0.18],1);
+          }
+        }
       } else {
         _pushBox(_bOp,cx,cz,0,o.w,o.h,o.type==='hedge'?20:12,0,_rgb(o.color||'#514434'),1);
       }
@@ -7314,9 +7360,9 @@ function renderGL(){
     _pushPyr(_bTr,bu.x,bu.y,0,bu.r*0.95,bu.r*0.75,_rgb('#2a5a18'),0.88);
   }
 
-  // tanks
+  // tanks — the fallen stay on the field as burned-out wrecks
   if(player&&player.hp>0)_pushTank3D(player,true);
-  for(const e of enemies)if(e.hp>0)_pushTank3D(e,false);
+  for(const e of enemies){ if(e.hp>0)_pushTank3D(e,false); else _pushWreck3D(e); }
   if(typeof allies!=='undefined'&&allies)for(const al of allies)if(al.hp>0)_pushTank3D(al,false);
 
   // bullets & missiles
@@ -7332,13 +7378,17 @@ function renderGL(){
       _pushBox(_bOp,b.x,b.y,15,11,2.4,2.4,ang,bc,1);
     }
   }
-  // particles as point sprites
+  // particles as point sprites — warm fire/flash colors render additively so
+  // explosions and muzzle flashes glow instead of smudging
   for(const pt of particles){
     const life=pt.maxLife?Math.max(0,pt.life/pt.maxLife):0.6;
     const c=_rgb(pt.color||'#888');
     const isSmoke=pt.type==='smoke'||(_SMOKE_COLORS&&_SMOKE_COLORS.has&&_SMOKE_COLORS.has(pt.color));
     const h=isSmoke?12+(1-life)*34:14;
-    _pushPt(pt.x,h,pt.y, c[0],c[1],c[2],(pt.alpha!==undefined?pt.alpha:life)*0.9, (pt.r||3)*1.15);
+    const al=(pt.alpha!==undefined?pt.alpha:life)*0.9, sz=(pt.r||3)*1.15;
+    const warm=!isSmoke&&((c[0]>0.55&&c[0]>c[1]+0.12)||(c[0]>0.85&&c[1]>0.65&&c[2]<0.55));
+    if(warm)_pushPtA(pt.x,h,pt.y,c[0],c[1],c[2],al,sz);
+    else _pushPt(pt.x,h,pt.y,c[0],c[1],c[2],al,sz);
   }
 
   // ── draw ──
@@ -7369,19 +7419,26 @@ function renderGL(){
   if(_glGroundSrc)drawBatch(_bTex,true,true);
   drawBatch(_bTr,false,false);
   gl.depthMask(true);
-  // points
-  if(_bPt.n){
+  // points (normal smoke, then additive fire glow)
+  if(_bPt.n||_bPtA.n){
     gl.useProgram(_glPtProg);
     gl.uniformMatrix4fv(_glLoc.pVP,false,_glVP);
     const pPos=_glLoc.pPos,pCol=_glLoc.pCol,pSz=_glLoc.pSz;
     gl.bindBuffer(gl.ARRAY_BUFFER,_glPtBuf);
-    gl.bufferData(gl.ARRAY_BUFFER,_bPt.a.subarray(0,_bPt.n),gl.DYNAMIC_DRAW);
     const ST=8*4;
     gl.depthMask(false);
-    gl.enableVertexAttribArray(pPos);gl.vertexAttribPointer(pPos,3,gl.FLOAT,false,ST,0);
-    gl.enableVertexAttribArray(pCol);gl.vertexAttribPointer(pCol,4,gl.FLOAT,false,ST,12);
-    gl.enableVertexAttribArray(pSz);gl.vertexAttribPointer(pSz,1,gl.FLOAT,false,ST,28);
-    gl.drawArrays(gl.POINTS,0,_bPt.n/8);
+    function drawPts(b){
+      if(!b.n)return;
+      gl.bufferData(gl.ARRAY_BUFFER,b.a.subarray(0,b.n),gl.DYNAMIC_DRAW);
+      gl.enableVertexAttribArray(pPos);gl.vertexAttribPointer(pPos,3,gl.FLOAT,false,ST,0);
+      gl.enableVertexAttribArray(pCol);gl.vertexAttribPointer(pCol,4,gl.FLOAT,false,ST,12);
+      gl.enableVertexAttribArray(pSz);gl.vertexAttribPointer(pSz,1,gl.FLOAT,false,ST,28);
+      gl.drawArrays(gl.POINTS,0,b.n/8);
+    }
+    drawPts(_bPt);
+    gl.blendFunc(gl.SRC_ALPHA,gl.ONE);   // additive: fire, flashes, glow
+    drawPts(_bPtA);
+    gl.blendFunc(gl.SRC_ALPHA,gl.ONE_MINUS_SRC_ALPHA);
     gl.depthMask(true);
   }
   return true;
