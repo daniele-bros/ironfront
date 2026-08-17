@@ -2805,7 +2805,7 @@ function spawnWave(){
     allies.push({x:ax,y:ay,angle:rng()*Math.PI*2,turretAngle:0,_ts:allyTierScale,
       hp:at.hp*allyTierScale*3*(1+wave*0.08),maxHp:at.hp*allyTierScale*3*(1+wave*0.08),
       armor:at.armor*allyTierScale*2,pen:at.pen*allyTierScale*2,dmg:at.dmg*allyTierScale*1.3,
-      speed:at.speed*0.75,rotSpeed:at.rot*0.9,size:at.size,color:at.color,name:at.name,
+      speed:at.speed*0.75,rotSpeed:at.rot*0.9,size:at.size,color:at.color,name:at.name,id:at.id,
       shootCD:90+rng()*330}); // staggered opening fire so allies don't alpha-strike the whole wave at once
   } // end ally loop
 
@@ -7015,44 +7015,155 @@ function _pushGroundQuad(b,x0,z0,x1,z1,y,col,alpha,uv){
   _pushV(b,x0,y,z0,0,1,0,col,A,u0,v0);_pushV(b,x1,y,z1,0,1,0,col,A,u1,v1);_pushV(b,x0,y,z1,0,1,0,col,A,u0,v1);
 }
 
-// ── tank model ──
+// ── octagonal prism (cast/rounded turrets) ──
+function _pushOct(b,cx,cz,yb,rx,rz,hei,ang,col){
+  const ca=Math.cos(ang),sa=Math.sin(ang);
+  function P(lx,ly,lz){return [cx+lx*ca-lz*sa, yb+ly, cz+lx*sa+lz*ca];}
+  const pts=[],nrm=[];
+  for(let k=0;k<8;k++){const th=k/8*Math.PI*2+Math.PI/8;pts.push([Math.cos(th)*rx,Math.sin(th)*rz]);nrm.push([Math.cos(th),Math.sin(th)]);}
+  for(let k=0;k<8;k++){
+    const q=pts[k],r=pts[(k+1)%8];
+    const mn=[(nrm[k][0]+nrm[(k+1)%8][0])/2,(nrm[k][1]+nrm[(k+1)%8][1])/2];
+    const n=[mn[0]*ca-mn[1]*sa,0,mn[0]*sa+mn[1]*ca];
+    const p1=P(q[0],0,q[1]),p2=P(r[0],0,r[1]),p3=P(r[0],hei,r[1]),p4=P(q[0],hei,q[1]);
+    _pushV(b,p1[0],p1[1],p1[2],n[0],0.15,n[2],col,1);_pushV(b,p2[0],p2[1],p2[2],n[0],0.15,n[2],col,1);_pushV(b,p3[0],p3[1],p3[2],n[0],0.15,n[2],col,1);
+    _pushV(b,p1[0],p1[1],p1[2],n[0],0.15,n[2],col,1);_pushV(b,p3[0],p3[1],p3[2],n[0],0.15,n[2],col,1);_pushV(b,p4[0],p4[1],p4[2],n[0],0.15,n[2],col,1);
+    // top wedge
+    const c0=P(0,hei,0);
+    _pushV(b,p4[0],p4[1],p4[2],0,1,0,col,1);_pushV(b,p3[0],p3[1],p3[2],0,1,0,col,1);_pushV(b,c0[0],c0[1],c0[2],0,1,0,col,1);
+  }
+}
+// per-tank 3D info cache: profile + turret archetype + vehicle class
+let _t3dCache={};
+function _t3dInfo(id){
+  let c=_t3dCache[id]; if(c)return c;
+  const p=(typeof getProfile==='function')?getProfile(id):{hl:1.65,hw:0.85,tr:0.33,bl:0.95};
+  const fac=(id&&typeof getTankFaction==='function')?getTankFaction(id):'';
+  const shape=(typeof _turretShape==='function')?_turretShape(id,p):(p.boxy?'boxy':'round');
+  const cls=(typeof _tdIds!=='undefined'&&_tdIds.has(id))?'td'
+    :(fac==='armcar')?'car':(fac==='carrier')?'ifv':(fac==='mslcarrier')?'msl':'tank';
+  c={p,shape,cls}; _t3dCache[id]=c; return c;
+}
+// ── tank model: archetype-aware (turret shape + vehicle class from game data) ──
 function _pushTank3D(t,isPlayer){
   const s=t.size||26, a=t.angle||0, ta=(t.turretAngle!==undefined)?t.turretAngle:a;
-  const p=(typeof getProfile==='function')?getProfile(t.id||t.name):{hl:1.65,hw:0.85,tr:0.33,bl:0.95};
+  const info=_t3dInfo(t.id||t.name||'');
+  const p=info.p, cls=info.cls, shape=info.shape;
   let base=_rgb(t.color||'#5a6a3a');
   if(t.hitFlash>0){const f=Math.min(1,t.hitFlash);base=[base[0]+(1-base[0])*f,base[1]+(1-base[1])*f,base[2]+(1-base[2])*f];}
-  const frozen=t._frozen>0;
-  if(frozen)base=[base[0]*0.6+0.25,base[1]*0.6+0.33,base[2]*0.6+0.42];
+  if(t._frozen>0)base=[base[0]*0.6+0.25,base[1]*0.6+0.33,base[2]*0.6+0.42];
   const x=t.x,z=t.y;
   _pushDecal(_bTr,x,z,0.55,s*1.35,[0,0,0],0.32);
   const hl=s*1.55*((p.hl||1.65)/1.65), hw=s*1.1*((p.hw||0.85)/0.85);
-  const px=-Math.sin(a),pz=Math.cos(a); // perpendicular
+  const px=-Math.sin(a),pz=Math.cos(a); // perpendicular unit vector
   const dark=_shade(base,0.45);
-  // tracks with a hint of road wheels (darker lower strip)
-  _pushBox(_bOp,x+px*hw*0.42,z+pz*hw*0.42,0,hl*1.04,hw*0.30,s*0.30,a,dark,1);
-  _pushBox(_bOp,x-px*hw*0.42,z-pz*hw*0.42,0,hl*1.04,hw*0.30,s*0.30,a,dark,1);
-  _pushBox(_bOp,x+px*hw*0.42,z+pz*hw*0.42,s*0.30,hl*0.92,hw*0.26,s*0.05,a,_shade(base,0.7),1);
-  _pushBox(_bOp,x-px*hw*0.42,z-pz*hw*0.42,s*0.30,hl*0.92,hw*0.26,s*0.05,a,_shade(base,0.7),1);
-  // sloped-armor hull
-  _pushHull(_bOp,x,z,s*0.13,hl,hw*0.74,s*0.40,a,_shade(base,0.95));
-  // turret + mantlet
+  const cos_a=Math.cos(a),sin_a=Math.sin(a);
+
+  // ── running gear ──
+  if(cls==='car'){
+    // armored car: 4 wheels per side instead of tracks, raised hull
+    for(let wsgn=-1;wsgn<=1;wsgn+=2){
+      const nW=hl>s*1.6?4:3;
+      for(let wi=0;wi<nW;wi++){
+        const lx=-hl*0.42+ (wi/(nW-1))*hl*0.84;
+        _pushBox(_bOp,x+cos_a*lx+px*hw*0.46*wsgn,z+sin_a*lx+pz*hw*0.46*wsgn,0,s*0.34,s*0.14,s*0.30,a,[0.08,0.07,0.06],1);
+      }
+    }
+  } else {
+    // tracks + return-roller strip
+    _pushBox(_bOp,x+px*hw*0.42,z+pz*hw*0.42,0,hl*1.04,hw*0.30,s*0.30,a,dark,1);
+    _pushBox(_bOp,x-px*hw*0.42,z-pz*hw*0.42,0,hl*1.04,hw*0.30,s*0.30,a,dark,1);
+    _pushBox(_bOp,x+px*hw*0.42,z+pz*hw*0.42,s*0.30,hl*0.92,hw*0.26,s*0.05,a,_shade(base,0.7),1);
+    _pushBox(_bOp,x-px*hw*0.42,z-pz*hw*0.42,s*0.30,hl*0.92,hw*0.26,s*0.05,a,_shade(base,0.7),1);
+  }
+
+  // ── hull ──
+  const tallHull=(cls==='ifv'||cls==='msl');
+  const hullH=tallHull?s*0.56:s*0.40;
+  const hullY=cls==='car'?s*0.18:s*0.13;
+  _pushHull(_bOp,x,z,hullY,hl,hw*0.74,hullH,a,_shade(base,0.95));
+  // schürzen side skirts
+  if(p.sk){
+    _pushBox(_bOp,x+px*hw*0.56,z+pz*hw*0.56,s*0.20,hl*0.90,s*0.035,s*0.22,a,_shade(base,0.78),1);
+    _pushBox(_bOp,x-px*hw*0.56,z-pz*hw*0.56,s*0.20,hl*0.90,s*0.035,s*0.22,a,_shade(base,0.78),1);
+  }
+
   const trF=((p.tr||0.33)/0.33);
-  const tx=x-Math.cos(a)*s*0.06, tz=z-Math.sin(a)*s*0.06;
-  _pushBox(_bOp,tx,tz,s*0.53,s*1.02*trF,s*0.92*trF,s*0.32,ta,_shade(base,1.14),1);
-  _pushBox(_bOp,tx+Math.cos(ta)*s*0.52*trF,tz+Math.sin(ta)*s*0.52*trF,s*0.55,s*0.22,s*0.5*trF,s*0.24,ta,_shade(base,0.85),1);
-  // gun barrel(s) + muzzle brake
-  const bl=s*1.75*((p.bl||0.95)/0.95), bth=Math.max(2.6,s*0.11);
-  const bOff=s*0.5*trF+bl/2-(t.recoil||0);
-  const mzOff=s*0.5*trF+bl-(t.recoil||0);
+  const topY=hullY+hullH;
+  let tx=x-cos_a*s*0.06, tz=z-sin_a*s*0.06;
+  let gunY=topY+s*0.10, gunBase=s*0.5*trF; // where the barrel starts
+  const tcol=_shade(base,1.14), tdark=_shade(base,0.85);
+
+  if(cls==='td'){
+    // ── casemate tank destroyer: sloped fixed superstructure, no turret ──
+    const cx2=x+cos_a*s*0.10, cz2=z+sin_a*s*0.10;
+    _pushHull(_bOp,cx2,cz2,topY,hl*0.66,hw*0.62,s*0.34,a,tcol);
+    tx=cx2; tz=cz2; gunY=topY+s*0.20; gunBase=hl*0.33;
+  } else if(cls==='msl'){
+    // ── missile carrier: small cab + angled missile rack on the rear deck ──
+    _pushBox(_bOp,x+cos_a*hl*0.22,z+sin_a*hl*0.22,topY,s*0.5,s*0.5,s*0.18,a,tcol,1);
+    const rx2=x-cos_a*hl*0.18, rz2=z-sin_a*hl*0.18;
+    _pushBox(_bOp,rx2,rz2,topY,s*0.72,s*0.55,s*0.16,ta,tdark,1);
+    _pushBox(_bOp,rx2-Math.cos(ta)*s*0.1,rz2-Math.sin(ta)*s*0.1,topY+s*0.16,s*0.85,s*0.42,s*0.16,ta,_shade(base,0.6),1);
+    tx=rx2; tz=rz2; gunY=topY+s*0.26; gunBase=s*0.45;
+  } else {
+    // ── turret by archetype ──
+    const trL=s*1.02*trF, trW=s*0.92*trF;
+    if(shape==='wedge'){       // modern MBT: low wide sloped turret + rear bustle
+      _pushHull(_bOp,tx,tz,topY,trL*1.35,trW*1.15,s*0.26,ta,tcol);
+      _pushBox(_bOp,tx-Math.cos(ta)*trL*0.72,tz-Math.sin(ta)*trL*0.72,topY,trL*0.5,trW*0.9,s*0.22,ta,tdark,1);
+      gunY=topY+s*0.16;
+    } else if(shape==='hex'){  // T-34 family: low octagonal cast turret
+      _pushOct(_bOp,tx,tz,topY,trL*0.62,trW*0.60,s*0.30,ta,tcol);
+      gunY=topY+s*0.17;
+    } else if(shape==='dome'){ // IS-3/T-10 frying-pan dome: very low, wide
+      _pushOct(_bOp,tx,tz,topY,trL*0.72,trW*0.70,s*0.20,ta,tcol);
+      _pushOct(_bOp,tx,tz,topY+s*0.20,trL*0.42,trW*0.40,s*0.10,ta,tdark);
+      gunY=topY+s*0.14;
+    } else if(shape==='cast'){ // Sherman/KV rounded cast: octagon + cupola
+      _pushOct(_bOp,tx,tz,topY,trL*0.58,trW*0.56,s*0.34,ta,tcol);
+      _pushBox(_bOp,tx-Math.cos(ta)*trL*0.3,tz-Math.sin(ta)*trL*0.3,topY+s*0.34,s*0.2,s*0.2,s*0.10,ta,tdark,1);
+      gunY=topY+s*0.19;
+    } else if(shape==='angular'){ // Panther/Tiger II: sloped-face turret
+      _pushHull(_bOp,tx,tz,topY,trL*1.05,trW*0.9,s*0.32,ta,tcol);
+      gunY=topY+s*0.18;
+    } else if(shape==='tiger'){  // Tiger I horseshoe: octagon + flat mantlet slab
+      _pushOct(_bOp,tx,tz,topY,trL*0.60,trW*0.60,s*0.32,ta,tcol);
+      _pushBox(_bOp,tx+Math.cos(ta)*trL*0.55,tz+Math.sin(ta)*trL*0.55,topY+s*0.02,s*0.16,trW*0.75,s*0.28,ta,tdark,1);
+      gunY=topY+s*0.18;
+    } else if(shape==='osc'){    // French oscillating: lower base + overhanging upper
+      _pushBox(_bOp,tx,tz,topY,trL*0.7,trW*0.72,s*0.14,ta,tdark,1);
+      _pushBox(_bOp,tx+Math.cos(ta)*s*0.12,tz+Math.sin(ta)*s*0.12,topY+s*0.14,trL*1.0,trW*0.66,s*0.20,ta,tcol,1);
+      gunY=topY+s*0.24;
+    } else {                     // boxy / round default
+      _pushBox(_bOp,tx,tz,topY,trL,trW,s*0.32,ta,tcol,1);
+      _pushBox(_bOp,tx+Math.cos(ta)*trL*0.52,tz+Math.sin(ta)*trL*0.52,topY+s*0.02,s*0.22,trW*0.5,s*0.24,ta,tdark,1);
+      gunY=topY+s*0.18;
+    }
+  }
+
+  // ── gun barrel(s), muzzle brake, thermal sleeve ──
+  const bl=s*1.75*((p.bl||0.95)/0.95);
+  const bth=Math.min(s*0.16,Math.max(2.4,s*2*(p.bw||0.09)*0.62));
+  const bOff=gunBase+bl/2-(t.recoil||0);
+  const mzOff=gunBase+bl-(t.recoil||0);
+  const bcol=_shade(base,0.55);
   if(t._isRatte||t.id==='ratte'){
     const bpx=-Math.sin(ta),bpz=Math.cos(ta);
-    _pushBox(_bOp,tx+Math.cos(ta)*bOff+bpx*s*0.14,tz+Math.sin(ta)*bOff+bpz*s*0.14,s*0.66,bl,bth,bth,ta,_shade(base,0.55),1);
-    _pushBox(_bOp,tx+Math.cos(ta)*bOff-bpx*s*0.14,tz+Math.sin(ta)*bOff-bpz*s*0.14,s*0.66,bl,bth,bth,ta,_shade(base,0.55),1);
+    _pushBox(_bOp,tx+Math.cos(ta)*bOff+bpx*s*0.14,tz+Math.sin(ta)*bOff+bpz*s*0.14,gunY,bl,bth*0.8,bth*0.8,ta,bcol,1);
+    _pushBox(_bOp,tx+Math.cos(ta)*bOff-bpx*s*0.14,tz+Math.sin(ta)*bOff-bpz*s*0.14,gunY,bl,bth*0.8,bth*0.8,ta,bcol,1);
+    // Ratte extras: deck superstructure + rear secondary turret
+    _pushBox(_bOp,x-cos_a*hl*0.28,z-sin_a*hl*0.28,topY+s*0.32,hl*0.3,hw*0.4,s*0.14,a,tdark,1);
+    _pushBox(_bOp,x-cos_a*hl*0.38,z-sin_a*hl*0.38,topY+s*0.46,s*0.3,s*0.3,s*0.12,a,tcol,1);
+    _pushBox(_bOp,x-cos_a*hl*0.38-cos_a*s*0.35,z-sin_a*hl*0.38-sin_a*s*0.35,topY+s*0.5,s*0.5,s*0.05,s*0.05,a,bcol,1);
   } else {
-    _pushBox(_bOp,tx+Math.cos(ta)*bOff,tz+Math.sin(ta)*bOff,s*0.62,bl,bth,bth,ta,_shade(base,0.55),1);
-    if(p.muzzle)_pushBox(_bOp,tx+Math.cos(ta)*mzOff,tz+Math.sin(ta)*mzOff,s*0.585,s*0.24,bth*1.9,bth*1.9,ta,_shade(base,0.42),1);
+    _pushBox(_bOp,tx+Math.cos(ta)*bOff,tz+Math.sin(ta)*bOff,gunY,bl,bth,bth,ta,bcol,1);
+    if(shape==='wedge'){ // thermal sleeve: thicker mid-barrel segment
+      _pushBox(_bOp,tx+Math.cos(ta)*(gunBase+bl*0.45),tz+Math.sin(ta)*(gunBase+bl*0.45),gunY-bth*0.25,bl*0.34,bth*1.5,bth*1.5,ta,_shade(base,0.7),1);
+    }
+    if(p.muzzle)_pushBox(_bOp,tx+Math.cos(ta)*mzOff,tz+Math.sin(ta)*mzOff,gunY-bth*0.4,s*0.24,bth*1.9,bth*1.9,ta,_shade(base,0.42),1);
   }
-  if(isPlayer){ _pushBox(_bOp,tx,tz,s*0.85,s*0.30,s*0.30,s*0.14,ta,_rgb('#c8a84b'),1); }
+  if(isPlayer&&cls!=='td'){ _pushBox(_bOp,tx,tz,topY+s*0.36,s*0.28,s*0.28,s*0.12,ta,_rgb('#c8a84b'),1); }
 }
 
 // ── main GL frame ──
