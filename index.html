@@ -185,7 +185,8 @@ body[data-state="mode"] #screen-title { display:none!important; }
   <button id="btn-sound" onclick="toggleSound();_initAudio();_resumeAudio()" title="Toggle sound" style="background:transparent;border:1px solid #3a4520;border-radius:4px;color:var(--khaki);font-size:18px;padding:2px 8px;cursor:pointer;align-self:center;">🔊</button>
 </div>
 <div id="arena-wrap">
-  <canvas id="gameCanvas" tabindex="0"></canvas>
+  <canvas id="glCanvas" style="position:absolute;inset:0;z-index:1;display:none;"></canvas>
+  <canvas id="gameCanvas" tabindex="0" style="position:relative;z-index:2;"></canvas>
   <div id="team-bar" style="display:none;position:absolute;top:5px;left:50%;transform:translateX(-50%);display:none;gap:8px;z-index:15;pointer-events:none;">
     <div id="tb-allies" style="font-size:11px;color:#2ecc71;font-family:'Share Tech Mono',monospace;"></div>
     <div id="tb-enemies" style="font-size:11px;color:#e74c3c;font-family:'Share Tech Mono',monospace;"></div>
@@ -1844,6 +1845,8 @@ function resize(){
   if(canvas&&!ctx)ctx=canvas.getContext('2d');
   W=w.clientWidth||window.innerWidth;H=w.clientHeight||window.innerHeight;
   if(canvas){canvas.width=W;canvas.height=H;}
+  const gc=document.getElementById('glCanvas');
+  if(gc){gc.width=W;gc.height=H;if(typeof _gl!=='undefined'&&_gl)_gl.viewport(0,0,W,H);}
 }
 
 // ════════════════════════════════════════
@@ -3374,6 +3377,13 @@ function updateNukeHud(){
   const bb=document.getElementById('btn-buy-nuke');if(bb)bb.disabled=coins<50000;
 }
 
+// ── TRUE 3D MODE (in progress): off by default; render() falls back to 2D
+//    unless a WebGL renderer is installed. These stubs keep 2D fully intact. ──
+let render3D=false;
+let _gl=null;
+function renderGL(){ return false; } // replaced by the real WebGL renderer
+function _render2DOverlay(){}        // replaced by the real HUD overlay pass
+
 let last=0;
 function loop(ts){
   requestAnimationFrame(loop);
@@ -4074,6 +4084,12 @@ function spawnHitFx(x,y,pen){playHit(pen);
 function render(){
   if(!ctx||!canvas)return;
   ctx.clearRect(0,0,W,H);
+  // ── TRUE 3D MODE: render the world with WebGL, keep the 2D canvas as a
+  //    transparent overlay for the HUD/crosshair. Falls back to 2D on any error. ──
+  if(render3D){
+    try{ if(renderGL()){ _render2DOverlay(); return; } }
+    catch(e){ console.error('3D render failed, reverting to 2D',e); render3D=false; const gc=document.getElementById('glCanvas'); if(gc)gc.style.display='none'; }
+  }
   ctx.save();ctx.translate(-camX+camShakeX,-camY+camShakeY);
   const m=selectedMap;
   if(m.fog){
