@@ -7034,7 +7034,7 @@ function _pushOct(b,cx,cz,yb,rx,rz,hei,ang,col){
   }
 }
 // per-tank 3D info cache: profile + turret archetype + vehicle class
-let _t3dCache={};
+let _t3dCache={},_envTint=null;
 function _t3dInfo(id){
   let c=_t3dCache[id]; if(c)return c;
   const p=(typeof getProfile==='function')?getProfile(id):{hl:1.65,hw:0.85,tr:0.33,bl:0.95};
@@ -7042,7 +7042,7 @@ function _t3dInfo(id){
   const shape=(typeof _turretShape==='function')?_turretShape(id,p):(p.boxy?'boxy':'round');
   const cls=(typeof _tdIds!=='undefined'&&_tdIds.has(id))?'td'
     :(fac==='armcar')?'car':(fac==='carrier')?'ifv':(fac==='mslcarrier')?'msl':'tank';
-  c={p,shape,cls}; _t3dCache[id]=c; return c;
+  c={p,shape,cls,fac}; _t3dCache[id]=c; return c;
 }
 // ── tank model: archetype-aware (turret shape + vehicle class from game data) ──
 function _pushTank3D(t,isPlayer){
@@ -7052,6 +7052,8 @@ function _pushTank3D(t,isPlayer){
   let base=_rgb(t.color||'#5a6a3a');
   if(t.hitFlash>0){const f=Math.min(1,t.hitFlash);base=[base[0]+(1-base[0])*f,base[1]+(1-base[1])*f,base[2]+(1-base[2])*f];}
   if(t._frozen>0)base=[base[0]*0.6+0.25,base[1]*0.6+0.33,base[2]*0.6+0.42];
+  // weathering: tanks pick up ~10% of the local terrain color (dust on the paint)
+  if(_envTint)base=[base[0]*0.9+_envTint[0]*0.1,base[1]*0.9+_envTint[1]*0.1,base[2]*0.9+_envTint[2]*0.1];
   const x=t.x,z=t.y;
   _pushDecal(_bTr,x,z,0.55,s*1.35,[0,0,0],0.32);
   const hl=s*1.55*((p.hl||1.65)/1.65), hw=s*1.1*((p.hw||0.85)/0.85);
@@ -7070,11 +7072,11 @@ function _pushTank3D(t,isPlayer){
       }
     }
   } else {
-    // tracks + return-roller strip
+    // tracks + fenders (track guards) over them
     _pushBox(_bOp,x+px*hw*0.42,z+pz*hw*0.42,0,hl*1.04,hw*0.30,s*0.30,a,dark,1);
     _pushBox(_bOp,x-px*hw*0.42,z-pz*hw*0.42,0,hl*1.04,hw*0.30,s*0.30,a,dark,1);
-    _pushBox(_bOp,x+px*hw*0.42,z+pz*hw*0.42,s*0.30,hl*0.92,hw*0.26,s*0.05,a,_shade(base,0.7),1);
-    _pushBox(_bOp,x-px*hw*0.42,z-pz*hw*0.42,s*0.30,hl*0.92,hw*0.26,s*0.05,a,_shade(base,0.7),1);
+    _pushBox(_bOp,x+px*hw*0.42,z+pz*hw*0.42,s*0.30,hl*1.00,hw*0.32,s*0.035,a,_shade(base,0.82),1);
+    _pushBox(_bOp,x-px*hw*0.42,z-pz*hw*0.42,s*0.30,hl*1.00,hw*0.32,s*0.035,a,_shade(base,0.82),1);
   }
 
   // ── hull ──
@@ -7086,6 +7088,23 @@ function _pushTank3D(t,isPlayer){
   if(p.sk){
     _pushBox(_bOp,x+px*hw*0.56,z+pz*hw*0.56,s*0.20,hl*0.90,s*0.035,s*0.22,a,_shade(base,0.78),1);
     _pushBox(_bOp,x-px*hw*0.56,z-pz*hw*0.56,s*0.20,hl*0.90,s*0.035,s*0.22,a,_shade(base,0.78),1);
+  }
+  const fac=info.fac;
+  // engine deck: darker rear third of the hull roof (radiator grilles)
+  if(cls!=='car'){
+    _pushBox(_bOp,x-cos_a*hl*0.30,z-sin_a*hl*0.30,hullY+hullH,hl*0.28,hw*0.56,s*0.025,a,_shade(base,0.72),1);
+    // driver's hatch on the glacis
+    _pushBox(_bOp,x+cos_a*hl*0.30+px*hw*0.16,z+sin_a*hl*0.30+pz*hw*0.16,hullY+hullH,s*0.16,s*0.16,s*0.03,a,_shade(base,0.80),1);
+  }
+  // WW2 German rear exhaust stacks (Tiger 131 style: twin armored pipes)
+  if(fac==='german'&&shape!=='wedge'&&cls==='tank'){
+    _pushBox(_bOp,x-cos_a*hl*0.50+px*hw*0.18,z-sin_a*hl*0.50+pz*hw*0.18,hullY+s*0.10,s*0.08,s*0.08,s*0.30,a,[0.20,0.16,0.12],1);
+    _pushBox(_bOp,x-cos_a*hl*0.50-px*hw*0.18,z-sin_a*hl*0.50-pz*hw*0.18,hullY+s*0.10,s*0.08,s*0.08,s*0.30,a,[0.20,0.16,0.12],1);
+  }
+  // Soviet external fuel drums on the rear deck corners (T-34 / IS style)
+  if(fac==='soviet'&&cls==='tank'){
+    _pushOct(_bOp,x-cos_a*hl*0.42+px*hw*0.26,z-sin_a*hl*0.42+pz*hw*0.26,hullY+hullH,s*0.10,s*0.10,s*0.20,a,_shade(base,0.62));
+    _pushOct(_bOp,x-cos_a*hl*0.42-px*hw*0.26,z-sin_a*hl*0.42-pz*hw*0.26,hullY+hullH,s*0.10,s*0.10,s*0.20,a,_shade(base,0.62));
   }
 
   const trF=((p.tr||0.33)/0.33);
@@ -7142,6 +7161,44 @@ function _pushTank3D(t,isPlayer){
     }
   }
 
+  // ── turret furniture + national roof markings ──
+  if(cls==='tank'){
+    const turH={wedge:0.26,hex:0.30,dome:0.30,cast:0.44,angular:0.32,tiger:0.32,osc:0.34,boxy:0.32,round:0.32}[shape]||0.32;
+    const roofY=topY+s*turH;
+    const cpx=-Math.sin(ta),cpz=Math.cos(ta);
+    // commander's cupola offset to the turret's left (Tiger 131 style) on WW2 shapes
+    if(shape==='boxy'||shape==='angular'||shape==='tiger'||shape==='hex'){
+      _pushOct(_bOp,tx+cpx*s*0.26,tz+cpz*s*0.26,roofY,s*0.13,s*0.13,s*0.10,ta,_shade(base,0.9));
+    }
+    // rear turret stowage bin (Rommelkiste) on German-style turrets
+    if(shape==='boxy'||shape==='angular'||shape==='tiger'){
+      _pushBox(_bOp,tx-Math.cos(ta)*s*0.62,tz-Math.sin(ta)*s*0.62,topY+s*0.06,s*0.22,s*0.70,s*0.18,ta,_shade(base,0.75),1);
+    }
+    // modern turret bustle stowage rack
+    if(shape==='wedge'){
+      _pushBox(_bOp,tx-Math.cos(ta)*s*1.05,tz-Math.sin(ta)*s*1.05,topY+s*0.04,s*0.22,s*0.9,s*0.14,ta,_shade(base,0.55),1);
+    }
+    // national marking painted on the turret roof
+    const mkY=roofY+0.5;
+    if(fac==='german'){
+      _pushFlatQuad(_bTr,tx,tz,mkY,s*0.44,s*0.12,ta,[0.95,0.95,0.95],0.75);
+      _pushFlatQuad(_bTr,tx,tz,mkY,s*0.12,s*0.44,ta,[0.95,0.95,0.95],0.75);
+      _pushFlatQuad(_bTr,tx,tz,mkY+0.2,s*0.30,s*0.07,ta,[0.1,0.1,0.1],0.85);
+      _pushFlatQuad(_bTr,tx,tz,mkY+0.2,s*0.07,s*0.30,ta,[0.1,0.1,0.1],0.85);
+    } else if(fac==='soviet'||fac==='chinese'){
+      _pushDecal(_bTr,tx,tz,mkY,s*0.20,[0.9,0.12,0.1],0.85);
+    } else if(fac==='american'){
+      _pushDecal(_bTr,tx,tz,mkY,s*0.22,[0.95,0.95,0.95],0.85);
+      _pushDecal(_bTr,tx,tz,mkY+0.2,s*0.10,[0.35,0.42,0.30],0.9);
+    } else if(fac==='british'||fac==='japanese'){
+      _pushDecal(_bTr,tx,tz,mkY,s*0.22,[0.95,0.95,0.95],0.85);
+      _pushDecal(_bTr,tx,tz,mkY+0.2,s*0.11,[0.88,0.15,0.12],0.9);
+    } else if(fac==='french'){
+      _pushDecal(_bTr,tx,tz,mkY,s*0.22,[0.95,0.95,0.95],0.85);
+      _pushDecal(_bTr,tx,tz,mkY+0.2,s*0.11,[0.18,0.3,0.8],0.9);
+    }
+  }
+
   // ── gun barrel(s), muzzle brake, thermal sleeve ──
   const bl=s*1.75*((p.bl||0.95)/0.95);
   const bth=Math.min(s*0.16,Math.max(2.4,s*2*(p.bw||0.09)*0.62));
@@ -7158,6 +7215,8 @@ function _pushTank3D(t,isPlayer){
     _pushBox(_bOp,x-cos_a*hl*0.38-cos_a*s*0.35,z-sin_a*hl*0.38-sin_a*s*0.35,topY+s*0.5,s*0.5,s*0.05,s*0.05,a,bcol,1);
   } else {
     _pushBox(_bOp,tx+Math.cos(ta)*bOff,tz+Math.sin(ta)*bOff,gunY,bl,bth,bth,ta,bcol,1);
+    // stepped barrel: thicker sleeve over the base section (real gun mounts taper)
+    _pushBox(_bOp,tx+Math.cos(ta)*(gunBase+bl*0.16-(t.recoil||0)),tz+Math.sin(ta)*(gunBase+bl*0.16-(t.recoil||0)),gunY-bth*0.18,bl*0.34,bth*1.4,bth*1.4,ta,_shade(base,0.62),1);
     if(shape==='wedge'){ // thermal sleeve: thicker mid-barrel segment
       _pushBox(_bOp,tx+Math.cos(ta)*(gunBase+bl*0.45),tz+Math.sin(ta)*(gunBase+bl*0.45),gunY-bth*0.25,bl*0.34,bth*1.5,bth*1.5,ta,_shade(base,0.7),1);
     }
@@ -7193,6 +7252,7 @@ function renderGL(){
 
   const m=selectedMap;
   const mg=_rgb(m.bg||'#4a5828');
+  _envTint=mg; // tanks pick up a hint of the local terrain (dust/weathering)
   const sky=[mg[0]*0.5+0.33,mg[1]*0.5+0.42,mg[2]*0.5+0.50];
   const fogR=m.fog?[420,1150]:[1500,4200];
   gl.clearColor(sky[0],sky[1],sky[2],1);
