@@ -6935,9 +6935,36 @@ function _glUploadGround(){
   _glGroundSrc=groundCanvas;
 }
 
-// ── geometry batching (12 floats/vert: pos3 nrm3 col4 uv2) ──
-let _bOp=[],_bTr=[],_bPt=[];
-function _pushV(b,x,y,z,nx,ny,nz,c,a,u,v){b.push(x,y,z,nx,ny,nz,c[0],c[1],c[2],a,u||0,v||0);}
+// ── geometry batching (12 floats/vert: pos3 nrm3 col4 uv2), persistent typed arrays ──
+function _mkBatch(){return {a:new Float32Array(1<<15),n:0};}
+let _bOp=_mkBatch(),_bTr=_mkBatch(),_bPt=_mkBatch(),_bTex=_mkBatch();
+function _bGrow(b,need){if(b.n+need>b.a.length){let cap=b.a.length*2;while(cap<b.n+need)cap*=2;const na=new Float32Array(cap);na.set(b.a.subarray(0,b.n));b.a=na;}}
+function _pushV(b,x,y,z,nx,ny,nz,c,a,u,v){_bGrow(b,12);const A=b.a;let i=b.n;A[i]=x;A[i+1]=y;A[i+2]=z;A[i+3]=nx;A[i+4]=ny;A[i+5]=nz;A[i+6]=c[0];A[i+7]=c[1];A[i+8]=c[2];A[i+9]=a;A[i+10]=u||0;A[i+11]=v||0;b.n=i+12;}
+function _pushPt(x,y,z,r,g,bb,a,s){const b=_bPt;_bGrow(b,8);const A=b.a;let i=b.n;A[i]=x;A[i+1]=y;A[i+2]=z;A[i+3]=r;A[i+4]=g;A[i+5]=bb;A[i+6]=a;A[i+7]=s;b.n=i+8;}
+function _pushFlatQuad(b,cx,cz,y,len,wid,ang,col,alpha){
+  const ca=Math.cos(ang),sa=Math.sin(ang),hl=len/2,hw=wid/2;
+  function P(lx,lz){return [cx+lx*ca-lz*sa, y, cz+lx*sa+lz*ca];}
+  const p1=P(-hl,-hw),p2=P(hl,-hw),p3=P(hl,hw),p4=P(-hl,hw);
+  _pushV(b,p1[0],p1[1],p1[2],0,1,0,col,alpha);_pushV(b,p2[0],p2[1],p2[2],0,1,0,col,alpha);_pushV(b,p3[0],p3[1],p3[2],0,1,0,col,alpha);
+  _pushV(b,p1[0],p1[1],p1[2],0,1,0,col,alpha);_pushV(b,p3[0],p3[1],p3[2],0,1,0,col,alpha);_pushV(b,p4[0],p4[1],p4[2],0,1,0,col,alpha);
+}
+// sloped-armor hull: box with angled glacis (front) and rear plates
+function _pushHull(b,cx,cz,yb,len,wid,hei,ang,col){
+  const ca=Math.cos(ang),sa=Math.sin(ang),hb=len/2,hw=wid/2;
+  function P(lx,ly,lz){return [cx+lx*ca-lz*sa, yb+ly, cz+lx*sa+lz*ca];}
+  function N(lx,ly,lz){const l=Math.hypot(lx,ly,lz)||1;return [(lx*ca-lz*sa)/l,ly/l,(lx*sa+lz*ca)/l];}
+  const bf1=P(hb,0,-hw),bf2=P(hb,0,hw),br1=P(-hb,0,-hw),br2=P(-hb,0,hw);
+  const tf1=P(hb*0.60,hei,-hw),tf2=P(hb*0.60,hei,hw),tr1=P(-hb*0.78,hei,-hw),tr2=P(-hb*0.78,hei,hw);
+  function quad(p1,p2,p3,p4,n){
+    _pushV(b,p1[0],p1[1],p1[2],n[0],n[1],n[2],col,1);_pushV(b,p2[0],p2[1],p2[2],n[0],n[1],n[2],col,1);_pushV(b,p3[0],p3[1],p3[2],n[0],n[1],n[2],col,1);
+    _pushV(b,p1[0],p1[1],p1[2],n[0],n[1],n[2],col,1);_pushV(b,p3[0],p3[1],p3[2],n[0],n[1],n[2],col,1);_pushV(b,p4[0],p4[1],p4[2],n[0],n[1],n[2],col,1);
+  }
+  quad(tf1,tf2,tr2,tr1,N(0,1,0));                 // top deck
+  quad(bf1,bf2,tf2,tf1,N(0.75,0.66,0));           // glacis (sloped front)
+  quad(br2,br1,tr1,tr2,N(-0.75,0.66,0));          // rear plate
+  quad(bf1,tf1,tr1,br1,N(0,0,-1));                // left side
+  quad(bf2,br2,tr2,tf2,N(0,0,1));                 // right side
+}
 function _pushBox(b,cx,cz,yb,len,wid,hei,ang,col,alpha){
   const ca=Math.cos(ang),sa=Math.sin(ang),hl=len/2,hw=wid/2;
   function P(lx,ly,lz){return [cx+lx*ca-lz*sa, yb+ly, cz+lx*sa+lz*ca];}
@@ -7000,22 +7027,29 @@ function _pushTank3D(t,isPlayer){
   const hl=s*1.55*((p.hl||1.65)/1.65), hw=s*1.1*((p.hw||0.85)/0.85);
   const px=-Math.sin(a),pz=Math.cos(a); // perpendicular
   const dark=_shade(base,0.45);
+  // tracks with a hint of road wheels (darker lower strip)
   _pushBox(_bOp,x+px*hw*0.42,z+pz*hw*0.42,0,hl*1.04,hw*0.30,s*0.30,a,dark,1);
   _pushBox(_bOp,x-px*hw*0.42,z-pz*hw*0.42,0,hl*1.04,hw*0.30,s*0.30,a,dark,1);
-  _pushBox(_bOp,x,z,s*0.13,hl,hw*0.74,s*0.40,a,_shade(base,0.95),1);
-  // turret
+  _pushBox(_bOp,x+px*hw*0.42,z+pz*hw*0.42,s*0.30,hl*0.92,hw*0.26,s*0.05,a,_shade(base,0.7),1);
+  _pushBox(_bOp,x-px*hw*0.42,z-pz*hw*0.42,s*0.30,hl*0.92,hw*0.26,s*0.05,a,_shade(base,0.7),1);
+  // sloped-armor hull
+  _pushHull(_bOp,x,z,s*0.13,hl,hw*0.74,s*0.40,a,_shade(base,0.95));
+  // turret + mantlet
   const trF=((p.tr||0.33)/0.33);
   const tx=x-Math.cos(a)*s*0.06, tz=z-Math.sin(a)*s*0.06;
   _pushBox(_bOp,tx,tz,s*0.53,s*1.02*trF,s*0.92*trF,s*0.32,ta,_shade(base,1.14),1);
-  // gun barrel(s)
+  _pushBox(_bOp,tx+Math.cos(ta)*s*0.52*trF,tz+Math.sin(ta)*s*0.52*trF,s*0.55,s*0.22,s*0.5*trF,s*0.24,ta,_shade(base,0.85),1);
+  // gun barrel(s) + muzzle brake
   const bl=s*1.75*((p.bl||0.95)/0.95), bth=Math.max(2.6,s*0.11);
   const bOff=s*0.5*trF+bl/2-(t.recoil||0);
+  const mzOff=s*0.5*trF+bl-(t.recoil||0);
   if(t._isRatte||t.id==='ratte'){
     const bpx=-Math.sin(ta),bpz=Math.cos(ta);
     _pushBox(_bOp,tx+Math.cos(ta)*bOff+bpx*s*0.14,tz+Math.sin(ta)*bOff+bpz*s*0.14,s*0.66,bl,bth,bth,ta,_shade(base,0.55),1);
     _pushBox(_bOp,tx+Math.cos(ta)*bOff-bpx*s*0.14,tz+Math.sin(ta)*bOff-bpz*s*0.14,s*0.66,bl,bth,bth,ta,_shade(base,0.55),1);
   } else {
     _pushBox(_bOp,tx+Math.cos(ta)*bOff,tz+Math.sin(ta)*bOff,s*0.62,bl,bth,bth,ta,_shade(base,0.55),1);
+    if(p.muzzle)_pushBox(_bOp,tx+Math.cos(ta)*mzOff,tz+Math.sin(ta)*mzOff,s*0.585,s*0.24,bth*1.9,bth*1.9,ta,_shade(base,0.42),1);
   }
   if(isPlayer){ _pushBox(_bOp,tx,tz,s*0.85,s*0.30,s*0.30,s*0.14,ta,_rgb('#c8a84b'),1); }
 }
@@ -7034,9 +7068,12 @@ function renderGL(){
   gl.viewport(0,0,W,H);
   if(groundCanvas&&_glGroundSrc!==groundCanvas)_glUploadGround();
 
-  // camera: perspective, tilted down, following the same focus the 2D camera uses
+  // camera: perspective, tilted down, following the same focus the 2D camera uses.
+  // Variants: low dramatic chase-cam while flying a missile; high overview in the map editor.
   const fx=camX+W/2+(camShakeX||0), fz=camY+H/2+(camShakeY||0);
-  const camH=560, camBack=430;
+  let camH=560, camBack=430;
+  if(battleMode==='mapmaker'&&sandboxEdit){camH=820;camBack=600;}
+  else if(drivenMissile&&drivenMissile.life>0){camH=300;camBack=240;}
   const eye=[fx,camH,fz+camBack], ctr=[fx,0,fz-40];
   const proj=_m4Persp(0.96,W/H,20,7000);
   const view=_m4Look(eye,ctr,[0,1,0]);
@@ -7052,16 +7089,23 @@ function renderGL(){
   gl.enable(gl.BLEND); gl.blendFunc(gl.SRC_ALPHA,gl.ONE_MINUS_SRC_ALPHA);
   gl.disable(gl.CULL_FACE);
 
-  _bOp.length=0; _bTr.length=0; _bPt.length=0;
+  _bOp.n=0; _bTr.n=0; _bPt.n=0; _bTex.n=0;
 
   // ground skirt (beyond map edges) + textured map ground
-  const gTex=[];
   _pushGroundQuad(_bOp,-7000,-7000,WW+7000,WH+7000,-2,_shade(mg,0.8),1,false);
-  _pushGroundQuad(gTex,0,0,WW,WH,0,[1,1,1],1,true);
+  if(groundCanvas)_pushGroundQuad(_bTex,0,0,WW,WH,0,[1,1,1],1,true);
+  else _pushGroundQuad(_bOp,0,0,WW,WH,0,mg,1,false);
 
-  // craters + fire zones + tread decals
+  // craters + fire zones + tread marks pressed into the ground
   for(const c of craters)_pushDecal(_bTr,c.x,c.y,0.5,c.r,[0.03,0.02,0.01],0.62);
   for(const z of fireZones){const fade=Math.min(1,z.life/60);_pushDecal(_bTr,z.x,z.y,0.8,z.r,[1,0.45,0.1],0.30*fade);}
+  {const tmS=Math.max(0,treadMarks.length-240);
+   for(let ti=tmS;ti<treadMarks.length;ti++){const tm=treadMarks[ti];
+     const al=(tm.life/tm.maxLife)*0.30;
+     const tpx=-Math.sin(tm.ang),tpz=Math.cos(tm.ang);
+     _pushFlatQuad(_bTr,tm.x+tpx*tm.gap,tm.y+tpz*tm.gap,0.35,tm.w,2.6,tm.ang,[0.14,0.10,0.05],al);
+     _pushFlatQuad(_bTr,tm.x-tpx*tm.gap,tm.y-tpz*tm.gap,0.35,tm.w,2.6,tm.ang,[0.14,0.10,0.05],al);
+   }}
 
   // obstacles
   for(const o of obstacles){
@@ -7102,7 +7146,7 @@ function renderGL(){
     if(b.missile){
       const mc=_rgb(b.mcolor||'#ffb020');
       _pushBox(_bOp,b.x,b.y,13,16,4.6,4.6,ang,mc,1);
-      _bPt.push(b.x-Math.cos(ang)*10,16,b.y-Math.sin(ang)*10, 1,0.7,0.25,0.9, 5.5);
+      _pushPt(b.x-Math.cos(ang)*10,16,b.y-Math.sin(ang)*10, 1,0.7,0.25,0.9, 5.5);
     } else {
       const isP=b.owner==='player',isA=b.owner==='ally';
       const bc=isP?[1,0.95,0.5]:isA?[0.5,1,0.6]:[1,0.35,0.1];
@@ -7115,7 +7159,7 @@ function renderGL(){
     const c=_rgb(pt.color||'#888');
     const isSmoke=pt.type==='smoke'||(_SMOKE_COLORS&&_SMOKE_COLORS.has&&_SMOKE_COLORS.has(pt.color));
     const h=isSmoke?12+(1-life)*34:14;
-    _bPt.push(pt.x,h,pt.y, c[0],c[1],c[2],(pt.alpha!==undefined?pt.alpha:life)*0.9, (pt.r||3)*1.15);
+    _pushPt(pt.x,h,pt.y, c[0],c[1],c[2],(pt.alpha!==undefined?pt.alpha:life)*0.9, (pt.r||3)*1.15);
   }
 
   // ── draw ──
@@ -7127,37 +7171,36 @@ function renderGL(){
   gl.uniform1i(_glLoc.tex,0);
   const aPos=_glLoc.aPos,aNrm=_glLoc.aNrm,aCol=_glLoc.aCol,aUV=_glLoc.aUV;
   gl.bindBuffer(gl.ARRAY_BUFFER,_glBuf);
-  function drawBatch(arr,useTex,depthWrite){
-    if(!arr.length)return;
+  function drawBatch(b,useTex,depthWrite){
+    if(!b.n)return;
     gl.uniform1f(_glLoc.useTex,useTex?1:0);
     gl.depthMask(depthWrite);
-    gl.bufferData(gl.ARRAY_BUFFER,new Float32Array(arr),gl.DYNAMIC_DRAW);
+    gl.bufferData(gl.ARRAY_BUFFER,b.a.subarray(0,b.n),gl.DYNAMIC_DRAW);
     const ST=12*4;
     gl.enableVertexAttribArray(aPos);gl.vertexAttribPointer(aPos,3,gl.FLOAT,false,ST,0);
     gl.enableVertexAttribArray(aNrm);gl.vertexAttribPointer(aNrm,3,gl.FLOAT,false,ST,12);
     gl.enableVertexAttribArray(aCol);gl.vertexAttribPointer(aCol,4,gl.FLOAT,false,ST,24);
     gl.enableVertexAttribArray(aUV);gl.vertexAttribPointer(aUV,2,gl.FLOAT,false,ST,40);
-    gl.drawArrays(gl.TRIANGLES,0,arr.length/12);
+    gl.drawArrays(gl.TRIANGLES,0,b.n/12);
   }
   gl.activeTexture(gl.TEXTURE0);gl.bindTexture(gl.TEXTURE_2D,_glGroundTex);
   drawBatch(_bOp,false,true);
-  if(_glGroundSrc)drawBatch(gTex,true,true);
-  else drawBatch(gTex.map((v,i)=>i%12>=6&&i%12<9?mg[i%12-6]:v),false,true); // untextured fallback tinted ground
+  if(_glGroundSrc)drawBatch(_bTex,true,true);
   drawBatch(_bTr,false,false);
   gl.depthMask(true);
   // points
-  if(_bPt.length){
+  if(_bPt.n){
     gl.useProgram(_glPtProg);
     gl.uniformMatrix4fv(_glLoc.pVP,false,_glVP);
     const pPos=_glLoc.pPos,pCol=_glLoc.pCol,pSz=_glLoc.pSz;
     gl.bindBuffer(gl.ARRAY_BUFFER,_glPtBuf);
-    gl.bufferData(gl.ARRAY_BUFFER,new Float32Array(_bPt),gl.DYNAMIC_DRAW);
+    gl.bufferData(gl.ARRAY_BUFFER,_bPt.a.subarray(0,_bPt.n),gl.DYNAMIC_DRAW);
     const ST=8*4;
     gl.depthMask(false);
     gl.enableVertexAttribArray(pPos);gl.vertexAttribPointer(pPos,3,gl.FLOAT,false,ST,0);
     gl.enableVertexAttribArray(pCol);gl.vertexAttribPointer(pCol,4,gl.FLOAT,false,ST,12);
     gl.enableVertexAttribArray(pSz);gl.vertexAttribPointer(pSz,1,gl.FLOAT,false,ST,28);
-    gl.drawArrays(gl.POINTS,0,_bPt.length/8);
+    gl.drawArrays(gl.POINTS,0,_bPt.n/8);
     gl.depthMask(true);
   }
   return true;
@@ -7216,6 +7259,32 @@ function _render2DOverlay(){
     ctx.fillText(sandboxEdit?'🛠 EDIT — click to place '+sandboxTool.toUpperCase()+' · press E to PLAY':'▶ PLAYING — press E to return to editing',W/2,H-14);
     ctx.restore();
   }
+  // off-screen enemy arrows (camera yaw is fixed, so world direction = screen direction)
+  {const _alive=enemies.filter(e=>e.hp>0);
+   if(_alive.length&&_alive.length<=24){
+     const mx=W/2,my=H/2,R=Math.min(W,H)/2-40;
+     const fx=camX+W/2,fz=camY+H/2;
+     for(const e of _alive){
+       const pr=_glProjectPt(e.x,e.y,15);
+       if(pr&&pr.x>-20&&pr.x<W+20&&pr.y>-20&&pr.y<H+20)continue;
+       const ang=Math.atan2(e.y-fz,e.x-fx);
+       const ax=mx+Math.cos(ang)*R, ay=my+Math.sin(ang)*R;
+       ctx.save();ctx.translate(ax,ay);ctx.rotate(ang);
+       ctx.fillStyle='rgba(231,76,60,.85)';
+       ctx.beginPath();ctx.moveTo(11,0);ctx.lineTo(-6,-6);ctx.lineTo(-6,6);ctx.closePath();ctx.fill();
+       ctx.restore();
+     }
+   }}
+  // nuke flash (2D pass is skipped in 3D, so replicate the fade here)
+  if(nukeFlash>0){
+    nukeFlash--;
+    const nf=nukeFlash/90;
+    const flashAlpha=nf>0.7?1:(nf/.7);
+    ctx.fillStyle=nf>0.5?`rgba(255,255,255,${flashAlpha*0.98})`:`rgba(${180+nf*75|0},${80*nf|0},${255*nf|0},${flashAlpha*0.85})`;
+    ctx.fillRect(0,0,W,H);
+  }
+  if(typeof _drawBushStatus==='function')_drawBushStatus();
+  if(typeof _drawCompass==='function')_drawCompass();
   // light vignette
   const vg=ctx.createRadialGradient(W*.5,H*.5,Math.min(W,H)*.3,W*.5,H*.5,Math.max(W,H)*.75);
   vg.addColorStop(0,'rgba(0,0,0,0)');vg.addColorStop(1,'rgba(0,0,0,.22)');
