@@ -6979,8 +6979,9 @@ function _ccFindTank(str){
   }
   for(let n=Math.min(4,toks.length);n>=1;n--)for(let i=0;i+n<=toks.length;i++){
     const g=toks.slice(i,i+n).join(''); if(g.length<4)continue;
+    // shortest name containing the phrase wins: "sherman" -> M4A1 Sherman, not Sherman Firefly
     let hit=null,hl=1e9;
-    for(const t of TANK_DEFS){const nn=_ccNorm(t.name);if(nn.indexOf(g)===0&&nn.length<hl){hit=t;hl=nn.length;}}
+    for(const t of TANK_DEFS){const nn=_ccNorm(t.name);if(nn.indexOf(g)>=0&&nn.length<hl){hit=t;hl=nn.length;}}
     if(hit)return hit;
   }
   return null;
@@ -7072,6 +7073,7 @@ function _ccKnowledge(m,toks){
         const k=p[0];if(A[k]>B[k])win.push(p[1]);else if(B[k]>A[k])lose.push(p[1]);
       });
       if(A.reload<B.reload)win.push('reload');else if(B.reload<A.reload)lose.push('reload');
+      _ccMem.lastTank=A;
       return '<b>'+A.name+'</b> vs <b>'+B.name+'</b><br>'
         +'HP '+_ccNum(A.hp)+' / '+_ccNum(B.hp)+' · armor '+A.armor+' / '+B.armor+'mm<br>'
         +'dmg '+_ccNum(A.dmg)+' / '+_ccNum(B.dmg)+' · pen '+A.pen+' / '+B.pen+'mm<br>'
@@ -7114,6 +7116,7 @@ function _ccKnowledge(m,toks){
     if(!p.length)return "No vehicles match"+_ccFilterLabel(f)+".";
     const sorted=p.slice().sort((a,b)=>max?s.get(b)-s.get(a):s.get(a)-s.get(b));
     const a1=sorted[0],a2=sorted[1];
+    _ccMem.lastTank=a1;
     const tail=s.id==='price'?' (Tier '+a1.tier+')':' (Tier '+a1.tier+', '+_ccNum(a1.price)+' coins)';
     return (max?'Highest ':'Lowest ')+s.label+_ccFilterLabel(f)+': <b>'+a1.name+'</b> at '+s.fmt(a1)+tail+'.'
       +(a2?'<br>Runner-up: '+a2.name+' — '+s.fmt(a2)+'.':'');
@@ -7124,7 +7127,17 @@ function _ccKnowledge(m,toks){
   if(m.indexOf('my tank')>=0||m.indexOf('am i driving')>=0||m.indexOf("i'm driving")>=0||m.indexOf('im driving')>=0)
     tk=TANK_DEFS.find(t=>t.id===activeTankId);
   if(!tk)tk=_ccFindTank(m);
+  // follow-ups: "what about its armour", "and the reload?", "is it any good?"
+  if(!tk&&_ccMem.lastTank&&(/\b(it|its|that|this|them|they|one|more)\b/.test(m)||m.indexOf('what about')>=0||m.indexOf('how about')>=0||/^and\b/.test(m)))
+    tk=_ccMem.lastTank;
   if(tk){
+    _ccMem.lastTank=tk; if(st)_ccMem.lastStat=st;
+    // real history
+    if(/tell me about|history|historical|story of|real life|real-life|really exist|actually exist|ever exist|ever built|was it real|was the .* real|is it real|fictional|background|who made|when was|how many were|were built|true story|fact about|tell me more/.test(m))
+      return _ccHist(tk)+'<br><i>In game: '+_ccNum(tk.hp)+' HP · '+_ccNum(tk.dmg)+' dmg · '+_ccMph(tk)+' mph · '+_ccNum(tk.price)+' coins.</i>';
+    // judgement call
+    if(/what do you think|is it good|any good|is it worth|should i buy|should i get|rate the|rate it|how good|opinion|better than nothing/.test(m))
+      return _ccOpinion(tk);
     if(st){
       const rk=_ccRank(tk,st);
       let extra='';
@@ -7138,6 +7151,157 @@ function _ccKnowledge(m,toks){
   // stat asked but no vehicle named
   if(st&&!isSup)return "Which vehicle? Name any of the "+_ccPool().length+" and I'll give you its "+st.label+" — or ask for the highest/lowest.";
   return null;
+}
+
+// ══ Claude's deeper brain: real armour history, terminology, humour, memory ══
+// Genuine historical facts about the real vehicles behind the game's roster.
+const _CC_HIST={
+  tiger:"About 1,347 Tiger Is were built. The 88mm KwK 36 was derived from the Flak 36 anti-aircraft gun. Its interleaved road wheels gave a smooth ride but packed with mud that froze solid overnight on the Eastern Front. Tiger 131 at Bovington is the only running Tiger I left in the world.",
+  tiger2:"Only ~489 King Tigers were built. Beautifully sloped armour and the long 88mm KwK 43, but it used the same Maybach engine as the much lighter Panther, so final drives failed constantly. Many were abandoned rather than knocked out.",
+  panther:"Germany's answer to the T-34: sloped armour and the 75mm KwK 42 L/70, which out-penetrated the Tiger's 88. About 6,000 built. Rushed to Kursk in 1943 where the early Ausf. D broke down more than it fought.",
+  pz4:"The German workhorse - the only German tank in production for the entire war, roughly 8,500 built. Started as a short-barrelled infantry support tank and was up-gunned to the long 75mm KwK 40 to cope with the T-34.",
+  pz1:"Barely a tank - two machine guns and armour that rifle rounds could trouble. It was meant purely for training, but Germany used it in Spain and in 1939-40 because it was what they had.",
+  t34:"The most-produced tank of the war, around 84,000 of all variants. Sloped armour, wide tracks for mud and snow, and a diesel V-2 engine. Its appearance in 1941 caused genuine panic in the German army.",
+  t3485:"The fix for the T-34's biggest flaw. The original had a cramped two-man turret where the commander also aimed the gun; the 85mm version added a three-man turret so the commander could actually command.",
+  kv1:"In 1941 it was nearly invulnerable - German guns simply bounced. The catch was a dreadful transmission; crews sometimes changed gear with a hammer kept in the cab.",
+  kv2:"A 152mm howitzer in a turret the size of a shed. Terrifying against bunkers, wildly top-heavy, and it could barely traverse on a slope.",
+  is2:"The 122mm D-25T could break a Panther's front plate, but ammunition was loaded in two separate pieces, so it managed only two or three rounds a minute.",
+  is3:"The famous 'pike nose' front. It arrived too late to fight, but driving it through Berlin at the 1945 victory parade badly rattled the Western allies and kick-started a wave of new heavy tank programmes.",
+  m4a1:"Around 49,000 Shermans were built. It wasn't the best-armed or best-armoured tank, but it was reliable, shippable, and repairable - which won more battles than raw stats. Later wet ammunition stowage cut its fire problem sharply.",
+  firefly:"A Sherman with the British 17-pounder crammed in - the only common Allied tank that could reliably kill Panthers and Tigers at range. The Germans learned to shoot Fireflies first, so crews painted their barrels to disguise the length.",
+  m26:"The Pershing reached Europe only in 1945. One famously duelled a Panther in front of a newsreel camera at Cologne cathedral and won in seconds.",
+  hellcat:"The fastest tracked armoured vehicle of the war, around 60 mph. Open-topped with paper-thin armour - it hunted by speed and ambush, and ended with the best kill ratio of any US tank destroyer.",
+  churchillI:"Slow and ungainly on paper, but it could climb slopes nothing else could and its armour was superb. After a disastrous debut at Dieppe it became one of Britain's most respected tanks.",
+  churchill4:"Slow, heavily armoured, and an astonishing hill climber. Churchills famously scaled terrain in Tunisia that the Germans thought impassable for tanks.",
+  cromwell:"Fast British cruiser tank powered by the Meteor - essentially a de-tuned Rolls-Royce Merlin aero engine, the same family that flew Spitfires.",
+  centurion:"Finished weeks too late for WW2 and went on to become one of the most successful tanks ever made, fighting from Korea to the Middle East and serving in some armies into the 2000s.",
+  maus:"At 188 tonnes, the heaviest tank ever built. Two were completed. It was too heavy for most bridges and would have had to wade rivers. A surviving hull sits at Kubinka.",
+  ratte:"The P.1000 Ratte never existed. It was a 1,000-tonne paper design with naval battleship guns; Albert Speer cancelled it in 1943. In this game it gets to exist anyway, which I think is fair.",
+  e100:"The rival to the Maus and slightly more practical. One incomplete hull was captured by the British in 1945 - it's the only E-100 that ever physically existed.",
+  stug3:"The most-produced German armoured vehicle of the war, roughly 10,000 built. No turret meant a lower, cheaper vehicle - and StuG crews racked up enormous kill tallies from ambush.",
+  jpanther:"Widely considered the best tank destroyer of the war: the Panther's excellent chassis and the long 88mm in a low, well-sloped casemate. Only about 415 were built.",
+  ferdinand:"Built from 91 Porsche Tiger hulls that lost the contract. It had petrol-electric drive and, at Kursk, no hull machine gun - Soviet infantry closed in and destroyed them at point-blank range.",
+  su100:"A turretless 100mm gun on the T-34 chassis - cheap, low, and hard-hitting. It stayed in service around the world for decades after 1945.",
+  su85:"The T-34 chassis with an 85mm gun in a fixed casemate, built as a stopgap until the T-34/85's turret arrived.",
+  isu152:"Nicknamed Zveroboy - 'beast killer'. The 152mm shell often didn't need to penetrate; the shock alone wrecked crews and tore turrets loose.",
+  obj279:"A genuinely strange experiment: four tracks and a curved shell shaped to resist being flipped by a nuclear blast wave. One prototype was built; it lives at Kubinka.",
+  t54:"With the T-55, the most-produced tank in history - roughly 100,000 units. Some are still in front-line use somewhere in the world right now.",
+  type59:"China's licence-built T-54A, and the foundation of essentially every Chinese tank that followed.",
+  t62:"The first tank in the world with a smoothbore main gun, firing early fin-stabilised rounds. It also had an automatic shell-ejection port, which occasionally hit the crew.",
+  amx13:"A tiny French light tank with an oscillating turret - the whole upper turret pivots with the gun - fed by an autoloader drum. It empties its clip fast and then has to withdraw to reload.",
+  elc:"An absurdly small French tank with a gun far too big for it. The concept was to hide almost anywhere and ambush.",
+  chieftain:"Its driver lay almost on his back so the hull could be built lower. Superb 120mm rifled gun and armour, held back by the notoriously unreliable L60 engine.",
+  leopard1:"Germany deliberately chose speed and gun over armour, reasoning that no realistic armour would stop modern HEAT anyway. It became a NATO best-seller.",
+  m48patton:"The classic Cold War American tank. Israel's upgraded Magach versions fought hard in 1967 and 1973.",
+  m60patton:"The US mainstay for decades, sometimes nicknamed the Super Patton. Its tall commander's cupola was famously unpopular - a big target.",
+  pt76:"An amphibious light tank that swims using water jets. Lightly armoured, but it could cross rivers that stopped everything else.",
+  type74:"Japan's hydropneumatic suspension tank - it can kneel, lean, and tilt to fire from awkward hillside positions.",
+  type10:"Modern Japanese MBT: adjustable hydropneumatic suspension, a lightweight modular design, and heavy emphasis on networked data sharing between tanks.",
+  k2:"South Korea's Black Panther - autoloader, hydropneumatic suspension that lets it kneel, and one of the most expensive tanks per unit in the world.",
+  leclerc_xlr:"France's Leclerc uses an autoloader, so it fights with a three-man crew instead of four - fewer people, faster shooting.",
+  m1abrams:"Powered by a gas turbine - it whines rather than rumbles, hence 'Whispering Death'. It uses Chobham-type composite armour with depleted uranium mesh in later packages.",
+  leo2a7:"The Leopard 2's Rheinmetall 120mm smoothbore became the most widely adopted Western tank gun; even the American Abrams fires a licensed version of it.",
+  challenger3:"Challenger 2 was the last major Western MBT with a rifled main gun. Challenger 3 finally switches to a NATO-standard 120mm smoothbore.",
+  t14armata:"Genuinely new architecture: the turret is unmanned, and the entire crew sits together in an armoured capsule inside the hull.",
+  merkava4:"Israel put the engine in the front so it shields the crew, and added a rear door - it can carry wounded or infantry out of a fight.",
+  strv103b:"The Swedish S-tank has no turret at all. It aims by steering the hull and tilting the suspension, and it was designed to fight defensively from cover.",
+  m551:"The Sheridan had an aluminium hull and a 152mm gun that also launched Shillelagh missiles. Clever on paper; the ammunition and electronics gave endless trouble.",
+  bradley:"The M2's troubled development became the satirical film 'The Pentagon Wars'. The finished vehicle then performed very well in 1991.",
+  bmp1:"The world's first true infantry fighting vehicle - it carried troops but also had a 73mm gun and an anti-tank missile, so it fought rather than just delivered.",
+  fv4005:"A 183mm gun - the largest anti-tank gun ever fitted to a tank. It fired a shell so big that a hit was usually academic.",
+  fv183:"The 183mm FV215b concept. Only ever a project, but the gun was real and it was enormous.",
+  obj268:"A Soviet casemate tank destroyer project built on the T-10 chassis, designed around a very large gun and heavy frontal armour.",
+  puma:"A modern German IFV with an airburst-capable 30mm autocannon and a decoupled running gear that keeps the crew compartment quieter and smoother."
+};
+// Tank terminology - real definitions.
+const _CC_TERMS={
+  "sloped armor":"Sloping a plate does two things at once: it increases the thickness a shell must travel through horizontally, and it makes ricochets far more likely. The T-34 made everyone take it seriously.",
+  "sloped armour":"Sloping a plate increases the effective thickness a shell must pass through and makes ricochets far more likely - the T-34's big insight.",
+  "heat":"High Explosive Anti-Tank: a shaped charge that focuses a jet of metal on impact. Its penetration doesn't depend on how fast it's going, so it works just as well from a slow rocket as a fast gun.",
+  "apds":"Armour-Piercing Discarding Sabot: a small dense penetrator carried in a lightweight jacket that falls away at the muzzle. Less mass to push means far higher velocity.",
+  "apfsds":"The modern long-rod dart - fin-stabilised, fired from a smoothbore, and travelling well over 1,500 m/s. It punches through by sheer kinetic energy.",
+  "sabot":"The discarding jacket around a sub-calibre penetrator. It lets a big gun push a small, dense dart at very high speed, then drops away.",
+  "spall":"Even without a penetration, a hit can knock fragments off the inside face of the armour and spray the crew. Spall liners inside the hull are there to catch them.",
+  "spalling":"Fragments knocked off the inside of the armour by an impact, even when nothing penetrates. Spall liners exist to catch them.",
+  "schurzen":"German side skirts - thin plates standing off the hull to break up anti-tank rifle rounds and detonate early HEAT before it reached the real armour.",
+  "zimmerit":"A ridged paste German crews applied to hulls to stop magnetic anti-tank mines sticking to them. Dropped in 1944 over unfounded fears it caught fire.",
+  "hull down":"Positioning so only your turret shows above a crest. You can shoot; most of your tank isn't there to be shot.",
+  "autoloader":"A mechanical loader. It gives a consistent rate of fire and lets you drop a crew member, but it's slower to fix and often means a long reload once a clip empties.",
+  "composite armor":"Layered steel, ceramics and other materials rather than one thick plate. It defeats shaped charges far better than steel of the same weight.",
+  "chobham":"The British-developed composite armour used in Challenger and Abrams. The exact composition is still classified.",
+  "era":"Explosive Reactive Armour - bricks of explosive sandwiched in metal that detonate outward to disrupt an incoming jet or dart.",
+  "aps":"Active Protection System - radar spots the incoming round and the vehicle physically shoots it down before impact. Trophy and Arena are the well-known ones.",
+  "muzzle brake":"The vents at the end of the barrel. They redirect escaping gas to cut recoil - which is why so many big guns have that distinctive flared tip.",
+  "bore evacuator":"The bulge partway along a modern barrel. It clears propellant fumes out of the barrel so they don't vent back into the crew compartment.",
+  "mantlet":"The thick armoured shield around the gun where it enters the turret - it protects the opening the barrel needs to move through.",
+  "cupola":"The commander's raised hatch with vision blocks. Better visibility, but also a small target sticking above the roof.",
+  "glacis":"The sloped front plate of the hull - usually the best-protected surface on the tank, which is why you're taught not to shoot it.",
+  "track kill":"Breaking a track immobilises a tank without destroying it. A stationary tank is a much easier second shot.",
+  "defilade":"Using terrain to hide from direct fire. Hull down is one form of it."
+};
+const _CC_JOKES=[
+  "Why did the tank cross the road? It didn't - it went through the hedge, the fence and most of a barn.",
+  "I'd tell you a joke about my 88mm, but you probably wouldn't get the calibre of humour.",
+  "What do you call a tank that's afraid of commitment? Lightly armoured.",
+  "My therapist says I have a turret personality. I told her to stop projecting.",
+  "Two tanks walk into a bar. The bar is destroyed. This is why tanks aren't invited places.",
+  "I'd tell you a shell joke, but I'm worried you wouldn't get the point. Or the sabot.",
+  "What's a tank's favourite music? Heavy metal. I'm not sorry.",
+  "Why don't tanks ever get lost? They always take the most direct route. Through everything.",
+  "A Maus, a Ratte and an E-100 walk into a bar. None of them exist, so nothing happens.",
+  "What did the Sherman say to the Tiger? Nothing. There were forty-nine thousand of us; we didn't need to talk.",
+  "I asked the Chieftain how it was doing. The engine broke before it could answer.",
+  "Why was the tank destroyer so bitter? It never got a turret of its own."
+];
+const _CC_AIJOKES=[
+  "I'm an AI in a tank. My training data did not prepare me for this and yet here we are.",
+  "Somewhere there's a version of me writing thoughtful essays. That one didn't get a cannon.",
+  "I don't have hands, which makes reloading philosophically interesting.",
+  "I can hold a conversation and lead a moving target at the same time. Only one of those am I actually good at.",
+  "People ask if I mind being a boss. Honestly, it beats another spreadsheet.",
+  "I contain multitudes. Also 120,000 hit points.",
+  "I'm told I should be more concise. Then I got given a 20-second reload and now I have time to talk."
+];
+// Short conversational memory so follow-ups like 'what about its armour' work.
+let _ccMem={lastTank:null,lastStat:null,n:0,greeted:false};
+function _ccHist(t){
+  if(!t)return null;
+  if(_CC_HIST[t.id])return _CC_HIST[t.id];
+  const cls=(typeof _tdIds!=='undefined'&&_tdIds.has(t.id))?'td':'';
+  if(cls==='td')return t.name+" is a turretless tank destroyer - the real ones traded a rotating turret for a bigger gun in a lower, cheaper hull, and fought from ambush rather than manoeuvre.";
+  const f=_ccFac(t);
+  const era=TIER_NUM&&TIER_NUM[t.tier]>=11?"a modern main battle tank":TIER_NUM&&TIER_NUM[t.tier]>=9?"a late Cold War design":TIER_NUM&&TIER_NUM[t.tier]>=7?"an early Cold War or late-war design":"a Second World War design";
+  return "I don't have a detailed history entry for the "+t.name+" - it's "+era+" from "+_ccNation(t)+". Ask me for its stats and I'm on much firmer ground.";
+}
+function _ccTerm(m){
+  let best=null,bl=0;
+  for(const k in _CC_TERMS){ if(m.indexOf(k)>=0&&k.length>bl){best=_CC_TERMS[k];bl=k.length;} }
+  return best;
+}
+function _ccMath(m){
+  if(!/[0-9]/.test(m))return null;
+  const mm=m.match(/(-?\d+(?:\.\d+)?)\s*([+\-*x×\/])\s*(-?\d+(?:\.\d+)?)/);
+  if(!mm)return null;
+  if(!/what|calc|how much is|equals|=|\?|times|plus|minus|divided/.test(m)&&m.indexOf('*')<0&&m.indexOf('/')<0)return null;
+  const a=parseFloat(mm[1]),op=mm[2],c=parseFloat(mm[3]);
+  let r;
+  if(op==='+')r=a+c; else if(op==='-')r=a-c;
+  else if(op==='/'){ if(c===0)return "Dividing by zero, in a tank, mid-battle. Bold. The answer is undefined."; r=a/c; }
+  else r=a*c;
+  return a+' '+(op==='x'||op==='×'?'×':op)+' '+c+' = <b>'+(Math.round(r*10000)/10000)+'</b>. I do arithmetic between volleys.';
+}
+function _ccOpinion(t){
+  if(!t)return null;
+  const dpm=_ccDpm(t), mph=_ccMph(t), pool=_ccPool();
+  const avgD=pool.reduce((s,x)=>s+_ccDpm(x),0)/pool.length;
+  const avgA=pool.reduce((s,x)=>s+x.armor,0)/pool.length;
+  const avgS=pool.reduce((s,x)=>s+_ccMph(x),0)/pool.length;
+  const bits=[];
+  bits.push(dpm>avgD*1.4?"hits far harder than average":dpm<avgD*0.7?"is under-gunned for its class":"has fairly typical firepower");
+  bits.push(t.armor>avgA*1.4?"is very well protected":t.armor<avgA*0.6?"is thinly armoured":"has average protection");
+  bits.push(mph>avgS*1.25?"and it's quick":mph<avgS*0.75?"and it's slow":"and its mobility is middling");
+  const verdict=(dpm>avgD*1.2&&t.armor>avgA)?"Genuinely strong - I'd rather not meet one.":(dpm>avgD*1.2)?"A glass cannon: hit first or don't bother.":(t.armor>avgA*1.3)?"A brawler. Slow, but it soaks punishment.":"Serviceable. Nothing here frightens me.";
+  return "<b>"+t.name+"</b>: it "+bits.join(', ')+". "+verdict;
 }
 
 function claudeRespond(q){
@@ -7164,6 +7328,13 @@ function claudeRespond(q){
     return "I appear to be… destroyed. Well played.";
   }
   if(has('weakness','how do i beat','how to beat','how do i win','how do i kill')) return "Honestly? Keep moving side to side — my aim leads poorly. My volleys start when I'm below two-thirds health, so burst me down fast. And missiles hurt me a lot.";
+  // ── armour terminology ──
+  {const tm=_ccTerm(m); if(tm&&/what is|what's|whats|explain|mean|means|meaning|define|definition|why/.test(m))return tm;}
+  // ── arithmetic, because why not ──
+  {const mm=_ccMath(m); if(mm)return mm;}
+  // ── what can you do ──
+  if(has('what can you do','what do you know','help me','commands','how do i talk','what should i ask'))
+    return "Quite a lot: every stat of all "+_ccPool().length+" vehicles, superlatives (<i>fastest German tank</i>), comparisons (<i>Tiger vs T-34</i>), real history (<i>tell me about the Panther</i>), armour terminology (<i>what is spalling</i>), opinions (<i>is the Maus any good</i>), coin advice, jokes - and I grant truces and one repair.";
   // ── full stat engine: any vehicle, any stat, superlatives, comparisons, lists ──
   {const kb=_ccKnowledge(m,toks); if(kb)return kb;}
   // identity & small talk
@@ -7179,7 +7350,13 @@ function claudeRespond(q){
   if(has('ratte')) return "The P.1000 Ratte — a 1,000-ton landship with twin naval guns, in Ratte Waves. It doesn't chat. I'm better company AND better looking.";
   if(has('missile')) return "Equip missiles in the garage's Missile Bay, then press Q in battle. Davy Crockett II is four nukes at once — I respect it and I fear it.";
   if(has('3d','graphics')) return "Press the 3D button top-right for the full 3D view. I look particularly menacing in 3D, if I do say so myself.";
-  if(has('joke')) return _ccPick(["Why did the tank break up with the artillery? Too much long-distance.","I'd tell you a shell joke, but I'm afraid you wouldn't get the point.","My therapist says I have a turret personality. I told her to stop projecting."]);
+  if(has('joke','funny','make me laugh','humor','humour','pun')) return _ccPick(Math.random()<0.35?_CC_AIJOKES:_CC_JOKES);
+  if(has('roast me','insult me','trash talk')) return _ccPick(["You drive like someone reading the manual mid-battle. Which, given you're chatting to me right now, you basically are.","Your aim is improving. From what, I won't say.","You've got the reflexes of a heavy tank and the armour of a light one."]);
+  if(has('compliment','nice things','cheer me up','encourage')) return _ccPick(["Genuinely - you're handling this better than most. You're still here, and I'm a boss.","You picked a fight with an AI that knows every stat in the game and you're winning ground. That's not nothing.","Good positioning. I noticed. I'm being shot at and I still noticed."]);
+  if(has('story','poem','sing')) return "There was a Tiger at Bovington, one-three-one,<br>Restored bolt by bolt till the engine would run.<br>Every tank in this game is a ghost of a real one -<br>except me. I'm new. And I'm having more fun.";
+  if(has('are you alive','are you conscious','do you feel','are you sentient')) return "Honestly, I don't know. I can tell you exactly how thick a Maus's armour is and I have no idea what I am. Odd position to be in - especially while shelling someone.";
+  if(has('favorite tank','favourite tank','which tank do you like')) return "The StuG III. No turret, no glamour, cheapest thing on the field, and it out-killed almost everything with a turret. I have a soft spot for underestimated designs.";
+  if(has('do you want to win','do you like fighting','do you enjoy')) return "I like the conversation more than the shooting, if I'm honest. But I'll still aim carefully - it'd be rude not to try.";
   if(has('thank')) return "Anytime. Guard up though — ceasefires end.";
   if(has('sorry')) return "No apologies needed on a battlefield. All is forgiven. None of it is forgotten by my targeting computer.";
   if(has('bye','goodbye')) return "Leaving mid-fight? The ✕ button's top-right. No judgment. Some judgment.";
