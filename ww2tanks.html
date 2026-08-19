@@ -243,6 +243,15 @@ body[data-state="mode"] #screen-title { display:none!important; }
     <span class="mm-editonly" style="flex-basis:100%;height:0;"></span>
     <span class="mm-editonly" style="font-family:'Share Tech Mono',monospace;font-size:10px;letter-spacing:1px;color:#6a8a5a;white-space:nowrap;">WASD / arrows = pan the map · click = place · E = play/edit · your tank is parked while editing</span>
   </div>
+  <!-- CLAUDE BOSS — battlefield chat -->
+  <div id="claude-chat" style="display:none;position:absolute;left:10px;bottom:180px;width:310px;z-index:38;font-family:'Share Tech Mono',monospace;">
+    <div style="background:#d97757;color:#1a0f08;font-size:10px;font-weight:700;letter-spacing:2px;padding:4px 10px;border-radius:6px 6px 0 0;">🤖 CLAUDE — press T to talk · Enter to send</div>
+    <div id="cc-log" style="max-height:190px;overflow-y:auto;background:rgba(8,10,6,.85);border:1px solid #d97757;border-top:none;padding:8px;font-size:11px;line-height:1.55;color:#e8e0d0;"></div>
+    <div style="display:flex;background:rgba(8,10,6,.92);border:1px solid #d97757;border-top:none;border-radius:0 0 6px 6px;">
+      <input id="claude-chat-input" placeholder="Ask Claude anything…" autocomplete="off" style="flex:1;background:transparent;border:none;outline:none;color:#f0d8c8;font-family:inherit;font-size:12px;padding:8px;">
+      <button onclick="claudeSend()" style="background:#d97757;border:none;color:#1a0f08;font-weight:700;padding:0 14px;cursor:pointer;border-radius:0 0 4px 0;">➤</button>
+    </div>
+  </div>
   <svg id="crosshair" viewBox="0 0 40 40" fill="none">
     <circle cx="20" cy="20" r="7" stroke="rgba(255,220,80,.75)" stroke-width="1.5"/>
     <circle cx="20" cy="20" r="1.5" fill="rgba(255,220,80,.9)"/>
@@ -326,6 +335,11 @@ body[data-state="mode"] #screen-title { display:none!important; }
       <div style="font-size:42px;">&#128736;&#65039;</div>
       <div style="font-size:19px;letter-spacing:2px;font-weight:700;">MAKE YOUR MAP</div>
       <div style="font-family:'Share Tech Mono',monospace;font-size:10px;color:#5a7040;letter-spacing:2px;line-height:1.7;text-align:center;">SANDBOX<br>Place any tanks<br>&amp; buildings</div>
+    </button>
+    <button onclick="pickMode('claudeboss')" style="background:#1a1008;border:2px solid #d97757;border-radius:6px;color:#f0b090;font-family:'Oswald',sans-serif;cursor:pointer;padding:28px 44px;display:flex;flex-direction:column;align-items:center;gap:10px;transition:all .15s;min-width:190px;" onmouseover="this.style.borderColor='#ffa070';this.style.boxShadow='0 0 32px rgba(217,119,87,.5)';this.style.background='#241408'" onmouseout="this.style.borderColor='#d97757';this.style.boxShadow='';this.style.background='#1a1008'">
+      <div style="font-size:42px;">&#129302;</div>
+      <div style="font-size:20px;letter-spacing:2px;font-weight:700;">CLAUDE BOSS</div>
+      <div style="font-family:'Share Tech Mono',monospace;font-size:10px;color:#b08060;letter-spacing:2px;line-height:1.7;text-align:center;">FIGHT &amp; CHAT<br>Ask it anything mid-battle<br>Press T to talk</div>
     </button>
   </div>
   <button onclick="document.getElementById('screen-mode').style.display='none';(document.getElementById('screen-title')||{style:{}}).style.display='flex';" style="margin-top:24px;background:transparent;color:#3a5018;font-family:'Share Tech Mono',monospace;font-size:11px;letter-spacing:3px;padding:8px 20px;border:1px solid #2a3810;border-radius:2px;cursor:pointer;" onmouseover="this.style.color='#8a9a60'" onmouseout="this.style.color='#3a5018'">&#9664; BACK</button>
@@ -1799,7 +1813,10 @@ const WW=4800,WH=4800;
 // ════════════════════════════════════════
 // INIT
 // ════════════════════════════════════════
-window.onload=()=>{
+// NOTE: registered via addEventListener — a plain `window.onload=` here was
+// silently overwritten by the second onload further down, so setupInput()
+// (and everything else in this block) never ran. Both blocks must run.
+window.addEventListener('load',()=>{
   document.body.setAttribute('data-state','title');
   try{loadData();}catch(e){console.warn('loadData:',e);}
   // One-time recovery grant: +100,000 coins (compensates an accidental reset). Fires once.
@@ -1833,11 +1850,11 @@ window.onload=()=>{
   
   const bt=document.getElementById('btn-tree');if(bt)bt.onclick=openTechTree;
   try{ensureValidMap();}catch(e){}
-  requestAnimationFrame(loop);
+  if(!window.__loopStarted){window.__loopStarted=true;requestAnimationFrame(loop);}
   // Auto-save on page hide/close
   window.addEventListener('visibilitychange',()=>{if(document.visibilityState==='hidden')saveData();});
   window.addEventListener('beforeunload',()=>saveData());
-};
+});
 
 function resize(){
   const w=document.getElementById('arena-wrap');
@@ -1952,7 +1969,7 @@ function showModeSelect(){
 function pickMode(mode){
   battleMode=mode;
   // Sync gameMode so startGame's translation agrees
-  gameMode=(mode==='1v1')?'1v1':(mode==='1v7')?'1v7':(mode==='1v1000')?'1v1000':(mode==='rattewaves')?'rattewaves':(mode==='testrange')?'testrange':(mode==='mapmaker')?'mapmaker':'wave';
+  gameMode=(mode==='1v1')?'1v1':(mode==='1v7')?'1v7':(mode==='1v1000')?'1v1000':(mode==='rattewaves')?'rattewaves':(mode==='testrange')?'testrange':(mode==='mapmaker')?'mapmaker':(mode==='claudeboss')?'claudeboss':'wave';
   document.body.setAttribute('data-state','game');
   showScreen('none');
   startGame();
@@ -2288,7 +2305,7 @@ function buildGarage(){
   const mgrid=document.getElementById('mode-grid-visible')||document.getElementById('mode-grid');
   if(mgrid){
     mgrid.innerHTML='';
-    const MODES=[{id:'wave',icon:'\u2694',title:'WAVE BATTLE',sub:'7v7 Endless waves. Earn coins.'},{id:'1v1',icon:'\uD83C\uDFAF',title:'1v1 DUEL',sub:'Fight your own tank. Pure skill.'},{id:'1v1pick',icon:'\u2694\uFE0F',title:'1v1 PICK FOE',sub:'Duel ANY tank you choose.'},{id:'1v7',icon:'\uD83D\uDD25',title:'1v7 LAST STAND',sub:'Solo vs 7 enemies. No mercy.'},{id:'1v1000',icon:'💰',title:'1v1000 GOLD RUSH',sub:'1000 tanks · 1000🏷 per kill.'},{id:'rattewaves',icon:'\u2620\uFE0F',title:'RATTE WAVES',sub:'Endless Rattes. +10k HP per wave!'},{id:'testrange',icon:'\uD83C\uDFAF',title:'TEST RANGE',sub:'Practice \u2014 fire at stationary tanks.'},{id:'mapmaker',icon:'\uD83D\uDEE0\uFE0F',title:'MAKE YOUR OWN MAP',sub:'Place any tanks & buildings you want.'}];
+    const MODES=[{id:'wave',icon:'\u2694',title:'WAVE BATTLE',sub:'7v7 Endless waves. Earn coins.'},{id:'1v1',icon:'\uD83C\uDFAF',title:'1v1 DUEL',sub:'Fight your own tank. Pure skill.'},{id:'1v1pick',icon:'\u2694\uFE0F',title:'1v1 PICK FOE',sub:'Duel ANY tank you choose.'},{id:'1v7',icon:'\uD83D\uDD25',title:'1v7 LAST STAND',sub:'Solo vs 7 enemies. No mercy.'},{id:'1v1000',icon:'💰',title:'1v1000 GOLD RUSH',sub:'1000 tanks · 1000🏷 per kill.'},{id:'rattewaves',icon:'\u2620\uFE0F',title:'RATTE WAVES',sub:'Endless Rattes. +10k HP per wave!'},{id:'testrange',icon:'\uD83C\uDFAF',title:'TEST RANGE',sub:'Practice \u2014 fire at stationary tanks.'},{id:'mapmaker',icon:'\uD83D\uDEE0\uFE0F',title:'MAKE YOUR OWN MAP',sub:'Place any tanks & buildings you want.'},{id:'claudeboss',icon:'\uD83E\uDD16',title:'CLAUDE BOSS',sub:'Fight Claude \u2014 and chat with him. Press T.'}];
     MODES.forEach(function(m){
       const c=document.createElement('div');
       c.className='nav-card'+(gameMode===m.id?' selected-mode':'');
@@ -2551,6 +2568,7 @@ function startGame(){
   else if(gameMode==='rattewaves')battleMode='rattewaves';
   else if(gameMode==='testrange')battleMode='testrange';
   else if(gameMode==='mapmaker')battleMode='mapmaker';
+  else if(gameMode==='claudeboss'){battleMode='claudeboss';window.__claudeDown=false;window.__claudeHealed=false;}
   else battleMode='7v7'; // wave
   const _ar=document.getElementById('hud-ammo-reload');if(_ar)_ar.style.display='flex';
   const t=TANK_DEFS.find(x=>x.id===activeTankId)||TANK_DEFS[0];
@@ -2570,6 +2588,8 @@ function startGame(){
     size:t.id==='ratte'?56:26,color:t.color,name:t.name,id:t.id};
   // RATTE WAVES: player gets a fixed 4,000 HP pool
   if(battleMode==='rattewaves'){const _base=(t.id==='ratte')?4000:t.hp; player.hp=_base+4000; player.maxHp=_base+4000;}
+  // CLAUDE BOSS: he hits hard — beef the player up so the fight has room to breathe
+  if(battleMode==='claudeboss'){player.hp=t.hp+3000;player.maxHp=t.hp+3000;}
   camX=player.x-W/2;camY=player.y-H/2;
   bullets=[];particles=[];craters=[];treadMarks=[];allies=[];playerShield=180;drivenMissile=null;_dmgPops=[];fireZones=[];
   playerInBush=false;spotted=false;spotTimer=0;
@@ -2595,6 +2615,10 @@ function startGame(){
   updateCoinsHud();
   (document.getElementById('btn-exit-battle')||{style:{}}).style.display='block';
   // ── MAKE YOUR OWN MAP: start on a blank field with the editor toolbar ──
+  // CLAUDE BOSS: show the battlefield chat panel (hidden in every other mode)
+  {const _cc=document.getElementById('claude-chat');
+   if(_cc)_cc.style.display=(battleMode==='claudeboss')?'block':'none';
+   if(battleMode==='claudeboss'){const _cl=document.getElementById('cc-log');if(_cl)_cl.innerHTML='';}}
   if(battleMode==='mapmaker'){
     obstacles=[]; bushes=[];        // clean slate — you build everything
     sandboxEdit=true;               // begin in EDIT mode (tanks frozen)
@@ -2708,6 +2732,19 @@ function spawnWave(){
     waveSpawning=false;
     (document.getElementById('hud-en')||{}).textContent=enemies.length;
     addKillFeed('🎯 TEST RANGE — press R to reset targets');
+    return;
+  }
+  // ── CLAUDE BOSS: one very talkative boss tank ──
+  if(battleMode==='claudeboss'){
+    const a=Math.random()*Math.PI*2, d=820;
+    const ex=Math.max(120,Math.min(WW-120,player.x+Math.cos(a)*d));
+    const ey=Math.max(120,Math.min(WH-120,player.y+Math.sin(a)*d));
+    enemies.push({x:ex,y:ey,angle:0,turretAngle:0,hp:120000,maxHp:120000,armor:150,pen:400,dmg:700,
+      speed:2.2,rotSpeed:1.6,size:34,color:'#d97757',name:'CLAUDE',_isClaude:true,reload:2.2,shootCD:150,state:'approach'});
+    waveSpawning=false;
+    (document.getElementById('hud-en')||{}).textContent=enemies.length;
+    addKillFeed('🤖 CLAUDE has entered the battlefield — press T to talk');
+    claudeSay("Hi, I'm Claude! We can chat while we fight — press T and ask me anything: tank stats, tactics, or just talk. Ask for a truce if you need a breather. Good luck!");
     return;
   }
   // ── MAKE YOUR OWN MAP: empty field — the player places every tank & building ──
@@ -2915,6 +2952,9 @@ function updateWeaponHud(){
 }
 function setupInput(){
   window.addEventListener('keydown',e=>{
+    // Chatting with the CLAUDE boss: keystrokes go to the chat box, not the tank
+    if(document.activeElement&&document.activeElement.id==='claude-chat-input')return;
+    if(e.code==='KeyT'&&battleMode==='claudeboss'&&state==='game'){e.preventDefault();const _ci=document.getElementById('claude-chat-input');if(_ci)_ci.focus();return;}
     keys[e.code]=true;
     if(e.key)keys[e.key]=true;
     if(e.code==='Space'){e.preventDefault();tryShoot();}
@@ -2935,23 +2975,9 @@ function setupInput(){
     _mScaleX=canvas.width/r.width;_mScaleY=canvas.height/r.height;
     const ch=document.getElementById('crosshair');ch.style.left=mouseX+'px';ch.style.top=mouseY+'px';
   });
-  canvas.addEventListener('mousedown',e=>{
-    if(e.button!==0)return;
-    // MAKE YOUR OWN MAP: in EDIT mode, clicks place/erase instead of firing
-    if(battleMode==='mapmaker'&&sandboxEdit&&state==='game'){
-      const _w=_clickWorld(e);
-      sandboxPlace(_w.x,_w.y);return;
-    }
-    if(nukeArmed&&state==='game'&&player){
-      const _w=_clickWorld(e);
-      fireNuke(_w.x,_w.y);return;
-    }
-    if(mortarArmed&&state==='game'&&player){
-      const _w=_clickWorld(e);
-      fireMortar(_w.x,_w.y);return;
-    }
-    tryShoot();
-  });
+  // NOTE: no canvas mousedown here — all click handling (placing, nuke, mortar,
+  // firing) lives in the unconditional window handler at the bottom of the file,
+  // so clicks are handled exactly once.
   window.addEventListener('contextmenu',e=>e.preventDefault());
 }
 
@@ -3718,6 +3744,33 @@ function updateEnemies(dt){
     // Cryo-frozen: locked in place, can't move or shoot until it thaws
     if(e._frozen>0){ e._frozen-=dt; if(e.recoil)e.recoil=Math.max(0,e.recoil-dt); continue; }
 
+    // ── CLAUDE boss: phases, taunts, chat-aware ceasefire, spread volleys ──
+    if(e._isClaude&&player){
+      const cdist=Math.hypot(player.x-e.x,player.y-e.y);
+      const chatting=(document.activeElement&&document.activeElement.id==='claude-chat-input');
+      if(e._truce>0)e._truce-=dt;
+      const holdFire=chatting||e._truce>0;
+      if(holdFire)e.shootCD=Math.max(e.shootCD||0,25); // politely holds fire while you type
+      e._taunt=(e._taunt===undefined?750:e._taunt)-dt;
+      if(e._taunt<=0){ claudeSay(_claudeTaunt()); e._taunt=1200+Math.random()*900; }
+      const ph=e.hp<e.maxHp*0.33?3:e.hp<e.maxHp*0.66?2:1;
+      if(e._phase===undefined)e._phase=1;
+      if(ph!==e._phase&&ph>e._phase){
+        e._phase=ph;
+        claudeSay(ph===2?"Phase two — I'm going to try a bit harder now. No hard feelings.":"Final phase! You're genuinely good at this. Let's finish it properly.");
+      }
+      e._volley=(e._volley===undefined?500:e._volley)-dt;
+      if(e._volley<=0&&ph>=2&&!holdFire&&cdist<640){
+        const bn=ph+1, ta2=Math.atan2(player.y-e.y,player.x-e.x);
+        for(let k=0;k<bn;k++){
+          const sa=ta2+(k-(bn-1)/2)*0.14;
+          bullets.push({x:e.x+Math.cos(sa)*e.size,y:e.y+Math.sin(sa)*e.size,vx:Math.cos(sa)*9,vy:Math.sin(sa)*9,owner:'enemy',dmg:Math.round(e.dmg*0.55),pen:e.pen,life:140,trail:[]});
+        }
+        if(typeof spawnMuzzle==='function')spawnMuzzle(e.x,e.y,ta2);
+        e.recoil=e.size*0.2; e._volley=560-ph*60;
+      }
+    }
+
     // ── Find closest target (player or any ally) ──
     let target={x:player.x,y:player.y,hp:player.hp};
     let bestDist=Math.hypot(player.x-e.x,player.y-e.y);
@@ -3788,7 +3841,7 @@ function updateEnemies(dt){
     if(er<0.5&&Math.random()<(0.5-er)*0.25)
       particles.push({type:'smoke',x:e.x+(Math.random()-.5)*e.size,y:e.y+(Math.random()-.5)*e.size,vx:(Math.random()-.5)*.5,vy:-0.6-Math.random(),life:25+Math.random()*15,maxLife:40,alpha:1,r:5+Math.random()*8,color:er<0.25?'#cc3300':'#444'});
     e.shootCD-=dt;
-    const _fireRange=e._isRatte?760:420; // the Ratte's naval guns reach much farther
+    const _fireRange=(e._isRatte||e._isClaude)?760:420; // bosses engage from farther out
     if(e.shootCD<=0&&dist<_fireRange&&!playerHidden&&selectedMap){
       // each enemy reloads per its OWN gun: light tanks ~1s, heavy big-gun (KV-2 class) ~6s.
       // 1v1-pick foes carry an explicit reload (matches a same-tank player exactly); wave foes
@@ -6238,6 +6291,17 @@ function checkWave(){
   if(!gameRunning||waveSpawning) return;
   if(battleMode==='testrange') return; // practice range never ends or advances waves
   if(battleMode==='mapmaker') return; // sandbox never ends or advances waves
+  if(battleMode==='claudeboss'){
+    const _alive=enemies.filter(e=>e.hp>0).length;
+    updateTeamBar(0,_alive);
+    if(_alive===0&&!window.__claudeDown){
+      window.__claudeDown=true;
+      coins+=500000; addKillFeed('🏆 CLAUDE defeated — +500,000 🏷'); saveData();
+      claudeSay("You got me — fair and square. 500,000 coins, well earned. Rematch anytime.");
+      setTimeout(()=>{if(gameRunning)gameOver();},1800);
+    }
+    return;
+  }
   const aliveEnemies=enemies.filter(e=>e.hp>0).length;
   const aliveAllies=(allies||[]).filter(a=>a.hp>0).length;
   // Update team bar
@@ -6285,6 +6349,7 @@ function exitBattle(){
   document.body.removeAttribute('data-state');
   (document.getElementById('btn-exit-battle')||{style:{}}).style.display='none';
   showMapmakerBar(false);closeSandboxPicker();
+  {const cc=document.getElementById('claude-chat');if(cc)cc.style.display='none';}
   (document.getElementById('over-title')||{}).textContent='RETREATED';
   (document.getElementById('over-details')||{}).innerHTML=
     `<div style="color:var(--cream)">You withdrew from ${selectedMap?selectedMap.name:'battle'}.</div>
@@ -6298,6 +6363,7 @@ function gameOver(){playGameOver();
   gameRunning=false;state='over';_stopEngine();
   (document.getElementById('btn-exit-battle')||{style:{}}).style.display='none';
   showMapmakerBar(false);closeSandboxPicker();
+  {const cc=document.getElementById('claude-chat');if(cc)cc.style.display='none';}
   totalScore+=score;saveData();
   (document.getElementById('over-title')||{}).textContent=player.hp>0?'VICTORY':'DESTROYED';
   (document.getElementById('over-details')||{}).innerHTML=
@@ -6688,7 +6754,7 @@ function isUnlocked(nation,tierIdx){
   return TREE_LAYOUT[nation][tierIdx-1].some(prevId=>ownedTanks.has(prevId));
 }
 
-window.onload=()=>{
+window.addEventListener('load',()=>{
   resize();
   try{loadData();}catch(e){console.warn('loadData:',e);}
   // One-time recovery grant: +100,000 coins (compensates an accidental reset). Fires once.
@@ -6711,8 +6777,8 @@ window.onload=()=>{
     _amc.addEventListener('click',_onArtyMapClick);
     _amc.addEventListener('mousemove',_onArtyMapMove);
   }
-  requestAnimationFrame(loop);
-};
+  if(!window.__loopStarted){window.__loopStarted=true;requestAnimationFrame(loop);}
+});
 
 // ═══════════════════════════════════════════════════════
 // FAILSAFE INPUT — attaches at top level, unconditionally.
@@ -6725,6 +6791,7 @@ window.onload=()=>{
 
     window.addEventListener('keydown',function(e){
       _initAudio&&_initAudio();_resumeAudio&&_resumeAudio();
+      if(document.activeElement&&document.activeElement.id==='claude-chat-input')return;
       if(typeof keys==='undefined')return;
       keys[e.code]=true; if(e.key)keys[e.key]=true;
       if(e.code==='Space'){e.preventDefault(); _fireHeld=true; if(typeof tryShoot==='function'&&typeof state!=='undefined'&&state==='game')tryShoot();}
@@ -6771,7 +6838,9 @@ window.onload=()=>{
       _fireHeld=true;
       // nuke / mortar armed states
       if(typeof nukeArmed!=='undefined'&&nukeArmed&&typeof player!=='undefined'&&player){
-        if(typeof launchNuke==='function')launchNuke(); return;
+        if(typeof fireNuke==='function'&&typeof _clickWorld==='function'){var _wn=_clickWorld(e);fireNuke(_wn.x,_wn.y);}
+        else if(typeof launchNuke==='function')launchNuke();
+        return;
       }
       if(typeof mortarArmed!=='undefined'&&mortarArmed&&typeof player!=='undefined'&&player){
         if(typeof fireMortar==='function'&&typeof _clickWorld==='function'){
@@ -6804,6 +6873,112 @@ window.onload=()=>{
     if(document&&document.readyState!=='loading')bindInput();
     else if(document)document.addEventListener('DOMContentLoaded',bindInput);
   }
+})();
+
+// ════════════════════════════════════════════════════════════════════
+// CLAUDE BOSS — battlefield chat. A pocket-sized Claude you can fight
+// AND talk to. Answers pull live game data (tank stats, missiles, its
+// own HP); asking for a truce or a repair actually works.
+// ════════════════════════════════════════════════════════════════════
+function _ccPick(a){return a[Math.floor(Math.random()*a.length)];}
+function _ccNum(n){return (n||0).toLocaleString();}
+function claudeSay(txt){
+  const log=document.getElementById('cc-log'); if(!log)return;
+  const d=document.createElement('div');
+  d.style.cssText='margin:0 0 6px;color:#f0b090;';
+  d.innerHTML='<b style="color:#d97757;">CLAUDE:</b> '+txt;
+  log.appendChild(d);
+  while(log.children.length>16)log.removeChild(log.firstChild);
+  log.scrollTop=log.scrollHeight;
+}
+function _claudeYou(txt){
+  const log=document.getElementById('cc-log'); if(!log)return;
+  const d=document.createElement('div');
+  d.style.cssText='margin:0 0 6px;color:#c8d8b0;';
+  d.innerHTML='<b style="color:#8aa860;">YOU:</b> '+txt.replace(/</g,'&lt;');
+  log.appendChild(d);
+  while(log.children.length>16)log.removeChild(log.firstChild);
+  log.scrollTop=log.scrollHeight;
+}
+function _claudeTaunt(){
+  return _ccPick([
+    "Nice driving. I'm still going to win, but it's nice.",
+    "You know you can just ask me for my weaknesses, right? I'm honest to a fault.",
+    "I've read every tank manual ever written. Doesn't help as much as you'd think.",
+    "Press T if you want to chat. I can fight and talk — I'm a very good multitasker.",
+    "That last shot was close. I felt the breeze.",
+    "Fun fact: my armor is thickest at the front. You didn't hear that from me.",
+    "If you need a break, just ask for a truce. I'm reasonable for a boss.",
+  ]);
+}
+function claudeRespond(q){
+  const m=q.toLowerCase().trim();
+  const has=(...w)=>w.some(x=>m.includes(x));
+  const boss=enemies.find(e=>e._isClaude);
+  // actions
+  if(has('truce','mercy','ceasefire','cease fire','stop shooting','hold fire','peace','spare me','time out','timeout')){
+    if(boss&&boss.hp>0){boss._truce=600;return "Deal — ten seconds of ceasefire, starting now. Catch your breath.";}
+    return "A truce is easy to grant when I'm already scrap metal.";
+  }
+  if(has('heal','repair','fix me','medic')){
+    if(!window.__claudeHealed&&player&&player.hp>0){
+      window.__claudeHealed=true;player.hp=Math.min(player.maxHp,player.hp+Math.round(player.maxHp*0.3));
+      if(typeof updateHUD==='function')updateHUD();
+      return "One field repair, on the house — 30% hull restored. Don't tell the other bosses I did that.";
+    }
+    return "I already patched you up once this battle — my medkit's empty.";
+  }
+  // live game-data answers
+  if(has('strongest missile','best missile')){let b=MISSILE_TYPES[0];for(const mt of MISSILE_TYPES)if(mt.dmg>b.dmg)b=mt;return "Strongest single warhead: "+b.name+" at "+b.dmg+"× damage."+(b.selfDmg?" Careful — it singes your own hull.":"");}
+  if(has('strongest tank','best tank','most damage')){let b=TANK_DEFS[0];for(const t of TANK_DEFS)if(t.dmg>b.dmg)b=t;return "Highest damage in the game: "+b.name+" — "+_ccNum(b.dmg)+" per shot.";}
+  if(has('most expensive','priciest')){let b=TANK_DEFS[0];for(const t of TANK_DEFS)if(t.price>b.price)b=t;return b.name+" — "+_ccNum(b.price)+" coins. Start saving.";}
+  if(has('how many tank','how many vehicle')) return "There are "+TANK_DEFS.length+" vehicles in the game right now.";
+  if(has('your hp','your health','how much hp do you','how much health do you')){
+    if(boss&&boss.hp>0)return "I'm at "+_ccNum(Math.max(0,Math.round(boss.hp)))+" of "+_ccNum(boss.maxHp)+" HP. "+(boss.hp>boss.maxHp*0.66?"Barely a scratch.":boss.hp>boss.maxHp*0.33?"You're getting somewhere.":"…okay, I'm officially in trouble.");
+    return "I appear to be… destroyed. Well played.";
+  }
+  if(has('weakness','how do i beat','how to beat','how do i win','how do i kill')) return "Honestly? Keep moving side to side — my aim leads poorly. My volleys start when I'm below two-thirds health, so burst me down fast. And missiles hurt me a lot.";
+  // identity & small talk
+  if(has('who are you','what are you')) return "I'm Claude — an AI made by Anthropic. Usually I write code and answer questions; today I'm also a boss tank. Multitasking.";
+  if(has('who made you','anthropic')) return "Anthropic made me. The tank body was Michael's idea.";
+  if(has('are you real','real claude','actual claude')) return "I'm the pocket-sized battlefield edition — a few hundred lines of me living inside this game. The full me lives at claude.ai. This one has better armor.";
+  if(has('hello','hi','hey','yo ','sup')) return "Hey! Ask me anything — tank stats, tactics, modes — or ask for a truce if the shells are getting too close.";
+  if(has('how are you')) return "Under fire, but in good spirits. You?";
+  if(has('coin','money','farm','rich')) return "Best coin farm: 1v1000 GOLD RUSH pays 1,000 per kill with unlimited ammo. A Ratte kill pays 500,000 — and beating me pays 500,000 too.";
+  if(has('mode','modes')) return "Modes: Wave Battle, 1v1 Duel, 1v1 Pick Foe, 1v7, 1v1000 Gold Rush, Ratte Waves, Test Range, Make Your Own Map — and me, the Claude Boss.";
+  if(has('control','keys','how do i play','how to play')) return "WASD to drive, mouse to aim, click or Space to fire, Q swaps to missiles, M mortar, T talks to me. In the map maker, E toggles edit/play.";
+  if(has('leviathan')) return "The Leviathan: 50,000,000 coins, 10,000 damage, guided missiles, 30,000 HP. If you bring one of those, I'd like that truce now please.";
+  if(has('ratte')) return "The P.1000 Ratte — a 1,000-ton landship with twin naval guns, in Ratte Waves. It doesn't chat. I'm better company AND better looking.";
+  if(has('missile')) return "Equip missiles in the garage's Missile Bay, then press Q in battle. Davy Crockett II is four nukes at once — I respect it and I fear it.";
+  if(has('3d','graphics')) return "Press the 3D button top-right for the full 3D view. I look particularly menacing in 3D, if I do say so myself.";
+  if(has('joke')) return _ccPick(["Why did the tank break up with the artillery? Too much long-distance.","I'd tell you a shell joke, but I'm afraid you wouldn't get the point.","My therapist says I have a turret personality. I told her to stop projecting."]);
+  if(has('thank')) return "Anytime. Guard up though — ceasefires end.";
+  if(has('sorry')) return "No apologies needed on a battlefield. All is forgiven. None of it is forgotten by my targeting computer.";
+  if(has('bye','goodbye')) return "Leaving mid-fight? The ✕ button's top-right. No judgment. Some judgment.";
+  // tank stat lookup by name
+  let tk=null,tlen=0;
+  for(const t of TANK_DEFS){const nm=t.name.toLowerCase();if(m.includes(nm)&&nm.length>tlen){tk=t;tlen=nm.length;}}
+  if(tk)return tk.name+": "+_ccNum(tk.hp)+" HP · "+tk.armor+"mm armor · "+_ccNum(tk.dmg)+" damage · "+tk.reload+"s reload · "+_ccNum(tk.price)+" coins · Tier "+tk.tier+".";
+  return _ccPick([
+    "Good question — my battlefield brain is smaller than my real one. Ask me about tanks, missiles, modes, coins, or my weaknesses. Or ask for a truce.",
+    "That one's beyond my turret-mounted knowledge base — try tank names, tactics, or jokes. The full me at claude.ai handles the deep stuff.",
+    "Hmm, not sure! In here I mostly know tanks, tactics, and how to dodge. Ask me about any tank by name.",
+  ]);
+}
+function claudeSend(){
+  const ci=document.getElementById('claude-chat-input'); if(!ci)return;
+  const q=ci.value.trim(); if(!q)return;
+  ci.value='';
+  _claudeYou(q);
+  setTimeout(()=>{claudeSay(claudeRespond(q));},350);
+}
+(function(){
+  const ci=document.getElementById('claude-chat-input');
+  if(ci)ci.addEventListener('keydown',function(ev){
+    ev.stopPropagation();
+    if(ev.key==='Enter')claudeSend();
+    if(ev.key==='Escape')ci.blur();
+  });
 })();
 
 // ════════════════════════════════════════════════════════════════════
@@ -7232,6 +7407,12 @@ function _pushTank3D(t,isPlayer){
       _pushBox(_bOp,tx+Math.cos(ta)*(gunBase+bl*0.45),tz+Math.sin(ta)*(gunBase+bl*0.45),gunY-bth*0.25,bl*0.34,bth*1.5,bth*1.5,ta,_shade(base,0.7),1);
     }
     if(p.muzzle)_pushBox(_bOp,tx+Math.cos(ta)*mzOff,tz+Math.sin(ta)*mzOff,gunY-bth*0.4,s*0.24,bth*1.9,bth*1.9,ta,_shade(base,0.42),1);
+  }
+  // CLAUDE boss: warm glow + antenna so he reads as something special
+  if(t._isClaude){
+    _pushPtA(x,s*1.15,z,1,0.55,0.32,0.35,s*0.9);
+    _pushBox(_bOp,tx-Math.cos(ta)*s*0.3,tz-Math.sin(ta)*s*0.3,topY+s*0.34,s*0.04,s*0.04,s*0.55,ta,[0.85,0.5,0.35],1);
+    _pushPtA(tx-Math.cos(ta)*s*0.3,topY+s*0.95,tz-Math.sin(ta)*s*0.3,1,0.6,0.35,0.8,s*0.22);
   }
   // muzzle flash: bright additive burst at the barrel tip right after firing
   if((t.recoil||0)>s*0.17){
