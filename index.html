@@ -2744,7 +2744,7 @@ function spawnWave(){
     waveSpawning=false;
     (document.getElementById('hud-en')||{}).textContent=enemies.length;
     addKillFeed('🤖 CLAUDE has entered the battlefield — press T to talk');
-    claudeSay("Hi, I'm Claude! We can chat while we fight — press T and ask me anything: tank stats, tactics, or just talk. Ask for a truce if you need a breather. Good luck!");
+    claudeSay("Hi, I'm Claude! Press <b>T</b> to talk while we fight. I know every stat of all "+_ccPool().length+" vehicles — try <i>\"how fast is the Panther\"</i>, <i>\"fastest German tank\"</i>, or <i>\"Tiger vs T-34\"</i>. Ask for a truce if you need a breather!");
     return;
   }
   // ── MAKE YOUR OWN MAP: empty field — the player places every tank & building ──
@@ -6904,15 +6904,245 @@ function _claudeTaunt(){
   return _ccPick([
     "Nice driving. I'm still going to win, but it's nice.",
     "You know you can just ask me for my weaknesses, right? I'm honest to a fault.",
-    "I've read every tank manual ever written. Doesn't help as much as you'd think.",
+    "I've memorised every stat of every vehicle in here. Ask me one — I like showing off.",
+    "Try asking me \"fastest tank\" or \"Tiger vs Sherman\". I'm a walking spec sheet with a gun.",
     "Press T if you want to chat. I can fight and talk — I'm a very good multitasker.",
     "That last shot was close. I felt the breeze.",
     "Fun fact: my armor is thickest at the front. You didn't hear that from me.",
     "If you need a break, just ask for a truce. I'm reasonable for a boss.",
   ]);
 }
+// ══ Claude's tank knowledge base ══
+// Every stat of every vehicle, plus superlatives, comparisons and filters.
+const _CC_NATNAME={german:'Germany',soviet:'Russia/USSR',american:'the USA',british:'Britain',french:'France',japanese:'Japan',chinese:'China',swedish:'Sweden',czech:'Czechoslovakia',italian:'Italy',polish:'Poland',australia:'Australia',swiss:'Switzerland',finland:'Finland',ukraine:'Ukraine',israeli:'Israel',korean:'South Korea',indian:'India',blitz:'the Blitz line',carrier:'the IFV line',mslcarrier:'the missile-carrier line',armcar:'the armored-car line'};
+const _CC_NATWORD={germany:'german',german:'german',germans:'german',soviet:'soviet',soviets:'soviet',russia:'soviet',russian:'soviet',ussr:'soviet',america:'american',american:'american',usa:'american',britain:'british',british:'british',uk:'british',england:'british',france:'french',french:'french',japan:'japanese',japanese:'japanese',china:'chinese',chinese:'chinese',sweden:'swedish',swedish:'swedish',czech:'czech',czechoslovakia:'czech',italy:'italian',italian:'italian',poland:'polish',polish:'polish',australia:'australia',australian:'australia',swiss:'swiss',switzerland:'swiss',finland:'finland',finnish:'finland',ukraine:'ukraine',ukrainian:'ukraine',israel:'israeli',israeli:'israeli',korea:'korean',korean:'korean',india:'indian',indian:'indian'};
+const _CC_ROM={'1':'I','2':'II','3':'III','4':'IV','5':'V','6':'VI','7':'VII','8':'VIII','9':'IX','10':'X','11':'XI'};
+function _ccNorm(s){return (s||'').toLowerCase().replace(/[^a-z0-9]+/g,'');}
+function _ccToks(s){return (s||'').toLowerCase().split(/[^a-z0-9]+/).filter(Boolean);}
+function _ccPool(){return TANK_DEFS.filter(t=>t.id!=='ratte');}
+function _ccMph(t){return Math.round(t.speed*10);}
+function _ccDpm(t){return Math.round(t.dmg/Math.max(0.1,t.reload)*60);}
+function _ccOrd(n){const s=['th','st','nd','rd'],v=n%100;return n+(s[(v-20)%10]||s[v]||s[0]);}
+// Nation comes from each tank's own flag — getTankFaction() defaults unknown ids
+// to 'german', which made nation filters wrong (M47 Patton reported as German).
+const _CC_CC2FAC={RU:'soviet',DE:'german',US:'american',GB:'british',FR:'french',JP:'japanese',CN:'chinese',SE:'swedish',IT:'italian',CH:'swiss',AU:'australia',FI:'finland',UA:'ukraine',CZ:'czech',PL:'polish',IL:'israeli',KR:'korean',IN:'indian'};
+function _ccFlag(cc){return String.fromCodePoint(0x1F1E6+cc.charCodeAt(0)-65,0x1F1E6+cc.charCodeAt(1)-65);}
+let _CC_FLAGMAP=null;
+function _ccFlagMap(){
+  if(_CC_FLAGMAP)return _CC_FLAGMAP;
+  _CC_FLAGMAP={};
+  for(const cc in _CC_CC2FAC)_CC_FLAGMAP[_ccFlag(cc)]=_CC_CC2FAC[cc];
+  return _CC_FLAGMAP;
+}
+function _ccFac(t){
+  const n=t.nation||'',fm=_ccFlagMap();
+  for(const f in fm)if(n.indexOf(f)>=0)return fm[f];
+  return (typeof getTankFaction==='function')?getTankFaction(t.id):'';
+}
+function _ccNation(t){
+  const n=t.nation||'',fm=_ccFlagMap();
+  for(const f in fm)if(n.indexOf(f)>=0)return _CC_NATNAME[fm[f]]||fm[f];
+  // no flag (e.g. the Leviathan's "APEX") — use whatever readable text it carries
+  const txt=n.replace(/[^\x20-\x7E]/g,'').trim();
+  if(txt)return txt;
+  return _CC_NATNAME[_ccFac(t)]||'unknown service';
+}
+// Every queryable stat. Multi-word entries match as phrases; single words match whole
+// tokens only (so "expensive" never gets read as "pen").
+const _CC_STATS=[
+  {id:'speed',label:'top speed',hi:true,get:t=>t.speed,fmt:t=>_ccMph(t)+' mph',words:['top speed','speed','fastest','faster','fast','slowest','slower','slow','mph','mobility','quickest','quick']},
+  {id:'reload',label:'reload',hi:false,get:t=>t.reload,fmt:t=>t.reload+'s',words:['rate of fire','reload time','reload','reloads','reloading','rof','cooldown']},
+  {id:'armor',label:'armor',hi:true,get:t=>t.armor,fmt:t=>t.armor+'mm',words:['armour','armor','protection','plating','thickest','armored','armoured']},
+  {id:'pen',label:'penetration',hi:true,get:t=>t.pen,fmt:t=>t.pen+'mm',words:['penetration','penetrate','penetrating','pen','pierce']},
+  {id:'dmg',label:'damage per shot',hi:true,get:t=>t.dmg,fmt:t=>_ccNum(t.dmg),words:['damage per shot','alpha strike','alpha','damage','dmg','punch','hardest hitting']},
+  {id:'hp',label:'hull HP',hi:true,get:t=>t.hp,fmt:t=>_ccNum(t.hp),words:['hull hp','health','hp','durability','toughest','tankiest','tanky','tough']},
+  {id:'ammo',label:'ammo',hi:true,get:t=>t.ammo,fmt:t=>_ccNum(t.ammo)+' rounds',words:['ammunition','ammo','rounds','shells','magazine']},
+  {id:'price',label:'price',hi:true,get:t=>t.price,fmt:t=>_ccNum(t.price)+' coins',words:['most expensive','expensive','cheapest','cheap','price','cost','costs','worth']},
+  {id:'rot',label:'turret traverse',hi:true,get:t=>t.rot,fmt:t=>t.rot.toFixed(1)+'°/s',words:['turn rate','traverse','turning','rotation','agility','agile','handling']},
+  {id:'dpm',label:'DPM',hi:true,get:t=>_ccDpm(t),fmt:t=>_ccNum(_ccDpm(t))+' dmg/min',words:['damage per minute','sustained damage','dpm','dps']},
+];
+function _ccStatFor(m,toks){
+  let best=null,bl=0;
+  for(const st of _CC_STATS)for(const w of st.words){
+    const hit=(w.indexOf(' ')>=0)?m.includes(w):toks.indexOf(w)>=0;
+    if(hit&&w.length>bl){best=st;bl=w.length;}
+  }
+  return best;
+}
+// Find a vehicle by name: exact n-gram match first, then shortest prefix match
+// ("tiger" -> Tiger I, "tiger ii" -> Tiger II).
+function _ccFindTank(str){
+  const toks=_ccToks(str); if(!toks.length)return null;
+  for(let n=Math.min(5,toks.length);n>=1;n--)for(let i=0;i+n<=toks.length;i++){
+    const g=toks.slice(i,i+n).join(''); if(g.length<2)continue;
+    for(const t of TANK_DEFS)if(_ccNorm(t.name)===g||_ccNorm(t.id)===g)return t;
+  }
+  for(let n=Math.min(4,toks.length);n>=1;n--)for(let i=0;i+n<=toks.length;i++){
+    const g=toks.slice(i,i+n).join(''); if(g.length<4)continue;
+    let hit=null,hl=1e9;
+    for(const t of TANK_DEFS){const nn=_ccNorm(t.name);if(nn.indexOf(g)===0&&nn.length<hl){hit=t;hl=nn.length;}}
+    if(hit)return hit;
+  }
+  return null;
+}
+function _ccFilters(m,toks){
+  let tier=null,nat=null;
+  const tm=m.match(/tier\s*(1[01]|[0-9]|[ivx]+)\b/);
+  if(tm)tier=_CC_ROM[tm[1]]||tm[1].toUpperCase();
+  for(const t of toks)if(_CC_NATWORD[t]){nat=_CC_NATWORD[t];break;}
+  return {tier:tier,nat:nat};
+}
+function _ccApply(pool,f){
+  let p=pool;
+  if(f.tier)p=p.filter(t=>t.tier===f.tier);
+  if(f.nat)p=p.filter(t=>_ccFac(t)===f.nat);
+  return p;
+}
+function _ccFilterLabel(f){
+  let s='';
+  if(f.nat)s+=' '+(_CC_NATNAME[f.nat]||f.nat).replace(/^the /,'');
+  if(f.tier)s+=' Tier '+f.tier;
+  return s;
+}
+function _ccCard(t){
+  return '<b>'+t.name+'</b> — Tier '+t.tier+' · '+_ccNation(t)+'<br>'
+    +_ccNum(t.hp)+' HP · '+t.armor+'mm armor · '+t.pen+'mm pen<br>'
+    +_ccNum(t.dmg)+' dmg · '+t.reload+'s reload · '+_ccNum(_ccDpm(t))+' DPM<br>'
+    +_ccMph(t)+' mph · '+t.rot.toFixed(1)+'°/s traverse · '+_ccNum(t.ammo)+' rounds<br>'
+    +_ccNum(t.price)+' coins';
+}
+function _ccRank(t,st){
+  const pool=_ccPool(),v=st.get(t);let better=0;
+  for(const o of pool){const ov=st.get(o);if(st.hi?ov>v:ov<v)better++;}
+  return {r:better+1,n:pool.length};
+}
+function _ccMissileFind(str){
+  const toks=_ccToks(str);
+  for(let n=Math.min(4,toks.length);n>=1;n--)for(let i=0;i+n<=toks.length;i++){
+    const g=toks.slice(i,i+n).join(''); if(g.length<3)continue;
+    for(const mt of MISSILE_TYPES){const nn=_ccNorm(mt.name);
+      if(nn===g||_ccNorm(mt.id)===g||(g.length>=5&&nn.indexOf(g)===0))return mt;}
+  }
+  return null;
+}
+function _ccMissileCard(mt){
+  const ex=[];
+  if(mt.count>1)ex.push(mt.count+' warheads');
+  if(mt.splash)ex.push(mt.splash+' splash radius');
+  if(mt.fire)ex.push('sets fires');
+  if(mt.freeze)ex.push('freezes targets');
+  if(mt.heal)ex.push('heals you '+Math.round(mt.heal*100)+'% of damage');
+  if(mt.pierce)ex.push('pierces through targets');
+  if(mt.chain)ex.push('chains to '+mt.chain);
+  if(mt.pull)ex.push('gravity pull');
+  if(mt.slowField)ex.push('leaves a slow field');
+  if(mt.selfDmg)ex.push('costs you '+Math.round(mt.selfDmg*100)+'% HP to fire');
+  if(mt.reloadMul&&mt.reloadMul!==1)ex.push('reloads ×'+mt.reloadMul);
+  return '<b>'+mt.name+'</b> — '+mt.dmg+'× damage · speed '+mt.maxspd+' · turn '+mt.turn+'<br>'
+    +_ccNum(mt.price)+' coins'+(ex.length?'<br>'+ex.join(' · '):'');
+}
+// Main knowledge dispatcher. Returns null when nothing matches so the
+// personality/topic answers can take over.
+function _ccKnowledge(m,toks){
+  const f=_ccFilters(m,toks);
+  const st=_ccStatFor(m,toks);
+  const GOOD=['best','most','highest','top','fastest','strongest','toughest','tankiest','thickest','biggest','hardest','greatest','quickest','longest'];
+  const BAD=['worst','least','lowest','slowest','cheapest','weakest','smallest','shortest','thinnest'];
+  const supG=GOOD.some(w=>toks.indexOf(w)>=0), supB=BAD.some(w=>toks.indexOf(w)>=0);
+  const isSup=supG||supB;
+  const wantsMissile=m.indexOf('missile')>=0||m.indexOf('warhead')>=0||m.indexOf('atgm')>=0;
+
+  // ── missiles ──
+  if(wantsMissile&&isSup){
+    let key=st&&st.id==='speed'?'maxspd':st&&st.id==='price'?'price':'dmg';
+    let b=MISSILE_TYPES[0];
+    for(const mt of MISSILE_TYPES){const a=mt[key]||0,c=b[key]||0;if(supB?a<c:a>c)b=mt;}
+    return (supB?'Weakest':'Strongest')+' by '+(key==='maxspd'?'speed':key==='price'?'price':'damage')+': '+_ccMissileCard(b);
+  }
+  const mt=_ccMissileFind(m);
+  if(mt&&(wantsMissile||m.indexOf('davy')>=0||m.indexOf('javelin')>=0))return _ccMissileCard(mt);
+
+  // ── comparison: "tiger vs t-34" ──
+  const cmp=m.split(/\s+(?:vs\.?|versus|compared to|or better than)\s+/);
+  if(cmp.length===2){
+    const A=_ccFindTank(cmp[0]),B=_ccFindTank(cmp[1]);
+    if(A&&B&&A!==B){
+      const win=[],lose=[];
+      [['armor','armor'],['dmg','alpha'],['hp','HP'],['speed','speed'],['pen','pen']].forEach(function(p){
+        const k=p[0];if(A[k]>B[k])win.push(p[1]);else if(B[k]>A[k])lose.push(p[1]);
+      });
+      if(A.reload<B.reload)win.push('reload');else if(B.reload<A.reload)lose.push('reload');
+      return '<b>'+A.name+'</b> vs <b>'+B.name+'</b><br>'
+        +'HP '+_ccNum(A.hp)+' / '+_ccNum(B.hp)+' · armor '+A.armor+' / '+B.armor+'mm<br>'
+        +'dmg '+_ccNum(A.dmg)+' / '+_ccNum(B.dmg)+' · pen '+A.pen+' / '+B.pen+'mm<br>'
+        +'reload '+A.reload+'s / '+B.reload+'s · DPM '+_ccNum(_ccDpm(A))+' / '+_ccNum(_ccDpm(B))+'<br>'
+        +'speed '+_ccMph(A)+' / '+_ccMph(B)+' mph · price '+_ccNum(A.price)+' / '+_ccNum(B.price)+'<br>'
+        +A.name+' wins on '+(win.length?win.join(', '):'nothing')+'; loses on '+(lose.length?lose.join(', '):'nothing')+'.';
+    }
+  }
+
+  // ── counting: "how many german tier 8 tanks" ──
+  if(m.indexOf('how many')>=0&&(m.indexOf('tank')>=0||m.indexOf('vehicle')>=0||f.nat||f.tier)){
+    const p=_ccApply(_ccPool(),f);
+    return p.length+' vehicle'+(p.length===1?'':'s')+_ccFilterLabel(f)+'. Total roster: '+_ccPool().length+'.';
+  }
+
+  // ── lists: "list tier 9 soviet tanks" ──
+  if((m.indexOf('list')>=0||m.indexOf('show me')>=0||m.indexOf('which tanks')>=0||m.indexOf('what tanks')>=0)&&(f.nat||f.tier)){
+    const p=_ccApply(_ccPool(),f);
+    if(!p.length)return "Nothing matches"+_ccFilterLabel(f)+" — try another tier or nation.";
+    const names=p.slice(0,10).map(t=>t.name);
+    return p.length+_ccFilterLabel(f)+': '+names.join(', ')+(p.length>10?' … and '+(p.length-10)+' more.':'.');
+  }
+
+  // ── budget advice: "what should I buy with 5000 coins" ──
+  const bm=m.match(/(\d[\d,]{2,})\s*(?:coins?|🏷)?/);
+  if(bm&&(m.indexOf('buy')>=0||m.indexOf('afford')>=0||m.indexOf('recommend')>=0||m.indexOf('should i get')>=0)){
+    const budget=parseInt(bm[1].replace(/,/g,''),10);
+    const aff=_ccPool().filter(t=>t.price<=budget);
+    if(!aff.length)return "Nothing costs that little — the cheapest is "+_ccPool().reduce((a,b)=>a.price<b.price?a:b).name+".";
+    const best=aff.reduce((a,b)=>_ccDpm(a)>=_ccDpm(b)?a:b);
+    return "For "+_ccNum(budget)+" coins the hardest hitter you can afford is <b>"+best.name+"</b> — "+_ccNum(_ccDpm(best))+" DPM, "+_ccNum(best.price)+" coins. ("+aff.length+" vehicles fit that budget.)";
+  }
+
+  // ── superlatives on any stat ──
+  if(isSup&&(st||m.indexOf('tank')>=0||m.indexOf('vehicle')>=0)){
+    const s=st||_CC_STATS.find(x=>x.id==='dmg');
+    let max=s.hi?supG:!supG;                       // "cheapest"=min, "most expensive"=max
+    if(s.id==='reload')max=['longest','slowest','worst','biggest','most'].some(w=>toks.indexOf(w)>=0);
+    const p=_ccApply(_ccPool(),f);
+    if(!p.length)return "No vehicles match"+_ccFilterLabel(f)+".";
+    const sorted=p.slice().sort((a,b)=>max?s.get(b)-s.get(a):s.get(a)-s.get(b));
+    const a1=sorted[0],a2=sorted[1];
+    const tail=s.id==='price'?' (Tier '+a1.tier+')':' (Tier '+a1.tier+', '+_ccNum(a1.price)+' coins)';
+    return (max?'Highest ':'Lowest ')+s.label+_ccFilterLabel(f)+': <b>'+a1.name+'</b> at '+s.fmt(a1)+tail+'.'
+      +(a2?'<br>Runner-up: '+a2.name+' — '+s.fmt(a2)+'.':'');
+  }
+
+  // ── a specific vehicle ──
+  let tk=null;
+  if(m.indexOf('my tank')>=0||m.indexOf('am i driving')>=0||m.indexOf("i'm driving")>=0||m.indexOf('im driving')>=0)
+    tk=TANK_DEFS.find(t=>t.id===activeTankId);
+  if(!tk)tk=_ccFindTank(m);
+  if(tk){
+    if(st){
+      const rk=_ccRank(tk,st);
+      let extra='';
+      if(st.id==='speed')extra=' Traverse '+tk.rot.toFixed(1)+'°/s if you care about handling too.';
+      if(st.id==='dmg')extra=' That works out to '+_ccNum(_ccDpm(tk))+' DPM.';
+      if(st.id==='reload')extra=' So '+_ccNum(_ccDpm(tk))+' damage a minute.';
+      return tk.name+' — '+st.label+': <b>'+st.fmt(tk)+'</b>. That is '+_ccOrd(rk.r)+' of '+rk.n+'.'+extra;
+    }
+    return _ccCard(tk)+(tk.desc?'<br><i>'+tk.desc+'</i>':'');
+  }
+  // stat asked but no vehicle named
+  if(st&&!isSup)return "Which vehicle? Name any of the "+_ccPool().length+" and I'll give you its "+st.label+" — or ask for the highest/lowest.";
+  return null;
+}
+
 function claudeRespond(q){
   const m=q.toLowerCase().trim();
+  const toks=_ccToks(m);
   const has=(...w)=>w.some(x=>m.includes(x));
   const boss=enemies.find(e=>e._isClaude);
   // actions
@@ -6928,16 +7158,14 @@ function claudeRespond(q){
     }
     return "I already patched you up once this battle — my medkit's empty.";
   }
-  // live game-data answers
-  if(has('strongest missile','best missile')){let b=MISSILE_TYPES[0];for(const mt of MISSILE_TYPES)if(mt.dmg>b.dmg)b=mt;return "Strongest single warhead: "+b.name+" at "+b.dmg+"× damage."+(b.selfDmg?" Careful — it singes your own hull.":"");}
-  if(has('strongest tank','best tank','most damage')){let b=TANK_DEFS[0];for(const t of TANK_DEFS)if(t.dmg>b.dmg)b=t;return "Highest damage in the game: "+b.name+" — "+_ccNum(b.dmg)+" per shot.";}
-  if(has('most expensive','priciest')){let b=TANK_DEFS[0];for(const t of TANK_DEFS)if(t.price>b.price)b=t;return b.name+" — "+_ccNum(b.price)+" coins. Start saving.";}
-  if(has('how many tank','how many vehicle')) return "There are "+TANK_DEFS.length+" vehicles in the game right now.";
-  if(has('your hp','your health','how much hp do you','how much health do you')){
+  // my own status — checked before the stat engine so "your HP" isn't read as a tank query
+  if(has('your hp','your health','how much hp do you','how much health do you','how much hp are you')){
     if(boss&&boss.hp>0)return "I'm at "+_ccNum(Math.max(0,Math.round(boss.hp)))+" of "+_ccNum(boss.maxHp)+" HP. "+(boss.hp>boss.maxHp*0.66?"Barely a scratch.":boss.hp>boss.maxHp*0.33?"You're getting somewhere.":"…okay, I'm officially in trouble.");
     return "I appear to be… destroyed. Well played.";
   }
   if(has('weakness','how do i beat','how to beat','how do i win','how do i kill')) return "Honestly? Keep moving side to side — my aim leads poorly. My volleys start when I'm below two-thirds health, so burst me down fast. And missiles hurt me a lot.";
+  // ── full stat engine: any vehicle, any stat, superlatives, comparisons, lists ──
+  {const kb=_ccKnowledge(m,toks); if(kb)return kb;}
   // identity & small talk
   if(has('who are you','what are you')) return "I'm Claude — an AI made by Anthropic. Usually I write code and answer questions; today I'm also a boss tank. Multitasking.";
   if(has('who made you','anthropic')) return "Anthropic made me. The tank body was Michael's idea.";
@@ -6955,14 +7183,10 @@ function claudeRespond(q){
   if(has('thank')) return "Anytime. Guard up though — ceasefires end.";
   if(has('sorry')) return "No apologies needed on a battlefield. All is forgiven. None of it is forgotten by my targeting computer.";
   if(has('bye','goodbye')) return "Leaving mid-fight? The ✕ button's top-right. No judgment. Some judgment.";
-  // tank stat lookup by name
-  let tk=null,tlen=0;
-  for(const t of TANK_DEFS){const nm=t.name.toLowerCase();if(m.includes(nm)&&nm.length>tlen){tk=t;tlen=nm.length;}}
-  if(tk)return tk.name+": "+_ccNum(tk.hp)+" HP · "+tk.armor+"mm armor · "+_ccNum(tk.dmg)+" damage · "+tk.reload+"s reload · "+_ccNum(tk.price)+" coins · Tier "+tk.tier+".";
   return _ccPick([
-    "Good question — my battlefield brain is smaller than my real one. Ask me about tanks, missiles, modes, coins, or my weaknesses. Or ask for a truce.",
-    "That one's beyond my turret-mounted knowledge base — try tank names, tactics, or jokes. The full me at claude.ai handles the deep stuff.",
-    "Hmm, not sure! In here I mostly know tanks, tactics, and how to dodge. Ask me about any tank by name.",
+    "I know every stat of all "+_ccPool().length+" vehicles — try \"how fast is the Panther\", \"fastest German tank\", or \"Tiger vs T-34\".",
+    "Not sure about that one. But ask me any vehicle's speed, armor, reload, DPM or price — or compare two with \"vs\".",
+    "Beyond my turret-mounted brain. Tank stats, superlatives, comparisons, missiles and tactics I can do all day.",
   ]);
 }
 function claudeSend(){
