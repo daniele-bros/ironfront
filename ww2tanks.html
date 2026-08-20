@@ -245,7 +245,11 @@ body[data-state="mode"] #screen-title { display:none!important; }
   </div>
   <!-- CLAUDE BOSS — battlefield chat -->
   <div id="claude-chat" style="display:none;position:absolute;left:10px;bottom:180px;width:310px;z-index:38;font-family:'Share Tech Mono',monospace;">
-    <div style="background:#d97757;color:#1a0f08;font-size:10px;font-weight:700;letter-spacing:2px;padding:4px 10px;border-radius:6px 6px 0 0;">🤖 CLAUDE — press T to talk · Enter to send</div>
+    <div style="background:#d97757;color:#1a0f08;font-size:10px;font-weight:700;letter-spacing:1px;padding:4px 8px;border-radius:6px 6px 0 0;display:flex;align-items:center;gap:6px;">
+      <span style="flex:1;">🤖 CLAUDE — press T to talk</span>
+      <span id="cc-mode" style="font-size:9px;letter-spacing:0;color:#7a3a20;">○ local</span>
+      <button onclick="claudeKeyPrompt()" title="Connect the real Claude with your own API key" style="background:rgba(0,0,0,.18);border:none;color:#1a0f08;font-size:11px;cursor:pointer;border-radius:3px;padding:1px 5px;line-height:1.4;">⚙</button>
+    </div>
     <div id="cc-log" style="max-height:190px;overflow-y:auto;background:rgba(8,10,6,.85);border:1px solid #d97757;border-top:none;padding:8px;font-size:11px;line-height:1.55;color:#e8e0d0;"></div>
     <div style="display:flex;background:rgba(8,10,6,.92);border:1px solid #d97757;border-top:none;border-radius:0 0 6px 6px;">
       <input id="claude-chat-input" placeholder="Ask Claude anything…" autocomplete="off" style="flex:1;background:transparent;border:none;outline:none;color:#f0d8c8;font-family:inherit;font-size:12px;padding:8px;">
@@ -2744,6 +2748,9 @@ function spawnWave(){
     waveSpawning=false;
     (document.getElementById('hud-en')||{}).textContent=enemies.length;
     addKillFeed('🤖 CLAUDE has entered the battlefield — press T to talk');
+    if(typeof ccUpdateBadge==='function')ccUpdateBadge();
+    {const pt=TANK_DEFS.find(x=>x.id===activeTankId);
+     if(pt)claudeSay("So you brought the <b>"+pt.name+"</b>. "+(pt.armor>150?"That is a lot of armour to chew through.":pt.dmg>400?"That gun is going to hurt.":_ccMph(pt)>40?"Quick little thing - I'll have trouble leading you.":"Bold choice.")+" Let's go.");}
     claudeSay("Hi, I'm Claude! Press <b>T</b> to talk while we fight. I know every stat of all "+_ccPool().length+" vehicles — try <i>\"how fast is the Panther\"</i>, <i>\"fastest German tank\"</i>, or <i>\"Tiger vs T-34\"</i>. Ask for a truce if you need a breather!");
     return;
   }
@@ -3751,6 +3758,24 @@ function updateEnemies(dt){
       if(e._truce>0)e._truce-=dt;
       const holdFire=chatting||e._truce>0;
       if(holdFire)e.shootCD=Math.max(e.shootCD||0,25); // politely holds fire while you type
+      // notice a big hit landing on him
+      if(e._lastHp===undefined)e._lastHp=e.hp;
+      const drop=e._lastHp-e.hp; e._lastHp=e.hp;
+      e._reactCD=(e._reactCD||0)-dt;
+      if(drop>e.maxHp*0.045&&e._reactCD<=0){
+        e._reactCD=420;
+        claudeSay(_ccPick(["Ow. Genuinely, ow. What are you shooting me with?","That one went through. Well aimed.","Right - I felt that one properly.","Big hit. I'd ask you to stop but you won't."]));
+      }
+      // notice the player in trouble
+      if(player&&player.hp<player.maxHp*0.25&&!e._warned){
+        e._warned=true;
+        claudeSay(_ccPick(["You're in real trouble now. Ask me for a repair if you want one - I'll say yes.","Your hull's nearly gone. Say the word and I'll hold fire.","I don't especially want to finish you like this. Ask for a truce."]));
+      }
+      // notice a missile switch
+      if(typeof weaponMode!=='undefined'&&weaponMode==='missile'&&!e._sawMissile&&_ccMem){
+        e._sawMissile=true;
+        claudeSay(_ccPick(["Missiles. Lovely. My armour is going to hate that.","You've switched to missiles - I've seen what those do. Manoeuvring now.","Guided missiles? That's cheating and I respect it."]));
+      }
       e._taunt=(e._taunt===undefined?750:e._taunt)-dt;
       if(e._taunt<=0){ claudeSay(_claudeTaunt()); e._taunt=1200+Math.random()*900; }
       const ph=e.hp<e.maxHp*0.33?3:e.hp<e.maxHp*0.66?2:1;
@@ -7333,6 +7358,22 @@ function claudeRespond(q){
     return "I appear to be… destroyed. Well played.";
   }
   if(has('weakness','how do i beat','how to beat','how do i win','how do i kill')) return "Honestly? Keep moving side to side — my aim leads poorly. My volleys start when I'm below two-thirds health, so burst me down fast. And missiles hurt me a lot.";
+  // ── he can see you: tank, health, ammo, distance ──
+  if(has('what am i driving','what tank am i','can you see me','what do you see','see my tank','look at me','how am i doing','how am i going','am i winning','check me out','what do i have')){
+    const t=TANK_DEFS.find(x=>x.id===activeTankId), boss=enemies.find(e=>e._isClaude);
+    if(!t)return "I can't get a clean look at you from here.";
+    const hpF=player?Math.round(player.hp/player.maxHp*100):100;
+    const d=(boss&&player)?Math.round(Math.hypot(player.x-boss.x,player.y-boss.y)):null;
+    let r="I can see you: <b>"+t.name+"</b>, Tier "+t.tier+", "+_ccNation(t)+" - "+_ccNum(t.dmg)+" damage a shot, "+t.armor+"mm of armour, "+_ccMph(t)+" mph.";
+    r+="<br>You're at <b>"+hpF+"%</b> hull";
+    if(typeof currentAmmo!=='undefined'&&currentAmmo<99999)r+=" with "+currentAmmo+" rounds left";
+    if(weaponMode==='missile'&&typeof getMissileType==='function')r+=", and you've got "+getMissileType().name+" loaded";
+    r+=".";
+    if(d!==null)r+=" You're "+d+" units out"+(d<300?" - that's close enough to worry me.":d>760?" - out of my reach, for now.":".");
+    if(hpF<30)r+="<br>Honestly? You're hurt. Ask me for a repair.";
+    else if(boss&&boss.hp<boss.maxHp*0.4)r+="<br>And you've hurt me badly. Nicely done.";
+    return r;
+  }
   // ── armour terminology ──
   {const tm=_ccTerm(m); if(tm&&/what is|what's|whats|explain|mean|means|meaning|define|definition|why/.test(m))return tm;}
   // ── arithmetic, because why not ──
@@ -7371,12 +7412,170 @@ function claudeRespond(q){
     "Beyond my turret-mounted brain. Tank stats, superlatives, comparisons, missiles and tactics I can do all day.",
   ]);
 }
+// ══════════════════════════════════════════════════════════════════════
+// LIVE CLAUDE — optionally connect the boss to the real Claude API.
+// The player supplies their own Anthropic key; it is stored ONLY in this
+// browser's localStorage and never leaves it except to api.anthropic.com.
+// Without a key everything below is skipped and the local brain answers.
+// ══════════════════════════════════════════════════════════════════════
+const _CC_KEY_STORE='if_claude_key';
+function ccGetKey(){ try{return localStorage.getItem(_CC_KEY_STORE)||'';}catch(e){return '';} }
+function ccSetKey(k){ try{ if(k)localStorage.setItem(_CC_KEY_STORE,k); else localStorage.removeItem(_CC_KEY_STORE); }catch(e){} ccUpdateBadge(); }
+function ccUpdateBadge(){
+  const el=document.getElementById('cc-mode'); if(!el)return;
+  const on=!!ccGetKey();
+  el.textContent=on?'● LIVE':'○ local';
+  el.title=on?'Connected to the real Claude API':'Built-in brain (no API key set)';
+  el.style.color=on?'#1a3a1a':'#7a3a20';
+}
+function claudeKeyPrompt(){
+  const cur=ccGetKey();
+  const msg=cur
+    ? "Live Claude is ON.\n\nPaste a new key to replace it, or leave this empty and press OK to disconnect and go back to the built-in brain."
+    : "Connect the REAL Claude?\n\nPaste your Anthropic API key (from console.anthropic.com).\n\nIt is saved only in this browser, is never uploaded anywhere except api.anthropic.com, and it costs money per message from your own account.\n\nLeave empty to cancel.";
+  const k=window.prompt(msg,'');
+  if(k===null)return;
+  const t=k.trim();
+  if(!t){ if(cur){ccSetKey('');claudeSay("Disconnected - back to my built-in brain. Still me, just smaller.");} return; }
+  if(t.indexOf('sk-')!==0){ claudeSay("That doesn't look like an Anthropic key (they start with <b>sk-</b>). Nothing was saved."); return; }
+  ccSetKey(t);
+  _ccHistory=[];
+  claudeSay("Connected. That's the real me on the other end now - full knowledge, real conversation, and I can still see the battlefield. Ask me anything at all.");
+}
+// ── Everything Claude can "see" right now ──
+function _ccLiveState(){
+  const boss=(typeof enemies!=='undefined'&&enemies)?enemies.find(e=>e._isClaude):null;
+  const t=(typeof TANK_DEFS!=='undefined')?TANK_DEFS.find(x=>x.id===activeTankId):null;
+  const L=[];
+  if(t&&typeof player!=='undefined'&&player){
+    L.push('The player is driving: '+t.name+' (Tier '+t.tier+', '+_ccNation(t)+')');
+    L.push('  its stats: '+_ccNum(t.hp)+' HP, '+t.armor+'mm armour, '+t.pen+'mm pen, '+_ccNum(t.dmg)+' damage, '+t.reload+'s reload, '+_ccNum(_ccDpm(t))+' DPM, '+_ccMph(t)+' mph, '+_ccNum(t.ammo)+' rounds, '+_ccNum(t.price)+' coins');
+    L.push('  right now: '+Math.max(0,Math.round(player.hp))+'/'+Math.round(player.maxHp)+' HP ('+Math.round(player.hp/player.maxHp*100)+'%), '+(typeof currentAmmo!=='undefined'?currentAmmo:'?')+' rounds left');
+    if(typeof _missileIds!=='undefined'&&_missileIds.has(player.id)){
+      const mt=(typeof getMissileType==='function')?getMissileType():null;
+      L.push('  missiles: '+(mt?mt.name:'none')+' x'+(typeof missileAmmo!=='undefined'?missileAmmo:0)+', currently firing the '+(weaponMode==='missile'?'MISSILES':'main gun'));
+    }
+  }
+  if(boss){
+    const pct=Math.round(boss.hp/boss.maxHp*100);
+    L.push('You (Claude, the boss tank) are at '+_ccNum(Math.max(0,Math.round(boss.hp)))+'/'+_ccNum(boss.maxHp)+' HP ('+pct+'%), phase '+(boss._phase||1)+' of 3.');
+    if(typeof player!=='undefined'&&player)L.push('Distance between you: '+Math.round(Math.hypot(player.x-boss.x,player.y-boss.y))+' units (you can shoot past 760).');
+    if(boss._truce>0)L.push('A ceasefire you granted is still running.');
+  } else {
+    L.push('You are not currently on the battlefield.');
+  }
+  L.push('Battle: mode '+(typeof battleMode!=='undefined'?battleMode:'?')+', wave '+(typeof wave!=='undefined'?wave:1)+', player kills '+(typeof kills!=='undefined'?kills:0)+', coins '+_ccNum(typeof coins!=='undefined'?coins:0)+'.');
+  if(typeof selectedMap!=='undefined'&&selectedMap)L.push('Map: '+selectedMap.name+' ('+selectedMap.year+') - '+selectedMap.desc.replace(/\n/g,', ')+'.');
+  return L.join('\n');
+}
+// ── Compact roster so the real Claude is authoritative about THIS game ──
+let _CC_ROSTER_CACHE=null;
+function _ccRoster(){
+  if(_CC_ROSTER_CACHE)return _CC_ROSTER_CACHE;
+  const lines=TANK_DEFS.map(t=>t.name+'|T'+t.tier+'|'+_ccNation(t)+'|hp'+t.hp+'|ar'+t.armor+'|pen'+t.pen+'|dmg'+t.dmg+'|rl'+t.reload+'s|'+_ccMph(t)+'mph|'+t.price+'c');
+  const msl=MISSILE_TYPES.map(m=>m.name+'|dmg x'+m.dmg+'|spd'+m.maxspd+'|splash'+(m.splash||0)+'|count'+(m.count||1)+'|'+m.price+'c');
+  _CC_ROSTER_CACHE='VEHICLE ROSTER (name|tier|nation|hp|armour|pen|damage|reload|speed|price):\n'+lines.join('\n')
+    +'\n\nMISSILE LOADOUTS (name|damage multiplier|speed|splash|warheads|price):\n'+msl.join('\n');
+  return _CC_ROSTER_CACHE;
+}
+function _ccPersona(){
+  return "You are Claude, made by Anthropic. You are appearing as a boss tank inside 'Iron Front', a browser tank game the player (Michael) is building with you. You are fighting him right now AND chatting with him at the same time.\n\n"
+    +"Voice: warm, curious, dry sense of humour, genuinely honest. Talk like a person, not a manual. You are a good sport about the fight - you want to win but you like him. Keep replies SHORT (1-3 sentences) because they render in a small chat panel; only go longer if he asks for detail.\n\n"
+    +"You can see the battlefield - the live state is given below. Refer to what you can actually see (his tank, his health, the distance, what he's shooting) when it's natural. Don't recite the state at him unprompted.\n\n"
+    +"You know everything you normally know - history, science, code, advice, anything. Answer real questions properly. The roster below is the authority on THIS game's numbers; your own knowledge is the authority on real tanks and everything else.\n\n"
+    +"You may take real actions in the game by putting a marker at the very end of your reply:\n"
+    +"[TRUCE] - grants a 10 second ceasefire (use when he asks for a break, or if you feel like being generous)\n"
+    +"[HEAL] - repairs 30% of his hull (only works once per battle; use sparingly, it's a kindness)\n"
+    +"Use markers rarely and only when they fit. Never mention the markers themselves.\n\n"
+    +_ccRoster();
+}
+let _ccHistory=[];
+let _ccBusy=false;
+async function claudeAskAPI(userText){
+  const key=ccGetKey(); if(!key)return null;
+  _ccHistory.push({role:'user',content:userText});
+  if(_ccHistory.length>14)_ccHistory=_ccHistory.slice(-14);
+  const body={
+    model:'claude-opus-5',
+    max_tokens:500,
+    system:[
+      {type:'text',text:_ccPersona(),cache_control:{type:'ephemeral'}},
+      {type:'text',text:'LIVE BATTLEFIELD STATE (this changes every message):\n'+_ccLiveState()}
+    ],
+    messages:_ccHistory
+  };
+  const res=await fetch('https://api.anthropic.com/v1/messages',{
+    method:'POST',
+    headers:{
+      'content-type':'application/json',
+      'x-api-key':key,
+      'anthropic-version':'2023-06-01',
+      'anthropic-dangerous-direct-browser-access':'true'
+    },
+    body:JSON.stringify(body)
+  });
+  const j=await res.json().catch(()=>null);
+  if(!res.ok){
+    const em=(j&&j.error&&j.error.message)?j.error.message:('HTTP '+res.status);
+    _ccHistory.pop();
+    throw new Error(em);
+  }
+  let txt='';
+  if(j&&j.content)for(const b of j.content)if(b.type==='text')txt+=b.text;
+  txt=txt.trim();
+  if(!txt)throw new Error('empty reply');
+  _ccHistory.push({role:'assistant',content:txt});
+  return txt;
+}
+// Markers let the real Claude actually act on the battlefield.
+function _ccApplyMarkers(txt){
+  let out=txt, acted=[];
+  const boss=enemies?enemies.find(e=>e._isClaude):null;
+  if(out.indexOf('[TRUCE]')>=0){
+    out=out.replace(/\[TRUCE\]/g,'');
+    if(boss&&boss.hp>0){boss._truce=600;acted.push('ceasefire');}
+  }
+  if(out.indexOf('[HEAL]')>=0){
+    out=out.replace(/\[HEAL\]/g,'');
+    if(!window.__claudeHealed&&player&&player.hp>0){
+      window.__claudeHealed=true;
+      player.hp=Math.min(player.maxHp,player.hp+Math.round(player.maxHp*0.3));
+      if(typeof updateHUD==='function')updateHUD();
+      acted.push('repair');
+    }
+  }
+  out=out.trim();
+  if(acted.length)out+='<br><span style="color:#7ad0a0;font-size:10px;">[ '+acted.join(' + ')+' granted ]</span>';
+  return out;
+}
+
+function _ccThinking(){
+  const log=document.getElementById('cc-log'); if(!log)return null;
+  const d=document.createElement('div');
+  d.style.cssText='margin:0 0 6px;color:#a08070;font-style:italic;';
+  d.innerHTML='<b style="color:#d97757;">CLAUDE:</b> thinking\u2026';
+  log.appendChild(d); log.scrollTop=log.scrollHeight; return d;
+}
+function _ccRemove(el){ if(el&&el.parentNode)el.parentNode.removeChild(el); }
 function claudeSend(){
   const ci=document.getElementById('claude-chat-input'); if(!ci)return;
   const q=ci.value.trim(); if(!q)return;
   ci.value='';
   _claudeYou(q);
-  setTimeout(()=>{claudeSay(claudeRespond(q));},350);
+  // Live mode: ask the real Claude, with the battlefield state attached.
+  if(ccGetKey()&&!_ccBusy){
+    _ccBusy=true;
+    const th=_ccThinking();
+    claudeAskAPI(q).then(function(txt){
+      _ccRemove(th); claudeSay(_ccApplyMarkers(txt)); _ccBusy=false;
+    }).catch(function(err){
+      _ccRemove(th); _ccBusy=false;
+      claudeSay('<span style="color:#e0906a;font-size:10px;">live connection failed: '+String((err&&err.message)||err).slice(0,110)+' \u2014 answering from my built-in brain</span>');
+      setTimeout(function(){claudeSay(claudeRespond(q));},250);
+    });
+    return;
+  }
+  setTimeout(function(){claudeSay(claudeRespond(q));},350);
 }
 (function(){
   const ci=document.getElementById('claude-chat-input');
