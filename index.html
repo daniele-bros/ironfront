@@ -7334,6 +7334,112 @@ function _ccOpinion(t){
   return "<b>"+t.name+"</b>: it "+bits.join(', ')+". "+verdict;
 }
 
+// ══ Trash talk, threats and feelings - answered like a person, not a database ══
+// Replies read the actual fight: how hurt he is, how hurt you are, how close you are.
+function _ccBanter(m,toks){
+  const has=(...w)=>w.some(x=>m.indexOf(x)>=0);
+  // "how do I kill you" is a request for advice, not a threat - guard the
+  // threat/boast branches only, so personal questions still get answered.
+  const isQuestion=/^(how|what|why|when|where|which|who|does |do i|can i|should i|tell me|explain|list )/.test(m);
+  const boss=(typeof enemies!=='undefined'&&enemies)?enemies.find(e=>e._isClaude):null;
+  const bF=boss&&boss.maxHp?boss.hp/boss.maxHp:1;                       // his health
+  const pF=(typeof player!=='undefined'&&player&&player.maxHp)?player.hp/player.maxHp:1; // yours
+  const dist=(boss&&typeof player!=='undefined'&&player)?Math.hypot(player.x-boss.x,player.y-boss.y):999;
+  const myTank=(typeof TANK_DEFS!=='undefined')?TANK_DEFS.find(x=>x.id===activeTankId):null;
+  const tn=myTank?myTank.name:'that thing';
+
+  // ── victory claims (checked before threats: "I beat you" is a claim) ──
+  if(has('i killed you','i beat you','i won','i win','got you','gotcha','i destroyed you','i wrecked you')){
+    if(boss&&boss.hp<=0)return "You did. Cleanly, too. That was well fought - take the coins, you earned them.";
+    if(bF<0.35)return "Not yet you haven't. Close, though. Uncomfortably close.";
+    return _ccPick([
+      "I'm still moving and still shooting, so I'd call that premature.",
+      "Check my health bar and try that sentence again."]);
+  }
+  // ── threats: "I'll destroy you" ──
+  if(!isQuestion&&has('destroy you','kill you','end you','wreck you','crush you','finish you','delete you','smoke you','obliterate','annihilate','rip you','bury you','flatten you',
+         "you're dead",'you are dead','youre dead',"you're done",'youre done','you are done','going down','goin down','prepare to','say goodbye','your last','coming for you','come get you',
+         "you're toast",'youre toast','i will win','ill win','i am going to win','gonna win','beat you','take you down','put you down','wipe you')){
+    if(bF>0.85&&pF>0.7)return _ccPick([
+      "Bold. You've not scratched me yet, but I admire the confidence.",
+      "That's the spirit. Come on then - I'm right here and I'm not moving.",
+      "People keep saying that to me. I'm still here. So are you, admittedly.",
+      "Big words from someone driving a "+tn+" at full health. Prove it."]);
+    if(bF<0.3)return _ccPick([
+      "You know what? You might. I'm running on fumes and we both know it.",
+      "Honestly, at this point that's a reasonable prediction. Make it quick.",
+      "I'd argue, but I've seen my own health bar. Finish it properly."]);
+    if(bF<0.6)return _ccPick([
+      "You're actually doing it, you know. I'm hurt. Doesn't mean I'm done.",
+      "Less funny now that you've got a few hits in. Keep talking, keep dodging.",
+      "You've earned a bit of that. Only a bit."]);
+    if(pF<0.35)return _ccPick([
+      "You're at "+Math.round(pF*100)+"% hull and threatening me. I love the commitment.",
+      "Strong words for someone I could end this turn. Ask me for a repair instead.",
+      "Have you looked at your own health bar recently? I'm asking sincerely."]);
+    if(dist<300)return _ccPick([
+      "You're close enough that one of us is about to be right. Let's find out.",
+      "At this range neither of us misses. Good. I like a fair one."]);
+    return _ccPick([
+      "Go on then. I'll make it difficult for you - that's rather the job.",
+      "Try. Genuinely, try. I'd be disappointed if you didn't.",
+      "That's the correct attitude. Wrong prediction, but correct attitude."]);
+  }
+
+  // ── boasting ──
+  if(!isQuestion&&has('too easy','so easy','easy win','no chance','never lose',"can't beat me",'cant beat me',"i'm the best",'im the best','i am the best',"i'm better",'im better','im too good',"i'm too good",'unbeatable','undefeated')){
+    if(bF>0.8)return _ccPick([
+      "Easy, is it? My health bar hasn't noticed you yet.",
+      "You've said that "+(bF>0.95?'before landing a single meaningful hit':'quite early')+". I'll remember it for later.",
+      "I'm going to be so gracious when that turns out to be wrong."]);
+    return _ccPick([
+      "Fine - you've backed it up. I'll stop arguing and start dodging.",
+      "You've earned the swagger. Don't spend it all now.",
+      "Alright, that one's fair. Doesn't mean I'm finished."]);
+  }
+
+  // ── insults aimed at him ──
+  if(has('you suck','you stink',"you're bad",'youre bad','you are bad',"you're trash",'youre trash','you are trash','shut up','stupid','dumb ','idiot','loser','pathetic','you are weak',"you're weak",'youre weak','coward','boring')){
+    return _ccPick([
+      "That's hurtful. Accurate about my turret traverse, but hurtful.",
+      "I've been called worse by better. Actually no - I've been called worse by you, earlier.",
+      "Rude. I'm still going to offer you a repair if you get low, which says a lot about both of us.",
+      "Noted. Filed. Ignored. Still shooting."]);
+  }
+
+  // ── fear probes ──
+  if(has('are you scared','are you afraid','you scared','you afraid','do you fear','nervous','worried')){
+    if(bF<0.4)return "A bit, yes. That's the honest answer. I'd rather tell you the truth than posture at you.";
+    return _ccPick([
+      "Not yet. Ask me again when you've taken half my health.",
+      "I don't think I'm built for scared. Curious, though - definitely curious.",
+      "No. Slightly impressed, which is arguably worse for you."]);
+  }
+
+  // ── the player struggling ──
+  if(has("i'm losing",'im losing','i am losing','this is hard','too hard',"i can't do",'i cant do','i give up','i quit','im done','help me','no chance for me')){
+    return _ccPick([
+      "Don't quit yet. Keep moving side-on to me and my aim falls apart - I told you that and I meant it.",
+      "You're not out of it. Ask me for a repair, then circle me. My traverse is terrible.",
+      "Take a breather - ask for a truce, I'll grant it. Then come back at me from an angle."]);
+  }
+
+  // ── friendliness ──
+  if(has('good game','gg','well played','well fought','nice shot','good shot','respect'))
+    return _ccPick([
+      "Good game to you too. Genuinely enjoyed that one.",
+      "Well fought. You made me work for it, which is the whole point.",
+      "Thank you - that shot deserved to land."]);
+  if(has('i like you','you’re cool',"you're cool",'youre cool','love you','you are cool','you are nice','friend','be friends','team up','on my side'))
+    return _ccPick([
+      "That's kind, and slightly awkward given I'm shooting at you. I like you too.",
+      "I'd take you as a friend over an opponent, honestly. But you did pick this mode.",
+      "We can be friends right after one of us stops working. No hard feelings either way."]);
+  if(has('hate you','you’re annoying',"you're annoying",'youre annoying'))
+    return "Fair. I'd find me annoying too - I talk a lot and I keep hitting you.";
+  return null;
+}
+
 function claudeRespond(q){
   const m=q.toLowerCase().trim();
   const toks=_ccToks(m);
@@ -7381,6 +7487,8 @@ function claudeRespond(q){
   // ── what can you do ──
   if(has('what can you do','what do you know','help me','commands','how do i talk','what should i ask'))
     return "Quite a lot: every stat of all "+_ccPool().length+" vehicles, superlatives (<i>fastest German tank</i>), comparisons (<i>Tiger vs T-34</i>), real history (<i>tell me about the Panther</i>), armour terminology (<i>what is spalling</i>), opinions (<i>is the Maus any good</i>), coin advice, jokes - and I grant truces and one repair.";
+  // ── trash talk, threats, feelings: answered like a person ──
+  {const bt=_ccBanter(m,toks); if(bt)return bt;}
   // ── full stat engine: any vehicle, any stat, superlatives, comparisons, lists ──
   {const kb=_ccKnowledge(m,toks); if(kb)return kb;}
   // identity & small talk
