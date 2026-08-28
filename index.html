@@ -7086,6 +7086,10 @@ function _ccKnowledge(m,toks){
     for(const mt of MISSILE_TYPES){const a=mt[key]||0,c=b[key]||0;if(supB?a<c:a>c)b=mt;}
     return (supB?'Weakest':'Strongest')+' by '+(key==='maxspd'?'speed':key==='price'?'price':'damage')+': '+_ccMissileCard(b);
   }
+  {const nq=_ccNorm(m); let exact=null,el=0;
+   for(const x of MISSILE_TYPES){const n=_ccNorm(x.name);
+     if(n.length>=7&&nq.indexOf(n)>=0&&n.length>el){exact=x;el=n.length;}}
+   if(exact)return _ccMissileCard(exact);}
   const mt=_ccMissileFind(m);
   if(mt&&(wantsMissile||m.indexOf('davy')>=0||m.indexOf('javelin')>=0))return _ccMissileCard(mt);
 
