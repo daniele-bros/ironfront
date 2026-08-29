@@ -1150,7 +1150,7 @@ const MISSILE_TYPES=[
   {id:'frag',   name:'Fragmentation',      price:26000, dmg:1.3, maxspd:7, turn:0.16, life:500, splash:110,count:1, color:'#d0d060', desc:'Bursts into a wide cloud of shrapnel — great against grouped light tanks.'},
   {id:'rail',   name:'Railgun Lance',      price:48000, dmg:2.2, maxspd:16,turn:0.16, life:420, splash:0,  count:1, color:'#70f0ff', pierce:true, desc:'Hypervelocity slug that skewers every tank in a line and keeps going.'},
   {id:'tesla',  name:'Chain Lightning',    price:50000, dmg:1.6, maxspd:8, turn:0.20, life:460, splash:0,  count:1, color:'#c0a0ff', chain:4, desc:'Arcs from the target to nearby tanks, each jump a little weaker.'},
-  {id:'vortex', name:'Singularity',        price:58000, dmg:1.8, maxspd:6, turn:0.15, life:520, splash:60, count:1, color:'#a060ff', pull:true, desc:'Collapses a gravity well that drags tanks together, then detonates.'},
+  {id:'vortex', name:'Singularity',        price:58000, dmg:4.2, maxspd:6, turn:0.15, life:520, splash:110,count:1, color:'#a060ff', pull:true, blackhole:true, desc:'Collapses into a real black hole: 1,400+ damage on impact, then an event horizon that drags every tank inward and crushes them for six seconds before it collapses.'},
   {id:'quake',  name:'Seismic Charge',     price:62000, dmg:2.4, maxspd:5, turn:0.12, life:560, splash:150,count:1, color:'#e08040', fire:true, desc:'Ground-rupturing blast — massive area damage and lingering flames.'},
   {id:'madjack',name:'Mad Jack Churchill',  price:70000, dmg:3.6, maxspd:14,turn:0.19, life:480, splash:0,  count:1, color:'#c0d0e0', pierce:true, heal:0.35, chain:2, desc:'A flying claymore that charges sword-first through the whole enemy line, healing with every cut. "Any officer who goes into action without his sword is improperly dressed."'},
   {id:'longchurchill',name:'Long Range Churchill',price:90000, dmg:3.6, maxspd:14,turn:0.19, life:1800,splash:0,  count:1, color:'#7ec8ff', pierce:true, heal:0.35, chain:2, desc:'Mad Jack with a full tank of fuel \u2014 30 seconds of flight. Enough to cross the whole map, pick your target, and charge the entire line sword-first. \u201CAny officer who goes into action without his sword is improperly dressed.\u201D'},
@@ -1174,6 +1174,16 @@ function _missileDetonate(b,hit){
   if(b.fire||b.slowField){ fireZones.push({x:b.x,y:b.y,r:Math.max(46,R),owner:b.owner==='enemy'?'enemy':'player',dps:b.fire?Math.max(20,dmg*0.06):0,slow:!!b.slowField,life:360,_tick:0}); }
   // Cryo: freeze tanks caught in the blast for a few seconds
   if(b.freeze){ if(b.owner!=='enemy'&&enemies)for(const e of enemies){ if(e.hp>0&&Math.hypot(e.x-b.x,e.y-b.y)<Math.max(R,40)){ e._frozen=b.freeze; } } }
+  // Singularity: collapse into a black hole - a lingering event horizon that
+  // keeps dragging tanks in and crushing them until it evaporates.
+  if(b.blackhole){
+    fireZones.push({x:b.x,y:b.y,r:Math.max(150,R*1.6),owner:b.owner==='enemy'?'enemy':'player',
+      dps:Math.max(45,dmg*0.10),slow:true,bh:true,life:360,_tick:0});
+    camShake=Math.max(camShake,22);
+    for(let k=0;k<34;k++){const a=Math.random()*6.283,rr=60+Math.random()*120;
+      particles.push({x:b.x+Math.cos(a)*rr,y:b.y+Math.sin(a)*rr,vx:-Math.cos(a)*3.2,vy:-Math.sin(a)*3.2,
+        life:26,maxLife:26,alpha:.95,r:2+Math.random()*3,color:'#c890ff'});}
+  }
   // Singularity: yank nearby tanks toward the impact point
   if(b.pull&&b.owner!=='enemy'&&enemies){ const PR=R*2.4; for(const e of enemies){ if(e.hp<=0)continue; const d=Math.hypot(e.x-b.x,e.y-b.y); if(d<PR&&d>1){ const f=Math.min(70,(PR-d)*0.55); e.x+=(b.x-e.x)/d*f; e.y+=(b.y-e.y)/d*f; } } }
   if(b.owner==='enemy'){
@@ -1795,8 +1805,19 @@ function updateFireZones(dt){
   for(let i=fireZones.length-1;i>=0;i--){
     const z=fireZones[i]; z.life-=dt;
     if(z.life<=0){ fireZones.splice(i,1); continue; }
+    // Event horizon: matter spiralling inward, and a continuous inward drag
+    if(z.bh){
+      if(particles.length<600){ for(let q=0;q<2;q++){ const a=Math.random()*6.283,r=z.r*(0.55+Math.random()*0.5);
+        particles.push({x:z.x+Math.cos(a)*r,y:z.y+Math.sin(a)*r,
+          vx:-Math.cos(a)*2.6-Math.sin(a)*2.0, vy:-Math.sin(a)*2.6+Math.cos(a)*2.0,
+          life:16,maxLife:16,alpha:.85,r:1.6+Math.random()*2.4,color:Math.random()<0.5?'#c890ff':'#7a40d0'}); } }
+      const drag=(t)=>{ const dx=z.x-t.x, dy=z.y-t.y, d=Math.hypot(dx,dy);
+        if(d>4&&d<z.r*1.9){ const f=Math.min(6.5,(1-d/(z.r*1.9))*7.5)*dt; t.x+=dx/d*f; t.y+=dy/d*f; } };
+      if(z.owner==='player'){ for(const e of enemies)if(e.hp>0)drag(e); }
+      else if(player&&player.hp>0)drag(player);
+    }
     // ambient particles: flames for burning zones, dark bubbles for tar/slow-only
-    if(particles.length<600&&Math.random()<0.6){ const a=Math.random()*6.283,r=Math.random()*z.r;
+    if(particles.length<600&&!z.bh&&Math.random()<0.6){ const a=Math.random()*6.283,r=Math.random()*z.r;
       if(z.dps>0) particles.push({type:'fire',x:z.x+Math.cos(a)*r,y:z.y+Math.sin(a)*r,vx:(Math.random()-.5)*.4,vy:-0.8-Math.random(),life:12+Math.random()*10,maxLife:22,alpha:1,r:3+Math.random()*4,color:Math.random()<.5?'#ff6a20':'#ffb040'});
       else particles.push({type:'smoke',x:z.x+Math.cos(a)*r,y:z.y+Math.sin(a)*r,vx:(Math.random()-.5)*.2,vy:-0.2-Math.random()*0.3,life:18+Math.random()*12,maxLife:30,alpha:1,r:3+Math.random()*4,color:'#443022'});
     }
@@ -3017,7 +3038,7 @@ function tryShoot(){
       // Apply the equipped loadout's stats to each missile
       m.dmg=baseDmg*mt.dmg; m.maxspd=mt.maxspd; m.turn=mt.turn; m.life=mt.life;
       m.splash=mt.splash||0; m.mcolor=mt.color; m.fire=mt.fire||false; m.freeze=mt.freeze||0; m.heal=mt.heal||0;
-      m.pierce=mt.pierce||false; m.chain=mt.chain||0; m.pull=mt.pull||false; m.slowField=mt.slowField||false;
+      m.pierce=mt.pierce||false; m.chain=mt.chain||0; m.pull=mt.pull||false; m.slowField=mt.slowField||false; m.blackhole=mt.blackhole||false;
       // You fly the lead missile with the mouse; any wingmen auto-home to enemies.
       if(k===0){ m.driven=true; drivenMissile=m; } else { m.autohome=true; }
     }
@@ -4176,6 +4197,30 @@ function render(){
   // ── Burning incendiary patches (drawn on the ground, under tanks) ──
   for(const z of fireZones){
     const fade=Math.min(1,z.life/60);
+    if(z.bh){
+      // Black hole: violet halo, bright accretion ring, and a genuinely black core
+      const t=(z._spin=(z._spin||0)+0.05);
+      const hg=ctx.createRadialGradient(z.x,z.y,z.r*0.18,z.x,z.y,z.r*1.5);
+      hg.addColorStop(0,'rgba(150,80,255,'+(0.34*fade)+')');
+      hg.addColorStop(0.5,'rgba(90,40,180,'+(0.20*fade)+')');
+      hg.addColorStop(1,'rgba(30,0,60,0)');
+      ctx.fillStyle=hg;ctx.beginPath();ctx.arc(z.x,z.y,z.r*1.5,0,Math.PI*2);ctx.fill();
+      ctx.save();ctx.translate(z.x,z.y);ctx.rotate(t);
+      for(let a=0;a<3;a++){
+        ctx.rotate(2.094);
+        ctx.strokeStyle='rgba(200,150,255,'+(0.5*fade)+')';ctx.lineWidth=3;
+        ctx.beginPath();ctx.ellipse(0,0,z.r*0.62,z.r*0.30,0,0.4,3.0);ctx.stroke();
+      }
+      ctx.restore();
+      ctx.strokeStyle='rgba(230,190,255,'+(0.85*fade)+')';ctx.lineWidth=3.5;
+      ctx.beginPath();ctx.arc(z.x,z.y,z.r*0.42,0,Math.PI*2);ctx.stroke();
+      const cg=ctx.createRadialGradient(z.x,z.y,0,z.x,z.y,z.r*0.42);
+      cg.addColorStop(0,'rgba(0,0,0,'+(0.99*fade)+')');
+      cg.addColorStop(0.75,'rgba(0,0,0,'+(0.95*fade)+')');
+      cg.addColorStop(1,'rgba(20,0,40,0)');
+      ctx.fillStyle=cg;ctx.beginPath();ctx.arc(z.x,z.y,z.r*0.42,0,Math.PI*2);ctx.fill();
+      continue;
+    }
     const g=ctx.createRadialGradient(z.x,z.y,z.r*0.15,z.x,z.y,z.r);
     g.addColorStop(0,'rgba(255,150,40,'+(0.34*fade)+')');
     g.addColorStop(0.6,'rgba(220,70,20,'+(0.22*fade)+')');
@@ -5258,11 +5303,18 @@ const TANK_PROFILES={
   default:{hl:1.65,hw:0.85,tr:0.33,ty:0.28,bl:0.95,bw:0.090,muzzle:false,boxy:false,sk:false},
 };
 function getProfile(id){return TANK_PROFILES[id]||TANK_PROFILES.default;}
-function lc(h,a){let r=parseInt(h.slice(1,3),16),g=parseInt(h.slice(3,5),16),b=parseInt(h.slice(5,7),16);return`rgb(${Math.min(255,(r+a*255)|0)},${Math.min(255,(g+a*255)|0)},${Math.min(255,(b+a*255)|0)})`;}
-function dc(h,a){let r=parseInt(h.slice(1,3),16),g=parseInt(h.slice(3,5),16),b=parseInt(h.slice(5,7),16);return`rgb(${Math.max(0,(r-a*255)|0)},${Math.max(0,(g-a*255)|0)},${Math.max(0,(b-a*255)|0)})`;}
+// Normalise #abc shorthand to #aabbcc so the parsers below never yield NaN.
+function _hex6(h){
+  if(typeof h!=='string'||h[0]!=='#')return '#808080';
+  if(h.length===4)return '#'+h[1]+h[1]+h[2]+h[2]+h[3]+h[3];
+  if(h.length>=7)return h.slice(0,7);
+  return '#808080';
+}
+function lc(h,a){h=_hex6(h);let r=parseInt(h.slice(1,3),16),g=parseInt(h.slice(3,5),16),b=parseInt(h.slice(5,7),16);return`rgb(${Math.min(255,(r+a*255)|0)},${Math.min(255,(g+a*255)|0)},${Math.min(255,(b+a*255)|0)})`;}
+function dc(h,a){h=_hex6(h);let r=parseInt(h.slice(1,3),16),g=parseInt(h.slice(3,5),16),b=parseInt(h.slice(5,7),16);return`rgb(${Math.max(0,(r-a*255)|0)},${Math.max(0,(g-a*255)|0)},${Math.max(0,(b-a*255)|0)})`;}
 // multiplicative value lift that PRESERVES hue and returns hex (so lc/dc still parse it) —
 // brightens the historically-drab hull colours so silhouettes pop off the terrain (Tiger-Tank style)
-function _lift(h,f){let r=parseInt(h.slice(1,3),16),g=parseInt(h.slice(3,5),16),b=parseInt(h.slice(5,7),16);
+function _lift(h,f){h=_hex6(h);let r=parseInt(h.slice(1,3),16),g=parseInt(h.slice(3,5),16),b=parseInt(h.slice(5,7),16);
   const c=x=>Math.min(255,Math.round(x*f)),hx=x=>('0'+c(x).toString(16)).slice(-2);
   return '#'+hx(r)+hx(g)+hx(b);}
 function lightenColor(h,a){return lc(h,a);}
@@ -7499,7 +7551,50 @@ const _CC_LORE=[
  // ── Practical / conversational ──
  {k:['advice','life advice'],a:"Ask for help earlier than feels comfortable, finish things badly rather than not at all, and be suspicious of any explanation that makes you the only reasonable person in the room. That's most of what I've got."},
  {k:['how do i learn','learn faster','study tip'],a:"Test yourself instead of rereading, spread it out over days rather than cramming, and try to explain it to someone else - the moment you stumble is the exact thing you didn't understand."},
- {k:['what should i build','game idea','feature idea'],a:"Whatever annoys you most about the game right now, fix that. Best features usually come from a specific irritation, not a brainstorm. And ship it small - you can always widen it after you've played it."}
+ {k:['what should i build','game idea','feature idea'],a:"Whatever annoys you most about the game right now, fix that. Best features usually come from a specific irritation, not a brainstorm. And ship it small - you can always widen it after you've played it."},
+ // ── Space & physics ──
+ {k:['event horizon'],a:"The boundary around a black hole where escape would require going faster than light - so nothing comes back. It isn't a surface you'd hit; for a big enough black hole you'd cross it without noticing anything special at the moment you passed."},
+ {k:['spaghettification','what happens if you fall into a black hole'],a:"Tidal gravity pulls your feet harder than your head and stretches you out - physicists genuinely call it spaghettification. Around a supermassive black hole it's gentle at the horizon; around a small one it would shred you long before you got there."},
+ {k:['big bang'],a:"About 13.8 billion years ago everything we can see was in an unimaginably hot, dense state and has been expanding ever since. It isn't an explosion into space - it's space itself expanding, everywhere at once."},
+ {k:['dark matter'],a:"Galaxies spin far too fast for the matter we can see to hold them together, so something invisible must be adding mass. It's roughly five times more common than ordinary matter and nobody has caught a particle of it yet."},
+ {k:['why is space cold','temperature of space'],a:"Space is mostly empty, so there's almost nothing to carry heat away by contact - you'd actually struggle to dump heat, not to stay warm. The background radiation sits at about 2.7 kelvin."},
+ {k:['light year'],a:"The distance light covers in a year - about 9.46 trillion kilometres. It's a distance, not a time, which trips people up constantly."},
+ {k:['why does the moon','tidally locked','same side of the moon'],a:"The Moon is tidally locked: it rotates once per orbit, so the same face always points at us. Earth's gravity slowed its spin over billions of years until it settled there."},
+ {k:['what is entropy','second law of thermodynamics'],a:"Entropy measures how many arrangements look the same from outside. Disordered states vastly outnumber ordered ones, so things drift towards disorder - that statistical fact is what gives time a direction."},
+ {k:['quantum'],a:"At very small scales things come in discrete lumps, can behave as wave or particle depending on how you look, and only have probabilities until measured. It's spectacularly well tested and still genuinely strange."},
+ {k:['relativity','einstein'],a:"Special relativity: the speed of light is the same for everyone, so time and length shift depending on motion. General relativity: mass and energy curve spacetime, and that curvature is gravity. Your GPS corrects for both or it drifts kilometres a day."},
+ {k:['nuclear fission','nuclear fusion','how does a nuclear'],a:"Fission splits heavy atoms like uranium and releases energy - that's reactors and the first bombs. Fusion joins light ones like hydrogen and releases more - that's the Sun, and the thing we keep almost getting to work on Earth."},
+
+ // ── Earth, life, body ──
+ {k:['plate tectonics','why do earthquakes'],a:"Earth's crust is broken into plates drifting on the mantle. They grind past and dive under each other, and the sudden slips are earthquakes. Where a plate dives under another you get volcanoes and mountain ranges."},
+ {k:['how old is the earth'],a:"About 4.54 billion years, measured from radioactive decay in the oldest meteorites and rocks. Life shows up surprisingly early - within the first billion years."},
+ {k:['why do we sleep','what is sleep for'],a:"Nobody has one complete answer, but sleep consolidates memory, clears metabolic waste from the brain and regulates hormones. Every animal with a nervous system does it despite being defenceless while it happens, which suggests it's non-negotiable."},
+ {k:['immune system','how do vaccines work'],a:"Your immune system learns by example. A vaccine shows it a harmless version of a pathogen - a fragment, a weakened copy, or instructions to build one piece - so it already has the recipe for antibodies before the real thing arrives."},
+ {k:['what causes rainbows','rainbow'],a:"Sunlight enters a raindrop, bends, reflects off the back and bends again on the way out. Different colours bend by different amounts, so they emerge at slightly different angles - always about 42 degrees from the point opposite the sun."},
+ {k:['why is the ocean salty'],a:"Rain is faintly acidic, it dissolves minerals out of rock, rivers carry them to the sea, and then only the water evaporates. The salt stays and accumulates over hundreds of millions of years."},
+
+ // ── History beyond WW2 ──
+ {k:['world war 1','world war one','ww1','first world war'],a:"1914-1918. Machine guns and artillery outpaced any way of crossing open ground, so the Western Front froze into trenches for four years. Tanks were invented specifically to break that deadlock - the British Mark I first rolled at the Somme in 1916."},
+ {k:['first tank','who invented the tank','mark i tank'],a:"The British Mark I, September 1916 at the Somme. 'Tank' was a deliberate lie - crates were labelled as water tanks to disguise what was being shipped, and the cover name stuck permanently."},
+ {k:['cold war'],a:"Roughly 1947-1991: the US and USSR never fought each other directly but competed everywhere else through proxy wars, arms racing and the space programme. It's why so many of the tanks in this game exist at all."},
+ {k:['cuban missile crisis'],a:"October 1962 - Soviet nuclear missiles in Cuba, thirteen days of standoff, and the closest the Cold War came to going hot. It ended with a public Soviet withdrawal and a quiet American one from Turkey."},
+ {k:['moon landing','apollo 11'],a:"20 July 1969. Armstrong and Aldrin landed with roughly 25 seconds of fuel left because the computer was steering them into a boulder field and Armstrong flew it manually. The guidance computer had less memory than a modern doorbell."},
+ {k:['roman empire','ancient rome'],a:"Rome ran the Mediterranean for centuries on engineering and organisation as much as on legions - roads, aqueducts, concrete and law. The western half fell in 476; the eastern half carried on from Constantinople until 1453."},
+ {k:['industrial revolution'],a:"From roughly 1760, steam power and factories turned muscle-limited production into fuel-limited production. It's the hinge that everything modern swings on - including mass-produced tanks."},
+
+ // ── Technology & computing ──
+ {k:['how does a computer work','what is a cpu'],a:"Underneath it's billions of switches that are on or off. Those form logic gates, gates form arithmetic and memory, and a CPU just fetches instructions and executes them incredibly fast. Everything else is layers of abstraction stacked on that."},
+ {k:['what is the internet','how does the internet work'],a:"Your message gets chopped into packets, each labelled with a destination, and routers pass them along whatever path is free. They can arrive out of order by different routes and get reassembled at the far end. There's no central switchboard - that was the point."},
+ {k:['what is ai','artificial intelligence','how do you work','how were you made','neural network','how does an llm work'],a:"I'm a neural network - billions of numbers tuned by predicting text over an enormous amount of writing, then shaped by feedback to be useful and honest. I don't look things up; when I answer, the knowledge is in those weights. Which is also exactly why I can't be copied into this HTML file."},
+ {k:['what is encryption','how does encryption work'],a:"Modern encryption leans on maths that's easy one way and brutally hard to reverse - like multiplying two huge primes versus factoring the result. That gap is what keeps your messages private."},
+ {k:['machine learning','how do you learn'],a:"Show a model many examples, measure how wrong it is, and nudge its parameters slightly in the direction that reduces the error. Repeat astronomically many times. There's no moment of understanding - just error going down until behaviour looks like understanding."},
+
+ // ── Everyday & useful ──
+ {k:['how do planes fly','why do planes fly'],a:"The wing turns air downwards, and pushing air down pushes the wing up - Newton's third law. The pressure-difference story is real but it's a description of the same thing, not a separate cause."},
+ {k:['why do we dream'],a:"Best current guess is memory processing and emotional regulation, with the brain stitching a narrative over activity that has no plot. Nobody has proved it, which is unusual for something everyone does nightly."},
+ {k:['how to be happy','happiness'],a:"The research is boringly consistent: close relationships, sleep, exercise, and something that feels like progress. Money helps a lot up to the point where you stop worrying about it, then much less."},
+ {k:['procrastinat'],a:"Procrastination is usually an emotion problem wearing a time-management costume - you're avoiding how the task feels. Shrink the first step until it's almost insultingly small and start there."},
+ {k:['how do i get better at','how to improve','practice'],a:"Deliberate practice: work slightly past what you can already do, get feedback quickly, and fix the specific thing that broke. Comfortable repetition maintains skill; it doesn't build it."},
 ];
 function _ccLore(m){
   let best=null,bl=0;
@@ -8279,7 +8374,17 @@ function renderGL(){
 
   // craters + fire zones + tread marks pressed into the ground
   for(const c of craters)_pushDecal(_bTr,c.x,c.y,0.5,c.r,[0.03,0.02,0.01],0.62);
-  for(const z of fireZones){const fade=Math.min(1,z.life/60);_pushDecal(_bTr,z.x,z.y,0.8,z.r,[1,0.45,0.1],0.30*fade);}
+  for(const z of fireZones){const fade=Math.min(1,z.life/60);
+    if(z.bh){
+      _pushDecal(_bTr,z.x,z.y,0.9,z.r*1.5,[0.35,0.16,0.6],0.30*fade);
+      _pushDecal(_bTr,z.x,z.y,1.3,z.r*0.44,[0,0,0],0.96*fade);
+      _pushOct(_bOp,z.x,z.y,0,z.r*0.34,z.r*0.34,z.r*0.30,0,[0.02,0.0,0.05]);
+      _pushPtA(z.x,z.r*0.34,z.y,0.72,0.38,1,0.85*fade,z.r*0.5);
+      for(let a=0;a<8;a++){const th=a/8*6.283+(z._spin||0);
+        _pushPtA(z.x+Math.cos(th)*z.r*0.55,10,z.y+Math.sin(th)*z.r*0.55,0.85,0.6,1,0.5*fade,z.r*0.10);}
+      continue;
+    }
+    _pushDecal(_bTr,z.x,z.y,0.8,z.r,[1,0.45,0.1],0.30*fade);}
   {const tmS=Math.max(0,treadMarks.length-240);
    for(let ti=tmS;ti<treadMarks.length;ti++){const tm=treadMarks[ti];
      const al=(tm.life/tm.maxLife)*0.30;
