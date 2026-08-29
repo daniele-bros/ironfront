@@ -183,6 +183,7 @@ body[data-state="mode"] #screen-title { display:none!important; }
   <div><div class="hl">KILLS</div><div class="hv" id="hud-kills" style="color:var(--hpr)">0</div></div>
   <button id="btn-pause" onclick="togglePause()" title="Pause (P)" style="background:transparent;border:1px solid #3a4520;border-radius:4px;color:var(--khaki);font-size:18px;padding:2px 8px;cursor:pointer;align-self:center;margin-right:4px;">⏸</button>
   <button id="btn-sound" onclick="toggleSound();_initAudio();_resumeAudio()" title="Toggle sound" style="background:transparent;border:1px solid #3a4520;border-radius:4px;color:var(--khaki);font-size:18px;padding:2px 8px;cursor:pointer;align-self:center;">🔊</button>
+  <button id="btn-drone" onclick="droneToggle()" title="Drone mode (Z) — test range only" style="background:transparent;border:1px solid #3a4520;border-radius:4px;color:var(--khaki);font-size:15px;padding:2px 8px;cursor:pointer;align-self:center;display:none;">&#128641;</button>
   <button id="btn-3d" onclick="toggle3D()" title="Toggle 3D view" style="background:transparent;border:1px solid #3a4520;border-radius:4px;color:var(--khaki);font-size:13px;font-weight:700;padding:2px 8px;cursor:pointer;align-self:center;font-family:'Oswald',sans-serif;letter-spacing:1px;">3D</button>
 </div>
 <div id="arena-wrap">
@@ -1199,7 +1200,7 @@ function _missileDetonate(b,hit){
         if(e._isRatte){reward=500000;addKillFeed('💀 RATTE KILL! +500,000 🏷');}
         coins+=reward;totalKills++;score+=reward;kills++;
         if(_throttle('coinsave',1000))saveData();
-        updateCoinsHud();showCoinPopup(e.x-camX,e.y-camY,'+'+reward+'🏷');
+        updateCoinsHud();showCoinPopup(w2sx(e.x),w2sy(e.y),'+'+reward+'🏷');
         addKillFeed(`${e.name} DESTROYED +${reward}🏷`);
         spawnExplosion(e.x,e.y);craters.push({x:e.x,y:e.y,r:e.size*1.4});
         enemies.splice(j,1);(document.getElementById('hud-en')||{}).textContent=enemies.length;_on1v1000Kill();
@@ -1212,7 +1213,7 @@ function _rewardKill(e){
   if(e._dummy){ spawnExplosion(e.x,e.y); e.hp=0; e._respawn=140; return; }
   let reward=1000; if(e._isRatte){reward=500000;addKillFeed('💀 RATTE KILL! +500,000 🏷');}
   coins+=reward;totalKills++;score+=reward;kills++; if(_throttle('coinsave',1000))saveData();
-  updateCoinsHud();showCoinPopup(e.x-camX,e.y-camY,'+'+reward+'🏷');
+  updateCoinsHud();showCoinPopup(w2sx(e.x),w2sy(e.y),'+'+reward+'🏷');
   spawnExplosion(e.x,e.y);craters.push({x:e.x,y:e.y,r:e.size*1.4});
   const idx=enemies.indexOf(e); if(idx>=0)enemies.splice(idx,1);
   (document.getElementById('hud-en')||{}).textContent=enemies.length; _on1v1000Kill();
@@ -1799,6 +1800,31 @@ let drivenMissile=null;
 // Floating hit-damage numbers (used by the test range) — world coords, drift up.
 let _dmgPops=[];
 let rangeLabels=[];   // world-space tech-tree signs in the test range
+// ── DRONE MODE (test range): free-flying, zoomable camera ──
+let viewZoom=1, droneMode=false, droneCamX=0, droneCamY=0;
+const DRONE_MIN=0.12, DRONE_MAX=2.5;
+function droneToggle(){
+  if(battleMode!=='testrange'||state!=='game')return;
+  droneMode=!droneMode;
+  if(droneMode){
+    droneCamX=camX+viewW()/2; droneCamY=camY+viewH()/2;   // lift off from here
+    viewZoom=0.5;
+    addKillFeed('\uD83D\uDE81 DRONE MODE \u2014 WASD flies \u00B7 wheel or +/- zooms \u00B7 Z lands');
+  } else {
+    viewZoom=1;
+    addKillFeed('\uD83D\uDEE9 Back in the tank');
+  }
+  const b=document.getElementById('btn-drone');
+  if(b){b.style.borderColor=droneMode?'#40c0f0':'#3a4520';b.style.color=droneMode?'#7fd8ff':'var(--khaki)';}
+}
+function droneZoom(f){
+  if(!droneMode)return;
+  viewZoom=Math.max(DRONE_MIN,Math.min(DRONE_MAX,viewZoom*f));
+}
+function viewW(){return W/viewZoom;}        // visible world width
+function viewH(){return H/viewZoom;}        // visible world height
+function w2sx(x){return (x-camX)*viewZoom;} // world -> screen
+function w2sy(y){return (y-camY)*viewZoom;}
 function _dmgPopup(wx,wy,txt,color){ _dmgPops.push({x:wx,y:wy,txt,color,life:55}); if(_dmgPops.length>60)_dmgPops.shift(); }
 // Burning ground patches left by incendiary missiles — deal damage-over-time.
 let fireZones=[];
@@ -2612,7 +2638,7 @@ function startGame(){
   const _rb2=document.getElementById('relbar');if(_rb2)_rb2.style.width='100%';
   // TEST RANGE is a showroom for the whole roster, so it gets a 4x arena
   setWorldSize(battleMode==='testrange'?WORLD_BASE*2:WORLD_BASE);
-  rangeLabels=[];
+  rangeLabels=[]; droneMode=false; viewZoom=1;
   buildObstacles();
   groundCanvas=null;buildGround();
   player={x:WW/2,y:WH/2,angle:0,turretAngle:0,
@@ -2649,6 +2675,8 @@ function startGame(){
   (document.getElementById('btn-exit-battle')||{style:{}}).style.display='block';
   // ── MAKE YOUR OWN MAP: start on a blank field with the editor toolbar ──
   // CLAUDE BOSS: show the battlefield chat panel (hidden in every other mode)
+  {const _db=document.getElementById('btn-drone');
+   if(_db)_db.style.display=(battleMode==='testrange')?'inline-block':'none';}
   {const _cc=document.getElementById('claude-chat');
    if(_cc)_cc.style.display=(battleMode==='claudeboss')?'block':'none';
    if(battleMode==='claudeboss'){const _cl=document.getElementById('cc-log');if(_cl)_cl.innerHTML='';}}
@@ -3055,6 +3083,9 @@ function setupInput(){
     if(e.code==='KeyQ'){e.preventDefault();toggleWeapon();}
     if(e.code==='KeyR'&&battleMode==='testrange'&&state==='game'){e.preventDefault();_resetTestRange();}
     if(e.code==='KeyE'&&battleMode==='mapmaker'&&state==='game'){e.preventDefault();sandboxTogglePlay();}
+    if(e.code==='KeyZ'&&battleMode==='testrange'&&state==='game'){e.preventDefault();droneToggle();}
+    if(droneMode&&(e.code==='Equal'||e.code==='NumpadAdd')){e.preventDefault();droneZoom(1.18);}
+    if(droneMode&&(e.code==='Minus'||e.code==='NumpadSubtract')){e.preventDefault();droneZoom(1/1.18);}
     if(['KeyW','KeyA','KeyS','KeyD','ArrowUp','ArrowDown','ArrowLeft','ArrowRight'].includes(e.code))e.preventDefault();
   });
   window.addEventListener('keyup',e=>{keys[e.code]=false;if(e.key)keys[e.key]=false;});
@@ -3073,9 +3104,15 @@ function setupInput(){
   // firing) lives in the unconditional window handler at the bottom of the file,
   // so clicks are handled exactly once.
   window.addEventListener('contextmenu',e=>e.preventDefault());
+  window.addEventListener('wheel',function(e){
+    if(!droneMode||state!=='game')return;
+    e.preventDefault();
+    droneZoom(e.deltaY<0?1.12:1/1.12);
+  },{passive:false});
 }
 
 function tryShoot(){
+  if(droneMode)return;                            // drone mode: you're not in the tank
   if(battleMode==='mapmaker'&&sandboxEdit)return; // sandbox EDIT: clicks place, they don't fire
   const _useMissile=_missileIds.has(player.id)&&weaponMode==='missile';
   if(state!=='game')return;
@@ -3241,7 +3278,7 @@ function _fireArtyShell(tx,ty){
         if(e.hp<=0){
           const reward=e._isRatte?500000:1000;
           coins+=reward;totalKills++;score+=reward;kills++;
-          showCoinPopup(e.x-camX,e.y-camY,'+'+reward+'🪙');
+          showCoinPopup(w2sx(e.x),w2sy(e.y),'+'+reward+'🪙');
           addKillFeed(`${e.name} DESTROYED +${reward}🪙`);
           spawnExplosion(e.x,e.y);craters.push({x:e.x,y:e.y,r:e.size*1.4});
           enemies.splice(j,1);_on1v1000Kill();
@@ -3547,10 +3584,22 @@ function updatePlayer(dt){
   const mud=selectedMap.mud;
   const spd=player.moveSpeed*(mud?0.55:1)*((keys['ShiftLeft']||keys['ShiftRight'])&&!mud?1.6:1);
   let dx=0,dy=0;
+  // DRONE MODE: WASD flies the camera, the tank stays put.
+  if(droneMode){
+    const fly=(22/Math.max(0.25,viewZoom))*((keys['ShiftLeft']||keys['ShiftRight'])?2.4:1);
+    if(keys['KeyW']||keys['ArrowUp'])   droneCamY-=fly*dt;
+    if(keys['KeyS']||keys['ArrowDown']) droneCamY+=fly*dt;
+    if(keys['KeyA']||keys['ArrowLeft']) droneCamX-=fly*dt;
+    if(keys['KeyD']||keys['ArrowRight'])droneCamX+=fly*dt;
+    droneCamX=Math.max(0,Math.min(WW,droneCamX));
+    droneCamY=Math.max(0,Math.min(WH,droneCamY));
+    _setEngine(0);
+  }
   // Sandbox EDIT: the tank is parked — WASD/arrows pan the camera so you can build
   // anywhere on the map, but the tank itself never moves (no driving, no firing).
-  const _sbEdit=(battleMode==='mapmaker'&&sandboxEdit);
+  const _sbEdit=(battleMode==='mapmaker'&&sandboxEdit)||droneMode;
   if(_sbEdit){
+   if(!droneMode){
     const pan=(player.moveSpeed*3.4)*((keys['ShiftLeft']||keys['ShiftRight'])?2:1);
     if(keys['KeyW']||keys['ArrowUp'])   sandboxCamY-=pan*dt;
     if(keys['KeyS']||keys['ArrowDown']) sandboxCamY+=pan*dt;
@@ -3558,6 +3607,7 @@ function updatePlayer(dt){
     if(keys['KeyD']||keys['ArrowRight'])sandboxCamX+=pan*dt;
     sandboxCamX=Math.max(0,Math.min(WW-W,sandboxCamX));
     sandboxCamY=Math.max(0,Math.min(WH-H,sandboxCamY));
+   }
   } else {
   if(keys['KeyW']||keys['ArrowUp'])   dy-=1;
   if(keys['KeyS']||keys['ArrowDown']) dy+=1;
@@ -3618,8 +3668,14 @@ function updatePlayer(dt){
     }
   }
 
-  camX=Math.max(0,Math.min(WW-W,player.x-W/2));
-  camY=Math.max(0,Math.min(WH-H,player.y-H/2));
+  {const VW=viewW(),VH=viewH();
+   if(droneMode){
+     camX=Math.max(0,Math.min(Math.max(0,WW-VW),droneCamX-VW/2));
+     camY=Math.max(0,Math.min(Math.max(0,WH-VH),droneCamY-VH/2));
+   } else {
+     camX=Math.max(0,Math.min(Math.max(0,WW-VW),player.x-VW/2));
+     camY=Math.max(0,Math.min(Math.max(0,WH-VH),player.y-VH/2));
+   }}
   // Sandbox EDIT: use the panned camera instead of following the parked tank
   if(battleMode==='mapmaker'&&sandboxEdit){ camX=sandboxCamX; camY=sandboxCamY; }
   // Missile-cam override: if a driven missile is still in flight, follow it so the
@@ -3746,7 +3802,7 @@ function resolveTankCollisions(){
           else {
             let reward=1000; if(o._isRatte){reward=500000;addKillFeed('💀 RATTE KILL! +500,000 🏷');}
             coins+=reward;totalKills++;score+=reward;kills++; if(_throttle('coinsave',1000))saveData();
-            updateCoinsHud();showCoinPopup(o.x-camX,o.y-camY,'+'+reward+'🏷');
+            updateCoinsHud();showCoinPopup(w2sx(o.x),w2sy(o.y),'+'+reward+'🏷');
             addKillFeed(o.name+' RAMMED +'+reward+'🏷');
             spawnExplosion(o.x,o.y);craters.push({x:o.x,y:o.y,r:o.size*1.4});
             const idx=enemies.indexOf(o); if(idx>=0)enemies.splice(idx,1);
@@ -4089,7 +4145,7 @@ function updateBullets(dt){
             coins+=reward;totalKills++;score+=reward;kills++;
             if(_throttle('coinsave',1000))saveData(); // debounce localStorage writes in mass-kill modes
             updateCoinsHud();
-            showCoinPopup(b.x-camX,b.y-camY,'+'+reward+'🪙');
+            showCoinPopup(w2sx(b.x),w2sy(b.y),'+'+reward+'🪙');
             addKillFeed(`${e.name} DESTROYED +${reward}🪙`);
             spawnExplosion(e.x,e.y);craters.push({x:e.x,y:e.y,r:e.size*1.4});
             enemies.splice(j,1);(document.getElementById('hud-en')||{}).textContent=enemies.length;
@@ -4251,7 +4307,9 @@ function render(){
     try{ if(renderGL()){ _render2DOverlay(); return; } }
     catch(e){ console.error('3D render failed, reverting to 2D',e); render3D=false; const gc=document.getElementById('glCanvas'); if(gc)gc.style.display='none'; }
   }
-  ctx.save();ctx.translate(-camX+camShakeX,-camY+camShakeY);
+  ctx.save();
+  if(viewZoom!==1)ctx.scale(viewZoom,viewZoom);
+  ctx.translate(-camX+camShakeX,-camY+camShakeY);
   const m=selectedMap;
   if(m.fog){
     ctx.fillStyle=m.bg;ctx.fillRect(0,0,WW,WH);
@@ -4338,7 +4396,7 @@ function render(){
   if(rangeLabels.length){
     ctx.save();ctx.textAlign='center';
     for(const L of rangeLabels){
-      if(L.x+L.w/2<camX-200||L.x-L.w/2>camX+W+200||L.y+L.h<camY-200||L.y>camY+H+200)continue;
+      if(L.x+L.w/2<camX-200||L.x-L.w/2>camX+viewW()+200||L.y+L.h<camY-200||L.y>camY+viewH()+200)continue;
       ctx.fillStyle='rgba(10,14,8,.34)';
       ctx.fillRect(L.x-L.w/2-26,L.y-52,L.w+52,L.h+70);
       ctx.strokeStyle='rgba(200,168,75,.40)';ctx.lineWidth=3;
@@ -4400,7 +4458,7 @@ function render(){
   // Allied tanks
   if(allies){for(const a of allies)if(a.hp>0){
     const _am=(a.size||30)*4+60;
-    if(a.x<camX-_am||a.x>camX+W+_am||a.y<camY-_am||a.y>camY+H+_am)continue;
+    if(a.x<camX-_am||a.x>camX+viewW()+_am||a.y<camY-_am||a.y>camY+viewH()+_am)continue;
     drawTankFull(ctx,a.x,a.y,a.angle,a.turretAngle,a.size,a.color,false,a.hp/a.maxHp,a.name,false,null,a.recoil||0,a.hitFlash||0);
     ctx.save();ctx.translate(a.x,a.y);ctx.beginPath();ctx.arc(0,0,a.size+6,0,Math.PI*2);
     ctx.strokeStyle='rgba(46,204,113,.7)';ctx.lineWidth=2;ctx.setLineDash([5,4]);ctx.stroke();ctx.setLineDash([]);
@@ -4409,7 +4467,7 @@ function render(){
 
   for(const e of enemies){if(e.hp<=0)continue;
     const _m=(e.size||30)*4+60; // cull off-screen tanks (margin covers the largest silhouette incl. Ratte)
-    if(e.x<camX-_m||e.x>camX+W+_m||e.y<camY-_m||e.y>camY+H+_m)continue;
+    if(e.x<camX-_m||e.x>camX+viewW()+_m||e.y<camY-_m||e.y>camY+viewH()+_m)continue;
     drawTankFull(ctx,e.x,e.y,e.angle,e.turretAngle,e.size,e.color,false,e.hp/e.maxHp,e.name,e.schurzen,e.id||e.name,e.recoil||0,e.hitFlash||0);
     // Cryo-frozen: icy blue shell
     if(e._frozen>0){ ctx.save();ctx.globalAlpha=Math.min(0.6,e._frozen/300+0.25);ctx.strokeStyle='#a8ecff';ctx.lineWidth=2.5;ctx.beginPath();ctx.arc(e.x,e.y,e.size*1.05,0,Math.PI*2);ctx.stroke();ctx.fillStyle='rgba(150,225,255,.18)';ctx.beginPath();ctx.arc(e.x,e.y,e.size*1.05,0,Math.PI*2);ctx.fill();ctx.restore(); }}
@@ -4515,7 +4573,7 @@ function render(){
     for(let i=_dmgPops.length-1;i>=0;i--){
       const dp=_dmgPops[i];dp.life--;
       if(dp.life<=0){_dmgPops.splice(i,1);continue;}
-      const sx=dp.x-camX, sy=dp.y-camY-(55-dp.life)*0.7;
+      const sx=w2sx(dp.x), sy=w2sy(dp.y)-(55-dp.life)*0.7;
       ctx.globalAlpha=Math.min(1,dp.life/22);
       ctx.fillStyle='rgba(0,0,0,.7)';ctx.fillText(dp.txt,sx+1,sy+1);
       ctx.fillStyle=dp.color;ctx.fillText(dp.txt,sx,sy);
@@ -4525,9 +4583,12 @@ function render(){
   // ── Test-range hint banner ──
   if(battleMode==='testrange'&&state==='game'){
     ctx.save();ctx.textAlign='center';ctx.font='12px Oswald,sans-serif';
-    ctx.fillStyle='rgba(10,14,8,.55)';ctx.fillRect(W/2-215,H-30,430,22);
-    ctx.fillStyle='rgba(200,220,150,.9)';
-    ctx.fillText('🎯 TEST RANGE — targets don’t fire back · press R to reset',W/2,H-14);
+    const dm=droneMode;
+    const msg=dm?('🚁 DRONE — WASD flies · wheel / +− zoom ('+viewZoom.toFixed(2)+'x) · Z lands')
+                :'🎯 TEST RANGE — targets don’t fire back · R resets · Z = drone mode';
+    ctx.fillStyle=dm?'rgba(6,18,26,.62)':'rgba(10,14,8,.55)';ctx.fillRect(W/2-235,H-30,470,22);
+    ctx.fillStyle=dm?'rgba(150,220,255,.95)':'rgba(200,220,150,.9)';
+    ctx.fillText(msg,W/2,H-14);
     ctx.restore();
   }
   // ── Map-maker hint banner ──
@@ -4547,7 +4608,7 @@ function render(){
     if(_alive.length<=24){
       const mx=W/2,my=H/2,R=Math.min(W,H)/2-34; let _shown=0;
       for(const e of _alive){
-        const sx=e.x-camX,sy=e.y-camY;
+        const sx=w2sx(e.x),sy=w2sy(e.y);
         if(sx>=-12&&sx<=W+12&&sy>=-12&&sy<=H+12)continue; // already on screen
         if(_shown++>=16)break;
         const ang=Math.atan2(e.y-player.y,e.x-player.x);
@@ -4997,7 +5058,7 @@ function drawGround(){
   if(!groundCanvas) buildGround();
   const gw=groundCanvas.width,gh=groundCanvas.height;
   const vx0=Math.max(0,camX-2),vy0=Math.max(0,camY-2);
-  const vx1=Math.min(WW,camX+W+4),vy1=Math.min(WH,camY+H+4);
+  const vx1=Math.min(WW,camX+viewW()+4),vy1=Math.min(WH,camY+viewH()+4);
   // The ground bitmap is capped, so repeat it across a larger arena. Only the
   // visible slice of each repetition is blitted.
   for(let ty=Math.floor(vy0/gh)*gh; ty<vy1; ty+=gh){
@@ -5413,7 +5474,22 @@ function _lift(h,f){h=_hex6(h);let r=parseInt(h.slice(1,3),16),g=parseInt(h.slic
 function lightenColor(h,a){return lc(h,a);}
 function darkenColor(h,a){return dc(h,a);}
 
+// Minimal tank for the far-out drone view: hull, turret, barrel. Drawing 400
+// full sprites at 0.2x zoom is far too slow, and none of the detail is visible.
+function drawTankLOD(c,x,y,angle,tAngle,size,color){
+  c.save();c.translate(x,y);
+  c.fillStyle='rgba(0,0,0,.35)';
+  c.save();c.rotate(angle);c.fillRect(-size*1.0,-size*0.62,size*2.0,size*1.24);c.restore();
+  c.fillStyle=typeof color==='string'?color:'#5a6a3a';
+  c.save();c.rotate(angle);c.fillRect(-size*0.92,-size*0.55,size*1.84,size*1.10);c.restore();
+  c.save();c.rotate(tAngle);
+  c.fillStyle='rgba(255,255,255,.14)';c.fillRect(-size*0.42,-size*0.40,size*0.9,size*0.8);
+  c.fillStyle='rgba(0,0,0,.55)';c.fillRect(size*0.42,-size*0.09,size*1.25,size*0.18);
+  c.restore();
+  c.restore();
+}
 function drawTankFull(c,x,y,angle,tAngle,size,color,isPlayer,hpFrac,name,_sk,tankId,recoil,flash){
+  if(viewZoom<0.45&&!isPlayer){ drawTankLOD(c,x,y,angle,tAngle,size,color); return; }
   const p=getProfile(tankId);
   recoil=recoil||0; flash=flash||0;
   // Brighten the drab source colour so the tank reads as a bright, saturated object on the terrain.
@@ -8025,14 +8101,14 @@ function glUnproject(sx,sy){
 }
 function _aimWorld(){
   if(render3D&&_glVPInv){ const w=glUnproject(mouseX*_mScaleX,mouseY*_mScaleY); if(w)return w; }
-  return {x:mouseX*_mScaleX+camX, y:mouseY*_mScaleY+camY};
+  return {x:mouseX*_mScaleX/viewZoom+camX, y:mouseY*_mScaleY/viewZoom+camY};
 }
 function _clickWorld(e){
   const cv=canvas||document.getElementById('gameCanvas');
   const r=cv.getBoundingClientRect();
   const sx=(e.clientX-r.left)*(cv.width/r.width), sy=(e.clientY-r.top)*(cv.height/r.height);
   if(render3D&&_glVPInv){ const w=glUnproject(sx,sy); if(w)return w; }
-  return {x:sx+camX, y:sy+camY};
+  return {x:sx/viewZoom+camX, y:sy/viewZoom+camY};
 }
 function _glProjectPt(wx,wy,h){
   if(!_glVP)return null;
@@ -8198,6 +8274,15 @@ function _t3dInfo(id){
 // ── tank model: archetype-aware (turret shape + vehicle class from game data) ──
 function _pushTank3D(t,isPlayer){
   const s=t.size||26, a=t.angle||0, ta=(t.turretAngle!==undefined)?t.turretAngle:a;
+  // Far-out drone view: hull + turret + barrel only.
+  if(viewZoom<0.45&&!isPlayer){
+    let bc=_rgb(t.color||'#5a6a3a');
+    if(_envTint)bc=[bc[0]*0.9+_envTint[0]*0.1,bc[1]*0.9+_envTint[1]*0.1,bc[2]*0.9+_envTint[2]*0.1];
+    _pushBox(_bOp,t.x,t.y,0,s*1.7,s*1.0,s*0.42,a,_shade(bc,0.95),1);
+    _pushBox(_bOp,t.x,t.y,s*0.42,s*0.95,s*0.85,s*0.26,ta,_shade(bc,1.14),1);
+    _pushBox(_bOp,t.x+Math.cos(ta)*s*1.1,t.y+Math.sin(ta)*s*1.1,s*0.52,s*1.5,s*0.14,s*0.14,ta,_shade(bc,0.55),1);
+    return;
+  }
   const info=_t3dInfo(t.id||t.name||'');
   const p=info.p, cls=info.cls, shape=info.shape;
   let base=_rgb(t.color||'#5a6a3a');
@@ -8432,8 +8517,8 @@ function renderGL(){
 
   // camera: perspective, tilted down, following the same focus the 2D camera uses.
   // Variants: low dramatic chase-cam while flying a missile; high overview in the map editor.
-  const fx=camX+W/2+(camShakeX||0), fz=camY+H/2+(camShakeY||0);
-  let camH=560, camBack=430;
+  const fx=camX+viewW()/2+(camShakeX||0), fz=camY+viewH()/2+(camShakeY||0);
+  let camH=560/viewZoom, camBack=430/viewZoom;
   if(battleMode==='mapmaker'&&sandboxEdit){camH=820;camBack=600;}
   else if(drivenMissile&&drivenMissile.life>0){camH=300;camBack=240;}
   const eye=[fx,camH,fz+camBack], ctr=[fx,0,fz-40];
@@ -8528,7 +8613,7 @@ function renderGL(){
 
   // tanks — the fallen stay on the field as burned-out wrecks
   if(player&&player.hp>0)_pushTank3D(player,true);
-  {const VD=2100, vd2=VD*VD;   // skip anything far outside the view
+  {const VD=Math.max(2100,viewW()*0.8), vd2=VD*VD;   // scales with drone zoom
    for(const e of enemies){
      const dx=e.x-fx, dz=e.y-fz; if(dx*dx+dz*dz>vd2)continue;
      if(e.hp>0)_pushTank3D(e,false); else _pushWreck3D(e);
@@ -8618,9 +8703,13 @@ function renderGL(){
 function _render2DOverlay(){
   if(!ctx)return;
   // health bars + names, projected to screen
+  const _barVD=Math.max(2100,viewW()*0.8), _barVD2=_barVD*_barVD;
+  const _bfx=camX+viewW()/2, _bfz=camY+viewH()/2;
   function bar(t,isPlayer){
     if(t.hp<=0)return;
+    {const dx=t.x-_bfx,dz=t.y-_bfz; if(dx*dx+dz*dz>_barVD2)return;}
     const pr=_glProjectPt(t.x,t.y,(t.size||26)*1.5); if(!pr)return;
+    if(viewZoom<0.5&&!isPlayer)return;   // too small to read from up high
     if(pr.x<-60||pr.x>W+60||pr.y<-40||pr.y>H+40)return;
     const scale=Math.max(0.4,Math.min(1.4,620/pr.w));
     const bw=46*scale, bh=5*scale;
@@ -8672,9 +8761,12 @@ function _render2DOverlay(){
   // mode hint banners
   if(battleMode==='testrange'&&state==='game'){
     ctx.save();ctx.textAlign='center';ctx.font='12px Oswald,sans-serif';
-    ctx.fillStyle='rgba(10,14,8,.55)';ctx.fillRect(W/2-215,H-30,430,22);
-    ctx.fillStyle='rgba(200,220,150,.9)';
-    ctx.fillText('🎯 TEST RANGE — targets don’t fire back · press R to reset',W/2,H-14);
+    const dm=droneMode;
+    const msg=dm?('🚁 DRONE — WASD flies · wheel / +− zoom ('+viewZoom.toFixed(2)+'x) · Z lands')
+                :'🎯 TEST RANGE — targets don’t fire back · R resets · Z = drone mode';
+    ctx.fillStyle=dm?'rgba(6,18,26,.62)':'rgba(10,14,8,.55)';ctx.fillRect(W/2-235,H-30,470,22);
+    ctx.fillStyle=dm?'rgba(150,220,255,.95)':'rgba(200,220,150,.9)';
+    ctx.fillText(msg,W/2,H-14);
     ctx.restore();
   }
   if(battleMode==='mapmaker'&&state==='game'){
@@ -8688,7 +8780,7 @@ function _render2DOverlay(){
   {const _alive=enemies.filter(e=>e.hp>0);
    if(_alive.length&&_alive.length<=24){
      const mx=W/2,my=H/2,R=Math.min(W,H)/2-40;
-     const fx=camX+W/2,fz=camY+H/2;
+     const fx=camX+viewW()/2,fz=camY+viewH()/2;
      for(const e of _alive){
        const pr=_glProjectPt(e.x,e.y,15);
        if(pr&&pr.x>-20&&pr.x<W+20&&pr.y>-20&&pr.y<H+20)continue;
