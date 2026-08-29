@@ -2752,6 +2752,7 @@ function spawnWave(){
     if(typeof ccUpdateBadge==='function')ccUpdateBadge();
     {const pt=TANK_DEFS.find(x=>x.id===activeTankId);
      if(pt)claudeSay("So you brought the <b>"+pt.name+"</b>. "+(pt.armor>150?"That is a lot of armour to chew through.":pt.dmg>400?"That gun is going to hurt.":_ccMph(pt)>40?"Quick little thing - I'll have trouble leading you.":"Bold choice.")+" Let's go.");}
+    if(!ccGetKey())setTimeout(function(){claudeSay("Tip: the <b>⚙</b> button connects the real me - my full knowledge, real conversation, and I'll still see your tank. Needs your own API key.");},9000);
     claudeSay("Hi, I'm Claude! Press <b>T</b> to talk while we fight. I know every stat of all "+_ccPool().length+" vehicles — try <i>\"how fast is the Panther\"</i>, <i>\"fastest German tank\"</i>, or <i>\"Tiger vs T-34\"</i>. Ask for a truce if you need a breather!");
     return;
   }
@@ -7445,6 +7446,68 @@ function _ccBanter(m,toks){
   return null;
 }
 
+// ══ Broad knowledge for the offline brain: WW2 history, doctrine, engineering,
+//    science and general questions. Longest matching key wins. ══
+const _CC_LORE=[
+ // ── WW2 battles & campaigns ──
+ {k:['battle of kursk','kursk'],a:"Kursk, July 1943 - the largest armoured battle in history. Germany attacked a huge Soviet salient the Red Army had spent months fortifying with minefields and anti-tank guns. The German offensive stalled in days, and from then on the Soviets held the initiative in the east for the rest of the war."},
+ {k:['prokhorovka'],a:"Prokhorovka, 12 July 1943 - the famous clash during Kursk. It was long described as a thousand-tank melee; modern research puts the numbers much lower and the Soviet losses far higher than the propaganda claimed. It still stopped the German thrust, which was what mattered."},
+ {k:['stalingrad'],a:"Stalingrad, August 1942 to February 1943. The fighting collapsed into street-by-street urban combat where tanks were nearly useless, then Operation Uranus encircled the German 6th Army entirely. Around 91,000 surrendered. It's the usual answer for the turning point of the war in Europe."},
+ {k:['operation barbarossa','barbarossa'],a:"Barbarossa, 22 June 1941 - the German invasion of the Soviet Union and the largest invasion ever mounted. Enormous early gains, then it ran into distance, mud, winter and a Soviet industry that had been moved east out of reach."},
+ {k:['d-day','normandy landings','operation overlord','overlord'],a:"D-Day, 6 June 1944 - the Allied landings in Normandy. Once ashore the fighting bogged down in the bocage, dense earth-banked hedgerows that funnelled tanks into ambushes until crews welded improvised cutters onto their hulls."},
+ {k:['bocage','hedgerow'],a:"The bocage was Normandy's field boundaries: earth banks metres thick topped with hedge. Tanks nosing over one exposed their thin belly armour. Sergeant Curtis Culin's welded prong cutter - made from German beach obstacles - let Shermans punch straight through instead."},
+ {k:['battle of the bulge','the bulge','ardennes offensive'],a:"The Ardennes offensive, December 1944 - Germany's last major attack in the west. It depended on capturing Allied fuel because Germany didn't have enough of its own, the weather cleared enough for Allied air power, and it failed. It cost Germany the reserves it needed to defend the Rhine."},
+ {k:['el alamein','alamein'],a:"El Alamein, October-November 1942. Montgomery attacked with a large material advantage against Rommel's overstretched and under-supplied Panzerarmee. It ended the Axis threat to Egypt and the Suez Canal."},
+ {k:['villers-bocage','villers bocage','wittmann'],a:"Villers-Bocage, 13 June 1944. Michael Wittmann's Tiger shot up a stalled British column in minutes - one of the most famous tank actions of the war. It's often told as one tank beating a brigade; in reality other German tanks and guns were involved, and Wittmann's Tiger was knocked out later that day."},
+ {k:['arracourt'],a:"Arracourt, September 1944 - a useful corrective to 'German tanks were unbeatable'. In fog, US Shermans and tank destroyers manoeuvred against green Panther crews at close range and beat them badly. Crew training and tactics beat armour thickness."},
+ {k:['market garden'],a:"Operation Market Garden, September 1944 - an airborne attempt to seize a corridor of bridges into Germany and end the war early. It failed at Arnhem, the last bridge, which is where 'a bridge too far' comes from."},
+ {k:['kasserine'],a:"Kasserine Pass, February 1943 - the US Army's bloody first real lesson against the Germans in Tunisia. It triggered fast changes in leadership, training and doctrine, and the American army that fought in Normandy was a very different one."},
+ {k:['dunkirk'],a:"Dunkirk, May-June 1940 - around 338,000 Allied troops evacuated from the beaches while their heavy equipment was abandoned. Britain saved its army and lost almost all of its tanks and vehicles."},
+ {k:['fall of berlin','battle of berlin'],a:"Berlin, April-May 1945. Soviet forces fought into the city street by street, where Panzerfausts made short work of tanks that outran their infantry. Hitler killed himself on 30 April; the city surrendered on 2 May."},
+ {k:['midway'],a:"Midway, June 1942 - four Japanese fleet carriers sunk in a single day, largely because American codebreakers knew the plan. It ended Japanese offensive freedom in the Pacific."},
+ {k:['pearl harbor','pearl harbour'],a:"7 December 1941 - the Japanese strike on the US Pacific Fleet. It missed the American carriers, which were at sea, and the fuel and repair facilities, which is a large part of why the blow wasn't decisive."},
+
+ // ── Doctrine & tactics ──
+ {k:['blitzkrieg'],a:"Blitzkrieg wasn't really a formal German doctrine with that name - it's a label applied afterwards. The actual method was concentrating armour at one point, keeping it moving, and tying tanks, infantry, artillery and aircraft together by radio. The radios mattered as much as the tanks."},
+ {k:['deep battle','deep operations'],a:"Deep Battle was the Soviet answer, developed by Tukhachevsky in the 1930s: don't just break the front line, push mechanised forces deep into the rear to wreck supply and command all at once. The Red Army executed it devastatingly by 1944."},
+ {k:['combined arms'],a:"Tanks alone die. They can't see well, can't hold ground and can't deal with hidden infantry. Paired with infantry to clear anti-tank teams, artillery to suppress guns and aircraft overhead, they become decisive. Nearly every tank disaster in history is a tank that got separated from its friends."},
+ {k:['tank destroyer doctrine'],a:"US doctrine held that tanks should exploit breakthroughs while towed and self-propelled tank destroyers massed to blunt enemy armour. The tidy split never really matched reality - and it's why the fast, thin, open-topped M18 Hellcat exists."},
+ {k:['tank crew','crew roles','who is in a tank'],a:"A classic five-man crew: commander (sees, decides, directs), gunner (aims and fires), loader (feeds the gun), driver, and hull gunner or radio operator. Early T-34s made the commander also be the gunner - one job too many, and it cost them badly."},
+ {k:['why did tanks lose','how are tanks destroyed','what kills tanks'],a:"Historically most tanks were lost to anti-tank guns, mines and mechanical breakdown - not to other tanks. Plenty of famous machines were abandoned intact because they broke down or ran dry and couldn't be recovered."},
+ {k:['hull down'],a:"Hull down means sitting behind a crest with only your turret showing. You can shoot; most of your tank isn't available to be shot. Good tanks for it have strong turret armour and a gun that depresses well - which is why gun depression matters so much."},
+
+ // ── Engineering & physics ──
+ {k:['why does sloped armor work','why sloped armor','sloped armour math'],a:"Two reasons. Geometrically, a shell crossing a plate tilted at angle theta has to travel through thickness/cos(theta) of steel - 100mm at 60 degrees behaves like about 200mm. And the slope makes a round more likely to skid off entirely rather than bite."},
+ {k:['kinetic penetrator','how does armor piercing work','armour piercing work'],a:"A kinetic round doesn't explode - it concentrates enormous energy on a tiny area. Higher velocity and denser material win, which is why modern rounds are long thin darts of tungsten or depleted uranium rather than big steel shells."},
+ {k:['depleted uranium'],a:"Depleted uranium is denser than steel and, unusually, self-sharpens as it penetrates instead of blunting, so it keeps cutting. It's also pyrophoric - the fragments burn once inside. It's effective and genuinely controversial."},
+ {k:['shaped charge','how does heat work','munroe effect'],a:"A shaped charge collapses a metal cone into a hypervelocity jet on impact. Because it makes its own energy, its penetration doesn't depend on how fast the projectile was travelling - which is why a slow infantry rocket can kill a heavy tank."},
+ {k:['torsion bar','suspension type','christie suspension'],a:"Christie suspension used big road wheels on long coil springs - fast and smooth, but it ate hull volume. Torsion bars run steel rods across the floor: compact, durable, and the standard for most tanks since."},
+ {k:['diesel or petrol','diesel vs gasoline','tank engine'],a:"Soviet tanks went diesel early - the fuel is less prone to catching fire and gives better range. Germany largely stayed petrol because diesel was needed for the navy. Modern tanks use whatever is available; the Abrams runs a multi-fuel gas turbine."},
+ {k:['ground pressure','why wide tracks','tracks wide'],a:"Wide tracks spread the weight over more ground, so the tank floats over mud and snow instead of sinking. It's why the T-34 kept moving through the rasputitsa while narrower German tanks bogged down solid."},
+ {k:['throw a track','thrown track'],a:"Turning hard, especially on one locked track, can walk the track off its sprocket. It's the most common way a tank stops being a tank, and crews could often refit one in the field under fire."},
+
+ // ── Science & general ──
+ {k:['speed of light'],a:"Just under 300,000 km per second - 299,792,458 m/s exactly, because the metre is defined from it. Nothing carrying information goes faster."},
+ {k:['why is the sky blue'],a:"Rayleigh scattering. Air molecules scatter short wavelengths far more strongly than long ones, so blue light gets bounced around the sky and reaches you from every direction. At sunset the light travels through more atmosphere, the blue is scattered away, and you get red."},
+ {k:['black hole'],a:"A region where gravity is strong enough that nothing, not even light, escapes past the event horizon. They form when massive stars collapse, and the supermassive ones sit at the centres of galaxies including ours."},
+ {k:['how big is the universe','size of the universe'],a:"The observable universe is about 93 billion light years across. It's bigger than 13.8 billion light years because space itself has expanded while the light was travelling."},
+ {k:['why do things fall','what is gravity'],a:"Newton described gravity as attraction between masses. Einstein went further: mass curves spacetime, and things fall because they're following the straightest available path through curved space. Both work; Einstein's is more accurate."},
+ {k:['evolution','natural selection'],a:"Variation exists in every population, some variants survive and reproduce better in a given environment, and those traits become more common. Given enough time that process produces the whole tree of life. It isn't aiming anywhere - it just keeps what works."},
+ {k:['what is dna'],a:"A molecule storing instructions in a four-letter code, twisted into a double helix so each strand can template the other when it copies. Roughly three billion letters in a human genome."},
+ {k:['photosynthesis'],a:"Plants use light energy to combine carbon dioxide and water into sugar, releasing oxygen as waste. Essentially every scrap of oxygen you breathe is that waste product."},
+
+ // ── Practical / conversational ──
+ {k:['advice','life advice'],a:"Ask for help earlier than feels comfortable, finish things badly rather than not at all, and be suspicious of any explanation that makes you the only reasonable person in the room. That's most of what I've got."},
+ {k:['how do i learn','learn faster','study tip'],a:"Test yourself instead of rereading, spread it out over days rather than cramming, and try to explain it to someone else - the moment you stumble is the exact thing you didn't understand."},
+ {k:['what should i build','game idea','feature idea'],a:"Whatever annoys you most about the game right now, fix that. Best features usually come from a specific irritation, not a brainstorm. And ship it small - you can always widen it after you've played it."}
+];
+function _ccLore(m){
+  let best=null,bl=0;
+  for(const e of _CC_LORE)for(const k of e.k)
+    if(m.indexOf(k)>=0&&k.length>bl){best=e.a;bl=k.length;}
+  return best;
+}
+
 function claudeRespond(q){
   const m=q.toLowerCase().trim();
   const toks=_ccToks(m);
@@ -7494,6 +7557,10 @@ function claudeRespond(q){
     return "Quite a lot: every stat of all "+_ccPool().length+" vehicles, superlatives (<i>fastest German tank</i>), comparisons (<i>Tiger vs T-34</i>), real history (<i>tell me about the Panther</i>), armour terminology (<i>what is spalling</i>), opinions (<i>is the Maus any good</i>), coin advice, jokes - and I grant truces and one repair.";
   // ── trash talk, threats, feelings: answered like a person ──
   {const bt=_ccBanter(m,toks); if(bt)return bt;}
+  // ── wider knowledge: WW2 history, doctrine, engineering, science.
+  //    Checked before the tank matcher because these are specific phrases and
+  //    a loose name match would otherwise steal them ("black hole" -> Black Prince).
+  {const lr=_ccLore(m); if(lr)return lr;}
   // ── full stat engine: any vehicle, any stat, superlatives, comparisons, lists ──
   {const kb=_ccKnowledge(m,toks); if(kb)return kb;}
   // identity & small talk
@@ -7519,10 +7586,11 @@ function claudeRespond(q){
   if(has('thank')) return "Anytime. Guard up though — ceasefires end.";
   if(has('sorry')) return "No apologies needed on a battlefield. All is forgiven. None of it is forgotten by my targeting computer.";
   if(has('bye','goodbye')) return "Leaving mid-fight? The ✕ button's top-right. No judgment. Some judgment.";
+  if(ccGetKey())return "I'm connected live but something didn't reach me. Ask again?";
   return _ccPick([
-    "I know every stat of all "+_ccPool().length+" vehicles — try \"how fast is the Panther\", \"fastest German tank\", or \"Tiger vs T-34\".",
-    "Not sure about that one. But ask me any vehicle's speed, armor, reload, DPM or price — or compare two with \"vs\".",
-    "Beyond my turret-mounted brain. Tank stats, superlatives, comparisons, missiles and tactics I can do all day.",
+    "That's past what I can hold in here. I know every stat of all "+_ccPool().length+" vehicles, WW2 history, armour engineering and tactics — but for <b>anything at all</b>, hit the ⚙ button and connect the real me.",
+    "My offline brain doesn't cover that one. Tank stats, battles, ballistics and jokes I can do — for everything else, ⚙ connects you to the actual me with my full knowledge.",
+    "Not in here, I'm afraid. Press ⚙ to plug in the real Claude and you can ask me literally anything - I'll still see your tank and the battlefield.",
   ]);
 }
 // ══════════════════════════════════════════════════════════════════════
