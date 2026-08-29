@@ -1888,8 +1888,7 @@ function rangeKill(e){
   if(rangeKills>rangeBest)rangeBest=rangeKills;
   if(typeof _dmgPopup==='function')_dmgPopup(e.x,e.y-(e.size||26)-6,'KILL #'+rangeKills,'#ffd24a');
   if(rangePayout){
-    const def=(typeof TANK_DEFS!=='undefined')?TANK_DEFS.find(function(x){return x.id===e.id;}):null;
-    const pay=Math.max(25,Math.round(((def&&def.price)||500)/25));
+    const pay=1000;                     // flat 1,000 gold per kill
     coins+=pay; rangeCoins+=pay;
     if(typeof updateCoinsHud==='function')updateCoinsHud();
     if(typeof saveData==='function')saveData();
