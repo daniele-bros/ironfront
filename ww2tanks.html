@@ -1195,7 +1195,7 @@ function _missileDetonate(b,hit){
       e.hp-=a;e.hitFlash=1;spawnHitFx(b.x,b.y,true);
       if(battleMode==='testrange') _dmgPopup(e.x,e.y-e.size,'-'+Math.round(a),'#ffd24a');
       if(e.hp<=0){
-        if(e._dummy){ spawnExplosion(e.x,e.y);craters.push({x:e.x,y:e.y,r:e.size*1.4}); e.hp=0;e._respawn=140; continue; }
+        if(e._dummy){ spawnExplosion(e.x,e.y);craters.push({x:e.x,y:e.y,r:e.size*1.4}); e.hp=0;e._respawn=140; rangeKill(e); continue; }
         let reward=1000;
         if(e._isRatte){reward=500000;addKillFeed('💀 RATTE KILL! +500,000 🏷');}
         coins+=reward;totalKills++;score+=reward;kills++;
@@ -1210,7 +1210,7 @@ function _missileDetonate(b,hit){
 }
 // Destroy an enemy with the normal reward/killfeed (or respawn if a test dummy).
 function _rewardKill(e){
-  if(e._dummy){ spawnExplosion(e.x,e.y); e.hp=0; e._respawn=140; return; }
+  if(e._dummy){ spawnExplosion(e.x,e.y); e.hp=0; e._respawn=140; rangeKill(e); return; }
   let reward=1000; if(e._isRatte){reward=500000;addKillFeed('💀 RATTE KILL! +500,000 🏷');}
   coins+=reward;totalKills++;score+=reward;kills++; if(_throttle('coinsave',1000))saveData();
   updateCoinsHud();showCoinPopup(w2sx(e.x),w2sy(e.y),'+'+reward+'🏷');
@@ -1802,6 +1802,27 @@ let drivenMissile=null;
 // Floating hit-damage numbers (used by the test range) — world coords, drift up.
 let _dmgPops=[];
 let rangeLabels=[];   // world-space tech-tree signs in the test range
+// ── Test-range scoreboard: every kill reports the running total and how long ──
+let rangeKills=0, rangeT0=0, rangeBest=0, rangeLastAt=0;
+function rangeReset(){ rangeKills=0; rangeT0=0; rangeLastAt=0; }
+function _rangeTime(){ return rangeT0?(performance.now()-rangeT0)/1000:0; }
+function _fmtDur(sec){
+  const m=Math.floor(sec/60), s=Math.floor(sec%60);
+  return m?(m+'m '+String(s).padStart(2,'0')+'s'):(sec<10?sec.toFixed(1)+'s':s+'s');
+}
+// Called every time a practice target is destroyed.
+function rangeKill(e){
+  if(battleMode!=='testrange')return;
+  if(!rangeT0)rangeT0=performance.now();
+  rangeKills++;
+  rangeLastAt=performance.now();
+  const t=_rangeTime();
+  const rate=t>0.5?Math.round(rangeKills/t*60):0;
+  if(rangeKills>rangeBest)rangeBest=rangeKills;
+  if(typeof _dmgPopup==='function')_dmgPopup(e.x,e.y-(e.size||26)-6,'KILL #'+rangeKills,'#ffd24a');
+  addKillFeed('\uD83D\uDCA5 '+(e.name||'target')+' \u2014 '+rangeKills+' kill'+(rangeKills===1?'':'s')
+    +' in '+_fmtDur(t)+(rate?(' \u00B7 '+rate+'/min'):''));
+}
 // ── DRONE MODE (test range): free-flying, zoomable camera ──
 let viewZoom=1, droneMode=false, droneCamX=0, droneCamY=0;
 const DRONE_MIN=0.12, DRONE_MAX=2.5;
@@ -2640,7 +2661,7 @@ function startGame(){
   const _rb2=document.getElementById('relbar');if(_rb2)_rb2.style.width='100%';
   // TEST RANGE is a showroom for the whole roster, so it gets a 4x arena
   setWorldSize(battleMode==='testrange'?WORLD_BASE*2:WORLD_BASE);
-  rangeLabels=[]; droneMode=false; viewZoom=1;
+  rangeLabels=[]; droneMode=false; viewZoom=1; rangeReset();
   buildObstacles();
   groundCanvas=null;buildGround();
   player={x:WW/2,y:WH/2,angle:0,turretAngle:0,
@@ -2749,8 +2770,39 @@ function buildObstacles(){
 // SPAWN WAVE
 // ════════════════════════════════════════
 
+// Live test-range scoreboard: kills, elapsed time and rate.
+function drawRangeScore(){
+  if(!ctx||battleMode!=='testrange')return;
+  const t=_rangeTime();
+  const rate=t>0.5?Math.round(rangeKills/t*60):0;
+  const bw=196, bh=rangeKills?74:38, bx=W-bw-14, by=58;
+  ctx.save();
+  ctx.fillStyle='rgba(8,11,6,.72)';ctx.fillRect(bx,by,bw,bh);
+  ctx.strokeStyle='rgba(200,168,75,.45)';ctx.lineWidth=1.5;ctx.strokeRect(bx,by,bw,bh);
+  ctx.textAlign='left';
+  ctx.font='11px "Share Tech Mono",monospace';ctx.fillStyle='#7a8a5a';
+  ctx.fillText('TARGETS DESTROYED',bx+11,by+16);
+  ctx.font='bold 26px Oswald,sans-serif';
+  ctx.fillStyle=rangeKills?'#e8c84a':'#5a6a44';
+  ctx.fillText(String(rangeKills),bx+11,by+(rangeKills?42:34));
+  if(rangeKills){
+    ctx.font='12px "Share Tech Mono",monospace';ctx.fillStyle='#c8d8a8';
+    ctx.fillText('in '+_fmtDur(t),bx+58,by+42);
+    ctx.font='11px "Share Tech Mono",monospace';ctx.fillStyle='#8aa860';
+    ctx.fillText(rate+' kills/min'+(rangeBest>rangeKills?('  ·  best '+rangeBest):''),bx+11,by+62);
+    // flash the panel briefly on each kill
+    const since=performance.now()-rangeLastAt;
+    if(since<420){
+      ctx.globalAlpha=(1-since/420)*0.5;
+      ctx.strokeStyle='#ffd24a';ctx.lineWidth=3;ctx.strokeRect(bx,by,bw,bh);
+      ctx.globalAlpha=1;
+    }
+  }
+  ctx.restore();
+}
 function _resetTestRange(){
   if(battleMode!=='testrange'||!player)return;
+  rangeReset();
   player.hp=player.maxHp; currentAmmo=totalAmmo; missileAmmo=999; playerShield=120;
   if(typeof updateAmmoRow==='function')updateAmmoRow();
   if(typeof updateWeaponHud==='function')updateWeaponHud();
@@ -3805,7 +3857,7 @@ function resolveTankCollisions(){
         camShake=Math.max(camShake,4);
         if(battleMode==='testrange') _dmgPopup((player.x+o.x)/2,(player.y+o.y)/2-o.size,'RAM -'+oDmg,'#ff9040');
         if(o.hp<=0){
-          if(o._dummy){ spawnExplosion(o.x,o.y); o.hp=0; o._respawn=140; }
+          if(o._dummy){ spawnExplosion(o.x,o.y); o.hp=0; o._respawn=140; rangeKill(o); }
           else {
             let reward=1000; if(o._isRatte){reward=500000;addKillFeed('💀 RATTE KILL! +500,000 🏷');}
             coins+=reward;totalKills++;score+=reward;kills++; if(_throttle('coinsave',1000))saveData();
@@ -4146,7 +4198,7 @@ function updateBullets(dt){
           if(battleMode==='testrange') _dmgPopup(b.x,b.y-e.size, penetrated?('-'+Math.round(dealt)):'BOUNCE', penetrated?'#ffd24a':'#8ab4ff');
           if(b.pierce)b.hitSet.add(e);
           if(e.hp<=0){
-            if(e._dummy){ spawnExplosion(e.x,e.y);craters.push({x:e.x,y:e.y,r:e.size*1.4});camShake=Math.max(camShake,5); e.hp=0;e._respawn=140; } else {
+            if(e._dummy){ spawnExplosion(e.x,e.y);craters.push({x:e.x,y:e.y,r:e.size*1.4});camShake=Math.max(camShake,5); e.hp=0;e._respawn=140; rangeKill(e); } else {
             let reward=1000;
             if(e._isRatte){reward=500000;addKillFeed('\uD83D\uDC80 RATTE KILL! +500,000 \uD83C\uDFF7');}
             coins+=reward;totalKills++;score+=reward;kills++;
@@ -4590,6 +4642,7 @@ function render(){
   // ── Test-range hint banner ──
   if(battleMode==='testrange'&&state==='game'){
     ctx.save();ctx.textAlign='center';ctx.font='12px Oswald,sans-serif';
+    drawRangeScore();
     const dm=droneMode;
     const msg=dm?('🚁 DRONE — WASD flies · wheel / +− zoom ('+viewZoom.toFixed(2)+'x) · Z lands')
                 :'🎯 TEST RANGE — targets don’t fire back · R resets · Z = drone mode';
@@ -8768,6 +8821,7 @@ function _render2DOverlay(){
   // mode hint banners
   if(battleMode==='testrange'&&state==='game'){
     ctx.save();ctx.textAlign='center';ctx.font='12px Oswald,sans-serif';
+    drawRangeScore();
     const dm=droneMode;
     const msg=dm?('🚁 DRONE — WASD flies · wheel / +− zoom ('+viewZoom.toFixed(2)+'x) · Z lands')
                 :'🎯 TEST RANGE — targets don’t fire back · R resets · Z = drone mode';
