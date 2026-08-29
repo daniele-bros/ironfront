@@ -1804,7 +1804,25 @@ let _dmgPops=[];
 let rangeLabels=[];   // world-space tech-tree signs in the test range
 // ── Test-range scoreboard: every kill reports the running total and how long ──
 let rangeKills=0, rangeT0=0, rangeBest=0, rangeLastAt=0;
-function rangeReset(){ rangeKills=0; rangeT0=0; rangeLastAt=0; }
+// ── Secret code: type 336633 to toggle coin payouts for test-range kills ──
+const RANGE_CODE='336633';
+let rangePayout=false, rangeCoins=0, _codeBuf='', _payoutFlash=0;
+try{ rangePayout=localStorage.getItem('if_range_payout')==='1'; }catch(e){}
+function _codeKey(ch){
+  if(!/^[0-9]$/.test(ch))return;
+  _codeBuf=(_codeBuf+ch).slice(-RANGE_CODE.length);
+  if(_codeBuf===RANGE_CODE){
+    _codeBuf='';
+    rangePayout=!rangePayout;
+    _payoutFlash=performance.now();
+    try{ localStorage.setItem('if_range_payout',rangePayout?'1':'0'); }catch(e){}
+    if(typeof playUiClick==='function')playUiClick();
+    addKillFeed(rangePayout
+      ? '\uD83D\uDD13 CODE ACCEPTED \u2014 test range now pays coins for kills'
+      : '\uD83D\uDD12 CODE ACCEPTED \u2014 test range payouts OFF');
+  }
+}
+function rangeReset(){ rangeKills=0; rangeT0=0; rangeLastAt=0; rangeCoins=0; }
 function _rangeTime(){ return rangeT0?(performance.now()-rangeT0)/1000:0; }
 function _fmtDur(sec){
   const m=Math.floor(sec/60), s=Math.floor(sec%60);
@@ -1820,6 +1838,14 @@ function rangeKill(e){
   const rate=t>0.5?Math.round(rangeKills/t*60):0;
   if(rangeKills>rangeBest)rangeBest=rangeKills;
   if(typeof _dmgPopup==='function')_dmgPopup(e.x,e.y-(e.size||26)-6,'KILL #'+rangeKills,'#ffd24a');
+  if(rangePayout){
+    const def=(typeof TANK_DEFS!=='undefined')?TANK_DEFS.find(function(x){return x.id===e.id;}):null;
+    const pay=Math.max(25,Math.round(((def&&def.price)||500)/25));
+    coins+=pay; rangeCoins+=pay;
+    if(typeof updateCoinsHud==='function')updateCoinsHud();
+    if(typeof saveData==='function')saveData();
+    if(typeof _dmgPopup==='function')_dmgPopup(e.x,e.y-(e.size||26)-26,'+'+pay.toLocaleString(),'#f1c40f');
+  }
   addKillFeed('\uD83D\uDCA5 '+(e.name||'target')+' \u2014 '+rangeKills+' kill'+(rangeKills===1?'':'s')
     +' in '+_fmtDur(t)+(rate?(' \u00B7 '+rate+'/min'):''));
 }
@@ -2775,13 +2801,18 @@ function drawRangeScore(){
   if(!ctx||battleMode!=='testrange')return;
   const t=_rangeTime();
   const rate=t>0.5?Math.round(rangeKills/t*60):0;
-  const bw=196, bh=rangeKills?74:38, bx=W-bw-14, by=58;
+  const bw=196, bh=(rangeKills?74:38)+(rangePayout&&rangeKills?20:0), bx=W-bw-14, by=58;
   ctx.save();
   ctx.fillStyle='rgba(8,11,6,.72)';ctx.fillRect(bx,by,bw,bh);
   ctx.strokeStyle='rgba(200,168,75,.45)';ctx.lineWidth=1.5;ctx.strokeRect(bx,by,bw,bh);
   ctx.textAlign='left';
   ctx.font='11px "Share Tech Mono",monospace';ctx.fillStyle='#7a8a5a';
   ctx.fillText('TARGETS DESTROYED',bx+11,by+16);
+  if(rangePayout){
+    ctx.textAlign='right';ctx.font='bold 10px "Share Tech Mono",monospace';
+    ctx.fillStyle='#f1c40f';ctx.fillText('\uD83D\uDCB0 PAYOUT',bx+bw-10,by+16);
+    ctx.textAlign='left';ctx.font='11px "Share Tech Mono",monospace';
+  }
   ctx.font='bold 26px Oswald,sans-serif';
   ctx.fillStyle=rangeKills?'#e8c84a':'#5a6a44';
   ctx.fillText(String(rangeKills),bx+11,by+(rangeKills?42:34));
@@ -2797,6 +2828,21 @@ function drawRangeScore(){
       ctx.strokeStyle='#ffd24a';ctx.lineWidth=3;ctx.strokeRect(bx,by,bw,bh);
       ctx.globalAlpha=1;
     }
+    if(rangePayout){
+      ctx.font='11px "Share Tech Mono",monospace';ctx.fillStyle='#f1c40f';
+      ctx.fillText('\uD83D\uDCB0 +'+rangeCoins.toLocaleString()+' coins',bx+11,by+80);
+    }
+  }
+  // big confirmation when the code is entered
+  if(_payoutFlash){
+    const pf=performance.now()-_payoutFlash;
+    if(pf<1500){
+      ctx.textAlign='center';ctx.globalAlpha=Math.max(0,1-pf/1500);
+      ctx.font='bold 22px Oswald,sans-serif';
+      ctx.fillStyle=rangePayout?'#f1c40f':'#8a9070';
+      ctx.fillText(rangePayout?'\uD83D\uDD13 PAYOUT ON':'\uD83D\uDD12 PAYOUT OFF',W/2,124);
+      ctx.globalAlpha=1;
+    } else _payoutFlash=0;
   }
   ctx.restore();
 }
@@ -3137,6 +3183,7 @@ function setupInput(){
     if(e.code==='KeyQ'){e.preventDefault();toggleWeapon();}
     if(e.code==='KeyR'&&battleMode==='testrange'&&state==='game'){e.preventDefault();_resetTestRange();}
     if(e.code==='KeyE'&&battleMode==='mapmaker'&&state==='game'){e.preventDefault();sandboxTogglePlay();}
+    if(e.key&&e.key.length===1)_codeKey(e.key);
     if(e.code==='KeyZ'&&battleMode==='testrange'&&state==='game'){e.preventDefault();droneToggle();}
     if(droneMode&&(e.code==='Equal'||e.code==='NumpadAdd')){e.preventDefault();droneZoom(1.18);}
     if(droneMode&&(e.code==='Minus'||e.code==='NumpadSubtract')){e.preventDefault();droneZoom(1/1.18);}
