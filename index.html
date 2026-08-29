@@ -470,6 +470,27 @@ body[data-state="mode"] #screen-title { display:none!important; }
     </div>
   </div>
 
+  <!-- CREATOR CODE — test range cheats -->
+  <div class="sec-lbl" style="margin-top:6px;">&#128273; TEST RANGE CODE &mdash; CREATOR ONLY</div>
+  <div style="display:flex;align-items:center;gap:16px;background:#0a0a10;border:2px solid #3a3a6a;border-radius:6px;padding:16px 20px;margin-bottom:16px;width:100%;max-width:700px;flex-wrap:wrap;">
+    <div style="font-size:40px;line-height:1;">&#128273;</div>
+    <div style="flex:1;min-width:220px;">
+      <div style="font-family:'Oswald',sans-serif;font-size:17px;color:#9aa0e0;margin-bottom:4px;">CREATOR CODE</div>
+      <div style="font-size:11px;color:var(--dim);margin-bottom:10px;line-height:1.5;">Unlocks cheats for the <b style="color:#c8d8a8;">TEST RANGE only</b> &mdash; never affects real battles. Enter the same code again to switch it back off.</div>
+      <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;">
+        <input id="creator-code" type="text" placeholder="enter code&hellip;" autocomplete="off" spellcheck="false" maxlength="16"
+          onkeydown="if(event.key==='Enter'){event.preventDefault();submitCreatorCode();}"
+          style="background:#05050c;color:#c8d0ff;border:1px solid #4a4a80;border-radius:4px;font-family:'Share Tech Mono',monospace;font-size:16px;letter-spacing:4px;padding:8px 12px;width:170px;text-align:center;">
+        <button class="buybtn" onclick="submitCreatorCode()" style="padding:8px 20px;font-size:12px;border-color:#5a5aa0;color:#a0a8ff;">ENTER</button>
+        <span id="creator-code-msg" style="font-family:'Share Tech Mono',monospace;font-size:11px;color:var(--dim);"></span>
+      </div>
+    </div>
+    <div style="text-align:center;min-width:96px;">
+      <div id="creator-payout-state" style="font-family:'Oswald',sans-serif;font-size:20px;color:#5a6a44;">OFF</div>
+      <div style="font-size:9px;color:var(--dim);letter-spacing:2px;">COIN PAYOUT</div>
+    </div>
+  </div>
+
   <!-- Danger zone: reset progress (tucked at the bottom of the garage) -->
   <div style="width:100%;max-width:700px;margin-top:30px;padding-top:16px;border-top:1px solid #2a1a10;display:flex;justify-content:center;">
     <button onclick="resetProgress()" style="background:transparent;color:#6a4a30;font-family:'Share Tech Mono',monospace;font-size:10px;letter-spacing:2px;padding:6px 16px;border:1px solid #3a2515;border-radius:2px;cursor:pointer;" onmouseover="this.style.color='#e85040';this.style.borderColor='#e85040'" onmouseout="this.style.color='#6a4a30';this.style.borderColor='#3a2515'">&#8635; RESET PROGRESS</button>
@@ -1808,6 +1829,33 @@ let rangeKills=0, rangeT0=0, rangeBest=0, rangeLastAt=0;
 const RANGE_CODE='336633';
 let rangePayout=false, rangeCoins=0, _codeBuf='', _payoutFlash=0;
 try{ rangePayout=localStorage.getItem('if_range_payout')==='1'; }catch(e){}
+// Garage code box (Creator Only panel). Same code as typing it in battle.
+function submitCreatorCode(){
+  const inp=document.getElementById('creator-code');
+  const msg=document.getElementById('creator-code-msg');
+  if(!inp)return;
+  const v=(inp.value||'').replace(/[^0-9]/g,'');
+  inp.value='';
+  if(!v){ if(msg){msg.textContent='enter a code';msg.style.color='#6a6a80';} return; }
+  if(v===RANGE_CODE){
+    rangePayout=!rangePayout;
+    _payoutFlash=performance.now();
+    try{ localStorage.setItem('if_range_payout',rangePayout?'1':'0'); }catch(e){}
+    if(typeof playUiClick==='function')playUiClick();
+    if(msg){ msg.textContent=rangePayout?'\u2713 unlocked \u2014 test range pays coins':'\u2713 locked \u2014 payouts off';
+             msg.style.color=rangePayout?'#f1c40f':'#8a9070'; }
+    updateCreatorPanel();
+  } else {
+    if(msg){ msg.textContent='\u2717 not a valid code'; msg.style.color='#e07070'; }
+    if(typeof playUiClick==='function')playUiClick();
+  }
+}
+function updateCreatorPanel(){
+  const st=document.getElementById('creator-payout-state');
+  if(!st)return;
+  st.textContent=rangePayout?'ON':'OFF';
+  st.style.color=rangePayout?'#f1c40f':'#5a6a44';
+}
 function _codeKey(ch){
   if(!/^[0-9]$/.test(ch))return;
   _codeBuf=(_codeBuf+ch).slice(-RANGE_CODE.length);
@@ -1820,6 +1868,7 @@ function _codeKey(ch){
     addKillFeed(rangePayout
       ? '\uD83D\uDD13 CODE ACCEPTED \u2014 test range now pays coins for kills'
       : '\uD83D\uDD12 CODE ACCEPTED \u2014 test range payouts OFF');
+    if(typeof updateCreatorPanel==='function')updateCreatorPanel();
   }
 }
 function rangeReset(){ rangeKills=0; rangeT0=0; rangeLastAt=0; rangeCoins=0; }
@@ -2160,6 +2209,7 @@ function showMissileBay(){
   if(mb)mb.style.display='block';
   if(sg)sg.scrollTop=0;
   buildMissileBay();
+  if(typeof updateCreatorPanel==='function')updateCreatorPanel();
 }
 const MSL_AMMO_STEP=4, MSL_AMMO_COST=5000; // +4 missiles per purchase
 function buildMissileBay(){
@@ -3175,7 +3225,7 @@ function updateWeaponHud(){
 function setupInput(){
   window.addEventListener('keydown',e=>{
     // Chatting with the CLAUDE boss: keystrokes go to the chat box, not the tank
-    if(document.activeElement&&document.activeElement.id==='claude-chat-input')return;
+    if(document.activeElement&&(document.activeElement.id==='claude-chat-input'||document.activeElement.id==='creator-code'||document.activeElement.tagName==='INPUT'))return;
     if(e.code==='KeyT'&&battleMode==='claudeboss'&&state==='game'){e.preventDefault();const _ci=document.getElementById('claude-chat-input');if(_ci)_ci.focus();return;}
     keys[e.code]=true;
     if(e.key)keys[e.key]=true;
@@ -7146,7 +7196,7 @@ window.addEventListener('load',()=>{
 
     window.addEventListener('keydown',function(e){
       _initAudio&&_initAudio();_resumeAudio&&_resumeAudio();
-      if(document.activeElement&&document.activeElement.id==='claude-chat-input')return;
+      if(document.activeElement&&(document.activeElement.id==='claude-chat-input'||document.activeElement.id==='creator-code'||document.activeElement.tagName==='INPUT'))return;
       if(typeof keys==='undefined')return;
       keys[e.code]=true; if(e.key)keys[e.key]=true;
       if(e.code==='Space'){e.preventDefault(); _fireHeld=true; if(typeof tryShoot==='function'&&typeof state!=='undefined'&&state==='game')tryShoot();}
