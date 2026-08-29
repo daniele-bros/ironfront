@@ -1798,6 +1798,7 @@ let camX=0,camY=0;
 let drivenMissile=null;
 // Floating hit-damage numbers (used by the test range) — world coords, drift up.
 let _dmgPops=[];
+let rangeLabels=[];   // world-space tech-tree signs in the test range
 function _dmgPopup(wx,wy,txt,color){ _dmgPops.push({x:wx,y:wy,txt,color,life:55}); if(_dmgPops.length>60)_dmgPops.shift(); }
 // Burning ground patches left by incendiary missiles — deal damage-over-time.
 let fireZones=[];
@@ -1834,7 +1835,10 @@ function updateFireZones(dt){
 }
 // Global scene light direction — points toward the sun (upper-left). Shadows throw the opposite way.
 const LIGHT={x:-0.6,y:-0.78};
-const WW=4800,WH=4800;
+let WW=4800,WH=4800;               // arena size; the test range enlarges it
+const WORLD_BASE=4800;             // normal battle arena
+const GROUND_TILE=4800;            // ground canvas is capped here and tiled
+function setWorldSize(n){ WW=WH=n; }
 
 // ════════════════════════════════════════
 // INIT
@@ -2606,6 +2610,9 @@ function startGame(){
   if(reloadInt){clearInterval(reloadInt);reloadInt=null;}
   missileReady=true;canShoot=true;
   const _rb2=document.getElementById('relbar');if(_rb2)_rb2.style.width='100%';
+  // TEST RANGE is a showroom for the whole roster, so it gets a 4x arena
+  setWorldSize(battleMode==='testrange'?WORLD_BASE*2:WORLD_BASE);
+  rangeLabels=[];
   buildObstacles();
   groundCanvas=null;buildGround();
   player={x:WW/2,y:WH/2,angle:0,turretAngle:0,
@@ -2737,27 +2744,84 @@ function spawnWave(){
     (document.getElementById('hud-en')||{}).textContent=enemies.length;
     return;
   }
-  // ── TEST RANGE: a firing line of stationary target tanks (War Thunder style) ──
+  // ── TEST RANGE: the entire roster, laid out as walkable tech trees ──
+  //    Every tree gets a labelled block; within a block, columns are tiers
+  //    (left to right) exactly like the garage tech tree.
   if(battleMode==='testrange'){
-    const wantTiers=['I','III','V','VII','VIII','IX','X','XI'];
-    const lineup=[];
-    for(const tr of wantTiers){ const cands=TANK_DEFS.filter(t=>t.tier===tr&&t.id!=='ratte'); if(cands.length)lineup.push(cands[Math.floor(cands.length/2)]); }
-    const n=lineup.length, gap=150, rowY=Math.max(120,player.y-235);
-    const startX=player.x-(n-1)*gap/2;
-    lineup.forEach((def,i)=>{
-      const ex=Math.max(90,Math.min(WW-90,startX+i*gap));
-      const ey=Math.max(90,Math.min(WH-90,rowY));
-      const fa=Math.atan2(player.y-ey,player.x-ex); // face the player so you shoot their front
-      enemies.push({x:ex,y:ey,angle:fa,turretAngle:fa,
-        hp:def.hp,maxHp:def.hp,armor:def.armor,pen:def.pen,dmg:def.dmg,
-        speed:def.speed,rotSpeed:def.rot,size:def.id==='ratte'?48:26,color:def.color,name:def.name,id:def.id,
-        reload:def.reload,_dummy:true,_respawn:0});
+    obstacles=[]; bushes=[];              // clean showroom floor
+    rangeLabels=[];
+    const ORDER=['german','soviet','american','british','french','japanese','chinese','swedish',
+                 'italian','czech','polish','swiss','finland','australia','ukraine','blitz',
+                 'coldwar','modern','carrier','mslcarrier','armcar'];
+    const TITLE={german:'\uD83C\uDDE9\uD83C\uDDEA GERMANY',soviet:'\uD83C\uDDF7\uD83C\uDDFA USSR',american:'\uD83C\uDDFA\uD83C\uDDF8 USA',
+      british:'\uD83C\uDDEC\uD83C\uDDE7 BRITAIN',french:'\uD83C\uDDEB\uD83C\uDDF7 FRANCE',japanese:'\uD83C\uDDEF\uD83C\uDDF5 JAPAN',
+      chinese:'\uD83C\uDDE8\uD83C\uDDF3 CHINA',swedish:'\uD83C\uDDF8\uD83C\uDDEA SWEDEN',italian:'\uD83C\uDDEE\uD83C\uDDF9 ITALY',
+      czech:'\uD83C\uDDE8\uD83C\uDDFF CZECHOSLOVAKIA',polish:'\uD83C\uDDF5\uD83C\uDDF1 POLAND',swiss:'\uD83C\uDDE8\uD83C\uDDED SWITZERLAND',
+      finland:'\uD83C\uDDEB\uD83C\uDDEE FINLAND',australia:'\uD83C\uDDE6\uD83C\uDDFA AUSTRALIA',ukraine:'\uD83C\uDDFA\uD83C\uDDE6 UKRAINE',
+      blitz:'\u26A1 BLITZ',coldwar:'\u2744 COLD WAR',modern:'\u2699 MODERN ERA',
+      carrier:'\uD83D\uDE9A IFV CARRIERS',mslcarrier:'\uD83D\uDE80 MISSILE CARRIERS',armcar:'\uD83D\uDE97 ARMORED CARS'};
+    const CW=150, RH=132, PAD_TOP=170, BLOCK_GAP_X=360, BLOCK_GAP_Y=230, PER_ROW=5;
+    // pre-measure every block so rows can be packed tightly
+    const blocks=ORDER.filter(n=>TREE_LAYOUT[n]).map(n=>{
+      const t=TREE_LAYOUT[n];
+      return {n:n,tiers:t,w:t.length*CW,h:PAD_TOP+Math.max(1,Math.max.apply(null,t.map(c=>c.length)))*RH};
     });
-    // Turn the player to face the firing line so the targets are dead ahead on deploy
-    if(player){ player.angle=-Math.PI/2; player.turretAngle=-Math.PI/2; }
+    let y=420, idx=0, lastBottom=420, firstBottom=-1;
+    const placed=new Set();
+    while(idx<blocks.length){
+      const row=blocks.slice(idx,idx+PER_ROW);
+      const rowW=row.reduce((a,b)=>a+b.w,0)+BLOCK_GAP_X*(row.length-1);
+      let x=Math.max(300,(WW-rowW)/2);
+      let rowH=0;
+      row.forEach(function(bk){
+        rangeLabels.push({x:x+bk.w/2, y:y-40, text:TITLE[bk.n]||bk.n.toUpperCase(),
+          w:bk.w, h:bk.h-PAD_TOP+90});
+        bk.tiers.forEach(function(col,ci){
+          col.forEach(function(id,ri){
+            const def=TANK_DEFS.find(function(t){return t.id===id;});
+            if(!def)return;
+            placed.add(id);
+            const ex=x+ci*CW+CW/2, ey=y+PAD_TOP-90+ri*RH;
+            enemies.push({x:ex,y:ey,angle:Math.PI/2,turretAngle:Math.PI/2,
+              hp:def.hp,maxHp:def.hp,armor:def.armor,pen:def.pen,dmg:def.dmg,
+              speed:def.speed,rotSpeed:def.rot,size:def.id==='ratte'?48:26,
+              color:def.color,name:def.name,id:def.id,reload:def.reload,
+              _dummy:true,_respawn:0});
+          });
+        });
+        rowH=Math.max(rowH,bk.h);
+        x+=bk.w+BLOCK_GAP_X;
+      });
+      lastBottom=y+rowH;
+      if(firstBottom<0)firstBottom=lastBottom;
+      y+=rowH+BLOCK_GAP_Y;
+      idx+=PER_ROW;
+    }
+    // vehicles that belong to no tech tree (the Ratte is an enemy-only boss)
+    {const loose=TANK_DEFS.filter(function(t){return !placed.has(t.id);});
+     if(loose.length){
+       const bw=loose.length*CW;
+       const bx=Math.max(300,(WW-bw)/2);
+       rangeLabels.push({x:bx+bw/2,y:lastBottom+150,text:'\u2620 BOSSES',w:bw,h:150});
+       loose.forEach(function(def,i){
+         enemies.push({x:bx+i*CW+CW/2,y:lastBottom+250,angle:Math.PI/2,turretAngle:Math.PI/2,
+           hp:def.hp,maxHp:def.hp,armor:def.armor,pen:def.pen,dmg:def.dmg,
+           speed:def.speed,rotSpeed:def.rot,size:def.id==='ratte'?48:26,
+           color:def.color,name:def.name,id:def.id,reload:def.reload,
+           _dummy:true,_respawn:0});
+       });
+       lastBottom+=330;
+     }}
+    // park the player just below the display, looking up at it
+    if(player){
+      player.x=WW/2; player.y=(firstBottom>0?firstBottom+70:lastBottom+190);
+      player.angle=-Math.PI/2; player.turretAngle=-Math.PI/2;
+      camX=Math.max(0,Math.min(WW-W,player.x-W/2));
+      camY=Math.max(0,Math.min(WH-H,player.y-H/2));
+    }
     waveSpawning=false;
     (document.getElementById('hud-en')||{}).textContent=enemies.length;
-    addKillFeed('🎯 TEST RANGE — press R to reset targets');
+    addKillFeed('\uD83C\uDFAF TEST RANGE \u2014 all '+enemies.length+' vehicles by tech tree \u00B7 press R to reset');
     return;
   }
   // ── CLAUDE BOSS: one very talkative boss tank ──
@@ -4270,6 +4334,23 @@ function render(){
     }
     ctx.restore();
   }
+  // Test-range tech-tree signs (world space, drawn under the vehicles)
+  if(rangeLabels.length){
+    ctx.save();ctx.textAlign='center';
+    for(const L of rangeLabels){
+      if(L.x+L.w/2<camX-200||L.x-L.w/2>camX+W+200||L.y+L.h<camY-200||L.y>camY+H+200)continue;
+      ctx.fillStyle='rgba(10,14,8,.34)';
+      ctx.fillRect(L.x-L.w/2-26,L.y-52,L.w+52,L.h+70);
+      ctx.strokeStyle='rgba(200,168,75,.40)';ctx.lineWidth=3;
+      ctx.strokeRect(L.x-L.w/2-26,L.y-52,L.w+52,L.h+70);
+      ctx.fillStyle='rgba(8,11,6,.85)';
+      ctx.fillRect(L.x-L.w/2-26,L.y-52,L.w+52,58);
+      ctx.font='bold 40px Oswald,sans-serif';
+      ctx.fillStyle='rgba(0,0,0,.75)';ctx.fillText(L.text,L.x+2,L.y-10);
+      ctx.fillStyle='#e8c84a';ctx.fillText(L.text,L.x,L.y-12);
+    }
+    ctx.restore();
+  }
   drawObstacles();
 
   // smoke/debris behind tanks
@@ -4697,7 +4778,9 @@ function buildGround(){
   _renderTile(t,TS,m,rng);
 
   // 2. Tile it across the full world using createPattern
-  const gc=document.createElement('canvas');gc.width=WW;gc.height=WH;
+  const GW=Math.min(WW,GROUND_TILE),GH=Math.min(WH,GROUND_TILE);
+  const _rw=WW,_rh=WH; WW=GW; WH=GH;   // helpers below draw in tile space
+  const gc=document.createElement('canvas');gc.width=GW;gc.height=GH;
   const g=gc.getContext('2d');if(!g)return null;
   const pat=g.createPattern(tc,'repeat');
   g.fillStyle=pat;g.fillRect(0,0,WW,WH);
@@ -4710,6 +4793,7 @@ function buildGround(){
 
   // 5. Border
   g.strokeStyle='#050705';g.lineWidth=12;g.strokeRect(4,4,WW-8,WH-8);
+  WW=_rw; WH=_rh;                       // back to the real arena size
   groundCanvas=gc;
 }
 
@@ -4911,9 +4995,18 @@ function _drawRoads(g,m){
 
 function drawGround(){
   if(!groundCanvas) buildGround();
-  const vx=Math.max(0,camX-2),vy=Math.max(0,camY-2);
-  const vw=Math.min(WW-vx,W+6),vh=Math.min(WH-vy,H+6);
-  ctx.drawImage(groundCanvas,vx,vy,vw,vh,vx,vy,vw,vh);
+  const gw=groundCanvas.width,gh=groundCanvas.height;
+  const vx0=Math.max(0,camX-2),vy0=Math.max(0,camY-2);
+  const vx1=Math.min(WW,camX+W+4),vy1=Math.min(WH,camY+H+4);
+  // The ground bitmap is capped, so repeat it across a larger arena. Only the
+  // visible slice of each repetition is blitted.
+  for(let ty=Math.floor(vy0/gh)*gh; ty<vy1; ty+=gh){
+    for(let tx=Math.floor(vx0/gw)*gw; tx<vx1; tx+=gw){
+      const sx=Math.max(0,vx0-tx), sy=Math.max(0,vy0-ty);
+      const sw=Math.min(gw-sx,vx1-tx-sx), sh=Math.min(gh-sy,vy1-ty-sy);
+      if(sw>0&&sh>0)ctx.drawImage(groundCanvas,sx,sy,sw,sh,tx+sx,ty+sy,sw,sh);
+    }
+  }
   if(selectedMap.fog&&player){
     const bg=selectedMap.bg,r2=parseInt(bg.slice(1,3),16),g2=parseInt(bg.slice(3,5),16),b2=parseInt(bg.slice(5,7),16);
     const grd=ctx.createRadialGradient(player.x,player.y,180,player.x,player.y,480);
@@ -7984,8 +8077,8 @@ function _glUploadGround(){
   tmp.getContext('2d').drawImage(groundCanvas,0,0,2048,2048);
   gl.bindTexture(gl.TEXTURE_2D,_glGroundTex);
   gl.texImage2D(gl.TEXTURE_2D,0,gl.RGBA,gl.RGBA,gl.UNSIGNED_BYTE,tmp);
-  gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_WRAP_S,gl.CLAMP_TO_EDGE);
-  gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_WRAP_T,gl.CLAMP_TO_EDGE);
+  gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_WRAP_S,gl.REPEAT);
+  gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_WRAP_T,gl.REPEAT);
   gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_MIN_FILTER,gl.LINEAR_MIPMAP_LINEAR);
   gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_MAG_FILTER,gl.LINEAR);
   gl.generateMipmap(gl.TEXTURE_2D);
@@ -8065,9 +8158,10 @@ function _pushDecal(b,cx,cz,y,rad,col,alpha){
     _pushV(b,cx+Math.cos(a2)*rad,y,cz+Math.sin(a2)*rad,0,1,0,col,0);
   }
 }
-function _pushGroundQuad(b,x0,z0,x1,z1,y,col,alpha,uv){
+function _pushGroundQuad(b,x0,z0,x1,z1,y,col,alpha,uv,rep){
   const A=alpha===undefined?1:alpha;
-  const u0=uv?0:0,v0=uv?0:0,u1=uv?1:0,v1=uv?1:0;
+  const R=rep||1;
+  const u0=0,v0=0,u1=uv?R:0,v1=uv?R:0;
   _pushV(b,x0,y,z0,0,1,0,col,A,u0,v0);_pushV(b,x1,y,z0,0,1,0,col,A,u1,v0);_pushV(b,x1,y,z1,0,1,0,col,A,u1,v1);
   _pushV(b,x0,y,z0,0,1,0,col,A,u0,v0);_pushV(b,x1,y,z1,0,1,0,col,A,u1,v1);_pushV(b,x0,y,z1,0,1,0,col,A,u0,v1);
 }
@@ -8369,7 +8463,7 @@ function renderGL(){
 
   // ground skirt (beyond map edges) + textured map ground
   _pushGroundQuad(_bOp,-7000,-7000,WW+7000,WH+7000,-2,_shade(mg,0.8),1,false);
-  if(groundCanvas)_pushGroundQuad(_bTex,0,0,WW,WH,0,[1,1,1],1,true);
+  if(groundCanvas)_pushGroundQuad(_bTex,0,0,WW,WH,0,[1,1,1],1,true,WW/groundCanvas.width);
   else _pushGroundQuad(_bOp,0,0,WW,WH,0,mg,1,false);
 
   // craters + fire zones + tread marks pressed into the ground
@@ -8434,7 +8528,11 @@ function renderGL(){
 
   // tanks — the fallen stay on the field as burned-out wrecks
   if(player&&player.hp>0)_pushTank3D(player,true);
-  for(const e of enemies){ if(e.hp>0)_pushTank3D(e,false); else _pushWreck3D(e); }
+  {const VD=2100, vd2=VD*VD;   // skip anything far outside the view
+   for(const e of enemies){
+     const dx=e.x-fx, dz=e.y-fz; if(dx*dx+dz*dz>vd2)continue;
+     if(e.hp>0)_pushTank3D(e,false); else _pushWreck3D(e);
+   }}
   if(typeof allies!=='undefined'&&allies)for(const al of allies)if(al.hp>0)_pushTank3D(al,false);
 
   // bullets & missiles
@@ -8554,6 +8652,23 @@ function _render2DOverlay(){
   }
   // tread marks decay (they're a 2D-render-managed list; keep them from growing forever)
   for(let ti=treadMarks.length-1;ti>=0;ti--){treadMarks[ti].life-=1;if(treadMarks[ti].life<=0)treadMarks.splice(ti,1);}
+  // Test-range tech-tree signs, projected from world space
+  if(rangeLabels.length){
+    ctx.save();ctx.textAlign='center';
+    for(const L of rangeLabels){
+      const pr=_glProjectPt(L.x,L.y,60); if(!pr)continue;
+      if(pr.x<-300||pr.x>W+300||pr.y<-80||pr.y>H+80)continue;
+      const sc=Math.max(0.35,Math.min(2.4,900/pr.w));
+      ctx.font='bold '+Math.round(30*sc)+'px Oswald,sans-serif';
+      const tw=ctx.measureText(L.text).width;
+      ctx.fillStyle='rgba(8,11,6,.72)';
+      ctx.fillRect(pr.x-tw/2-12,pr.y-26*sc,tw+24,32*sc);
+      ctx.strokeStyle='rgba(200,168,75,.5)';ctx.lineWidth=1.5;
+      ctx.strokeRect(pr.x-tw/2-12,pr.y-26*sc,tw+24,32*sc);
+      ctx.fillStyle='#e8c84a';ctx.fillText(L.text,pr.x,pr.y-4*sc);
+    }
+    ctx.restore();
+  }
   // mode hint banners
   if(battleMode==='testrange'&&state==='game'){
     ctx.save();ctx.textAlign='center';ctx.font='12px Oswald,sans-serif';
