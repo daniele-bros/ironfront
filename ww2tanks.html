@@ -1765,8 +1765,10 @@ function _beginReload(kind){
     const _def=(typeof TANK_DEFS!=='undefined'&&player)?TANK_DEFS.find(t=>t.id===player.id):null;
     const _baseMs=(_def&&_def.mslReload)?_def.mslReload*1000:player.reloadTime*(1000/60)*1.6;
     dur=_baseMs*_mslMul;
+    if(battleMode==='testrange')dur=110;   // practice range: spam away
   } else {
     dur=player.reloadTime*(1000/60);
+    if(battleMode==='testrange')dur=Math.min(dur,140);
   }
   if(kind==='missile'){ missileReady=false; _mslReloadStart=_now(); _mslReloadDur=dur; }
   else { canShoot=false; _gunReloadStart=_now(); _gunReloadDur=dur; }
@@ -3121,7 +3123,10 @@ function tryShoot(){
 
   // Shooting reveals player from bush
   if(playerInBush){spotted=true;spotTimer=240;} // 4 seconds spotted
-  if(_useMissile){ missileAmmo--; updateWeaponHud(); } else { currentAmmo--; updateAmmoRow(); }
+  if(battleMode==='testrange'){          // practice: nothing is ever consumed
+    if(_useMissile){ missileAmmo=999; updateWeaponHud(); } else { currentAmmo=totalAmmo; updateAmmoRow(); }
+  }
+  else if(_useMissile){ missileAmmo--; updateWeaponHud(); } else { currentAmmo--; updateAmmoRow(); }
 
   // Missile tanks launch a guided homing missile when MISSILE mode is selected (toggle with Q)
   if(_useMissile){
@@ -3141,7 +3146,8 @@ function tryShoot(){
       m.splash=mt.splash||0; m.mcolor=mt.color; m.fire=mt.fire||false; m.freeze=mt.freeze||0; m.heal=mt.heal||0;
       m.pierce=mt.pierce||false; m.chain=mt.chain||0; m.pull=mt.pull||false; m.slowField=mt.slowField||false; m.blackhole=mt.blackhole||false;
       // You fly the lead missile with the mouse; any wingmen auto-home to enemies.
-      if(k===0){ m.driven=true; drivenMissile=m; } else { m.autohome=true; }
+      const _busy=drivenMissile&&drivenMissile.life>0&&bullets.indexOf(drivenMissile)>=0;
+      if(k===0&&!_busy){ m.driven=true; drivenMissile=m; } else { m.autohome=true; }
     }
     if(player)player.recoil=Math.max(player.recoil||0,player.size*0.24);
     // Overcharge and the like: firing scorches your own tank
@@ -3575,7 +3581,8 @@ function update(dt){
   if(_mgCooldown>0)_mgCooldown-=dt;
   // Auto-fire while fire button held
   if(_fireHeld&&player&&state==='game'&&!SPG_IDS.has(player.id)){
-    if(canShoot){tryShoot();}
+    const _usingMsl=(typeof _missileIds!=='undefined'&&_missileIds.has(player.id)&&weaponMode==='missile');
+    if(_usingMsl?missileReady:canShoot){tryShoot();}
   }
 }
 
