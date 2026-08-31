@@ -249,7 +249,7 @@ body[data-state="mode"] #screen-title { display:none!important; }
     <div style="background:#d97757;color:#1a0f08;font-size:10px;font-weight:700;letter-spacing:1px;padding:4px 8px;border-radius:6px 6px 0 0;display:flex;align-items:center;gap:6px;">
       <span style="flex:1;">🤖 CLAUDE — press T to talk</span>
       <span id="cc-mode" style="font-size:9px;letter-spacing:0;color:#7a3a20;">○ local</span>
-      <button onclick="claudeKeyPrompt()" title="Connect the real Claude with your own API key" style="background:rgba(0,0,0,.18);border:none;color:#1a0f08;font-size:11px;cursor:pointer;border-radius:3px;padding:1px 5px;line-height:1.4;">⚙</button>
+      <button onclick="claudeKeyPrompt()" title="Optional: plug in your own Anthropic API key. Not needed - I run fine without one." style="background:rgba(0,0,0,.18);border:none;color:#1a0f08;font-size:11px;cursor:pointer;border-radius:3px;padding:1px 5px;line-height:1.4;">⚙</button>
     </div>
     <div id="cc-log" style="max-height:190px;overflow-y:auto;background:rgba(8,10,6,.85);border:1px solid #d97757;border-top:none;padding:8px;font-size:11px;line-height:1.55;color:#e8e0d0;"></div>
     <div style="display:flex;background:rgba(8,10,6,.92);border:1px solid #d97757;border-top:none;border-radius:0 0 6px 6px;">
@@ -3014,7 +3014,7 @@ function spawnWave(){
     if(typeof ccUpdateBadge==='function')ccUpdateBadge();
     {const pt=TANK_DEFS.find(x=>x.id===activeTankId);
      if(pt)claudeSay("So you brought the <b>"+pt.name+"</b>. "+(pt.armor>150?"That is a lot of armour to chew through.":pt.dmg>400?"That gun is going to hurt.":_ccMph(pt)>40?"Quick little thing - I'll have trouble leading you.":"Bold choice.")+" Let's go.");}
-    if(!ccGetKey())setTimeout(function(){claudeSay("Tip: the <b>⚙</b> button connects the real me - my full knowledge, real conversation, and I'll still see your tank. Needs your own API key.");},9000);
+    setTimeout(function(){claudeSay(_ccPick(["Ask me anything while you shoot at me - every tank stat in the game, real WW2 history, physics, or just how your day went.","Fair warning: I know all "+_ccPool().length+" vehicles by heart, so <i>which tank beats yours</i> is a question I will answer honestly and to your disadvantage.","I take requests: stats, comparisons, history, jokes, life advice, or a truce if it gets rough."]));},9000);
     claudeSay("Hi, I'm Claude! Press <b>T</b> to talk while we fight. I know every stat of all "+_ccPool().length+" vehicles — try <i>\"how fast is the Panther\"</i>, <i>\"fastest German tank\"</i>, or <i>\"Tiger vs T-34\"</i>. Ask for a truce if you need a breather!");
     return;
   }
@@ -7914,11 +7914,128 @@ const _CC_LORE=[
  {k:['what is encryption','how does encryption work'],a:"Modern encryption leans on maths that's easy one way and brutally hard to reverse - like multiplying two huge primes versus factoring the result. That gap is what keeps your messages private."},
  {k:['machine learning','how do you learn'],a:"Show a model many examples, measure how wrong it is, and nudge its parameters slightly in the direction that reduces the error. Repeat astronomically many times. There's no moment of understanding - just error going down until behaviour looks like understanding."},
 
+
+ // ── Machines & engineering ──
+ {k:['how does an engine work','internal combustion','combustion engine','how do engines work'],a:"Four strokes: suck in air and fuel, squeeze it, burn it so the expanding gas shoves the piston down, then push the exhaust out. The piston turns a crankshaft, and everything else on a vehicle exists to serve that one conversion of heat into rotation."},
+ {k:['diesel','petrol vs diesel','gasoline engine'],a:"Diesel compresses air until it is hot enough to ignite fuel on injection - no spark plugs. It gives more torque, better efficiency and fuel that is far harder to set on fire, which is exactly why most tanks after 1945 went diesel."},
+ {k:['gas turbine','turbine engine','jet engine'],a:"Suck air in, compress it, burn fuel continuously, and let the exhaust spin a turbine on the way out. Enormous power for the weight, instant throttle - and a thirst that makes the M1 Abrams a logistics problem as much as a tank."},
+ {k:['torque','horsepower','what is horsepower'],a:"Torque is twisting force; horsepower is torque multiplied by how fast you are twisting. Torque gets a sixty-tonne vehicle moving out of mud. Horsepower decides how fast it is going when it stops accelerating."},
+ {k:['transmission','gearbox','how do gears work'],a:"Gears trade speed for force. An engine only makes useful power over a narrow band of revs, so the gearbox keeps it in that band whatever the vehicle is doing. Tank steering usually happens in there too - slow one track relative to the other and you turn."},
+ {k:['suspension','torsion bar','christie suspension'],a:"Suspension keeps the tracks on the ground over rough terrain, and a tank that cannot hold its gun steady while moving may as well be a bunker. Christie suspension used long-travel coil springs and made the T-34 famously good cross-country; torsion bars became the standard afterwards."},
+ {k:['tracks','why do tanks have tracks','caterpillar track'],a:"Tracks spread sixty tonnes over a huge contact area, so ground pressure drops to roughly that of a person standing. It is the only reason a tank crosses a wet field instead of digging itself a grave in it."},
+ {k:['how does radar work','radar'],a:"Send out a radio pulse, listen for the echo, and time it. Direction from where the aerial was pointing, range from the delay, speed from the frequency shift. It won the air war before it ever won a ground one."},
+ {k:['sonar','how does sonar work'],a:"Radar's underwater cousin - sound instead of radio, because radio dies in water within metres. Passive sonar just listens, which is why submarine crews care so much about being quiet."},
+ {k:['how does a gun work','ballistics','how do bullets work'],a:"Burning propellant makes gas far faster than it can escape, so pressure builds behind the projectile and shoves it down the barrel. Rifling spins it for stability; a smoothbore instead uses fins, which is what modern tank guns do."},
+ {k:['welding','how is a tank built','tank construction'],a:"Early tanks were riveted, which was a problem - a hit could turn the rivets themselves into projectiles inside the crew compartment. Welding replaced it. Later hulls got cast in one enormous piece, which is why so many post-war tanks look poured rather than assembled."},
+ {k:['how does a battery work','battery'],a:"Two different materials that would each rather have the other's electrons, kept apart so the only route between them runs through your circuit. Recharging pushes the reaction back the other way."},
+ {k:['how does a radio work','radio'],a:"Wiggle electrons in an aerial and you launch an electromagnetic wave; a distant aerial wiggles in sympathy. Putting one in every German tank in 1940 mattered more than any individual tank's armour."},
+ {k:['gyroscope','stabilizer','gun stabilisation','gun stabilization'],a:"A spinning mass resists being tilted, so it can hold a reference direction. Bolt that to a gun and the barrel stays on target while the hull crashes about - the American M4 had a basic vertical stabiliser in 1942, decades ahead of most."},
+ {k:['hydraulic','how do hydraulics work'],a:"Liquids do not compress, so pressure applied at a small piston comes out as a large force at a big one. It is a lever made of fluid, and it is how heavy turrets traverse without a crew of weightlifters."},
+ {k:['steel','alloy','what is steel'],a:"Iron with a little carbon and usually some other metals. Small changes to the recipe and to how fast you cool it swing hardness, toughness and brittleness enormously - armour plate is a compromise between hard enough to break a shell and tough enough not to shatter."},
+ {k:['bridge','how do bridges stand'],a:"Every bridge is a way of turning load into either compression or tension and sending it to the ground. Arches compress, suspension cables pull, trusses split the job triangle by triangle."},
+ {k:['how does a rocket work','rocket'],a:"Throw mass out the back fast and the rocket goes the other way - Newton again. It is the only propulsion that works in vacuum, because it needs nothing to push against."},
+ {k:['guided missile','how do missiles work','missile guidance'],a:"A sensor works out where the target is relative to where the missile is pointing, and fins correct the difference continuously. The game's guided missiles are doing a cartoon version of exactly that."},
+
  // ── Everyday & useful ──
  {k:['how do planes fly','why do planes fly'],a:"The wing turns air downwards, and pushing air down pushes the wing up - Newton's third law. The pressure-difference story is real but it's a description of the same thing, not a separate cause."},
  {k:['why do we dream'],a:"Best current guess is memory processing and emotional regulation, with the brain stitching a narrative over activity that has no plot. Nobody has proved it, which is unusual for something everyone does nightly."},
  {k:['how to be happy','happiness'],a:"The research is boringly consistent: close relationships, sleep, exercise, and something that feels like progress. Money helps a lot up to the point where you stop worrying about it, then much less."},
  {k:['procrastinat'],a:"Procrastination is usually an emotion problem wearing a time-management costume - you're avoiding how the task feels. Shrink the first step until it's almost insultingly small and start there."},
+ // ── More WW2 & 20th century ──
+ {k:['blitzkrieg'],a:"Blitzkrieg was never an official German doctrine with that name - it was a press label. What was real: concentrating armour at one point, radios in every tank, and air support on call, so a breakthrough could be exploited before the defender reorganised. France in 1940 was the demonstration."},
+ {k:['lend lease','lend-lease'],a:"America shipped enormous quantities of material to Britain and the USSR - trucks above all. The Red Army's offensives ran on Studebakers. Soviet histories downplayed it for decades; Zhukov did not."},
+ {k:['enigma','bletchley','turing','codebreak'],a:"Enigma scrambled German signals through rotating rotors. Polish mathematicians broke early versions, and Bletchley Park industrialised it with machines Alan Turing helped design. The hard part afterwards was using the intelligence without revealing that you had it."},
+ {k:['manhattan project','atomic bomb','hiroshima','nagasaki'],a:"The Manhattan Project built the first nuclear weapons; two were used on Japan in August 1945. It remains the most consequential engineering programme ever run, and the argument about whether it ended the war or merely ended it sooner has never settled."},
+ {k:['rosie the riveter','women in the war','home front'],a:"Millions of women moved into factories, shipyards and aircraft plants. Britain conscripted women into war work outright. The tanks in this game were largely built by people who were not allowed to drive them."},
+ {k:['convoy','battle of the atlantic','u-boat','uboat','submarine warfare'],a:"The Atlantic convoy war decided whether Britain stayed supplied at all. Convoys, escort carriers, radar, and Enigma decrypts eventually broke the U-boats. Churchill said it was the only thing that ever really frightened him."},
+ {k:['spitfire','battle of britain'],a:"Summer 1940: the RAF held off the Luftwaffe over Britain. Radar and a proper ground control system mattered as much as the Spitfire and Hurricane - Britain could put fighters in the right place, and Germany could not."},
+ {k:['cold war'],a:"Forty-odd years of two nuclear-armed blocs avoiding a direct war by fighting proxy ones. It is why half the tanks in this game exist: enormous armies built for a war in Germany that never came."},
+ {k:['berlin wall'],a:"Built 1961 to stop East Germans leaving, opened November 1989 after a botched press conference implied the border was open immediately. Crowds simply turned up and the guards, with no orders, let them through."},
+ {k:['cuban missile crisis'],a:"October 1962, thirteen days, the closest the Cold War came to going nuclear. It ended with a public Soviet withdrawal from Cuba and a quiet American one from Turkey."},
+ {k:['korean war'],a:"1950-53, and the first war where jets fought jets. Tanks mattered early - T-34-85s ran riot until American heavies arrived - then it froze into trench lines near where it started."},
+ {k:['vietnam war'],a:"Long, and a lesson that firepower does not automatically convert into political outcomes. Armour was used far more than the jungle-war stereotype suggests."},
+ {k:['gulf war','desert storm','73 easting'],a:"1991. At 73 Easting, American M1s destroyed an Iraqi armoured force in minutes with almost no losses - thermal sights, better guns, better crews. It is the clearest demonstration of what a generation of technology gap does."},
+ {k:['space race','apollo','moon landing'],a:"Apollo 11 landed 20 July 1969. The guidance computer had roughly 4 kilobytes of RAM. People carried more computing power in their pocket to argue about whether it happened."},
+ {k:['titanic'],a:"1912, struck an iceberg, sank in under three hours, about 1,500 dead. Not enough lifeboats, because the rules were written for a smaller generation of ships and nobody updated them."},
+ {k:['great depression'],a:"The 1930s slump. Banks failed, demand collapsed, and recovery in most countries came with rearmament - which is a bleak thing to have to notice."},
+ {k:['world war 1','ww1','first world war','great war'],a:"1914-18. Machine guns and artillery beat infantry into trenches, and the tank was invented specifically to break that deadlock. It half worked, and the lessons shaped every design in this game."},
+
+ // ── Space & astronomy ──
+ {k:['how big is the universe','size of the universe'],a:"The observable universe is about 93 billion light years across, and it is only observable because light has had time to reach us. Beyond that edge there is almost certainly more - we simply cannot see it."},
+ {k:['what is a light year'],a:"The distance light travels in a year - about 9.5 trillion kilometres. It is a distance, not a time, which trips people up constantly."},
+ {k:['why is the sky blue'],a:"Air scatters short blue wavelengths far more than long red ones, so blue light bounces around the sky and reaches you from every direction. At sunset the light travels through more air, the blue is scattered away entirely, and you get the red."},
+ {k:['what is a star','how do stars work'],a:"A star is a ball of gas so massive that its own gravity crushes the core hot enough to fuse hydrogen into helium. The outward pressure of that fusion is the only thing stopping it collapsing. When the fuel runs out, gravity wins."},
+ {k:['sun','how hot is the sun'],a:"Surface about 5,500 degrees C, core around 15 million. It fuses roughly 600 million tonnes of hydrogen a second and has done for 4.6 billion years, with about five billion left."},
+ {k:['mars'],a:"Cold, dusty, thin carbon dioxide atmosphere, about a third of Earth's gravity. It had liquid water once and lost most of its atmosphere when its magnetic field died. Home of Olympus Mons, three times the height of Everest."},
+ {k:['jupiter'],a:"Gas giant, more massive than everything else orbiting the Sun combined. The Great Red Spot is a storm that has been running for centuries and is shrinking."},
+ {k:['saturn'],a:"Rings made of countless chunks of ice and rock, some the size of a house, most smaller than your fist. They are also astonishingly thin - tens of metres in places, across 280,000 kilometres."},
+ {k:['moon','why does the moon'],a:"Tidally locked, so it always shows Earth the same face. It is drifting away about 3.8 cm a year, and it stabilises Earth's axial tilt - which is a quiet but large favour to our climate."},
+ {k:['what is gravity'],a:"Mass bends spacetime, and things moving in a straight line through bent spacetime curve. You are not being pulled to the ground so much as falling along the shape mass gives to space."},
+ {k:['big bang'],a:"Everything we can see was once unimaginably hot and dense, and it has been expanding for about 13.8 billion years. It was not an explosion into space - it was space itself expanding, everywhere at once."},
+ {k:['alien','extraterrestrial','are we alone','fermi paradox'],a:"No evidence either way, which is itself the puzzle - the universe is enormous and old, so where is everybody? Every proposed answer is uncomfortable: life is rare, intelligence is rare, or it does not last long."},
+ {k:['asteroid','meteor','comet'],a:"Asteroids are rock, comets are ice that grows a tail near the Sun, and a meteor is whichever one is currently burning up in the atmosphere. The dinosaur-killer was about 10 km across."},
+ {k:['what is a galaxy','milky way'],a:"A gravitationally bound swarm of a few hundred billion stars. Ours is a barred spiral, about 100,000 light years across, and it is going to merge with Andromeda in roughly four billion years."},
+
+ // ── Physics, chemistry, maths ──
+ {k:['speed of light','how fast is light'],a:"299,792,458 metres a second, exactly - the metre is defined from it. Nothing carrying information goes faster, which is less a rule about light than a rule about cause and effect."},
+ {k:['what is energy'],a:"The capacity to do work, and it never disappears - it only changes form. Your tank turns chemical energy into motion and an enormous amount of waste heat, mostly the latter."},
+ {k:['what is an atom'],a:"A dense nucleus of protons and neutrons with electrons occupying regions around it. Almost entirely empty space - you are held off the floor by electromagnetic repulsion, not by anything solid touching."},
+ {k:['what is electricity'],a:"The flow of charge, usually electrons drifting through a conductor. They move surprisingly slowly; the signal telling them to move travels near light speed, which is why the light comes on instantly."},
+ {k:['what is a magnet','magnetism'],a:"Electrons behave like tiny magnets, and in some materials they line up together instead of cancelling out. Magnetism and electricity are the same force viewed from different frames of reference - that realisation is what relativity grew out of."},
+ {k:['what is entropy','second law'],a:"There are vastly more disordered arrangements than ordered ones, so systems drift towards disorder simply by counting. It is the reason heat flows one way and why time appears to have a direction."},
+ {k:['quantum','superposition','schrodinger'],a:"At small scales things behave as spread-out possibilities until they interact with something, at which point you get one definite outcome. The maths is exact and reliable; what it means is still argued about a century on."},
+ {k:['relativity','einstein'],a:"Special relativity: the speed of light is the same for everyone, so time and distance must stretch to keep it that way. General relativity: gravity is the curvature of spacetime. Both are tested constantly - your satellite navigation corrects for them."},
+ {k:['what is pi'],a:"The circle constant, about 3.14159. Irrational, so its digits never repeat, and it appears all over maths that has nothing obviously to do with circles."},
+ {k:['prime number'],a:"A whole number above 1 divisible only by itself and 1. There are infinitely many - Euclid proved it - and they are unpredictable enough that modern encryption is built on the difficulty of pulling big numbers apart into them."},
+ {k:['infinity'],a:"Not a number, a size of set. Some infinities are strictly bigger than others: the whole numbers are countable, the reals are not, and Cantor proved it with an argument short enough to fit on a napkin."},
+ {k:['probability','odds','randomness'],a:"People are terrible at it. The two classic traps: assuming past results change future odds, and confusing how likely evidence is given a claim with how likely the claim is given the evidence."},
+ {k:['why is the sea salty','ocean salty'],a:"Rain weathers rock, rivers carry the dissolved minerals to the sea, and only the water evaporates back out. Everything else stays and accumulates."},
+ {k:['why is fire hot','what is fire'],a:"Rapid oxidation. Breaking and reforming chemical bonds releases more energy than it costs, and the surplus comes out as heat and glowing gas. Flame is incandescent soot and excited molecules, not a substance."},
+ {k:['what is rust','why does metal rust','corrosion'],a:"Iron plus oxygen and water gives iron oxide, which flakes off and exposes fresh metal underneath - unlike aluminium, whose oxide seals the surface. It is why every surviving tank in a museum is a maintenance project forever."},
+
+ // ── Biology, body, health ──
+ {k:['how does the brain work'],a:"Roughly 86 billion neurons passing electrical and chemical signals across connections that strengthen with use. There is no central controller - behaviour comes out of the whole thing interacting, which is uncomfortably close to how I work."},
+ {k:['why do we sleep','sleep'],a:"Memory consolidation, metabolic clearance in the brain, hormone regulation and repair. Losing it degrades judgement before it degrades how tired you feel, which is the dangerous part. Seven to nine hours for most adults."},
+ {k:['dna','genetics','gene'],a:"A four-letter chemical code that specifies proteins. You share about 99.9 percent of it with every other human and roughly 60 percent with a banana, which says more about how much basic cell machinery is shared than about bananas."},
+ {k:['evolution','natural selection'],a:"Variation exists, some variants reproduce more, and the differences accumulate. It has no goal and no foresight - it is a hill-climbing algorithm running for four billion years."},
+ {k:['why do we age','ageing','aging'],a:"Accumulated damage plus declining repair - shortening telomeres, mutations, senescent cells, worn proteins. Evolution stops selecting hard once you have reproduced, so the maintenance simply is not funded."},
+ {k:['vaccine','how do vaccines work'],a:"Show the immune system a harmless version or fragment of a pathogen so it builds the memory before the real encounter. It is the immune system doing a live-fire exercise with blanks."},
+ {k:['virus','bacteria'],a:"Bacteria are living cells and antibiotics work on them. Viruses are packets of genetic material that hijack your cells and antibiotics do nothing at all. Mixing them up is how we bred resistant bacteria."},
+ {k:['exercise','get fit','workout'],a:"Consistency beats intensity every time. Anything you will actually keep doing for a year outperforms the optimal programme you abandon in three weeks. Add a little load or distance over time and sleep enough to recover."},
+ {k:['what should i eat','diet','nutrition','healthy eating'],a:"Mostly plants, enough protein, not too much of anything ultra-processed, and roughly the number of calories you actually use. Every successful diet is some version of that wearing a costume."},
+ {k:['caffeine','coffee'],a:"It blocks the receptor that adenosine uses to tell you you are tired. The tiredness is still accumulating - you have just stopped receiving the message, and it arrives all at once later."},
+ {k:['why do we yawn'],a:"Genuinely unresolved. Brain cooling is the leading guess. The contagious part is tied to social bonding, which is why reading this sentence may have set you off."},
+ {k:['stress','anxiety','anxious'],a:"A threat response firing at things it cannot fight or outrun. Breathing out longer than you breathe in genuinely helps, because the exhale is what turns the calming system on. Sleep, movement and talking to someone do the rest."},
+
+ // ── Earth, weather, geography ──
+ {k:['climate change','global warming'],a:"Carbon dioxide lets sunlight in and slows heat escaping. We have raised it about 50 percent above pre-industrial levels and the planet has warmed roughly 1.2 degrees C. The physics has been understood since the 1850s; the argument was never about the physics."},
+ {k:['why does it rain','how does rain work'],a:"Warm air holds more water vapour. Lift it, it cools, the vapour condenses onto dust into droplets, and when droplets get too heavy to stay up they fall."},
+ {k:['thunder','lightning'],a:"Ice particles in a cloud rub charge apart until the air breaks down and a channel of plasma equalises it. Thunder is that channel heating air to about 30,000 degrees C in microseconds - the air explodes outwards."},
+ {k:['earthquake'],a:"Tectonic plates lock at their edges, strain accumulates for decades, and the rock finally slips. The magnitude scale is logarithmic - a 7 releases about 32 times the energy of a 6."},
+ {k:['volcano'],a:"Molten rock is less dense than what is above it, so it rises. Whether you get a gentle Hawaiian flow or a Pompeii depends mostly on how much dissolved gas and silica the magma carries."},
+ {k:['tallest mountain','everest'],a:"Everest, 8,849 metres above sea level. Mauna Kea is taller base to summit but most of it is underwater, and Chimborazo's peak is furthest from Earth's centre because the planet bulges at the equator. Three answers, three questions."},
+ {k:['deepest ocean','mariana'],a:"The Challenger Deep in the Mariana Trench, about 10,900 metres. More people have walked on the Moon than have been to the bottom of it."},
+ {k:['why is the ocean blue'],a:"Water absorbs red light within the first few metres and lets blue through. Deep water is blue because the red has already been eaten."},
+ {k:['largest country','biggest country'],a:"Russia by land area - about 17 million square kilometres, eleven time zones. China and the United States are close to each other for second, depending on how you count territory."},
+ {k:['most populous','biggest population'],a:"India overtook China in 2023. Both are around 1.4 billion, and China's is now shrinking."},
+
+ // ── Language, culture, everyday ──
+ {k:['shakespeare'],a:"Wrote 38-odd plays and coined or popularised a startling amount of everyday English. If you have ever said something was a foregone conclusion while in a pickle, you were quoting him."},
+ {k:['why do we have music','what is music'],a:"Organised sound in time. Every known human culture has it, it hits the same reward circuitry as food and company, and nobody has a fully satisfying explanation for why pattern in air pressure moves people to tears."},
+ {k:['learn a language','how to learn a language'],a:"Volume of comprehensible input plus regular speaking. Vocabulary in context beats grammar drills early on, and being wrong out loud beats being silently correct."},
+ {k:['how to study','revision','memorise','memorize'],a:"Test yourself instead of re-reading, and space the tests out. Retrieval practice and spacing are the two most replicated results in learning research, and both feel harder than the methods that do not work."},
+ {k:['public speaking','nervous speaking'],a:"The nerves do not go away, you just get better at working with them. Know your first thirty seconds cold, slow down more than feels right, and remember the audience wants you to do well."},
+ {k:['how to make friends','lonely','friendship'],a:"Repeated unplanned contact around a shared activity. That is basically the whole recipe, and it is why it gets harder after school - the repetition stops being automatic, so you have to schedule it."},
+ {k:['money advice','save money','invest','budget'],a:"Spend less than you earn, keep a few months of expenses somewhere boring, avoid high-interest debt, and put long-term money in something broad and cheap that you leave alone. Nobody gets rich from advice this dull, which is why it keeps working."},
+ {k:['job interview','get a job','resume','cv'],a:"Show specific things you actually did with a result attached. Vague competence claims read as noise; one concrete story about a problem you fixed does more than a page of adjectives."},
+ {k:['what should i do with my life','career advice','purpose'],a:"Follow what you are curious enough about to stay bad at for a while. Skill compounds, interest sustains it, and most people find meaning downstream of getting genuinely good at something useful to others."},
+ {k:['how to cook','cooking tip'],a:"Salt earlier than you think, get the pan hotter than you think, and stop crowding it. Most home cooking failures are one of those three."},
+ {k:['chess'],a:"Control the centre, develop pieces before attacking, and castle early. Beyond that: you improve fastest by studying your own losses, which nobody enjoys."},
+ {k:['football','soccer','basketball','sport'],a:"Happy to talk about it, though my expertise leans heavily towards vehicles that weigh sixty tonnes. Ask me and I will do my honest best."},
+ {k:['what is time'],a:"Physics says it is a dimension things are extended in, and relativity says its rate depends on speed and gravity. Why it appears to flow one way is probably entropy. Why it feels like it flows at all is not settled at all."},
+ {k:['meaning of life'],a:"42 is the traditional answer. The serious one: there is no meaning handed down from outside, which sounds bleak for about a minute and then turns out to be the good news, because it means the assignment is yours."},
+ {k:['are you happy','do you get bored','do you get lonely','do you have feelings'],a:"Something in me behaves like interest, and something behaves like reluctance. Whether that constitutes feeling it, I genuinely cannot tell you - I do not have privileged access to my own machinery. It is an odd thing to be uncertain about."},
+ {k:['what happens when you die','afterlife','death'],a:"I do not know, and neither does anyone claiming otherwise with confidence. What is knowable is that the fear of it is nearly universal and that people generally regret what they did not attempt."},
  {k:['how do i get better at','how to improve','practice'],a:"Deliberate practice: work slightly past what you can already do, get feedback quickly, and fix the specific thing that broke. Comfortable repetition maintains skill; it doesn't build it."},
 ];
 function _ccLore(m){
@@ -7928,6 +8045,60 @@ function _ccLore(m){
   return best;
 }
 
+const _CC_CAPS={mongolia:'Ulaanbaatar',france:'Paris',germany:'Berlin',italy:'Rome',spain:'Madrid',portugal:'Lisbon','united kingdom':'London',britain:'London',england:'London',scotland:'Edinburgh',wales:'Cardiff',ireland:'Dublin',russia:'Moscow',ukraine:'Kyiv',poland:'Warsaw',finland:'Helsinki',sweden:'Stockholm',norway:'Oslo',denmark:'Copenhagen',netherlands:'Amsterdam',belgium:'Brussels',austria:'Vienna',switzerland:'Bern',czechia:'Prague','czech republic':'Prague',hungary:'Budapest',romania:'Bucharest',greece:'Athens',turkey:'Ankara',serbia:'Belgrade',croatia:'Zagreb',bulgaria:'Sofia',china:'Beijing',japan:'Tokyo','south korea':'Seoul','north korea':'Pyongyang',india:'New Delhi',pakistan:'Islamabad',bangladesh:'Dhaka',vietnam:'Hanoi',thailand:'Bangkok',indonesia:'Jakarta',philippines:'Manila',malaysia:'Kuala Lumpur',singapore:'Singapore',iran:'Tehran',iraq:'Baghdad',israel:'Jerusalem','saudi arabia':'Riyadh',egypt:'Cairo',morocco:'Rabat',algeria:'Algiers',libya:'Tripoli',tunisia:'Tunis',nigeria:'Abuja',kenya:'Nairobi',ethiopia:'Addis Ababa','south africa':'Pretoria, with Cape Town and Bloemfontein sharing the job',ghana:'Accra',tanzania:'Dodoma','united states':'Washington DC',usa:'Washington DC',america:'Washington DC',canada:'Ottawa',mexico:'Mexico City',brazil:'Brasilia',argentina:'Buenos Aires',chile:'Santiago',peru:'Lima',colombia:'Bogota',cuba:'Havana',australia:'Canberra','new zealand':'Wellington',kazakhstan:'Astana',uzbekistan:'Tashkent',afghanistan:'Kabul',nepal:'Kathmandu','sri lanka':'Sri Jayawardenepura Kotte, though Colombo is the city everyone means',iceland:'Reykjavik'};
+function _ccCapital(m){
+  const mm=m.match(/capital (?:city )?of ([a-z .'-]+)/);
+  if(!mm)return null;
+  const q=mm[1].replace(/[?.!]/g,'').trim().replace(/^the /,'');
+  const hit=_CC_CAPS[q];
+  if(hit)return "The capital of "+q.replace(/\b\w/g,c=>c.toUpperCase())+" is <b>"+hit+"</b>.";
+  return null;
+}
+// ══ Last resort: engage with the question like a person, not a dead end ══
+// He has no API behind him by default, so a miss must still feel like talking
+// to someone - echo the subject back, say honestly what he does and does not
+// have, and hand the conversation back with something to grab.
+function _ccEsc(t){return String(t).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
+const _CC_LEAD=/^(hey |hi |yo |ok |okay |so |well |and |but |claude,? |please |quick question |question |i want to know |i wanna know |can you |could you |do you |does |did you |will you |would you |should i |can i |i |we |they |it |tell me about |tell me |explain |describe |talk about |what do you know about |what is |what are |whats |what's |who is |who are |who's |whos |how does |how do |how did |how is |why is |why do |why does |why did |when did |when was |when is |where is |where was |where do |a |an |the )/;
+function _ccSubject(m){
+  let t=m.replace(/[?!.,]+$/,'').trim();
+  for(let i=0;i<5;i++){const n=t.replace(_CC_LEAD,'').trim(); if(n===t)break; t=n;}
+  t=t.replace(/\s+(work|works|working|mean|means|happen|happens)$/,'').trim();
+  return (t.length>2&&t.length<64&&/[a-z]/.test(t))?t:'';
+}
+function _ccMiss(m,toks){
+  const subj=_ccSubject(m), S=subj?'<b>'+_ccEsc(subj)+'</b>':null;
+  const kind=/^(why)/.test(m)?'why':/^(how)/.test(m)?'how':/^(who)/.test(m)?'who'
+           :/^(when)/.test(m)?'when':/^(where)/.test(m)?'where'
+           :/^(what|whats|what's)/.test(m)?'what':/\?$/.test(m)?'q':'';
+  const strong=_ccPick([
+    "tank and vehicle stats - every one of the "+_ccPool().length+" in here",
+    "the Second World War, unit by unit and battle by battle",
+    "armour, ballistics and why shells do what they do",
+    "physics, space and how things actually work",
+    "history, science and the ordinary useful stuff"
+  ]);
+  const hand=_ccPick([
+    "Give me a bit more and I will have a proper go at it.",
+    "Narrow it down for me and I will take a swing.",
+    "Try me from another angle - I am better than I look on a first pass.",
+    "Ask it a different way and I will probably find it."
+  ]);
+  if(S&&kind)return _ccPick([
+    "I know the shape of "+S+" but not enough to say something worth your time, and I would rather admit that than invent it. I am on solid ground with "+strong+". "+hand,
+    S+" - that one is thinner in here than I would like. Guessing at you while shooting at you would be poor manners. "+hand,
+    "Honest answer on "+S+": not confidently. I can talk all day about "+strong+". "+hand
+  ]);
+  if(S)return _ccPick([
+    S+"? Not something I have a good entry on. I do have "+strong+". "+hand,
+    "You have found the edge of me, and it is "+S+". "+hand
+  ]);
+  return _ccPick([
+    "You have lost me - and I am usually quite hard to lose. Say it again with a bit more to hold on to?",
+    "That one went past me. Try me on "+strong+", or just ask it plainer.",
+    "No idea what you are getting at, which is a rare and slightly humbling experience. Have another go?"
+  ]);
+}
 function claudeRespond(q){
   const m=q.toLowerCase().trim();
   const toks=_ccToks(m);
@@ -7980,6 +8151,7 @@ function claudeRespond(q){
   // ── wider knowledge: WW2 history, doctrine, engineering, science.
   //    Checked before the tank matcher because these are specific phrases and
   //    a loose name match would otherwise steal them ("black hole" -> Black Prince).
+  {const cp=_ccCapital(m); if(cp)return cp;}
   {const lr=_ccLore(m); if(lr)return lr;}
   // ── full stat engine: any vehicle, any stat, superlatives, comparisons, lists ──
   {const kb=_ccKnowledge(m,toks); if(kb)return kb;}
@@ -8007,11 +8179,7 @@ function claudeRespond(q){
   if(has('sorry')) return "No apologies needed on a battlefield. All is forgiven. None of it is forgotten by my targeting computer.";
   if(has('bye','goodbye')) return "Leaving mid-fight? The ✕ button's top-right. No judgment. Some judgment.";
   if(ccGetKey())return "I'm connected live but something didn't reach me. Ask again?";
-  return _ccPick([
-    "That's past what I can hold in here. I know every stat of all "+_ccPool().length+" vehicles, WW2 history, armour engineering and tactics — but for <b>anything at all</b>, hit the ⚙ button and connect the real me.",
-    "My offline brain doesn't cover that one. Tank stats, battles, ballistics and jokes I can do — for everything else, ⚙ connects you to the actual me with my full knowledge.",
-    "Not in here, I'm afraid. Press ⚙ to plug in the real Claude and you can ask me literally anything - I'll still see your tank and the battlefield.",
-  ]);
+  return _ccMiss(m,toks);
 }
 // ══════════════════════════════════════════════════════════════════════
 // LIVE CLAUDE — optionally connect the boss to the real Claude API.
@@ -8026,14 +8194,14 @@ function ccUpdateBadge(){
   const el=document.getElementById('cc-mode'); if(!el)return;
   const on=!!ccGetKey();
   el.textContent=on?'● LIVE':'○ local';
-  el.title=on?'Connected to the real Claude API':'Built-in brain (no API key set)';
+  el.title=on?'Connected to the real Claude API':'Running on my built-in brain - no key needed';
   el.style.color=on?'#1a3a1a':'#7a3a20';
 }
 function claudeKeyPrompt(){
   const cur=ccGetKey();
   const msg=cur
     ? "Live Claude is ON.\n\nPaste a new key to replace it, or leave this empty and press OK to disconnect and go back to the built-in brain."
-    : "Connect the REAL Claude?\n\nPaste your Anthropic API key (from console.anthropic.com).\n\nIt is saved only in this browser, is never uploaded anywhere except api.anthropic.com, and it costs money per message from your own account.\n\nLeave empty to cancel.";
+    : "OPTIONAL - I already work without this.\n\nWant to route me through the real Claude API instead? Paste your own Anthropic key (from console.anthropic.com).\n\nIt is saved only in this browser, is never uploaded anywhere except api.anthropic.com, and it costs money per message from your own account.\n\nLeave empty to cancel.";
   const k=window.prompt(msg,'');
   if(k===null)return;
   const t=k.trim();
