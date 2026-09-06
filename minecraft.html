@@ -2176,17 +2176,25 @@ function setupMenus(){
 }
 function pauseGame(){if(game.state!=='playing')return;game.paused=true;showMenu('pauseMenu');document.exitPointerLock&&document.exitPointerLock();mouseL=mouseR=false;saveWorld()}
 function resumeGame(){game.paused=false;hideMenus();lockPointer()}
-function lockPointer(){if(game.state!=='playing'||game.gui||game.paused||player.dead)return;const c=$('gl');if(document.pointerLockElement!==c){try{const r=c.requestPointerLock({unadjustedMovement:true});if(r&&r.catch)r.catch(()=>{c.requestPointerLock()})}catch(e){try{c.requestPointerLock()}catch(e2){}}}}
+function lockPointer(){if(game.state!=='playing'||game.gui||game.paused||player.dead)return;const c=$('gl');if(game.noLock||document.pointerLockElement===c)return;
+  const fail=()=>{if(document.pointerLockElement!==c&&!game.noLock){game.noLock=true;showMessage('Mouse lock unavailable: move the mouse to look around, keep it near a screen edge to keep turning')}};
+  if(!c.requestPointerLock){fail();return}
+  try{const r=c.requestPointerLock({unadjustedMovement:true});if(r&&r.catch)r.catch(()=>{try{const r2=c.requestPointerLock();if(r2&&r2.catch)r2.catch(fail)}catch(e){fail()}})}catch(e){try{c.requestPointerLock()}catch(e2){fail()}}
+  clearTimeout(game.lockTimer);game.lockTimer=setTimeout(fail,600)}
+function edgeLook(dt){if(!game.noLock||game.state!=='playing'||game.gui||game.paused)return;const m=game.mousePos;if(!m)return;const W=innerWidth,H=innerHeight;const fx=m.x/W,fy=m.y/H;const band=0.18;let tx=0,ty=0;
+  if(fx<band)tx=-(band-fx)/band;else if(fx>1-band)tx=(fx-(1-band))/band;if(fy<band)ty=-(band-fy)/band;else if(fy>1-band)ty=(fy-(1-band))/band;
+  player.yaw-=tx*2.2*dt;player.pitch=clamp(player.pitch-ty*1.6*dt,-PI/2+0.001,PI/2-0.001)}
 /* ---- input ---- */
 function setupInput(){
   const c=$('gl');
   c.addEventListener('mousedown',ev=>{initAudio();if(game.state!=='playing')return;if(game.gui||game.paused||player.dead)return;
-    if(document.pointerLockElement!==c){lockPointer();return}
+    if(document.pointerLockElement!==c&&!game.noLock){lockPointer();return}
     if(ev.button===0){mouseL=true;attack()}else if(ev.button===2){mouseR=true;useItem();mouseRHeld=0}else if(ev.button===1){ // pick block (creative)
       if(player.mode==='creative'&&player.target){const id=player.target.id;const def=BLOCKS[id];let pid=id;if(id===35)pid=270;if(id===73)pid=302;if(id===74)pid=303;if(id===9)pid=298;if(id===8)pid=297;let f=-1;for(let i=0;i<9;i++)if(player.inv[i]&&player.inv[i].id===pid){f=i;break}if(f>=0)player.sel=f;else{let e=-1;for(let i=0;i<9;i++)if(!player.inv[i]){e=i;break}if(e<0)e=player.sel;player.inv[e]={id:pid,count:1};player.sel=e}updateHotbar()}}});
   document.addEventListener('mouseup',ev=>{if(ev.button===0)mouseL=false;if(ev.button===2)mouseR=false});
-  document.addEventListener('mousemove',ev=>{if(document.pointerLockElement!==c||game.gui||game.paused)return;const s=opts.sens/100*0.0022;player.yaw-=ev.movementX*s;player.pitch-=ev.movementY*s;player.pitch=clamp(player.pitch,-PI/2+0.001,PI/2-0.001)});
-  document.addEventListener('pointerlockchange',()=>{if(document.pointerLockElement!==c&&game.state==='playing'&&!game.gui&&!player.dead&&!game.paused){pauseGame()}});
+  document.addEventListener('mousemove',ev=>{game.mousePos={x:ev.clientX,y:ev.clientY};if((document.pointerLockElement!==c&&!game.noLock)||game.gui||game.paused)return;const s=opts.sens/100*0.0022;player.yaw-=ev.movementX*s;player.pitch-=ev.movementY*s;player.pitch=clamp(player.pitch,-PI/2+0.001,PI/2-0.001)});
+  document.addEventListener('pointerlockerror',()=>{if(!game.noLock){game.noLock=true;showMessage('Mouse lock unavailable: move the mouse to look around, keep it near a screen edge to keep turning')}});
+  document.addEventListener('pointerlockchange',()=>{if(document.pointerLockElement===c)clearTimeout(game.lockTimer);if(document.pointerLockElement!==c&&game.state==='playing'&&!game.gui&&!player.dead&&!game.paused){pauseGame()}});
   document.addEventListener('wheel',ev=>{if(game.state!=='playing'||game.gui||game.paused)return;player.sel=(player.sel+(ev.deltaY>0?1:-1)+9)%9;updateHotbar()},{passive:true});
   document.addEventListener('keydown',ev=>{
     if(ev.repeat)return;keys[ev.code]=true;
@@ -2216,7 +2224,7 @@ function loop(now){
   if(!game.paused){
     game.time+=dt;
     updateChunks(6);
-    updatePlayer(dt);
+    edgeLook(dt);updatePlayer(dt);
     for(let i=entities.length-1;i>=0;i--){const e=entities[i];const dx=e.x-player.x,dz=e.z-player.z;if(dx*dx+dz*dz<96*96)e.update(dt);if(e.dead){entities[i]=entities[entities.length-1];entities.pop()}}
     updateParticles(dt);
     // fixed 20 tps
