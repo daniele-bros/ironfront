@@ -771,7 +771,7 @@ class World{
   constructor(seed){
     this.seed=seed;this.chunks=new Map();this.pending=new Map();this.populated=new Set();this.tickQueue=new Map();this.time=1000;this.day=0;
     const s=seed|0;this.nT=new Simplex(s);this.nH=new Simplex(s+1);this.nM=new Simplex(s+2);this.nD=new Simplex(s+3);this.nTemp=new Simplex(s+4);this.nHum=new Simplex(s+5);
-    this.nC1=new Simplex(s+6);this.nC2=new Simplex(s+7);this.nC3=new Simplex(s+8);this.nVar=new Simplex(s+9);this.nR=new Simplex(s+10);
+    this.nC1=new Simplex(s+6);this.nC2=new Simplex(s+7);this.nC3=new Simplex(s+8);this.nC4=new Simplex(s+11);this.nC5=new Simplex(s+12);this.nVar=new Simplex(s+9);this.nR=new Simplex(s+10);
     this.dirtyLight=new Set();
   }
   getChunk(cx,cz){return this.chunks.get(chunkKey(cx,cz))}
@@ -885,9 +885,9 @@ class World{
     if(c.generated)return c;
     const bl=c.blocks,mt=c.meta;const wx=cx*16,wz=cz*16;const rng=mulberry32(hashInt(cx,cz,0,this.seed));
     // cave noise on a coarse grid (5x33x5) then trilinear interpolation
-    const G=4,GX=5,GY=CH/G+1;const cv1=new Float32Array(GX*GY*GX),cv2=new Float32Array(GX*GY*GX),cv3=new Float32Array(GX*GY*GX);
+    const G=4,GX=5,GY=CH/G+1;const cv1=new Float32Array(GX*GY*GX),cv2=new Float32Array(GX*GY*GX),cv3=new Float32Array(GX*GY*GX),cv4=new Float32Array(GX*GY*GX),cv5=new Float32Array(GX*GY*GX);
     for(let gx=0;gx<GX;gx++)for(let gz=0;gz<GX;gz++)for(let gy=0;gy<GY;gy++){const X=wx+gx*G,Y=gy*G,Z=wz+gz*G;const i=(gx*GX+gz)*GY+gy;
-      cv1[i]=this.nC1.n3(X/38,Y/22,Z/38);cv2[i]=this.nC2.n3(X/38+7,Y/22,Z/38+3);cv3[i]=this.nC3.n3(X/70,Y/40,Z/70)}
+      cv1[i]=this.nC1.n3(X/38,Y/22,Z/38);cv2[i]=this.nC2.n3(X/38+7,Y/22,Z/38+3);cv3[i]=this.nC3.n3(X/90,Y/45,Z/90);cv4[i]=this.nC4.n3(X/75,Y/40,Z/75);cv5[i]=this.nC5.n3(X/75+11,Y/40,Z/75+5)}
     const samp=(arr,x,y,z)=>{const fx=x/G,fy=y/G,fz=z/G;const x0=fx|0,y0=fy|0,z0=fz|0;const tx=fx-x0,ty=fy-y0,tz=fz-z0;const x1=Math.min(x0+1,GX-1),z1=Math.min(z0+1,GX-1),y1=Math.min(y0+1,GY-1);
       const c00=arr[(x0*GX+z0)*GY+y0]*(1-tx)+arr[(x1*GX+z0)*GY+y0]*tx,c10=arr[(x0*GX+z1)*GY+y0]*(1-tx)+arr[(x1*GX+z1)*GY+y0]*tx;
       const c01=arr[(x0*GX+z0)*GY+y1]*(1-tx)+arr[(x1*GX+z0)*GY+y1]*tx,c11=arr[(x0*GX+z1)*GY+y1]*(1-tx)+arr[(x1*GX+z1)*GY+y1]*tx;
@@ -910,8 +910,9 @@ class World{
             if(id===2&&cold)mt[i]=1;
           } else id=1;
           // caves
-          if(id!==7&&y>3){const n1=samp(cv1,x,y,z),n2=samp(cv2,x,y,z);let cave=(abs(n1)<0.075&&abs(n2)<0.075);
-            if(!cave&&y<h-8){const n3=samp(cv3,x,y,z);if(n3>0.58)cave=true}
+          if(id!==7&&y>3){const n1=samp(cv1,x,y,z),n2=samp(cv2,x,y,z);const depth=h-y;const deep=clamp((depth-4)/10,0,1);const wid=0.07+deep*(0.05+Math.max(0,1-y/60)*0.04);let cave=(abs(n1)<wid&&abs(n2)<wid);
+            if(!cave&&depth>8){const n4=samp(cv4,x,y,z),n5=samp(cv5,x,y,z);if(abs(n4)<0.14&&abs(n5)<0.14)cave=true}
+            if(!cave&&depth>10){const n3=samp(cv3,x,y,z);if(n3>0.45-Math.max(0,1-y/50)*0.1)cave=true}
             if(cave&&(h>=SEA+2||y<h-8)){id=y<=10?9:0}}
         }
         else if(y<=SEA){id=8;if(y===SEA&&cold)id=41}
