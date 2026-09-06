@@ -1838,7 +1838,13 @@ function playerDie(src){const p=player;p.dead=true;p.hp=0;playSound('death');let
   p.level=0;p.xp=0;p.xpFrac=0;}
 function respawn(){const p=player;p.dead=false;p.hp=20;p.hunger=20;p.sat=5;p.exh=0;p.air=300;p.fireT=0;p.effects={};p.vx=p.vy=p.vz=0;p.fallDist=0;p.invT=0;
   let s=p.spawn||game.worldSpawn;let ok=false;if(p.spawn){const b=world.getBlock(floor(s[0]),floor(s[1]),floor(s[2]));if(b===62||world.getBlock(floor(s[0]),floor(s[1])-1,floor(s[2]))===62)ok=true;else showMessage('Your home bed was missing or obstructed')}
-  if(!ok)s=game.worldSpawn;p.x=s[0];p.z=s[2];p.y=findGround(s[0],s[2])+0.1;$('deathScreen').classList.remove('show');updateHUD();updateHotbar()}
+  if(!ok){s=findSurfaceSpawn(game.worldSpawn[0],game.worldSpawn[2]);game.worldSpawn=s}p.x=s[0];p.z=s[2];p.y=ok?findGround(s[0],s[2])+0.1:s[1];$('deathScreen').classList.remove('show');updateHUD();updateHotbar()}
+function isSurfaceSpot(x,z){const bx=floor(x),bz=floor(z);if(!world.hasChunk(bx,bz))return null;const y=findGround(x,z);if(y<=SEA||y>=CH-3)return null;const g=world.getBlock(bx,y-1,bz);const d=BLOCKS[g];
+  if(!d.opaque||d.leaves||g===8||g===9)return null;if(world.getBlock(bx,y,bz)!==0||world.getBlock(bx,y+1,bz)!==0)return null;if(world.getSky(bx,y,bz)<15)return null;
+  for(const [dx,dz] of [[1,0],[-1,0],[0,1],[0,-1]]){if(world.getBlock(bx+dx,y-1,bz+dz)===9||world.getBlock(bx+dx,y,bz+dz)===9)return null}return y}
+function findSurfaceSpawn(x,z){const y0=isSurfaceSpot(x,z);if(y0!==null)return [floor(x)+0.5,y0+0.1,floor(z)+0.5];
+  for(let r=1;r<=40;r++){for(let dx=-r;dx<=r;dx++)for(let dz=-r;dz<=r;dz++){if(Math.max(abs(dx),abs(dz))!==r)continue;const y=isSurfaceSpot(x+dx,z+dz);if(y!==null)return [floor(x+dx)+0.5,y+0.1,floor(z+dz)+0.5]}}
+  return [floor(x)+0.5,findGround(x,z)+0.1,floor(z)+0.5]}
 function findGround(x,z){for(let y=CH-1;y>0;y--){const id=world.getBlockPhys(floor(x),y,floor(z));if(id!==0&&BLOCKS[id].solid)return y+1}return 70}
 function addXP(n){const p=player;p.xp+=n;let need=xpToNext(p.level);while(p.xp>=need){p.xp-=need;p.level++;need=xpToNext(p.level);playSound('levelup')}updateHUD()}
 function xpToNext(l){return l<16?2*l+7:l<31?5*l-38:9*l-158}
@@ -2124,7 +2130,7 @@ function startWorld(meta,save){
   if(save){world.time=save.time;world.day=save.day||0;game.worldSpawn=save.spawn;world.savedMods={};for(const k in save.mods)world.savedMods[k]=save.mods[k];world.savedBents=save.bents||{};
     const sp=save.player;Object.assign(p,{x:sp.x,y:sp.y,z:sp.z,yaw:sp.yaw,pitch:sp.pitch,hp:sp.hp,hunger:sp.hunger,sat:sp.sat,xp:sp.xp,level:sp.level,sel:sp.sel,spawn:sp.spawn,flying:sp.flying||false});for(let i=0;i<36;i++)p.inv[i]=sp.inv[i]||null;for(let i=0;i<4;i++)p.armor[i]=sp.armor[i]||null;
     game.pendingMobs=save.mobs||[];game.pendingItems=save.items||[]}
-  else{world.time=1000;world.day=0;game.worldSpawn=findSpawn();p.x=game.worldSpawn[0];p.y=game.worldSpawn[1];p.z=game.worldSpawn[2];p.yaw=0;p.pitch=0;game.pendingMobs=[];game.pendingItems=[];
+  else{world.time=1000;world.day=0;game.worldSpawn=findSpawn();p.x=game.worldSpawn[0];p.y=game.worldSpawn[1];p.z=game.worldSpawn[2];p.yaw=0;p.pitch=0;game.pendingMobs=[];game.pendingItems=[];game.freshWorld=true;
     if(meta.mode==='creative'){}}
   game.state='loading';showMenu('loading');$('loadText').textContent='Building terrain';
   const need=[];const pcx=floor(p.x)>>4,pcz=floor(p.z)>>4;const r0=Math.min(opts.renderDist,6);for(let dx=-r0-1;dx<=r0+1;dx++)for(let dz=-r0-1;dz<=r0+1;dz++)need.push([pcx+dx,pcz+dz]);need.sort((a,b)=>(a[0]-pcx)**2+(a[1]-pcz)**2-((b[0]-pcx)**2+(b[1]-pcz)**2));
@@ -2132,7 +2138,7 @@ function startWorld(meta,save){
     if(i<need.length)setTimeout(step,0);else{finishLoad()}};setTimeout(step,10);
 }
 function finishLoad(){const p=player;if(!game.pendingMobs.length&&player.spawn===null&&world.time===1000){}
-  if(!world.savedMods||Object.keys(world.savedMods).length===0)p.y=findGround(p.x,p.z)+0.1;else{const g=findGround(p.x,p.z);if(p.y<g-1)p.y=g+0.1}
+  if(game.freshWorld){const s=findSurfaceSpawn(p.x,p.z);game.worldSpawn=s;p.x=s[0];p.y=s[1];p.z=s[2];game.freshWorld=false}else{const g=findGround(p.x,p.z);if(p.y<g-1)p.y=g+0.1}
   for(const m of game.pendingMobs){const e=new Mob(m.type,m.x,m.y,m.z);e.hp=m.hp;e.baby=m.baby;e.growT=m.growT||0;if(m.sheared!==undefined)e.sheared=m.sheared;if(m.woolId)e.woolId=m.woolId;entities.push(e)}
   for(const it of game.pendingItems)spawnItem(it.x,it.y,it.z,{id:it.id,count:it.count,dur:it.dur});
   for(const c of world.chunks.values())for(const [i,be] of c.bents){if(be.burn>0){const x=c.cx*16+(i>>11),y=i&127,z=c.cz*16+((i>>7)&15);activateFurnace(x,y,z)}}
