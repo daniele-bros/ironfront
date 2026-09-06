@@ -106,6 +106,17 @@ label.lb{font-size:13px;color:#a0a0a0;align-self:flex-start;margin-left:calc(50%
 .ctl b{color:#fff;}
 .sel-btn{display:flex;gap:8px;}
 #cosmetic{display:none}
+.gui.full{background:rgba(0,0,0,.75);}
+.gui.full .panel{width:100vw;height:100vh;display:flex;flex-direction:column;overflow:hidden;box-shadow:none;border-width:0;padding:8px 10px;}
+.gui.full #invTop{display:none;}
+.gui.full #palette{position:static;order:-1;flex:1;width:auto;height:auto;min-height:0;margin:0 0 8px;overflow-y:auto;overflow-x:hidden;display:block;border-width:2px;padding:6px;}
+.gui.full #invMain,.gui.full #invHot{align-self:center;flex-shrink:0;}
+.palgrid{display:grid;grid-template-columns:repeat(auto-fill,40px);gap:2px;justify-content:center;}
+.palhead{display:flex;align-items:center;gap:10px;margin-bottom:8px;flex-wrap:wrap;}
+.palhead input{flex:1;min-width:140px;height:32px;background:#000;border:2px solid #a0a0a0;color:#fff;font:inherit;font-size:14px;padding:0 8px;outline:none;}
+.palhead .hint{margin:0;}
+#palette::-webkit-scrollbar{width:14px;}#palette::-webkit-scrollbar-track{background:#000;}#palette::-webkit-scrollbar-thumb{background:#8b8b8b;border:2px solid #000;}
+@media (max-width:960px){.rbook{position:static;width:auto;height:170px;margin-top:8px;}}
 </style>
 </head>
 <body>
@@ -121,7 +132,7 @@ label.lb{font-size:13px;color:#a0a0a0;align-self:flex-start;margin-left:calc(50%
 </div>
 
 <div id="invGui" class="gui"><div class="panel">
-  <div class="row" style="align-items:flex-start;gap:14px">
+  <div class="row" id="invTop" style="align-items:flex-start;gap:14px">
     <div class="grid" id="armorGrid" style="grid-template-columns:38px"></div>
     <div style="width:110px;height:154px;background:#000;border:2px solid #333;display:flex;align-items:flex-end;justify-content:center;" id="playerPreview"></div>
     <div><h3>Crafting</h3><div class="row"><div class="grid g2" id="craft2"></div><div class="arrow"></div><div class="grid" id="craft2out" style="grid-template-columns:52px"></div></div></div>
@@ -1997,7 +2008,7 @@ function openGui(type,x,y,z){const g={type,x,y,z};if(type==='furnace'){g.be=furn
   game.gui=g;$({inv:'invGui',table:'tableGui',furnace:'furnGui',chest:'chestGui'}[type]).classList.add('show');document.exitPointerLock&&document.exitPointerLock();mouseL=false;mouseR=false;
   updateCraftOutput();renderAllSlots();if(type==='table')renderRecipeBook();if(type==='inv')renderPalette();$('hud').style.display='none'}
 function closeGui(){const g=game.gui;if(!g)return;returnGrid(craft2);returnGrid(craft3);if(cursor){if(addToInventory(cursor))spawnItem(player.x,player.y+1,player.z,cursor);cursor=null}
-  if(g.type==='chest')playSoundAt('chest',g.x,g.y,g.z);for(const el of document.querySelectorAll('.gui'))el.classList.remove('show');game.gui=null;hideTip();renderAllSlots();$('hud').style.display='block';if(!game.paused)lockPointer()}
+  if(g.type==='chest')playSoundAt('chest',g.x,g.y,g.z);for(const el of document.querySelectorAll('.gui'))el.classList.remove('show');$('invGui').classList.remove('full');game.gui=null;hideTip();renderAllSlots();$('hud').style.display='block';if(!game.paused)lockPointer()}
 function updateFurnaceGui(){const g=game.gui;if(!g||g.type!=='furnace')return;const be=g.be;$('furnArrow').firstChild.style.width=(be.cook/10*26)+'px';$('furnFire').firstChild.style.height=(be.burnMax?be.burn/be.burnMax*22:0)+'px';renderAllSlots()}
 function renderRecipeBook(){const rb=$('rbook');rb.innerHTML='<div class="hint" style="margin:0 0 4px">Recipe book — click to fill</div>';const counts={};for(const s of player.inv)if(s)counts[s.id]=(counts[s.id]||0)+s.count;
   const seen=new Set();
@@ -2027,10 +2038,13 @@ function updateHUD(){const p=player;const creative=p.mode==='creative';$('status
   $('fireov').style.display=p.fireT>0?'block':'none';$('waterov').style.display=headWater?'block':'none'}
 function showMessage(t){const c=$('chat');const el=document.createElement('div');el.className='msg';el.textContent=t;c.appendChild(el);while(c.children.length>6)c.removeChild(c.firstChild);setTimeout(()=>el.remove(),8000)}
 
-function renderPalette(){const pl=$('palette');const creative=player.mode==='creative';pl.style.display=creative?'block':'none';if(!creative)return;
-  pl.innerHTML='<div class="hint" style="margin:0 0 4px">Creative items — click to grab a stack; click with an item to delete it</div>';
-  for(const def of ITEMS){if(!def||def.id===0||def.id===35||def.id===73||def.id===74)continue;const el=document.createElement('div');el.className='r';el.innerHTML='<div class="icon" style="background-image:url('+ICONS[def.id]+')"></div>';el.title=def.label;
-    el.addEventListener('mousedown',ev=>{ev.preventDefault();if(cursor){cursor=null}else cursor={id:def.id,count:def.stack};renderAllSlots();playSound('click',0.3)});pl.appendChild(el)}}
+let paletteFilter='';
+function renderPalette(){const pl=$('palette');const creative=player.mode==='creative';pl.style.display=creative?'block':'none';$('invGui').classList.toggle('full',creative);if(!creative)return;
+  pl.innerHTML='';const head=document.createElement('div');head.className='palhead';head.innerHTML='<input type="text" id="palSearch" placeholder="Search items..." value="'+paletteFilter.replace(/"/g,'')+'"><div class="hint">Click an item to grab a stack &middot; click any item while holding one to delete it &middot; scroll to see more</div>';pl.appendChild(head);
+  const grid=document.createElement('div');grid.className='palgrid';pl.appendChild(grid);const f=paletteFilter.toLowerCase();
+  for(const def of ITEMS){if(!def||def.id===0||def.id===35||def.id===73||def.id===74)continue;if(f&&!def.label.toLowerCase().includes(f))continue;const el=document.createElement('div');el.className='r';el.innerHTML='<div class="icon" style="background-image:url('+ICONS[def.id]+')"></div>';el.title=def.label;
+    el.addEventListener('mousedown',ev=>{ev.preventDefault();if(cursor){cursor=null}else cursor={id:def.id,count:def.stack};renderAllSlots();playSound('click',0.3)});el.addEventListener('mouseenter',()=>{const t=$('tooltip');t.innerHTML=def.label;t.style.display='block';const r=el.getBoundingClientRect();t.style.left=Math.min(innerWidth-160,r.right+6)+'px';t.style.top=r.top+'px'});el.addEventListener('mouseleave',hideTip);grid.appendChild(el)}
+  const inp=$('palSearch');inp.addEventListener('input',()=>{paletteFilter=inp.value;const sc=pl.scrollTop;renderPalette();$('palSearch').focus();pl.scrollTop=sc});}
 /* ===================== AUDIO (synthesized) ===================== */
 const AU={ctx:null,master:null,music:null,musicT:20};
 function initAudio(){if(AU.ctx)return;try{AU.ctx=new (window.AudioContext||window.webkitAudioContext)();AU.master=AU.ctx.createGain();AU.master.connect(AU.ctx.destination);AU.music=AU.ctx.createGain();AU.music.connect(AU.ctx.destination);setVolume()}catch(e){}}
@@ -2218,6 +2232,7 @@ function setupInput(){
   document.addEventListener('pointerlockchange',()=>{if(document.pointerLockElement===c)clearTimeout(game.lockTimer);if(document.pointerLockElement!==c&&game.state==='playing'&&!game.gui&&!player.dead&&!game.paused){pauseGame()}});
   document.addEventListener('wheel',ev=>{if(game.state!=='playing'||game.gui||game.paused)return;player.sel=(player.sel+(ev.deltaY>0?1:-1)+9)%9;updateHotbar()},{passive:true});
   document.addEventListener('keydown',ev=>{
+    if(ev.target&&ev.target.tagName==='INPUT'&&ev.code!=='Escape'){return}
     if(ev.code.startsWith('Arrow')&&game.state==='playing')ev.preventDefault();if(ev.repeat)return;keys[ev.code]=true;
     if(game.state!=='playing'){return}
     if(ev.code==='Escape'){if(game.gui)closeGui();else if(game.paused)resumeGame();else pauseGame();ev.preventDefault();return}
