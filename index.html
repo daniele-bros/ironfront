@@ -1897,6 +1897,18 @@ function rangeKill(e){
   addKillFeed('\uD83D\uDCA5 '+(e.name||'target')+' \u2014 '+rangeKills+' kill'+(rangeKills===1?'':'s')
     +' in '+_fmtDur(t)+(rate?(' \u00B7 '+rate+'/min'):''));
 }
+// Area weapons (mortar, nuclear strike) kill by writing e.hp=0 directly, which
+// used to skip the practice-target handling entirely: no scoreboard entry, no
+// respawn, and a live-battle coin payout that ignored the payout code. Every
+// area weapon routes its dummy kills through here instead.
+function aoeDummyKill(e){
+  if(!e||!e._dummy)return false;
+  spawnExplosion(e.x,e.y);
+  craters.push({x:e.x,y:e.y,r:(e.size||26)*1.4});
+  e.hp=0; e._respawn=140;
+  rangeKill(e);
+  return true;
+}
 // ── DRONE MODE (test range): free-flying, zoomable camera ──
 let viewZoom=1, droneMode=false, droneCamX=0, droneCamY=0;
 const DRONE_MIN=0.12, DRONE_MAX=2.5;
@@ -3549,6 +3561,7 @@ function mortarExplode(x,y){
     if(e.hp<=0)continue;
     const d=Math.hypot(e.x-x,e.y-y);
     if(d<AOE){
+      if(aoeDummyKill(e))continue;   // practice target: score it, don't pay for it
       const falloff=1-(d/AOE);
       const dmg=1100*falloff;
       e.hp=Math.max(0,e.hp-dmg);
@@ -3608,6 +3621,7 @@ function fireNuke(worldX,worldY){
       if(e.hp<=0)continue;
       const d=Math.hypot(e.x-worldX,e.y-worldY);
       if(d<NAOE){
+        if(aoeDummyKill(e))continue;  // practice target: score it, don't pay for it
         e.hp=0;spawnExplosion(e.x,e.y);
         kills++;score+=200;coins+=150;updateCoinsHud();
         addKillFeed('☢ '+e.name+' — NUKED!');
@@ -3656,6 +3670,7 @@ function launchNuke(){
     let killed=0;
     for(const e of enemies){
       if(e.hp<=0)continue;
+      if(aoeDummyKill(e)){killed++;continue;}  // practice target: score it, don't pay for it
       e.hp=0;spawnExplosion(e.x,e.y);
       const _rw=e._isRatte?500000:1000; // full coins per kill, same as a normal kill
       kills++;totalKills++;score+=_rw;coins+=_rw;updateCoinsHud();
