@@ -203,7 +203,7 @@ label.lb{font-size:13px;color:#a0a0a0;align-self:flex-start;margin-left:calc(50%
 <div id="controlsMenu" class="menu dirtbg">
   <h2 class="sh">Controls</h2>
   <div class="ctl">
-    <span><b>W A S D</b> Move</span><span><b>Mouse</b> Look</span>
+    <span><b>W A S D</b> Move</span><span><b>Mouse</b> or <b>Arrow keys</b> Look</span>
     <span><b>Space</b> Jump / swim up</span><span><b>Shift</b> Sneak (won't fall off edges)</span>
     <span><b>Ctrl</b> or double-tap W: Sprint</span><span><b>Left click</b> Mine / attack</span>
     <span><b>Right click</b> Place / use / eat</span><span><b>Scroll / 1-9</b> Select hotbar slot</span>
@@ -2199,6 +2199,9 @@ function lockPointer(){if(game.state!=='playing'||game.gui||game.paused||player.
   if(!c.requestPointerLock){fail();return}
   try{const r=c.requestPointerLock({unadjustedMovement:true});if(r&&r.catch)r.catch(()=>{try{const r2=c.requestPointerLock();if(r2&&r2.catch)r2.catch(fail)}catch(e){fail()}})}catch(e){try{c.requestPointerLock()}catch(e2){fail()}}
   clearTimeout(game.lockTimer);game.lockTimer=setTimeout(fail,600)}
+function keyLook(dt){if(game.state!=='playing'||game.gui||game.paused||player.dead)return;const r=2.4*dt;let tx=0,ty=0;
+  if(keys.ArrowLeft)tx-=1;if(keys.ArrowRight)tx+=1;if(keys.ArrowUp)ty-=1;if(keys.ArrowDown)ty+=1;if(!tx&&!ty)return;
+  player.yaw-=tx*r;player.pitch=clamp(player.pitch-ty*r*0.7,-PI/2+0.001,PI/2-0.001)}
 function edgeLook(dt){if(!game.noLock||game.state!=='playing'||game.gui||game.paused)return;const m=game.mousePos;if(!m)return;const W=innerWidth,H=innerHeight;const fx=m.x/W,fy=m.y/H;const band=0.18;let tx=0,ty=0;
   if(fx<band)tx=-(band-fx)/band;else if(fx>1-band)tx=(fx-(1-band))/band;if(fy<band)ty=-(band-fy)/band;else if(fy>1-band)ty=(fy-(1-band))/band;
   player.yaw-=tx*2.2*dt;player.pitch=clamp(player.pitch-ty*1.6*dt,-PI/2+0.001,PI/2-0.001)}
@@ -2215,7 +2218,7 @@ function setupInput(){
   document.addEventListener('pointerlockchange',()=>{if(document.pointerLockElement===c)clearTimeout(game.lockTimer);if(document.pointerLockElement!==c&&game.state==='playing'&&!game.gui&&!player.dead&&!game.paused){pauseGame()}});
   document.addEventListener('wheel',ev=>{if(game.state!=='playing'||game.gui||game.paused)return;player.sel=(player.sel+(ev.deltaY>0?1:-1)+9)%9;updateHotbar()},{passive:true});
   document.addEventListener('keydown',ev=>{
-    if(ev.repeat)return;keys[ev.code]=true;
+    if(ev.code.startsWith('Arrow')&&game.state==='playing')ev.preventDefault();if(ev.repeat)return;keys[ev.code]=true;
     if(game.state!=='playing'){return}
     if(ev.code==='Escape'){if(game.gui)closeGui();else if(game.paused)resumeGame();else pauseGame();ev.preventDefault();return}
     if(game.paused)return;
@@ -2242,7 +2245,7 @@ function loop(now){
   if(!game.paused){
     game.time+=dt;
     updateChunks(6);
-    edgeLook(dt);updatePlayer(dt);
+    edgeLook(dt);keyLook(dt);updatePlayer(dt);
     for(let i=entities.length-1;i>=0;i--){const e=entities[i];const dx=e.x-player.x,dz=e.z-player.z;if(dx*dx+dz*dz<96*96)e.update(dt);if(e.dead){entities[i]=entities[entities.length-1];entities.pop()}}
     updateParticles(dt);
     // fixed 20 tps
