@@ -534,6 +534,11 @@ defTex('end_portal',p=>{p.noise(8,6,14,4);for(let i=0;i<22;i++){const x=floor(p.
 defTex('dragon_egg',p=>{p.noise(20,12,28,6);p.speckle(10,110,40,150);p.speckle(6,60,20,80)});
 defTex('dragon_face',p=>{p.noise(28,24,34,4);p.rect(2,4,4,3,200,80,255);p.rect(10,4,4,3,200,80,255);p.rect(3,5,2,1,255,220,255);p.rect(11,5,2,1,255,220,255);p.rect(5,11,6,3,60,50,70)});
 defTex('crystal',p=>{p.noise(230,200,255,20);p.rect(3,3,10,10,180,120,255,230);p.rect(6,6,4,4,255,255,255)});
+defTex('wither_skull',p=>{p.noise(40,40,44,5);p.rect(2,4,4,3,220,220,225);p.rect(10,4,4,3,220,220,225);p.rect(3,5,2,1,30,30,30);p.rect(11,5,2,1,30,30,30);p.rect(5,10,6,2,90,90,95);for(let x=5;x<11;x+=2)p.px(x,11,20,20,20)});
+defTex('wither_skin',p=>{p.noise(38,38,42,6);p.speckle(8,60,60,66)});
+defTex('wither_skeleton_face',p=>{p.noise(45,45,48,6);p.rect(2,5,3,3,15,15,15);p.rect(11,5,3,3,15,15,15);p.rect(6,9,4,1,25,25,25);p.rect(4,12,8,2,70,70,74);for(let x=4;x<12;x+=2)p.px(x,13,25,25,25)});
+defTex('nether_star_tex',p=>{p.fill(0,0,0,0);for(let i=0;i<16;i++){p.px(i,7,255,255,255);p.px(i,8,255,255,255);p.px(7,i,255,255,255);p.px(8,i,255,255,255);p.px(i,i,200,240,255);p.px(15-i,i,200,240,255)}});
+defTex('beacon',p=>{p.noise(40,60,80,6);p.rect(2,2,12,12,170,240,255);p.rect(5,5,6,6,255,255,255);p.rect(0,13,16,3,60,60,70)});
 defTex('villager_face',p=>{p.noise(200,160,120,6);p.rect(2,4,3,2,60,120,60);p.rect(11,4,3,2,60,120,60);p.rect(2,3,12,1,110,70,40);p.rect(6,6,4,7,190,145,105);p.rect(5,13,6,1,150,110,80)});
 defTex('sheep_wool',p=>{p.noise(235,235,235,10);for(let i=0;i<10;i++)p.blob(floor(p.rng()*16),floor(p.rng()*16),1.5,215,215,215)});
 
@@ -671,6 +676,8 @@ defBlock(99,'end_stone',{tex:'end_stone',hard:3,tool:'pickaxe',needsTool:true,re
 defBlock(100,'end_portal_frame',{tex:{side:'end_frame_side',top:'end_frame_top',bottom:'end_stone'},model:'table',hard:-1,resist:3600000,transparent:true,texFn:(m,f)=>f===2?((m&4)?TEX.end_frame_eye:TEX.end_frame_top):null});
 defBlock(101,'end_portal',{tex:'end_portal',model:'endportal',solid:false,hard:-1,light:15,transparent:true,drop:()=>[],stack:0});
 defBlock(102,'dragon_egg',{tex:'dragon_egg',model:'egg',hard:3,tool:'pickaxe',needsTool:true,transparent:true,light:1});
+defBlock(103,'wither_skeleton_skull',{tex:'wither_skull',model:'skull',hard:1,transparent:true,sound:'stone'});
+defBlock(104,'beacon',{tex:{side:'beacon',top:'beacon',bottom:'obsidian'},hard:3,light:15,transparent:true,sound:'glass',resist:6});
 defBlock(80,'snow_block',{tex:'snow',hard:0.2,tool:'shovel',needsTool:true,sound:'snow',drop:()=>[[293,4]]});
 // ---- items ----
 const MAT={netherite:{tier:4,speed:9,dur:2031,color:[80,72,82],name:'Netherite'},wood:{tier:0,speed:2,dur:59,color:[150,120,70],name:'Wooden'},stone:{tier:1,speed:4,dur:131,color:[130,130,130],name:'Stone'},iron:{tier:2,speed:6,dur:250,color:[220,220,220],name:'Iron'},diamond:{tier:3,speed:8,dur:1561,color:[90,230,220],name:'Diamond'},gold:{tier:0,speed:12,dur:32,color:[250,220,60],name:'Golden'}};
@@ -746,6 +753,7 @@ defItem(390,'blaze_rod',{icon:'blaze_rod',fuel:120});
 defItem(391,'blaze_powder',{icon:'blaze_powder'});
 defItem(392,'eye_of_ender',{icon:'eye_of_ender',stack:16});
 defItem(393,'totem_of_undying',{icon:'totem',stack:1});
+defItem(394,'nether_star',{icon:'nether_star'});
 let tid=320;
 for(const tt of ['sword','pickaxe','axe','shovel','hoe'])for(const m of ['wood','stone','iron','diamond','gold']){
   defItem(tid++,(m==='wood'?'wooden':m==='gold'?'golden':m)+'_'+tt,{label:MAT[m].name+' '+label(tt),icon:tt,mat:m,stack:1,tool:tt,tier:MAT[m].tier,speed:MAT[m].speed,dur:MAT[m].dur,dmg:TOOL_DMG[tt][m],atkSpd:TOOL_SPD[tt][m],fuel:m==='wood'?10:0});
@@ -848,7 +856,7 @@ bucket:['bucket',{g:[170,170,170],c:[120,120,120]}],water_bucket:['bucket',{g:[1
 flint_and_steel:['flint_and_steel',{g:[160,160,160],f:[60,60,60]}],shears:['shears',{s:[200,200,200],h:[140,90,50]}],
 bowl:['bowl',{w:[130,90,50],c:[100,70,40]}],mushroom_stew:['bowl',{w:[130,90,50],c:[200,150,110]}],
 carrot:['carrot',{o:[240,130,30],g:[70,150,50]}],potato:['potato',{m:[200,160,90],l:[225,190,120]}],baked_potato:['potato',{m:[190,140,70],l:[220,180,110]}],
-paper:['paper',{w:[240,240,235],l:[190,190,185]}],book:['book',{c:[130,80,40],w:[240,235,220]}],enchanted_book:['book',{c:[150,60,200],w:[240,225,255]}],netherite_scrap:['raw',{m:[95,75,70],l:[140,110,95]}],netherite_ingot:['ingot',{l:[110,100,112],m:[75,68,78],d:[45,40,48]}],blaze_rod:['rod',{y:[250,200,60]}],blaze_powder:['dust',{m:[250,170,40]}],eye_of_ender:['eye',{r:[40,120,90],k:[20,40,40]}],totem:['totem',{g:[90,200,90],k:[30,30,30],y:[240,210,80]}],saddle:['leather',{m:[95,60,32]}],ender_pearl:['ball',{m:[20,90,80],l:[90,210,170]}],slime_ball:['ball',{m:[110,200,90],l:[180,240,150]}],glowstone_dust:['dust',{m:[245,205,90]}],
+paper:['paper',{w:[240,240,235],l:[190,190,185]}],book:['book',{c:[130,80,40],w:[240,235,220]}],enchanted_book:['book',{c:[150,60,200],w:[240,225,255]}],netherite_scrap:['raw',{m:[95,75,70],l:[140,110,95]}],netherite_ingot:['ingot',{l:[110,100,112],m:[75,68,78],d:[45,40,48]}],blaze_rod:['rod',{y:[250,200,60]}],blaze_powder:['dust',{m:[250,170,40]}],eye_of_ender:['eye',{r:[40,120,90],k:[20,40,40]}],totem:['totem',{g:[90,200,90],k:[30,30,30],y:[240,210,80]}],nether_star:['gem',{l:[255,255,255],m:[220,240,255],d:[150,200,230]}],saddle:['leather',{m:[95,60,32]}],ender_pearl:['ball',{m:[20,90,80],l:[90,210,170]}],slime_ball:['ball',{m:[110,200,90],l:[180,240,150]}],glowstone_dust:['dust',{m:[245,205,90]}],
 quartz:['gem',{l:[255,255,255],m:[235,228,220],d:[180,170,160]}],cookie:['cookie',{c:[190,130,70],k:[70,40,30]}],cooked_cod:['fish',{m:[200,160,110],l:[230,200,150]}],
 door:['door',{p:[140,100,55],d:[160,120,70],w:[170,210,240],k:[70,70,70]}],bed:['bed',{w:[240,240,240],r:[200,30,30],b:[140,100,60]}],
 };
@@ -878,7 +886,7 @@ function buildIcons(){
     let flat=null; // [rows,pal] or tile index
     if(def.isBlock){
       const m=def.model;
-      if(m==='cube'||m==='chest'||m==='cactus'||m==='farmland'||m==='liquid'||m==='table'||m==='anvil'||m==='egg'||m==='endportal'){drawIsoCube(ctx,def.faces[2],def.faces[5],def.front!==undefined?def.front:def.faces[0])}
+      if(m==='cube'||m==='chest'||m==='cactus'||m==='farmland'||m==='liquid'||m==='table'||m==='anvil'||m==='egg'||m==='endportal'||m==='skull'){drawIsoCube(ctx,def.faces[2],def.faces[5],def.front!==undefined?def.front:def.faces[0])}
       else if(m==='slab'){ctx.save();ctx.setTransform(14/16,-7/16,14/16,7/16,2,16);ctx.drawImage(tileCanvas(def.faces[2]),0,0);ctx.setTransform(14/16,7/16,0,7.5/16,2,16);ctx.drawImage(shadedTile(def.faces[0],0.72),0,0);ctx.setTransform(14/16,-7/16,0,7.5/16,16,23);ctx.drawImage(shadedTile(def.faces[0],0.55),0,0);ctx.restore()}
       else if(m==='stairs'||m==='fence'||m==='snow'){drawIsoCube(ctx,def.faces[2],def.faces[5],def.faces[0]);if(m==='stairs'){ctx.fillStyle='rgba(0,0,0,.35)';ctx.beginPath();ctx.moveTo(16,2);ctx.lineTo(30,9);ctx.lineTo(23,12.5);ctx.lineTo(9,5.5);ctx.fill()}}
       else if(m==='door'){flat=ICONDEF.door}
@@ -1289,6 +1297,7 @@ function blockBoxes(id,meta,mode,x,y,z){
     case 'table':return [[0,0,0,1,0.75,1]];
     case 'anvil':return [[0.125,0,0.125,0.875,1,0.875]];
     case 'endportal':return mode==='c'?[]:[[0,0,0,1,0.75,1]];
+    case 'skull':return [[0.25,0,0.25,0.75,0.5,0.75]];
     case 'egg':return [[0.25,0,0.25,0.75,1,0.75]];
   }
   return [[0,0,0,1,1,1]];
@@ -1315,6 +1324,7 @@ function renderBoxes(id,meta,x,y,z){
     case 'farmland':return [[0,0,0,1,0.9375,1,F]];
     case 'table':{const t=d.texFn?d.texFn(meta,2):null;const tiles=t!==null&&t!==undefined?[F[0],F[1],t,F[3],F[4],F[5]]:F;return [[0,0,0,1,0.75,1,tiles]]}
     case 'endportal':return [[0,0,0,1,0.75,1,F]];
+    case 'skull':return [[0.25,0,0.25,0.75,0.5,0.75,F]];
     case 'egg':return [[0.25,0,0.25,0.75,0.45,0.75,F],[0.3125,0.45,0.3125,0.6875,0.8,0.6875,F],[0.4,0.8,0.4,0.6,1,0.6,F]];
     case 'anvil':return [[0.125,0,0.125,0.875,0.25,0.875,F],[0.25,0.25,0.3,0.75,0.6,0.7,F],[0.0625,0.6,0.25,0.9375,1,0.75,F]];
   }
@@ -1692,7 +1702,7 @@ function explode(x,y,z,power,source){
   for(const k of destroyed){const p=k.split(',').map(Number);world.neighborChanged(p[0],p[1],p[2])}
   spawnParticles('explosion',x,y,z,12+power*4);
   const rad=power*2;const all=entities.filter(e=>(e instanceof Mob||e instanceof ItemEntity||e.hittable)&&!e.dead).concat([player]);
-  for(const e of all){if(e.dead)continue;const dx=e.x-x,dy=e.y+e.h/2-y,dz=e.z-z;const d=sqrt(dx*dx+dy*dy+dz*dz);if(d>rad)continue;const imp=1-d/rad;const dmg=floor((imp*imp+imp)*7*power+1);
+  for(const e of all){if(e.dead||e.blastProof)continue;const dx=e.x-x,dy=e.y+e.h/2-y,dz=e.z-z;const d=sqrt(dx*dx+dy*dy+dz*dz);if(d>rad)continue;const imp=1-d/rad;const dmg=floor((imp*imp+imp)*7*power+1);
     if(e instanceof ItemEntity){e.dead=true;continue}damageEntity(e,dmg,{x,y,z,type:'explosion',kb:imp*12});if(!e.dead||e===player){e.vy+=imp*8}}
   if(source&&source.owner==='player'){}
 }
@@ -1755,6 +1765,7 @@ const MOBDEF={
   horse:{hp:22,w:1.4,h:1.6,speed:1.7,passive:true,animal:true,food:[271,273,307,308],drops:r=>[[289,floor(r()*3)]],xp:[1,3],sound:'horse',noDespawn:true},
   wolf:{hp:8,w:0.6,h:0.85,speed:3.2,dmg:3,drops:()=>[],xp:[1,3],sound:'wolf',follow:16,neutral:true,animal:true,noDespawn:true,food:[274,275,276,277,278,279,280,281,282]},
   pillager:{hp:24,w:0.6,h:1.95,speed:3.3,dmg:3,ranged:true,arrowDmg:[3,4,5],drops:r=>[[284,floor(r()*3)],[r()<0.1?301:0,1],[r()<0.3?266:0,1]],xp:[5,5],sound:'villager_no',follow:24,noDespawn:true},
+  wither_skeleton:{hp:20,w:0.7,h:2.4,speed:3.4,dmg:8,undead:true,fireproof:true,noBurn:true,witherHit:true,drops:r=>[[283,floor(r()*3)],[257,floor(r()*2)],[r()<0.04?103:0,1]],xp:[5,5],sound:'skeleton',follow:16},
   blaze:{hp:20,w:0.6,h:1.8,speed:2.5,dmg:6,ranged:'fireball',fireproof:true,flying:true,drops:r=>[[390,floor(r()*2)]],xp:[10,10],sound:'blaze',follow:32},
   evoker:{hp:24,w:0.6,h:1.95,speed:3.2,dmg:0,ranged:'spell',drops:r=>[[393,1],[266,floor(r()*2)]],xp:[10,10],sound:'villager_no',follow:16,noDespawn:true},
   vex:{hp:14,w:0.4,h:0.8,speed:5,dmg:5,flying:true,ghost:true,drops:()=>[],xp:[3,3],sound:'vex',follow:24},
@@ -1911,7 +1922,7 @@ class Mob extends Entity{
       else if(d.ranged==='spell'){if(this.atkCd<=0&&this.canSee(p)){this.atkCd=5;castSpell(this,p,diff)}}
       else if(d.ranged){if(dist3<15&&this.atkCd<=0&&dist3>1.5&&this.canSee(p)){this.atkCd=diff===3?2:3;const ex=this.x,ey=this.y+this.h*0.85,ez=this.z;let ax=p.x-ex,ay=(p.y+1)-ey,az=p.z-ez;const l=sqrt(ax*ax+ay*ay+az*az);ay+=l*0.06;const sp=30;const n=sqrt(ax*ax+ay*ay+az*az);const spread=0.05*(4-diff);const ar=new Arrow(ex,ey,ez,ax/n*sp+(Math.random()-0.5)*spread*sp,ay/n*sp+(Math.random()-0.5)*spread*sp,az/n*sp+(Math.random()-0.5)*spread*sp,'mob',(d.arrowDmg?d.arrowDmg[diff-1]:[2.5,3.5,4.5][diff-1])+floor(Math.random()*2));if(d.slowArrow){ar.effect='slow';ar.effectT=30}entities.push(ar);playSoundAt('bow',ex,ey,ez)}}
       else{const reach=this.w/2+p.w/2+0.6;const base=this.dmgOverride!==undefined?this.dmgOverride:d.dmg;if(base>0&&dist<reach&&abs(dy)<(d.tall?3.5:2)&&this.atkCd<=0){this.atkCd=1;const dm=[base*0.8,base,base*1.5][diff-1];
-        if(damageEntity(p,dm,{x:this.x,y:this.y,z:this.z,type:'mob',mob:this})){if(d.hungerHit)p.effects.hunger=Math.max(p.effects.hunger||0,7*diff);if(d.poison&&diff>1)p.effects.poison=Math.max(p.effects.poison||0,diff===3?15:7)}
+        if(damageEntity(p,dm,{x:this.x,y:this.y,z:this.z,type:'mob',mob:this})){if(d.hungerHit)p.effects.hunger=Math.max(p.effects.hunger||0,7*diff);if(d.witherHit)p.effects.wither=Math.max(p.effects.wither||0,10);if(d.poison&&diff>1)p.effects.poison=Math.max(p.effects.poison||0,diff===3?15:7)}
         if((this.type==='spider'||this.type==='cave_spider')&&this.onGround)this.vy=5}}
     }
     if(this.type==='creeper'&&this.swell>0&&Math.random()<dt*4)playSoundAt('fuse',this.x,this.y,this.z,1,0.2);
@@ -1948,7 +1959,7 @@ class Mob extends Entity{
     return false;
   }
   render(EB){
-    const l=lightAt(this.x,this.y+this.h/2,this.z);const hurt=this.hurtT>0?[1,0.5,0.5]:[1,1,1];const s=(this.baby?0.5:1)*(this.def.scale||1)/16;
+    const l=lightAt(this.x,this.y+this.h/2,this.z);const hurt=this.hurtT>0?[1,0.5,0.5]:[1,1,1];const s=(this.baby?0.5:1)*(this.def.scale||(this.type==='wither_skeleton'?1.2:1))/16;
     let roll=0,ex=this.x,ey=this.y,ez=this.z;if(this.dying){roll=Math.min(1,this.deathT*1.5)*PI/2}
     const swing=Math.sin(this.walkT)*this.walkAmp*0.9;const hy=this.headYaw,hp=this.headPitch;
     const part=(b,px,py,pz,rx,ry,rz,tiles,col)=>{const tf=partTF(ex,ey,ez,this.yaw,px,py,pz,rx,ry,rz,s,roll);EB.box(tf,b[0],b[1],b[2],b[3],b[4],b[5],tiles,[col[0]*hurt[0],col[1]*hurt[1],col[2]*hurt[2]],l,true)};
@@ -1965,15 +1976,15 @@ class Mob extends Entity{
       case 'chicken':{const c=[0.95,0.95,0.95];for(const [lx,sg] of [[-2,1],[2,-1]])part([lx-0.5,-5,-1.5,lx+0.5,0,1.5],0,5,0,swing*sg,0,0,W,[0.9,0.7,0.2]);
         part([-3,5,-4,3,11,4],0,0,0,0,0,0,N,c);part([-2,-2,-3,2,4,0],0,11,-3,hp,hy,0,face(TEX.chicken_face),c);part([-2,0,-5,2,2,-3],0,11,-3,hp,hy,0,W,[0.95,0.7,0.15]);part([-1,-2,-4,1,0,-3],0,11,-3,hp,hy,0,W,[0.8,0.15,0.15]);
         const fl=this.onGround?0:Math.sin(game.time*30)*0.8;part([-1,-4,-3,0,0,3],-3,11,0,0,0,fl,N,c);part([0,-4,-3,1,0,3],3,11,0,0,0,-fl,N,c);break}
-      case 'zombie':case 'skeleton':case 'zombified_piglin':case 'husk':case 'stray':{const sk=this.type==="skeleton"||this.type==='stray';const st=this.type==='stray';const hu=this.type==='husk';const pg=this.type==='zombified_piglin';
-        const skin=st?[0.7,0.75,0.8]:sk?[0.8,0.8,0.8]:pg?[0.9,0.6,0.6]:hu?[0.6,0.52,0.35]:[0.35,0.55,0.3];const shirt=st?[0.35,0.4,0.5]:sk?[0.75,0.75,0.75]:pg?[0.55,0.35,0.4]:hu?[0.5,0.42,0.3]:[0.18,0.5,0.5];const pants=st?[0.4,0.45,0.55]:sk?[0.8,0.8,0.8]:pg?[0.45,0.3,0.3]:hu?[0.42,0.35,0.28]:[0.25,0.28,0.55];const t=sk?1:2;
-        const faceTex=st?TEX.stray_face:sk?TEX.skeleton_face:pg?TEX.pig_face:hu?TEX.husk_face:TEX.zombie_face;
+      case 'zombie':case 'skeleton':case 'zombified_piglin':case 'husk':case 'stray':case 'wither_skeleton':{const ws=this.type==='wither_skeleton';const sk=this.type==="skeleton"||this.type==='stray'||ws;const st=this.type==='stray';const hu=this.type==='husk';const pg=this.type==='zombified_piglin';
+        const skin=ws?[0.16,0.16,0.18]:st?[0.7,0.75,0.8]:sk?[0.8,0.8,0.8]:pg?[0.9,0.6,0.6]:hu?[0.6,0.52,0.35]:[0.35,0.55,0.3];const shirt=st?[0.35,0.4,0.5]:sk?[0.75,0.75,0.75]:pg?[0.55,0.35,0.4]:hu?[0.5,0.42,0.3]:[0.18,0.5,0.5];const pants=st?[0.4,0.45,0.55]:sk?[0.8,0.8,0.8]:pg?[0.45,0.3,0.3]:hu?[0.42,0.35,0.28]:[0.25,0.28,0.55];const t=sk?1:2;
+        const faceTex=ws?TEX.wither_skeleton_face:st?TEX.stray_face:sk?TEX.skeleton_face:pg?TEX.pig_face:hu?TEX.husk_face:TEX.zombie_face;
         const zb=this.type==='zombie';const ptex=zb?TEX.zombie_pants:N,stex=zb?TEX.zombie_shirt:sk?TEX.skeleton_ribs:N;const pc=zb?[1,1,1]:pants,sc=zb||sk?[1,1,1]:shirt;
         part([-t,-12,-t,t,0,t],-2,12,0,swing,0,0,ptex,pc);part([-t,-12,-t,t,0,t],2,12,0,-swing,0,0,ptex,pc);
         part([-4,12,-2,4,24,2],0,0,0,0,0,0,stex,sc);
         const armR=sk?PI/2-0.2:PI/2+Math.sin(game.time*2)*0.1;part([-t,-10,-t,t,2,t],-4-t+2,22,0,armR,sk?-0.4:0,0.1,N,sk?skin:shirt);part([-t,-10,-t,t,2,t],4+t-2,22,0,armR,sk?0.4:0,-0.1,N,sk?skin:shirt);
         part([-4,0,-4,4,8,4],0,24,0,hp,hy,0,face(faceTex),skin);
-        if(sk){part([-1,-2,-8,1,2,6],4,22,0,0,0,0,W,[0.5,0.35,0.2])}if(st){part([-4.5,4,-4.5,4.5,8.5,4.5],0,24,0,hp,hy,0,N,[0.3,0.35,0.45])}
+        if(ws){part([-0.6,-9,-0.6,0.6,-2,0.6],4,22,-1.5,-0.5,0,0,W,[0.55,0.55,0.55]);part([-1.6,-2.5,-0.4,1.6,-1.5,0.4],4,22,-1.5,-0.5,0,0,W,[0.4,0.3,0.2])}else if(sk){part([-1,-2,-8,1,2,6],4,22,0,0,0,0,W,[0.5,0.35,0.2])}if(st){part([-4.5,4,-4.5,4.5,8.5,4.5],0,24,0,hp,hy,0,N,[0.3,0.35,0.45])}
         break}
       case 'creeper':{const f=this.swell>0?1+Math.sin(this.swell*25)*0.4+this.swell*0.3:1;const c=[f,f,f];const sc=TEX.creeper_skin;
         for(const [lx,lz,sg] of [[-2,-4,1],[2,-4,-1],[-2,4,-1],[2,4,1]])part([lx-2,-6,lz-2,lx+2,0,lz+2],0,6,0,swing*sg*0.7,0,0,sc,c);
@@ -2066,6 +2077,7 @@ function damageEntity(e,amount,src){
       let epf=0,th=0;for(const s of player.armor){if(!s||!s.ench)continue;epf+=s.ench.protection||0;th+=s.ench.thorns||0;if(src.type==='fire'||src.type==='lava')epf+=2*(s.ench.fire_protection||0);if(src.type==='explosion')epf+=2*(s.ench.blast_protection||0);if(src.type==='arrow')epf+=2*(s.ench.projectile_protection||0);if(src.type==='fall')epf+=3*(s.ench.feather_falling||0)}
       if(epf)amount*=1-Math.min(20,epf)*0.04;if(th&&src.mob&&Math.random()<th*0.15){damageEntity(src.mob,1+floor(Math.random()*4),{type:'thorns'});damageArmor(2)}}
     if(amount<=0)return false;if(src.mob){game.petTarget=src.mob;game.petTargetT=game.time}e.lastDmg=amount;e.invT=0.5;e.hp-=amount;e.exh+=0.1;e.hurtT=0.5;flashDamage();playSound('hurt');if(e.hp<=0){let ti=-1;for(let i=0;i<9;i++)if(player.inv[i]&&player.inv[i].id===393){ti=i;break}if(ti>=0&&player.mode!=='creative'){player.inv[ti]=null;player.hp=1;player.totemT=45;player.fireT=0;player.effects={};player.air=300;spawnParticles('happy',player.x,player.y+1,player.z,30);playSound('totem');showMessage('Your Totem of Undying saved you!');updateHotbar();return true}playerDie(src)}return true}
+  if(e.invulnerable)return false;if(src.type==='arrow'&&e.arrowImmune&&e.arrowImmune()){playSoundAt('arrowhit',e.x,e.y,e.z);return false}
   e.lastDmg=amount;e.invT=0.5;e.hp-=amount;e.hurtT=0.5;if(src.type==='player'){e.lastHit=game.time;e.lootLvl=src.loot||0;if(e instanceof Mob&&!(e.type==='wolf'&&e.tamed)){game.petTarget=e;game.petTargetT=game.time}}
   if(src.x!==undefined){const dx=e.x-src.x,dz=e.z-src.z;const d=sqrt(dx*dx+dz*dz)||1;const kb=src.kb||4;e.vx+=dx/d*kb;e.vz+=dz/d*kb;e.vy+=kb*0.6;if(e.vy>6)e.vy=6}
   if(e.onHurt)e.onHurt(src);playSoundAt(e.def?e.def.sound+'_hurt':'hurt',e.x,e.y,e.z);
@@ -2120,7 +2132,7 @@ function updatePlayer(dt){
   const canSprint=fwd>0&&(p.hunger>6||creative)&&!p.sneaking&&!guiOpen;
   if(canSprint&&(keys.ControlLeft||p.sprintReq))p.sprinting=true;if(!canSprint||(p.collidedH&&!p.flying&&fwd>0&&p.onGround&&false))p.sprinting=false;if(!canSprint)p.sprintReq=false;
   let speed=creative&&p.flying?10.8:p.sneaking?1.295*(1+0.5*enchLevel(p.armor[2],'swift_sneak')):p.sprinting?5.612:4.317;if(p.flying&&p.sprinting)speed*=2;
-  if(p.effects.slow)speed*=0.7;if(!p.flying&&BLOCKS[world.getBlock(floor(p.x),floor(p.y-0.05),floor(p.z))].slow){const ss=enchLevel(p.armor[3],'soul_speed');speed*=ss?1.3+0.15*ss:0.4}
+  if(p.effects.slow)speed*=0.7;if(p.beaconT>0)speed*=1.25;if(!p.flying&&BLOCKS[world.getBlock(floor(p.x),floor(p.y-0.05),floor(p.z))].slow){const ss=enchLevel(p.armor[3],'soul_speed');speed*=ss?1.3+0.15*ss:0.4}
   const inFluid=(inWater||inLava)&&!p.flying;if(inFluid){speed*=inLava?0.35:0.55;if(inWater)speed*=1+enchLevel(p.armor[3],'depth_strider')/3}
   if(!creative&&p.onGround&&!p.flying){const fw=enchLevel(p.armor[3],'frost_walker');if(fw){const r=fw+1;const by=floor(p.y)-1;for(let dx=-r;dx<=r;dx++)for(let dz=-r;dz<=r;dz++){const bx=floor(p.x)+dx,bz=floor(p.z)+dz;if(dx*dx+dz*dz>r*r)continue;if(world.getBlock(bx,by,bz)===8&&world.getMeta(bx,by,bz)===0&&world.getBlock(bx,by+1,bz)===0)world.setBlock(bx,by,bz,41,0,{silent:true})}}}
   const sy=Math.sin(p.yaw),cy=Math.cos(p.yaw);let mx=(-sy*fwd+cy*strafe),mz=(-cy*fwd-sy*strafe);const ml=sqrt(mx*mx+mz*mz);if(ml>1){mx/=ml;mz/=ml}
@@ -2182,6 +2194,7 @@ function updatePlayer(dt){
     if(game.difficulty===0){p.hunger=Math.min(20,p.hunger+dt*0.5);p.regenT+=dt;if(p.regenT>=1){p.regenT=0;p.hp=Math.min(p.maxHp,p.hp+1)}}
     else{
       if(p.effects.hunger>0){p.effects.hunger-=dt;p.exh+=0.1*dt}if(p.effects.slow>0){p.effects.slow-=dt}
+      if(p.effects.wither>0){p.effects.wither-=dt;p.witherT=(p.witherT||0)+dt;if(p.witherT>=2){p.witherT=0;damageEntity(p,1,{type:'wither'})}}
       if(p.effects.poison>0){p.effects.poison-=dt;p.poisonT=(p.poisonT||0)+dt;if(p.poisonT>=1.25){p.poisonT=0;if(p.hp>1)damageEntity(p,1,{type:'poison'})}}
       while(p.exh>=4){p.exh-=4;if(p.sat>0)p.sat=Math.max(0,p.sat-1);else p.hunger=Math.max(0,p.hunger-1)}
       if(p.totemT>0){p.totemT-=dt;p.totemRegenT=(p.totemRegenT||0)+dt;if(p.totemRegenT>=1.25){p.totemRegenT=0;p.hp=Math.min(p.maxHp,p.hp+1)}}
@@ -2314,6 +2327,7 @@ function placeHeldBlock(hd,st,t){
   // collision with entities
   if(hd.solid){const bs=blockBoxes(id,meta,'c',px,py,pz);for(const b of bs)if(boxesOverlapEntity(px+b[0],py+b[1],pz+b[2],px+b[3],py+b[4],pz+b[5]))return}
   world.setBlock(px,py,pz,id,meta);consumeHeld();playSoundAt('place_'+hd.sound,px,py,pz);p.swing=0;
+  if(id===103)checkWitherBuild(px,py,pz);
 }
 function trySleep(bx,by,bz){const p=player;const t=world.time;
   if(world.nether){world.setBlock(bx,by,bz,0,0,{noDrop:true});explode(bx+0.5,by+0.5,bz+0.5,5);for(let i=0;i<6;i++){const x=bx+floor(Math.random()*5)-2,z=bz+floor(Math.random()*5)-2;let y=by;while(y>1&&world.getBlock(x,y-1,z)===0)y--;if(world.getBlock(x,y,z)===0&&BLOCKS[world.getBlock(x,y-1,z)].solid)world.setBlock(x,y,z,81,0)}return}if(!(t>12540&&t<23460)){showMessage('You can only sleep at night');return}
@@ -2661,7 +2675,7 @@ Object.assign(World.prototype,{
     for(const [dx,dz] of [[4,0],[-4,0],[0,4],[0,-4]])this.fill(x+dx-(dz?1:0),y+1,z+dz-(dx?1:0),x+dx+(dz?1:0),y+3,z+dz+(dx?1:0),0);
     this.setGen(x,y+1,z,86,3,false);this.setChest(x-3,y+1,z-3,0,'fortress',rng,3+floor(rng()*4));this.setChest(x+3,y+1,z+3,0,'fortress',rng,3+floor(rng()*4));
     for(let i=0;i<4;i++)this.setGen(x-3+(i%2)*6,y+3,z-3+floor(i/2)*6,32,0,false);
-    if(typeof Mob!=='undefined'){for(let i=0;i<3;i++)entities.push(new Mob('blaze',x+(rng()-0.5)*6,y+2,z+(rng()-0.5)*6))}
+    if(typeof Mob!=='undefined'){for(let i=0;i<3;i++)entities.push(new Mob('blaze',x+(rng()-0.5)*6,y+2,z+(rng()-0.5)*6));for(let i=0;i<5;i++){const m=new Mob('wither_skeleton',x+(i-2)*6+0.5,y+1.1,z+0.5+(i%2?3:-3));entities.push(m)}}
   },
 });
 /* ---- spawner blocks ---- */
@@ -2789,6 +2803,50 @@ function dragonDefeated(d){world.dragonDead=true;showMessage('You defeated the E
   for(let dx=-2;dx<=2;dx++)for(let dz=-2;dz<=2;dz++){if(dx===0&&dz===0)continue;if(Math.max(abs(dx),abs(dz))<=2&&world.getBlock(dx,62,dz)===0)world.setBlock(dx,62,dz,101,0,{silent:true})}
   world.setBlock(0,66,0,102,0,{silent:true});for(let i=0;i<10;i++)setTimeout(()=>{if(world&&world.end)spawnXP(d.x,Math.max(66,d.y-i*2),d.z,1200)},i*700);
   showMessage('The exit portal is open. Step in to go home; the dragon egg is yours.')}
+/* ===================== THE WITHER ===================== */
+// Built from 4 soul sand in a T with 3 wither skeleton skulls on top (either axis)
+function checkWitherBuild(x,y,z){for(const [dx,dz] of [[1,0],[0,1]]){for(const off of [-1,0,1]){const cx=x-dx*off,cz=z-dz*off; // candidate centre skull
+    const ok=world.getBlock(cx,y,cz)===103&&world.getBlock(cx-dx,y,cz-dz)===103&&world.getBlock(cx+dx,y,cz+dz)===103&&world.getBlock(cx,y-1,cz)===84&&world.getBlock(cx-dx,y-1,cz-dz)===84&&world.getBlock(cx+dx,y-1,cz+dz)===84&&world.getBlock(cx,y-2,cz)===84;
+    if(!ok)continue;for(const [bx,by,bz] of [[cx,y,cz],[cx-dx,y,cz-dz],[cx+dx,y,cz+dz],[cx,y-1,cz],[cx-dx,y-1,cz-dz],[cx+dx,y-1,cz+dz],[cx,y-2,cz]])world.setBlock(bx,by,bz,0,0,{silent:true,noDrop:true});
+    entities.push(new Wither(cx+0.5,y-2,cz+0.5));showMessage('The Wither awakens! Run!');playSound('wither');return true}}return false}
+class Wither extends Entity{
+  constructor(x,y,z){super(x,y,z);this.w=1;this.h=3.5;this.hp=1;this.maxHp=300;this.hittable=true;this.def={sound:'wither'};this.state='spawn';this.spawnT=0;this.shootT=2;this.yaw=0;this.headYaw=[0,0,0];this.solidBody=false;this.invT=0;this.lastDmg=0;this.regenT=0;this.invulnerable=true;this.deathT=0;this.blastProof=true}
+  arrowImmune(){return this.hp<this.maxHp/2}
+  update(dt){this.age+=dt;const p=player;if(this.invT>0)this.invT-=dt;if(this.hurtT>0)this.hurtT-=dt;
+    if(this.dying){this.deathT+=dt;if(Math.random()<dt*20)spawnParticles('explosion',this.x+(Math.random()-0.5)*3,this.y+Math.random()*3,this.z+(Math.random()-0.5)*3,1);if(this.deathT>3){this.dead=true;explode(this.x,this.y+1,this.z,4);spawnItem(this.x,this.y+1,this.z,{id:394,count:1});spawnXP(this.x,this.y+1,this.z,50);showMessage('The Wither is defeated! It dropped a Nether Star.');playSound('levelup')}return}
+    if(this.state==='spawn'){this.spawnT+=dt;this.hp=Math.min(this.maxHp,1+this.spawnT/10*this.maxHp);this.y+=dt*0.15;if(Math.random()<dt*4)spawnParticles('smoke',this.x+(Math.random()-0.5)*2,this.y+Math.random()*3,this.z+(Math.random()-0.5)*2,1);
+      if(this.spawnT>=10){this.state='hunt';this.invulnerable=false;this.hp=this.maxHp;explode(this.x,this.y+1.5,this.z,7);playSound('wither',1,0.7)}return}
+    // regeneration and block breaking
+    this.regenT+=dt;if(this.regenT>=1){this.regenT=0;this.hp=Math.min(this.maxHp,this.hp+1)}
+    if(game.tick%4===0){for(let x=floor(this.x-1.2);x<=floor(this.x+1.2);x++)for(let y=floor(this.y);y<=floor(this.y+3.5);y++)for(let z=floor(this.z-1.2);z<=floor(this.z+1.2);z++){const b=world.getBlock(x,y,z);if(b===0||b===7||b===100||b===101)continue;world.setBlock(x,y,z,0,0,{noDrop:true,silent:true});spawnParticles('block',x+0.5,y+0.5,z+0.5,2,b)}}
+    // hover near the player, keeping some height and distance
+    const dx=p.x-this.x,dz=p.z-this.z;const d=sqrt(dx*dx+dz*dz)||1;const wantD=this.hp<this.maxHp/2?6:12;const want=d>wantD+3?1:d<wantD-3?-1:0;const s=Math.sin(this.age*0.6);
+    const tvx=(dx/d*want-dz/d*s*0.5)*5,tvz=(dz/d*want+dx/d*s*0.5)*5;this.vx+=(tvx-this.vx)*Math.min(1,dt*2);this.vz+=(tvz-this.vz)*Math.min(1,dt*2);
+    const wantY=p.y+(this.hp<this.maxHp/2?1:5);this.vy+=((wantY-this.y)*1.5-this.vy)*Math.min(1,dt*2);this.vy=clamp(this.vy,-5,5);
+    this.x+=this.vx*dt;this.y+=this.vy*dt;this.z+=this.vz*dt;this.yaw=Math.atan2(-dx,-dz);
+    // skulls from each head
+    this.shootT-=dt;if(this.shootT<=0&&!p.dead&&d<40){this.shootT=this.hp<this.maxHp/2?1.2:2.2;const head=floor(Math.random()*3);const hx=this.x-Math.cos(this.yaw)*(head-1)*0.9,hz=this.z+Math.sin(this.yaw)*(head-1)*0.9;shootWitherSkull(this,hx,this.y+(head===1?3.2:2.6),hz,p,Math.random()<0.15)}
+    if(Math.random()<dt*0.1)playSoundAt('wither',this.x,this.y,this.z,1,0.5)}
+  onHurt(src){if(src&&src.type==='player'&&Math.random()<0.3)playSoundAt('wither',this.x,this.y,this.z,1.3,0.6)}
+  onDeath(){this.dying=true;this.deathT=0}
+  render(EB){const l=[Math.max(lightAt(this.x,this.y+1,this.z)[0],0.3),0.3];const arm=this.hp<this.maxHp/2&&this.state==='hunt';const c=arm?[0.35,0.4,0.55]:[0.15,0.15,0.17];const hurt=this.hurtT>0?[1,0.5,0.5]:[1,1,1];const col=[c[0]*hurt[0],c[1]*hurt[1],c[2]*hurt[2]];const N=TEX.wither_skin;
+    const tf=makeTF(this.x,this.y,this.z,this.yaw,0,0,0,0,0,1);const box=(b,tiles,cc)=>EB.box(tf,b[0],b[1],b[2],b[3],b[4],b[5],tiles,cc,l,true);
+    box([-0.25,0,-0.25,0.25,2.4,0.25],N,col); // spine
+    for(let i=0;i<3;i++){const y=1.0+i*0.45;box([-0.9+i*0.15,y,-0.2,0.9-i*0.15,y+0.18,0.2],N,col)} // ribs
+    box([-1.3,2.3,-0.3,1.3,2.6,0.3],N,col); // shoulders
+    const face=[N,N,N,N,N,TEX.wither_skull];const p=player;const hy=Math.atan2(-(p.x-this.x),-(p.z-this.z))-this.yaw;
+    for(let h=0;h<3;h++){const sx=(h-1)*0.95,sz=h===1?0:0.1,sy=h===1?2.6:2.3;const sz2=h===1?0.5:0.4;const htf=makeTF(this.x,this.y,this.z,this.yaw,0,0,0,0,0,1);const head=(x,y,z)=>{const cy=Math.cos(hy),sy2=Math.sin(hy);return htf(sx+x*cy+z*sy2,sy+y,sz-x*sy2+z*cy)};EB.box(head,-sz2,0,-sz2,sz2,sz2*2,sz2,face,col,l,true)}
+    const tw=Math.sin(this.age*3)*0.2;box([-0.2,-0.9+tw,-0.2,0.2,0,0.2],N,col);box([-0.12,-1.6,-0.12,0.12,-0.9,0.12],N,col)}
+}
+function shootWitherSkull(w,x,y,z,p,blue){let ax=p.x-x,ay=(p.y+1)-y,az=p.z-z;const n=sqrt(ax*ax+ay*ay+az*az)||1;const sp=blue?9:14;
+  const f=new Arrow(x,y,z,ax/n*sp,ay/n*sp,az/n*sp,'mob',0);f.noGravity=true;f.fireball=true;const col=blue?[0.5,0.7,1]:[0.2,0.2,0.22];
+  f.render=function(EB){const tf=makeTF(this.x,this.y,this.z,this.age*4,0,0,0,0,0,1);EB.box(tf,-0.18,-0.18,-0.18,0.18,0.18,0.18,[TEX.wither_skin,TEX.wither_skin,TEX.wither_skin,TEX.wither_skin,TEX.wither_skin,TEX.wither_skull],col,[1,1],true)};
+  f.onImpact=function(t){explode(this.x,this.y,this.z,blue?1.5:1);const d=Math.hypot(player.x-this.x,player.y+0.9-this.y,player.z-this.z);if(d<3&&!player.dead){damageEntity(player,blue?5:8,{x:this.x,y:this.y,z:this.z,type:'magic',mob:w});player.effects.wither=Math.max(player.effects.wither||0,blue?10:10)}};
+  entities.push(f);playSoundAt('wither_shoot',x,y,z)}
+/* ---- beacon: stood on a 3x3 base of mineral blocks it gives Speed and Regeneration nearby ---- */
+function beaconTick(){const p=player;if(game.tick%20!==0)return;p.beaconT=Math.max(0,(p.beaconT||0)-1);const bx=floor(p.x),by=floor(p.y),bz=floor(p.z);
+  for(let x=-16;x<=16;x++)for(let z=-16;z<=16;z++)for(let y=-6;y<=16;y++){if(world.getBlock(bx+x,by+y,bz+z)!==104)continue;let base=0;for(let ox=-1;ox<=1;ox++)for(let oz=-1;oz<=1;oz++){const b=world.getBlock(bx+x+ox,by+y-1,bz+z+oz);if(b===25||b===24||b===26||b===98||b===79)base++}
+    if(base>=9){p.beaconT=12;if(p.hp<p.maxHp)p.hp=Math.min(p.maxHp,p.hp+1);return}}}
 /* ===================== RECIPES ===================== */
 BLOCKS[4].smelt=1;BLOCKS[1].smelt=72;BLOCKS[43].smelt=27;BLOCKS[42].fuel=0;BLOCKS[6].fuel=5;BLOCKS[48].fuel=5;BLOCKS[49].fuel=5;BLOCKS[39].fuel=15;BLOCKS[61].fuel=15;BLOCKS[58].fuel=15;BLOCKS[38].fuel=15;BLOCKS[54].fuel=10;
 const PLANKS=[5,50,51],LOGS=[15,44,46],WOOLS=[20,75,76,77];
@@ -2824,7 +2882,7 @@ shaped([' |S','| S',' |S'],{'|':256,S:286},[301,1]);
 shaped(['LLL','LSL'],{L:289,S:286},[315,1]); // saddle: 5 leather + string
 shaped(['###'],{'#':94},[377,3]);shapeless([377,377,377,289],[378,1]);shaped(['###','BBB','###'],{'#':PLANKS,B:378},[29,1]);
 shaped([' B ','DOD','OOO'],{B:378,D:263,O:31},[96,1]);shaped(['III',' i ','iii'],{I:25,i:260},[97,1]);
-shapeless([375,375,375,375,262,262,262,262],[376,1]);shapeless([390],[391,2]);shapeless([391,312],[392,1]);shaped(['###','###','###'],{'#':376},[98,1]);shapeless([98],[376,9]);
+shapeless([375,375,375,375,262,262,262,262],[376,1]);shapeless([390],[391,2]);shaped(['GGG','GSG','OOO'],{G:17,S:394,O:31},[104,1]);shapeless([391,312],[392,1]);shaped(['###','###','###'],{'#':376},[98,1]);shapeless([98],[376,9]);
 for(const n of ['sword','pickaxe','axe','shovel','hoe','spear','helmet','chestplate','leggings','boots'])shapeless([I['diamond_'+n],376],[I['netherite_'+n],1]);
 shaped(['F','|','f'],{F:269,'|':256,f:288},[284,4]);
 shaped([' #','# '],{'#':260},[300,1]);
@@ -2976,7 +3034,7 @@ function buildHUD(){for(const k of ['heart','food','armor'])for(const s of ['ful
 let lastSel=-1,itemNameT=null;
 function updateHotbar(){const hb=$('hotbar').children;for(let i=0;i<9;i++){renderSlot(hb[i]);hb[i].classList.toggle('sel',i===player.sel)}
   if(player.sel!==lastSel){lastSel=player.sel;const st=player.inv[player.sel];const n=$('itemname');n.textContent=st?ITEMS[st.id].label:'';n.style.opacity=1;clearTimeout(itemNameT);itemNameT=setTimeout(()=>n.style.opacity=0,1500)}}
-function updateHUD(){const p=player;const creative=p.mode==='creative';{const dr=world&&world.end?entities.find(e=>e instanceof Dragon&&!e.dead):null;$('bossbar').style.display=dr?'block':'none';if(dr)$('bossfill').style.width=Math.max(0,dr.hp/dr.maxHp*100)+'%'}$('status').style.display=creative?'none':'block';if(creative)return;
+function updateHUD(){const p=player;const creative=p.mode==='creative';{const dr=entities.find(e=>(e instanceof Dragon||e instanceof Wither)&&!e.dead);$('bossbar').style.display=dr?'block':'none';if(dr){$('bossfill').style.width=Math.max(0,dr.hp/dr.maxHp*100)+'%';$('bossname').textContent=dr instanceof Wither?'Wither':'Ender Dragon'}}$('status').style.display=creative?'none':'block';if(creative)return;
   const row=(el,kind,val,max)=>{let h='';for(let i=0;i<max/2;i++){const v=val-i*2;h+='<div class="ic" style="background-image:url('+HUDI[kind+(v>=2?'full':v>=1?'half':'empty')]+')"></div>'}el.innerHTML=h};
   row($('hearts'),'heart',Math.ceil(p.hp),20);row($('food'),'food',Math.ceil(p.hunger),20);const ap=armorPoints();if(ap>0)row($('armor'),'armor',ap,20);else $('armor').innerHTML='';
   const headWater=world.getBlock(floor(p.x),floor(p.y+p.eyeHeight),floor(p.z))===8;if(headWater){let h='';for(let i=0;i<10;i++)if(p.air>i*30)h+='<div class="ic" style="background-image:url('+HUDI.air+')"></div>';$('air').innerHTML=h}else $('air').innerHTML='';
@@ -3125,6 +3183,8 @@ function playSound(name,vol=1,pitch=1){
     case 'creeper':noise(0.3,'highpass',2500);env(0.01,0.2,0.3);break;
     case 'enderman':{const o=tone('sine',70,55,1.0);const l=c.createOscillator();l.frequency.value=5;const lg=c.createGain();lg.gain.value=12;l.connect(lg);lg.connect(o.frequency);l.start(t);l.stop(t+1);noise(1.0,'lowpass',250);env(0.15,0.5,1.0);break}
     case 'dragon':{const o=tone('sawtooth',160,60,1.4);const l=c.createOscillator();l.frequency.value=7;const lg=c.createGain();lg.gain.value=30;l.connect(lg);lg.connect(o.frequency);l.start(t);l.stop(t+1.4);noise(1.4,'lowpass',500);env(0.05,0.8,1.4);break}
+    case 'wither':{const o=tone('sawtooth',120,90,1.2);const l=c.createOscillator();l.frequency.value=9;const lg=c.createGain();lg.gain.value=25;l.connect(lg);lg.connect(o.frequency);l.start(t);l.stop(t+1.2);noise(1.2,'bandpass',600,2);env(0.05,0.7,1.2);break}
+    case 'wither_shoot':noise(0.3,'highpass',1200);tone('square',300,120,0.3);env(0.005,0.5,0.3);break;
     case 'enderman_tp':tone('sine',300,1400,0.3);tone('triangle',150,900,0.3);env(0.005,0.3,0.3);break;
     case 'horse':{const o=tone('sawtooth',500,280,0.6);const l=c.createOscillator();l.frequency.value=14;const lg=c.createGain();lg.gain.value=60;l.connect(lg);lg.connect(o.frequency);l.start(t);l.stop(t+0.6);noise(0.6,'bandpass',900,2);env(0.03,0.4,0.6);break}
     case 'horse_gallop':noise(0.08,'lowpass',300);env(0.005,0.4,0.08);break;
@@ -3248,7 +3308,7 @@ function trySpawnMobs(){
     const dx=x-p.x,dz=z-p.z,dy=y-p.y;const d2=dx*dx+dy*dy+dz*dz;if(d2<24*24)continue;
     const sk=world.getSky(x,y,z),bl=world.getLight(x,y,z);const effSky=Math.max(0,sk-11*(1-day));
     if(world.end){if(hostile<40&&game.difficulty>0&&Math.random()<0.5){const n=1+floor(Math.random()*3);for(let i=0;i<n;i++){const ox=x+floor(Math.random()*5)-2,oz=z+floor(Math.random()*5)-2;if(world.getBlock(ox,y,oz)!==0||world.getBlock(ox,y+1,oz)!==0||world.getBlock(ox,y+2,oz)!==0||world.getBlock(ox,y-1,oz)!==99)continue;entities.push(new Mob('enderman',ox+0.5,y,oz+0.5));hostile++}}continue}
-    if(world.nether){if(hostile<24&&game.difficulty>0&&Math.random()<0.5){const n=2+floor(Math.random()*3);for(let i=0;i<n;i++){const ox=x+floor(Math.random()*5)-2,oz=z+floor(Math.random()*5)-2;if(world.getBlock(ox,y,oz)!==0||world.getBlock(ox,y+1,oz)!==0||!BLOCKS[world.getBlock(ox,y-1,oz)].opaque)continue;entities.push(new Mob('zombified_piglin',ox+0.5,y,oz+0.5));hostile++}}continue}
+    if(world.nether){if(hostile<24&&game.difficulty>0&&Math.random()<0.5){const nearFort=world.getBlock(x,y-1,z)===88||world.getBlock(x,y-2,z)===88;const type=nearFort&&Math.random()<0.6?'wither_skeleton':nearFort&&Math.random()<0.3?'blaze':'zombified_piglin';const n=type==='blaze'?1:2+floor(Math.random()*3);for(let i=0;i<n;i++){const ox=x+floor(Math.random()*5)-2,oz=z+floor(Math.random()*5)-2;if(world.getBlock(ox,y,oz)!==0||world.getBlock(ox,y+1,oz)!==0||!BLOCKS[world.getBlock(ox,y-1,oz)].opaque)continue;entities.push(new Mob(type,ox+0.5,y,oz+0.5));hostile++}}continue}
     if(bl===0&&effSky<1&&hostile<(night?60:30)&&game.difficulty>0){const type=pickHostile(c,x,y,z);if(!type)continue;const n=(type==='spider'||type==='slime'||type==='witch')?1:type==='enderman'?1+floor(Math.random()*2):1+floor(Math.random()*3);
       for(let i=0;i<n;i++){const ox=x+floor(Math.random()*5)-2,oz=z+floor(Math.random()*5)-2;if(world.getBlock(ox,y,oz)!==0||world.getBlock(ox,y+1,oz)!==0||!BLOCKS[world.getBlock(ox,y-1,oz)].opaque)continue;if(MOBDEF[type].tall&&world.getBlock(ox,y+2,oz)!==0)continue;const m=new Mob(type,ox+0.5,y,oz+0.5);if(type==='slime'&&y<40&&Math.random()<0.5)m.setSize(3);if(boxesOverlapEntity(m.x-m.w/2,m.y,m.z-m.w/2,m.x+m.w/2,m.y+m.h,m.z+m.w/2))continue;entities.push(m);hostile++}}
   }
@@ -3275,7 +3335,7 @@ function startWorld(meta,save){
   if(save){world.time=save.time;world.day=save.day||0;game.worldSpawn=save.spawn;world.savedMods={};for(const k in save.mods)world.savedMods[k]=save.mods[k];world.savedBents=save.bents||{};world.populated=new Set(save.pop||[]);
     const sp=save.player;if(sp.hp<=0)game.respawnOnLoad=true;Object.assign(p,{x:sp.x,y:sp.y,z:sp.z,yaw:sp.yaw,pitch:sp.pitch,hp:sp.hp,hunger:sp.hunger,sat:sp.sat,xp:sp.xp,level:sp.level,sel:sp.sel,spawn:sp.spawn,flying:sp.flying||false});for(let i=0;i<36;i++)p.inv[i]=sp.inv[i]||null;for(let i=0;i<4;i++)p.armor[i]=sp.armor[i]||null;
     game.pendingMobs=save.mobs||[];game.pendingItems=save.items||[];
-    if(save.nether){const nw=new World(meta.seed+1,true);nw.savedMods=save.nether.mods||{};nw.savedBents=save.nether.bents||{};nw.populated=new Set(save.nether.pop||[]);game.dims.nether={world:nw,ents:(save.nether.mobs||[]).map(m=>{const e=new Mob(m.type,m.x,m.y,m.z);e.hp=m.hp;return e}),furn:new Map()}}
+    if(save.nether){const nw=new World(meta.seed+1,true);nw.savedMods=save.nether.mods||{};nw.savedBents=save.nether.bents||{};nw.populated=new Set(save.nether.pop||[]);game.dims.nether={world:nw,ents:(save.nether.mobs||[]).map(m=>{if(m.type==='wither'){const w=new Wither(m.x,m.y,m.z);w.hp=m.hp;w.state='hunt';return w}const e=new Mob(m.type,m.x,m.y,m.z);e.hp=m.hp;return e}),furn:new Map()}}
     if(save.end){const ew=new World(meta.seed+2,'end');ew.savedMods=save.end.mods||{};ew.savedBents=save.end.bents||{};ew.populated=new Set(save.end.pop||[]);ew.dragonDead=!!save.end.dragonDead;const ents=(save.end.mobs||[]).map(m=>{const e=new Mob(m.type,m.x,m.y,m.z);e.hp=m.hp;return e});
       if(!ew.dragonDead){const d=new Dragon(0,80,-30);if(save.end.dragonHp)d.hp=save.end.dragonHp;ents.push(d)}for(const c of (save.end.crystals||[]))ents.push(new Crystal(c[0],c[1],c[2]));ew.crystalsPlaced=true;game.dims.end={world:ew,ents,furn:new Map()}}
     if(save.dim==='nether'&&game.dims.nether){game.dims.over={world,ents:[],furn:new Map()};const nw=game.dims.nether;nw.world.time=world.time;nw.world.day=world.day;world=nw.world;game.pendingMobs=[];entities.push(...nw.ents);game.dims.nether=null}
@@ -3291,7 +3351,7 @@ function finishLoad(){const p=player;if(!game.pendingMobs.length&&player.spawn==
   if(game.freshWorld){const s=findSurfaceSpawn(p.x,p.z);game.worldSpawn=s;p.x=s[0];p.y=s[1];p.z=s[2];game.freshWorld=false;
     for(const type of ['sheep','pig','cow','chicken','horse']){for(let t=0;t<12;t++){const a=Math.random()*PI*2,r=8+Math.random()*14;if(spawnPack(type,floor(s[0]+Math.cos(a)*r),floor(s[2]+Math.sin(a)*r),type==='chicken'?4:3,false)>0)break}}}else{const bx=floor(p.x),bz=floor(p.z);const inSolid=y=>{const b=world.getBlock(bx,y,bz);return b!==0&&BLOCKS[b].solid};let fy=floor(p.y),n=0;if(inSolid(fy)||inSolid(fy+1)){while(n<40&&(inSolid(fy)||inSolid(fy+1))){fy++;n++}p.y=fy+0.1}}
   if(game.respawnOnLoad){game.respawnOnLoad=false;respawn()}
-  for(const m of game.pendingMobs){const e=new Mob(m.type,m.x,m.y,m.z);e.hp=m.hp;e.baby=m.baby;e.growT=m.growT||0;if(m.sheared!==undefined)e.sheared=m.sheared;if(m.woolId)e.woolId=m.woolId;if(m.prof&&PROFS[m.prof]){e.prof=m.prof;e.trades=villagerTrades(m.prof);e.vlevel=m.vlevel||1;e.vxp=m.vxp||0;if(m.uses)m.uses.forEach((u,i)=>{if(e.trades[i])e.trades[i].uses=u});if(m.demand)m.demand.forEach((u,i)=>{if(e.trades[i])e.trades[i].demand=u});e.restocks=m.restocks||0}if(m.size&&e.type==='slime')e.setSize(m.size);if(m.tamed){e.tamed=true;if(e.type==='wolf')e.maxHp=20;e.sitting=!!m.sitting}if(e.type==='horse'){if(m.color!==undefined)e.color=m.color;if(m.hspeed)e.hspeed=m.hspeed;if(m.hjump)e.hjump=m.hjump;if(m.maxHp)e.maxHp=m.maxHp;e.saddled=!!m.saddled}entities.push(e)}
+  for(const m of game.pendingMobs){if(m.type==='wither'){const w=new Wither(m.x,m.y,m.z);w.hp=m.hp;w.state='hunt';entities.push(w);continue}const e=new Mob(m.type,m.x,m.y,m.z);e.hp=m.hp;e.baby=m.baby;e.growT=m.growT||0;if(m.sheared!==undefined)e.sheared=m.sheared;if(m.woolId)e.woolId=m.woolId;if(m.prof&&PROFS[m.prof]){e.prof=m.prof;e.trades=villagerTrades(m.prof);e.vlevel=m.vlevel||1;e.vxp=m.vxp||0;if(m.uses)m.uses.forEach((u,i)=>{if(e.trades[i])e.trades[i].uses=u});if(m.demand)m.demand.forEach((u,i)=>{if(e.trades[i])e.trades[i].demand=u});e.restocks=m.restocks||0}if(m.size&&e.type==='slime')e.setSize(m.size);if(m.tamed){e.tamed=true;if(e.type==='wolf')e.maxHp=20;e.sitting=!!m.sitting}if(e.type==='horse'){if(m.color!==undefined)e.color=m.color;if(m.hspeed)e.hspeed=m.hspeed;if(m.hjump)e.hjump=m.hjump;if(m.maxHp)e.maxHp=m.maxHp;e.saddled=!!m.saddled}entities.push(e)}
   for(const it of game.pendingItems)spawnItem(it.x,it.y,it.z,{id:it.id,count:it.count,dur:it.dur});
   for(const c of world.chunks.values())for(const [i,be] of c.bents){if(be.burn>0){const x=c.cx*16+(i>>11),y=i&127,z=c.cz*16+((i>>7)&15);activateFurnace(x,y,z)}}
   updateChunks(200);game.state='playing';game.paused=false;game.gui=null;hideMenus();$('hud').style.display='block';$('overlay').style.display='block';updateHUD();updateHotbar();lockPointer();game.lastSave=game.time;
@@ -3299,12 +3359,12 @@ function finishLoad(){const p=player;if(!game.pendingMobs.length&&player.spawn==
 }
 function saveWorld(){if(!world||game.state!=='playing')return;const p=player;const ridePos=p.riding?[p.x,p.y,p.z]:null;if(ridePos){p.y=p.riding.y}const mods={},bents={};if(world.nether&&player.spawnOver)void 0;
   const other=world.dimKey==='nether'?null:game.dims.nether;let netherSave=null;const endDim=world.end?{world,ents:entities}:game.dims.end;
-  const dimData=(w,ents)=>{for(const c of w.chunks.values()){const k=c.cx+','+c.cz;if(!w.savedMods)w.savedMods={};if(!w.savedBents)w.savedBents={};if(c.mods.size)w.savedMods[k]=Array.from(c.mods);if(c.bents.size)w.savedBents[k]=Array.from(c.bents)}return {mods:w.savedMods||{},bents:w.savedBents||{},pop:Array.from(w.populated),mobs:ents.filter(e=>e instanceof Mob&&!e.dead&&!e.dying).slice(0,60).map(e=>({type:e.type,x:e.x,y:e.y,z:e.z,hp:e.hp}))}};
+  const dimData=(w,ents)=>{for(const c of w.chunks.values()){const k=c.cx+','+c.cz;if(!w.savedMods)w.savedMods={};if(!w.savedBents)w.savedBents={};if(c.mods.size)w.savedMods[k]=Array.from(c.mods);if(c.bents.size)w.savedBents[k]=Array.from(c.bents)}return {mods:w.savedMods||{},bents:w.savedBents||{},pop:Array.from(w.populated),mobs:ents.filter(e=>(e instanceof Mob||e instanceof Wither)&&!e.dead&&!e.dying).slice(0,60).map(e=>({type:e instanceof Wither?'wither':e.type,x:e.x,y:e.y,z:e.z,hp:e.hp}))}};
   if(world.nether)netherSave=dimData(world,entities);else if(other)netherSave=dimData(other.world,other.ents);
   let endSave=null;if(endDim){endSave=dimData(endDim.world,endDim.ents);endSave.dragonDead=!!endDim.world.dragonDead;const dr=endDim.ents.find(e=>e instanceof Dragon&&!e.dead);endSave.dragonHp=dr?dr.hp:null;endSave.crystals=endDim.ents.filter(e=>e instanceof Crystal&&!e.dead).map(c=>[c.x,c.y,c.z])}
   const overSaveWorld=world.dimKey==='over'?world:(game.dims.over?game.dims.over.world:null);
   if(overSaveWorld){for(const c of overSaveWorld.chunks.values()){const k=c.cx+','+c.cz;if(!overSaveWorld.savedMods)overSaveWorld.savedMods={};if(!overSaveWorld.savedBents)overSaveWorld.savedBents={};if(c.mods.size)overSaveWorld.savedMods[k]=Array.from(c.mods);if(c.bents.size)overSaveWorld.savedBents[k]=Array.from(c.bents)}Object.assign(mods,overSaveWorld.savedMods||{});Object.assign(bents,overSaveWorld.savedBents||{})}
-  const mobs=[],items=[];const overEnts=world.dimKey==='over'?entities:(game.dims.over?game.dims.over.ents:[]);for(const e of overEnts){if(e.dead)continue;if(e instanceof Mob&&!e.dying)mobs.push({type:e.type,x:e.x,y:e.y,z:e.z,hp:e.hp,baby:e.baby,growT:e.growT,sheared:e.sheared,woolId:e.woolId,prof:e.prof,vlevel:e.vlevel,vxp:e.vxp,uses:e.trades?e.trades.map(t=>t.uses):undefined,tamed:e.tamed||undefined,sitting:e.sitting||undefined,color:e.color,hspeed:e.hspeed,hjump:e.hjump,saddled:e.saddled||undefined,maxHp:e.type==='horse'?e.maxHp:undefined,size:e.size,demand:e.trades?e.trades.map(t=>t.demand||0):undefined,restocks:e.restocks});else if(e instanceof ItemEntity)items.push({x:e.x,y:e.y,z:e.z,id:e.stack.id,count:e.stack.count,dur:e.stack.dur})}
+  const mobs=[],items=[];const overEnts=world.dimKey==='over'?entities:(game.dims.over?game.dims.over.ents:[]);for(const e of overEnts){if(e.dead)continue;if(e instanceof Wither&&!e.dying)mobs.push({type:'wither',x:e.x,y:e.y,z:e.z,hp:e.hp});else if(e instanceof Mob&&!e.dying)mobs.push({type:e.type,x:e.x,y:e.y,z:e.z,hp:e.hp,baby:e.baby,growT:e.growT,sheared:e.sheared,woolId:e.woolId,prof:e.prof,vlevel:e.vlevel,vxp:e.vxp,uses:e.trades?e.trades.map(t=>t.uses):undefined,tamed:e.tamed||undefined,sitting:e.sitting||undefined,color:e.color,hspeed:e.hspeed,hjump:e.hjump,saddled:e.saddled||undefined,maxHp:e.type==='horse'?e.maxHp:undefined,size:e.size,demand:e.trades?e.trades.map(t=>t.demand||0):undefined,restocks:e.restocks});else if(e instanceof ItemEntity)items.push({x:e.x,y:e.y,z:e.z,id:e.stack.id,count:e.stack.count,dur:e.stack.dur})}
   const save={v:1,dim:world.dimKey,nether:netherSave,end:endSave,time:world.time,day:world.day,spawn:game.worldSpawn,player:{x:p.x,y:p.y,z:p.z,yaw:p.yaw,pitch:p.pitch,hp:p.hp,hunger:p.hunger,sat:p.sat,xp:p.xp,level:p.level,sel:p.sel,inv:p.inv,armor:p.armor,spawn:p.spawn,flying:p.flying},mods,bents,mobs:mobs.slice(0,120),items:items.slice(0,100),pop:Array.from(overSaveWorld?overSaveWorld.populated:[])};
   try{localStorage.setItem('ic_world_'+game.worldId,JSON.stringify(save));const list=worldList();const m=list.find(w=>w.id===game.worldId);if(m){m.played=Date.now();localStorage.setItem('ic_worlds',JSON.stringify(list))}}catch(e){showMessage('Save failed: storage full')}
   if(ridePos){p.y=ridePos[1]}game.lastSave=game.time;
@@ -3406,7 +3466,7 @@ function loop(now){
       if(game.tick%2===0){updateHUD();updateFurnaceGui()}
       if(game.tick%200===0)saveWorld();
     }
-    tickFurnaces(dt);tickSpawners(dt);
+    tickFurnaces(dt);tickSpawners(dt);if(typeof beaconTick==='function')beaconTick();
     updateMusic(dt);
     if(player.sleeping>0&&player.sleeping>2.2)$('sleepfade').style.opacity=1;
   }
