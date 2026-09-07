@@ -2192,9 +2192,16 @@ Object.assign(World.prototype,{
   regionOrigin(cx,cz,size,salt){const rx=Math.floor(cx/size),rz=Math.floor(cz/size);const r=mulberry32(hashInt(rx,rz,salt,this.seed));const ox=rx*size+floor(r()*size),oz=rz*size+floor(r()*size);return ox===cx&&oz===cz?r:null},
   surfaceY(x,z){return this.columnInfo(x,z).height},
   /* ---- overworld dispatcher ---- */
+  // every overworld has a ruined portal a few blocks from the world spawn (position derived from the seed only)
+  spawnPortalSpot(){if(this._spp!==undefined)return this._spp;if(this.nether){this._spp=null;return null}
+    let base=[0,0];outer:for(let r=0;r<400;r+=8){for(let a=0;a<PI*2;a+=0.7){const x=floor(Math.cos(a)*r),z=floor(Math.sin(a)*r);const info=this.columnInfo(x,z);if(info.height>SEA+1&&info.biome!==BI.mountains&&info.biome!==BI.ocean){base=[x,z];break outer}}}
+    const rr=mulberry32(hashInt(base[0],base[1],108,this.seed));const ang=rr()*PI*2,dist=9+rr()*6;let best=null;
+    for(let t=0;t<8&&!best;t++){const a=ang+t*0.8;const x=floor(base[0]+Math.cos(a)*dist),z=floor(base[1]+Math.sin(a)*dist);const info=this.columnInfo(x,z);if(info.height>SEA+1&&info.biome!==BI.ocean)best={x,z}}
+    this._spp=best||{x:base[0]+10,z:base[1]};return this._spp},
   placeStructures(c,infos,rng){
     const cx=c.cx,cz=c.cz;const mid=infos[8*16+8];const wx=cx*16,wz=cz*16;
     let r;
+    const spp=this.spawnPortalSpot();if(spp&&(spp.x>>4)===cx&&(spp.z>>4)===cz)this.placeRuinedPortal(spp.x,spp.z,mulberry32(hashInt(spp.x,spp.z,109,this.seed)));
     if((r=this.regionOrigin(cx,cz,20,101))&&[BI.plains,BI.forest,BI.taiga,BI.snowy_taiga,BI.desert].includes(mid.biome)&&mid.height>SEA+2)this.placeVillage(wx+8,wz+8,mid,r);
     if((r=this.regionOrigin(cx,cz,18,102))&&mid.biome===BI.desert)this.placeDesertTemple(wx+8,wz+8,r);
     if((r=this.regionOrigin(cx,cz,14,103))&&mid.biome===BI.snowy_taiga)this.placeIgloo(wx+8,wz+8,r);
