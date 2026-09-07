@@ -133,7 +133,7 @@ label.lb{font-size:13px;color:#a0a0a0;align-self:flex-start;margin-left:calc(50%
 
 <div id="invGui" class="gui"><div class="panel">
   <div class="row" id="invTop" style="align-items:flex-start;gap:14px">
-    <div class="row" id="armorBox" style="align-items:flex-start;gap:14px"><div class="grid" id="armorGrid" style="grid-template-columns:38px"></div>
+    <div class="row" id="armorBox" style="align-items:flex-start;gap:14px"><div><h3 id="armorLabel" style="display:none">Armor</h3><div class="grid" id="armorGrid" style="grid-template-columns:38px"></div></div>
     <div style="width:110px;height:154px;background:#000;border:2px solid #333;display:flex;align-items:flex-end;justify-content:center;" id="playerPreview"></div></div>
     <div><h3>Crafting</h3><div class="row"><div class="grid g2" id="craft2"></div><div class="arrow"></div><div class="grid" id="craft2out" style="grid-template-columns:52px"></div></div></div>
   </div>
@@ -447,6 +447,11 @@ defTex('soul_sand',p=>{p.noise(82,62,50,8);p.speckle(14,60,45,35);p.rect(3,4,3,3
 defTex('nether_quartz_ore',p=>{p.noise(110,40,40,14);for(let i=0;i<7;i++){const x=floor(p.rng()*15),y=floor(p.rng()*15);p.rect(x,y,2,2,235,225,215);p.shade(x+1,y+1,0.8)}});
 defTex('nether_portal',p=>{for(let y=0;y<16;y++)for(let x=0;x<16;x++){const w=Math.sin(x*0.9+y*0.5)*0.5+Math.sin(y*1.3-x*0.4)*0.5;const f=0.6+w*0.3;p.px(x,y,120*f,20*f,200*f,200)}});
 defTex('fire_block',p=>{p.fill(0,0,0,0);for(let x=0;x<16;x++){const h=6+floor(p.rng()*10);for(let y=15;y>15-h;y--){const t=(15-y)/h;if(p.rng()<0.15&&t>0.5)continue;p.px(x,y,255,235-t*200,40+t*20,240)}}});
+defTex('spawner',p=>{p.fill(0,0,0,0);for(let i=0;i<16;i++){for(let j=0;j<16;j++){if(i%4===0||j%4===0||i===15||j===15)p.px(i,j,25,35,45,255)}}p.speckle(10,40,55,70,255)});
+defTex('cobweb',p=>{p.fill(0,0,0,0);for(let i=0;i<16;i++){p.px(i,i,235,235,235,220);p.px(15-i,i,235,235,235,220);p.px(i,7,235,235,235,200);p.px(7,i,235,235,235,200)}for(let r=3;r<8;r+=2){for(let a=0;a<32;a++){const x=8+Math.round(Math.cos(a/32*6.28)*r),y=8+Math.round(Math.sin(a/32*6.28)*r);if(x>=0&&x<16&&y>=0&&y<16)p.px(x,y,225,225,225,180)}}});
+defTex('nether_bricks',p=>brickPattern(p,[35,15,18],[70,30,35]));
+defTex('rail',p=>{p.fill(0,0,0,0);for(let y=0;y<16;y+=4)p.rect(1,y+1,14,2,110,80,50);p.rect(3,0,2,16,150,150,160);p.rect(11,0,2,16,150,150,160);p.rect(3,0,1,16,110,110,120);p.rect(11,0,1,16,110,110,120)});
+defTex('villager_face',p=>{p.noise(200,160,120,6);p.rect(2,4,3,2,60,120,60);p.rect(11,4,3,2,60,120,60);p.rect(2,3,12,1,110,70,40);p.rect(6,6,4,7,190,145,105);p.rect(5,13,6,1,150,110,80)});
 defTex('sheep_wool',p=>{p.noise(235,235,235,10);for(let i=0;i<10;i++)p.blob(floor(p.rng()*16),floor(p.rng()*16),1.5,215,215,215)});
 
 const ATLAS_W=16; // tiles per row
@@ -566,6 +571,11 @@ defBlock(82,'nether_portal',{tex:'nether_portal',model:'portal',solid:false,hard
 defBlock(83,'netherrack',{tex:'netherrack',hard:0.4,tool:'pickaxe',needsTool:true,resist:0.4});
 defBlock(84,'soul_sand',{tex:'soul_sand',hard:0.5,tool:'shovel',sound:'sand',slow:true});
 defBlock(85,'nether_quartz_ore',{tex:'nether_quartz_ore',hard:3,tool:'pickaxe',needsTool:true,drop:()=>[[311,1]],xp:[2,5]});
+defBlock(86,'spawner',{label:'Monster Spawner',tex:'spawner',hard:5,tool:'pickaxe',needsTool:true,transparent:true,drop:()=>[],xp:[15,43]});
+defBlock(87,'cobweb',{tex:'cobweb',model:'cross',solid:false,hard:4,tool:'shears',transparent:true,sound:'wool',web:true,drop:(r,t)=>t==='shears'?[[87,1]]:[[286,1]]});
+defBlock(88,'nether_bricks',{tex:'nether_bricks',hard:2,tool:'pickaxe',needsTool:true,resist:6});
+defBlock(89,'rail',{tex:'rail',model:'rail',solid:false,hard:0.7,tool:'pickaxe',transparent:true});
+defBlock(90,'stone_pressure_plate',{tex:'smooth_stone',model:'plate',solid:false,hard:0.5,tool:'pickaxe',needsTool:true,transparent:true});
 defBlock(80,'snow_block',{tex:'snow',hard:0.2,tool:'shovel',needsTool:true,sound:'snow',drop:()=>[[293,4]]});
 // ---- items ----
 const MAT={wood:{tier:0,speed:2,dur:59,color:[150,120,70],name:'Wooden'},stone:{tier:1,speed:4,dur:131,color:[130,130,130],name:'Stone'},iron:{tier:2,speed:6,dur:250,color:[220,220,220],name:'Iron'},diamond:{tier:3,speed:8,dur:1561,color:[90,230,220],name:'Diamond'},gold:{tier:0,speed:12,dur:32,color:[250,220,60],name:'Golden'}};
@@ -792,7 +802,7 @@ const BI={};BIOMES.forEach((b,i)=>BI[b]=i);
 const LIGHT_OPACITY=id=>{const d=BLOCKS[id];if(d.opaque)return 15;if(id===8)return 2;if(d.leaves)return 1;return 0};
 class World{
   constructor(seed,nether){
-    this.nether=!!nether;this.seed=seed;this.chunks=new Map();this.pending=new Map();this.populated=new Set();this.tickQueue=new Map();this.time=1000;this.day=0;
+    this.nether=!!nether;this.seed=seed;this.chunks=new Map();this.pending=new Map();this.populated=new Set();this.pendingLoot=new Map();this.spawners=new Map();this.tickQueue=new Map();this.time=1000;this.day=0;
     const s=seed|0;this.nT=new Simplex(s);this.nH=new Simplex(s+1);this.nM=new Simplex(s+2);this.nD=new Simplex(s+3);this.nTemp=new Simplex(s+4);this.nHum=new Simplex(s+5);
     this.nC1=new Simplex(s+6);this.nC2=new Simplex(s+7);this.nC3=new Simplex(s+8);this.nC4=new Simplex(s+11);this.nC5=new Simplex(s+12);this.nVar=new Simplex(s+9);this.nR=new Simplex(s+10);
     this.dirtyLight=new Set();
@@ -816,6 +826,7 @@ class World{
     const i=cidx(x&15,y,z&15);const old=c.blocks[i],oldMeta=c.meta[i];if(old===id&&oldMeta===meta)return true;
     c.blocks[i]=id;c.meta[i]=meta;
     if(!opt.gen)c.mods.set(i,id|(meta<<8));
+    if(old===86&&id!==86)this.spawners.delete(x+','+y+','+z);
     if(old!==id&&c.bents.has(i)&&BLOCKS[old].gui){if(!opt.keepEntity){const be=c.bents.get(i);c.bents.delete(i);if(!opt.noDrop&&be&&be.items&&typeof dropInventory==='function')dropInventory(be.items,x,y,z)}}
     if(c.lit){this.updateLightAt(x,y,z,old,id)}
     this.markDirtyAround(x,y,z);
@@ -861,6 +872,7 @@ class World{
     }
     this.propagate(add,sky);
   }
+  relightDirty(){for(const c of this.chunks.values()){if(!c.relight)continue;c.relight=false;c.sky.fill(0);c.light.fill(0);this.registerSpawners(c);this.lightChunk(c)}}
   /* ---- initial lighting for a freshly generated chunk ---- */
   lightChunk(c){
     const bl=c.blocks,sk=c.sky,li=c.light;const q=[];const bq=[];
@@ -955,12 +967,14 @@ class World{
     c.generated=true;
     // decorations
     this.decorate(c,infos,rng);
+    this.placeStructures(c,infos,rng);
     // pending writes from neighbours' trees etc.
     const pk=chunkKey(cx,cz);const pend=this.pending.get(pk);if(pend){for(const [lx,ly,lz,id,meta,onlyAir] of pend){const i=cidx(lx,ly,lz);if(onlyAir&&bl[i]!==0&&!BLOCKS[bl[i]].leaves)continue;bl[i]=id;mt[i]=meta}}
     // saved modifications
     if(this.savedMods){const sm=this.savedMods[cx+','+cz];if(sm){for(const [i,v] of sm){bl[i]=v&255;mt[i]=v>>8;c.mods.set(i,v)}}
       const sb=this.savedBents&&this.savedBents[cx+','+cz];if(sb)for(const [i,be] of sb)c.bents.set(+i,be)}
-    this.lightChunk(c);
+    this.applyPendingLoot(c);this.registerSpawners(c);
+    this.lightChunk(c);this.relightDirty();
     return c;
   }
   generateNetherChunk(c){
@@ -979,14 +993,15 @@ class World{
       c.heights[x*16+z]=40}
     for(let t=0;t<14;t++){let x=floor(rng()*16),z=floor(rng()*16),y=10+floor(rng()*105);for(let s=0;s<9;s++){if(x>=0&&x<16&&z>=0&&z<16&&y>4&&y<CH-4){const i=cidx(x,y,z);if(bl[i]===83)bl[i]=85}const a=floor(rng()*3),dd=rng()<0.5?-1:1;if(a===0)x+=dd;else if(a===1)y+=dd;else z+=dd}}
     for(let t=0;t<5;t++){const x=floor(rng()*16),z=floor(rng()*16);for(let y=110;y>40;y--){if(bl[cidx(x,y,z)]===83&&bl[cidx(x,y-1,z)]===0){const n=4+floor(rng()*8);for(let k=0;k<n;k++){const ox=clamp(x+floor(rng()*5)-2,0,15),oz=clamp(z+floor(rng()*5)-2,0,15),oy=y-floor(rng()*4);if(bl[cidx(ox,oy,oz)]===0||bl[cidx(ox,oy,oz)]===83)bl[cidx(ox,oy,oz)]=53}break}}}
-    c.generated=true;
+    c.generated=true;this.placeNetherStructures(c,rng);
+    const pk=chunkKey(cx,cz);const pend=this.pending.get(pk);if(pend){for(const [lx,ly,lz,id,meta,onlyAir] of pend){const i=cidx(lx,ly,lz);if(onlyAir&&bl[i]!==0)continue;bl[i]=id;mt[i]=meta}}
     if(this.savedMods){const sm=this.savedMods[cx+','+cz];if(sm){for(const [i,v] of sm){bl[i]=v&255;mt[i]=v>>8;c.mods.set(i,v)}}const sb=this.savedBents&&this.savedBents[cx+','+cz];if(sb)for(const [i,be] of sb)c.bents.set(+i,be)}
-    this.lightChunk(c);return c;
+    this.applyPendingLoot(c);this.registerSpawners(c);this.lightChunk(c);this.relightDirty();return c;
   }
   setGen(x,y,z,id,meta=0,onlyAir=true){ // write during generation (may target ungenerated chunk)
     if(y<0||y>=CH)return;const cx=x>>4,cz=z>>4;const c=this.getChunk(cx,cz);
     if(c&&c.generated){const i=cidx(x&15,y,z&15);if(onlyAir&&c.blocks[i]!==0&&!BLOCKS[c.blocks[i]].leaves)return;
-      if(c.lit){this.setBlock(x,y,z,id,meta,{gen:true})}else{c.blocks[i]=id;c.meta[i]=meta}return}
+      c.blocks[i]=id;c.meta[i]=meta;if(c.lit){c.relight=true;this.markDirtyAround(x,y,z)}return}
     const k=chunkKey(cx,cz);let p=this.pending.get(k);if(!p){p=[];this.pending.set(k,p)}p.push([x&15,y,z&15,id,meta,onlyAir]);
   }
   getGen(x,y,z){if(y<0||y>=CH)return 0;const c=this.getChunk(x>>4,z>>4);if(!c||!c.generated)return 0;return c.blocks[cidx(x&15,y,z&15)]}
@@ -1134,6 +1149,8 @@ function blockBoxes(id,meta,mode,x,y,z){
     case 'chest':return [[0.0625,0,0.0625,0.9375,0.875,0.9375]];
     case 'cactus':return mode==='c'?[[0.0625,0,0.0625,0.9375,1,0.9375]]:[[0.0625,0,0.0625,0.9375,1,0.9375]];
     case 'snow':return [[0,0,0,1,0.125,1]];
+    case 'rail':return mode==='c'?[]:[[0,0,0,1,0.0625,1]];
+    case 'plate':return mode==='c'?[]:[[0.0625,0,0.0625,0.9375,0.0625,0.9375]];
     case 'farmland':return [[0,0,0,1,0.9375,1]];
   }
   return [[0,0,0,1,1,1]];
@@ -1155,6 +1172,8 @@ function renderBoxes(id,meta,x,y,z){
     case 'chest':{const f=meta&3;const tiles=[F[0],F[0],F[2],F[2],d.front,F[0]];const ff=FACING_TO_FACE[f];const t2=F.slice();t2[ff]=d.front;t2[2]=F[2];t2[3]=F[2];return [[0.0625,0,0.0625,0.9375,0.875,0.9375,t2],rotBoxT([0.4375,0.4375,0.9375,0.5625,0.6875,1,all(TEX.white),0,[80,80,80]],f)]}
     case 'cactus':return [[0.0625,0,0.0625,0.9375,1,0.9375,F,0,null,true]];
     case 'snow':return [[0,0,0,1,0.125,1,F]];
+    case 'rail':return [[0,0,0,1,0.0625,1,F]];
+    case 'plate':return [[0.0625,0,0.0625,0.9375,0.0625,0.9375,F]];
     case 'farmland':return [[0,0,0,1,0.9375,1,F]];
   }
   return [[0,0,0,1,1,1,F]];
@@ -1562,6 +1581,7 @@ const MOBDEF={
   pig:{hp:10,w:0.9,h:0.9,speed:1.5,passive:true,food:[302],drops:r=>[[274,1+floor(r()*3)]],xp:[1,3],sound:'pig'},
   cow:{hp:10,w:0.9,h:1.4,speed:1.5,passive:true,food:[271],drops:r=>[[289,floor(r()*3)],[276,1+floor(r()*3)]],xp:[1,3],sound:'cow'},
   sheep:{hp:8,w:0.9,h:1.3,speed:1.5,passive:true,food:[271],drops:(r,e)=>[[e.sheared?0:e.woolId,1],[280,1+floor(r()*2)]],xp:[1,3],sound:'sheep'},
+  villager:{hp:20,w:0.6,h:1.95,speed:1.5,passive:true,food:[],drops:()=>[],xp:[0,0],sound:'villager',noDespawn:true},
   chicken:{hp:4,w:0.4,h:0.7,speed:1.5,passive:true,food:[270],drops:r=>[[288,floor(r()*3)],[278,1]],xp:[1,3],sound:'chicken'},
   zombie:{hp:20,w:0.6,h:1.95,speed:3.2,dmg:3,undead:true,drops:r=>[[282,floor(r()*3)],[r()<0.025?[260,302,303][floor(r()*3)]:0,1]],xp:[5,5],sound:'zombie',follow:35},
   skeleton:{hp:20,w:0.6,h:1.99,speed:3.4,dmg:3,undead:true,ranged:true,drops:r=>[[283,floor(r()*3)],[284,floor(r()*3)]],xp:[5,5],sound:'skeleton',follow:16},
@@ -1629,7 +1649,7 @@ class Mob extends Entity{
     }
     if(this.type==='creeper'&&this.swell>0&&Math.random()<dt*4)playSoundAt('fuse',this.x,this.y,this.z,1,0.2);
     // despawn
-    if(!d.passive){if(dist3>128)this.dead=true;else if(dist3>32&&Math.random()<dt/60)this.dead=true}
+    if(!d.passive&&!d.noDespawn){if(dist3>128)this.dead=true;else if(dist3>32&&Math.random()<dt/60)this.dead=true}
   }
   land(dist){if(dist>3&&this.type!=='chicken'&&this.type!=='spider')damageEntity(this,floor(dist-3),{type:'fall'})}
   onHurt(src){if(this.type==='zombified_piglin'&&src&&src.type==='player'){for(const o of entities)if(o instanceof Mob&&o.type==='zombified_piglin'&&abs(o.x-this.x)<16&&abs(o.z-this.z)<16)o.angry=true}
@@ -1673,6 +1693,9 @@ class Mob extends Entity{
       case 'creeper':{const f=this.swell>0?1+Math.sin(this.swell*25)*0.4+this.swell*0.3:1;const c=[f,f,f];const sc=TEX.creeper_skin;
         for(const [lx,lz,sg] of [[-2,-4,1],[2,-4,-1],[-2,4,-1],[2,4,1]])part([lx-2,-6,lz-2,lx+2,0,lz+2],0,6,0,swing*sg*0.7,0,0,sc,c);
         part([-4,6,-2,4,18,2],0,0,0,0,0,0,sc,c);part([-4,0,-4,4,8,4],0,18,0,hp,hy,0,[sc,sc,sc,sc,sc,TEX.creeper_face],c);break}
+      case 'villager':{const robe=[0.42,0.3,0.2],skin=[0.8,0.63,0.47];part([-2,-12,-2,2,0,2],-2,12,0,swing*0.5,0,0,N,[0.3,0.25,0.35]);part([-2,-12,-2,2,0,2],2,12,0,-swing*0.5,0,0,N,[0.3,0.25,0.35]);
+        part([-4,12,-3,4,24,3],0,0,0,0,0,0,N,robe);part([-4,8,-3,4,12,3],0,0,0,0,0,0,N,robe);part([-4,-2,-3,4,2,3],0,20,0,0,0,0,N,skin);
+        part([-4,0,-4,4,10,4],0,24,0,hp,hy,0,face(TEX.villager_face),skin);part([-1,2,-6,1,6,-4],0,24,0,hp,hy,0,N,skin);break}
       case 'spider':{const c=[0.22,0.2,0.2];part([-3,5,-3,3,11,3],0,0,0,0,0,0,N,c);part([-5,4,3,5,12,15],0,0,0,0,0,0,N,c);part([-4,-4,-8,4,4,0],0,8,-3,hp,hy,0,face(TEX.spider_face),c);
         for(let i=0;i<4;i++){const z=-3+i*2.5;const sw=Math.sin(this.walkT*1.5+i)*this.walkAmp*0.5;const ang=(i-1.5)*0.35;
           part([-16,-1,-1,0,1,1],-3,9,z,0,ang+sw,0.5,N,c);part([0,-1,-1,16,1,1],3,9,z,0,-ang-sw,-0.5,N,c)}break}
@@ -1776,6 +1799,10 @@ function updatePlayer(dt){
   // walk animation
   const hs=sqrt(p.vx*p.vx+p.vz*p.vz);p.walkAmp+=((p.onGround&&hs>0.5?1:0)-p.walkAmp)*Math.min(1,dt*6);p.walkT+=hs*dt*1.6;
   p.stepT=(p.stepT||0)+hs*dt;if(p.stepT>2.2&&p.onGround){p.stepT=0;if(hs>1)playSound('step_'+blockSoundUnder(),0.35)}
+  // ---- pressure plate / cobweb ----
+  const feetId=world.getBlock(floor(p.x),floor(p.y),floor(p.z));
+  if(feetId===90&&!p.onPlate){p.onPlate=true;playSound('click',0.6);let lit=0;for(let dx=-3;dx<=3;dx++)for(let dy=-4;dy<=1;dy++)for(let dz=-3;dz<=3;dz++){const bx=floor(p.x)+dx,by=floor(p.y)+dy,bz=floor(p.z)+dz;if(world.getBlock(bx,by,bz)===28){world.setBlock(bx,by,bz,0,0,{silent:true});const t=new TNTEntity(bx+0.5,by,bz+0.5);t.fuse=1.2+Math.random()*0.6;entities.push(t);lit++}}if(lit)playSound('fuse')}else if(feetId!==90)p.onPlate=false;
+  if(BLOCKS[feetId].web||BLOCKS[world.getBlock(floor(p.x),floor(p.y+1),floor(p.z))].web){p.vx*=0.25;p.vz*=0.25;p.vy=clamp(p.vy,-1,1)*0.5;p.fallDist=0}
   // ---- portal ----
   const inPortal=world.getBlock(floor(p.x),floor(p.y),floor(p.z))===82||world.getBlock(floor(p.x),floor(p.y+1),floor(p.z))===82;
   if(inPortal){if(!p.portalLock){p.portalT+=dt;if(p.portalT>=(creative?0.3:4)){p.portalT=0;p.portalLock=true;switchDimension()}}}else{p.portalT=0;p.portalLock=false}
@@ -1954,6 +1981,167 @@ function armorPoints(){let a=0;for(const s of player.armor)if(s)a+=ITEMS[s.id].p
 function damageArmor(n){for(const s of player.armor)if(s)damageItem(s,n)}
 function damageItem(st,n){if(player.mode==='creative')return;st.dur=(st.dur||0)+n;const max=ITEMS[st.id].dur;if(max&&st.dur>=max){for(let i=0;i<36;i++)if(player.inv[i]===st)player.inv[i]=null;for(let i=0;i<4;i++)if(player.armor[i]===st)player.armor[i]=null;playSound('itembreak');updateHotbar()}}
 function flashDamage(){const f=$('dmgflash');f.style.background='rgba(255,0,0,.35)';setTimeout(()=>f.style.background='rgba(255,0,0,0)',150)}
+/* ===================== STRUCTURES ===================== */
+const LOOT={
+  dungeon:[[272,1,3,10],[283,1,4,10],[285,1,4,10],[286,1,4,10],[271,1,4,10],[260,1,4,8],[257,1,4,8],[262,1,4,5],[263,1,1,3],[308,1,1,2],[6,1,2,5],[301,1,1,3],[282,1,3,8]],
+  mineshaft:[[89,4,8,10],[32,1,16,10],[272,1,3,10],[260,1,5,8],[262,1,3,5],[265,4,9,5],[264,4,9,5],[263,1,2,3],[257,3,8,10],[270,2,4,6],[308,1,1,1]],
+  temple:[[263,1,3,5],[260,1,5,15],[262,2,7,15],[266,1,3,15],[283,4,6,25],[287,1,3,25],[282,3,7,25],[308,1,1,10],[285,1,8,5]],
+  igloo:[[273,1,3,15],[257,1,4,15],[308,1,1,1],[271,2,3,10],[282,1,1,10],[266,1,1,5]],
+  portal:[[31,1,2,40],[269,1,4,40],[299,1,1,40],[262,2,8,15],[308,1,1,15],[24,1,2,5],[262,1,3,15]],
+  village:[[272,1,4,20],[273,1,5,15],[271,1,7,10],[270,1,4,10],[260,1,3,5],[266,1,4,3],[257,1,4,10],[303,1,5,10],[302,1,5,10],[6,1,2,5],[289,1,3,5]],
+  fortress:[[263,1,3,5],[260,1,5,5],[262,1,3,15],[299,1,1,5],[31,2,4,5],[308,1,1,3],[311,2,6,10],[283,2,5,8]],
+  hut:[[283,2,5,10],[287,1,3,10],[286,1,4,10],[265,1,4,8],[285,1,3,8],[64,1,3,8],[65,1,3,8],[34,1,1,2]],
+};
+function rollLoot(table,rng,n){const items=new Array(27).fill(null);const tot=table.reduce((s,e)=>s+e[3],0);
+  for(let k=0;k<n;k++){let r=rng()*tot;let e=table[0];for(const t of table){r-=t[3];if(r<=0){e=t;break}}const cnt=e[1]+floor(rng()*(e[2]-e[1]+1));let slot=floor(rng()*27);for(let t=0;t<27&&items[slot];t++)slot=(slot+1)%27;if(!items[slot])items[slot]={id:e[0],count:Math.min(cnt,ITEMS[e[0]].stack)}}
+  return items}
+Object.assign(World.prototype,{
+  setChest(x,y,z,facing,table,rng,n){this.setGen(x,y,z,39,facing,false);const items=rollLoot(LOOT[table],rng,n||3+floor(rng()*5));const c=this.getChunk(x>>4,z>>4);
+    if(c&&c.generated){c.bents.set(cidx(x&15,y,z&15),{items})}else{const k=chunkKey(x>>4,z>>4);let l=this.pendingLoot.get(k);if(!l){l=[];this.pendingLoot.set(k,l)}l.push([x&15,y,z&15,items])}},
+  applyPendingLoot(c){const k=chunkKey(c.cx,c.cz);const l=this.pendingLoot.get(k);if(!l)return;for(const [lx,ly,lz,items] of l){const i=cidx(lx,ly,lz);if(c.blocks[i]===39&&!c.bents.has(i))c.bents.set(i,{items:items.map(s=>s?{id:s.id,count:s.count}:null)})}},
+  registerSpawners(c){const bl=c.blocks;for(let i=0;i<bl.length;i++){if(bl[i]===86){const x=c.cx*16+(i>>11),y=i&127,z=c.cz*16+((i>>7)&15);this.spawners.set(x+','+y+','+z,{x,y,z,type:c.meta[i]&3,t:5+Math.random()*10})}}},
+  fill(x0,y0,z0,x1,y1,z1,id,meta=0){for(let x=x0;x<=x1;x++)for(let y=y0;y<=y1;y++)for(let z=z0;z<=z1;z++)this.setGen(x,y,z,id,meta,false)},
+  regionOrigin(cx,cz,size,salt){const rx=Math.floor(cx/size),rz=Math.floor(cz/size);const r=mulberry32(hashInt(rx,rz,salt,this.seed));const ox=rx*size+floor(r()*size),oz=rz*size+floor(r()*size);return ox===cx&&oz===cz?r:null},
+  surfaceY(x,z){return this.columnInfo(x,z).height},
+  /* ---- overworld dispatcher ---- */
+  placeStructures(c,infos,rng){
+    const cx=c.cx,cz=c.cz;const mid=infos[8*16+8];const wx=cx*16,wz=cz*16;
+    let r;
+    if((r=this.regionOrigin(cx,cz,20,101))&&[BI.plains,BI.forest,BI.taiga,BI.snowy_taiga,BI.desert].includes(mid.biome)&&mid.height>SEA+2)this.placeVillage(wx+8,wz+8,mid,r);
+    if((r=this.regionOrigin(cx,cz,18,102))&&mid.biome===BI.desert)this.placeDesertTemple(wx+8,wz+8,r);
+    if((r=this.regionOrigin(cx,cz,14,103))&&mid.biome===BI.snowy_taiga)this.placeIgloo(wx+8,wz+8,r);
+    if((r=this.regionOrigin(cx,cz,12,104))&&mid.biome===BI.swamp)this.placeSwampHut(wx+8,wz+8,r);
+    if((r=this.regionOrigin(cx,cz,10,105))&&mid.height>SEA+1&&r()<0.6)this.placeRuinedPortal(wx+8,wz+8,r);
+    if((r=this.regionOrigin(cx,cz,9,106))&&r()<0.55)this.placeMineshaft(wx+8,wz+8,r);
+    if(rng()<0.12)this.placeDungeon(wx+2+floor(rng()*12),8+floor(rng()*42),wz+2+floor(rng()*12),rng);
+  },
+  placeNetherStructures(c,rng){const r=this.regionOrigin(c.cx,c.cz,14,107);if(r)this.placeFortress(c.cx*16+8,c.cz*16+8,r)},
+  /* ---- dungeon (monster room) ---- */
+  placeDungeon(x,y,z,rng){
+    const w=2+floor(rng()*2),l=2+floor(rng()*2);
+    // must be inside solid rock
+    for(const [dx,dz] of [[-w,-l],[w,-l],[-w,l],[w,l],[0,0]]){const b=this.getGen(x+dx,y+2,z+dz);if(!(b===1||b===66||b===67||b===68))return}
+    for(let dx=-w-1;dx<=w+1;dx++)for(let dz=-l-1;dz<=l+1;dz++)for(let dy=-1;dy<=4;dy++){const edge=dx===-w-1||dx===w+1||dz===-l-1||dz===l+1||dy===-1||dy===4;
+      if(edge){if(this.getGen(x+dx,y+dy,z+dz)!==0||dy===-1)this.setGen(x+dx,y+dy,z+dz,rng()<0.4?30:4,0,false)}else this.setGen(x+dx,y+dy,z+dz,0,0,false)}
+    const t=rng();this.setGen(x,y,z,86,t<0.5?0:t<0.75?1:2,false);
+    const n=1+(rng()<0.5?1:0);for(let i=0;i<n;i++){const side=floor(rng()*4);const px=side===0?x-w:side===1?x+w:x-w+floor(rng()*(2*w+1)),pz=side===2?z-l:side===3?z+l:z-l+floor(rng()*(2*l+1));if(px===x&&pz===z)continue;this.setChest(px,y,pz,floor(rng()*4),'dungeon',rng,4+floor(rng()*4))}
+  },
+  /* ---- mineshaft ---- */
+  placeMineshaft(x,z,rng){
+    const y=18+floor(rng()*24);const dirs=[[1,0],[-1,0],[0,1],[0,-1]];
+    const corridor=(sx,sz,d,len,depth)=>{const dx=dirs[d][0],dz=dirs[d][1];const px=dz!==0?1:0,pz=dx!==0?1:0; // perpendicular
+      for(let i=0;i<len;i++){const cx=sx+dx*i,cz=sz+dz*i;
+        for(let s=-1;s<=1;s++)for(let h=0;h<3;h++){const bx=cx+px*s,bz=cz+pz*s;const b=this.getGen(bx,y+h,bz);if(b===9||b===8)continue;this.setGen(bx,y+h,bz,0,0,false)}
+        for(let s=-1;s<=1;s++){const bx=cx+px*s,bz=cz+pz*s;const below=this.getGen(bx,y-1,bz);if(below===0||below===8||below===9||rng()<0.25)this.setGen(bx,y-1,bz,5,0,false)}
+        if(i%4===2){this.setGen(cx+px,y,cz+pz,61,0,false);this.setGen(cx+px,y+1,cz+pz,61,0,false);this.setGen(cx-px,y,cz-pz,61,0,false);this.setGen(cx-px,y+1,cz-pz,61,0,false);for(let s=-1;s<=1;s++)this.setGen(cx+px*s,y+2,cz+pz*s,5,0,false);if(rng()<0.3)this.setGen(cx,y+1,cz,32,0,false)}
+        if(rng()<0.7)this.setGen(cx,y,cz,89,dx!==0?1:0,false);
+        if(rng()<0.03)this.setGen(cx+px*(rng()<0.5?1:-1),y+1+floor(rng()*2),cz+pz*(rng()<0.5?1:-1),87,0,false);
+        if(rng()<0.02)this.setChest(cx+px,y,cz+pz,0,'mineshaft',rng,3+floor(rng()*4));
+        if(depth<2&&i>6&&rng()<0.08){const nd=rng()<0.5?(d<2?2+floor(rng()*2):floor(rng()*2)):d;corridor(cx,cz,nd,10+floor(rng()*18),depth+1)}}
+    };
+    const n=2+floor(rng()*3);for(let k=0;k<n;k++)corridor(x,z,floor(rng()*4),14+floor(rng()*20),0);
+    if(rng()<0.4){const sx=x+floor(rng()*9)-4,sz=z+floor(rng()*9)-4;this.setGen(sx,y,sz,86,2,false);for(let i=0;i<14;i++)this.setGen(sx+floor(rng()*7)-3,y+floor(rng()*3),sz+floor(rng()*7)-3,87,0,true)}
+  },
+  /* ---- village ---- */
+  placeVillage(x,z,mid,rng){
+    const desert=mid.biome===BI.desert,cold=mid.biome===BI.taiga||mid.biome===BI.snowy_taiga;
+    const M={wall:desert?19:cold?51:5,corner:desert?19:cold?46:15,floor:desert?19:cold?51:5,roof:desert?19:cold?51:5,base:desert?19:4,path:desert?10:11,door:54};
+    const houses=[];const key='v:'+(x>>4)+','+(z>>4);const spawnVillagers=typeof Mob!=='undefined'&&!this.populated.has(key);this.populated.add(key);
+    // well
+    {const h=this.surfaceY(x,z);this.fill(x-1,h-3,z-1,x+2,h-1,z+2,M.base);this.fill(x,h-2,z,x+1,h,z+1,8);this.fill(x-1,h,z-1,x+2,h,z+2,M.base);this.fill(x,h,z,x+1,h,z+1,8);
+      for(const [dx,dz] of [[-1,-1],[2,-1],[-1,2],[2,2]]){this.fill(x+dx,h+1,z+dz,x+dx,h+3,z+dz,61)}this.fill(x-1,h+4,z-1,x+2,h+4,z+2,M.roof);this.fill(x,h+1,z,x+1,h+3,z+1,0)}
+    const n=5+floor(rng()*5);let placed=0;
+    for(let t=0;t<n*4&&placed<n;t++){const a=rng()*PI*2,d=9+rng()*20;const hx=floor(x+Math.cos(a)*d),hz=floor(z+Math.sin(a)*d);const info=this.columnInfo(hx,hz);if(info.height<=SEA+1||info.biome===BI.ocean)continue;
+      const kind=rng();const w=kind<0.3?7:5,l=kind<0.3?7:5+floor(rng()*3);
+      if(houses.some(o=>abs(o[0]-hx)<(o[2]+w)/2+3&&abs(o[1]-hz)<(o[3]+l)/2+3))continue;houses.push([hx,hz,w,l]);
+      const facing=abs(x-hx)>abs(z-hz)?(x>hx?3:1):(z>hz?0:2);
+      this.placeHouse(hx,info.height+1,hz,w,l,facing,M,rng,kind);placed++;
+      if(spawnVillagers){const m=new Mob('villager',hx+0.5,info.height+1.1,hz+0.5);entities.push(m)}
+      // path to well
+      let px=hx,pz=hz;let guard=0;while((px!==x||pz!==z)&&guard++<80){if(px!==x)px+=x>px?1:-1;else pz+=z>pz?1:-1;const py=this.surfaceY(px,pz);const top=this.getGen(px,py,pz);if(top===2||top===3||top===10||top===0)this.setGen(px,py,pz,M.path,0,false);const ab=this.getGen(px,py+1,pz);if(ab===23||ab===21||ab===22)this.setGen(px,py+1,pz,0,0,false)}
+    }
+    // farms
+    const nf=1+floor(rng()*2);for(let f=0;f<nf;f++){const a=rng()*PI*2,d=10+rng()*16;const fx=floor(x+Math.cos(a)*d),fz=floor(z+Math.sin(a)*d);const h=this.surfaceY(fx,fz);if(h<=SEA+1)continue;if(houses.some(o=>abs(o[0]-fx)<8&&abs(o[1]-fz)<8))continue;houses.push([fx,fz,9,7]);
+      this.fill(fx-4,h-1,fz-3,fx+4,h+3,fz+3,0);this.fill(fx-4,h-2,fz-3,fx+4,h-1,fz+3,3);
+      for(let dx=-4;dx<=4;dx++)for(let dz=-3;dz<=3;dz++){const edge=abs(dx)===4||abs(dz)===3;if(edge)this.setGen(fx+dx,h,fz+dz,M.corner,0,false);else if(dx===0)this.setGen(fx+dx,h,fz+dz,8,0,false);else{this.setGen(fx+dx,h,fz+dz,36,1,false);const crop=rng()<0.7?35:rng()<0.5?73:74;this.setGen(fx+dx,h+1,fz+dz,crop,floor(rng()*8),false)}}}
+    // lamp posts
+    for(let i=0;i<3;i++){const a=rng()*PI*2,d=5+rng()*14;const lx=floor(x+Math.cos(a)*d),lz=floor(z+Math.sin(a)*d);const h=this.surfaceY(lx,lz);if(h<=SEA+1||this.getGen(lx,h+1,lz)!==0)continue;this.fill(lx,h+1,lz,lx,h+3,lz,61);this.setGen(lx,h+4,lz,32,0,false)}
+  },
+  placeHouse(x,y,z,w,l,facing,M,rng,kind){
+    const hw=floor(w/2),hl=floor(l/2);const h=3;
+    // foundation & clearing
+    for(let dx=-hw;dx<=hw;dx++)for(let dz=-hl;dz<=hl;dz++){for(let dy=-5;dy<0;dy++){if(this.getGen(x+dx,y+dy,z+dz)===0||dy>=-2)this.setGen(x+dx,y+dy,z+dz,M.base,0,false)}for(let dy=0;dy<=h+3;dy++)this.setGen(x+dx,y+dy,z+dz,0,0,false)}
+    for(let dx=-hw-2;dx<=hw+2;dx++)for(let dz=-hl-2;dz<=hl+2;dz++){if(abs(dx)<=hw&&abs(dz)<=hl)continue;for(let dy=0;dy<=h+8;dy++){const b=this.getGen(x+dx,y+dy,z+dz);if(b&&(BLOCKS[b].log||BLOCKS[b].leaves||BLOCKS[b].plant))this.setGen(x+dx,y+dy,z+dz,0,0,false)}}
+    this.fill(x-hw,y,z-hl,x+hw,y,z+hl,M.floor);
+    for(let dx=-hw;dx<=hw;dx++)for(let dz=-hl;dz<=hl;dz++){const edge=abs(dx)===hw||abs(dz)===hl;if(!edge)continue;const corner=abs(dx)===hw&&abs(dz)===hl;
+      for(let dy=1;dy<=h;dy++){let id=corner?M.corner:M.wall;if(!corner&&dy===2&&(dx===0||dz===0||(abs(dx)===2&&abs(dz)===hl)||(abs(dz)===2&&abs(dx)===hw))&&M.wall!==19)id=17;if(!corner&&dy===2&&M.wall===19&&(dx===0||dz===0))id=0;this.setGen(x+dx,y+dy,z+dz,id,0,false)}}
+    this.fill(x-hw,y+h+1,z-hl,x+hw,y+h+1,z+hl,M.roof);
+    if(M.roof!==19){for(let dz=-hl-1;dz<=hl+1;dz++){this.setGen(x-hw-1,y+h+1,z+dz,58,3,false);this.setGen(x+hw+1,y+h+1,z+dz,58,1,false)}for(let dx=-hw;dx<=hw;dx++){this.setGen(x+dx,y+h+2,z+dx*0,0,0,false)}}
+    // door on facing wall
+    const fd=FACE_DIR[FACING_TO_FACE[facing]];const dx=fd[0]*hw,dz=fd[2]*hl;this.setGen(x+dx,y+1,z+dz,54,facing,false);this.setGen(x+dx,y+2,z+dz,54,facing|8,false);this.setGen(x+dx,y+1,z+dz,54,facing,false);
+    const py=this.surfaceY(x+fd[0]*(hw+1),z+fd[2]*(hl+1));this.setGen(x+fd[0]*(hw+1),y,z+fd[2]*(hl+1),M.path,0,false);for(let dy=1;dy<=3;dy++)this.setGen(x+fd[0]*(hw+1),y+dy,z+fd[2]*(hl+1),0,0,false);
+    // interior
+    const bx=x-fd[0]*(hw-1),bz=z-fd[2]*(hl-1); // back wall side
+    this.setGen(x-fd[0]*(hw-1),y+2,z-fd[2]*(hl-1),32,((facing+2)&3)+1,false);
+    const side=[[1,0],[-1,0],[0,1],[0,-1]].filter(d=>d[0]!==fd[0]||d[1]!==fd[2]);
+    if(kind<0.3){this.setChest(x-hw+1,y+1,z-hl+1,0,'village',rng,3+floor(rng()*3));this.setGen(x+hw-1,y+1,z-hl+1,37,0,false);for(let dz=-hl+1;dz<=hl-1;dz++)if(this.getGen(x+hw-1,y+1,z+dz)===0&&rng()<0.5)this.setGen(x+hw-1,y+1,z+dz,29,0,false);this.setGen(x-hw+1,y+1,z+hl-1,34,0,false)}
+    else{const bfac=facing;const b1=[x-fd[2]*1,z+fd[0]*1];const bd=FACE_DIR[FACING_TO_FACE[(facing+2)&3]];const b2=[b1[0]+bd[0],b1[1]+bd[2]];if(this.getGen(b1[0],y+1,b1[1])===0&&this.getGen(b2[0],y+1,b2[1])===0){this.setGen(b1[0],y+1,b1[1],62,(facing+2)&3,false);this.setGen(b2[0],y+1,b2[1],62,((facing+2)&3)|4,false)}
+      if(rng()<0.6)this.setGen(x+fd[2]*(hw-1),y+1,z-fd[0]*(hl-1),34,0,false);if(rng()<0.4)this.setChest(x-fd[2]*(hw-1),y+1,z+fd[0]*(hl-1),0,'village',rng,2+floor(rng()*3))}
+  },
+  /* ---- desert temple ---- */
+  placeDesertTemple(x,z,rng){
+    const h=this.surfaceY(x,z);const y=h-3;
+    for(let k=0;k<=8;k++){const s=10-k;this.fill(x-s,y+k,z-s,x+s,y+k,z+s,19)}
+    this.fill(x-9,y+1,z-9,x+9,y+4,z+9,0);this.fill(x-10,y-4,z-10,x+10,y,z+10,19); // interior hall + solid base
+    for(const [px,pz] of [[-8,-8],[8,-8],[-8,8],[8,8]]){this.fill(x+px,y+1,z+pz,x+px,y+8,z+pz,19);this.fill(x+px-1,y+8,z+pz-1,x+px+1,y+10,z+pz+1,19)}
+    this.fill(x-1,y+1,z+9,x+1,y+3,z+10,0);this.fill(x-1,y+1,z-10,x+1,y+3,z-9,0); // doorways
+    for(let i=0;i<4;i++){this.setGen(x-8,y+5,z-4+i*3,20,0,false);this.setGen(x+8,y+5,z-4+i*3,20,0,false)}
+    // treasure pit
+    this.fill(x-2,y-4,z-2,x+2,y-1,z+2,0);this.setGen(x,y,z,79,0,false);this.fill(x-1,y-6,z-1,x+1,y-6,z+1,28);this.fill(x-1,y-5,z-1,x+1,y-5,z+1,19);this.setGen(x,y-4,z,90,0,false);
+    this.setChest(x-2,y-4,z,3,'temple',rng,4+floor(rng()*5));this.setChest(x+2,y-4,z,1,'temple',rng,4+floor(rng()*5));this.setChest(x,y-4,z-2,0,'temple',rng,4+floor(rng()*5));this.setChest(x,y-4,z+2,2,'temple',rng,4+floor(rng()*5));
+    for(let i=0;i<4;i++)this.setGen(x-2+(i%2)*4,y+2,z-2+floor(i/2)*4,32,0,false);
+  },
+  /* ---- igloo ---- */
+  placeIgloo(x,z,rng){const h=this.surfaceY(x,z);const y=h+1;
+    for(let dx=-4;dx<=4;dx++)for(let dz=-4;dz<=4;dz++)for(let dy=0;dy<=4;dy++){const d=sqrt(dx*dx+dz*dz+dy*dy*1.3);if(d>4.2){if(dy===0)this.setGen(x+dx,y-1,z+dz,80,0,false);continue}this.setGen(x+dx,y+dy,z+dz,d>3.2||dy===0?80:0,0,false)}
+    this.fill(x-4,y-3,z-4,x+4,y-1,z+4,80);
+    this.setGen(x,y+1,z+4,54,2,false);this.setGen(x,y+2,z+4,54,2|8,false);this.fill(x,y+1,z+5,x,y+2,z+6,0);this.setGen(x,y,z+5,80,0,false);
+    this.setGen(x-2,y+1,z-1,62,0,false);this.setGen(x-2,y+1,z,62,4,false);this.setGen(x+2,y+1,z-1,37,0,false);this.setGen(x+2,y+1,z+1,34,0,false);this.setGen(x,y+2,z-3,32,1,false);this.setChest(x-2,y+1,z+2,0,'igloo',rng,2+floor(rng()*3));
+  },
+  /* ---- swamp hut ---- */
+  placeSwampHut(x,z,rng){const h=Math.max(this.surfaceY(x,z),SEA);const y=h+3;
+    for(const [dx,dz] of [[-2,-3],[2,-3],[-2,3],[2,3]])this.fill(x+dx,h-1,z+dz,x+dx,y-1,z+dz,46);
+    this.fill(x-3,y,z-4,x+3,y,z+4,51);this.fill(x-3,y+1,z-4,x+3,y+3,z+4,51);this.fill(x-2,y+1,z-3,x+2,y+3,z+3,0);this.fill(x-3,y+4,z-4,x+3,y+4,z+4,51);
+    this.setGen(x,y+1,z+4,54,2,false);this.setGen(x,y+2,z+4,54,2|8,false);this.setGen(x-3,y+2,z,17,0,false);this.setGen(x+3,y+2,z,17,0,false);
+    this.setGen(x-2,y+1,z-3,34,0,false);this.setGen(x+2,y+1,z-3,64,0,false);this.setChest(x,y+1,z-3,0,'hut',rng,2+floor(rng()*3));this.setGen(x,y+3,z-3,32,1,false);
+    this.fill(x-3,y+5,z-1,x+3,y+5,z+1,51);
+  },
+  /* ---- ruined portal ---- */
+  placeRuinedPortal(x,z,rng){const h=this.surfaceY(x,z);const axis=floor(rng()*2);const dx=axis?0:1,dz=axis?1:0;
+    for(let i=-2;i<=3;i++)for(let j=-1;j<=6;j++){if(rng()<0.35)continue;const edge=i===-2||i===3||j===-1||j===6;if(edge)this.setGen(x+dx*i,h+j,z+dz*i,31,0,false)}
+    for(let i=-4;i<=5;i++)for(let k=-3;k<=3;k++){if(rng()<0.5)continue;const px=x+dx*i+dz*k,pz=z+dz*i+dx*k;const py=this.surfaceY(px,pz);this.setGen(px,py,pz,rng()<0.15?9:83,0,false)}
+    this.setChest(x+dx*4,h+1,z+dz*4+dx*2,0,'portal',rng,3+floor(rng()*4));if(rng()<0.5)this.setGen(x-dx*3+dz*2,h+1,z-dz*3+dx*2,24,0,false);
+  },
+  /* ---- nether fortress ---- */
+  placeFortress(x,z,rng){const y=52+floor(rng()*20);
+    const bridge=(dx,dz,len)=>{for(let i=0;i<len;i++){const cx=x+dx*i,cz=z+dz*i;const px=dz,pz=dx;
+      for(let s=-2;s<=2;s++){this.setGen(cx+px*s,y,cz+pz*s,88,0,false);for(let hh=1;hh<=5;hh++)this.setGen(cx+px*s,y+hh,cz+pz*s,0,0,false)}
+      this.setGen(cx+px*2,y+1,cz+pz*2,88,0,false);this.setGen(cx-px*2,y+1,cz-pz*2,88,0,false);
+      if(i%9===4){for(let s=-1;s<=1;s++)for(let t=-1;t<=1;t++){for(let yy=y-1;yy>y-24;yy--){if(this.getGen(cx+s,yy,cz+t)===83)break;this.setGen(cx+s,yy,cz+t,88,0,false)}}}
+      if(rng()<0.03)this.setChest(cx+px*(rng()<0.5?1:-1),y+1,cz+pz*(rng()<0.5?1:-1),0,'fortress',rng,3+floor(rng()*4))}};
+    bridge(1,0,34);bridge(-1,0,34);bridge(0,1,34);bridge(0,-1,34);
+    // central tower
+    this.fill(x-4,y,z-4,x+4,y,z+4,88);this.fill(x-4,y+1,z-4,x+4,y+6,z+4,88);this.fill(x-3,y+1,z-3,x+3,y+5,z+3,0);this.fill(x-4,y+7,z-4,x+4,y+7,z+4,88);
+    for(const [dx,dz] of [[4,0],[-4,0],[0,4],[0,-4]])this.fill(x+dx-(dz?1:0),y+1,z+dz-(dx?1:0),x+dx+(dz?1:0),y+3,z+dz+(dx?1:0),0);
+    this.setGen(x,y+1,z,86,3,false);this.setChest(x-3,y+1,z-3,0,'fortress',rng,3+floor(rng()*4));this.setChest(x+3,y+1,z+3,0,'fortress',rng,3+floor(rng()*4));
+    for(let i=0;i<4;i++)this.setGen(x-3+(i%2)*6,y+3,z-3+floor(i/2)*6,32,0,false);
+  },
+});
+/* ---- spawner blocks ---- */
+function tickSpawners(dt){const p=player;for(const [k,s] of world.spawners){const dx=s.x+0.5-p.x,dy=s.y+0.5-p.y,dz=s.z+0.5-p.z;if(dx*dx+dy*dy+dz*dz>16*16)continue;s.t-=dt;if(s.t>0)continue;s.t=10+Math.random()*30;
+  if(world.getBlock(s.x,s.y,s.z)!==86){world.spawners.delete(k);continue}const type=['zombie','skeleton','spider','zombified_piglin'][s.type];let near=0;for(const e of entities)if(e instanceof Mob&&e.type===type&&abs(e.x-s.x)<9&&abs(e.y-s.y)<9&&abs(e.z-s.z)<9)near++;if(near>=6||game.difficulty===0)continue;
+  const n=1+floor(Math.random()*4);for(let i=0;i<n;i++){const ox=s.x+floor(Math.random()*9)-4,oz=s.z+floor(Math.random()*9)-4,oy=s.y+floor(Math.random()*3)-1;if(world.getBlock(ox,oy,oz)!==0||world.getBlock(ox,oy+1,oz)!==0||!BLOCKS[world.getBlock(ox,oy-1,oz)].solid)continue;if(Math.max(world.getSky(ox,oy,oz)*R.day,world.getLight(ox,oy,oz))>=8)continue;entities.push(new Mob(type,ox+0.5,oy,oz+0.5));spawnParticles('fire',ox+0.5,oy+0.5,oz+0.5,3)}
+  if(Math.random()<0.5)spawnParticles('smoke',s.x+0.5,s.y+0.5,s.z+0.5,2)}}
 /* ===================== RECIPES ===================== */
 BLOCKS[4].smelt=1;BLOCKS[1].smelt=72;BLOCKS[43].smelt=27;BLOCKS[42].fuel=0;BLOCKS[6].fuel=5;BLOCKS[48].fuel=5;BLOCKS[49].fuel=5;BLOCKS[39].fuel=15;BLOCKS[61].fuel=15;BLOCKS[58].fuel=15;BLOCKS[38].fuel=15;BLOCKS[54].fuel=10;
 const PLANKS=[5,50,51],LOGS=[15,44,46],WOOLS=[20,75,76,77];
@@ -2128,7 +2316,7 @@ function updateHUD(){const p=player;const creative=p.mode==='creative';$('status
 function showMessage(t){const c=$('chat');const el=document.createElement('div');el.className='msg';el.textContent=t;c.appendChild(el);while(c.children.length>6)c.removeChild(c.firstChild);setTimeout(()=>el.remove(),8000)}
 
 let paletteFilter='';
-function renderPalette(){const pl=$('palette');const creative=player.mode==='creative';pl.style.display=creative?'block':'none';$('invGui').classList.toggle('full',creative);const ab=$('armorBox');if(creative){$('invBottom').prepend(ab)}else{$('invTop').prepend(ab)}if(!creative)return;
+function renderPalette(){const pl=$('palette');const creative=player.mode==='creative';pl.style.display=creative?'block':'none';$('invGui').classList.toggle('full',creative);const ab=$('armorBox');$('armorLabel').style.display=creative?'block':'none';if(creative){$('invBottom').prepend(ab)}else{$('invTop').prepend(ab)}if(!creative)return;
   pl.innerHTML='';const head=document.createElement('div');head.className='palhead';head.innerHTML='<input type="text" id="palSearch" placeholder="Search items..." value="'+paletteFilter.replace(/"/g,'')+'"><div class="hint">Click an item to grab a stack &middot; click any item while holding one to delete it &middot; scroll to see more</div>';pl.appendChild(head);
   const grid=document.createElement('div');grid.className='palgrid';pl.appendChild(grid);const f=paletteFilter.toLowerCase();
   for(const def of ITEMS){if(!def||def.id===0||def.id===35||def.id===73||def.id===74||def.id===82)continue;if(f&&!def.label.toLowerCase().includes(f))continue;const el=document.createElement('div');el.className='r';el.innerHTML='<div class="icon" style="background-image:url('+ICONS[def.id]+')"></div>';el.title=def.label;
@@ -2175,6 +2363,7 @@ function playSound(name,vol=1,pitch=1){
     case 'pig':tone('sawtooth',330,240,0.18);noise(0.15,'bandpass',700,2);env(0.01,0.45,0.2);break;
     case 'cow':tone('sawtooth',110,95,0.7);tone('triangle',220,190,0.7);env(0.08,0.5,0.7);break;
     case 'sheep':{const o=tone('sawtooth',260,240,0.5);const l=c.createOscillator();l.frequency.value=9;const lg=c.createGain();lg.gain.value=25;l.connect(lg);lg.connect(o.frequency);l.start(t);l.stop(t+0.5);env(0.05,0.4,0.5);break}
+    case 'villager':tone('sine',180,220,0.25);tone('triangle',360,300,0.25);env(0.03,0.35,0.3);break;
     case 'chicken':tone('square',900,650,0.12);env(0.005,0.25,0.15);break;
     case 'zombie':{const o=tone('sawtooth',95,70,0.9);const l=c.createOscillator();l.frequency.value=6;const lg=c.createGain();lg.gain.value=10;l.connect(lg);lg.connect(o.frequency);l.start(t);l.stop(t+0.9);noise(0.9,'lowpass',300);env(0.1,0.5,0.9);break}
     case 'skeleton':{for(let i=0;i<5;i++){const s=c.createBufferSource();s.buffer=noiseBuf(0.03);const f=c.createBiquadFilter();f.type='bandpass';f.frequency.value=1800;f.Q.value=5;s.connect(f);f.connect(g);s.start(t+i*0.08);s.stop(t+i*0.08+0.03)}env(0.01,0.5,0.5);break}
@@ -2405,7 +2594,7 @@ function loop(now){
       if(game.tick%2===0){updateHUD();updateFurnaceGui()}
       if(game.tick%600===0)saveWorld();
     }
-    tickFurnaces(dt);
+    tickFurnaces(dt);tickSpawners(dt);
     updateMusic(dt);
     if(player.sleeping>0&&player.sleeping>2.2)$('sleepfade').style.opacity=1;
   }
