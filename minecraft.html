@@ -225,6 +225,7 @@ label.lb{font-size:13px;color:#a0a0a0;align-self:flex-start;margin-left:calc(50%
   <div class="slider"><input type="range" id="optMusic" min="0" max="100" step="1"><span></span><div class="knob"></div></div>
   <button class="btn" id="btnSmooth">Smooth Lighting: ON</button>
   <button class="btn" id="btnClouds">Clouds: ON</button>
+  <button class="btn" id="btnKeepInv">Keep Inventory on Death: ON</button>
   <button class="btn" id="btnOptionsBack" style="margin-top:14px">Done</button>
 </div>
 
@@ -232,7 +233,7 @@ label.lb{font-size:13px;color:#a0a0a0;align-self:flex-start;margin-left:calc(50%
   <h2 class="sh">Controls</h2>
   <div class="ctl">
     <span><b>W A S D</b> Move (<b>Up/Down arrows</b> also move)</span><span><b>Mouse</b> Look; <b>Left/Right arrows</b> turn, <b>PgUp/PgDn</b> look up/down</span>
-    <span><b>Space</b> Jump / swim up</span><span><b>Shift</b> Sneak (won't fall off edges)</span>
+    <span><b>Space</b> Jump / swim up</span><span><b>Shift</b> Sneak (won't fall off edges) / get off a horse</span>
     <span><b>Ctrl</b> or double-tap W: Sprint</span><span><b>Left click</b> Mine / attack</span>
     <span><b>Right click</b> Place / use / eat</span><span><b>Scroll / 1-9</b> Select hotbar slot</span>
     <span><b>E</b> Inventory</span><span><b>Q</b> Drop item</span>
@@ -461,6 +462,7 @@ defTex('witch_face',p=>{p.noise(185,150,120,6);p.rect(3,5,2,2,40,30,60);p.rect(1
 defTex('husk_face',p=>{p.noise(150,130,85,8);p.rect(2,5,3,2,50,40,25);p.rect(11,5,3,2,50,40,25);p.rect(6,10,4,2,90,70,40)});
 defTex('stray_face',p=>{p.noise(175,185,195,6);p.rect(2,5,3,3,50,50,60);p.rect(11,5,3,3,50,50,60);p.rect(6,9,4,1,80,80,90);p.rect(4,12,8,2,120,130,140);for(let x=4;x<12;x+=2)p.px(x,13,70,70,80)});
 defTex('cave_spider_face',p=>{p.noise(20,45,75,6);p.rect(2,5,3,3,220,40,40);p.rect(11,5,3,3,220,40,40);p.rect(5,6,2,2,150,20,20);p.rect(9,6,2,2,150,20,20);p.rect(6,11,4,2,10,20,40)});
+defTex('horse_face',p=>{p.noise(200,200,200,6);p.rect(2,3,3,2,30,25,25);p.rect(11,3,3,2,30,25,25);p.rect(6,11,4,4,60,50,45);p.rect(4,0,2,3,120,120,120);p.rect(10,0,2,3,120,120,120)});
 defTex('wolf_face',p=>{p.noise(200,200,195,8);p.rect(2,4,3,2,40,40,50);p.rect(11,4,3,2,40,40,50);p.rect(5,9,6,6,150,150,145);p.rect(6,11,4,3,30,30,30)});
 defTex('steve_arm',p=>{p.noise(215,165,125,6);p.rect(0,0,16,3,90,160,160)});
 defTex('arrow_tex',p=>{p.fill(0,0,0,0);p.rect(0,7,16,2,180,150,110);p.rect(13,6,3,4,200,200,210);p.rect(0,5,4,6,220,220,220)});
@@ -665,6 +667,7 @@ defItem(310,'cooked_cod',{icon:'cooked_cod',food:[5,6]});
 defItem(312,'ender_pearl',{icon:'ender_pearl',stack:16,throwable:true});
 defItem(313,'slime_ball',{icon:'slime_ball'});
 defItem(314,'glowstone_dust',{icon:'glowstone_dust'});
+defItem(315,'saddle',{icon:'saddle',stack:1});
 let tid=320;
 for(const tt of ['sword','pickaxe','axe','shovel','hoe'])for(const m of ['wood','stone','iron','diamond','gold']){
   defItem(tid++,(m==='wood'?'wooden':m==='gold'?'golden':m)+'_'+tt,{label:MAT[m].name+' '+label(tt),icon:tt,mat:m,stack:1,tool:tt,tier:MAT[m].tier,speed:MAT[m].speed,dur:MAT[m].dur,dmg:TOOL_DMG[tt][m],atkSpd:TOOL_SPD[tt][m],fuel:m==='wood'?10:0});
@@ -755,7 +758,7 @@ bucket:['bucket',{g:[170,170,170],c:[120,120,120]}],water_bucket:['bucket',{g:[1
 flint_and_steel:['flint_and_steel',{g:[160,160,160],f:[60,60,60]}],shears:['shears',{s:[200,200,200],h:[140,90,50]}],
 bowl:['bowl',{w:[130,90,50],c:[100,70,40]}],mushroom_stew:['bowl',{w:[130,90,50],c:[200,150,110]}],
 carrot:['carrot',{o:[240,130,30],g:[70,150,50]}],potato:['potato',{m:[200,160,90],l:[225,190,120]}],baked_potato:['potato',{m:[190,140,70],l:[220,180,110]}],
-ender_pearl:['ball',{m:[20,90,80],l:[90,210,170]}],slime_ball:['ball',{m:[110,200,90],l:[180,240,150]}],glowstone_dust:['dust',{m:[245,205,90]}],
+saddle:['leather',{m:[95,60,32]}],ender_pearl:['ball',{m:[20,90,80],l:[90,210,170]}],slime_ball:['ball',{m:[110,200,90],l:[180,240,150]}],glowstone_dust:['dust',{m:[245,205,90]}],
 quartz:['gem',{l:[255,255,255],m:[235,228,220],d:[180,170,160]}],cookie:['cookie',{c:[190,130,70],k:[70,40,30]}],cooked_cod:['fish',{m:[200,160,110],l:[230,200,150]}],
 door:['door',{p:[140,100,55],d:[160,120,70],w:[170,210,240],k:[70,70,70]}],bed:['bed',{w:[240,240,240],r:[200,30,30],b:[140,100,60]}],
 };
@@ -1635,6 +1638,7 @@ const MOBDEF={
   creeper:{hp:20,w:0.6,h:1.7,speed:3.5,dmg:0,drops:r=>[[285,floor(r()*3)]],xp:[5,5],sound:'creeper',follow:16},
   spider:{hp:16,w:1.4,h:0.9,speed:4.3,dmg:2,drops:r=>[[286,floor(r()*3)],[r()<0.33?287:0,1]],xp:[5,5],sound:'spider',follow:16,neutral:true,lightNeutral:true},
   zombified_piglin:{hp:20,w:0.6,h:1.95,speed:3.6,dmg:5,drops:r=>[[282,floor(r()*2)],[r()<0.025?262:0,1]],xp:[5,5],sound:'zombie',follow:20,neutral:true,fireproof:true},
+  horse:{hp:22,w:1.4,h:1.6,speed:1.7,passive:true,animal:true,food:[271,273,307,308],drops:r=>[[289,floor(r()*3)]],xp:[1,3],sound:'horse',noDespawn:true},
   wolf:{hp:8,w:0.6,h:0.85,speed:3.2,dmg:3,drops:()=>[],xp:[1,3],sound:'wolf',follow:16,neutral:true,animal:true,noDespawn:true,food:[274,275,276,277,278,279,280,281,282]},
   husk:{hp:20,w:0.6,h:1.95,speed:3.2,dmg:3,undead:true,noBurn:true,hungerHit:true,drops:r=>[[282,floor(r()*3)],[r()<0.025?[260,302,303][floor(r()*3)]:0,1]],xp:[5,5],sound:'zombie',follow:35},
   stray:{hp:20,w:0.6,h:1.99,speed:3.4,dmg:3,undead:true,ranged:true,slowArrow:true,drops:r=>[[283,floor(r()*3)],[284,floor(r()*3)]],xp:[5,5],sound:'skeleton',follow:16},
@@ -1650,8 +1654,27 @@ class Mob extends Entity{
     if(type==='sheep'){const r=Math.random();this.woolId=r<0.82?20:r<0.87?76:r<0.92?75:r<0.97?77:20;this.sheared=false}
     if(type==='slime'){this.setSize(Math.random()<0.4?3:Math.random()<0.5?2:1);this.hopT=Math.random()*2}
     this.tpT=2+Math.random()*4;this.drinkT=0;this.stareT=0;this.drinking=0;this.screamT=0;this.tamed=false;this.sitting=false;this.prey=null;this.shakeT=0;
+    if(type==='horse'){this.color=floor(Math.random()*7);this.hp=this.maxHp=15+floor(Math.random()*16);this.hspeed=5.5+Math.random()*6.5;this.hjump=7.5+Math.random()*4;this.temper=0;this.temperMax=floor(Math.random()*100);this.saddled=false;this.rider=null;this.buckT=0;this.jumpCd=0;this.gallopT=0}
   }
   setSize(n){this.size=n;this.w=0.51*n;this.h=0.51*n;this.hp=this.maxHp=n*n;this.dmgOverride=n===1?0:n}
+  mount(){const p=player;if(p.riding||this.rider||this.baby)return false;p.riding=this;this.rider=p;this.moveDir=null;this.panicT=0;p.sneaking=false;p.h=1.8;p.eyeHeight=1.62;
+    if(!this.tamed){this.temper+=5;if(this.temper>=this.temperMax){this.tamed=true;spawnParticles('heart',this.x,this.y+this.h,this.z,8);playSoundAt('horse',this.x,this.y,this.z,1,1.1);showMessage('You tamed the horse! Put a saddle on it to steer (right-click with a saddle).')}else{this.buckT=0.8+Math.random()*1.2}}
+    return true}
+  dismount(){const p=player;if(this.rider!==p)return;this.rider=null;p.riding=null;const sy=Math.sin(p.yaw),cy=Math.cos(p.yaw);let placed=false;
+    for(const [ox,oz] of [[cy*1.3,-sy*1.3],[-cy*1.3,sy*1.3],[-sy*1.6,-cy*1.6],[sy*1.6,cy*1.6]]){const x=this.x+ox,z=this.z+oz;const w=p.w/2;if(!collectBoxes(x-w,this.y,z-w,x+w,this.y+1.8,z+w).length){p.x=x;p.z=z;p.y=this.y;placed=true;break}}
+    if(!placed){p.x=this.x;p.z=this.z;p.y=this.y+this.h+0.05}p.vx=p.vy=p.vz=0;p.fallDist=0}
+  ride(dt,fwd,strafe,jump,sprint){ // called from updatePlayer while the player is on this horse
+    const p=player;this.yaw=p.yaw;this.headYaw=0;this.headPitch=0;if(this.hurtT>0)this.hurtT-=dt;if(this.invT>0)this.invT-=dt;if(this.jumpCd>0)this.jumpCd-=dt;
+    if(!this.tamed){this.buckT-=dt;if(this.buckT<=0){spawnParticles('smoke',this.x,this.y+this.h,this.z,6);playSoundAt('horse',this.x,this.y,this.z,1,0.9);this.dismount();p.vy=5;p.vx+=(Math.random()-0.5)*4;p.vz+=(Math.random()-0.5)*4;return}}
+    if(!this.saddled){fwd=0;strafe=0;jump=false}
+    const speed=this.hspeed*(sprint&&fwd>0?1.25:1);const sy=Math.sin(this.yaw),cy=Math.cos(this.yaw);let mx=(-sy*fwd+cy*strafe*0.5),mz=(-cy*fwd-sy*strafe*0.5);const ml=sqrt(mx*mx+mz*mz);if(ml>1){mx/=ml;mz/=ml}
+    const acc=this.onGround?8:2;this.vx+=(mx*speed-this.vx)*Math.min(1,acc*dt);this.vz+=(mz*speed-this.vz)*Math.min(1,acc*dt);
+    if(jump&&this.onGround&&this.jumpCd<=0){this.vy=this.hjump;this.jumpCd=0.2;this.fallDist=0}
+    if(this.inWater&&this.vy<2)this.vy+=30*dt;
+    this.physics(dt,{step:1.05,friction:0.6,gravity:this.inWater?8:32});
+    const hs=sqrt(this.vx*this.vx+this.vz*this.vz);this.walkAmp+=(Math.min(1,hs/3)-this.walkAmp)*Math.min(1,dt*8);this.walkT+=hs*dt*1.6;
+    this.gallopT+=hs*dt;if(this.gallopT>2.5&&this.onGround){this.gallopT=0;if(hs>1)playSoundAt('horse_gallop',this.x,this.y,this.z,0.6)}
+    p.x=this.x;p.z=this.z;p.y=this.y+this.h*0.72;p.vx=this.vx;p.vy=0;p.vz=this.vz;p.onGround=true;p.fallDist=0;p.inWater=this.inWater;p.walkAmp=0}
   teleport(near,quiet){ // enderman: try random spots; near=true keeps it close to the player
     for(let i=0;i<24;i++){const cx=near?player.x:this.x,cz=near?player.z:this.z;const r=near?3+Math.random()*6:Math.random()*20;const a=Math.random()*PI*2;const x=floor(cx+Math.sin(a)*r),z=floor(cz+Math.cos(a)*r);
       let y=floor((near?player.y:this.y)+8);let up=0;while(y<CH-3&&BLOCKS[world.getBlockPhys(x,y,z)].solid&&up<24){y++;up++}let steps=0;while(y>1&&!BLOCKS[world.getBlockPhys(x,y-1,z)].solid&&steps<24){y--;steps++}if(!BLOCKS[world.getBlockPhys(x,y-1,z)].solid)continue;
@@ -1660,7 +1683,8 @@ class Mob extends Entity{
     return false}
   get alive(){return !this.dying}
   update(dt){
-    this.age+=dt;if(this.dying){this.deathT+=dt;if(this.deathT>1){this.dead=true}return}
+    this.age+=dt;if(this.dying){this.deathT+=dt;if(this.deathT>1){this.dead=true}if(this.rider)this.dismount();return}
+    if(this.rider){if(this.rider!==player||player.riding!==this){this.rider=null}else return}
     const p=player;const dx=p.x-this.x,dz=p.z-this.z,dy=(p.y+1)-(this.y+this.h*0.8);const dist=sqrt(dx*dx+dz*dz),dist3=sqrt(dx*dx+dy*dy+dz*dz);
     if(this.hurtT>0)this.hurtT-=dt;if(this.invT>0)this.invT-=dt;if(this.atkCd>0)this.atkCd-=dt;if(this.panicT>0)this.panicT-=dt;if(this.loveT>0)this.loveT-=dt;
     if(this.baby){this.growT-=dt;if(this.growT<=0)this.baby=false}
@@ -1726,7 +1750,7 @@ class Mob extends Entity{
     if(inW){if(this.moveDir||Math.random()<0.1)this.vy+=20*dt;if(this.vy>3)this.vy=3}
     if(this.type==='chicken'&&this.vy<-1.2&&!inW){this.vy=-1.2;this.fallDist=0}
     if((this.type==='spider'||this.type==='cave_spider'||this.type==='slime')&&this.fallDist>0)this.fallDist=Math.min(this.fallDist,2);
-    this.physics(dt,{step:this.type==='spider'?1:0.6,friction:0.6,gravity:this.inWater?8:32});
+    this.physics(dt,{step:this.type==='spider'||this.type==='horse'?1.05:0.6,friction:0.6,gravity:this.inWater?8:32});
     const hs=sqrt(this.vx*this.vx+this.vz*this.vz);this.walkAmp+=(Math.min(1,hs/2)-this.walkAmp)*Math.min(1,dt*8);this.walkT+=hs*dt*2.2;
     if(this.type==='wolf'&&this.prey&&this.atkCd<=0){const o=this.prey;const od=Math.hypot(o.x-this.x,o.z-this.z);if(od<this.w/2+o.w/2+0.7&&abs(o.y-this.y)<2){this.atkCd=1;damageEntity(o,this.tamed?4:3,{x:this.x,y:this.y,z:this.z,type:'mob',mob:this});playSoundAt('wolf_growl',this.x,this.y,this.z,1,1.3);if(o.type==='sheep'||o.type==='wolf')o.panicT=2}}
     // attacks
@@ -1756,6 +1780,11 @@ class Mob extends Entity{
   interact(stack){ // right click by player, returns true if consumed action
     const d=this.def;
     if(this.type==='villager'){if(this.baby)return false;if(this.prof==='nitwit'){playSoundAt('villager_no',this.x,this.y,this.z);return true}openTradeGui(this);return true}
+    if(this.type==='horse'){if(this.baby)return false;
+      if(stack&&stack.id===315&&this.tamed&&!this.saddled){this.saddled=true;consumeHeld();playSoundAt('leather',this.x,this.y,this.z);showMessage('Saddled! Right-click to ride, W A S D to steer, Space to jump, Shift to get off.');return true}
+      if(stack&&d.food.includes(stack.id)){const it=ITEMS[stack.id];if(stack.id===308&&this.tamed&&this.loveT<=0){consumeHeld();this.loveT=30;spawnParticles('heart',this.x,this.y+this.h+0.2,this.z,5);return true}
+        if(this.hp<this.maxHp||!this.tamed){consumeHeld();this.hp=Math.min(this.maxHp,this.hp+(it.food?it.food[0]:2));this.temper+=stack.id===308?10:3;spawnParticles(this.tamed?'heart':'happy',this.x,this.y+this.h,this.z,3);playSoundAt('eat',this.x,this.y,this.z);return true}return false}
+      if(player.sneaking)return false;return this.mount()}
     if(this.type==='wolf'){if(!this.tamed){if(stack&&stack.id===283&&!this.angry){consumeHeld();if(Math.random()<0.34){this.tamed=true;this.maxHp=20;this.hp=20;this.sitting=true;this.angry=false;this.prey=null;spawnParticles('heart',this.x,this.y+this.h,this.z,7);playSoundAt('wolf_whine',this.x,this.y,this.z);showMessage('You tamed a wolf! Right-click it to make it sit or follow.')}else{spawnParticles('smoke',this.x,this.y+this.h,this.z,5);playSoundAt('wolf',this.x,this.y,this.z)}return true}return false}
       if(stack&&d.food.includes(stack.id)&&this.hp<this.maxHp){consumeHeld();const it=ITEMS[stack.id];this.hp=Math.min(this.maxHp,this.hp+(it.food?it.food[0]:2));spawnParticles('heart',this.x,this.y+this.h,this.z,3);playSoundAt('eat',this.x,this.y,this.z);return true}
       this.sitting=!this.sitting;this.prey=null;playSoundAt(this.sitting?'wolf_whine':'wolf',this.x,this.y,this.z);return true}
@@ -1797,6 +1826,14 @@ class Mob extends Entity{
       case 'villager':{const P=PROFS[this.prof]||PROFS.nitwit;const robe=P.robe,skin=[0.8,0.63,0.47];part([-4,6,-3.2,4,14,-3],0,0,0,0,0,0,W,P.apron);part([-2,-12,-2,2,0,2],-2,12,0,swing*0.5,0,0,N,[0.3,0.25,0.35]);part([-2,-12,-2,2,0,2],2,12,0,-swing*0.5,0,0,N,[0.3,0.25,0.35]);
         part([-4,12,-3,4,24,3],0,0,0,0,0,0,N,robe);part([-4,8,-3,4,12,3],0,0,0,0,0,0,N,robe);part([-4,-2,-3,4,2,3],0,20,0,0,0,0,N,skin);
         part([-4,0,-4,4,10,4],0,24,0,hp,hy,0,face(TEX.villager_face),skin);part([-1,2,-6,1,6,-4],0,24,0,hp,hy,0,N,skin);break}
+      case 'horse':{const cols=[[0.55,0.36,0.22],[0.18,0.14,0.12],[0.92,0.9,0.86],[0.7,0.45,0.25],[0.5,0.48,0.46],[0.35,0.22,0.14],[0.8,0.65,0.45]];const c=cols[this.color]||cols[0];const mane=this.color===2?[0.85,0.83,0.8]:[0.15,0.1,0.08];
+        for(const [lx,lz,sg] of [[-4,-8,1],[4,-8,-1],[-4,8,-1],[4,8,1]])part([lx-2,-14,lz-2,lx+2,0,lz+2],0,14,0,swing*sg*0.8,0,0,N,c);
+        part([-5,14,-11,5,24,11],0,0,0,0,0,0,N,c);
+        if(this.saddled){part([-5.5,24,-4,5.5,26.5,3],0,0,0,0,0,0,N,[0.3,0.2,0.12]);part([-6,20,-5,6,24.2,-4],0,0,0,0,0,0,N,[0.3,0.2,0.12]);part([-6,20,3,6,24.2,4],0,0,0,0,0,0,N,[0.3,0.2,0.12])}
+        part([-3,0,-4,3,11,3],0,22,-9,hp*0.5-0.6,hy,0,N,c);part([-1,2,-2,1,10,1],0,22,-9,hp*0.5-0.6,hy,0,N,mane);
+        part([-3,-2,-8,3,4,0],0,31,-13,hp,hy,0,face(TEX.horse_face),c);part([-2.5,-2,-10.5,2.5,1.5,-8],0,31,-13,hp,hy,0,N,[c[0]*0.8,c[1]*0.8,c[2]*0.8]);
+        part([-3,4,-3,-1.5,7,-1],0,31,-13,hp,hy,0,N,c);part([1.5,4,-3,3,7,-1],0,31,-13,hp,hy,0,N,c);
+        part([-1,-9,-1,1,1,1],0,22,11,-0.5,0,0,N,mane);break}
       case 'wolf':{const c=this.angry?[0.7,0.65,0.65]:[0.82,0.82,0.8];const sit=this.sitting;const bodyRx=sit?-0.9:0;const shake=this.shakeT>0?Math.sin(game.time*40)*0.2:0;
         if(sit){part([-2,-4,-2,2,0,2],-2,4,3,-1.3,0,0,N,c);part([-2,-4,-2,2,0,2],2,4,3,-1.3,0,0,N,c);part([-2,-6,-2,2,0,2],-2,6,-4,0,0,0,N,c);part([-2,-6,-2,2,0,2],2,6,-4,0,0,0,N,c)}
         else for(const [lx,lz,sg] of [[-2,-4,1],[2,-4,-1],[-2,3,-1],[2,3,1]])part([lx-1,-6,lz-1,lx+1,0,lz+1],0,6,0,swing*sg,0,0,N,c);
@@ -1880,11 +1917,12 @@ function updatePlayer(dt){
   const guiOpen=game.gui!==null||game.paused;
   let fwd=0,strafe=0;if(!guiOpen){if(keys.KeyW||keys.ArrowUp)fwd+=1;if(keys.KeyS||keys.ArrowDown)fwd-=1;if(keys.KeyA)strafe-=1;if(keys.KeyD)strafe+=1}
   const wantSneak=!guiOpen&&(keys.ShiftLeft||keys.ShiftRight);const inWater=entityInWater(p),inLava=entityInLava(p);p.inWater=inWater;
+  if(p.riding){const h=p.riding;if(h.dead||h.dying||wantSneak){h.dismount()}else{h.ride(dt,fwd,strafe,keys.Space&&!guiOpen,keys.ControlLeft||p.sprintReq);p.sprinting=false}}
   const headId=world.getBlock(floor(p.x),floor(p.y+p.eyeHeight),floor(p.z));const headWater=headId===8;
   const ladder=onLadder(p);
   if(p.flying&&!creative)p.flying=false;
   // sneaking
-  if(wantSneak&&!p.flying){if(!p.sneaking){p.sneaking=true;p.h=1.5;p.eyeHeight=1.27}}else if(p.sneaking){// stand up if room
+  if(wantSneak&&!p.flying&&!p.riding){if(!p.sneaking){p.sneaking=true;p.h=1.5;p.eyeHeight=1.27}}else if(p.sneaking){// stand up if room
     const w=p.w/2;if(collectBoxes(p.x-w,p.y+1.5,p.z-w,p.x+w,p.y+1.8,p.z+w).some(b=>b[0]<p.x+w&&b[3]>p.x-w&&b[2]<p.z+w&&b[5]>p.z-w&&b[1]<p.y+1.8&&b[4]>p.y+1.5)){}else{p.sneaking=false;p.h=1.8;p.eyeHeight=1.62}}
   // sprinting
   const canSprint=fwd>0&&(p.hunger>6||creative)&&!p.sneaking&&!guiOpen;
@@ -1895,7 +1933,8 @@ function updatePlayer(dt){
   const sy=Math.sin(p.yaw),cy=Math.cos(p.yaw);let mx=(-sy*fwd+cy*strafe),mz=(-cy*fwd-sy*strafe);const ml=sqrt(mx*mx+mz*mz);if(ml>1){mx/=ml;mz/=ml}
   const tx=mx*speed,tz=mz*speed;
   // ---- flying ----
-  if(p.flying){p.vx+=(tx-p.vx)*Math.min(1,dt*8);p.vz+=(tz-p.vz)*Math.min(1,dt*8);let ty=0;if(keys.Space&&!guiOpen)ty=speed*0.8;if((keys.ShiftLeft||keys.ShiftRight)&&!guiOpen)ty=-speed*0.8;p.vy+=(ty-p.vy)*Math.min(1,dt*8);
+  if(p.riding){p.wasInWater=inWater}
+  else if(p.flying){p.vx+=(tx-p.vx)*Math.min(1,dt*8);p.vz+=(tz-p.vz)*Math.min(1,dt*8);let ty=0;if(keys.Space&&!guiOpen)ty=speed*0.8;if((keys.ShiftLeft||keys.ShiftRight)&&!guiOpen)ty=-speed*0.8;p.vy+=(ty-p.vy)*Math.min(1,dt*8);
     moveEntity(p,p.vx*dt,p.vy*dt,p.vz*dt,0);if(p.onGround&&!keys.Space){p.flying=false}p.fallDist=0}
   else{
     // horizontal
@@ -2073,14 +2112,16 @@ function trySleep(bx,by,bz){const p=player;const t=world.time;
   p.spawn=[bx+0.5,by+0.6,bz+0.5];p.sleeping=0.01;$('sleepfade').style.opacity=1;showMessage('Respawn point set')}
 function playerDie(src){const p=player;p.dead=true;p.hp=0;playSound('death');let msg='Player died';const t=src&&src.type;
   if(t==='fall')msg='Player fell from a high place';else if(t==='mob')msg='Player was slain by a monster';else if(t==='arrow')msg='Player was shot by Skeleton';else if(t==='explosion')msg='Player was blown up';else if(t==='lava')msg='Player tried to swim in lava';else if(t==='fire')msg='Player burned to death';else if(t==='drown')msg='Player drowned';else if(t==='starve')msg='Player starved to death';else if(t==='cactus')msg='Player was pricked to death';
-  for(let i=0;i<36;i++){if(p.inv[i]){spawnItem(p.x,p.y+1,p.z,p.inv[i]);p.inv[i]=null}}for(let i=0;i<4;i++){if(p.armor[i]){spawnItem(p.x,p.y+1,p.z,p.armor[i]);p.armor[i]=null}}
-  spawnXP(p.x,p.y+1,p.z,Math.min(100,p.level*7));
+  if(p.riding)p.riding.dismount();
+  if(!opts.keepInv){for(let i=0;i<36;i++){if(p.inv[i]){spawnItem(p.x,p.y+1,p.z,p.inv[i]);p.inv[i]=null}}for(let i=0;i<4;i++){if(p.armor[i]){spawnItem(p.x,p.y+1,p.z,p.armor[i]);p.armor[i]=null}}
+    spawnXP(p.x,p.y+1,p.z,Math.min(100,p.level*7));showMessage('Your items dropped at X '+floor(p.x)+' Y '+floor(p.y)+' Z '+floor(p.z)+' (they vanish after 5 minutes)')}
+  else showMessage('You died at X '+floor(p.x)+' Y '+floor(p.y)+' Z '+floor(p.z));
   $('deathMsg').textContent=msg;$('deathScore').textContent='Score: '+(p.level*7+floor(p.xp));$('deathScreen').classList.add('show');document.exitPointerLock&&document.exitPointerLock();updateHotbar();
-  p.level=0;p.xp=0;p.xpFrac=0;}
+  if(!opts.keepInv){p.level=0;p.xp=0;p.xpFrac=0}saveWorld()}
 function respawn(){const p=player;if(world.nether)switchDimension(true);p.dead=false;p.hp=20;p.hunger=20;p.sat=5;p.exh=0;p.air=300;p.fireT=0;p.effects={};p.vx=p.vy=p.vz=0;p.fallDist=0;p.invT=0;
   let s=p.spawn||game.worldSpawn;let ok=false;if(p.spawn){ensureChunks(s[0],s[2],1);const b=world.getBlock(floor(s[0]),floor(s[1]),floor(s[2]));if(b===62||world.getBlock(floor(s[0]),floor(s[1])-1,floor(s[2]))===62)ok=true;else showMessage('Your home bed was missing or obstructed')}
   if(!ok){s=game.worldSpawn;ensureChunks(s[0],s[2],1)} // the world spawn never moves: you always come back to the same place
-  const spot=safeSpotNear(s[0],s[2]);p.x=spot[0];p.z=spot[2];p.y=spot[1];$('deathScreen').classList.remove('show');updateHUD();updateHotbar()}
+  const spot=safeSpotNear(s[0],s[2]);p.x=spot[0];p.z=spot[2];p.y=spot[1];$('deathScreen').classList.remove('show');updateHUD();updateHotbar();saveWorld()}
 // nearest standable column to (x,z): solid ground, two air blocks, no liquid. Chunks must already be generated.
 function isStandable(bx,bz){if(!world.hasChunk(bx,bz))return null;const y=findGround(bx,bz);if(y<=1||y>=CH-2)return null;const g=world.getBlock(bx,y-1,bz);if(g===8||g===9||g===81)return null;
   for(let yy=y;yy<y+2;yy++){const b=world.getBlock(bx,yy,bz);if(b===8||b===9||b===81||BLOCKS[b].solid)return null}return y}
@@ -2118,12 +2159,12 @@ function damageItem(st,n){if(player.mode==='creative')return;st.dur=(st.dur||0)+
 function flashDamage(){const f=$('dmgflash');f.style.background='rgba(255,0,0,.35)';setTimeout(()=>f.style.background='rgba(255,0,0,0)',150)}
 /* ===================== STRUCTURES ===================== */
 const LOOT={
-  dungeon:[[272,1,3,10],[283,1,4,10],[285,1,4,10],[286,1,4,10],[271,1,4,10],[260,1,4,8],[257,1,4,8],[262,1,4,5],[263,1,1,3],[308,1,1,2],[6,1,2,5],[301,1,1,3],[282,1,3,8]],
+  dungeon:[[315,1,1,6],[272,1,3,10],[283,1,4,10],[285,1,4,10],[286,1,4,10],[271,1,4,10],[260,1,4,8],[257,1,4,8],[262,1,4,5],[263,1,1,3],[308,1,1,2],[6,1,2,5],[301,1,1,3],[282,1,3,8]],
   mineshaft:[[89,4,8,10],[32,1,16,10],[272,1,3,10],[260,1,5,8],[262,1,3,5],[265,4,9,5],[264,4,9,5],[263,1,2,3],[257,3,8,10],[270,2,4,6],[308,1,1,1]],
-  temple:[[263,1,3,5],[260,1,5,15],[262,2,7,15],[266,1,3,15],[283,4,6,25],[287,1,3,25],[282,3,7,25],[308,1,1,10],[285,1,8,5]],
+  temple:[[315,1,1,8],[263,1,3,5],[260,1,5,15],[262,2,7,15],[266,1,3,15],[283,4,6,25],[287,1,3,25],[282,3,7,25],[308,1,1,10],[285,1,8,5]],
   igloo:[[273,1,3,15],[257,1,4,15],[308,1,1,1],[271,2,3,10],[282,1,1,10],[266,1,1,5]],
   portal:[[31,1,2,40],[269,1,4,40],[299,1,1,40],[262,2,8,15],[308,1,1,15],[24,1,2,5],[262,1,3,15]],
-  village:[[272,1,4,20],[273,1,5,15],[271,1,7,10],[270,1,4,10],[260,1,3,5],[266,1,4,3],[257,1,4,10],[303,1,5,10],[302,1,5,10],[6,1,2,5],[289,1,3,5]],
+  village:[[315,1,1,3],[272,1,4,20],[273,1,5,15],[271,1,7,10],[270,1,4,10],[260,1,3,5],[266,1,4,3],[257,1,4,10],[303,1,5,10],[302,1,5,10],[6,1,2,5],[289,1,3,5]],
   fortress:[[263,1,3,5],[260,1,5,5],[262,1,3,15],[299,1,1,5],[31,2,4,5],[308,1,1,3],[311,2,6,10],[283,2,5,8]],
   hut:[[283,2,5,10],[287,1,3,10],[286,1,4,10],[265,1,4,8],[285,1,3,8],[64,1,3,8],[65,1,3,8],[34,1,1,2]],
 };
@@ -2309,6 +2350,7 @@ shaped(['##','##'],{'#':10},[19,1]);shaped(['##','##'],{'#':292},[27,1]);shaped(
 shaped(['###','###','###'],{'#':260},[25,1]);shaped(['###','###','###'],{'#':262},[24,1]);shaped(['###','###','###'],{'#':263},[26,1]);shaped(['###','###','###'],{'#':264},[79,1]);shaped(['###','###','###'],{'#':257},[78,1]);
 shapeless([25],[260,9]);shapeless([24],[262,9]);shapeless([26],[263,9]);shapeless([79],[264,9]);shapeless([78],[257,9]);
 shaped([' |S','| S',' |S'],{'|':256,S:286},[301,1]);
+shaped(['LLL','LSL'],{L:289,S:286},[315,1]); // saddle: 5 leather + string
 shaped(['F','|','f'],{F:269,'|':256,f:288},[284,4]);
 shaped([' #','# '],{'#':260},[300,1]);
 shapeless([260,269],[299,1]);
@@ -2521,6 +2563,8 @@ function playSound(name,vol=1,pitch=1){
     case 'creeper':noise(0.3,'highpass',2500);env(0.01,0.2,0.3);break;
     case 'enderman':{const o=tone('sine',70,55,1.0);const l=c.createOscillator();l.frequency.value=5;const lg=c.createGain();lg.gain.value=12;l.connect(lg);lg.connect(o.frequency);l.start(t);l.stop(t+1);noise(1.0,'lowpass',250);env(0.15,0.5,1.0);break}
     case 'enderman_tp':tone('sine',300,1400,0.3);tone('triangle',150,900,0.3);env(0.005,0.3,0.3);break;
+    case 'horse':{const o=tone('sawtooth',500,280,0.6);const l=c.createOscillator();l.frequency.value=14;const lg=c.createGain();lg.gain.value=60;l.connect(lg);lg.connect(o.frequency);l.start(t);l.stop(t+0.6);noise(0.6,'bandpass',900,2);env(0.03,0.4,0.6);break}
+    case 'horse_gallop':noise(0.08,'lowpass',300);env(0.005,0.4,0.08);break;
     case 'wolf':noise(0.12,'bandpass',900,2);tone('square',420,260,0.14);env(0.005,0.3,0.16);break;
     case 'wolf_growl':{const o=tone('sawtooth',90,80,0.6);noise(0.6,'lowpass',400);env(0.05,0.4,0.6);break}
     case 'wolf_whine':tone('sine',600,900,0.35);tone('triangle',620,880,0.35);env(0.02,0.25,0.35);break;
@@ -2535,7 +2579,7 @@ function updateMusic(dt){if(!AU.ctx||opts.music===0)return;AU.musicT-=dt;if(AU.m
   const n=1+floor(Math.random()*3);for(let i=0;i<n;i++){const o=c.createOscillator();o.type='sine';o.frequency.value=scale[floor(Math.random()*scale.length)]*(Math.random()<0.3?0.5:1);const g=c.createGain();g.gain.setValueAtTime(0,t+i*0.6);g.gain.linearRampToValueAtTime(0.6,t+i*0.6+0.4);g.gain.exponentialRampToValueAtTime(0.001,t+i*0.6+4);o.connect(g);g.connect(AU.music);o.start(t+i*0.6);o.stop(t+i*0.6+4.2)}}
 /* ===================== GAME ===================== */
 const game={dims:{over:null,nether:null},state:'title',paused:false,gui:null,time:0,tick:0,difficulty:2,worldId:null,worldName:'',worldSpawn:[0.5,70,0.5],seed:0,lastSave:0,fps:0,frames:0,fpsT:0,tickAcc:0,spawnT:0};
-const opts=Object.assign({renderDist:8,fov:70,sens:100,brightness:50,volume:100,music:50,smooth:true,clouds:true},JSON.parse(localStorage.getItem('ic_opts')||'{}'));
+const opts=Object.assign({renderDist:8,fov:70,sens:100,brightness:50,volume:100,music:50,smooth:true,clouds:true,keepInv:true},JSON.parse(localStorage.getItem('ic_opts')||'{}'));
 let world=null;
 function saveOpts(){localStorage.setItem('ic_opts',JSON.stringify(opts))}
 /* ---- chunk streaming ---- */
@@ -2596,7 +2640,7 @@ function surfaceSpot(x,z){let y=findGround(x,z);if(y<=SEA||y>=CH-2)return -1;if(
 function spawnPack(type,x,z,n,baby){let placed=0;for(let t=0;t<n*4&&placed<n;t++){const ox=x+floor(Math.random()*7)-3,oz=z+floor(Math.random()*7)-3;const y=surfaceSpot(ox,oz);if(y<0)continue;const m=new Mob(type,ox+0.5,y,oz+0.5);if(baby&&placed===n-1&&n>1){m.baby=true;m.growT=120}entities.push(m);placed++}return placed}
 function populateChunk(c){if(!c||typeof Mob==='undefined')return;const k=c.cx+','+c.cz;if(world.populated.has(k))return;world.populated.add(k);
   const bi=c.biomes[8*16+8];if(!ANIMAL_BIOMES.has(bi))return;const rng=mulberry32(hashInt(c.cx,c.cz,77,world.seed));if(rng()>0.3)return;
-  const types=bi===6||bi===7?['sheep','sheep','pig','cow','chicken','wolf','wolf']:bi===3?['pig','cow','sheep','chicken','wolf']:['pig','cow','sheep','chicken'];const type=types[floor(rng()*types.length)];
+  const types=bi===6||bi===7?['sheep','sheep','pig','cow','chicken','wolf','wolf']:bi===3?['pig','cow','sheep','chicken','wolf']:bi===2?['pig','cow','sheep','chicken','horse','horse']:['pig','cow','sheep','chicken'];const type=types[floor(rng()*types.length)];
   spawnPack(type,c.cx*16+floor(rng()*16),c.cz*16+floor(rng()*16),type==='chicken'||type==='wolf'?4:2+floor(rng()*3),type!=='wolf')}
 /* ---- mob spawning ---- */
 function isSlimeChunk(cx,cz){return (hashInt(cx,cz,987,world.seed)>>>0)%10===0}
@@ -2626,7 +2670,7 @@ function trySpawnMobs(){
   }
   // passive animals: surface only, daylight, grass
   if(passive<14&&day>0.5&&Math.random()<0.25){const cx=(floor(p.x)>>4)+floor(Math.random()*11)-5,cz=(floor(p.z)>>4)+floor(Math.random()*11)-5;const c=world.getChunk(cx,cz);if(c&&c.generated){const x=cx*16+floor(Math.random()*16),z=cz*16+floor(Math.random()*16);const y=surfaceSpot(x,z);
-    if(y>0){const dx=x-p.x,dz=z-p.z;if(dx*dx+dz*dz>=24*24&&world.getSky(x,y,z)>=9){const bi=c.biomes[(x&15)*16+(z&15)];const type=(bi===6||bi===7||bi===3)&&Math.random()<0.2?'wolf':['pig','cow','sheep','chicken'][floor(Math.random()*4)];spawnPack(type,x,z,type==='wolf'?4:2+floor(Math.random()*3),false)}}}}
+    if(y>0){const dx=x-p.x,dz=z-p.z;if(dx*dx+dz*dz>=24*24&&world.getSky(x,y,z)>=9){const bi=c.biomes[(x&15)*16+(z&15)];const type=(bi===6||bi===7||bi===3)&&Math.random()<0.2?'wolf':bi===2&&Math.random()<0.3?'horse':['pig','cow','sheep','chicken'][floor(Math.random()*4)];spawnPack(type,x,z,type==='wolf'?4:2+floor(Math.random()*3),false)}}}}
 }
 /* ---- initial spawn ---- */
 function findSpawn(){for(let r=0;r<400;r+=8){for(let a=0;a<PI*2;a+=0.7){const x=floor(Math.cos(a)*r),z=floor(Math.sin(a)*r);const info=world.columnInfo(x,z);if(info.height>SEA+1&&info.biome!==BI.mountains&&info.biome!==BI.ocean)return [x+0.5,info.height+1,z+0.5]}}return [0.5,80,0.5]}
@@ -2639,7 +2683,7 @@ function newWorld(name,seedStr,mode,diff){
 function worldList(){try{return JSON.parse(localStorage.getItem('ic_worlds')||'[]')}catch(e){return []}}
 function startWorld(meta,save){
   game.dims={over:null,nether:null};world=new World(meta.seed);game.seed=meta.seed;game.worldId=meta.id;game.worldName=meta.name;game.difficulty=meta.diff;entities.length=0;particles.length=0;activeFurnaces.clear();
-  const p=player;p.mode=meta.mode;p.inv.fill(null);p.armor.fill(null);p.sel=0;p.hp=20;p.hunger=20;p.sat=5;p.exh=0;p.xp=0;p.level=0;p.dead=false;p.flying=false;p.effects={};p.spawn=null;p.fireT=0;p.air=300;p.vx=p.vy=p.vz=0;
+  const p=player;p.mode=meta.mode;p.inv.fill(null);p.armor.fill(null);p.sel=0;p.hp=20;p.hunger=20;p.sat=5;p.exh=0;p.xp=0;p.level=0;p.dead=false;p.flying=false;p.effects={};p.spawn=null;p.fireT=0;p.air=300;p.vx=p.vy=p.vz=0;p.riding=null;
   if(save){world.time=save.time;world.day=save.day||0;game.worldSpawn=save.spawn;world.savedMods={};for(const k in save.mods)world.savedMods[k]=save.mods[k];world.savedBents=save.bents||{};world.populated=new Set(save.pop||[]);
     const sp=save.player;if(sp.hp<=0)game.respawnOnLoad=true;Object.assign(p,{x:sp.x,y:sp.y,z:sp.z,yaw:sp.yaw,pitch:sp.pitch,hp:sp.hp,hunger:sp.hunger,sat:sp.sat,xp:sp.xp,level:sp.level,sel:sp.sel,spawn:sp.spawn,flying:sp.flying||false});for(let i=0;i<36;i++)p.inv[i]=sp.inv[i]||null;for(let i=0;i<4;i++)p.armor[i]=sp.armor[i]||null;
     game.pendingMobs=save.mobs||[];game.pendingItems=save.items||[];
@@ -2654,27 +2698,27 @@ function startWorld(meta,save){
 }
 function finishLoad(){const p=player;if(!game.pendingMobs.length&&player.spawn===null&&world.time===1000){}
   if(game.freshWorld){const s=findSurfaceSpawn(p.x,p.z);game.worldSpawn=s;p.x=s[0];p.y=s[1];p.z=s[2];game.freshWorld=false;
-    for(const type of ['sheep','pig','cow','chicken']){for(let t=0;t<12;t++){const a=Math.random()*PI*2,r=8+Math.random()*14;if(spawnPack(type,floor(s[0]+Math.cos(a)*r),floor(s[2]+Math.sin(a)*r),type==='chicken'?4:3,false)>0)break}}}else{const bx=floor(p.x),bz=floor(p.z);const inSolid=y=>{const b=world.getBlock(bx,y,bz);return b!==0&&BLOCKS[b].solid};let fy=floor(p.y),n=0;if(inSolid(fy)||inSolid(fy+1)){while(n<40&&(inSolid(fy)||inSolid(fy+1))){fy++;n++}p.y=fy+0.1}}
+    for(const type of ['sheep','pig','cow','chicken','horse']){for(let t=0;t<12;t++){const a=Math.random()*PI*2,r=8+Math.random()*14;if(spawnPack(type,floor(s[0]+Math.cos(a)*r),floor(s[2]+Math.sin(a)*r),type==='chicken'?4:3,false)>0)break}}}else{const bx=floor(p.x),bz=floor(p.z);const inSolid=y=>{const b=world.getBlock(bx,y,bz);return b!==0&&BLOCKS[b].solid};let fy=floor(p.y),n=0;if(inSolid(fy)||inSolid(fy+1)){while(n<40&&(inSolid(fy)||inSolid(fy+1))){fy++;n++}p.y=fy+0.1}}
   if(game.respawnOnLoad){game.respawnOnLoad=false;respawn()}
-  for(const m of game.pendingMobs){const e=new Mob(m.type,m.x,m.y,m.z);e.hp=m.hp;e.baby=m.baby;e.growT=m.growT||0;if(m.sheared!==undefined)e.sheared=m.sheared;if(m.woolId)e.woolId=m.woolId;if(m.prof&&PROFS[m.prof]){e.prof=m.prof;e.trades=villagerTrades(m.prof);e.vlevel=m.vlevel||1;e.vxp=m.vxp||0;if(m.uses)m.uses.forEach((u,i)=>{if(e.trades[i])e.trades[i].uses=u});if(m.demand)m.demand.forEach((u,i)=>{if(e.trades[i])e.trades[i].demand=u});e.restocks=m.restocks||0}if(m.size&&e.type==='slime')e.setSize(m.size);if(m.tamed){e.tamed=true;e.maxHp=20;e.sitting=!!m.sitting}entities.push(e)}
+  for(const m of game.pendingMobs){const e=new Mob(m.type,m.x,m.y,m.z);e.hp=m.hp;e.baby=m.baby;e.growT=m.growT||0;if(m.sheared!==undefined)e.sheared=m.sheared;if(m.woolId)e.woolId=m.woolId;if(m.prof&&PROFS[m.prof]){e.prof=m.prof;e.trades=villagerTrades(m.prof);e.vlevel=m.vlevel||1;e.vxp=m.vxp||0;if(m.uses)m.uses.forEach((u,i)=>{if(e.trades[i])e.trades[i].uses=u});if(m.demand)m.demand.forEach((u,i)=>{if(e.trades[i])e.trades[i].demand=u});e.restocks=m.restocks||0}if(m.size&&e.type==='slime')e.setSize(m.size);if(m.tamed){e.tamed=true;if(e.type==='wolf')e.maxHp=20;e.sitting=!!m.sitting}if(e.type==='horse'){if(m.color!==undefined)e.color=m.color;if(m.hspeed)e.hspeed=m.hspeed;if(m.hjump)e.hjump=m.hjump;if(m.maxHp)e.maxHp=m.maxHp;e.saddled=!!m.saddled}entities.push(e)}
   for(const it of game.pendingItems)spawnItem(it.x,it.y,it.z,{id:it.id,count:it.count,dur:it.dur});
   for(const c of world.chunks.values())for(const [i,be] of c.bents){if(be.burn>0){const x=c.cx*16+(i>>11),y=i&127,z=c.cz*16+((i>>7)&15);activateFurnace(x,y,z)}}
   updateChunks(200);game.state='playing';game.paused=false;game.gui=null;hideMenus();$('hud').style.display='block';$('overlay').style.display='block';updateHUD();updateHotbar();lockPointer();game.lastSave=game.time;
   if(!game.loadedOnce){showMessage('Welcome to Ironcraft! Punch trees to get wood.');game.loadedOnce=true}
 }
-function saveWorld(){if(!world||game.state!=='playing')return;const p=player;const mods={},bents={};if(world.nether&&player.spawnOver)void 0;
+function saveWorld(){if(!world||game.state!=='playing')return;const p=player;const ridePos=p.riding?[p.x,p.y,p.z]:null;if(ridePos){p.y=p.riding.y}const mods={},bents={};if(world.nether&&player.spawnOver)void 0;
   const otherKey=world.nether?'over':'nether';const other=game.dims[otherKey];let netherSave=null;
   const dimData=(w,ents)=>{for(const c of w.chunks.values()){const k=c.cx+','+c.cz;if(!w.savedMods)w.savedMods={};if(!w.savedBents)w.savedBents={};if(c.mods.size)w.savedMods[k]=Array.from(c.mods);if(c.bents.size)w.savedBents[k]=Array.from(c.bents)}return {mods:w.savedMods||{},bents:w.savedBents||{},pop:Array.from(w.populated),mobs:ents.filter(e=>e instanceof Mob&&!e.dead&&!e.dying).slice(0,60).map(e=>({type:e.type,x:e.x,y:e.y,z:e.z,hp:e.hp}))}};
   if(world.nether)netherSave=dimData(world,entities);else if(other)netherSave=dimData(other.world,other.ents);
   const overSaveWorld=world.nether?(other?other.world:null):world;
   if(overSaveWorld){for(const c of overSaveWorld.chunks.values()){const k=c.cx+','+c.cz;if(!overSaveWorld.savedMods)overSaveWorld.savedMods={};if(!overSaveWorld.savedBents)overSaveWorld.savedBents={};if(c.mods.size)overSaveWorld.savedMods[k]=Array.from(c.mods);if(c.bents.size)overSaveWorld.savedBents[k]=Array.from(c.bents)}Object.assign(mods,overSaveWorld.savedMods||{});Object.assign(bents,overSaveWorld.savedBents||{})}
-  const mobs=[],items=[];const overEnts=world.nether?(other?other.ents:[]):entities;for(const e of overEnts){if(e.dead)continue;if(e instanceof Mob&&!e.dying)mobs.push({type:e.type,x:e.x,y:e.y,z:e.z,hp:e.hp,baby:e.baby,growT:e.growT,sheared:e.sheared,woolId:e.woolId,prof:e.prof,vlevel:e.vlevel,vxp:e.vxp,uses:e.trades?e.trades.map(t=>t.uses):undefined,tamed:e.tamed||undefined,sitting:e.sitting||undefined,size:e.size,demand:e.trades?e.trades.map(t=>t.demand||0):undefined,restocks:e.restocks});else if(e instanceof ItemEntity)items.push({x:e.x,y:e.y,z:e.z,id:e.stack.id,count:e.stack.count,dur:e.stack.dur})}
+  const mobs=[],items=[];const overEnts=world.nether?(other?other.ents:[]):entities;for(const e of overEnts){if(e.dead)continue;if(e instanceof Mob&&!e.dying)mobs.push({type:e.type,x:e.x,y:e.y,z:e.z,hp:e.hp,baby:e.baby,growT:e.growT,sheared:e.sheared,woolId:e.woolId,prof:e.prof,vlevel:e.vlevel,vxp:e.vxp,uses:e.trades?e.trades.map(t=>t.uses):undefined,tamed:e.tamed||undefined,sitting:e.sitting||undefined,color:e.color,hspeed:e.hspeed,hjump:e.hjump,saddled:e.saddled||undefined,maxHp:e.type==='horse'?e.maxHp:undefined,size:e.size,demand:e.trades?e.trades.map(t=>t.demand||0):undefined,restocks:e.restocks});else if(e instanceof ItemEntity)items.push({x:e.x,y:e.y,z:e.z,id:e.stack.id,count:e.stack.count,dur:e.stack.dur})}
   const save={v:1,dim:world.nether?'nether':'over',nether:netherSave,time:world.time,day:world.day,spawn:game.worldSpawn,player:{x:p.x,y:p.y,z:p.z,yaw:p.yaw,pitch:p.pitch,hp:p.hp,hunger:p.hunger,sat:p.sat,xp:p.xp,level:p.level,sel:p.sel,inv:p.inv,armor:p.armor,spawn:p.spawn,flying:p.flying},mods,bents,mobs:mobs.slice(0,120),items:items.slice(0,100),pop:Array.from(overSaveWorld?overSaveWorld.populated:[])};
   try{localStorage.setItem('ic_world_'+game.worldId,JSON.stringify(save));const list=worldList();const m=list.find(w=>w.id===game.worldId);if(m){m.played=Date.now();localStorage.setItem('ic_worlds',JSON.stringify(list))}}catch(e){showMessage('Save failed: storage full')}
-  game.lastSave=game.time;
+  if(ridePos){p.y=ridePos[1]}game.lastSave=game.time;
 }
 function loadWorld(meta){let save=null;try{save=JSON.parse(localStorage.getItem('ic_world_'+meta.id))}catch(e){}startWorld(meta,save)}
-function quitToTitle(){saveWorld();game.state='title';document.exitPointerLock&&document.exitPointerLock();for(const c of world.chunks.values())deleteChunkMesh(c);for(const k in game.dims){const d=game.dims[k];if(d)for(const c of d.world.chunks.values())deleteChunkMesh(c)}game.dims={over:null,nether:null};world=null;entities.length=0;$('hud').style.display='none';$('overlay').style.display='none';for(const el of document.querySelectorAll('.gui'))el.classList.remove('show');game.gui=null;game.paused=false;showMenu('titleMenu')}
+function quitToTitle(){if(player.riding)player.riding.dismount();saveWorld();game.state='title';document.exitPointerLock&&document.exitPointerLock();for(const c of world.chunks.values())deleteChunkMesh(c);for(const k in game.dims){const d=game.dims[k];if(d)for(const c of d.world.chunks.values())deleteChunkMesh(c)}game.dims={over:null,nether:null};world=null;entities.length=0;$('hud').style.display='none';$('overlay').style.display='none';for(const el of document.querySelectorAll('.gui'))el.classList.remove('show');game.gui=null;game.paused=false;showMenu('titleMenu')}
 /* ---- menus ---- */
 function showMenu(id){for(const m of document.querySelectorAll('.menu'))m.classList.remove('show');if(id)$(id).classList.add('show')}
 function hideMenus(){showMenu(null)}
@@ -2699,6 +2743,7 @@ function setupMenus(){
   sl('optRender','renderDist',v=>'Render Distance: '+v+' chunks');sl('optFov','fov',v=>'FOV: '+(v===70?'Normal':v));sl('optSens','sens',v=>'Sensitivity: '+v+'%');sl('optBright','brightness',v=>'Brightness: '+(v===0?'Moody':v===100?'Bright':v+'%'));
   sl('optVol','volume',v=>'Master Volume: '+(v===0?'OFF':v+'%'),setVolume);sl('optMusic','music',v=>'Music: '+(v===0?'OFF':v+'%'),setVolume);
   $('btnSmooth').onclick=()=>{opts.smooth=!opts.smooth;$('btnSmooth').textContent='Smooth Lighting: '+(opts.smooth?'ON':'OFF');if(world)for(const c of world.chunks.values())c.dirty=true};$('btnSmooth').textContent='Smooth Lighting: '+(opts.smooth?'ON':'OFF');
+  $('btnKeepInv').onclick=()=>{opts.keepInv=!opts.keepInv;$('btnKeepInv').textContent='Keep Inventory on Death: '+(opts.keepInv?'ON':'OFF');saveOpts()};$('btnKeepInv').textContent='Keep Inventory on Death: '+(opts.keepInv?'ON':'OFF');
   $('btnClouds').onclick=()=>{opts.clouds=!opts.clouds;$('btnClouds').textContent='Clouds: '+(opts.clouds?'ON':'OFF')};$('btnClouds').textContent='Clouds: '+(opts.clouds?'ON':'OFF');
 }
 function pauseGame(){if(game.state!=='playing')return;game.paused=true;showMenu('pauseMenu');document.exitPointerLock&&document.exitPointerLock();mouseL=mouseR=false;saveWorld()}
