@@ -479,6 +479,11 @@ defTex('spawner',p=>{p.fill(0,0,0,0);for(let i=0;i<16;i++){for(let j=0;j<16;j++)
 defTex('cobweb',p=>{p.fill(0,0,0,0);for(let i=0;i<16;i++){p.px(i,i,235,235,235,220);p.px(15-i,i,235,235,235,220);p.px(i,7,235,235,235,200);p.px(7,i,235,235,235,200)}for(let r=3;r<8;r+=2){for(let a=0;a<32;a++){const x=8+Math.round(Math.cos(a/32*6.28)*r),y=8+Math.round(Math.sin(a/32*6.28)*r);if(x>=0&&x<16&&y>=0&&y<16)p.px(x,y,225,225,225,180)}}});
 defTex('nether_bricks',p=>brickPattern(p,[35,15,18],[70,30,35]));
 defTex('rail',p=>{p.fill(0,0,0,0);for(let y=0;y<16;y+=4)p.rect(1,y+1,14,2,110,80,50);p.rect(3,0,2,16,150,150,160);p.rect(11,0,2,16,150,150,160);p.rect(3,0,1,16,110,110,120);p.rect(11,0,1,16,110,110,120)});
+defTex('prismarine',p=>{brickPattern(p,[70,120,115],[95,160,150]);p.speckle(10,120,190,175)});
+defTex('dark_prismarine',p=>{brickPattern(p,[30,60,60],[50,95,90])});
+defTex('sea_lantern',p=>{p.noise(200,235,225,10);p.rect(2,2,12,12,225,250,245);p.rect(5,5,6,6,190,225,215);p.speckle(8,255,255,255)});
+defTex('guardian_face',p=>{p.noise(90,140,130,8);p.rect(4,4,8,8,240,150,60);p.rect(6,6,4,4,20,20,30);p.px(7,7,255,255,255)});
+defTex('vindicator_face',p=>{p.noise(180,170,160,6);p.rect(2,4,3,2,40,60,40);p.rect(11,4,3,2,40,60,40);p.rect(2,3,12,1,60,50,40);p.rect(6,6,4,7,170,150,130);p.rect(4,12,8,1,90,60,60)});
 defTex('villager_face',p=>{p.noise(200,160,120,6);p.rect(2,4,3,2,60,120,60);p.rect(11,4,3,2,60,120,60);p.rect(2,3,12,1,110,70,40);p.rect(6,6,4,7,190,145,105);p.rect(5,13,6,1,150,110,80)});
 defTex('sheep_wool',p=>{p.noise(235,235,235,10);for(let i=0;i<10;i++)p.blob(floor(p.rng()*16),floor(p.rng()*16),1.5,215,215,215)});
 
@@ -604,6 +609,9 @@ defBlock(87,'cobweb',{tex:'cobweb',model:'cross',solid:false,hard:4,tool:'shears
 defBlock(88,'nether_bricks',{tex:'nether_bricks',hard:2,tool:'pickaxe',needsTool:true,resist:6});
 defBlock(89,'rail',{tex:'rail',model:'rail',solid:false,hard:0.7,tool:'pickaxe',transparent:true});
 defBlock(90,'stone_pressure_plate',{tex:'smooth_stone',model:'plate',solid:false,hard:0.5,tool:'pickaxe',needsTool:true,transparent:true});
+defBlock(91,'prismarine',{tex:'prismarine',hard:1.5,tool:'pickaxe',needsTool:true,resist:6});
+defBlock(92,'dark_prismarine',{tex:'dark_prismarine',hard:1.5,tool:'pickaxe',needsTool:true,resist:6});
+defBlock(93,'sea_lantern',{tex:'sea_lantern',hard:0.3,light:15,sound:'glass',drop:()=>[[314,2]]});
 defBlock(80,'snow_block',{tex:'snow',hard:0.2,tool:'shovel',needsTool:true,sound:'snow',drop:()=>[[293,4]]});
 // ---- items ----
 const MAT={wood:{tier:0,speed:2,dur:59,color:[150,120,70],name:'Wooden'},stone:{tier:1,speed:4,dur:131,color:[130,130,130],name:'Stone'},iron:{tier:2,speed:6,dur:250,color:[220,220,220],name:'Iron'},diamond:{tier:3,speed:8,dur:1561,color:[90,230,220],name:'Diamond'},gold:{tier:0,speed:12,dur:32,color:[250,220,60],name:'Golden'}};
@@ -1647,6 +1655,8 @@ const MOBDEF={
   zombified_piglin:{hp:20,w:0.6,h:1.95,speed:3.6,dmg:5,drops:r=>[[282,floor(r()*2)],[r()<0.025?262:0,1]],xp:[5,5],sound:'zombie',follow:20,neutral:true,fireproof:true},
   horse:{hp:22,w:1.4,h:1.6,speed:1.7,passive:true,animal:true,food:[271,273,307,308],drops:r=>[[289,floor(r()*3)]],xp:[1,3],sound:'horse',noDespawn:true},
   wolf:{hp:8,w:0.6,h:0.85,speed:3.2,dmg:3,drops:()=>[],xp:[1,3],sound:'wolf',follow:16,neutral:true,animal:true,noDespawn:true,food:[274,275,276,277,278,279,280,281,282]},
+  vindicator:{hp:24,w:0.6,h:1.95,speed:3.6,dmg:7,drops:r=>[[266,floor(r()*2)],[r()<0.1?I.iron_axe:0,1]],xp:[5,5],sound:'villager_no',follow:24,noDespawn:true},
+  guardian:{hp:30,w:0.85,h:0.85,speed:3.5,dmg:2,ranged:'laser',drops:r=>[[91,floor(r()*3)],[310,r()<0.4?1:0],[311,floor(r()*2)]],xp:[10,10],sound:'guardian',follow:16,noDespawn:true,aquatic:true},
   husk:{hp:20,w:0.6,h:1.95,speed:3.2,dmg:3,undead:true,noBurn:true,hungerHit:true,drops:r=>[[282,floor(r()*3)],[r()<0.025?[260,302,303][floor(r()*3)]:0,1]],xp:[5,5],sound:'zombie',follow:35},
   stray:{hp:20,w:0.6,h:1.99,speed:3.4,dmg:3,undead:true,ranged:true,slowArrow:true,drops:r=>[[283,floor(r()*3)],[284,floor(r()*3)]],xp:[5,5],sound:'skeleton',follow:16},
   cave_spider:{hp:12,w:0.7,h:0.5,speed:4.6,dmg:2,poison:true,scale:0.5,drops:r=>[[286,floor(r()*3)],[r()<0.33?287:0,1]],xp:[5,5],sound:'spider',follow:16,neutral:true,lightNeutral:true},
@@ -1682,6 +1692,22 @@ class Mob extends Entity{
     const hs=sqrt(this.vx*this.vx+this.vz*this.vz);this.walkAmp+=(Math.min(1,hs/3)-this.walkAmp)*Math.min(1,dt*8);this.walkT+=hs*dt*1.6;
     this.gallopT+=hs*dt;if(this.gallopT>2.5&&this.onGround){this.gallopT=0;if(hs>1)playSoundAt('horse_gallop',this.x,this.y,this.z,0.6)}
     p.x=this.x;p.z=this.z;p.y=this.y+this.h*0.72;p.vx=this.vx;p.vy=0;p.vz=this.vz;p.onGround=true;p.fallDist=0;p.inWater=this.inWater;p.walkAmp=0}
+  updateGuardian(dt){const p=player;const d=this.def;if(this.hurtT>0)this.hurtT-=dt;if(this.invT>0)this.invT-=dt;if(this.atkCd>0)this.atkCd-=dt;
+    const inW=entityInWater(this);this.inWater=inW;const dx=p.x-this.x,dy=(p.y+1)-(this.y+0.4),dz=p.z-this.z;const dist3=sqrt(dx*dx+dy*dy+dz*dz);const diff=game.difficulty;
+    const hostile=diff>0&&!p.dead&&dist3<d.follow;
+    if(inW){ // swim: wander or circle the player at range, keeping line of sight
+      this.wanderT-=dt;if(!hostile){if(this.wanderT<=0){this.wanderT=1+Math.random()*3;const a=Math.random()*PI*2;this.moveDir=[Math.sin(a),(Math.random()-0.5)*0.4,Math.cos(a)]}}
+      else{const l=dist3||1;const want=dist3<5?-1:dist3>10?1:0;const s=Math.sin(this.age*0.7);this.moveDir=[dx/l*want-dz/l*s*0.6,dy/l*(dist3>4?1:0.2),dz/l*want+dx/l*s*0.6]}
+      if(this.moveDir){const sp=d.speed*(hostile?1:0.5);this.vx+=(this.moveDir[0]*sp-this.vx)*Math.min(1,dt*3);this.vy+=(this.moveDir[1]*sp-this.vy)*Math.min(1,dt*3);this.vz+=(this.moveDir[2]*sp-this.vz)*Math.min(1,dt*3)}
+      moveEntity(this,this.vx*dt,this.vy*dt,this.vz*dt,0);this.fallDist=0;if(this.collidedH&&this.wanderT>0.3)this.wanderT=0.3;
+      if(dx||dz)this.yaw=Math.atan2(-dx,-dz);
+    } else {this.physics(dt,{step:0,friction:0.6});this.flopT=(this.flopT||0)+dt;if(this.flopT>1){this.flopT=0;damageEntity(this,1,{type:'dry'});if(this.onGround)this.vy=4}}
+    // laser: lock on for 2 seconds, then a burst of damage
+    if(hostile&&dist3<14){const e=[this.x,this.y+0.4,this.z];const bh=raycast(e[0],e[1],e[2],dx,dy,dz,dist3-0.5,false);const los=!bh||!bh.block;
+      if(los&&this.atkCd<=0){this.laserT=(this.laserT||0)+dt;if(this.laserT>=2){this.laserT=0;this.atkCd=3;damageEntity(p,[4,6,9][diff-1],{x:this.x,y:this.y,z:this.z,type:'magic',mob:this});playSoundAt('guardian_zap',this.x,this.y,this.z)}
+        else if(Math.random()<dt*3)playSoundAt('guardian',this.x,this.y,this.z,1+this.laserT*0.4,0.4)}
+      else this.laserT=Math.max(0,(this.laserT||0)-dt*2)}else this.laserT=0;
+    if(this.laserT>0)this.spikes=Math.min(1,(this.spikes||0)+dt*3);else this.spikes=Math.max(0,(this.spikes||0)-dt*2)}
   teleport(near,quiet){ // enderman: try random spots; near=true keeps it close to the player
     for(let i=0;i<24;i++){const cx=near?player.x:this.x,cz=near?player.z:this.z;const r=near?3+Math.random()*6:Math.random()*20;const a=Math.random()*PI*2;const x=floor(cx+Math.sin(a)*r),z=floor(cz+Math.cos(a)*r);
       let y=floor((near?player.y:this.y)+8);let up=0;while(y<CH-3&&BLOCKS[world.getBlockPhys(x,y,z)].solid&&up<24){y++;up++}let steps=0;while(y>1&&!BLOCKS[world.getBlockPhys(x,y-1,z)].solid&&steps<24){y--;steps++}if(!BLOCKS[world.getBlockPhys(x,y-1,z)].solid)continue;
@@ -1692,6 +1718,7 @@ class Mob extends Entity{
   update(dt){
     this.age+=dt;if(this.dying){this.deathT+=dt;if(this.deathT>1){this.dead=true}if(this.rider)this.dismount();return}
     if(this.rider){if(this.rider!==player||player.riding!==this){this.rider=null}else return}
+    if(this.type==='guardian'){this.updateGuardian(dt);return}
     const p=player;const dx=p.x-this.x,dz=p.z-this.z,dy=(p.y+1)-(this.y+this.h*0.8);const dist=sqrt(dx*dx+dz*dz),dist3=sqrt(dx*dx+dy*dy+dz*dz);
     if(this.hurtT>0)this.hurtT-=dt;if(this.invT>0)this.invT-=dt;if(this.atkCd>0)this.atkCd-=dt;if(this.panicT>0)this.panicT-=dt;if(this.loveT>0)this.loveT-=dt;
     if(this.baby){this.growT-=dt;if(this.growT<=0)this.baby=false}
@@ -1774,7 +1801,8 @@ class Mob extends Entity{
     if(!d.passive&&!d.noDespawn){if(dist3>128)this.dead=true;else if(dist3>32&&Math.random()<dt/60)this.dead=true}
   }
   land(dist){if(dist>3&&this.type!=='chicken'&&this.type!=='spider'&&this.type!=='cave_spider'&&this.type!=='slime')damageEntity(this,floor(dist-3),{type:'fall'})}
-  onHurt(src){if(this.type==='wolf'){if(this.tamed){this.sitting=false;if(src&&src.mob&&src.mob!==this)this.prey=src.mob;this.angry=false;return}
+  onHurt(src){if(this.type==='guardian'&&src&&src.type==='player'&&this.spikes>0.5&&Math.random()<0.6){damageEntity(player,2,{type:'thorns'});showMessage('The guardian\'s spikes hurt you')}
+    if(this.type==='wolf'){if(this.tamed){this.sitting=false;if(src&&src.mob&&src.mob!==this)this.prey=src.mob;this.angry=false;return}
       if(src&&src.type==='player'){for(const o of entities)if(o instanceof Mob&&o.type==='wolf'&&!o.tamed&&abs(o.x-this.x)<16&&abs(o.z-this.z)<16){o.angry=true;o.prey=null}playSoundAt('wolf_growl',this.x,this.y,this.z)}if(src&&src.mob)this.prey=src.mob;return}
     if(this.type==='enderman'){if(src&&src.type==='arrow'){this.teleport(true);return}if(Math.random()<0.4)this.teleport(true)}
     if(this.type==='zombified_piglin'&&src&&src.type==='player'){for(const o of entities)if(o instanceof Mob&&o.type==='zombified_piglin'&&abs(o.x-this.x)<16&&abs(o.z-this.z)<16)o.angry=true}
@@ -1830,9 +1858,18 @@ class Mob extends Entity{
       case 'creeper':{const f=this.swell>0?1+Math.sin(this.swell*25)*0.4+this.swell*0.3:1;const c=[f,f,f];const sc=TEX.creeper_skin;
         for(const [lx,lz,sg] of [[-2,-4,1],[2,-4,-1],[-2,4,-1],[2,4,1]])part([lx-2,-6,lz-2,lx+2,0,lz+2],0,6,0,swing*sg*0.7,0,0,sc,c);
         part([-4,6,-2,4,18,2],0,0,0,0,0,0,sc,c);part([-4,0,-4,4,8,4],0,18,0,hp,hy,0,[sc,sc,sc,sc,sc,TEX.creeper_face],c);break}
-      case 'villager':{const P=PROFS[this.prof]||PROFS.nitwit;const robe=P.robe,skin=[0.8,0.63,0.47];part([-4,6,-3.2,4,14,-3],0,0,0,0,0,0,W,P.apron);part([-2,-12,-2,2,0,2],-2,12,0,swing*0.5,0,0,N,[0.3,0.25,0.35]);part([-2,-12,-2,2,0,2],2,12,0,-swing*0.5,0,0,N,[0.3,0.25,0.35]);
+      case 'guardian':{const c=[0.36,0.62,0.56],sc=[0.25,0.5,0.45];const sp=this.spikes||0;const pulse=this.laserT?Math.sin(game.time*20)*0.1:0;
+        part([-6,-6,-6,6,6,6],0,7,0,0,0,0,[N,N,N,N,N,TEX.guardian_face],[c[0]+pulse,c[1]+pulse,c[2]+pulse]);
+        for(const [sx,sy,sz] of [[1,0,0],[-1,0,0],[0,1,0],[0,-1,0],[0,0,1],[0.7,0.7,0],[-0.7,0.7,0],[0.7,-0.7,0],[-0.7,-0.7,0],[0,0.7,0.7],[0,-0.7,0.7]]){const len=2+sp*4;const ex=sx*6,ey=sy*6,ez=sz*6;
+          part([ex-0.8+sx*len/2*0,ey-0.8,ez-0.8,ex+0.8+sx*len,ey+0.8+sy*len,ez+0.8+sz*len],0,7,0,0,0,0,N,sc)}
+        const tw=Math.sin(this.age*6)*0.4;part([-1,-1,6,1,1,10],0,7,0,0,tw,0,N,sc);part([-0.6,-0.6,10,0.6,0.6,13],0,7,0,0,tw*1.5,0,N,c);
+        if(this.laserT>0){const p=player;const dx=p.x-this.x,dy=(p.y+1)-(this.y+0.4),dz=p.z-this.z;const l=sqrt(dx*dx+dy*dy+dz*dz);const yaw=Math.atan2(-dx,-dz),pitch=Math.atan2(dy,sqrt(dx*dx+dz*dz));const t=this.laserT/2;
+          const tf=makeTF(this.x,this.y+0.4,this.z,yaw,pitch,0,0,0,0,1);EB.box(tf,-0.04,-0.04,-l,0.04,0.04,0,TEX.white,[0.6+t*0.4,0.3+t*0.7,0.9-t*0.7],[1,1],true)}
+        break}
+      case 'villager':case 'vindicator':{const vin=this.type==='vindicator';const P=vin?{robe:[0.33,0.35,0.38],apron:[0.2,0.22,0.24]}:(PROFS[this.prof]||PROFS.nitwit);const robe=P.robe,skin=vin?[0.72,0.64,0.58]:[0.8,0.63,0.47];
+        if(vin&&this.angry){part([-1.5,-8,-1.5,1.5,2,1.5],5,20,0,-1.4,0,0,N,robe);part([-0.5,-1,-9,0.5,1,-1],5,20,0,-1.4,0,0,W,[0.45,0.3,0.15]);part([-2.5,-3,-10,2.5,0,-7],5,20,0,-1.4,0,0,W,[0.75,0.75,0.78])}part([-4,6,-3.2,4,14,-3],0,0,0,0,0,0,W,P.apron);part([-2,-12,-2,2,0,2],-2,12,0,swing*0.5,0,0,N,[0.3,0.25,0.35]);part([-2,-12,-2,2,0,2],2,12,0,-swing*0.5,0,0,N,[0.3,0.25,0.35]);
         part([-4,12,-3,4,24,3],0,0,0,0,0,0,N,robe);part([-4,8,-3,4,12,3],0,0,0,0,0,0,N,robe);part([-4,-2,-3,4,2,3],0,20,0,0,0,0,N,skin);
-        part([-4,0,-4,4,10,4],0,24,0,hp,hy,0,face(TEX.villager_face),skin);part([-1,2,-6,1,6,-4],0,24,0,hp,hy,0,N,skin);break}
+        part([-4,0,-4,4,10,4],0,24,0,hp,hy,0,face(vin?TEX.vindicator_face:TEX.villager_face),skin);part([-1,2,-6,1,6,-4],0,24,0,hp,hy,0,N,skin);break}
       case 'horse':{const cols=[[0.55,0.36,0.22],[0.18,0.14,0.12],[0.92,0.9,0.86],[0.7,0.45,0.25],[0.5,0.48,0.46],[0.35,0.22,0.14],[0.8,0.65,0.45]];const c=cols[this.color]||cols[0];const mane=this.color===2?[0.85,0.83,0.8]:[0.15,0.1,0.08];
         for(const [lx,lz,sg] of [[-4,-8,1],[4,-8,-1],[-4,8,-1],[4,8,1]])part([lx-2,-14,lz-2,lx+2,0,lz+2],0,14,0,swing*sg*0.8,0,0,N,c);
         part([-5,14,-11,5,24,11],0,0,0,0,0,0,N,c);
@@ -2175,7 +2212,10 @@ const LOOT={
   mineshaft:[[89,4,8,10],[32,1,16,10],[272,1,3,10],[260,1,5,8],[262,1,3,5],[265,4,9,5],[264,4,9,5],[263,1,2,3],[257,3,8,10],[270,2,4,6],[308,1,1,1]],
   temple:[[315,1,1,8],[263,1,3,5],[260,1,5,15],[262,2,7,15],[266,1,3,15],[283,4,6,25],[287,1,3,25],[282,3,7,25],[308,1,1,10],[285,1,8,5]],
   igloo:[[273,1,3,15],[257,1,4,15],[308,1,1,1],[271,2,3,10],[282,1,1,10],[266,1,1,5]],
-  portal:[[31,1,2,40],[269,1,4,40],[299,1,1,40],[262,2,8,15],[308,1,1,15],[24,1,2,5],[262,1,3,15]],
+  portal:[[31,1,2,40],[269,1,4,40],[299,1,1,40],[262,2,8,40],[24,1,2,20],[308,1,1,15],[I.golden_sword,1,1,15],[I.golden_axe,1,1,15],[I.golden_pickaxe,1,1,12],[I.golden_helmet,1,1,12],[I.golden_boots,1,1,12],[I.golden_chestplate,1,1,8],[262,1,3,15]],
+  mansion:[[263,1,3,8],[266,1,4,12],[260,1,4,12],[308,1,1,8],[272,1,5,15],[271,1,6,10],[301,1,1,8],[284,4,12,10],[289,1,3,8],[283,1,3,8],[257,2,6,10],[I.iron_axe,1,1,5],[I.diamond_axe,1,1,2],[24,1,1,5],[29,1,3,8]],
+  monument:[[24,1,1,10],[311,1,4,12],[313,1,3,8],[263,1,2,6],[314,1,4,10],[262,1,4,10],[310,2,5,15],[266,1,2,6]],
+  shipwreck:[[260,1,5,20],[262,1,5,12],[266,1,3,10],[263,1,1,4],[289,1,4,15],[272,1,4,15],[303,1,4,10],[302,1,4,10],[24,1,1,3],[I.iron_sword,1,1,5],[I.iron_helmet,1,1,4]],
   village:[[315,1,1,3],[272,1,4,20],[273,1,5,15],[271,1,7,10],[270,1,4,10],[260,1,3,5],[266,1,4,3],[257,1,4,10],[303,1,5,10],[302,1,5,10],[6,1,2,5],[289,1,3,5]],
   fortress:[[263,1,3,5],[260,1,5,5],[262,1,3,15],[299,1,1,5],[31,2,4,5],[308,1,1,3],[311,2,6,10],[283,2,5,8]],
   hut:[[283,2,5,10],[287,1,3,10],[286,1,4,10],[265,1,4,8],[285,1,3,8],[64,1,3,8],[65,1,3,8],[34,1,1,2]],
@@ -2206,7 +2246,10 @@ Object.assign(World.prototype,{
     if((r=this.regionOrigin(cx,cz,18,102))&&mid.biome===BI.desert)this.placeDesertTemple(wx+8,wz+8,r);
     if((r=this.regionOrigin(cx,cz,14,103))&&mid.biome===BI.snowy_taiga)this.placeIgloo(wx+8,wz+8,r);
     if((r=this.regionOrigin(cx,cz,12,104))&&mid.biome===BI.swamp)this.placeSwampHut(wx+8,wz+8,r);
-    if((r=this.regionOrigin(cx,cz,10,105))&&mid.height>SEA+1&&r()<0.6)this.placeRuinedPortal(wx+8,wz+8,r);
+    if((r=this.regionOrigin(cx,cz,5,105))&&mid.height>SEA+1&&r()<0.9)this.placeRuinedPortal(wx+8,wz+8,r);
+    if((r=this.regionOrigin(cx,cz,24,110))&&[BI.forest,BI.birch_forest,BI.taiga].includes(mid.biome)&&mid.height>SEA+3)this.placeMansion(wx+8,wz+8,mid,r);
+    if((r=this.regionOrigin(cx,cz,16,111))&&mid.biome===BI.deep_ocean)this.placeMonument(wx+8,wz+8,mid,r);
+    if((r=this.regionOrigin(cx,cz,8,112))&&(mid.biome===BI.ocean||mid.biome===BI.deep_ocean)&&r()<0.5)this.placeShipwreck(wx+8,wz+8,mid,r);
     if((r=this.regionOrigin(cx,cz,9,106))&&r()<0.55)this.placeMineshaft(wx+8,wz+8,r);
     if(rng()<0.12)this.placeDungeon(wx+2+floor(rng()*12),8+floor(rng()*42),wz+2+floor(rng()*12),rng);
   },
@@ -2315,7 +2358,73 @@ Object.assign(World.prototype,{
   placeRuinedPortal(x,z,rng){const h=this.surfaceY(x,z);const axis=floor(rng()*2);const dx=axis?0:1,dz=axis?1:0;
     for(let i=-2;i<=3;i++)for(let j=-1;j<=6;j++){if(rng()<0.35)continue;const edge=i===-2||i===3||j===-1||j===6;if(edge)this.setGen(x+dx*i,h+j,z+dz*i,31,0,false)}
     for(let i=-4;i<=5;i++)for(let k=-3;k<=3;k++){if(rng()<0.5)continue;const px=x+dx*i+dz*k,pz=z+dz*i+dx*k;const py=this.surfaceY(px,pz);this.setGen(px,py,pz,rng()<0.15?9:83,0,false)}
-    this.setChest(x+dx*4,h+1,z+dz*4+dx*2,0,'portal',rng,3+floor(rng()*4));if(rng()<0.5)this.setGen(x-dx*3+dz*2,h+1,z-dz*3+dx*2,24,0,false);
+    this.setChest(x+dx*4,h+1,z+dz*4+dx*2,0,'portal',rng,4+floor(rng()*4));
+    const ng=1+floor(rng()*2);const gspots=[[x-dx*3+dz*2,z-dz*3+dx*2],[x+dx*4-dz*2,z+dz*4-dx*2],[x-dx*2-dz*3,z-dz*2-dx*3],[x+dx*2+dz*3,z+dz*2+dx*3]];
+    for(let g=0,placed=0;g<gspots.length&&placed<ng;g++){const [gx,gz]=gspots[g];const gy=this.surfaceY(gx,gz);if(this.getGen(gx,gy+1,gz)===0||true){this.setGen(gx,gy+1,gz,24,0,false);placed++}}
+  },
+  /* ---- woodland mansion: three floors of spruce, cobblestone base, vindicators inside ---- */
+  placeMansion(x,z,mid,rng){const key='m:'+(x>>4)+','+(z>>4);const spawnMobs=typeof Mob!=='undefined'&&!this.populated.has(key);this.populated.add(key);
+    const hw=13,hl=9;const y=Math.max(this.surfaceY(x,z),SEA+2)+1;const W=51,L=46,C=4,G=17,F=5;const floors=3,fh=5;
+    // foundation and clearing
+    for(let dx=-hw-1;dx<=hw+1;dx++)for(let dz=-hl-1;dz<=hl+1;dz++){for(let dy=-6;dy<0;dy++){const b=this.getGen(x+dx,y+dy,z+dz);if(b===0||b===8||b===23||b===21||b===22||dy>=-2||BLOCKS[b].leaves||BLOCKS[b].log)this.setGen(x+dx,y+dy,z+dz,C,0,false)}for(let dy=0;dy<=floors*fh+6;dy++)this.setGen(x+dx,y+dy,z+dz,0,0,false)}
+    this.fill(x-hw,y-1,z-hl,x+hw,y-1,z+hl,C);
+    for(let f=0;f<floors;f++){const fy=y+f*fh;
+      this.fill(x-hw,fy,z-hl,x+hw,fy,z+hl,f===0?C:F); // floor
+      for(let dx=-hw;dx<=hw;dx++)for(let dz=-hl;dz<=hl;dz++){const edge=abs(dx)===hw||abs(dz)===hl;if(!edge)continue;const corner=abs(dx)===hw&&abs(dz)===hl;const pillar=corner||(dx%6===0&&abs(dz)===hl)||(dz%6===0&&abs(dx)===hw);
+        for(let dy=1;dy<fh;dy++){let id=pillar?L:W;if(!pillar&&(dy===2||dy===3)&&((abs(dx)===hw&&dz%3===0)||(abs(dz)===hl&&dx%3===0)))id=G;this.setGen(x+dx,fy+dy,z+dz,id,0,false)}}
+      // interior walls: a corridor along z=0 with rooms either side
+      for(let dx=-hw+1;dx<=hw-1;dx++){if(dx%6===0)continue;for(let dy=1;dy<fh;dy++){this.setGen(x+dx,fy+dy,z-2,W,0,false);this.setGen(x+dx,fy+dy,z+2,W,0,false)}}
+      for(let dx=-hw+6;dx<=hw-6;dx+=6)for(let dz=-hl+1;dz<=-3;dz++)for(let dy=1;dy<fh;dy++){this.setGen(x+dx,fy+dy,z+dz,W,0,false);this.setGen(x+dx,fy+dy,z-dz,W,0,false)}
+      // doorways from corridor into each room
+      for(let dx=-hw+3;dx<=hw-3;dx+=6){this.setGen(x+dx,fy+1,z-2,0,0,false);this.setGen(x+dx,fy+2,z-2,0,0,false);this.setGen(x+dx,fy+1,z+2,0,0,false);this.setGen(x+dx,fy+2,z+2,0,0,false)}
+      // torches in the corridor
+      for(let dx=-hw+2;dx<=hw-2;dx+=4){this.setGen(x+dx,fy+3,z-1,32,3,false);this.setGen(x+dx,fy+3,z+1,32,1,false)}
+      // rooms: furniture and loot
+      for(let dx=-hw+3;dx<=hw-3;dx+=6)for(const side of [-1,1]){const rx=x+dx,rz=z+side*6;const r=rng();
+        if(r<0.35){this.setChest(rx-1,fy+1,rz,0,'mansion',rng,3+floor(rng()*4));if(rng()<0.5)this.setChest(rx+1,fy+1,rz,0,'mansion',rng,2+floor(rng()*3))}
+        else if(r<0.6){for(let k=-2;k<=2;k++){this.setGen(rx+k,fy+1,rz+side*2,29,0,false);this.setGen(rx+k,fy+2,rz+side*2,29,0,false)}this.setGen(rx,fy+1,rz,34,0,false)}
+        else if(r<0.8){this.setGen(rx-1,fy+1,rz,62,0,false);this.setGen(rx-1,fy+1,rz+1,62,4,false);this.setGen(rx+1,fy+1,rz,37,0,false)}
+        else{this.fill(rx-1,fy+1,rz-1,rx+1,fy+1,rz+1,20);this.setGen(rx,fy+1,rz,24,0,false)}
+        this.setGen(rx,fy+3,rz+side*2,32,0,false);
+        if(spawnMobs&&rng()<0.4){const m=new Mob('vindicator',rx+0.5,fy+1.1,rz-side*2+0.5);entities.push(m)}}
+      // staircase at the west end of the corridor
+      if(f<floors-1){for(let k=0;k<fh;k++){for(let dy=k+1;dy<=fh+1;dy++)this.setGen(x-hw+2+k,fy+dy,z,0,0,false);this.setGen(x-hw+2+k,fy+k+1,z,58,3,false);this.setGen(x-hw+2+k,fy+k,z,W,0,false)}this.setGen(x-hw+2+fh,fy+fh,z,0,0,false);this.setGen(x-hw+2+fh,fy+fh,z-1,0,0,false)}
+    }
+    // roof: flat spruce with a raised ridge and stairs at the eaves
+    const ry=y+floors*fh;this.fill(x-hw-1,ry,z-hl-1,x+hw+1,ry,z+hl+1,F);
+    for(let dz=-hl-1;dz<=hl+1;dz++){this.setGen(x-hw-2,ry,z+dz,58,3,false);this.setGen(x+hw+2,ry,z+dz,58,1,false)}
+    for(let dx=-hw-1;dx<=hw+1;dx++){this.setGen(x+dx,ry,z-hl-2,58,2,false);this.setGen(x+dx,ry,z+hl+2,58,0,false)}
+    this.fill(x-hw+2,ry+1,z-hl+3,x+hw-2,ry+1,z+hl-3,F);this.fill(x-hw+5,ry+2,z-hl+5,x+hw-5,ry+2,z+hl-5,F);
+    // front door on the south wall, opening into the corridor
+    this.setGen(x,y+1,z+hl,54,0,false);this.setGen(x,y+2,z+hl,54,8,false);this.fill(x-1,y+1,z+hl+1,x+1,y+3,z+hl+3,0);this.setGen(x,y+1,z+hl,54,0,false);
+    for(let dz=-1;dz<=1;dz++)for(let dy=1;dy<fh;dy++)this.setGen(x+dz,y+dy,z+2,0,0,false);
+    if(spawnMobs){for(let i=0;i<3;i++){const m=new Mob('vindicator',x-3+i*3+0.5,y+1.1,z+0.5);entities.push(m)}}
+  },
+  /* ---- ocean monument: prismarine temple on the sea floor with a gold treasure room and guardians ---- */
+  placeMonument(x,z,mid,rng){const key='o:'+(x>>4)+','+(z>>4);const spawnMobs=typeof Mob!=='undefined'&&!this.populated.has(key);this.populated.add(key);
+    const hs=12;let y=this.surfaceY(x,z);if(y>SEA-10)y=SEA-10;const top=Math.min(SEA-1,y+13);const P=91,D=92,S=93;
+    // solid base then hollow hall filled with water
+    this.fill(x-hs-1,y-2,z-hs-1,x+hs+1,y,z+hs+1,P);
+    for(let dy=1;dy<=top-y;dy++)for(let dx=-hs;dx<=hs;dx++)for(let dz=-hs;dz<=hs;dz++){const edge=abs(dx)===hs||abs(dz)===hs||dy===top-y;const px=x+dx,pz=z+dz;
+      if(edge){const window=(dy===4||dy===8)&&(dx%4===0||dz%4===0)&&!(abs(dx)===hs&&abs(dz)===hs);this.setGen(px,y+dy,pz,window?S:(dy===top-y&&(dx%4===0&&dz%4===0)?D:P),0,false)}
+      else this.setGen(px,y+dy,pz,8,0,false)}
+    // pillars
+    for(const [dx,dz] of [[-6,-6],[6,-6],[-6,6],[6,6]])for(let dy=1;dy<top-y;dy++)this.setGen(x+dx,y+dy,z+dz,dy%4===0?S:D,0,false);
+    // treasure room: gold blocks sealed in dark prismarine at the centre
+    this.fill(x-2,y+1,z-2,x+2,y+5,z+2,D);this.fill(x-1,y+2,z-1,x+1,y+3,z+1,24);this.setGen(x,y+4,z,S,0,false);
+    this.setChest(x+4,y+1,z+4,0,'monument',rng,3+floor(rng()*4));this.setChest(x-4,y+1,z-4,0,'monument',rng,3+floor(rng()*4));
+    // entrance arch on the south side and a lantern crown
+    this.fill(x-1,y+1,z+hs,x+1,y+3,z+hs,8);for(let dx=-hs;dx<=hs;dx+=6)for(let dz=-hs;dz<=hs;dz+=6)this.setGen(x+dx,top+1,z+dz,S,0,false);
+    this.fill(x-4,top+1,z-4,x+4,top+1,z+4,P);this.fill(x-2,top+2,z-2,x+2,top+2,z+2,P);this.setGen(x,top+3,z,S,0,false);
+    if(spawnMobs){for(let i=0;i<5;i++){const a=rng()*PI*2,d=4+rng()*6;entities.push(new Mob('guardian',x+Math.cos(a)*d,y+2+rng()*8,z+Math.sin(a)*d))}}
+  },
+  /* ---- shipwreck: a broken hull on the sea floor with a supply chest ---- */
+  placeShipwreck(x,z,mid,rng){const y=this.surfaceY(x,z)+1;if(y>SEA-2)return;const axis=floor(rng()*2);const dx=axis?0:1,dz=axis?1:0;const len=9;
+    for(let i=-len;i<=len;i++){const w=i<-6||i>6?1:2;for(let k=-w;k<=w;k++){const px=x+dx*i+dz*k,pz=z+dz*i+dx*k;const hull=abs(k)===w;const rot=rng()<0.12;if(rot)continue;
+      this.setGen(px,y,pz,5,0,false);if(hull){this.setGen(px,y+1,pz,5,0,false);if(abs(i)<6)this.setGen(px,y+2,pz,61,0,false)}}}
+    for(let i=-4;i<=4;i++){this.setGen(x+dx*i,y+1,z+dz*i,i===0?0:5,0,false)}
+    for(let h=1;h<=7;h++)this.setGen(x+dx*2,y+h,z+dz*2,15,0,false);
+    this.setChest(x-dx*5,y+1,z-dz*5,0,'shipwreck',rng,3+floor(rng()*4));if(rng()<0.5)this.setChest(x+dx*6,y+1,z+dz*6,0,'shipwreck',rng,2+floor(rng()*3));
   },
   /* ---- nether fortress ---- */
   placeFortress(x,z,rng){const y=52+floor(rng()*20);
@@ -2587,6 +2696,8 @@ function playSound(name,vol=1,pitch=1){
     case 'wolf':noise(0.12,'bandpass',900,2);tone('square',420,260,0.14);env(0.005,0.3,0.16);break;
     case 'wolf_growl':{const o=tone('sawtooth',90,80,0.6);noise(0.6,'lowpass',400);env(0.05,0.4,0.6);break}
     case 'wolf_whine':tone('sine',600,900,0.35);tone('triangle',620,880,0.35);env(0.02,0.25,0.35);break;
+    case 'guardian':{const o=tone('sine',900,600,0.3);const l=c.createOscillator();l.frequency.value=30;const lg=c.createGain();lg.gain.value=200;l.connect(lg);lg.connect(o.frequency);l.start(t);l.stop(t+0.3);env(0.01,0.25,0.3);break}
+    case 'guardian_zap':noise(0.25,'highpass',2500);tone('sawtooth',1800,300,0.25);env(0.005,0.5,0.25);break;
     case 'slime':noise(0.18,'lowpass',450);tone('sine',180,90,0.18);env(0.005,0.35,0.18);break;
     case 'witch':tone('sawtooth',400,750,0.35);tone('square',600,950,0.3);env(0.01,0.25,0.4);break;
     case 'potion_break':noise(0.2,'highpass',3000);tone('sine',1200,600,0.15);env(0.005,0.3,0.2);break;
