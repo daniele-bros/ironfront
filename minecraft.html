@@ -461,6 +461,7 @@ defTex('witch_face',p=>{p.noise(185,150,120,6);p.rect(3,5,2,2,40,30,60);p.rect(1
 defTex('husk_face',p=>{p.noise(150,130,85,8);p.rect(2,5,3,2,50,40,25);p.rect(11,5,3,2,50,40,25);p.rect(6,10,4,2,90,70,40)});
 defTex('stray_face',p=>{p.noise(175,185,195,6);p.rect(2,5,3,3,50,50,60);p.rect(11,5,3,3,50,50,60);p.rect(6,9,4,1,80,80,90);p.rect(4,12,8,2,120,130,140);for(let x=4;x<12;x+=2)p.px(x,13,70,70,80)});
 defTex('cave_spider_face',p=>{p.noise(20,45,75,6);p.rect(2,5,3,3,220,40,40);p.rect(11,5,3,3,220,40,40);p.rect(5,6,2,2,150,20,20);p.rect(9,6,2,2,150,20,20);p.rect(6,11,4,2,10,20,40)});
+defTex('wolf_face',p=>{p.noise(200,200,195,8);p.rect(2,4,3,2,40,40,50);p.rect(11,4,3,2,40,40,50);p.rect(5,9,6,6,150,150,145);p.rect(6,11,4,3,30,30,30)});
 defTex('steve_arm',p=>{p.noise(215,165,125,6);p.rect(0,0,16,3,90,160,160)});
 defTex('arrow_tex',p=>{p.fill(0,0,0,0);p.rect(0,7,16,2,180,150,110);p.rect(13,6,3,4,200,200,210);p.rect(0,5,4,6,220,220,220)});
 defTex('egg_tex',p=>{p.noise(230,215,180,6)});
@@ -1621,7 +1622,7 @@ const PROFS={
 const PROF_NAMES=Object.keys(PROFS);
 function villagerTrades(prof,rng){const P=PROFS[prof];const out=[];let idx=0;for(let lvl=0;lvl<P.lv.length;lvl++){const n=P.lv[lvl];for(let k=0;k<n&&idx<P.trades.length;k++,idx++){const t=P.trades[idx];out.push({a:t[0],b:t[1],out:t[2],uses:0,demand:0,max:t[2][0]===E?8:t[2][0]>=320?3:6,level:lvl+1})}}return out}
 // prices climb with demand: every purchase raises the cost until the villager restocks (twice a day)
-function tradePrice(t){const base=t.a[1];const d=t.demand||0;return Math.min(base*3,base+Math.round(base*0.3*d))}
+function tradePrice(t){const base=t.a[1];const d=t.demand||0;return Math.min(base*3,base+Math.round(base*0.2*d))}
 /* ===================== MOBS ===================== */
 const MOBDEF={
   pig:{hp:10,w:0.9,h:0.9,speed:1.5,passive:true,food:[302],drops:r=>[[274,1+floor(r()*3)]],xp:[1,3],sound:'pig'},
@@ -1634,6 +1635,7 @@ const MOBDEF={
   creeper:{hp:20,w:0.6,h:1.7,speed:3.5,dmg:0,drops:r=>[[285,floor(r()*3)]],xp:[5,5],sound:'creeper',follow:16},
   spider:{hp:16,w:1.4,h:0.9,speed:4.3,dmg:2,drops:r=>[[286,floor(r()*3)],[r()<0.33?287:0,1]],xp:[5,5],sound:'spider',follow:16,neutral:true,lightNeutral:true},
   zombified_piglin:{hp:20,w:0.6,h:1.95,speed:3.6,dmg:5,drops:r=>[[282,floor(r()*2)],[r()<0.025?262:0,1]],xp:[5,5],sound:'zombie',follow:20,neutral:true,fireproof:true},
+  wolf:{hp:8,w:0.6,h:0.85,speed:3.2,dmg:3,drops:()=>[],xp:[1,3],sound:'wolf',follow:16,neutral:true,animal:true,noDespawn:true,food:[274,275,276,277,278,279,280,281,282]},
   husk:{hp:20,w:0.6,h:1.95,speed:3.2,dmg:3,undead:true,noBurn:true,hungerHit:true,drops:r=>[[282,floor(r()*3)],[r()<0.025?[260,302,303][floor(r()*3)]:0,1]],xp:[5,5],sound:'zombie',follow:35},
   stray:{hp:20,w:0.6,h:1.99,speed:3.4,dmg:3,undead:true,ranged:true,slowArrow:true,drops:r=>[[283,floor(r()*3)],[284,floor(r()*3)]],xp:[5,5],sound:'skeleton',follow:16},
   cave_spider:{hp:12,w:0.7,h:0.5,speed:4.6,dmg:2,poison:true,scale:0.5,drops:r=>[[286,floor(r()*3)],[r()<0.33?287:0,1]],xp:[5,5],sound:'spider',follow:16,neutral:true,lightNeutral:true},
@@ -1647,14 +1649,14 @@ class Mob extends Entity{
     if(type==='villager'){const r=Math.random();this.prof=r<0.1?'nitwit':PROF_NAMES[floor(Math.random()*(PROF_NAMES.length-1))];this.trades=villagerTrades(this.prof);this.vlevel=1;this.vxp=0;this.restockT=240+Math.random()*120}
     if(type==='sheep'){const r=Math.random();this.woolId=r<0.82?20:r<0.87?76:r<0.92?75:r<0.97?77:20;this.sheared=false}
     if(type==='slime'){this.setSize(Math.random()<0.4?3:Math.random()<0.5?2:1);this.hopT=Math.random()*2}
-    this.tpT=2+Math.random()*4;this.drinkT=0;this.stareT=0;this.drinking=0;this.screamT=0;
+    this.tpT=2+Math.random()*4;this.drinkT=0;this.stareT=0;this.drinking=0;this.screamT=0;this.tamed=false;this.sitting=false;this.prey=null;this.shakeT=0;
   }
   setSize(n){this.size=n;this.w=0.51*n;this.h=0.51*n;this.hp=this.maxHp=n*n;this.dmgOverride=n===1?0:n}
-  teleport(near){ // enderman: try random spots; near=true keeps it close to the player
+  teleport(near,quiet){ // enderman: try random spots; near=true keeps it close to the player
     for(let i=0;i<24;i++){const cx=near?player.x:this.x,cz=near?player.z:this.z;const r=near?3+Math.random()*6:Math.random()*20;const a=Math.random()*PI*2;const x=floor(cx+Math.sin(a)*r),z=floor(cz+Math.cos(a)*r);
-      let y=floor((near?player.y:this.y)+8);let steps=0;while(y>1&&!BLOCKS[world.getBlockPhys(x,y-1,z)].solid&&steps<24){y--;steps++}if(!BLOCKS[world.getBlockPhys(x,y-1,z)].solid)continue;
+      let y=floor((near?player.y:this.y)+8);let up=0;while(y<CH-3&&BLOCKS[world.getBlockPhys(x,y,z)].solid&&up<24){y++;up++}let steps=0;while(y>1&&!BLOCKS[world.getBlockPhys(x,y-1,z)].solid&&steps<24){y--;steps++}if(!BLOCKS[world.getBlockPhys(x,y-1,z)].solid)continue;
       if(world.getBlock(x,y,z)!==0||world.getBlock(x,y+1,z)!==0||world.getBlock(x,y+2,z)!==0)continue;const b=world.getBlock(x,y-1,z);if(b===8||b===9)continue;
-      spawnParticles('portal',this.x,this.y+1.5,this.z,10);playSoundAt('enderman_tp',this.x,this.y,this.z);this.x=x+0.5;this.y=y;this.z=z+0.5;this.vx=this.vy=this.vz=0;this.fallDist=0;this.fireT=0;spawnParticles('portal',this.x,this.y+1.5,this.z,10);playSoundAt('enderman_tp',this.x,this.y,this.z);return true}
+      if(!quiet){spawnParticles('portal',this.x,this.y+1.5,this.z,10);playSoundAt('enderman_tp',this.x,this.y,this.z)}this.x=x+0.5;this.y=y;this.z=z+0.5;this.vx=this.vy=this.vz=0;this.fallDist=0;this.fireT=0;if(!quiet){spawnParticles('portal',this.x,this.y+1.5,this.z,10);playSoundAt('enderman_tp',this.x,this.y,this.z)}return true}
     return false}
   get alive(){return !this.dying}
   update(dt){
@@ -1664,6 +1666,12 @@ class Mob extends Entity{
     if(this.baby){this.growT-=dt;if(this.growT<=0)this.baby=false}
     if(this.type==='villager'){this.restockT-=dt;if(this.restockT<=0){this.restockT=600;let any=false;for(const t of this.trades){if(t.uses>0)any=true;t.uses=0;t.demand=floor((t.demand||0)/2)}if(any&&Math.hypot(this.x-p.x,this.z-p.z)<16)spawnParticles('happy',this.x,this.y+this.h,this.z,4)}
       if(game.gui&&game.gui.type==='trade'&&game.gui.villager===this){this.moveDir=null;this.wanderT=1;if(dist3>6)closeGui()}}
+    if(this.type==='wolf'){ // wild: hunts sheep/skeletons, pack anger; tamed: follows, sits, defends owner
+      if(this.tamed){this.angry=false;if(dist3>12&&!this.sitting&&!p.dead&&p.onGround)this.teleport(true,true)}
+      if(this.prey&&(this.prey.dead||this.prey.dying||Math.hypot(this.prey.x-this.x,this.prey.z-this.z)>20))this.prey=null;
+      if(!this.prey&&!this.sitting){if(this.tamed){const t=game.petTarget;if(t&&!t.dead&&!t.dying&&t!==this&&t instanceof Mob&&!(t.type==='wolf'&&t.tamed)&&t.type!=='creeper'&&game.time-game.petTargetT<8&&Math.hypot(t.x-this.x,t.z-this.z)<16)this.prey=t}
+        else if(Math.random()<dt*0.5){let best=null,bd=10;for(const o of entities){if(!(o instanceof Mob)||o===this||o.dead||o.dying)continue;if(o.type!=='sheep'&&o.type!=='skeleton'&&o.type!=='stray')continue;const od=Math.hypot(o.x-this.x,o.z-this.z);if(od<bd){bd=od;best=o}}this.prey=best}}
+      if(this.inWater)this.shakeT=1.5;else if(this.shakeT>0){this.shakeT-=dt}}
     if(this.type==='enderman'){ // provoked by staring at its head, hates water, teleports around
       if(!p.dead&&dist3<64&&!this.angry){const e=[p.x,p.y+p.eyeHeight,p.z];const dir=eyeDir();const hx=this.x-e[0],hy=(this.y+this.h-0.4)-e[1],hz=this.z-e[2];const l=sqrt(hx*hx+hy*hy+hz*hz)||1;const cos=(hx*dir[0]+hy*dir[1]+hz*dir[2])/l;
         if(cos>1-0.35/l){const bh=raycast(e[0],e[1],e[2],hx,hy,hz,l-0.3,false);if(!bh||!bh.block){this.stareT+=dt;if(this.stareT>0.4){this.angry=true;playSoundAt('enderman',this.x,this.y,this.z,1,1.2);this.screamT=1.2}}}else this.stareT=Math.max(0,this.stareT-dt)}
@@ -1689,6 +1697,10 @@ class Mob extends Entity{
       if(this.loveT>0){for(const o of entities){if(o!==this&&o instanceof Mob&&o.type===this.type&&o.loveT>0&&!o.baby){const ox=o.x-this.x,oz=o.z-this.z;const od=sqrt(ox*ox+oz*oz);if(od<8){target=[o.x,o.z];if(od<1.2&&this.loveT>0&&o.loveT>0&&this.age>o.age){this.loveT=0;o.loveT=0;const b=new Mob(this.type,this.x,this.y,this.z);b.baby=true;b.growT=120;if(this.type==='sheep')b.woolId=Math.random()<0.5?this.woolId:o.woolId;entities.push(b);spawnParticles('heart',this.x,this.y+this.h,this.z,6);spawnXP(this.x,this.y,this.z,1+floor(Math.random()*7))}break}}}}
       if(Math.random()<dt*0.3)spawnParticles(this.loveT>0?'heart':'happy',this.x,this.y+this.h+0.2,this.z,this.loveT>0?1:0);
     }
+    if(this.type==='wolf'){if(this.sitting){target=null;this.moveDir=null;this.wanderT=1}
+      else if(this.prey){target=[this.prey.x,this.prey.z];speed*=1.25}
+      else if(this.tamed&&!p.dead&&dist>3){target=[p.x,p.z];if(dist>6)speed*=1.3}
+      else if(this.tamed&&dist<=3){target=null;this.moveDir=null;this.wanderT=0.5}}
     if(this.panicT>0){const ang=this.panicYaw;target=[this.x-Math.sin(ang)*5,this.z-Math.cos(ang)*5];speed*=1.6}
     // wandering
     if(!target){this.wanderT-=dt;if(this.wanderT<=0){if(this.moveDir){this.moveDir=null;this.wanderT=1+Math.random()*4}else{const a=Math.random()*PI*2;this.moveDir=[-Math.sin(a),-Math.cos(a)];this.wanderT=1+Math.random()*3;this.yaw=a}}
@@ -1716,13 +1728,14 @@ class Mob extends Entity{
     if((this.type==='spider'||this.type==='cave_spider'||this.type==='slime')&&this.fallDist>0)this.fallDist=Math.min(this.fallDist,2);
     this.physics(dt,{step:this.type==='spider'?1:0.6,friction:0.6,gravity:this.inWater?8:32});
     const hs=sqrt(this.vx*this.vx+this.vz*this.vz);this.walkAmp+=(Math.min(1,hs/2)-this.walkAmp)*Math.min(1,dt*8);this.walkT+=hs*dt*2.2;
+    if(this.type==='wolf'&&this.prey&&this.atkCd<=0){const o=this.prey;const od=Math.hypot(o.x-this.x,o.z-this.z);if(od<this.w/2+o.w/2+0.7&&abs(o.y-this.y)<2){this.atkCd=1;damageEntity(o,this.tamed?4:3,{x:this.x,y:this.y,z:this.z,type:'mob',mob:this});playSoundAt('wolf_growl',this.x,this.y,this.z,1,1.3);if(o.type==='sheep'||o.type==='wolf')o.panicT=2}}
     // attacks
     if(hostile&&!p.dead){
       if(this.type==='creeper'){const los=dist3<3;if(los){this.swell+=dt;if(this.swell>=1.5){this.dying=true;this.dead=true;explode(this.x,this.y+0.5,this.z,3);return}if(this.swell<0.05)playSoundAt('fuse',this.x,this.y,this.z)}else if(dist3>7){this.swell=Math.max(0,this.swell-dt*2)}else{this.swell=Math.max(0,this.swell-dt)}}
       else if(d.ranged==='potion'){if(dist3<10&&this.atkCd<=0&&this.drinking<=0){this.atkCd=diff===3?2.5:3.5;throwPotion(this,p,diff)}}
       else if(d.ranged){if(dist3<15&&this.atkCd<=0&&dist3>1.5){this.atkCd=diff===3?2:3;const ex=this.x,ey=this.y+this.h*0.85,ez=this.z;let ax=p.x-ex,ay=(p.y+1)-ey,az=p.z-ez;const l=sqrt(ax*ax+ay*ay+az*az);ay+=l*0.06;const sp=30;const n=sqrt(ax*ax+ay*ay+az*az);const spread=0.05*(4-diff);const ar=new Arrow(ex,ey,ez,ax/n*sp+(Math.random()-0.5)*spread*sp,ay/n*sp+(Math.random()-0.5)*spread*sp,az/n*sp+(Math.random()-0.5)*spread*sp,'mob',[2.5,3.5,4.5][diff-1]+floor(Math.random()*2));if(d.slowArrow){ar.effect='slow';ar.effectT=30}entities.push(ar);playSoundAt('bow',ex,ey,ez)}}
       else{const reach=this.w/2+p.w/2+0.6;const base=this.dmgOverride!==undefined?this.dmgOverride:d.dmg;if(base>0&&dist<reach&&abs(dy)<(d.tall?3.5:2)&&this.atkCd<=0){this.atkCd=1;const dm=[base*0.8,base,base*1.5][diff-1];
-        if(damageEntity(p,dm,{x:this.x,y:this.y,z:this.z,type:'mob'})){if(d.hungerHit)p.effects.hunger=Math.max(p.effects.hunger||0,7*diff);if(d.poison&&diff>1)p.effects.poison=Math.max(p.effects.poison||0,diff===3?15:7)}
+        if(damageEntity(p,dm,{x:this.x,y:this.y,z:this.z,type:'mob',mob:this})){if(d.hungerHit)p.effects.hunger=Math.max(p.effects.hunger||0,7*diff);if(d.poison&&diff>1)p.effects.poison=Math.max(p.effects.poison||0,diff===3?15:7)}
         if((this.type==='spider'||this.type==='cave_spider')&&this.onGround)this.vy=5}}
     }
     if(this.type==='creeper'&&this.swell>0&&Math.random()<dt*4)playSoundAt('fuse',this.x,this.y,this.z,1,0.2);
@@ -1730,7 +1743,9 @@ class Mob extends Entity{
     if(!d.passive&&!d.noDespawn){if(dist3>128)this.dead=true;else if(dist3>32&&Math.random()<dt/60)this.dead=true}
   }
   land(dist){if(dist>3&&this.type!=='chicken'&&this.type!=='spider'&&this.type!=='cave_spider'&&this.type!=='slime')damageEntity(this,floor(dist-3),{type:'fall'})}
-  onHurt(src){if(this.type==='enderman'){if(src&&src.type==='arrow'){this.teleport(true);return}if(Math.random()<0.4)this.teleport(true)}
+  onHurt(src){if(this.type==='wolf'){if(this.tamed){this.sitting=false;if(src&&src.mob&&src.mob!==this)this.prey=src.mob;this.angry=false;return}
+      if(src&&src.type==='player'){for(const o of entities)if(o instanceof Mob&&o.type==='wolf'&&!o.tamed&&abs(o.x-this.x)<16&&abs(o.z-this.z)<16){o.angry=true;o.prey=null}playSoundAt('wolf_growl',this.x,this.y,this.z)}if(src&&src.mob)this.prey=src.mob;return}
+    if(this.type==='enderman'){if(src&&src.type==='arrow'){this.teleport(true);return}if(Math.random()<0.4)this.teleport(true)}
     if(this.type==='zombified_piglin'&&src&&src.type==='player'){for(const o of entities)if(o instanceof Mob&&o.type==='zombified_piglin'&&abs(o.x-this.x)<16&&abs(o.z-this.z)<16)o.angry=true}
     if(this.def.passive){this.panicT=3;this.panicYaw=src&&src.x!==undefined?Math.atan2(src.x-this.x,src.z-this.z):Math.random()*PI*2}this.angry=true;
     if(src&&src.type==='player'&&this.def.passive){}
@@ -1741,6 +1756,9 @@ class Mob extends Entity{
   interact(stack){ // right click by player, returns true if consumed action
     const d=this.def;
     if(this.type==='villager'){if(this.baby)return false;if(this.prof==='nitwit'){playSoundAt('villager_no',this.x,this.y,this.z);return true}openTradeGui(this);return true}
+    if(this.type==='wolf'){if(!this.tamed){if(stack&&stack.id===283&&!this.angry){consumeHeld();if(Math.random()<0.34){this.tamed=true;this.maxHp=20;this.hp=20;this.sitting=true;this.angry=false;this.prey=null;spawnParticles('heart',this.x,this.y+this.h,this.z,7);playSoundAt('wolf_whine',this.x,this.y,this.z);showMessage('You tamed a wolf! Right-click it to make it sit or follow.')}else{spawnParticles('smoke',this.x,this.y+this.h,this.z,5);playSoundAt('wolf',this.x,this.y,this.z)}return true}return false}
+      if(stack&&d.food.includes(stack.id)&&this.hp<this.maxHp){consumeHeld();const it=ITEMS[stack.id];this.hp=Math.min(this.maxHp,this.hp+(it.food?it.food[0]:2));spawnParticles('heart',this.x,this.y+this.h,this.z,3);playSoundAt('eat',this.x,this.y,this.z);return true}
+      this.sitting=!this.sitting;this.prey=null;playSoundAt(this.sitting?'wolf_whine':'wolf',this.x,this.y,this.z);return true}
     if(this.type==='sheep'&&stack&&stack.id===300&&!this.sheared&&!this.baby){this.sheared=true;const n=1+floor(Math.random()*3);spawnItem(this.x,this.y+0.5,this.z,{id:this.woolId,count:n});playSoundAt('shear',this.x,this.y,this.z);damageItem(stack,1);return true}
     if(this.type==='cow'&&stack&&stack.id===296&&!this.baby){stack.count--;const left=addToInventory({id:306,count:1});if(left)spawnItem(player.x,player.y,player.z,{id:306,count:1});return true}
     if(d.passive&&stack&&d.food.includes(stack.id)){if(this.baby){this.growT-=12;consumeHeld();spawnParticles('happy',this.x,this.y+this.h,this.z,3);return true}if(this.loveT<=0){this.loveT=30;consumeHeld();spawnParticles('heart',this.x,this.y+this.h+0.2,this.z,5);playSoundAt('eat',this.x,this.y,this.z);return true}}
@@ -1779,6 +1797,14 @@ class Mob extends Entity{
       case 'villager':{const P=PROFS[this.prof]||PROFS.nitwit;const robe=P.robe,skin=[0.8,0.63,0.47];part([-4,6,-3.2,4,14,-3],0,0,0,0,0,0,W,P.apron);part([-2,-12,-2,2,0,2],-2,12,0,swing*0.5,0,0,N,[0.3,0.25,0.35]);part([-2,-12,-2,2,0,2],2,12,0,-swing*0.5,0,0,N,[0.3,0.25,0.35]);
         part([-4,12,-3,4,24,3],0,0,0,0,0,0,N,robe);part([-4,8,-3,4,12,3],0,0,0,0,0,0,N,robe);part([-4,-2,-3,4,2,3],0,20,0,0,0,0,N,skin);
         part([-4,0,-4,4,10,4],0,24,0,hp,hy,0,face(TEX.villager_face),skin);part([-1,2,-6,1,6,-4],0,24,0,hp,hy,0,N,skin);break}
+      case 'wolf':{const c=this.angry?[0.7,0.65,0.65]:[0.82,0.82,0.8];const sit=this.sitting;const bodyRx=sit?-0.9:0;const shake=this.shakeT>0?Math.sin(game.time*40)*0.2:0;
+        if(sit){part([-2,-4,-2,2,0,2],-2,4,3,-1.3,0,0,N,c);part([-2,-4,-2,2,0,2],2,4,3,-1.3,0,0,N,c);part([-2,-6,-2,2,0,2],-2,6,-4,0,0,0,N,c);part([-2,-6,-2,2,0,2],2,6,-4,0,0,0,N,c)}
+        else for(const [lx,lz,sg] of [[-2,-4,1],[2,-4,-1],[-2,3,-1],[2,3,1]])part([lx-1,-6,lz-1,lx+1,0,lz+1],0,6,0,swing*sg,0,0,N,c);
+        part([-3,6,-6,3,11,3],0,sit?1:0,sit?2:0,bodyRx,0,shake,N,c);part([-4,6,-7,4,12,-3],0,sit?1:0,sit?2:0,bodyRx*0.5,0,shake,N,[c[0]*0.95,c[1]*0.95,c[2]*0.95]);
+        const hy0=sit?8:10,hz0=sit?-6:-7;part([-3,-3,-4,3,3,0],0,hy0,hz0,hp,hy,0,face(TEX.wolf_face),c);part([-1.5,-2,-7,1.5,0.5,-4],0,hy0,hz0,hp,hy,0,N,[0.5,0.5,0.5]);
+        part([-3,3,-1,-1,5,1],0,hy0,hz0,hp,hy,0,N,c);part([1,3,-1,3,5,1],0,hy0,hz0,hp,hy,0,N,c);
+        if(this.tamed)part([-3.2,-3.2,-1,3.2,-1.5,1],0,hy0,hz0,hp,hy,0,W,[0.85,0.1,0.1]);
+        const tailUp=this.tamed?(this.hp/this.maxHp)*1.2-0.3:(this.angry?0.9:-0.6);part([-1,-1,0,1,1,7],0,sit?7:9,3,-tailUp,0,0,N,c);break}
       case 'enderman':{const c=[0.09,0.09,0.1];const sh=this.screamT>0?(Math.random()-0.5)*0.25:0;const eye=TEX.enderman_face;
         part([-1,-30,-1,1,0,1],-2,30,0,swing*0.6,0,0,N,c);part([-1,-30,-1,1,0,1],2,30,0,-swing*0.6,0,0,N,c);
         part([-4,30,-2,4,42,2],sh,0,0,0,0,0,N,c);part([-1,-30,-1,1,0,1],-5,42,0,this.angry?-0.3:swing*0.4,0,0.05,N,c);part([-1,-30,-1,1,0,1],5,42,0,this.angry?-0.3:-swing*0.4,0,-0.05,N,c);
@@ -1810,8 +1836,8 @@ function throwPotion(w,p,diff){const ex=w.x,ey=w.y+w.h*0.85,ez=w.z;let ax=p.x-ex
 /* ---- damage ---- */
 function damageEntity(e,amount,src){
   if(e.dead||e.dying)return false;if(e.invT>0&&amount<=e.lastDmg)return false;src=src||{};
-  if(e===player){if(player.mode==='creative')return false;if(src.type==='mob'||src.type==='arrow'||src.type==='explosion'){const ap=armorPoints();amount*=1-Math.min(20,ap)*0.04;damageArmor(Math.max(1,floor(amount/4)))}if(amount<=0)return false;e.lastDmg=amount;e.invT=0.5;e.hp-=amount;e.exh+=0.1;e.hurtT=0.5;flashDamage();playSound('hurt');if(e.hp<=0){playerDie(src)}return true}
-  e.lastDmg=amount;e.invT=0.5;e.hp-=amount;e.hurtT=0.5;if(src.type==='player')e.lastHit=game.time;
+  if(e===player){if(player.mode==='creative')return false;if(src.type==='mob'||src.type==='arrow'||src.type==='explosion'){const ap=armorPoints();amount*=1-Math.min(20,ap)*0.04;damageArmor(Math.max(1,floor(amount/4)))}if(amount<=0)return false;if(src.mob){game.petTarget=src.mob;game.petTargetT=game.time}e.lastDmg=amount;e.invT=0.5;e.hp-=amount;e.exh+=0.1;e.hurtT=0.5;flashDamage();playSound('hurt');if(e.hp<=0){playerDie(src)}return true}
+  e.lastDmg=amount;e.invT=0.5;e.hp-=amount;e.hurtT=0.5;if(src.type==='player'){e.lastHit=game.time;if(e instanceof Mob&&!(e.type==='wolf'&&e.tamed)){game.petTarget=e;game.petTargetT=game.time}}
   if(src.x!==undefined){const dx=e.x-src.x,dz=e.z-src.z;const d=sqrt(dx*dx+dz*dz)||1;const kb=src.kb||4;e.vx+=dx/d*kb;e.vz+=dz/d*kb;e.vy+=kb*0.6;if(e.vy>6)e.vy=6}
   if(e.onHurt)e.onHurt(src);playSoundAt(e.def?e.def.sound+'_hurt':'hurt',e.x,e.y,e.z);
   if(e.hp<=0){e.dying=true;e.deathT=0;if(e.onDeath)e.onDeath();return true}return true;
@@ -2488,6 +2514,9 @@ function playSound(name,vol=1,pitch=1){
     case 'creeper':noise(0.3,'highpass',2500);env(0.01,0.2,0.3);break;
     case 'enderman':{const o=tone('sine',70,55,1.0);const l=c.createOscillator();l.frequency.value=5;const lg=c.createGain();lg.gain.value=12;l.connect(lg);lg.connect(o.frequency);l.start(t);l.stop(t+1);noise(1.0,'lowpass',250);env(0.15,0.5,1.0);break}
     case 'enderman_tp':tone('sine',300,1400,0.3);tone('triangle',150,900,0.3);env(0.005,0.3,0.3);break;
+    case 'wolf':noise(0.12,'bandpass',900,2);tone('square',420,260,0.14);env(0.005,0.3,0.16);break;
+    case 'wolf_growl':{const o=tone('sawtooth',90,80,0.6);noise(0.6,'lowpass',400);env(0.05,0.4,0.6);break}
+    case 'wolf_whine':tone('sine',600,900,0.35);tone('triangle',620,880,0.35);env(0.02,0.25,0.35);break;
     case 'slime':noise(0.18,'lowpass',450);tone('sine',180,90,0.18);env(0.005,0.35,0.18);break;
     case 'witch':tone('sawtooth',400,750,0.35);tone('square',600,950,0.3);env(0.01,0.25,0.4);break;
     case 'potion_break':noise(0.2,'highpass',3000);tone('sine',1200,600,0.15);env(0.005,0.3,0.2);break;
@@ -2560,8 +2589,8 @@ function surfaceSpot(x,z){let y=findGround(x,z);if(y<=SEA||y>=CH-2)return -1;if(
 function spawnPack(type,x,z,n,baby){let placed=0;for(let t=0;t<n*4&&placed<n;t++){const ox=x+floor(Math.random()*7)-3,oz=z+floor(Math.random()*7)-3;const y=surfaceSpot(ox,oz);if(y<0)continue;const m=new Mob(type,ox+0.5,y,oz+0.5);if(baby&&placed===n-1&&n>1){m.baby=true;m.growT=120}entities.push(m);placed++}return placed}
 function populateChunk(c){if(!c||typeof Mob==='undefined')return;const k=c.cx+','+c.cz;if(world.populated.has(k))return;world.populated.add(k);
   const bi=c.biomes[8*16+8];if(!ANIMAL_BIOMES.has(bi))return;const rng=mulberry32(hashInt(c.cx,c.cz,77,world.seed));if(rng()>0.3)return;
-  const types=bi===6||bi===7?['sheep','sheep','pig','cow','chicken']:['pig','cow','sheep','chicken'];const type=types[floor(rng()*types.length)];
-  spawnPack(type,c.cx*16+floor(rng()*16),c.cz*16+floor(rng()*16),type==='chicken'?4:2+floor(rng()*3),true)}
+  const types=bi===6||bi===7?['sheep','sheep','pig','cow','chicken','wolf','wolf']:bi===3?['pig','cow','sheep','chicken','wolf']:['pig','cow','sheep','chicken'];const type=types[floor(rng()*types.length)];
+  spawnPack(type,c.cx*16+floor(rng()*16),c.cz*16+floor(rng()*16),type==='chicken'||type==='wolf'?4:2+floor(rng()*3),type!=='wolf')}
 /* ---- mob spawning ---- */
 function isSlimeChunk(cx,cz){return (hashInt(cx,cz,987,world.seed)>>>0)%10===0}
 function pickHostile(c,x,y,z){ // biome / depth aware hostile mob choice (roughly Minecraft's spawn weights)
@@ -2576,7 +2605,7 @@ function pickHostile(c,x,y,z){ // biome / depth aware hostile mob choice (roughl
   if(w<0.98)return 'enderman';
   return 'witch'}
 function trySpawnMobs(){
-  if(!player||player.dead)return;const p=player;let hostile=0,passive=0;for(const e of entities){if(!(e instanceof Mob)||e.dead)continue;const dx=e.x-p.x,dz=e.z-p.z;if(dx*dx+dz*dz>128*128)continue;if(e.def.passive)passive++;else hostile++}
+  if(!player||player.dead)return;const p=player;let hostile=0,passive=0;for(const e of entities){if(!(e instanceof Mob)||e.dead)continue;const dx=e.x-p.x,dz=e.z-p.z;if(dx*dx+dz*dz>128*128)continue;if(e.def.passive||e.def.animal)passive++;else hostile++}
   const day=R.day;
   for(let attempt=0;attempt<6;attempt++){
     const cx=(floor(p.x)>>4)+floor(Math.random()*13)-6,cz=(floor(p.z)>>4)+floor(Math.random()*13)-6;const c=world.getChunk(cx,cz);if(!c||!c.generated)continue;
@@ -2590,7 +2619,7 @@ function trySpawnMobs(){
   }
   // passive animals: surface only, daylight, grass
   if(passive<14&&day>0.5&&Math.random()<0.25){const cx=(floor(p.x)>>4)+floor(Math.random()*11)-5,cz=(floor(p.z)>>4)+floor(Math.random()*11)-5;const c=world.getChunk(cx,cz);if(c&&c.generated){const x=cx*16+floor(Math.random()*16),z=cz*16+floor(Math.random()*16);const y=surfaceSpot(x,z);
-    if(y>0){const dx=x-p.x,dz=z-p.z;if(dx*dx+dz*dz>=24*24&&world.getSky(x,y,z)>=9){const type=['pig','cow','sheep','chicken'][floor(Math.random()*4)];spawnPack(type,x,z,2+floor(Math.random()*3),false)}}}}
+    if(y>0){const dx=x-p.x,dz=z-p.z;if(dx*dx+dz*dz>=24*24&&world.getSky(x,y,z)>=9){const bi=c.biomes[(x&15)*16+(z&15)];const type=(bi===6||bi===7||bi===3)&&Math.random()<0.2?'wolf':['pig','cow','sheep','chicken'][floor(Math.random()*4)];spawnPack(type,x,z,type==='wolf'?4:2+floor(Math.random()*3),false)}}}}
 }
 /* ---- initial spawn ---- */
 function findSpawn(){for(let r=0;r<400;r+=8){for(let a=0;a<PI*2;a+=0.7){const x=floor(Math.cos(a)*r),z=floor(Math.sin(a)*r);const info=world.columnInfo(x,z);if(info.height>SEA+1&&info.biome!==BI.mountains&&info.biome!==BI.ocean)return [x+0.5,info.height+1,z+0.5]}}return [0.5,80,0.5]}
@@ -2619,7 +2648,7 @@ function startWorld(meta,save){
 function finishLoad(){const p=player;if(!game.pendingMobs.length&&player.spawn===null&&world.time===1000){}
   if(game.freshWorld){const s=findSurfaceSpawn(p.x,p.z);game.worldSpawn=s;p.x=s[0];p.y=s[1];p.z=s[2];game.freshWorld=false;
     for(const type of ['sheep','pig','cow','chicken']){for(let t=0;t<12;t++){const a=Math.random()*PI*2,r=8+Math.random()*14;if(spawnPack(type,floor(s[0]+Math.cos(a)*r),floor(s[2]+Math.sin(a)*r),type==='chicken'?4:3,false)>0)break}}}else{const g=findGround(p.x,p.z);if(p.y<g-1)p.y=g+0.1}
-  for(const m of game.pendingMobs){const e=new Mob(m.type,m.x,m.y,m.z);e.hp=m.hp;e.baby=m.baby;e.growT=m.growT||0;if(m.sheared!==undefined)e.sheared=m.sheared;if(m.woolId)e.woolId=m.woolId;if(m.prof&&PROFS[m.prof]){e.prof=m.prof;e.trades=villagerTrades(m.prof);e.vlevel=m.vlevel||1;e.vxp=m.vxp||0;if(m.uses)m.uses.forEach((u,i)=>{if(e.trades[i])e.trades[i].uses=u});if(m.demand)m.demand.forEach((u,i)=>{if(e.trades[i])e.trades[i].demand=u});e.restocks=m.restocks||0}if(m.size&&e.type==='slime')e.setSize(m.size);entities.push(e)}
+  for(const m of game.pendingMobs){const e=new Mob(m.type,m.x,m.y,m.z);e.hp=m.hp;e.baby=m.baby;e.growT=m.growT||0;if(m.sheared!==undefined)e.sheared=m.sheared;if(m.woolId)e.woolId=m.woolId;if(m.prof&&PROFS[m.prof]){e.prof=m.prof;e.trades=villagerTrades(m.prof);e.vlevel=m.vlevel||1;e.vxp=m.vxp||0;if(m.uses)m.uses.forEach((u,i)=>{if(e.trades[i])e.trades[i].uses=u});if(m.demand)m.demand.forEach((u,i)=>{if(e.trades[i])e.trades[i].demand=u});e.restocks=m.restocks||0}if(m.size&&e.type==='slime')e.setSize(m.size);if(m.tamed){e.tamed=true;e.maxHp=20;e.sitting=!!m.sitting}entities.push(e)}
   for(const it of game.pendingItems)spawnItem(it.x,it.y,it.z,{id:it.id,count:it.count,dur:it.dur});
   for(const c of world.chunks.values())for(const [i,be] of c.bents){if(be.burn>0){const x=c.cx*16+(i>>11),y=i&127,z=c.cz*16+((i>>7)&15);activateFurnace(x,y,z)}}
   updateChunks(200);game.state='playing';game.paused=false;game.gui=null;hideMenus();$('hud').style.display='block';$('overlay').style.display='block';updateHUD();updateHotbar();lockPointer();game.lastSave=game.time;
@@ -2631,7 +2660,7 @@ function saveWorld(){if(!world||game.state!=='playing')return;const p=player;con
   if(world.nether)netherSave=dimData(world,entities);else if(other)netherSave=dimData(other.world,other.ents);
   const overSaveWorld=world.nether?(other?other.world:null):world;
   if(overSaveWorld){for(const c of overSaveWorld.chunks.values()){const k=c.cx+','+c.cz;if(!overSaveWorld.savedMods)overSaveWorld.savedMods={};if(!overSaveWorld.savedBents)overSaveWorld.savedBents={};if(c.mods.size)overSaveWorld.savedMods[k]=Array.from(c.mods);if(c.bents.size)overSaveWorld.savedBents[k]=Array.from(c.bents)}Object.assign(mods,overSaveWorld.savedMods||{});Object.assign(bents,overSaveWorld.savedBents||{})}
-  const mobs=[],items=[];const overEnts=world.nether?(other?other.ents:[]):entities;for(const e of overEnts){if(e.dead)continue;if(e instanceof Mob&&!e.dying)mobs.push({type:e.type,x:e.x,y:e.y,z:e.z,hp:e.hp,baby:e.baby,growT:e.growT,sheared:e.sheared,woolId:e.woolId,prof:e.prof,vlevel:e.vlevel,vxp:e.vxp,uses:e.trades?e.trades.map(t=>t.uses):undefined,size:e.size,demand:e.trades?e.trades.map(t=>t.demand||0):undefined,restocks:e.restocks});else if(e instanceof ItemEntity)items.push({x:e.x,y:e.y,z:e.z,id:e.stack.id,count:e.stack.count,dur:e.stack.dur})}
+  const mobs=[],items=[];const overEnts=world.nether?(other?other.ents:[]):entities;for(const e of overEnts){if(e.dead)continue;if(e instanceof Mob&&!e.dying)mobs.push({type:e.type,x:e.x,y:e.y,z:e.z,hp:e.hp,baby:e.baby,growT:e.growT,sheared:e.sheared,woolId:e.woolId,prof:e.prof,vlevel:e.vlevel,vxp:e.vxp,uses:e.trades?e.trades.map(t=>t.uses):undefined,tamed:e.tamed||undefined,sitting:e.sitting||undefined,size:e.size,demand:e.trades?e.trades.map(t=>t.demand||0):undefined,restocks:e.restocks});else if(e instanceof ItemEntity)items.push({x:e.x,y:e.y,z:e.z,id:e.stack.id,count:e.stack.count,dur:e.stack.dur})}
   const save={v:1,dim:world.nether?'nether':'over',nether:netherSave,time:world.time,day:world.day,spawn:game.worldSpawn,player:{x:p.x,y:p.y,z:p.z,yaw:p.yaw,pitch:p.pitch,hp:p.hp,hunger:p.hunger,sat:p.sat,xp:p.xp,level:p.level,sel:p.sel,inv:p.inv,armor:p.armor,spawn:p.spawn,flying:p.flying},mods,bents,mobs:mobs.slice(0,120),items:items.slice(0,100),pop:Array.from(overSaveWorld?overSaveWorld.populated:[])};
   try{localStorage.setItem('ic_world_'+game.worldId,JSON.stringify(save));const list=worldList();const m=list.find(w=>w.id===game.worldId);if(m){m.played=Date.now();localStorage.setItem('ic_worlds',JSON.stringify(list))}}catch(e){showMessage('Save failed: storage full')}
   game.lastSave=game.time;
