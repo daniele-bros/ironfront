@@ -2078,8 +2078,15 @@ function playerDie(src){const p=player;p.dead=true;p.hp=0;playSound('death');let
   $('deathMsg').textContent=msg;$('deathScore').textContent='Score: '+(p.level*7+floor(p.xp));$('deathScreen').classList.add('show');document.exitPointerLock&&document.exitPointerLock();updateHotbar();
   p.level=0;p.xp=0;p.xpFrac=0;}
 function respawn(){const p=player;if(world.nether)switchDimension(true);p.dead=false;p.hp=20;p.hunger=20;p.sat=5;p.exh=0;p.air=300;p.fireT=0;p.effects={};p.vx=p.vy=p.vz=0;p.fallDist=0;p.invT=0;
-  let s=p.spawn||game.worldSpawn;let ok=false;if(p.spawn){const b=world.getBlock(floor(s[0]),floor(s[1]),floor(s[2]));if(b===62||world.getBlock(floor(s[0]),floor(s[1])-1,floor(s[2]))===62)ok=true;else showMessage('Your home bed was missing or obstructed')}
-  if(!ok){s=findSurfaceSpawn(game.worldSpawn[0],game.worldSpawn[2]);game.worldSpawn=s}p.x=s[0];p.z=s[2];p.y=ok?findGround(s[0],s[2])+0.1:s[1];$('deathScreen').classList.remove('show');updateHUD();updateHotbar()}
+  let s=p.spawn||game.worldSpawn;let ok=false;if(p.spawn){ensureChunks(s[0],s[2],1);const b=world.getBlock(floor(s[0]),floor(s[1]),floor(s[2]));if(b===62||world.getBlock(floor(s[0]),floor(s[1])-1,floor(s[2]))===62)ok=true;else showMessage('Your home bed was missing or obstructed')}
+  if(!ok){s=game.worldSpawn;ensureChunks(s[0],s[2],1)} // the world spawn never moves: you always come back to the same place
+  const spot=safeSpotNear(s[0],s[2]);p.x=spot[0];p.z=spot[2];p.y=spot[1];$('deathScreen').classList.remove('show');updateHUD();updateHotbar()}
+// nearest standable column to (x,z): solid ground, two air blocks, no liquid. Chunks must already be generated.
+function isStandable(bx,bz){if(!world.hasChunk(bx,bz))return null;const y=findGround(bx,bz);if(y<=1||y>=CH-2)return null;const g=world.getBlock(bx,y-1,bz);if(g===8||g===9||g===81)return null;
+  for(let yy=y;yy<y+2;yy++){const b=world.getBlock(bx,yy,bz);if(b===8||b===9||b===81||BLOCKS[b].solid)return null}return y}
+function safeSpotNear(x,z){const bx=floor(x),bz=floor(z);let y=isStandable(bx,bz);if(y!==null)return [bx+0.5,y+0.1,bz+0.5];
+  for(let r=1;r<=12;r++)for(let dx=-r;dx<=r;dx++)for(let dz=-r;dz<=r;dz++){if(Math.max(abs(dx),abs(dz))!==r)continue;y=isStandable(bx+dx,bz+dz);if(y!==null)return [bx+dx+0.5,y+0.1,bz+dz+0.5]}
+  return [bx+0.5,findGround(bx,bz)+0.1,bz+0.5]}
 function isSurfaceSpot(x,z){const bx=floor(x),bz=floor(z);if(!world.hasChunk(bx,bz))return null;const y=findGround(x,z);if(y<=SEA||y>=CH-3)return null;const g=world.getBlock(bx,y-1,bz);const d=BLOCKS[g];
   if(!d.opaque||d.leaves||g===8||g===9)return null;if(world.getBlock(bx,y,bz)!==0||world.getBlock(bx,y+1,bz)!==0)return null;if(world.getSky(bx,y,bz)<15)return null;
   for(const [dx,dz] of [[1,0],[-1,0],[0,1],[0,-1]]){if(world.getBlock(bx+dx,y-1,bz+dz)===9||world.getBlock(bx+dx,y,bz+dz)===9)return null}return y}
@@ -2634,7 +2641,7 @@ function startWorld(meta,save){
   game.dims={over:null,nether:null};world=new World(meta.seed);game.seed=meta.seed;game.worldId=meta.id;game.worldName=meta.name;game.difficulty=meta.diff;entities.length=0;particles.length=0;activeFurnaces.clear();
   const p=player;p.mode=meta.mode;p.inv.fill(null);p.armor.fill(null);p.sel=0;p.hp=20;p.hunger=20;p.sat=5;p.exh=0;p.xp=0;p.level=0;p.dead=false;p.flying=false;p.effects={};p.spawn=null;p.fireT=0;p.air=300;p.vx=p.vy=p.vz=0;
   if(save){world.time=save.time;world.day=save.day||0;game.worldSpawn=save.spawn;world.savedMods={};for(const k in save.mods)world.savedMods[k]=save.mods[k];world.savedBents=save.bents||{};world.populated=new Set(save.pop||[]);
-    const sp=save.player;Object.assign(p,{x:sp.x,y:sp.y,z:sp.z,yaw:sp.yaw,pitch:sp.pitch,hp:sp.hp,hunger:sp.hunger,sat:sp.sat,xp:sp.xp,level:sp.level,sel:sp.sel,spawn:sp.spawn,flying:sp.flying||false});for(let i=0;i<36;i++)p.inv[i]=sp.inv[i]||null;for(let i=0;i<4;i++)p.armor[i]=sp.armor[i]||null;
+    const sp=save.player;if(sp.hp<=0)game.respawnOnLoad=true;Object.assign(p,{x:sp.x,y:sp.y,z:sp.z,yaw:sp.yaw,pitch:sp.pitch,hp:sp.hp,hunger:sp.hunger,sat:sp.sat,xp:sp.xp,level:sp.level,sel:sp.sel,spawn:sp.spawn,flying:sp.flying||false});for(let i=0;i<36;i++)p.inv[i]=sp.inv[i]||null;for(let i=0;i<4;i++)p.armor[i]=sp.armor[i]||null;
     game.pendingMobs=save.mobs||[];game.pendingItems=save.items||[];
     if(save.nether){const nw=new World(meta.seed+1,true);nw.savedMods=save.nether.mods||{};nw.savedBents=save.nether.bents||{};nw.populated=new Set(save.nether.pop||[]);game.dims.nether={world:nw,ents:(save.nether.mobs||[]).map(m=>{const e=new Mob(m.type,m.x,m.y,m.z);e.hp=m.hp;return e}),furn:new Map()}}
     if(save.dim==='nether'&&game.dims.nether){game.dims.over={world,ents:[],furn:new Map()};const nw=game.dims.nether;nw.world.time=world.time;nw.world.day=world.day;world=nw.world;game.pendingMobs=[];entities.push(...nw.ents);game.dims.nether=null}}
@@ -2647,7 +2654,8 @@ function startWorld(meta,save){
 }
 function finishLoad(){const p=player;if(!game.pendingMobs.length&&player.spawn===null&&world.time===1000){}
   if(game.freshWorld){const s=findSurfaceSpawn(p.x,p.z);game.worldSpawn=s;p.x=s[0];p.y=s[1];p.z=s[2];game.freshWorld=false;
-    for(const type of ['sheep','pig','cow','chicken']){for(let t=0;t<12;t++){const a=Math.random()*PI*2,r=8+Math.random()*14;if(spawnPack(type,floor(s[0]+Math.cos(a)*r),floor(s[2]+Math.sin(a)*r),type==='chicken'?4:3,false)>0)break}}}else{const g=findGround(p.x,p.z);if(p.y<g-1)p.y=g+0.1}
+    for(const type of ['sheep','pig','cow','chicken']){for(let t=0;t<12;t++){const a=Math.random()*PI*2,r=8+Math.random()*14;if(spawnPack(type,floor(s[0]+Math.cos(a)*r),floor(s[2]+Math.sin(a)*r),type==='chicken'?4:3,false)>0)break}}}else{const bx=floor(p.x),bz=floor(p.z);const inSolid=y=>{const b=world.getBlock(bx,y,bz);return b!==0&&BLOCKS[b].solid};let fy=floor(p.y),n=0;if(inSolid(fy)||inSolid(fy+1)){while(n<40&&(inSolid(fy)||inSolid(fy+1))){fy++;n++}p.y=fy+0.1}}
+  if(game.respawnOnLoad){game.respawnOnLoad=false;respawn()}
   for(const m of game.pendingMobs){const e=new Mob(m.type,m.x,m.y,m.z);e.hp=m.hp;e.baby=m.baby;e.growT=m.growT||0;if(m.sheared!==undefined)e.sheared=m.sheared;if(m.woolId)e.woolId=m.woolId;if(m.prof&&PROFS[m.prof]){e.prof=m.prof;e.trades=villagerTrades(m.prof);e.vlevel=m.vlevel||1;e.vxp=m.vxp||0;if(m.uses)m.uses.forEach((u,i)=>{if(e.trades[i])e.trades[i].uses=u});if(m.demand)m.demand.forEach((u,i)=>{if(e.trades[i])e.trades[i].demand=u});e.restocks=m.restocks||0}if(m.size&&e.type==='slime')e.setSize(m.size);if(m.tamed){e.tamed=true;e.maxHp=20;e.sitting=!!m.sitting}entities.push(e)}
   for(const it of game.pendingItems)spawnItem(it.x,it.y,it.z,{id:it.id,count:it.count,dur:it.dur});
   for(const c of world.chunks.values())for(const [i,be] of c.bents){if(be.burn>0){const x=c.cx*16+(i>>11),y=i&127,z=c.cz*16+((i>>7)&15);activateFurnace(x,y,z)}}
@@ -2737,6 +2745,8 @@ function setupInput(){
   document.addEventListener('keyup',ev=>{keys[ev.code]=false;if(ev.code==='KeyW'||ev.code==='ArrowUp'){player.sprintReq=false;player.sprinting=false}});
   window.addEventListener('blur',()=>{for(const k in keys)keys[k]=false;mouseL=mouseR=false});
   window.addEventListener('beforeunload',()=>{if(game.state==='playing')saveWorld()});
+  window.addEventListener('pagehide',()=>{if(game.state==='playing')saveWorld()});
+  document.addEventListener('visibilitychange',()=>{if(document.hidden&&game.state==='playing')saveWorld()});
 }
 /* ---- main loop ---- */
 let lastT=performance.now();
@@ -2756,7 +2766,7 @@ function loop(now){
       const pcx=floor(player.x)>>4,pcz=floor(player.z)>>4;const rng=Math.random;for(const c of world.chunks.values()){const dx=c.cx-pcx,dz=c.cz-pcz;if(dx*dx+dz*dz<=25)world.randomTick(c,rng)}
       if(game.tick%10===0)trySpawnMobs();
       if(game.tick%2===0){updateHUD();updateFurnaceGui()}
-      if(game.tick%600===0)saveWorld();
+      if(game.tick%200===0)saveWorld();
     }
     tickFurnaces(dt);tickSpawners(dt);
     updateMusic(dt);
