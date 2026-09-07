@@ -231,7 +231,7 @@ label.lb{font-size:13px;color:#a0a0a0;align-self:flex-start;margin-left:calc(50%
 <div id="controlsMenu" class="menu dirtbg">
   <h2 class="sh">Controls</h2>
   <div class="ctl">
-    <span><b>W A S D</b> Move</span><span><b>Mouse</b> or <b>Arrow keys</b> Look</span>
+    <span><b>W A S D</b> Move (<b>Up/Down arrows</b> also move)</span><span><b>Mouse</b> Look; <b>Left/Right arrows</b> turn, <b>PgUp/PgDn</b> look up/down</span>
     <span><b>Space</b> Jump / swim up</span><span><b>Shift</b> Sneak (won't fall off edges)</span>
     <span><b>Ctrl</b> or double-tap W: Sprint</span><span><b>Left click</b> Mine / attack</span>
     <span><b>Right click</b> Place / use / eat</span><span><b>Scroll / 1-9</b> Select hotbar slot</span>
@@ -1788,7 +1788,7 @@ function updatePlayer(dt){
   if(p.sleeping>0){p.sleeping+=dt;if(p.sleeping>2.5){world.time=0;world.day++;p.sleeping=0;$('sleepfade').style.opacity=0;showMessage('Rise and shine!')}return}
   // ---- input ----
   const guiOpen=game.gui!==null||game.paused;
-  let fwd=0,strafe=0;if(!guiOpen){if(keys.KeyW)fwd+=1;if(keys.KeyS)fwd-=1;if(keys.KeyA)strafe-=1;if(keys.KeyD)strafe+=1}
+  let fwd=0,strafe=0;if(!guiOpen){if(keys.KeyW||keys.ArrowUp)fwd+=1;if(keys.KeyS||keys.ArrowDown)fwd-=1;if(keys.KeyA)strafe-=1;if(keys.KeyD)strafe+=1}
   const wantSneak=!guiOpen&&(keys.ShiftLeft||keys.ShiftRight);const inWater=entityInWater(p),inLava=entityInLava(p);p.inWater=inWater;
   const headId=world.getBlock(floor(p.x),floor(p.y+p.eyeHeight),floor(p.z));const headWater=headId===8;
   const ladder=onLadder(p);
@@ -2590,7 +2590,7 @@ function lockPointer(){if(game.state!=='playing'||game.gui||game.paused||player.
   try{const r=c.requestPointerLock({unadjustedMovement:true});if(r&&r.catch)r.catch(()=>{try{const r2=c.requestPointerLock();if(r2&&r2.catch)r2.catch(fail)}catch(e){fail()}})}catch(e){try{c.requestPointerLock()}catch(e2){fail()}}
   clearTimeout(game.lockTimer);game.lockTimer=setTimeout(fail,600)}
 function keyLook(dt){if(game.state!=='playing'||game.gui||game.paused||player.dead)return;const r=2.4*dt;let tx=0,ty=0;
-  if(keys.ArrowLeft)tx-=1;if(keys.ArrowRight)tx+=1;if(keys.ArrowUp)ty-=1;if(keys.ArrowDown)ty+=1;if(!tx&&!ty)return;
+  if(keys.ArrowLeft)tx-=1;if(keys.ArrowRight)tx+=1;if(keys.PageUp)ty-=1;if(keys.PageDown)ty+=1;if(!tx&&!ty)return;
   player.yaw-=tx*r;player.pitch=clamp(player.pitch-ty*r*0.7,-PI/2+0.001,PI/2-0.001)}
 function edgeLook(dt){if(!game.noLock||game.state!=='playing'||game.gui||game.paused)return;const m=game.mousePos;if(!m)return;const W=innerWidth,H=innerHeight;const fx=m.x/W,fy=m.y/H;const band=0.18;let tx=0,ty=0;
   if(fx<band)tx=-(band-fx)/band;else if(fx>1-band)tx=(fx-(1-band))/band;if(fy<band)ty=-(band-fy)/band;else if(fy>1-band)ty=(fy-(1-band))/band;
@@ -2609,7 +2609,7 @@ function setupInput(){
   document.addEventListener('wheel',ev=>{if(game.state!=='playing'||game.gui||game.paused)return;player.sel=(player.sel+(ev.deltaY>0?1:-1)+9)%9;updateHotbar()},{passive:true});
   document.addEventListener('keydown',ev=>{
     if(ev.target&&ev.target.tagName==='INPUT'&&ev.code!=='Escape'){return}
-    if(ev.code.startsWith('Arrow')&&game.state==='playing')ev.preventDefault();if(ev.repeat)return;keys[ev.code]=true;
+    if((ev.code.startsWith('Arrow')||ev.code==='PageUp'||ev.code==='PageDown')&&game.state==='playing')ev.preventDefault();if(ev.repeat)return;keys[ev.code]=true;
     if(game.state!=='playing'){return}
     if(ev.code==='Escape'){if(game.gui)closeGui();else if(game.paused)resumeGame();else pauseGame();ev.preventDefault();return}
     if(game.paused)return;
@@ -2620,10 +2620,10 @@ function setupInput(){
     if(ev.code==='F3'){const d=$('debug');d.style.display=d.style.display==='block'?'none':'block';ev.preventDefault()}
     if(ev.code==='F5'){ev.preventDefault()}
     if(ev.code==='Space'){const t=game.time;if(player.mode==='creative'&&t-player.lastSpaceT<0.3){player.flying=!player.flying;player.vy=0;player.lastSpaceT=-1}else player.lastSpaceT=t}
-    if(ev.code==='KeyW'){const t=game.time;if(t-player.lastWT<0.3&&!player.sneaking){player.sprintReq=true}player.lastWT=t}
+    if(ev.code==='KeyW'||ev.code==='ArrowUp'){const t=game.time;if(t-player.lastWT<0.3&&!player.sneaking){player.sprintReq=true}player.lastWT=t}
     if(ev.code==='ControlLeft')player.sprintReq=true;
   });
-  document.addEventListener('keyup',ev=>{keys[ev.code]=false;if(ev.code==='KeyW'){player.sprintReq=false;player.sprinting=false}});
+  document.addEventListener('keyup',ev=>{keys[ev.code]=false;if(ev.code==='KeyW'||ev.code==='ArrowUp'){player.sprintReq=false;player.sprinting=false}});
   window.addEventListener('blur',()=>{for(const k in keys)keys[k]=false;mouseL=mouseR=false});
   window.addEventListener('beforeunload',()=>{if(game.state==='playing')saveWorld()});
 }
