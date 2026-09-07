@@ -843,7 +843,7 @@ class Chunk{
   constructor(cx,cz){this.cx=cx;this.cz=cz;this.blocks=new Uint8Array(CS*CS*CH);this.meta=new Uint8Array(CS*CS*CH);this.sky=new Uint8Array(CS*CS*CH);this.light=new Uint8Array(CS*CS*CH);
     this.generated=false;this.lit=false;this.dirty=true;this.mesh=null;this.mods=new Map();this.bents=new Map();this.heights=new Uint8Array(CS*CS);this.biomes=new Uint8Array(CS*CS);this.lastSeen=0}
 }
-const BIOMES=['ocean','beach','plains','forest','birch_forest','desert','taiga','snowy_taiga','mountains','deep_ocean','swamp','nether'];
+const BIOMES=['ocean','beach','plains','forest','birch_forest','desert','taiga','snowy_taiga','mountains','deep_ocean','swamp','nether','jungle'];
 const BI={};BIOMES.forEach((b,i)=>BI[b]=i);
 const LIGHT_OPACITY=id=>{const d=BLOCKS[id];if(d.opaque)return 15;if(id===8)return 2;if(d.leaves)return 1;return 0};
 class World{
@@ -953,6 +953,7 @@ class World{
     if(height<SEA-2)biome=height<44?BI.deep_ocean:BI.ocean;
     else if(height<=SEA+1)biome=BI.beach;
     else if(height>95)biome=BI.mountains;
+    else if(temp>0.3&&hum>0.3)biome=BI.jungle;
     else if(temp>0.4&&hum<0.05)biome=BI.desert;
     else if(temp<-0.42)biome=BI.snowy_taiga;
     else if(temp<-0.18)biome=BI.taiga;
@@ -1060,7 +1061,7 @@ class World{
         let treeP=0,grassP=0,flowerP=0,type=0;
         switch(bi){case BI.forest:treeP=0.035;grassP=0.12;flowerP=0.01;type=rng()<0.15?1:0;break;case BI.birch_forest:treeP=0.035;grassP=0.1;flowerP=0.015;type=rng()<0.8?1:0;break;
           case BI.plains:treeP=0.0015;grassP=0.25;flowerP=0.025;break;case BI.taiga:treeP=0.03;grassP=0.06;type=2;break;case BI.snowy_taiga:treeP=0.025;type=2;break;
-          case BI.swamp:treeP=0.012;grassP=0.15;flowerP=0.005;break;case BI.mountains:treeP=0.004;grassP=0.04;type=2;break;}
+          case BI.swamp:treeP=0.012;grassP=0.15;flowerP=0.005;break;case BI.jungle:treeP=0.045;grassP=0.3;flowerP=0.01;type=rng()<0.7?3:0;break;case BI.mountains:treeP=0.004;grassP=0.04;type=2;break;}
         if(r<treeP){this.placeTree(X,h+1,Z,type,rng)}
         else if(r<treeP+grassP&&(bi!==BI.snowy_taiga)){this.setGen(X,h+1,Z,23)}
         else if(r<treeP+grassP+flowerP){this.setGen(X,h+1,Z,rng()<0.5?21:22)}
@@ -1077,6 +1078,12 @@ class World{
         for(let dx=-r;dx<=r;dx++)for(let dz=-r;dz<=r;dz++){if(abs(dx)===r&&abs(dz)===r&&r>0)continue;if(dx===0&&dz===0&&ly<hgt)continue;this.setGen(x+dx,y+ly,z+dz,47)}}
       this.setGen(x,y+hgt,z,47);return;
     }
+    if(type===3){ // jungle: tall trunk, wide canopy, leaf clumps hanging off the trunk
+      const hgt=9+floor(rng()*5);for(let i=0;i<hgt;i++){const b=g(0,i,0);if(b!==0&&!BLOCKS[b].leaves)return}
+      for(let i=0;i<hgt;i++)this.setGen(x,y+i,z,15,0,false);
+      for(let ly=hgt-2;ly<=hgt+1;ly++){const r=ly>=hgt?2:3;for(let dx=-r;dx<=r;dx++)for(let dz=-r;dz<=r;dz++){if(abs(dx)===r&&abs(dz)===r&&(ly>=hgt||rng()<0.6))continue;if(dx===0&&dz===0&&ly<hgt)continue;this.setGen(x+dx,y+ly,z+dz,16)}}
+      for(let k=0;k<3;k++){const ly=3+floor(rng()*(hgt-5));const dx=floor(rng()*3)-1,dz=floor(rng()*3)-1;if(!dx&&!dz)continue;for(let a=-1;a<=1;a++)for(let b=-1;b<=1;b++)if(rng()<0.7)this.setGen(x+dx+a,y+ly,z+dz+b,16);this.setGen(x+dx,y+ly+1,z+dz,16)}
+      return}
     const hgt=(type===1?5:4)+floor(rng()*3);for(let i=0;i<hgt;i++){const b=g(0,i,0);if(b!==0&&!BLOCKS[b].leaves)return}
     const log=type===1?44:15,leaf=type===1?45:16;
     for(let i=0;i<hgt;i++)this.setGen(x,y+i,z,log,0,false);
@@ -1655,6 +1662,7 @@ const MOBDEF={
   zombified_piglin:{hp:20,w:0.6,h:1.95,speed:3.6,dmg:5,drops:r=>[[282,floor(r()*2)],[r()<0.025?262:0,1]],xp:[5,5],sound:'zombie',follow:20,neutral:true,fireproof:true},
   horse:{hp:22,w:1.4,h:1.6,speed:1.7,passive:true,animal:true,food:[271,273,307,308],drops:r=>[[289,floor(r()*3)]],xp:[1,3],sound:'horse',noDespawn:true},
   wolf:{hp:8,w:0.6,h:0.85,speed:3.2,dmg:3,drops:()=>[],xp:[1,3],sound:'wolf',follow:16,neutral:true,animal:true,noDespawn:true,food:[274,275,276,277,278,279,280,281,282]},
+  pillager:{hp:24,w:0.6,h:1.95,speed:3.3,dmg:3,ranged:true,arrowDmg:[3,4,5],drops:r=>[[284,floor(r()*3)],[r()<0.1?301:0,1],[r()<0.3?266:0,1]],xp:[5,5],sound:'villager_no',follow:24,noDespawn:true},
   vindicator:{hp:24,w:0.6,h:1.95,speed:3.6,dmg:7,drops:r=>[[266,floor(r()*2)],[r()<0.1?I.iron_axe:0,1]],xp:[5,5],sound:'villager_no',follow:24,noDespawn:true},
   guardian:{hp:30,w:0.85,h:0.85,speed:3.5,dmg:2,ranged:'laser',drops:r=>[[91,floor(r()*3)],[310,r()<0.4?1:0],[311,floor(r()*2)]],xp:[10,10],sound:'guardian',follow:16,noDespawn:true,aquatic:true},
   husk:{hp:20,w:0.6,h:1.95,speed:3.2,dmg:3,undead:true,noBurn:true,hungerHit:true,drops:r=>[[282,floor(r()*3)],[r()<0.025?[260,302,303][floor(r()*3)]:0,1]],xp:[5,5],sound:'zombie',follow:35},
@@ -1769,7 +1777,7 @@ class Mob extends Entity{
       if(this.type==='chicken'){this.eggT-=dt;if(this.eggT<=0){this.eggT=300+Math.random()*300;spawnItem(this.x,this.y,this.z,{id:290,count:1},[0,0.5,0]);playSoundAt('pop',this.x,this.y,this.z)}}
     } else {
       const tx=target[0]-this.x,tz=target[1]-this.z;const l=sqrt(tx*tx+tz*tz)||1;this.moveDir=[tx/l,tz/l];this.yaw=Math.atan2(-tx,-tz);
-      if(this.type==='skeleton'&&dist<8&&!this.panicT){ // keep distance and strafe
+      if((this.type==='skeleton'||this.type==='stray'||this.type==='pillager')&&dist<8&&!this.panicT){ // keep distance and strafe
         if(dist<4){this.moveDir=[-tx/l,-tz/l]}else{const s=Math.sin(this.age*1.5);this.moveDir=[-tz/l*s,tx/l*s]}}
       if(this.type==='creeper'&&dist3<3&&!this.panicT){this.moveDir=null}
     }
@@ -1791,7 +1799,7 @@ class Mob extends Entity{
     if(hostile&&!p.dead){
       if(this.type==='creeper'){const los=dist3<3;if(los){this.swell+=dt;if(this.swell>=1.5){this.dying=true;this.dead=true;explode(this.x,this.y+0.5,this.z,3);return}if(this.swell<0.05)playSoundAt('fuse',this.x,this.y,this.z)}else if(dist3>7){this.swell=Math.max(0,this.swell-dt*2)}else{this.swell=Math.max(0,this.swell-dt)}}
       else if(d.ranged==='potion'){if(dist3<10&&this.atkCd<=0&&this.drinking<=0){this.atkCd=diff===3?2.5:3.5;throwPotion(this,p,diff)}}
-      else if(d.ranged){if(dist3<15&&this.atkCd<=0&&dist3>1.5){this.atkCd=diff===3?2:3;const ex=this.x,ey=this.y+this.h*0.85,ez=this.z;let ax=p.x-ex,ay=(p.y+1)-ey,az=p.z-ez;const l=sqrt(ax*ax+ay*ay+az*az);ay+=l*0.06;const sp=30;const n=sqrt(ax*ax+ay*ay+az*az);const spread=0.05*(4-diff);const ar=new Arrow(ex,ey,ez,ax/n*sp+(Math.random()-0.5)*spread*sp,ay/n*sp+(Math.random()-0.5)*spread*sp,az/n*sp+(Math.random()-0.5)*spread*sp,'mob',[2.5,3.5,4.5][diff-1]+floor(Math.random()*2));if(d.slowArrow){ar.effect='slow';ar.effectT=30}entities.push(ar);playSoundAt('bow',ex,ey,ez)}}
+      else if(d.ranged){if(dist3<15&&this.atkCd<=0&&dist3>1.5){this.atkCd=diff===3?2:3;const ex=this.x,ey=this.y+this.h*0.85,ez=this.z;let ax=p.x-ex,ay=(p.y+1)-ey,az=p.z-ez;const l=sqrt(ax*ax+ay*ay+az*az);ay+=l*0.06;const sp=30;const n=sqrt(ax*ax+ay*ay+az*az);const spread=0.05*(4-diff);const ar=new Arrow(ex,ey,ez,ax/n*sp+(Math.random()-0.5)*spread*sp,ay/n*sp+(Math.random()-0.5)*spread*sp,az/n*sp+(Math.random()-0.5)*spread*sp,'mob',(d.arrowDmg?d.arrowDmg[diff-1]:[2.5,3.5,4.5][diff-1])+floor(Math.random()*2));if(d.slowArrow){ar.effect='slow';ar.effectT=30}entities.push(ar);playSoundAt('bow',ex,ey,ez)}}
       else{const reach=this.w/2+p.w/2+0.6;const base=this.dmgOverride!==undefined?this.dmgOverride:d.dmg;if(base>0&&dist<reach&&abs(dy)<(d.tall?3.5:2)&&this.atkCd<=0){this.atkCd=1;const dm=[base*0.8,base,base*1.5][diff-1];
         if(damageEntity(p,dm,{x:this.x,y:this.y,z:this.z,type:'mob',mob:this})){if(d.hungerHit)p.effects.hunger=Math.max(p.effects.hunger||0,7*diff);if(d.poison&&diff>1)p.effects.poison=Math.max(p.effects.poison||0,diff===3?15:7)}
         if((this.type==='spider'||this.type==='cave_spider')&&this.onGround)this.vy=5}}
@@ -1866,8 +1874,9 @@ class Mob extends Entity{
         if(this.laserT>0){const p=player;const dx=p.x-this.x,dy=(p.y+1)-(this.y+0.4),dz=p.z-this.z;const l=sqrt(dx*dx+dy*dy+dz*dz);const yaw=Math.atan2(-dx,-dz),pitch=Math.atan2(dy,sqrt(dx*dx+dz*dz));const t=this.laserT/2;
           const tf=makeTF(this.x,this.y+0.4,this.z,yaw,pitch,0,0,0,0,1);EB.box(tf,-0.04,-0.04,-l,0.04,0.04,0,TEX.white,[0.6+t*0.4,0.3+t*0.7,0.9-t*0.7],[1,1],true)}
         break}
-      case 'villager':case 'vindicator':{const vin=this.type==='vindicator';const P=vin?{robe:[0.33,0.35,0.38],apron:[0.2,0.22,0.24]}:(PROFS[this.prof]||PROFS.nitwit);const robe=P.robe,skin=vin?[0.72,0.64,0.58]:[0.8,0.63,0.47];
-        if(vin&&this.angry){part([-1.5,-8,-1.5,1.5,2,1.5],5,20,0,-1.4,0,0,N,robe);part([-0.5,-1,-9,0.5,1,-1],5,20,0,-1.4,0,0,W,[0.45,0.3,0.15]);part([-2.5,-3,-10,2.5,0,-7],5,20,0,-1.4,0,0,W,[0.75,0.75,0.78])}part([-4,6,-3.2,4,14,-3],0,0,0,0,0,0,W,P.apron);part([-2,-12,-2,2,0,2],-2,12,0,swing*0.5,0,0,N,[0.3,0.25,0.35]);part([-2,-12,-2,2,0,2],2,12,0,-swing*0.5,0,0,N,[0.3,0.25,0.35]);
+      case 'villager':case 'vindicator':case 'pillager':{const vin=this.type==='vindicator'||this.type==='pillager';const pil=this.type==='pillager';const P=vin?{robe:[0.33,0.35,0.38],apron:[0.2,0.22,0.24]}:(PROFS[this.prof]||PROFS.nitwit);const robe=P.robe,skin=vin?[0.72,0.64,0.58]:[0.8,0.63,0.47];
+        if(pil){part([-1.5,-8,-1.5,1.5,2,1.5],3,20,0,-1.5,0,0,N,robe);part([-1.5,-8,-1.5,1.5,2,1.5],-3,20,0,-1.5,0,0,N,robe);part([-4,-1,-9,4,0,-8],0,20,0,-1.5,0,0,W,[0.45,0.3,0.15]);part([-0.7,-1,-10,0.7,1,-3],0,20,0,-1.5,0,0,W,[0.35,0.25,0.15]);part([-4,-0.4,-8.5,4,0.4,-8.4],0,20,0,-1.5,0,0,W,[0.9,0.9,0.9])}
+        else if(vin&&this.angry){part([-1.5,-8,-1.5,1.5,2,1.5],5,20,0,-1.4,0,0,N,robe);part([-0.5,-1,-9,0.5,1,-1],5,20,0,-1.4,0,0,W,[0.45,0.3,0.15]);part([-2.5,-3,-10,2.5,0,-7],5,20,0,-1.4,0,0,W,[0.75,0.75,0.78])}part([-4,6,-3.2,4,14,-3],0,0,0,0,0,0,W,P.apron);part([-2,-12,-2,2,0,2],-2,12,0,swing*0.5,0,0,N,[0.3,0.25,0.35]);part([-2,-12,-2,2,0,2],2,12,0,-swing*0.5,0,0,N,[0.3,0.25,0.35]);
         part([-4,12,-3,4,24,3],0,0,0,0,0,0,N,robe);part([-4,8,-3,4,12,3],0,0,0,0,0,0,N,robe);part([-4,-2,-3,4,2,3],0,20,0,0,0,0,N,skin);
         part([-4,0,-4,4,10,4],0,24,0,hp,hy,0,face(vin?TEX.vindicator_face:TEX.villager_face),skin);part([-1,2,-6,1,6,-4],0,24,0,hp,hy,0,N,skin);break}
       case 'horse':{const cols=[[0.55,0.36,0.22],[0.18,0.14,0.12],[0.92,0.9,0.86],[0.7,0.45,0.25],[0.5,0.48,0.46],[0.35,0.22,0.14],[0.8,0.65,0.45]];const c=cols[this.color]||cols[0];const mane=this.color===2?[0.85,0.83,0.8]:[0.15,0.1,0.08];
@@ -2215,6 +2224,8 @@ const LOOT={
   portal:[[31,1,2,40],[269,1,4,40],[299,1,1,40],[262,2,8,40],[24,1,2,20],[308,1,1,15],[I.golden_sword,1,1,15],[I.golden_axe,1,1,15],[I.golden_pickaxe,1,1,12],[I.golden_helmet,1,1,12],[I.golden_boots,1,1,12],[I.golden_chestplate,1,1,8],[262,1,3,15]],
   mansion:[[263,1,3,8],[266,1,4,12],[260,1,4,12],[308,1,1,8],[272,1,5,15],[271,1,6,10],[301,1,1,8],[284,4,12,10],[289,1,3,8],[283,1,3,8],[257,2,6,10],[I.iron_axe,1,1,5],[I.diamond_axe,1,1,2],[24,1,1,5],[29,1,3,8]],
   monument:[[24,1,1,10],[311,1,4,12],[313,1,3,8],[263,1,2,6],[314,1,4,10],[262,1,4,10],[310,2,5,15],[266,1,2,6]],
+  jungle:[[263,1,3,3],[266,1,3,2],[262,2,7,15],[260,1,5,10],[283,4,6,20],[282,3,7,16],[315,1,1,3],[308,1,1,2],[257,2,5,10],[289,1,3,6],[270,2,5,8]],
+  outpost:[[301,1,1,10],[284,4,12,12],[271,3,5,10],[302,3,5,10],[303,2,5,10],[46,2,6,8],[260,1,3,6],[266,1,3,6],[257,2,6,8],[I.iron_sword,1,1,3],[I.iron_helmet,1,1,3],[308,1,1,2]],
   shipwreck:[[260,1,5,20],[262,1,5,12],[266,1,3,10],[263,1,1,4],[289,1,4,15],[272,1,4,15],[303,1,4,10],[302,1,4,10],[24,1,1,3],[I.iron_sword,1,1,5],[I.iron_helmet,1,1,4]],
   village:[[315,1,1,3],[272,1,4,20],[273,1,5,15],[271,1,7,10],[270,1,4,10],[260,1,3,5],[266,1,4,3],[257,1,4,10],[303,1,5,10],[302,1,5,10],[6,1,2,5],[289,1,3,5]],
   fortress:[[263,1,3,5],[260,1,5,5],[262,1,3,15],[299,1,1,5],[31,2,4,5],[308,1,1,3],[311,2,6,10],[283,2,5,8]],
@@ -2250,6 +2261,8 @@ Object.assign(World.prototype,{
     if((r=this.regionOrigin(cx,cz,24,110))&&[BI.forest,BI.birch_forest,BI.taiga].includes(mid.biome)&&mid.height>SEA+3)this.placeMansion(wx+8,wz+8,mid,r);
     if((r=this.regionOrigin(cx,cz,16,111))&&mid.biome===BI.deep_ocean)this.placeMonument(wx+8,wz+8,mid,r);
     if((r=this.regionOrigin(cx,cz,8,112))&&(mid.biome===BI.ocean||mid.biome===BI.deep_ocean)&&r()<0.5)this.placeShipwreck(wx+8,wz+8,mid,r);
+    if((r=this.regionOrigin(cx,cz,12,113))&&mid.biome===BI.jungle&&mid.height>SEA+2)this.placeJungleTemple(wx+8,wz+8,r);
+    if((r=this.regionOrigin(cx,cz,16,114))&&[BI.plains,BI.desert,BI.taiga,BI.snowy_taiga,BI.jungle].includes(mid.biome)&&mid.height>SEA+2&&r()<0.7)this.placeOutpost(wx+8,wz+8,mid,r);
     if((r=this.regionOrigin(cx,cz,9,106))&&r()<0.55)this.placeMineshaft(wx+8,wz+8,r);
     if(rng()<0.12)this.placeDungeon(wx+2+floor(rng()*12),8+floor(rng()*42),wz+2+floor(rng()*12),rng);
   },
@@ -2425,6 +2438,54 @@ Object.assign(World.prototype,{
     for(let i=-4;i<=4;i++){this.setGen(x+dx*i,y+1,z+dz*i,i===0?0:5,0,false)}
     for(let h=1;h<=7;h++)this.setGen(x+dx*2,y+h,z+dz*2,15,0,false);
     this.setChest(x-dx*5,y+1,z-dz*5,0,'shipwreck',rng,3+floor(rng()*4));if(rng()<0.5)this.setChest(x+dx*6,y+1,z+dz*6,0,'shipwreck',rng,2+floor(rng()*3));
+  },
+  /* ---- jungle temple: mossy cobblestone pyramid with a trapped treasure room ---- */
+  placeJungleTemple(x,z,rng){const h=this.surfaceY(x,z);const y=h-1;const M=()=>rng()<0.45?30:4;const hw=5,hl=7;
+    for(let dx=-hw-2;dx<=hw+2;dx++)for(let dz=-hl-2;dz<=hl+2;dz++)for(let dy=0;dy<=12;dy++){const b=this.getGen(x+dx,y+dy,z+dz);if(b&&(BLOCKS[b].log||BLOCKS[b].leaves||BLOCKS[b].plant))this.setGen(x+dx,y+dy,z+dz,0,0,false)}
+    // base and lower floor
+    for(let dx=-hw-1;dx<=hw+1;dx++)for(let dz=-hl-1;dz<=hl+1;dz++)for(let dy=-3;dy<=0;dy++)this.setGen(x+dx,y+dy,z+dz,M(),0,false);
+    for(let dx=-hw;dx<=hw;dx++)for(let dz=-hl;dz<=hl;dz++){const edge=abs(dx)===hw||abs(dz)===hl;for(let dy=1;dy<=4;dy++)this.setGen(x+dx,y+dy,z+dz,edge?M():0,0,false);this.setGen(x+dx,y+5,z+dz,M(),0,false)}
+    // upper floor, stepped in, then a little top room
+    for(let dx=-hw+1;dx<=hw-1;dx++)for(let dz=-hl+1;dz<=hl-1;dz++){const edge=abs(dx)===hw-1||abs(dz)===hl-1;for(let dy=6;dy<=8;dy++)this.setGen(x+dx,y+dy,z+dz,edge?M():0,0,false);this.setGen(x+dx,y+9,z+dz,M(),0,false)}
+    for(let dx=-2;dx<=2;dx++)for(let dz=-2;dz<=2;dz++){const edge=abs(dx)===2||abs(dz)===2;for(let dy=10;dy<=11;dy++)this.setGen(x+dx,y+dy,z+dz,edge?M():0,0,false);this.setGen(x+dx,y+12,z+dz,M(),0,false)}
+    // windows and doorway (south), stairs up inside
+    for(let dz=-hl+2;dz<=hl-2;dz+=3){this.setGen(x-hw,y+3,z+dz,0,0,false);this.setGen(x+hw,y+3,z+dz,0,0,false)}
+    this.fill(x-1,y+1,z+hl,x+1,y+3,z+hl,0);this.fill(x-1,y+1,z+hl+1,x+1,y+3,z+hl+2,0);
+    for(let k=0;k<5;k++){this.setGen(x+hw-2,y+1+k,z-hl+1+k,58,0,false);for(let dy=k+2;dy<=6;dy++)this.setGen(x+hw-2,y+dy,z-hl+1+k,0,0,false)}this.setGen(x+hw-2,y+5,z-hl+6,0,0,false);this.setGen(x+hw-2,y+5,z-hl+5,0,0,false);
+    for(let k=0;k<3;k++){this.setGen(x-2,y+6+k,z+2-k,58,2,false);for(let dy=k+7;dy<=10;dy++)this.setGen(x-2,y+dy,z+2-k,0,0,false)}this.setGen(x-2,y+9,z-1,0,0,false);this.setGen(x-2,y+9,z,0,0,false);
+    for(const [dx,dz] of [[-hw+1,-hl+1],[hw-1,-hl+1],[-hw+1,hl-1],[hw-1,hl-1]])this.setGen(x+dx,y+3,z+dz,32,0,false);this.setGen(x,y+7,z,32,0,false);
+    // trapped treasure room in the basement: a pressure plate in the corridor with TNT hidden in the walls
+    this.fill(x-3,y-2,z-4,x+3,y-1,z+4,0);this.fill(x,y,z+3,x,y,z+4,0);this.fill(x-1,y-1,z+5,x+1,y,z+5,0); // access shaft from the lower floor
+    this.setGen(x,y-2,z+1,90,0,false);this.setGen(x-4,y-2,z+1,28,0,false);this.setGen(x+4,y-2,z+1,28,0,false);this.setGen(x,y-3,z+1,28,0,false);
+    this.setChest(x,y-1,z-3,0,'jungle',rng,3+floor(rng()*4));this.setGen(x-2,y-1,z-3,29,0,false);this.setGen(x+2,y-1,z-3,29,0,false);
+    // second chest hidden behind a mossy wall on the upper floor
+    this.setChest(x+hw-2,y+6,z+hl-2,0,'jungle',rng,2+floor(rng()*3));this.setGen(x+hw-3,y+6,z+hl-2,30,0,false);this.setGen(x+hw-2,y+6,z+hl-3,30,0,false);
+    for(let i=0;i<8;i++){const dx=floor(rng()*(hw*2+3))-hw-1,dz=floor(rng()*(hl*2+3))-hl-1;const t=this.surfaceY(x+dx,z+dz);if(this.getGen(x+dx,t+1,z+dz)===0)this.setGen(x+dx,t+1,z+dz,23,0,false)}
+  },
+  /* ---- pillager outpost: a tall watchtower with pillagers on every floor ---- */
+  placeOutpost(x,z,mid,rng){const key='p:'+(x>>4)+','+(z>>4);const spawnMobs=typeof Mob!=='undefined'&&!this.populated.has(key);this.populated.add(key);
+    const y=this.surfaceY(x,z)+1;const hw=3;const F=51,L=46,C=4;const floors=4,fh=5;
+    for(let dx=-hw-3;dx<=hw+3;dx++)for(let dz=-hw-3;dz<=hw+3;dz++){for(let dy=-4;dy<0;dy++){const b=this.getGen(x+dx,y+dy,z+dz);if(abs(dx)<=hw+1&&abs(dz)<=hw+1&&(b===0||b===8||dy>=-2))this.setGen(x+dx,y+dy,z+dz,C,0,false)}
+      for(let dy=0;dy<floors*fh+8;dy++){const b=this.getGen(x+dx,y+dy,z+dz);if(b!==0&&(abs(dx)<=hw+1&&abs(dz)<=hw+1||BLOCKS[b].log||BLOCKS[b].leaves||BLOCKS[b].plant))this.setGen(x+dx,y+dy,z+dz,0,0,false)}}
+    for(let f=0;f<floors;f++){const fy=y+f*fh;this.fill(x-hw,fy,z-hw,x+hw,fy,z+hw,f===0?C:F);
+      for(let dx=-hw;dx<=hw;dx++)for(let dz=-hw;dz<=hw;dz++){const edge=abs(dx)===hw||abs(dz)===hw;if(!edge)continue;const corner=abs(dx)===hw&&abs(dz)===hw;
+        for(let dy=1;dy<fh;dy++){let id=corner?L:(f>=2?F:C);if(!corner&&dy===2&&(dx===0||dz===0))id=0;this.setGen(x+dx,fy+dy,z+dz,id,0,false)}}
+      // ladder up the north wall
+      for(let dy=1;dy<=fh;dy++)this.setGen(x,fy+dy,z-hw+1,38,2,false);this.setGen(x,fy+fh,z-hw+1,0,0,false);this.setGen(x,fy+fh,z-hw+1,38,2,false);
+      if(f>0)this.setGen(x,fy,z-hw+1,0,0,false);
+      if(f===floors-1){this.setChest(x+hw-1,fy+1,z+hw-1,0,'outpost',rng,3+floor(rng()*4));this.setGen(x-hw+1,fy+1,z+hw-1,34,0,false)}
+      else if(rng()<0.5)this.setGen(x+hw-1,fy+1,z+hw-1,rng()<0.5?62:29,0,false);
+      this.setGen(x+1,fy+3,z+hw-1,32,2,false);
+      if(spawnMobs){const n=f===0?2:1;for(let i=0;i<n;i++)entities.push(new Mob('pillager',x+0.5+(i?-1.5:1.5),fy+1.1,z+0.5))}
+    }
+    // roof deck with overhang, battlements and a banner pole
+    const ry=y+floors*fh;this.fill(x-hw-1,ry,z-hw-1,x+hw+1,ry,z+hw+1,F);this.setGen(x,ry,z-hw+1,0,0,false);
+    for(let dx=-hw-1;dx<=hw+1;dx++)for(let dz=-hw-1;dz<=hw+1;dz++){if(abs(dx)!==hw+1&&abs(dz)!==hw+1)continue;if((dx+dz)%2===0)this.setGen(x+dx,ry+1,z+dz,C,0,false)}
+    this.fill(x,ry+1,z,x,ry+4,z,61);this.setGen(x,ry+5,z,76,0,false);this.setGen(x-1,ry+5,z,20,0,false);this.setGen(x-1,ry+4,z,20,0,false);
+    // ground: a few cobble walls, a tent and a target dummy
+    this.fill(x+hw+2,y,z-2,x+hw+2,y+1,z+2,4);this.fill(x-hw-4,y,z+3,x-hw-2,y,z+5,20);this.setGen(x-hw-3,y+1,z+4,46,0,false);this.fill(x-hw-4,y+2,z+3,x-hw-2,y+2,z+5,20);
+    this.setGen(x+hw+4,y,z+hw+3,61,0,false);this.setGen(x+hw+4,y+1,z+hw+3,20,0,false);
+    if(spawnMobs){for(let i=0;i<2;i++)entities.push(new Mob('pillager',x-hw-3+0.5,y+0.1,z+i*2+0.5))}
   },
   /* ---- nether fortress ---- */
   placeFortress(x,z,rng){const y=52+floor(rng()*20);
@@ -2765,7 +2826,7 @@ function placePortalFrame(x,y,z){ // frame along x axis: obsidian at x-1..x+2, y
   return [x+1,y,z+0.5];
 }
 /* ---- animals placed when a chunk is first generated (like chunk population) ---- */
-const ANIMAL_BIOMES=new Set([2,3,4,6,7,8,10]);
+const ANIMAL_BIOMES=new Set([2,3,4,6,7,8,10,12]);
 function surfaceSpot(x,z){let y=findGround(x,z);if(y<=SEA||y>=CH-2)return -1;if(world.getBlock(x,y-1,z)!==2)return -1;if(world.getBlock(x,y,z)!==0||world.getBlock(x,y+1,z)!==0)return -1;return y}
 function spawnPack(type,x,z,n,baby){let placed=0;for(let t=0;t<n*4&&placed<n;t++){const ox=x+floor(Math.random()*7)-3,oz=z+floor(Math.random()*7)-3;const y=surfaceSpot(ox,oz);if(y<0)continue;const m=new Mob(type,ox+0.5,y,oz+0.5);if(baby&&placed===n-1&&n>1){m.baby=true;m.growT=120}entities.push(m);placed++}return placed}
 function populateChunk(c){if(!c||typeof Mob==='undefined')return;const k=c.cx+','+c.cz;if(world.populated.has(k))return;world.populated.add(k);
