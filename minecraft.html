@@ -2262,7 +2262,6 @@ Object.assign(World.prototype,{
     if((r=this.regionOrigin(cx,cz,16,111))&&mid.biome===BI.deep_ocean)this.placeMonument(wx+8,wz+8,mid,r);
     if((r=this.regionOrigin(cx,cz,8,112))&&(mid.biome===BI.ocean||mid.biome===BI.deep_ocean)&&r()<0.5)this.placeShipwreck(wx+8,wz+8,mid,r);
     if((r=this.regionOrigin(cx,cz,12,113))&&mid.biome===BI.jungle&&mid.height>SEA+2)this.placeJungleTemple(wx+8,wz+8,r);
-    if((r=this.regionOrigin(cx,cz,16,114))&&[BI.plains,BI.desert,BI.taiga,BI.snowy_taiga,BI.jungle].includes(mid.biome)&&mid.height>SEA+2&&r()<0.7)this.placeOutpost(wx+8,wz+8,mid,r);
     if((r=this.regionOrigin(cx,cz,9,106))&&r()<0.55)this.placeMineshaft(wx+8,wz+8,r);
     if(rng()<0.12)this.placeDungeon(wx+2+floor(rng()*12),8+floor(rng()*42),wz+2+floor(rng()*12),rng);
   },
@@ -2317,6 +2316,8 @@ Object.assign(World.prototype,{
       for(let dx=-4;dx<=4;dx++)for(let dz=-3;dz<=3;dz++){const edge=abs(dx)===4||abs(dz)===3;if(edge)this.setGen(fx+dx,h,fz+dz,M.corner,0,false);else if(dx===0)this.setGen(fx+dx,h,fz+dz,8,0,false);else{this.setGen(fx+dx,h,fz+dz,36,1,false);const crop=rng()<0.7?35:rng()<0.5?73:74;this.setGen(fx+dx,h+1,fz+dz,crop,floor(rng()*8),false)}}}
     // lamp posts
     for(let i=0;i<3;i++){const a=rng()*PI*2,d=5+rng()*14;const lx=floor(x+Math.cos(a)*d),lz=floor(z+Math.sin(a)*d);const h=this.surfaceY(lx,lz);if(h<=SEA+1||this.getGen(lx,h+1,lz)!==0)continue;this.fill(lx,h+1,lz,lx,h+3,lz,61);this.setGen(lx,h+4,lz,32,0,false)}
+    // pillager outpost watching the village from 40-65 blocks away (only villages get outposts)
+    if(rng()<0.8){for(let t=0;t<6;t++){const a=rng()*PI*2,d=42+rng()*23;const ox=floor(x+Math.cos(a)*d),oz=floor(z+Math.sin(a)*d);const info=this.columnInfo(ox,oz);if(info.height<=SEA+1||info.biome===BI.ocean||info.biome===BI.deep_ocean)continue;this.placeOutpost(ox,oz,info,rng);break}}
   },
   placeHouse(x,y,z,w,l,facing,M,rng,kind){
     const hw=floor(w/2),hl=floor(l/2);const h=3;
