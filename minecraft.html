@@ -1979,7 +1979,7 @@ class Mob extends Entity{
       case 'zombie':case 'skeleton':case 'zombified_piglin':case 'husk':case 'stray':case 'wither_skeleton':{const ws=this.type==='wither_skeleton';const sk=this.type==="skeleton"||this.type==='stray'||ws;const st=this.type==='stray';const hu=this.type==='husk';const pg=this.type==='zombified_piglin';
         const skin=ws?[0.16,0.16,0.18]:st?[0.7,0.75,0.8]:sk?[0.8,0.8,0.8]:pg?[0.9,0.6,0.6]:hu?[0.6,0.52,0.35]:[0.35,0.55,0.3];const shirt=st?[0.35,0.4,0.5]:sk?[0.75,0.75,0.75]:pg?[0.55,0.35,0.4]:hu?[0.5,0.42,0.3]:[0.18,0.5,0.5];const pants=st?[0.4,0.45,0.55]:sk?[0.8,0.8,0.8]:pg?[0.45,0.3,0.3]:hu?[0.42,0.35,0.28]:[0.25,0.28,0.55];const t=sk?1:2;
         const faceTex=ws?TEX.wither_skeleton_face:st?TEX.stray_face:sk?TEX.skeleton_face:pg?TEX.pig_face:hu?TEX.husk_face:TEX.zombie_face;
-        const zb=this.type==='zombie';const ptex=zb?TEX.zombie_pants:N,stex=zb?TEX.zombie_shirt:sk?TEX.skeleton_ribs:N;const pc=zb?[1,1,1]:pants,sc=zb||sk?[1,1,1]:shirt;
+        const zb=this.type==='zombie';const ptex=zb?TEX.zombie_pants:N,stex=zb?TEX.zombie_shirt:sk?TEX.skeleton_ribs:N;const pc=zb?[1,1,1]:pants,sc=ws?[0.2,0.2,0.22]:zb||sk?[1,1,1]:shirt;
         part([-t,-12,-t,t,0,t],-2,12,0,swing,0,0,ptex,pc);part([-t,-12,-t,t,0,t],2,12,0,-swing,0,0,ptex,pc);
         part([-4,12,-2,4,24,2],0,0,0,0,0,0,stex,sc);
         const armR=sk?PI/2-0.2:PI/2+Math.sin(game.time*2)*0.1;part([-t,-10,-t,t,2,t],-4-t+2,22,0,armR,sk?-0.4:0,0.1,N,sk?skin:shirt);part([-t,-10,-t,t,2,t],4+t-2,22,0,armR,sk?0.4:0,-0.1,N,sk?skin:shirt);
@@ -2813,7 +2813,7 @@ class Wither extends Entity{
   constructor(x,y,z){super(x,y,z);this.w=1;this.h=3.5;this.hp=1;this.maxHp=300;this.hittable=true;this.def={sound:'wither'};this.state='spawn';this.spawnT=0;this.shootT=2;this.yaw=0;this.headYaw=[0,0,0];this.solidBody=false;this.invT=0;this.lastDmg=0;this.regenT=0;this.invulnerable=true;this.deathT=0;this.blastProof=true}
   arrowImmune(){return this.hp<this.maxHp/2}
   update(dt){this.age+=dt;const p=player;if(this.invT>0)this.invT-=dt;if(this.hurtT>0)this.hurtT-=dt;
-    if(this.dying){this.deathT+=dt;if(Math.random()<dt*20)spawnParticles('explosion',this.x+(Math.random()-0.5)*3,this.y+Math.random()*3,this.z+(Math.random()-0.5)*3,1);if(this.deathT>3){this.dead=true;explode(this.x,this.y+1,this.z,4);spawnItem(this.x,this.y+1,this.z,{id:394,count:1});spawnXP(this.x,this.y+1,this.z,50);showMessage('The Wither is defeated! It dropped a Nether Star.');playSound('levelup')}return}
+    if(this.dead)return;if(this.dying){this.deathT+=dt;if(Math.random()<dt*20)spawnParticles('explosion',this.x+(Math.random()-0.5)*3,this.y+Math.random()*3,this.z+(Math.random()-0.5)*3,1);if(this.deathT>3){this.dead=true;explode(this.x,this.y+1,this.z,4);spawnItem(this.x,this.y+1,this.z,{id:394,count:1});spawnXP(this.x,this.y+1,this.z,50);showMessage('The Wither is defeated! It dropped a Nether Star.');playSound('levelup')}return}
     if(this.state==='spawn'){this.spawnT+=dt;this.hp=Math.min(this.maxHp,1+this.spawnT/10*this.maxHp);this.y+=dt*0.15;if(Math.random()<dt*4)spawnParticles('smoke',this.x+(Math.random()-0.5)*2,this.y+Math.random()*3,this.z+(Math.random()-0.5)*2,1);
       if(this.spawnT>=10){this.state='hunt';this.invulnerable=false;this.hp=this.maxHp;explode(this.x,this.y+1.5,this.z,7);playSound('wither',1,0.7)}return}
     // regeneration and block breaking
