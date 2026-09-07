@@ -1427,7 +1427,7 @@ class EBatch{constructor(){this.v=[];this.i=[];this.n=0}
     for(let d=0;d<6;d++){const dir=FACE_DIR[d];const U=FACE_U[d],V=FACE_V[d];const lo=[x0,y0,z0],hi=[x1,y1,z1];const Bs=[dir[0]>0?hi[0]:lo[0],dir[1]>0?hi[1]:lo[1],dir[2]>0?hi[2]:lo[2]];
       const P=[],UVc=[];const corners=[[0,0],[1,0],[1,1],[0,1]];
       for(let k=0;k<4;k++){const cu=corners[k][0],cv=corners[k][1];const px=(U[0]||V[0])?(lo[0]+(hi[0]-lo[0])*(U[0]*cu+V[0]*cv)):Bs[0],py=(U[1]||V[1])?(lo[1]+(hi[1]-lo[1])*(U[1]*cu+V[1]*cv)):Bs[1],pz=(U[2]||V[2])?(lo[2]+(hi[2]-lo[2])*(U[2]*cu+V[2]*cv)):Bs[2];
-        P.push(tf(px,py,pz));let u,v;if(uvfull){u=cu;v=1-cv;if(d>=2&&d<=3){u=cu;v=cv}}else{const sx=x1-x0||1,sy=y1-y0||1,sz=z1-z0||1;if(d<2){u=(pz-z0)/sz;v=1-(py-y0)/sy}else if(d>3){u=(px-x0)/sx;v=1-(py-y0)/sy}else{u=(px-x0)/sx;v=(pz-z0)/sz}}UVc.push([u,v])}
+        P.push(tf(px,py,pz));let u,v;if(uvfull){if(d>=2&&d<=3){u=cv;v=cu}else{u=(d===5||d===0)?1-cv:cv;v=1-cu}}else{const sx=x1-x0||1,sy=y1-y0||1,sz=z1-z0||1;if(d<2){u=(pz-z0)/sz;v=1-(py-y0)/sy}else if(d>3){u=(px-x0)/sx;v=1-(py-y0)/sy}else{u=(px-x0)/sx;v=(pz-z0)/sz}}UVc.push([u,v])}
       const tile=Array.isArray(tiles)?tiles[d]:tiles;const ox=(tile%ATLAS_W)*TILE_W,oy=floor(tile/ATLAS_W)*TILE_H;const uvs=UVc.map(q=>[ox+q[0]*TILE_W*(1-2*TILE_INSET)+TILE_W*TILE_INSET,oy+q[1]*TILE_H*(1-2*TILE_INSET)+TILE_H*TILE_INSET]);
       this.quad(P,uvs,[light[0],light[1],FACE_SHADE[d]],col)}
   }
