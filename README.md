@@ -20,6 +20,8 @@ What's in it, modelled on the real game:
 - Inventory with drag-and-drop, 2×2 and 3×3 crafting with the genuine recipes plus a recipe book, furnaces with fuel and smelting, chests, armor, XP and levels.
 - Mobs: pig, cow, sheep (shearable), chicken (lays eggs), zombie and skeleton (burn in daylight), creeper (explodes), spider (climbs), husk (desert, causes hunger), stray (snow, slowing arrows), cave spider (mineshafts, poison), enderman (teleports, angered by staring), slime (splits, slime chunks and swamps), witch (throws potions, drinks to heal), wolves (packs in forests and taigas, tame them with bones, they sit, follow, teleport to you and fight what you fight), horses (plains; keep mounting until they accept you, feed them to speed it up, then saddle and ride: W A S D steer, Space jumps, Shift dismounts); breeding, bows and arrows, TNT.
 - Saddles come from dungeon, temple and village chests or from 5 leather + 1 string.
+- Spears (wood, stone, iron, gold, diamond): a material and two sticks on a diagonal. Long reach (5 blocks) and a charge attack: ride a horse at speed with a spear in hand and anything in front of you takes damage that scales with the horse's speed.
+- Creative inventory has a boxed Armor section with the player preview; the screen scrolls if it does not fit.
 - Options include a Keep Inventory on Death toggle (on by default); when off, the death message tells you where your items dropped.
 - Villager trading with demand-based prices, limited stock, twice-daily restocks and five trading levels.
 - Farming (hoe, wheat, carrots, potatoes, bone meal), tree growth, grass spread, leaf decay, flowing water and lava, falling sand and gravel.

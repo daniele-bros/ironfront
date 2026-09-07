@@ -116,10 +116,12 @@ label.lb{font-size:13px;color:#a0a0a0;align-self:flex-start;margin-left:calc(50%
 .sel-btn{display:flex;gap:8px;}
 #cosmetic{display:none}
 .gui.full{background:rgba(0,0,0,.75);}
-.gui.full .panel{width:100vw;height:100vh;display:flex;flex-direction:column;overflow:hidden;box-shadow:none;border-width:0;padding:8px 10px;}
+.gui.full .panel{width:100vw;height:100vh;box-sizing:border-box;display:flex;flex-direction:column;overflow:auto;box-shadow:none;border-width:0;padding:8px 10px;}
 .gui.full #invTop{display:none;}
 .gui.full #palette{position:static;order:-1;flex:1;width:auto;height:auto;min-height:0;margin:0 0 8px;overflow-y:auto;overflow-x:hidden;display:block;border-width:2px;padding:6px;}
-.gui.full #invBottom{flex-shrink:0;}
+.gui.full #invBottom{flex-shrink:0;flex-wrap:wrap;justify-content:flex-start!important;overflow:visible;}
+.gui.full #armorBox{background:rgba(0,0,0,.18);border:2px solid #fff;padding:4px 8px;}
+.gui.full #armorLabel{font-size:15px;}
 .palgrid{display:grid;grid-template-columns:repeat(auto-fill,40px);gap:2px;justify-content:center;}
 .palhead{display:flex;align-items:center;gap:10px;margin-bottom:8px;flex-wrap:wrap;}
 .palhead input{flex:1;min-width:140px;height:32px;background:#000;border:2px solid #a0a0a0;color:#fff;font:inherit;font-size:14px;padding:0 8px;outline:none;}
@@ -142,7 +144,7 @@ label.lb{font-size:13px;color:#a0a0a0;align-self:flex-start;margin-left:calc(50%
 
 <div id="invGui" class="gui"><div class="panel">
   <div class="row" id="invTop" style="align-items:flex-start;gap:14px">
-    <div class="row" id="armorBox" style="align-items:flex-start;gap:14px"><div><h3 id="armorLabel" style="display:none">Armor</h3><div class="grid" id="armorGrid" style="grid-template-columns:38px"></div></div>
+    <div class="row" id="armorBox" style="align-items:flex-start;gap:14px"><div><h3 id="armorLabel">Armor</h3><div class="grid" id="armorGrid" style="grid-template-columns:38px"></div></div>
     <div style="width:110px;height:154px;background:#000;border:2px solid #333;display:flex;align-items:flex-end;justify-content:center;" id="playerPreview"></div></div>
     <div><h3>Crafting</h3><div class="row"><div class="grid g2" id="craft2"></div><div class="arrow"></div><div class="grid" id="craft2out" style="grid-template-columns:52px"></div></div></div>
   </div>
@@ -605,8 +607,8 @@ defBlock(90,'stone_pressure_plate',{tex:'smooth_stone',model:'plate',solid:false
 defBlock(80,'snow_block',{tex:'snow',hard:0.2,tool:'shovel',needsTool:true,sound:'snow',drop:()=>[[293,4]]});
 // ---- items ----
 const MAT={wood:{tier:0,speed:2,dur:59,color:[150,120,70],name:'Wooden'},stone:{tier:1,speed:4,dur:131,color:[130,130,130],name:'Stone'},iron:{tier:2,speed:6,dur:250,color:[220,220,220],name:'Iron'},diamond:{tier:3,speed:8,dur:1561,color:[90,230,220],name:'Diamond'},gold:{tier:0,speed:12,dur:32,color:[250,220,60],name:'Golden'}};
-const TOOL_DMG={sword:{wood:4,stone:5,iron:6,diamond:7,gold:4},axe:{wood:7,stone:9,iron:9,diamond:9,gold:7},pickaxe:{wood:2,stone:3,iron:4,diamond:5,gold:2},shovel:{wood:2.5,stone:3.5,iron:4.5,diamond:5.5,gold:2.5},hoe:{wood:1,stone:1,iron:1,diamond:1,gold:1}};
-const TOOL_SPD={sword:{wood:1.6,stone:1.6,iron:1.6,diamond:1.6,gold:1.6},axe:{wood:0.8,stone:0.8,iron:0.9,diamond:1,gold:1},pickaxe:{wood:1.2,stone:1.2,iron:1.2,diamond:1.2,gold:1.2},shovel:{wood:1,stone:1,iron:1,diamond:1,gold:1},hoe:{wood:1,stone:2,iron:3,diamond:4,gold:1}};
+const TOOL_DMG={spear:{wood:3,stone:4,iron:5,diamond:6,gold:3},sword:{wood:4,stone:5,iron:6,diamond:7,gold:4},axe:{wood:7,stone:9,iron:9,diamond:9,gold:7},pickaxe:{wood:2,stone:3,iron:4,diamond:5,gold:2},shovel:{wood:2.5,stone:3.5,iron:4.5,diamond:5.5,gold:2.5},hoe:{wood:1,stone:1,iron:1,diamond:1,gold:1}};
+const TOOL_SPD={spear:{wood:1.4,stone:1.4,iron:1.4,diamond:1.4,gold:1.4},sword:{wood:1.6,stone:1.6,iron:1.6,diamond:1.6,gold:1.6},axe:{wood:0.8,stone:0.8,iron:0.9,diamond:1,gold:1},pickaxe:{wood:1.2,stone:1.2,iron:1.2,diamond:1.2,gold:1.2},shovel:{wood:1,stone:1,iron:1,diamond:1,gold:1},hoe:{wood:1,stone:2,iron:3,diamond:4,gold:1}};
 const ARMOR={leather:{helmet:1,chestplate:3,leggings:2,boots:1,dur:[55,80,75,65],color:[150,90,50],name:'Leather'},gold:{helmet:2,chestplate:5,leggings:3,boots:1,dur:[77,112,105,91],color:[250,220,60],name:'Golden'},iron:{helmet:2,chestplate:6,leggings:5,boots:2,dur:[165,240,225,195],color:[220,220,220],name:'Iron'},diamond:{helmet:3,chestplate:8,leggings:6,boots:3,dur:[363,528,495,429],color:[90,230,220],name:'Diamond'}};
 defItem(256,'stick',{icon:'stick',fuel:5});
 defItem(257,'coal',{icon:'coal',fuel:80});
@@ -676,6 +678,10 @@ tid=350;
 for(const m of ['leather','gold','iron','diamond'])['helmet','chestplate','leggings','boots'].forEach((slot,i)=>{
   defItem(tid++,(m==='gold'?'golden':m)+'_'+slot,{label:ARMOR[m].name+' '+(slot==='chestplate'?'Chestplate':label(slot)),icon:slot,mat:m,stack:1,armor:i,points:ARMOR[m][slot],dur:ARMOR[m].dur[i]});
 });
+tid=370; // spears: long reach, and a charge attack when ridden into enemies on a horse
+for(const m of ['wood','stone','iron','diamond','gold']){
+  defItem(tid++,(m==='wood'?'wooden':m==='gold'?'golden':m)+'_spear',{label:MAT[m].name+' Spear',icon:'spear',mat:m,stack:1,tool:'spear',tier:MAT[m].tier,speed:1,dur:MAT[m].dur,dmg:TOOL_DMG.spear[m],atkSpd:TOOL_SPD.spear[m],fuel:m==='wood'?10:0});
+}
 const FLAMMABLE={5:20,50:20,51:20,15:5,44:5,46:5,16:60,45:60,47:60,20:30,75:30,76:30,77:30,23:100,21:100,22:100,63:100,29:30,61:20,58:20,55:20,54:20,38:20,34:20,39:20,62:30,28:15,6:60,48:60,49:60};
 const toolSpeedFor=(item)=>item&&item.speed?item.speed:1;
 function canHarvest(def,item){ if(def.hard<0)return false; if(!def.needsTool)return true; if(!item||!item.tool||item.tool!==def.tool)return false; return item.tier>=def.tier }
@@ -702,6 +708,7 @@ helmet:["................","................","................",".....mmmmmm...
 chestplate:["................","..mmmm....mmmm..","..mmmm....mmmm..","..mmmmm..mmmmm..","..mmmmmmmmmmmm..","..mmmmmmmmmmmm..","..mmmmmmmmmmmm..","...mmmmmmmmmm...","...mmmmmmmmmm...","...mmmmmmmmmm...","...mmmmmmmmmm...","...mmmmmmmmmm...","................","................","................","................"],
 leggings:["................","...mmmmmmmmmm...","...mmmmmmmmmm...","...mmmmmmmmmm...","...mmmm..mmmm...","...mmmm..mmmm...","...mmmm..mmmm...","...mmmm..mmmm...","...mmmm..mmmm...","...mmmm..mmmm...","...mmmm..mmmm...","................","................","................","................","................"],
 boots:["................","................","................","................","...mmm....mmm...","...mmm....mmm...","...mmm....mmm...","...mmm....mmm...","...mmmm...mmmm..","...mmmmm..mmmmm.","...mmmmm..mmmmm.","................","................","................","................","................"],
+spear:["..............bb",".............bbb","............bbbb","...........bbbb.","..........bbb...",".........hh.....","........hh......",".......hh.......","......hh........",".....hh.........","....hh..........","...hh...........","..hh............",".hh.............","hh..............","................"],
 stick:["..............ss",".............ss.","............ss..","...........ss...","..........ss....",".........ss.....","........ss......",".......ss.......","......ss........",".....ss.........","....ss..........","...ss...........","..ss............",".ss.............","ss..............","................"],
 ingot:["................","................","................","................","........llll....",".......lmmmml...","......lmmmmmm...",".....lmmmmmmd...","....lmmmmmmdd...","...lmmmmmmdd....","...mmmmmmdd.....","...ddddddd......","................","................","................","................"],
 gem:["................","................","................",".....llllll.....","....lllmmmml....","...llmmmmmmml...","...lmmmmmmmmd...","....mmmmmmdd....",".....mmmmdd.....","......mmdd......",".......dd.......","................","................","................","................","................"],
@@ -1917,7 +1924,7 @@ function updatePlayer(dt){
   const guiOpen=game.gui!==null||game.paused;
   let fwd=0,strafe=0;if(!guiOpen){if(keys.KeyW||keys.ArrowUp)fwd+=1;if(keys.KeyS||keys.ArrowDown)fwd-=1;if(keys.KeyA)strafe-=1;if(keys.KeyD)strafe+=1}
   const wantSneak=!guiOpen&&(keys.ShiftLeft||keys.ShiftRight);const inWater=entityInWater(p),inLava=entityInLava(p);p.inWater=inWater;
-  if(p.riding){const h=p.riding;if(h.dead||h.dying||wantSneak){h.dismount()}else{h.ride(dt,fwd,strafe,keys.Space&&!guiOpen,keys.ControlLeft||p.sprintReq);p.sprinting=false}}
+  if(p.riding){const h=p.riding;if(h.dead||h.dying||wantSneak){h.dismount()}else{h.ride(dt,fwd,strafe,keys.Space&&!guiOpen,keys.ControlLeft||p.sprintReq);p.sprinting=false;spearCharge(dt,h)}}
   const headId=world.getBlock(floor(p.x),floor(p.y+p.eyeHeight),floor(p.z));const headWater=headId===8;
   const ladder=onLadder(p);
   if(p.flying&&!creative)p.flying=false;
@@ -1997,7 +2004,7 @@ function updatePlayer(dt){
   // ---- targeting ----
   const reach=creative?5:4.5;const e=[p.x,p.y+p.eyeHeight,p.z];const d=eyeDir();const held=heldDef();
   p.target=raycast(e[0],e[1],e[2],d[0],d[1],d[2],reach,held&&(held.id===296)?true:false);
-  const et=raycastEntities(e[0],e[1],e[2],d[0],d[1],d[2],3);if(et&&(!p.target||et.t<p.target.t))p.targetEntity=et.e;else p.targetEntity=null;
+  const et=raycastEntities(e[0],e[1],e[2],d[0],d[1],d[2],held&&held.tool==='spear'?5:3);if(et&&(!p.target||et.t<p.target.t))p.targetEntity=et.e;else p.targetEntity=null;
   // ---- breaking ----
   if(mouseL&&!guiOpen&&!p.targetEntity&&p.target&&p.target.block&&p.breakCooldown<=0){
     const t=p.target;const id=t.id;const def=BLOCKS[id];
@@ -2042,7 +2049,7 @@ function attack(){const p=player;if(p.dead||game.gui||game.paused)return;p.swing
   const t=Math.min(1,(game.time-p.lastAtk)*spd);p.lastAtk=game.time;dmg*=0.2+0.8*t*t;let crit=false;
   if(p.fallDist>0&&!p.onGround&&!p.inWater&&!p.sprinting&&t>0.848){dmg*=1.5;crit=true}
   const kb=p.sprinting?7:4;if(p.sprinting)p.sprinting=false;
-  if(damageEntity(e,dmg,{x:p.x,y:p.y,z:p.z,type:'player',kb})){if(crit)spawnParticles('crit',e.x,e.y+e.h*0.7,e.z,6);p.exh+=0.1;if(st&&it.dur&&it.tool)damageItem(st,it.tool==='sword'?1:2)}
+  if(damageEntity(e,dmg,{x:p.x,y:p.y,z:p.z,type:'player',kb})){if(crit)spawnParticles('crit',e.x,e.y+e.h*0.7,e.z,6);p.exh+=0.1;if(st&&it.dur&&it.tool)damageItem(st,it.tool==='sword'||it.tool==='spear'?1:2)}
 }
 /* ---- right click ---- */
 function useItem(){
@@ -2118,6 +2125,11 @@ function playerDie(src){const p=player;p.dead=true;p.hp=0;playSound('death');let
   else showMessage('You died at X '+floor(p.x)+' Y '+floor(p.y)+' Z '+floor(p.z));
   $('deathMsg').textContent=msg;$('deathScore').textContent='Score: '+(p.level*7+floor(p.xp));$('deathScreen').classList.add('show');document.exitPointerLock&&document.exitPointerLock();updateHotbar();
   if(!opts.keepInv){p.level=0;p.xp=0;p.xpFrac=0}saveWorld()}
+// spear charge: riding fast with a spear in hand runs mobs through
+function spearCharge(dt,h){const p=player;if(p.spearCd>0)p.spearCd-=dt;const st=heldStack();const it=st?ITEMS[st.id]:null;if(!it||it.tool!=='spear')return;
+  const hs=sqrt(h.vx*h.vx+h.vz*h.vz);if(hs<4||p.spearCd>0)return;const fx=h.vx/hs,fz=h.vz/hs;
+  for(const e of entities){if(!(e instanceof Mob)||e.dead||e.dying||e===h||(e.type==='wolf'&&e.tamed))continue;const dx=e.x-h.x,dz=e.z-h.z;const d=sqrt(dx*dx+dz*dz);if(d>2.6+e.w/2||abs(e.y-h.y)>2.5)continue;if((dx*fx+dz*fz)/(d||1)<0.6)continue;
+    const dmg=it.dmg+hs*1.5;if(damageEntity(e,dmg,{x:h.x-fx*2,y:h.y,z:h.z-fz*2,type:'player',kb:9})){p.spearCd=0.8;p.swing=0;spawnParticles('crit',e.x,e.y+e.h*0.7,e.z,8);playSound('arrowhit');damageItem(st,1);showMessage('Charge! '+Math.round(dmg)+' damage');break}}}
 function respawn(){const p=player;if(world.nether)switchDimension(true);p.dead=false;p.hp=20;p.hunger=20;p.sat=5;p.exh=0;p.air=300;p.fireT=0;p.effects={};p.vx=p.vy=p.vz=0;p.fallDist=0;p.invT=0;
   let s=p.spawn||game.worldSpawn;let ok=false;if(p.spawn){ensureChunks(s[0],s[2],1);const b=world.getBlock(floor(s[0]),floor(s[1]),floor(s[2]));if(b===62||world.getBlock(floor(s[0]),floor(s[1])-1,floor(s[2]))===62)ok=true;else showMessage('Your home bed was missing or obstructed')}
   if(!ok){s=game.worldSpawn;ensureChunks(s[0],s[2],1)} // the world spawn never moves: you always come back to the same place
@@ -2332,7 +2344,7 @@ shaped(['###','# #','###'],{'#':4},[37,1]);
 shaped(['###','# #','###'],{'#':PLANKS},[39,1]);
 const TOOLMATS={wood:PLANKS,stone:4,iron:260,diamond:263,gold:262};
 for(const m of ['wood','stone','iron','diamond','gold']){const id=n=>I[(m==='wood'?'wooden':m==='gold'?'golden':m)+'_'+n];const mat=TOOLMATS[m];
-  shaped(['###',' | ',' | '],{'#':mat,'|':256},[id('pickaxe'),1]);shaped(['##','#|',' |'],{'#':mat,'|':256},[id('axe'),1]);shaped(['#','|','|'],{'#':mat,'|':256},[id('shovel'),1]);shaped(['#','#','|'],{'#':mat,'|':256},[id('sword'),1]);shaped(['##',' |',' |'],{'#':mat,'|':256},[id('hoe'),1])}
+  shaped(['###',' | ',' | '],{'#':mat,'|':256},[id('pickaxe'),1]);shaped(['##','#|',' |'],{'#':mat,'|':256},[id('axe'),1]);shaped(['#','|','|'],{'#':mat,'|':256},[id('shovel'),1]);shaped(['#','#','|'],{'#':mat,'|':256},[id('sword'),1]);shaped(['  #',' | ','|  '],{'#':mat,'|':256},[id('spear'),1]);shaped(['##',' |',' |'],{'#':mat,'|':256},[id('hoe'),1])}
 for(const m of ['leather','iron','gold','diamond']){const mat={leather:289,iron:260,gold:262,diamond:263}[m];const id=n=>I[(m==='gold'?'golden':m)+'_'+n];
   shaped(['###','# #'],{'#':mat},[id('helmet'),1]);shaped(['# #','###','###'],{'#':mat},[id('chestplate'),1]);shaped(['###','# #','# #'],{'#':mat},[id('leggings'),1]);shaped(['# #','# #'],{'#':mat},[id('boots'),1])}
 shaped(['WWW','###'],{W:WOOLS,'#':PLANKS},[62,1]);
@@ -2507,7 +2519,7 @@ function updateHUD(){const p=player;const creative=p.mode==='creative';$('status
 function showMessage(t){const c=$('chat');const el=document.createElement('div');el.className='msg';el.textContent=t;c.appendChild(el);while(c.children.length>6)c.removeChild(c.firstChild);setTimeout(()=>el.remove(),8000)}
 
 let paletteFilter='';
-function renderPalette(){const pl=$('palette');const creative=player.mode==='creative';pl.style.display=creative?'block':'none';$('invGui').classList.toggle('full',creative);const ab=$('armorBox');$('armorLabel').style.display=creative?'block':'none';if(creative){$('invBottom').prepend(ab)}else{$('invTop').prepend(ab)}if(!creative)return;
+function renderPalette(){const pl=$('palette');const creative=player.mode==='creative';pl.style.display=creative?'block':'none';$('invGui').classList.toggle('full',creative);const ab=$('armorBox');if(creative){$('invBottom').prepend(ab)}else{$('invTop').prepend(ab)}if(!creative)return;
   pl.innerHTML='';const head=document.createElement('div');head.className='palhead';head.innerHTML='<input type="text" id="palSearch" placeholder="Search items..." value="'+paletteFilter.replace(/"/g,'')+'"><div class="hint">Click an item to grab a stack &middot; click any item while holding one to delete it &middot; scroll to see more</div>';pl.appendChild(head);
   const grid=document.createElement('div');grid.className='palgrid';pl.appendChild(grid);const f=paletteFilter.toLowerCase();
   for(const def of ITEMS){if(!def||def.id===0||def.id===35||def.id===73||def.id===74||def.id===82)continue;if(f&&!def.label.toLowerCase().includes(f))continue;const el=document.createElement('div');el.className='r';el.innerHTML='<div class="icon" style="background-image:url('+ICONS[def.id]+')"></div>';el.title=def.label;
