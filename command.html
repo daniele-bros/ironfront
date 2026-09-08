@@ -151,11 +151,12 @@ a.tbtn{text-decoration:none;}
       </div>
     </div>
     <div id="brief-target" style="display:none;">
-      <b>YOUR TEAM</b> · one special forces squad that <b>holds fire</b>: it never shoots at patrols, so it cannot win a firefight. Sneak. <span class="k">L-click</span> select · <span class="k">R-click</span> move · <span class="k">H</span> halt<br>
+      <b>YOUR TEAM</b> · one special forces squad that <b>holds fire</b>: it never shoots at patrols, so it cannot win a firefight. Sneak.<br>
+      <b>MOVE</b> · <span class="k">Arrow keys</span> steer the team directly (camera follows) · or <span class="k">R-click</span> a spot to walk there · <span class="k">H</span> halt<br>
       <b>PATROLS</b> · red rings are their sight. Moving in the open: seen at 170 m. Standing still: 110 m. Still in forest: 48 m.<br>
       <b>THE SHOT</b> · within 150 m of the target with no building between you, hold still and press <span class="k">T</span>. Aiming takes 2.4 s; moving or taking a hit breaks it.<br>
       <b>ALARM</b> · a spotted team draws every patrol nearby for 12 s. Break contact, get into trees, wait it out.<br>
-      <b>CAMERA</b> · <span class="k">WASD</span>/arrows · <span class="k">Wheel</span> zoom · <span class="k">Space</span> centre on team
+      <b>CAMERA</b> · <span class="k">WASD</span> pan · <span class="k">Wheel</span> zoom · <span class="k">Space</span> centre on team
     </div>
   </div>
   <button class="bigbtn" onclick="beginMission()">&#9876; DEPLOY</button>
@@ -739,7 +740,7 @@ function startAim(){
   const dd=dist(me.x,me.y,vip.x,vip.y);
   if(dd>AIM_R){log('TOO FAR · GET WITHIN '+AIM_R+' M OF THE TARGET ('+Math.round(dd)+' M)','bad');return;}
   if(!losClear(me.x,me.y,vip.x,vip.y)){log('NO LINE OF SIGHT · A BUILDING IS IN THE WAY','bad');return;}
-  if(me.path.length){log('HOLD STILL TO AIM','bad');return;}
+  if(me.path.length||me.stillT<.3){log('HOLD STILL TO AIM','bad');return;}
   aiming={t:0,T:2.4,hp:me.hp};log('TAKING AIM ON '+vip.name+'…','good');sSelect();
 }
 function selectAll(){sel.forEach(u=>u.sel=false);sel=units.filter(u=>u.team===0&&UT[u.type].mobile&&!u.dead);sel.forEach(u=>u.sel=true);sSelect();}
@@ -818,7 +819,7 @@ cv.addEventListener('wheel',e=>{
 },{passive:false});
 window.addEventListener('keydown',e=>{
   if(e.target&&(e.target.tagName==='INPUT'))return;
-  keys[e.key]=true;const k=e.key.toLowerCase();
+  keys[e.key]=true;const k=e.key.toLowerCase();if(e.key.startsWith('Arrow'))e.preventDefault();
   if(k==='escape'){if(mode)cancelMode();else{sel.forEach(u=>u.sel=false);sel=[];}}
   else if(k==='1')recruit('rifle');else if(k==='2')recruit('sf');else if(k==='3')recruit('tank');
   else if(k==='r')armSupport('rocket');else if(k==='b')armSupport('bomber');else if(k==='p')armSupport('para');
@@ -845,8 +846,24 @@ function update(dt){
   time+=dt;
   // camera
   const cs=520*dt/cam.z;
-  if(keys['w']||keys['W']||keys['ArrowUp'])cam.y-=cs;if(keys['s']||keys['S']||keys['ArrowDown'])cam.y+=cs;
-  if(keys['a']||keys['A']||keys['ArrowLeft'])cam.x-=cs;if(keys['d']||keys['D']||keys['ArrowRight'])cam.x+=cs;
+  const arrowsMove=TARGET_MODE; // in a target mission the arrows steer the team, WASD pans
+  if(keys['w']||keys['W']||(!arrowsMove&&keys['ArrowUp']))cam.y-=cs;if(keys['s']||keys['S']||(!arrowsMove&&keys['ArrowDown']))cam.y+=cs;
+  if(keys['a']||keys['A']||(!arrowsMove&&keys['ArrowLeft']))cam.x-=cs;if(keys['d']||keys['D']||(!arrowsMove&&keys['ArrowRight']))cam.x+=cs;
+  if(arrowsMove){
+    let mx=(keys['ArrowRight']?1:0)-(keys['ArrowLeft']?1:0),my=(keys['ArrowDown']?1:0)-(keys['ArrowUp']?1:0);
+    const me=units.find(u=>u.team===0&&!u.dead&&UT[u.type].mobile);
+    if(me&&(mx||my)){
+      const L=Math.hypot(mx,my);mx/=L;my/=L;
+      const sp=UT[me.type].spd*terrMult(me.x,me.y)*dt;
+      me.path=[];me.stillT=0;me.facing=me.hull=Math.atan2(my,mx);me.arrowMoving=true;
+      const nx=me.x+mx*sp,ny=me.y+my*sp;
+      if(passableW(nx,ny)&&nx>8&&ny>8&&nx<W-8&&ny<H-8){me.x=nx;me.y=ny;}
+      else if(passableW(nx,me.y)&&nx>8&&nx<W-8)me.x=nx;
+      else if(passableW(me.x,ny)&&ny>8&&ny<H-8)me.y=ny;
+      // camera follows the team
+      const tx=me.x-cv.width/2/cam.z,ty=me.y-cv.height/2/cam.z;cam.x+=(tx-cam.x)*Math.min(1,dt*4);cam.y+=(ty-cam.y)*Math.min(1,dt*4);
+    }else if(me&&me.arrowMoving){me.arrowMoving=false;}
+  }
   if(mouse.in&&!drag&&!pan){const m=16;if(mouse.x<m)cam.x-=cs;if(mouse.x>cv.width-m)cam.x+=cs;if(mouse.y<m)cam.y-=cs;if(mouse.y>cv.height-m)cam.y+=cs;}
   clampCam();
   // supply
@@ -929,7 +946,7 @@ function dmgMult(att,tgt){
   return tgt.type==='bunker'?.35:tgt.type==='hq'?.2:1;
 }
 function isStealthed(u){return UT[u.type].stealth&&u.stillT>1.2&&u.firedT>2.5&&T(Math.floor(u.x/CS),Math.floor(u.y/CS))===2;}
-function detectR(target){if(isStealthed(target))return 48;return target.path.length?170:110;}
+function detectR(target){if(isStealthed(target))return 48;return (target.path.length||target.stillT<.3)?170:110;}
 function canSee(viewer,target,dd){if(TARGET_MODE&&target.team===0)return dd<detectR(target);if(isStealthed(target))return dd<48;return true;}
 function hurt(u,dmg,byTeam){
   if(u.dead)return;u.hp-=dmg;
@@ -982,7 +999,7 @@ function updateTargetMode(dt){
     else{u.hunting=false;u.patrolWait=(u.patrolWait||0)+dt;if(u.patrolWait>1.5){u.patrolWait=0;const p=u.patrol.pts[u.patrol.i%u.patrol.pts.length];u.patrol.i++;u.path=findPath(u.x,u.y,p[0],p[1])||[];}}
   }
   if(aiming){
-    if(!me||me.path.length||me.hp<aiming.hp-0.01){aiming=null;log('AIM BROKEN · HOLD STILL AND STAY UNHURT','bad');}
+    if(!me||me.path.length||me.stillT<.3||me.hp<aiming.hp-0.01){aiming=null;log('AIM BROKEN · HOLD STILL AND STAY UNHURT','bad');}
     else{aiming.t+=dt;
       if(aiming.t>=aiming.T){aiming=null;vip.hp=0;vip.dead=true;kills++;
         tracers.push({x1:me.x,y1:me.y,x2:vip.x,y2:vip.y,t:.3,team:0});fx.push({k:'boom',x:vip.x,y:vip.y,r:14,t:0,T:.5});fx.push({k:'blood',x:vip.x,y:vip.y,t:0,T:3,team:1});
@@ -1322,9 +1339,9 @@ function updateHUD(){
     document.getElementById('h-obj').textContent=vip&&vip.dead?'DOWN':(alarm>0?'ALARM '+Math.ceil(alarm)+'s':'QUIET');
     document.getElementById('h-sup').textContent='—';document.getElementById('h-rate').textContent='';document.getElementById('h-rockets').textContent='—';
     const me=units.find(u=>u.team===0&&!u.dead&&UT[u.type].mobile);const b=document.getElementById('cb-aim');
-    if(me&&vip&&!vip.dead){const dd=dist(me.x,me.y,vip.x,vip.y);const los=losClear(me.x,me.y,vip.x,vip.y);const ok=dd<=AIM_R&&los&&!me.path.length;
+    if(me&&vip&&!vip.dead){const dd=dist(me.x,me.y,vip.x,vip.y);const los=losClear(me.x,me.y,vip.x,vip.y);const ok=dd<=AIM_R&&los&&!me.path.length&&me.stillT>=.3;
       b.classList.toggle('active',!!aiming);b.classList.toggle('off',!ok&&!aiming);
-      document.getElementById('aim-c').textContent=aiming?'AIMING… '+Math.ceil((aiming.T-aiming.t)*10)/10+'s':dd>AIM_R?Math.round(dd)+' M · TOO FAR':!los?'NO LINE OF SIGHT':me.path.length?'HOLD STILL':'IN RANGE · PRESS T';
+      document.getElementById('aim-c').textContent=aiming?'AIMING… '+Math.ceil((aiming.T-aiming.t)*10)/10+'s':dd>AIM_R?Math.round(dd)+' M · TOO FAR':!los?'NO LINE OF SIGHT':(me.path.length||me.stillT<.3)?'HOLD STILL':'IN RANGE · PRESS T';
       b.querySelector('.cd').style.width=aiming?(aiming.t/aiming.T*100)+'%':'0%';}
   }else{const ehq=hqOf(1);document.getElementById('h-obj').textContent=objCount(0)+' / '+objs.length+(ehq&&!ehq.dead?' · HQ UP':' · HQ DOWN');}
   document.getElementById('h-units').textContent=units.filter(u=>u.team===0&&!u.dead&&UT[u.type].mobile).length;
@@ -1338,8 +1355,8 @@ function updateHUD(){
   document.getElementById('cb-tank').classList.toggle('off',sup<UT.tank.cost);
   const s=document.getElementById('sel');
   if(sel.length){const rif=sel.filter(u=>u.type==='rifle').length,tk=sel.filter(u=>u.type==='tank').length,sf=sel.length-rif-tk;const hp=sel.reduce((a,u)=>a+u.hp,0),mx=sel.reduce((a,u)=>a+u.max,0);
-    s.innerHTML='<div class="t">'+sel.length+' UNIT'+(sel.length>1?'S':'')+' SELECTED</div><div class="r">'+(rif?rif+' RIFLE ':'')+(sf?sf+' SPEC OPS ':'')+(tk?tk+' TANK'+(tk>1?'S ':' '):'')+'· STRENGTH '+Math.round(hp/mx*100)+'%</div><div class="r">Right-click: move · H: halt · Space: centre</div>';}
-  else s.innerHTML=TARGET_MODE?'<div class="t">NO SELECTION</div><div class="r">Click your team · Right-click to sneak · T to aim</div><div class="r">Your team holds fire until you aim at the target</div>':'<div class="t">NO SELECTION</div><div class="r">Drag to box-select · Right-click to move</div><div class="r">Rally point: right-click with nothing selected</div>';
+    s.innerHTML='<div class="t">'+sel.length+' UNIT'+(sel.length>1?'S':'')+' SELECTED</div><div class="r">'+(rif?rif+' RIFLE ':'')+(sf?sf+' SPEC OPS ':'')+(tk?tk+' TANK'+(tk>1?'S ':' '):'')+'· STRENGTH '+Math.round(hp/mx*100)+'%</div><div class="r">'+(TARGET_MODE?'Arrow keys: move · Right-click: walk · T: aim':'Right-click: move · H: halt · Space: centre')+'</div>';}
+  else s.innerHTML=TARGET_MODE?'<div class="t">YOUR TEAM</div><div class="r">Arrow keys: move · Right-click: walk to a spot · T: aim</div><div class="r">Your team holds fire until you aim at the target</div>':'<div class="t">NO SELECTION</div><div class="r">Drag to box-select · Right-click to move</div><div class="r">Rally point: right-click with nothing selected</div>';
 }
 
 // ════════════════════════════════════════
