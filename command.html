@@ -151,7 +151,7 @@ a.tbtn{text-decoration:none;}
       </div>
     </div>
     <div id="brief-target" style="display:none;">
-      <b>YOUR TEAM</b> · one special forces squad. <span class="k">L-click</span> select · <span class="k">R-click</span> move · <span class="k">H</span> halt<br>
+      <b>YOUR TEAM</b> · one special forces squad that <b>holds fire</b>: it never shoots at patrols, so it cannot win a firefight. Sneak. <span class="k">L-click</span> select · <span class="k">R-click</span> move · <span class="k">H</span> halt<br>
       <b>PATROLS</b> · red rings are their sight. Moving in the open: seen at 170 m. Standing still: 110 m. Still in forest: 48 m.<br>
       <b>THE SHOT</b> · within 150 m of the target with no building between you, hold still and press <span class="k">T</span>. Aiming takes 2.4 s; moving or taking a hit breaks it.<br>
       <b>ALARM</b> · a spotted team draws every patrol nearby for 12 s. Break contact, get into trees, wait it out.<br>
@@ -883,8 +883,8 @@ function updateUnits(dt){
       const R0=(d.heavy||UT[o.type].heavy)?24:16;
       if(L<R0&&L>0.01){const push=(R0-L)*.5*dt*8;const nx=u.x+dx/L*push,ny=u.y+dy/L*push;if(passableW(nx,ny,d.heavy)){u.x=nx;u.y=ny;}}
     }
-    // combat
-    if(d.range>0){
+    // combat (in a target mission your team holds fire; the only shot is the aimed one)
+    if(d.range>0&&!(TARGET_MODE&&u.team===0)){
       let best=null,bd=d.range;
       for(const o of units){
         if(o.dead||o.team===u.team||o.type==='vip')continue;
@@ -1339,7 +1339,7 @@ function updateHUD(){
   const s=document.getElementById('sel');
   if(sel.length){const rif=sel.filter(u=>u.type==='rifle').length,tk=sel.filter(u=>u.type==='tank').length,sf=sel.length-rif-tk;const hp=sel.reduce((a,u)=>a+u.hp,0),mx=sel.reduce((a,u)=>a+u.max,0);
     s.innerHTML='<div class="t">'+sel.length+' UNIT'+(sel.length>1?'S':'')+' SELECTED</div><div class="r">'+(rif?rif+' RIFLE ':'')+(sf?sf+' SPEC OPS ':'')+(tk?tk+' TANK'+(tk>1?'S ':' '):'')+'· STRENGTH '+Math.round(hp/mx*100)+'%</div><div class="r">Right-click: move · H: halt · Space: centre</div>';}
-  else s.innerHTML=TARGET_MODE?'<div class="t">NO SELECTION</div><div class="r">Click your team · Right-click to sneak · T to aim</div>':'<div class="t">NO SELECTION</div><div class="r">Drag to box-select · Right-click to move</div><div class="r">Rally point: right-click with nothing selected</div>';
+  else s.innerHTML=TARGET_MODE?'<div class="t">NO SELECTION</div><div class="r">Click your team · Right-click to sneak · T to aim</div><div class="r">Your team holds fire until you aim at the target</div>':'<div class="t">NO SELECTION</div><div class="r">Drag to box-select · Right-click to move</div><div class="r">Rally point: right-click with nothing selected</div>';
 }
 
 // ════════════════════════════════════════
