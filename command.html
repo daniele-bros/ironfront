@@ -68,7 +68,7 @@ a.tbtn{text-decoration:none;}
 </head>
 <body>
 <div id="top">
-  <div class="brand">COMMAND MAP<small>IRON FRONT · THEATRE OPS</small></div>
+  <div class="brand">COMMAND MAP<small id="top-op">IRON FRONT · THEATRE OPS</small></div>
   <div class="stat"><div class="hl">SUPPLY</div><div class="hv sup"><span id="h-sup">0</span><span class="rate" id="h-rate">+0/s</span></div></div>
   <div class="stat"><div class="hl">OBJECTIVES</div><div class="hv" id="h-obj">0 / 6</div></div>
   <div class="stat"><div class="hl">FORCES</div><div class="hv" id="h-units">0</div></div>
@@ -95,6 +95,7 @@ a.tbtn{text-decoration:none;}
     <div class="row">
       <button class="cb" id="cb-rifle" onclick="recruit('rifle')"><span class="k">1</span><span class="n">RIFLE SQUAD</span><span class="c">40 SUPPLY</span><span class="d">4 men · sturdy · holds ground</span></button>
       <button class="cb" id="cb-sf" onclick="recruit('sf')"><span class="k">2</span><span class="n">SPECIAL FORCES</span><span class="c">90 SUPPLY</span><span class="d">3 men · fast · stealth in forest</span></button>
+      <button class="cb" id="cb-tank" onclick="recruit('tank')"><span class="k">3</span><span class="n">TANK</span><span class="c">160 SUPPLY</span><span class="d">Armour · cannon · no forests</span></button>
     </div>
   </div>
   <div class="grp"><div class="hl">FIRE SUPPORT · CLICK MAP TO TARGET</div>
@@ -114,10 +115,11 @@ a.tbtn{text-decoration:none;}
 </div>
 
 <div id="brief" class="screen">
-  <h1>COMMAND MAP</h1>
-  <div class="sub">OPERATION RIVERGATE · THEATRE COMMAND</div>
+  <h1 id="brief-name">OPERATION RIVERGATE</h1>
+  <div class="sub" id="brief-sub">DAY 1</div>
+  <div id="op-select" class="row" style="margin-bottom:14px;"></div>
   <div class="brief">
-    <div><b>MISSION:</b> Seize all six objectives or destroy the enemy headquarters. Do not lose your own HQ.</div>
+    <div><b>MISSION:</b> <span id="brief-mission"></span></div>
     <div style="margin:6px 0 8px;">Supply arrives over time; each objective you hold speeds it up. Spend it on squads and fire support.</div>
     <div class="cols">
       <div>
@@ -125,8 +127,9 @@ a.tbtn{text-decoration:none;}
         <span class="k">L-click</span> select · <span class="k">L-drag</span> box select · <span class="k">Shift</span> add<br>
         <span class="k">R-click</span> move selected · <span class="k">Dbl-click</span> select same type<br>
         <span class="k">R-click</span> with nothing selected sets the HQ rally point<br>
-        <span class="k">1</span> Rifle squad · <span class="k">2</span> Special forces · <span class="k">H</span> halt<br>
-        Special forces are hidden in forest when standing still.
+        <span class="k">1</span> Rifle squad · <span class="k">2</span> Special forces · <span class="k">3</span> Tank · <span class="k">H</span> halt<br>
+        Special forces are hidden in forest when standing still.<br>
+        Tanks shrug off rifle fire and shell infantry, but cannot enter forest. Rockets and bombs kill them.
       </div>
       <div>
         <b>FIRE SUPPORT</b><br>
@@ -152,7 +155,7 @@ a.tbtn{text-decoration:none;}
     <div><div class="hl">STRIKES</div><div class="v" id="e-strikes">0</div></div>
     <div><div class="hl">TIME</div><div class="v" id="e-time">00:00</div></div>
   </div>
-  <button class="bigbtn" onclick="location.reload()">&#8635; NEW OPERATION</button>
+  <div class="row" id="end-btns" style="justify-content:center;"></div>
 </div>
 
 <script>
@@ -168,26 +171,51 @@ const COL={
 const UT={
   rifle:{name:'RIFLE SQUAD',hp:130,spd:60,range:100,dmg:9,rof:.42,cost:40,sight:230,men:4,mobile:true},
   sf:{name:'SPECIAL FORCES',hp:105,spd:86,range:120,dmg:15,rof:.32,cost:90,sight:280,men:3,mobile:true,stealth:true},
+  tank:{name:'TANK',hp:450,spd:74,range:150,dmg:36,rof:1.6,cost:160,sight:260,men:0,mobile:true,heavy:true},
   bunker:{name:'MG BUNKER',hp:480,spd:0,range:175,dmg:10,rof:.3,sight:230,men:0,mobile:false},
-  hq:{name:'HEADQUARTERS',hp:2600,spd:0,range:165,dmg:11,rof:.33,sight:300,men:0,mobile:false}
+  hq:{name:'HEADQUARTERS',hp:2600,spd:0,range:165,dmg:11,rof:.33,sight:300,men:0,mobile:false,hq:true}
 };
 const SUPPORT={
   rocket:{name:'ROCKET SALVO',cost:0,cd:14},
   bomber:{name:'BOMBER RUN',cost:150,cd:22},
   para:{name:'PARADROP',cost:130,cd:26}
 };
-const HQ_P={cx:3,cy:38}, HQ_E={cx:61,cy:3};
-const OBJ_DEFS=[
-  {id:'farm',name:'FARM',cx:12,cy:28,owner:0},
-  {id:'depot',name:'DEPOT',cx:16,cy:9,owner:-1},
-  {id:'nbridge',name:'NORTH BRIDGE',cx:38,cy:10,owner:-1,bunker:true},
-  {id:'sbridge',name:'SOUTH BRIDGE',cx:26,cy:31,owner:-1},
-  {id:'airfield',name:'AIRFIELD',cx:50,cy:33,owner:1,bunker:true},
-  {id:'radio',name:'RADIO STATION',cx:55,cy:7,owner:1,bunker:true}
+const OPS=[
+  {id:'rivergate',name:'OPERATION RIVERGATE',sub:'DAY 1 · RIVER CROSSING',seed:90210,
+   river:{base:32,a1:4.5,f1:.19,a2:3,f2:.07,ph:1.3},bridges:[10,31],vroads:[8,56],forests:26,
+   hqP:{cx:3,cy:38},hqE:{cx:61,cy:3},airfield:'airfield',
+   objs:[
+    {id:'farm',name:'FARM',cx:12,cy:28,owner:0},
+    {id:'depot',name:'DEPOT',cx:16,cy:9,owner:-1},
+    {id:'nbridge',name:'NORTH BRIDGE',cx:38,cy:10,owner:-1,bunker:true},
+    {id:'sbridge',name:'SOUTH BRIDGE',cx:26,cy:31,owner:-1},
+    {id:'airfield',name:'AIRFIELD',cx:50,cy:33,owner:1,bunker:true,tank:true},
+    {id:'radio',name:'RADIO STATION',cx:55,cy:7,owner:1,bunker:true,sf:true}],
+   start:{sup:300,rocketsP:4,rocketsE:2,rifle:4,sf:1,tank:0},
+   enemy:{reinBase:24,reinMin:12,tankEvery:3,tankAfter:150,cap:24},
+   brief:'Seize all six objectives or destroy the enemy headquarters. Do not lose your own HQ. One enemy tank guards the airfield: rockets and bombers kill it, rifles barely scratch it.'},
+  {id:'ironvale',name:'OPERATION IRONVALE',sub:'DAY 2 · ARMOURED COUNTERSTRIKE',seed:4711,
+   river:{base:30,a1:7,f1:.13,a2:2.5,f2:.31,ph:.4},bridges:[6,21,36],vroads:[11,53],forests:34,
+   hqP:{cx:3,cy:3},hqE:{cx:61,cy:38},airfield:null,
+   objs:[
+    {id:'quarry',name:'QUARRY',cx:14,cy:12,owner:0},
+    {id:'church',name:'CHURCH HILL',cx:24,cy:6,owner:-1,sf:true},
+    {id:'railyard',name:'RAIL YARD',cx:12,cy:30,owner:-1,bunker:true,tank:true},
+    {id:'cbridge',name:'CENTRAL BRIDGE',cx:39,cy:21,owner:-1,bunker:true},
+    {id:'fuel',name:'FUEL DUMP',cx:52,cy:10,owner:1,bunker:true,tank:true},
+    {id:'fortress',name:'FORTRESS',cx:50,cy:32,owner:1,bunker:true,tank:true,sf:true}],
+   start:{sup:380,rocketsP:5,rocketsE:3,rifle:4,sf:1,tank:2},
+   enemy:{reinBase:22,reinMin:11,tankEvery:2,tankAfter:60,cap:28},
+   brief:'The enemy has fallen back across a wider river and dug in with armour. Seize all six objectives or destroy their headquarters. You have two tanks: keep them on roads and open ground, they cannot enter forest. The enemy holds three rockets this time.'}
 ];
+let opIndex=0,opWon=0;
+try{opWon=Math.min(OPS.length,parseInt(localStorage.getItem('ifcm_won')||'0')||0);opIndex=Math.min(opWon,Math.max(0,parseInt(localStorage.getItem('ifcm_op')||'0')||0));}catch(e){}
+if(opIndex>=OPS.length)opIndex=OPS.length-1;
+const OP=OPS[opIndex];
+const HQ_P=OP.hqP, HQ_E=OP.hqE, OBJ_DEFS=OP.objs;
 const CAP_R=105;
 
-let _s=90210;
+let _s=OP.seed;
 function rnd(){_s=(_s*1664525+1013904223)>>>0;return _s/4294967296;}
 function rr(a,b){return a+Math.random()*(b-a);}
 const clamp=(v,a,b)=>v<a?a:v>b?b:v;
@@ -200,8 +228,8 @@ const dist=(a,b,c,d)=>Math.hypot(a-c,b-d);
 const terr=new Uint8Array(GW*GH);
 const T=(x,y)=>(x<0||y<0||x>=GW||y>=GH)?3:terr[y*GW+x];
 function setT(x,y,v){if(x>=0&&y>=0&&x<GW&&y<GH)terr[y*GW+x]=v;}
-const passable=(x,y)=>{const t=T(x,y);return t!==3&&t!==5&&t!==6;};
-const passableW=(wx,wy)=>passable(Math.floor(wx/CS),Math.floor(wy/CS));
+const passable=(x,y,hv)=>{const t=T(x,y);return t!==3&&t!==5&&t!==6&&!(hv&&t===2);};
+const passableW=(wx,wy,hv)=>passable(Math.floor(wx/CS),Math.floor(wy/CS),hv);
 function nearSpecial(x,y){
   if(Math.abs(x-HQ_P.cx)<=3&&Math.abs(y-HQ_P.cy)<=3)return true;
   if(Math.abs(x-HQ_E.cx)<=3&&Math.abs(y-HQ_E.cy)<=3)return true;
@@ -210,16 +238,28 @@ function nearSpecial(x,y){
 }
 const trees=[], houses=[];
 function genTerrain(){
+  const rv=OP.river;
   for(let y=0;y<GH;y++){
-    const cx=Math.round(32+Math.sin(y*.19)*4.5+Math.sin(y*.07+1.3)*3);
+    const cx=Math.round(rv.base+Math.sin(y*rv.f1)*rv.a1+Math.sin(y*rv.f2+rv.ph)*rv.a2);
     for(let d=-1;d<=1;d++)setT(cx+d,y,3);
   }
-  for(const r of [10,31])for(let x=1;x<GW-1;x++)setT(x,r,T(x,r)===3?4:1);
-  for(let y=10;y<=31;y++){setT(8,y,1);setT(56,y,1);}
-  for(let y=31;y<=37;y++)setT(8,y,1); for(let x=5;x<=8;x++)setT(x,37,1);
-  for(let y=4;y<=10;y++)setT(56,y,1); for(let x=56;x<=59;x++)setT(x,4,1);
+  const bMin=Math.min(...OP.bridges),bMax=Math.max(...OP.bridges);
+  for(const r of OP.bridges)for(let x=1;x<GW-1;x++)setT(x,r,T(x,r)===3?4:1);
+  for(const vx of OP.vroads)for(let y=bMin;y<=bMax;y++)setT(vx,y,1);
+  // connect each HQ to its nearest vertical road
+  for(const [hq,vx] of [[HQ_P,OP.vroads[0]],[HQ_E,OP.vroads[1]]]){
+    const hy=hq.cy<GH/2?hq.cy+1:hq.cy-2, hx=hq.cx<GW/2?hq.cx+1:hq.cx-2;
+    for(let x=Math.min(hx,vx);x<=Math.max(hx,vx);x++)if(T(x,hy)!==3)setT(x,hy,1);
+    const y0=Math.min(hy,bMin),y1=Math.max(hy,bMax);
+    for(let y=y0;y<=y1;y++)if(T(vx,y)!==3&&T(vx,y)!==4)setT(vx,y,1);
+  }
+  for(const o of OBJ_DEFS){
+    let best=OP.bridges[0];for(const r of OP.bridges)if(Math.abs(r-o.cy)<Math.abs(best-o.cy))best=r;
+    const y0=Math.min(o.cy,best),y1=Math.max(o.cy,best);
+    for(let y=y0;y<=y1;y++)if(T(o.cx,y)===0||T(o.cx,y)===2)setT(o.cx,y,1);
+  }
   for(let dx=-1;dx<=0;dx++)for(let dy=-1;dy<=0;dy++){setT(HQ_P.cx+dx,HQ_P.cy+dy,6);setT(HQ_E.cx+dx,HQ_E.cy+dy,6);}
-  for(let i=0;i<26;i++){
+  for(let i=0;i<OP.forests;i++){
     const fx=2+Math.floor(rnd()*(GW-4)),fy=2+Math.floor(rnd()*(GH-4)),r=1.4+rnd()*2.6;
     for(let y=Math.floor(fy-r);y<=fy+r;y++)for(let x=Math.floor(fx-r);x<=fx+r;x++){
       if(Math.hypot(x-fx,y-fy)<=r&&T(x,y)===0&&!nearSpecial(x,y))setT(x,y,2);
@@ -240,28 +280,28 @@ function genTerrain(){
     if(t===5)houses.push({x:x*CS,y:y*CS,roof:rnd(),rot:rnd()<.5});
   }
 }
-function terrMult(wx,wy){const t=T(Math.floor(wx/CS),Math.floor(wy/CS));return t===1||t===4?1.25:t===2?.62:1;}
+function terrMult(wx,wy,hv){const t=T(Math.floor(wx/CS),Math.floor(wy/CS));if(hv)return t===1||t===4?1.4:t===2?.3:1;return t===1||t===4?1.25:t===2?.62:1;}
 function coverAt(wx,wy){
   const cx=Math.floor(wx/CS),cy=Math.floor(wy/CS);const t=T(cx,cy);
   if(t===2)return .6;
   for(let dx=-1;dx<=1;dx++)for(let dy=-1;dy<=1;dy++)if(T(cx+dx,cy+dy)===5)return .72;
   return 1;
 }
-function nearestPassable(wx,wy){
-  if(passableW(wx,wy)&&wx>0&&wy>0&&wx<W&&wy<H)return [clamp(wx,8,W-8),clamp(wy,8,H-8)];
+function nearestPassable(wx,wy,hv){
+  if(passableW(wx,wy,hv)&&wx>0&&wy>0&&wx<W&&wy<H)return [clamp(wx,8,W-8),clamp(wy,8,H-8)];
   const cx=Math.floor(wx/CS),cy=Math.floor(wy/CS);
   for(let r=1;r<8;r++)for(let dy=-r;dy<=r;dy++)for(let dx=-r;dx<=r;dx++){
     if(Math.max(Math.abs(dx),Math.abs(dy))!==r)continue;
-    if(passable(cx+dx,cy+dy)&&cx+dx>=0&&cy+dy>=0&&cx+dx<GW&&cy+dy<GH)return [(cx+dx+.5)*CS,(cy+dy+.5)*CS];
+    if(passable(cx+dx,cy+dy,hv)&&cx+dx>=0&&cy+dy>=0&&cx+dx<GW&&cy+dy<GH)return [(cx+dx+.5)*CS,(cy+dy+.5)*CS];
   }
   return [wx,wy];
 }
 
 // ─── A* pathing ───
-function findPath(sx,sy,tx,ty){
+function findPath(sx,sy,tx,ty,hv){
   const scx=Math.floor(sx/CS),scy=Math.floor(sy/CS),tcx=Math.floor(tx/CS),tcy=Math.floor(ty/CS);
   if(scx===tcx&&scy===tcy)return [[tx,ty]];
-  if(!passable(tcx,tcy)){const p=nearestPassable(tx,ty);tx=p[0];ty=p[1];return findPath(sx,sy,tx,ty);}
+  if(!passable(tcx,tcy,hv)){const p=nearestPassable(tx,ty,hv);if(!passable(Math.floor(p[0]/CS),Math.floor(p[1]/CS),hv))return null;return findPath(sx,sy,p[0],p[1],hv);}
   const N=GW*GH,g=new Float32Array(N).fill(1e9),f=new Float32Array(N),from=new Int32Array(N).fill(-1),closed=new Uint8Array(N);
   const heap=[];
   const push=(i)=>{heap.push(i);let k=heap.length-1;while(k>0){const p=(k-1)>>1;if(f[heap[p]]<=f[heap[k]])break;[heap[p],heap[k]]=[heap[k],heap[p]];k=p;}};
@@ -276,8 +316,8 @@ function findPath(sx,sy,tx,ty){
     const cx=cur%GW,cy=(cur/GW)|0;
     for(let dy=-1;dy<=1;dy++)for(let dx=-1;dx<=1;dx++){
       if(!dx&&!dy)continue;const nx=cx+dx,ny=cy+dy;
-      if(nx<0||ny<0||nx>=GW||ny>=GH||!passable(nx,ny))continue;
-      if(dx&&dy&&(!passable(cx+dx,cy)||!passable(cx,cy+dy)))continue;
+      if(nx<0||ny<0||nx>=GW||ny>=GH||!passable(nx,ny,hv))continue;
+      if(dx&&dy&&(!passable(cx+dx,cy,hv)||!passable(cx,cy+dy,hv)))continue;
       const t=T(nx,ny);const cost=(dx&&dy?1.414:1)*(t===2?1.7:t===1||t===4?.8:1);
       const ni=ny*GW+nx,ng=g[cur]+cost;
       if(ng<g[ni]){g[ni]=ng;f[ni]=ng+hf(ni);from[ni]=cur;push(ni);}
@@ -292,17 +332,17 @@ function findPath(sx,sy,tx,ty){
   const out=[];let ax=sx,ay=sy,i=0;
   while(i<pts.length){
     let j=pts.length-1;
-    while(j>i&&!lineClear(ax,ay,pts[j][0],pts[j][1]))j--;
+    while(j>i&&!lineClear(ax,ay,pts[j][0],pts[j][1],hv))j--;
     out.push(pts[j]);ax=pts[j][0];ay=pts[j][1];i=j+1;
   }
   return out;
 }
-function lineClear(x1,y1,x2,y2){
-  const d=Math.hypot(x2-x1,y2-y1),n=Math.ceil(d/10);
+function lineClear(x1,y1,x2,y2,hv){
+  const d=Math.hypot(x2-x1,y2-y1),n=Math.ceil(d/10),m=hv?14:9;
   for(let k=0;k<=n;k++){const t=k/n;const x=x1+(x2-x1)*t,y=y1+(y2-y1)*t;
-    if(!passableW(x,y))return false;
+    if(!passableW(x,y,hv))return false;
     // keep a little margin off blocked cells
-    if(!passableW(x+9,y)||!passableW(x-9,y)||!passableW(x,y+9)||!passableW(x,y-9))return false;
+    if(!passableW(x+m,y,hv)||!passableW(x-m,y,hv)||!passableW(x,y+m,hv)||!passableW(x,y-m,hv))return false;
   }
   return true;
 }
@@ -310,7 +350,7 @@ function lineClear(x1,y1,x2,y2){
 // ════════════════════════════════════════
 // STATE
 // ════════════════════════════════════════
-let units=[],objs=[],fx=[],rockets=[],planes=[],bombs=[],paras=[],craters=[],tracers=[];
+let units=[],objs=[],fx=[],rockets=[],planes=[],bombs=[],paras=[],craters=[],tracers=[],wrecks=[];
 let sup=300,supRate=0,time=0,kills=0,losses=0,strikes=0,running=false,paused=false,over=false;
 let cam={x:0,y:0,z:1},mouse={x:0,y:0,wx:0,wy:0,in:false},drag=null,pan=null,mode=null,sel=[],rally=null;
 let cds={rocket:0,bomber:0,para:0};
@@ -326,7 +366,7 @@ const tcv=document.createElement('canvas');tcv.width=W;tcv.height=H;const tctx=t
 
 function mkUnit(type,team,x,y){
   const d=UT[type];
-  const u={id:uid++,type,team,x,y,hp:d.hp,max:d.hp,path:[],cd:rr(0,d.rof),facing:team===0?-Math.PI/4:Math.PI*.75,stillT:5,firedT:9,chaseT:0,sel:false,dead:false,muzzle:0};
+  const u={id:uid++,type,team,x,y,hp:d.hp,max:d.hp,path:[],cd:rr(0,d.rof),facing:team===0?-Math.PI/4:Math.PI*.75,hull:team===0?-Math.PI/4:Math.PI*.75,stillT:5,firedT:9,chaseT:0,sel:false,dead:false,muzzle:0};
   units.push(u);return u;
 }
 function hqOf(team){return units.find(u=>u.type==='hq'&&u.team===team);}
@@ -339,14 +379,26 @@ function initWorld(){
   mkUnit('hq',1,(HQ_E.cx)*CS,(HQ_E.cy)*CS);
   for(const o of objs){
     if(o.bunker){const p=nearestPassable(o.x+62,o.y-58);mkUnit('bunker',1,p[0],p[1]);}
-    if(o.owner===1){for(let i=0;i<2;i++){const p=nearestPassable(o.x-50+i*40,o.y+40);mkUnit('rifle',1,p[0],p[1]);}}
-    if(o.id==='radio'){const p=nearestPassable(o.x-90,o.y+90);mkUnit('sf',1,p[0],p[1]);}
-    if(o.id==='nbridge'){const p=nearestPassable(o.x+40,o.y+60);mkUnit('rifle',1,p[0],p[1]);}
+    if(o.owner===1||o.bunker){for(let i=0;i<2;i++){const p=nearestPassable(o.x-50+i*40,o.y+40);mkUnit('rifle',1,p[0],p[1]);}}
+    if(o.sf){const p=nearestPassable(o.x-90,o.y+90);mkUnit('sf',1,p[0],p[1]);}
+    if(o.tank){const p=nearestPassable(o.x+30,o.y+80,true);mkUnit('tank',1,p[0],p[1]);}
   }
-  const hq=hqOf(0);
-  for(let i=0;i<4;i++){const p=nearestPassable(hq.x+90+i*34,hq.y-60);mkUnit('rifle',0,p[0],p[1]);}
-  {const p=nearestPassable(hq.x+70,hq.y-120);mkUnit('sf',0,p[0],p[1]);}
-  rally={x:hq.x+120,y:hq.y-100};
+  const hq=hqOf(0),st=OP.start;
+  // deploy toward the map centre from whichever corner the HQ sits in
+  const sx=hq.x<W/2?1:-1,sy=hq.y<H/2?1:-1;
+  for(let i=0;i<st.rifle;i++){const p=nearestPassable(hq.x+sx*(90+i*34),hq.y+sy*60);mkUnit('rifle',0,p[0],p[1]);}
+  for(let i=0;i<st.sf;i++){const p=nearestPassable(hq.x+sx*70,hq.y+sy*(120+i*30));mkUnit('sf',0,p[0],p[1]);}
+  for(let i=0;i<st.tank;i++){const p=nearestPassable(hq.x+sx*(130+i*50),hq.y+sy*130,true);mkUnit('tank',0,p[0],p[1]);}
+  sup=st.sup;rocketsP=st.rocketsP;rocketsE=st.rocketsE;
+  rally={x:hq.x+sx*120,y:hq.y+sy*100};
+  document.getElementById('brief-name').textContent=OP.name;document.getElementById('top-op').textContent=OP.name+' · '+(opIndex+1)+'/'+OPS.length;
+  document.getElementById('brief-sub').textContent=OP.sub+' · '+(opIndex+1)+' OF '+OPS.length;
+  document.getElementById('brief-mission').textContent=OP.brief;
+  const opSel=document.getElementById('op-select');opSel.innerHTML='';
+  OPS.forEach((o,i)=>{const b=document.createElement('button');b.className='cb'+(i===opIndex?' active':'')+(i>opWon?' off':'');
+    b.innerHTML='<span class="n">'+(i+1)+' · '+o.name.replace('OPERATION ','')+'</span><span class="d">'+(i>opWon?'LOCKED · WIN OPERATION '+i+' FIRST':o.sub)+'</span>';
+    b.onclick=()=>{if(i>opWon)return;try{localStorage.setItem('ifcm_op',String(i));}catch(e){}if(i!==opIndex)location.reload();};
+    opSel.appendChild(b);});
   resize();centerHQ();
 }
 
@@ -409,9 +461,9 @@ function renderTerrain(){
     c.fillStyle='rgba(120,190,80,.35)';c.beginPath();c.arc(t.x-t.r*.3,t.y-t.r*.3,t.r*.5,0,Math.PI*2);c.fill();
   }
   // airfield strip
-  const af=OBJ_DEFS.find(o=>o.id==='airfield');
-  c.fillStyle='rgba(90,90,90,.75)';c.fillRect((af.cx-4)*CS,(af.cy+2)*CS+8,8*CS,24);
-  c.strokeStyle='rgba(255,255,255,.5)';c.setLineDash([12,10]);c.beginPath();c.moveTo((af.cx-4)*CS+6,(af.cy+2)*CS+20);c.lineTo((af.cx+4)*CS-6,(af.cy+2)*CS+20);c.stroke();c.setLineDash([]);
+  const af=OP.airfield&&OBJ_DEFS.find(o=>o.id===OP.airfield);
+  if(af){c.fillStyle='rgba(90,90,90,.75)';c.fillRect((af.cx-4)*CS,(af.cy+2)*CS+8,8*CS,24);
+  c.strokeStyle='rgba(255,255,255,.5)';c.setLineDash([12,10]);c.beginPath();c.moveTo((af.cx-4)*CS+6,(af.cy+2)*CS+20);c.lineTo((af.cx+4)*CS-6,(af.cy+2)*CS+20);c.stroke();c.setLineDash([]);}
   // map grid
   c.strokeStyle='rgba(0,0,0,.13)';c.lineWidth=1;
   for(let x=0;x<=W;x+=CS*4){c.beginPath();c.moveTo(x,0);c.lineTo(x,H);c.stroke();}
@@ -451,7 +503,7 @@ function resize(){const r=cv.parentElement.getBoundingClientRect();cv.width=Math
 window.addEventListener('resize',resize);
 function clampCam(){const vw=cv.width/cam.z,vh=cv.height/cam.z;cam.x=clamp(cam.x,-60,Math.max(-60,W-vw+60));cam.y=clamp(cam.y,-60,Math.max(-60,H-vh+60));}
 function centerOn(x,y){cam.x=x-cv.width/2/cam.z;cam.y=y-cv.height/2/cam.z;clampCam();}
-function centerHQ(){const hq=hqOf(0);if(hq)centerOn(hq.x+80,hq.y-60);}
+function centerHQ(){const hq=hqOf(0);if(hq)centerOn(hq.x+(hq.x<W/2?80:-80),hq.y+(hq.y<H/2?60:-60));}
 function toWorld(sx,sy){return [cam.x+sx/cam.z,cam.y+sy/cam.z];}
 
 // ════════════════════════════════════════
@@ -461,9 +513,10 @@ function recruit(type){
   if(!running||over)return;const d=UT[type];
   if(sup<d.cost){log('NOT ENOUGH SUPPLY FOR '+d.name,'bad');return;}
   sup-=d.cost;const hq=hqOf(0);
-  const p=nearestPassable(hq.x+70+rr(-20,20),hq.y-40+rr(-30,30));
+  const sx=hq.x<W/2?1:-1,sy=hq.y<H/2?1:-1;
+  const p=nearestPassable(hq.x+sx*(70+rr(-20,20)),hq.y+sy*(40+rr(-30,30)),d.heavy);
   const u=mkUnit(type,0,p[0],p[1]);
-  if(rally){const tp=nearestPassable(rally.x+rr(-30,30),rally.y+rr(-30,30));u.path=findPath(u.x,u.y,tp[0],tp[1])||[];}
+  if(rally){const tp=nearestPassable(rally.x+rr(-30,30),rally.y+rr(-30,30),d.heavy);u.path=findPath(u.x,u.y,tp[0],tp[1],d.heavy)||[];}
   log(d.name+' DEPLOYED FROM HQ','good');sOrder();
 }
 function armSupport(k){
@@ -514,10 +567,11 @@ function issueMove(wx,wy){
   list.forEach((u,i)=>{
     const c=i%cols,r=Math.floor(i/cols);
     let ox=(c-(cols-1)/2)*sp,oy=(r-(Math.ceil(n/cols)-1)/2)*sp;
-    let tx=wx+ox,ty=wy+oy;if(!passableW(tx,ty)){tx=wx;ty=wy;}
-    const p=nearestPassable(tx,ty);
-    const path=findPath(u.x,u.y,p[0],p[1]);
-    u.path=path||[];
+    const hv=!!UT[u.type].heavy;
+    let tx=wx+ox,ty=wy+oy;if(!passableW(tx,ty,hv)){tx=wx;ty=wy;}
+    const p=nearestPassable(tx,ty,hv);
+    const path=findPath(u.x,u.y,p[0],p[1],hv);
+    u.path=path||[];if(!path&&hv)log('TANK CANNOT REACH THAT GROUND','bad');
   });
   fx.push({k:'ping',x:wx,y:wy,t:0,T:.7});sOrder();
 }
@@ -583,7 +637,7 @@ window.addEventListener('keydown',e=>{
   if(e.target&&(e.target.tagName==='INPUT'))return;
   keys[e.key]=true;const k=e.key.toLowerCase();
   if(k==='escape'){if(mode)cancelMode();else{sel.forEach(u=>u.sel=false);sel=[];}}
-  else if(k==='1')recruit('rifle');else if(k==='2')recruit('sf');
+  else if(k==='1')recruit('rifle');else if(k==='2')recruit('sf');else if(k==='3')recruit('tank');
   else if(k==='r')armSupport('rocket');else if(k==='b')armSupport('bomber');else if(k==='p')armSupport('para');
   else if(k==='h')haltSelected();else if(k==='tab'){e.preventDefault();selectAll();}
   else if(k===' '){e.preventDefault();if(sel.length){let x=0,y=0;sel.forEach(u=>{x+=u.x;y+=u.y;});centerOn(x/sel.length,y/sel.length);}else centerHQ();}
@@ -634,16 +688,17 @@ function updateUnits(dt){
     // move
     if(u.path.length){
       const [tx,ty]=u.path[0];const dx=tx-u.x,dy=ty-u.y,L=Math.hypot(dx,dy);
-      const sp=d.spd*terrMult(u.x,u.y)*dt;
+      const sp=d.spd*terrMult(u.x,u.y,d.heavy)*dt;
       if(L<=sp||L<4){u.x=tx;u.y=ty;u.path.shift();}
-      else{u.x+=dx/L*sp;u.y+=dy/L*sp;u.facing=Math.atan2(dy,dx);}
+      else{u.x+=dx/L*sp;u.y+=dy/L*sp;u.hull=Math.atan2(dy,dx);if(!u.target)u.facing=u.hull;}
       u.stillT=0;
     }else u.stillT+=dt;
     // separation
     if(d.mobile)for(const o of units){
       if(o===u||o.dead||!UT[o.type].mobile)continue;
       const dx=u.x-o.x,dy=u.y-o.y,L=Math.hypot(dx,dy);
-      if(L<16&&L>0.01){const push=(16-L)*.5*dt*8;const nx=u.x+dx/L*push,ny=u.y+dy/L*push;if(passableW(nx,ny)){u.x=nx;u.y=ny;}}
+      const R0=(d.heavy||UT[o.type].heavy)?24:16;
+      if(L<R0&&L>0.01){const push=(R0-L)*.5*dt*8;const nx=u.x+dx/L*push,ny=u.y+dy/L*push;if(passableW(nx,ny,d.heavy)){u.x=nx;u.y=ny;}}
     }
     // combat
     if(d.range>0){
@@ -653,26 +708,42 @@ function updateUnits(dt){
         const dd=dist(u.x,u.y,o.x,o.y);
         if(dd<bd&&canSee(u,o,dd)){bd=dd;best=o;}
       }
+      u.target=best;
       if(best){
+        if(u.team===1&&u.path.length&&d.mobile)u.path=[]; // enemy halts to fight what it can hit
         u.facing=Math.atan2(best.y-u.y,best.x-u.x);
         if(u.cd<=0){
-          u.cd=d.rof;u.firedT=0;u.muzzle=.06;
+          u.cd=d.rof;u.firedT=0;u.muzzle=d.heavy?.12:.06;
           const men=Math.max(1,Math.ceil(d.men*u.hp/u.max))||1;
-          const dmg=d.dmg*(d.men?men/d.men:1)*rr(.8,1.2)*coverAt(best.x,best.y)*(best.type==='bunker'?.35:best.type==='hq'?.2:1);
+          const dmg=d.dmg*(d.men?men/d.men:1)*rr(.8,1.2)*(UT[best.type].men?coverAt(best.x,best.y):1)*dmgMult(d,best);
           hurt(best,dmg,u.team);
-          tracers.push({x1:u.x+Math.cos(u.facing)*8,y1:u.y+Math.sin(u.facing)*8,x2:best.x+rr(-6,6),y2:best.y+rr(-6,6),t:.07,team:u.team});
-          if(onScreen(u.x,u.y))sGun();
+          if(d.heavy){
+            const bx=best.x+rr(-5,5),by=best.y+rr(-5,5);
+            fx.push({k:'boom',x:bx,y:by,r:16,t:0,T:.35});
+            for(const o of units)if(o!==best&&!o.dead&&o.team!==u.team&&UT[o.type].men&&dist(o.x,o.y,bx,by)<26)hurt(o,dmg*.5,u.team);
+            tracers.push({x1:u.x+Math.cos(u.facing)*24,y1:u.y+Math.sin(u.facing)*24,x2:bx,y2:by,t:.05,team:u.team});
+            if(onScreen(u.x,u.y))noise(.18,.3,1200,2);
+          }else{
+            tracers.push({x1:u.x+Math.cos(u.facing)*8,y1:u.y+Math.sin(u.facing)*8,x2:best.x+rr(-6,6),y2:best.y+rr(-6,6),t:.07,team:u.team});
+            if(onScreen(u.x,u.y))sGun();
+          }
         }
       }else if(u.team===1&&d.mobile&&!u.path.length){
         // enemy chases what it can see
         u.chaseT-=dt;
         if(u.chaseT<=0){u.chaseT=1.2;let tgt=null,td=d.sight;
           for(const o of units){if(o.dead||o.team===1||o.type==='hq')continue;const dd=dist(u.x,u.y,o.x,o.y);if(dd<td&&canSee(u,o,dd)){td=dd;tgt=o;}}
-          if(tgt){const p=nearestPassable(tgt.x+rr(-30,30),tgt.y+rr(-30,30));u.path=findPath(u.x,u.y,p[0],p[1])||[];}
+          if(tgt){const p=nearestPassable(tgt.x+rr(-30,30),tgt.y+rr(-30,30),d.heavy);u.path=findPath(u.x,u.y,p[0],p[1],d.heavy)||[];}
         }
       }
     }
   }
+}
+function dmgMult(att,tgt){
+  const heavyT=UT[tgt.type].heavy;
+  if(att.heavy)return tgt.type==='bunker'?.8:tgt.type==='hq'?.5:1;
+  if(heavyT)return att.hq?.5:att.stealth?.22:.1;
+  return tgt.type==='bunker'?.35:tgt.type==='hq'?.2:1;
 }
 function isStealthed(u){return UT[u.type].stealth&&u.stillT>1.2&&u.firedT>2.5&&T(Math.floor(u.x/CS),Math.floor(u.y/CS))===2;}
 function canSee(viewer,target,dd){if(isStealthed(target))return dd<48;return true;}
@@ -682,6 +753,7 @@ function hurt(u,dmg,byTeam){
   if(u.hp<=0){u.hp=0;u.dead=true;
     const d=UT[u.type];
     if(u.type==='hq'){boom(u.x,u.y,120,true);boom(u.x+40,u.y-30,80,true);}
+    else if(d.heavy){boom(u.x,u.y,50,true);wrecks.push({x:u.x,y:u.y,a:u.hull,team:u.team});if(wrecks.length>30)wrecks.shift();}
     else{fx.push({k:'blood',x:u.x,y:u.y,t:0,T:1.2,team:u.team});if(u.type==='bunker')boom(u.x,u.y,40,false);}
     if(u.team===0){losses++;log(d.name+' LOST','bad');}
     else if(byTeam===0||byTeam===undefined){kills++;log('ENEMY '+d.name+' DESTROYED','good');}
@@ -735,16 +807,19 @@ function updateAI(dt){
       if(threatened.length&&i%3===0)tgt=threatened[0];else tgt=ai.focus;
       if(!tgt)return;
       if(dist(u.x,u.y,tgt.x,tgt.y)<90)return;
-      const p=nearestPassable(tgt.x+rr(-60,60),tgt.y+rr(-60,60));
-      u.path=findPath(u.x,u.y,p[0],p[1])||[];
+      const hv=!!UT[u.type].heavy;const p=nearestPassable(tgt.x+rr(-60,60),tgt.y+rr(-60,60),hv);
+      u.path=findPath(u.x,u.y,p[0],p[1],hv)||[];
     });
   }
   if(ai.reinT<=0){
-    ai.reinT=Math.max(12,24-time/50);
-    if(mobiles.length<24){
+    ai.reinT=Math.max(OP.enemy.reinMin,OP.enemy.reinBase-time/50);ai.wave=(ai.wave||0)+1;
+    if(mobiles.length<OP.enemy.cap){
       const n=Math.min(4,2+Math.floor(time/150));
-      for(let i=0;i<n;i++){const type=(i%3===2||(time>240&&i%2))?'sf':'rifle';const p=nearestPassable(ehq.x-70+rr(-30,30),ehq.y+60+rr(-30,30));mkUnit(type,1,p[0],p[1]);}
-      log('ENEMY REINFORCEMENTS ARRIVING AT THEIR HQ','bad');
+      const ex=ehq.x<W/2?1:-1,ey=ehq.y<H/2?1:-1;
+      for(let i=0;i<n;i++){const type=(i%3===2||(time>240&&i%2))?'sf':'rifle';const p=nearestPassable(ehq.x+ex*(70+rr(-30,30)),ehq.y+ey*(60+rr(-30,30)));mkUnit(type,1,p[0],p[1]);}
+      let withTank=false;
+      if(OP.enemy.tankEvery&&time>=OP.enemy.tankAfter&&ai.wave%OP.enemy.tankEvery===0){const p=nearestPassable(ehq.x+ex*120,ehq.y+ey*120,true);mkUnit('tank',1,p[0],p[1]);withTank=true;}
+      log('ENEMY REINFORCEMENTS ARRIVING AT THEIR HQ'+(withTank?' · TANK SPOTTED':''),'bad');
     }
   }
   if(ai.rocketT<=0){
@@ -814,6 +889,14 @@ function endGame(win,why){
   document.getElementById('end-sub').textContent=why;
   document.getElementById('e-kills').textContent=kills;document.getElementById('e-loss').textContent=losses;
   document.getElementById('e-strikes').textContent=strikes;document.getElementById('e-time').textContent=fmtT(time);
+  const bt=document.getElementById('end-btns');bt.innerHTML='';
+  const mk=(label,fn,primary)=>{const b=document.createElement('button');b.className='bigbtn';if(!primary){b.style.background='transparent';b.style.boxShadow='none';b.style.border='2px solid #3a5018';b.style.color='#8a9a60';b.style.fontSize='16px';}b.innerHTML=label;b.onclick=fn;bt.appendChild(b);};
+  const go=(i)=>{try{localStorage.setItem('ifcm_op',String(i));}catch(e){}location.reload();};
+  if(win){
+    try{localStorage.setItem('ifcm_won',String(Math.max(opWon,opIndex+1)));}catch(e){}
+    if(opIndex+1<OPS.length){document.getElementById('end-sub').textContent=why+' · NEXT: '+OPS[opIndex+1].name;mk('&#9654; NEXT OPERATION',()=>go(opIndex+1),true);mk('&#8635; REPLAY',()=>go(opIndex),false);}
+    else{document.getElementById('end-title').textContent='CAMPAIGN COMPLETE';document.getElementById('end-sub').textContent=why+' · THE THEATRE IS YOURS';mk('&#8635; PLAY AGAIN FROM OPERATION 1',()=>go(0),true);mk('&#8635; REPLAY THIS ONE',()=>go(opIndex),false);}
+  }else{mk('&#8635; RETRY OPERATION',()=>go(opIndex),true);if(opIndex>0)mk('&#9664; PREVIOUS OPERATION',()=>go(opIndex-1),false);}
   setTimeout(()=>document.getElementById('end').classList.remove('hidden'),900);
   banner(win?'VICTORY':'DEFEAT',3000);
 }
@@ -828,6 +911,7 @@ function render(){
   ctx.drawImage(tcv,0,0);
   // craters
   for(const c of craters){ctx.fillStyle='rgba(25,20,10,.55)';ctx.beginPath();ctx.ellipse(c.x,c.y,c.r,c.r*.8,c.a,0,Math.PI*2);ctx.fill();ctx.fillStyle='rgba(60,50,30,.5)';ctx.beginPath();ctx.ellipse(c.x,c.y,c.r*.6,c.r*.5,c.a,0,Math.PI*2);ctx.fill();}
+  for(const w of wrecks)drawWreck(w);
   drawObjectives();
   if(rally){ctx.strokeStyle='rgba(61,139,255,.8)';ctx.lineWidth=2;ctx.beginPath();ctx.moveTo(rally.x,rally.y);ctx.lineTo(rally.x,rally.y-22);ctx.stroke();ctx.fillStyle='#3d8bff';ctx.beginPath();ctx.moveTo(rally.x,rally.y-22);ctx.lineTo(rally.x+14,rally.y-17);ctx.lineTo(rally.x,rally.y-12);ctx.fill();}
   // paths of selected
@@ -896,6 +980,7 @@ function drawUnits(){
     const c=COL[u.team],d=UT[u.type];
     if(u.type==='hq'){drawHQ(u,c);if(u.muzzle>0){ctx.fillStyle='rgba(255,230,120,.9)';ctx.beginPath();ctx.arc(u.x+Math.cos(u.facing)*44,u.y+Math.sin(u.facing)*44,4,0,Math.PI*2);ctx.fill();}continue;}
     if(u.type==='bunker'){drawBunker(u,c);continue;}
+    if(u.type==='tank'){drawTank(u,c);continue;}
     const st=isStealthed(u);
     ctx.save();
     if(st)ctx.globalAlpha=u.team===0?.55:.0;
@@ -932,6 +1017,31 @@ function drawHQ(u,c){
   ctx.font='bold 12px monospace';ctx.textAlign='center';ctx.fillStyle=c.light;ctx.fillText(c.name+' HQ',x,y-70);
   const w=80,p=u.hp/u.max;ctx.fillStyle='rgba(0,0,0,.6)';ctx.fillRect(x-w/2,y+48,w,5);ctx.fillStyle=p>.6?'#2ecc71':p>.3?'#f39c12':'#e74c3c';ctx.fillRect(x-w/2,y+48,w*p,5);
   if(u.dead){ctx.fillStyle='rgba(20,15,10,.75)';ctx.fillRect(x-40,y-36,80,72);}
+}
+function drawTank(u,c){
+  const x=u.x,y=u.y;
+  ctx.save();ctx.translate(x+4,y+4);ctx.rotate(u.hull);ctx.fillStyle='rgba(0,0,0,.32)';ctx.fillRect(-18,-13,36,26);ctx.restore();
+  ctx.save();ctx.translate(x,y);ctx.rotate(u.hull);
+  ctx.fillStyle='#26261e';ctx.fillRect(-18,-13,36,8);ctx.fillRect(-18,5,36,8);
+  ctx.fillStyle='#45453a';for(let k=-16;k<18;k+=5){ctx.fillRect(k,-12,2,6);ctx.fillRect(k,6,2,6);}
+  ctx.fillStyle=c.dark;ctx.fillRect(-16,-7,32,14);
+  ctx.fillStyle='rgba(255,255,255,.14)';ctx.fillRect(-16,-7,32,4);
+  ctx.strokeStyle='#111';ctx.lineWidth=1;ctx.strokeRect(-16.5,-7.5,33,15);
+  ctx.restore();
+  ctx.save();ctx.translate(x,y);ctx.rotate(u.facing);
+  ctx.fillStyle='#1a1a16';ctx.fillRect(6,-2.5,24,5);
+  ctx.fillStyle=c.main;ctx.beginPath();ctx.arc(-2,0,8,0,Math.PI*2);ctx.fill();ctx.strokeStyle='#111';ctx.stroke();
+  ctx.fillStyle=c.light;ctx.beginPath();ctx.arc(-3,-2,2.5,0,Math.PI*2);ctx.fill();
+  if(u.muzzle>0){ctx.fillStyle='rgba(255,220,120,.95)';ctx.beginPath();ctx.arc(32,0,6,0,Math.PI*2);ctx.fill();}
+  ctx.restore();
+  if(u.sel){ctx.strokeStyle='rgba(255,255,255,.9)';ctx.lineWidth=1.5;ctx.setLineDash([4,3]);ctx.beginPath();ctx.arc(x,y,24,0,Math.PI*2);ctx.stroke();ctx.setLineDash([]);}
+  if(u.hp<u.max||u.sel){const w=34,p=u.hp/u.max;ctx.fillStyle='rgba(0,0,0,.6)';ctx.fillRect(x-w/2,y-27,w,4);ctx.fillStyle=p>.6?'#2ecc71':p>.3?'#f39c12':'#e74c3c';ctx.fillRect(x-w/2,y-27,w*p,4);}
+}
+function drawWreck(w){
+  ctx.save();ctx.translate(w.x,w.y);ctx.rotate(w.a);
+  ctx.fillStyle='#1c1a16';ctx.fillRect(-18,-13,36,8);ctx.fillRect(-18,5,36,8);
+  ctx.fillStyle='#3a342c';ctx.fillRect(-16,-7,32,14);ctx.fillStyle='#2a2622';ctx.beginPath();ctx.arc(-2,0,8,0,Math.PI*2);ctx.fill();ctx.fillRect(6,-2,20,4);
+  ctx.restore();
 }
 function drawBunker(u,c){
   const x=u.x,y=u.y;
@@ -982,9 +1092,10 @@ function updateHUD(){
     b.querySelector('.c').textContent=cds[k]>0?'RELOAD '+Math.ceil(cds[k])+'s':k==='rocket'?(rocketsP>0?'1 ROCKET · '+rocketsP+' LEFT':'NO ROCKETS · '+Math.ceil(ROCKET_REGEN-rocketRegen)+'s'):s.cost+' SUPPLY';}
   document.getElementById('cb-rifle').classList.toggle('off',sup<UT.rifle.cost);
   document.getElementById('cb-sf').classList.toggle('off',sup<UT.sf.cost);
+  document.getElementById('cb-tank').classList.toggle('off',sup<UT.tank.cost);
   const s=document.getElementById('sel');
-  if(sel.length){const rif=sel.filter(u=>u.type==='rifle').length,sf=sel.length-rif;const hp=sel.reduce((a,u)=>a+u.hp,0),mx=sel.reduce((a,u)=>a+u.max,0);
-    s.innerHTML='<div class="t">'+sel.length+' SQUAD'+(sel.length>1?'S':'')+' SELECTED</div><div class="r">'+(rif?rif+' RIFLE ':'')+(sf?sf+' SPEC OPS ':'')+'· STRENGTH '+Math.round(hp/mx*100)+'%</div><div class="r">Right-click: move · H: halt · Space: centre</div>';}
+  if(sel.length){const rif=sel.filter(u=>u.type==='rifle').length,tk=sel.filter(u=>u.type==='tank').length,sf=sel.length-rif-tk;const hp=sel.reduce((a,u)=>a+u.hp,0),mx=sel.reduce((a,u)=>a+u.max,0);
+    s.innerHTML='<div class="t">'+sel.length+' UNIT'+(sel.length>1?'S':'')+' SELECTED</div><div class="r">'+(rif?rif+' RIFLE ':'')+(sf?sf+' SPEC OPS ':'')+(tk?tk+' TANK'+(tk>1?'S ':' '):'')+'· STRENGTH '+Math.round(hp/mx*100)+'%</div><div class="r">Right-click: move · H: halt · Space: centre</div>';}
   else s.innerHTML='<div class="t">NO SELECTION</div><div class="r">Drag to box-select · Right-click to move</div><div class="r">Rally point: right-click with nothing selected</div>';
 }
 
@@ -1001,7 +1112,7 @@ function loop(now){
 function beginMission(){
   document.getElementById('brief').classList.add('hidden');ac();
   running=true;last=performance.now();
-  banner('OPERATION RIVERGATE · BEGIN',2400);
+  banner(OP.name+' · BEGIN',2400);
   log('COMMAND ONLINE · SEIZE THE OBJECTIVES','good');
 }
 initWorld();
