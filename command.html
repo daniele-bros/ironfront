@@ -124,7 +124,12 @@ a.tbtn{text-decoration:none;}
   <div style="font-size:10px;letter-spacing:6px;color:#8a9a60;margin:6px 0 18px;">TROOPS · SPECIAL FORCES · TANKS · ROCKETS · AIRCRAFT</div>
   <h2 id="brief-name" style="font-family:'Oswald',sans-serif;font-size:24px;letter-spacing:6px;color:#ddd5b0;margin:0;">OPERATION RIVERGATE</h2>
   <div class="sub" id="brief-sub">DAY 1</div>
-  <div id="op-select" class="row" style="margin-bottom:14px;flex-wrap:wrap;justify-content:center;max-width:820px;"></div>
+  <div id="op-select" class="row" style="margin-bottom:14px;align-items:center;justify-content:center;gap:8px;">
+    <button class="cb" id="op-prev" style="min-width:auto;padding:8px 12px;">&#9664;</button>
+    <select id="op-pick" style="background:#0c1506;color:#e8c84a;border:1px solid #3a5018;border-radius:3px;font-family:inherit;font-size:12px;letter-spacing:1px;padding:8px 10px;max-width:420px;"></select>
+    <button class="cb" id="op-next" style="min-width:auto;padding:8px 12px;">&#9654;</button>
+    <div id="op-progress" style="font-size:10px;color:#8a9a60;letter-spacing:2px;margin-left:8px;"></div>
+  </div>
   <div class="brief">
     <div><b>MISSION:</b> <span id="brief-mission"></span></div>
     <div id="brief-win" style="margin-top:4px;color:#e8c84a;">TO WIN: hold all six objectives <b>and</b> destroy the enemy HQ. Rockets and bombs alone will not do it; troops must plant the flag.</div>
@@ -349,8 +354,100 @@ const TARGET_MISSIONS=[
    enemy:{reinBase:999,reinMin:999,tankEvery:0,tankAfter:1e9,cap:0},
    brief:'Night insertion. You have one special forces team and no support of any kind. Patrols sweep the roads; the red rings show how far they can see. Stay in forest and hold still to vanish. Reach the Manor, get within 150 m with a clear line to a window, then press T to take the shot. If the alarm goes up, break contact and hide until it passes.'}
 ];
+// ════════════════════════════════════════
+// PROCEDURAL OPERATIONS · fills the campaign out to TOTAL_OPS
+// ════════════════════════════════════════
+const TOTAL_OPS=1000; // every 11th is a secret target mission (after each ten battles)
+function mkRng(seed){let q=(seed>>>0)||1;return ()=>{q=(q*1664525+1013904223)>>>0;return q/4294967296;};}
+function riverXAt(rv,y){return Math.round(rv.base+Math.sin(y*rv.f1)*rv.a1+Math.sin(y*rv.f2+rv.ph)*rv.a2);}
+function waterAt(rivers,x,y,m){for(const rv of rivers)if(Math.abs(x-riverXAt(rv,y))<=(rv.rw||1)+(m||0))return true;return false;}
+const ADJ=['IRON','STEEL','GREY','RED','BLACK','SILENT','NORTHERN','WINTER','AMBER','COBALT','CRIMSON','GRANITE','HOLLOW','THUNDER','FROST','SCARLET','BRONZE','SHADOW','BROKEN','SILVER','GOLDEN','BITTER','LONG','HIGH','BLUE'];
+const NOUN=['HAMMER','ANVIL','LANCE','SHIELD','TORRENT','FALCON','WOLF','SERPENT','SPEAR','DAWN','TIDE','FORGE','VANGUARD','RAMPART','ECHO','RAVEN','SABRE','CROSSING','HARVEST','GAUNTLET','LANTERN','CITADEL','MERIDIAN','TEMPEST','HORIZON','VORTEX','SENTINEL','JAVELIN','FURNACE','COMPASS','BEACON','GLACIER','EMBER','CAVALRY','MARCH','SUMMIT','VALLEY','HAVEN','WARDEN','PHALANX'];
+const OBJN=['FARM','MILL','DEPOT','CHURCH','QUARRY','RAIL YARD','FUEL DUMP','RADIO POST','AIRFIELD','FORT','VILLAGE','CROSSROADS','OUTPOST','FACTORY','ARSENAL','BARRACKS','SAWMILL','DAM','MONASTERY','SIGNAL HILL','ORCHARD','FERRY','LOCKS','PUMP HOUSE','WATCHTOWER','GRANARY','HARBOUR','SCHOOLHOUSE','BREWERY','TOLL HOUSE'];
+const SURN=['VON HALDER','KESSLER','BRANDT','VOSS','REINHARDT','HOFFMANN','STRAUSS','LINDQVIST','MORETTI','DUBOIS','OKONKWO','PETROV','NAKAMURA','HARGREAVE','SALAZAR','KOVAC','IBSEN','FERRAND','MALLORY','ZIEGLER'];
+const RANK=['GENERAL','COLONEL','MARSHAL','ADMIRAL','COMMANDANT','BRIGADIER'];
+const BLDG=['THE MANOR','THE VILLA','THE CHATEAU','THE LODGE','THE RECTORY','THE OBSERVATORY','THE CASINO','THE TOWN HALL','THE CLINIC','THE MILL HOUSE'];
+function opName(i){return 'OPERATION '+ADJ[i%ADJ.length]+' '+NOUN[Math.floor(i/ADJ.length)%NOUN.length];}
+function genRivers(r){
+  const k=r();let rivers=[],kind='plain';
+  if(k<.15){rivers=[];}
+  else if(k<.7){kind='river';rivers=[{base:22+Math.floor(r()*20),a1:2+r()*5,f1:.1+r()*.2,a2:1.5+r()*2,f2:.05+r()*.35,ph:r()*6.28}];}
+  else if(k<.85){kind='wide river';rivers=[{base:26+Math.floor(r()*12),a1:2+r()*3,f1:.1+r()*.2,a2:1+r()*1.5,f2:.05+r()*.3,ph:r()*6.28,rw:2}];}
+  else{kind='twin rivers';rivers=[{base:18+Math.floor(r()*5),a1:1.5+r()*1.5,f1:.1+r()*.2,a2:1+r(),f2:.05+r()*.3,ph:r()*6.28},{base:42+Math.floor(r()*5),a1:1.5+r()*1.5,f1:.1+r()*.2,a2:1+r(),f2:.05+r()*.3,ph:r()*6.28}];}
+  const bridges=r()<.5?[6+Math.floor(r()*6),28+Math.floor(r()*8)]:[5+Math.floor(r()*4),19+Math.floor(r()*4),33+Math.floor(r()*4)];
+  return {rivers,bridges,kind};
+}
+function pickCell(r,rivers,x0,x1,y0,y1,mirror,taken){
+  for(let t=0;t<60;t++){
+    let cx=x0+Math.floor(r()*(x1-x0+1)),cy=y0+Math.floor(r()*(y1-y0+1));
+    if(mirror)cx=GW-1-cx;
+    cx=Math.max(3,Math.min(GW-4,cx));cy=Math.max(3,Math.min(GH-4,cy));
+    if(waterAt(rivers,cx,cy,2))continue;
+    if(taken.some(q=>Math.hypot(q.cx-cx,q.cy-cy)<7))continue;
+    return {cx,cy};
+  }
+  return null;
+}
+function genBattle(i){
+  const r=mkRng(1000+i*7919),d=Math.min(1,(i-10)/890);
+  const rv=genRivers(r);
+  const corner=Math.floor(r()*4);const pcx=corner<2?3:61,pcy=corner%2?3:38;
+  const hqP={cx:pcx,cy:pcy},hqE={cx:64-pcx,cy:41-pcy};
+  const mirror=pcx>GW/2,top=pcy<GH/2;
+  const taken=[{cx:pcx,cy:pcy},{cx:hqE.cx,cy:hqE.cy}];
+  const slots=[
+    ['own',10,16,top?6:26,top?14:34],
+    ['nA',18,26,4,12],['nB',18,26,28,36],['nC',30,42,12,28],
+    ['eA',46,54,4,14],['eB',46,56,26,36]];
+  const objs=[];let nameOff=Math.floor(r()*OBJN.length);
+  for(const [kind,x0,x1,y0,y1] of slots){
+    const c=pickCell(r,rv.rivers,x0,x1,y0,y1,mirror,taken);if(!c)continue;taken.push(c);
+    const o={id:'b'+i+'_'+kind,name:OBJN[(nameOff++)%OBJN.length],cx:c.cx,cy:c.cy,owner:kind==='own'?0:kind[0]==='e'?1:-1};
+    if(kind==='nC'||kind[0]==='e')o.bunker=true;else if(d>.5&&r()<.5)o.bunker=true;
+    if(kind[0]==='e'){const nt=1+(d>.3?1:0)+(d>.7?1:0);if(nt>1)o.tanks=nt;else o.tank=true;}
+    else if(kind[0]==='n'&&d>.35&&r()<.6)o.tank=true;
+    if(r()<.3+d*.5)o.sf=true;
+    objs.push(o);
+  }
+  const tintK=r();const tint=tintK<.12?'rgba(8,18,60,.32)':tintK<.24?'rgba(210,160,60,.16)':null;
+  const forests=rv.kind==='plain'?10+Math.floor(r()*18):14+Math.floor(r()*30);
+  const af=objs.find(o=>o.name==='AIRFIELD');
+  const nBunk=objs.filter(o=>o.bunker).length,nTank=objs.reduce((a,o)=>a+(o.tanks||(o.tank?1:0)),0);
+  const op={id:'b'+i,name:opName(i),sub:'DAY '+(i+1)+' · '+rv.kind.toUpperCase()+(tint?(tintK<.12?' · NIGHT':' · DESERT'):''),seed:1000+i,
+    river:null,rivers:rv.rivers,bridges:rv.bridges,vroads:[5+Math.floor(r()*6),53+Math.floor(r()*6)],forests,tint,
+    hqP,hqE,airfield:af?af.id:null,objs,
+    start:{sup:300+Math.floor(600*d),rocketsP:4+Math.floor(6*d),rocketsE:2+Math.floor(10*d),rifle:4+Math.floor(4*d),sf:1+Math.floor(3*d),tank:Math.floor(6*d)},
+    enemy:{reinBase:Math.max(8,22-12*d),reinMin:Math.max(6,10-4*d),tankEvery:d<.3?3:d<.6?2:1,tankAfter:Math.max(0,120-120*d),cap:Math.floor(24+36*d),para:d>.5?[40,70]:undefined},
+    brief:'Seize all six objectives and destroy the enemy headquarters. Do not lose your own HQ. '+(rv.kind==='plain'?'Open country with no river: expect armour in the open. ':rv.kind==='twin rivers'?'Two rivers split the map; the island between them is the key. ':rv.kind==='wide river'?'A wide river with few crossings; hold the bridges. ':'')+'Intelligence reports '+nBunk+' bunker'+(nBunk===1?'':'s')+' and '+nTank+' tank'+(nTank===1?'':'s')+' in the enemy garrisons, with '+(2+Math.floor(10*d))+' rockets in their stockpile.'};
+  return op;
+}
+function genTarget(k){
+  const r=mkRng(7000+k*104729),d=Math.min(1,k/99);
+  const rv=genRivers(r);
+  const corner=Math.floor(r()*4);const pcx=corner<2?3:61,pcy=corner%2?3:38;
+  const hqP={cx:pcx,cy:pcy},hqE={cx:64-pcx,cy:41-pcy};
+  const mirror=pcx>GW/2;
+  let target=null;for(let t=0;t<80&&!target;t++){let cx=44+Math.floor(r()*12),cy=4+Math.floor(r()*32);if(mirror)cx=GW-1-cx-1;if(!waterAt(rv.rivers,cx,cy,3)&&!waterAt(rv.rivers,cx+1,cy+1,3)&&Math.hypot(cx-hqE.cx,cy-hqE.cy)>7)target={cx,cy};}
+  if(!target)target={cx:mirror?12:50,cy:20};
+  const nP=7+Math.floor(d*8),patrols=[];
+  for(let n=0;n<nP;n++){const pts=[];const np=2+Math.floor(r()*3);let tries=0;
+    while(pts.length<np&&tries<40){tries++;const cx=3+Math.floor(r()*(GW-6)),cy=3+Math.floor(r()*(GH-6));if(waterAt(rv.rivers,cx,cy,1))continue;if(Math.hypot(cx-hqP.cx,cy-hqP.cy)<9)continue;if(pts.length&&Math.hypot(cx-pts[pts.length-1][0],cy-pts[pts.length-1][1])<8)continue;pts.push([cx,cy]);}
+    if(pts.length>=2)patrols.push(pts);}
+  const guards=[];const ng=2+Math.floor(d*3);for(let g=0;g<ng;g++){const a=r()*6.28;guards.push([Math.round(target.cx+.5+Math.cos(a)*3),Math.round(target.cy+.5+Math.sin(a)*3)]);}
+  const name=RANK[k%RANK.length]+' '+SURN[Math.floor(k/RANK.length)%SURN.length],building=BLDG[k%BLDG.length];
+  const night=r()<.75;
+  return {id:'t'+k,kind:'target',name:'OPERATION '+NOUN[(k*7)%NOUN.length]+' '+ADJ[(k*3)%ADJ.length],sub:'TARGET MISSION · '+name,seed:7000+k,
+    river:null,rivers:rv.rivers,bridges:rv.bridges,vroads:[5+Math.floor(r()*6),53+Math.floor(r()*6)],forests:36+Math.floor(r()*14),tint:night?'rgba(8,18,60,.32)':'rgba(60,30,10,.22)',
+    hqP,hqE,airfield:null,objs:[],target:{cx:target.cx,cy:target.cy,name,building},patrols,guards,
+    start:{sup:0,rocketsP:0,rocketsE:0,rifle:0,sf:0,tank:0},enemy:{reinBase:999,reinMin:999,tankEvery:0,tankAfter:1e9,cap:0},
+    brief:(night?'Night insertion. ':'Dusk insertion. ')+'One special forces team, no support. '+patrols.length+' patrols sweep the area and '+ng+' guards watch '+building.toLowerCase()+', where '+name+' is holed up. Stay in the trees, hold still to vanish, get within 150 m with a clear line to a window and press T.'};
+}
 const OPS=[];
-BATTLES.forEach((b,i)=>{OPS.push(b);if((i+1)%10===0&&TARGET_MISSIONS[(i+1)/10-1])OPS.push(TARGET_MISSIONS[(i+1)/10-1]);});
+{let bi=0,ti=0;
+ while(OPS.length<TOTAL_OPS){
+   for(let n=0;n<10&&OPS.length<TOTAL_OPS;n++){OPS.push(bi<BATTLES.length?BATTLES[bi]:genBattle(bi));bi++;}
+   if(OPS.length<TOTAL_OPS){OPS.push(ti<TARGET_MISSIONS.length?TARGET_MISSIONS[ti]:genTarget(ti));ti++;}
+ }}
 let opIndex=0,opWon=0;
 try{opWon=Math.min(OPS.length,parseInt(localStorage.getItem('ifcm_won')||'0')||0);opIndex=Math.min(opWon,Math.max(0,parseInt(localStorage.getItem('ifcm_op')||'0')||0));}catch(e){}
 if(opIndex>=OPS.length)opIndex=OPS.length-1;
@@ -387,7 +484,7 @@ function genTerrain(){
   const rivers=OP.rivers||(OP.river?[OP.river]:[]);
   for(const rv of rivers){const w=rv.rw||1;
     for(let y=0;y<GH;y++){
-      const cx=Math.round(rv.base+Math.sin(y*rv.f1)*rv.a1+Math.sin(y*rv.f2+rv.ph)*rv.a2);
+      const cx=riverXAt(rv,y);
       for(let d=-w;d<=w;d++)setT(cx+d,y,3);
     }
   }
@@ -554,11 +651,14 @@ function initWorld(){
   document.getElementById('brief-name').textContent=OP.name;document.getElementById('top-op').textContent=OP.name+' · '+(opIndex+1)+'/'+OPS.length;
   document.getElementById('brief-sub').textContent=OP.sub+' · '+(opIndex+1)+' OF '+OPS.length;
   document.getElementById('brief-mission').textContent=OP.brief;
-  const opSel=document.getElementById('op-select');opSel.innerHTML='';
-  OPS.forEach((o,i)=>{const b=document.createElement('button');b.className='cb'+(i===opIndex?' active':'')+(i>opWon?' off':'');
-    b.style.minWidth='150px';b.innerHTML='<span class="n">'+(i+1)+' · '+o.name.replace('OPERATION ','')+'</span><span class="d">'+(i>opWon?'LOCKED · WIN OPERATION '+i+' FIRST':o.sub)+'</span>';
-    b.onclick=()=>{if(i>opWon)return;try{localStorage.setItem('ifcm_op',String(i));}catch(e){}if(i!==opIndex)location.reload();};
-    opSel.appendChild(b);});
+  const pick=document.getElementById('op-pick');pick.innerHTML='';
+  const goOp=(i)=>{if(i<0||i>=OPS.length||i>opWon)return;try{localStorage.setItem('ifcm_op',String(i));}catch(e){}if(i!==opIndex)location.reload();};
+  OPS.forEach((o,i)=>{const e=document.createElement('option');e.value=i;e.disabled=i>opWon;e.selected=i===opIndex;
+    e.textContent=(i+1)+' · '+(o.kind==='target'?'\u2605 ':'')+o.name.replace('OPERATION ','')+(i>opWon?' · LOCKED':'');pick.appendChild(e);});
+  pick.onchange=()=>goOp(parseInt(pick.value));
+  document.getElementById('op-prev').onclick=()=>goOp(opIndex-1);document.getElementById('op-next').onclick=()=>goOp(opIndex+1);
+  document.getElementById('op-prev').classList.toggle('off',opIndex<=0);document.getElementById('op-next').classList.toggle('off',opIndex+1>opWon||opIndex+1>=OPS.length);
+  document.getElementById('op-progress').textContent=opWon+' / '+OPS.length+' WON';
   resize();centerHQ();
 }
 
