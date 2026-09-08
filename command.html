@@ -72,6 +72,7 @@ a.tbtn{text-decoration:none;}
   <div class="stat"><div class="hl">SUPPLY</div><div class="hv sup"><span id="h-sup">0</span><span class="rate" id="h-rate">+0/s</span></div></div>
   <div class="stat"><div class="hl">OBJECTIVES</div><div class="hv" id="h-obj">0 / 6</div></div>
   <div class="stat"><div class="hl">FORCES</div><div class="hv" id="h-units">0</div></div>
+  <div class="stat"><div class="hl">ROCKETS · ENEMY</div><div class="hv" id="h-rockets">4 · 2</div></div>
   <div class="stat"><div class="hl">ENEMY KIA</div><div class="hv" id="h-kills">0</div></div>
   <div class="stat"><div class="hl">MISSION TIME</div><div class="hv" id="h-time">00:00</div></div>
   <div style="display:flex;gap:6px;">
@@ -98,7 +99,7 @@ a.tbtn{text-decoration:none;}
   </div>
   <div class="grp"><div class="hl">FIRE SUPPORT · CLICK MAP TO TARGET</div>
     <div class="row">
-      <button class="cb" id="cb-rocket" onclick="armSupport('rocket')"><span class="k">R</span><span class="n">ROCKET SALVO</span><span class="c">120 SUPPLY</span><span class="d">4 rockets from HQ · big blast</span><div class="cd"></div></button>
+      <button class="cb" id="cb-rocket" onclick="armSupport('rocket')"><span class="k">R</span><span class="n">ROCKET SALVO</span><span class="c">1 ROCKET · 4 LEFT</span><span class="d">Stockpile rebuilds slowly · enemy steals them</span><div class="cd"></div></button>
       <button class="cb" id="cb-bomber" onclick="armSupport('bomber')"><span class="k">B</span><span class="n">BOMBER RUN</span><span class="c">150 SUPPLY</span><span class="d">Aircraft drops 5 bombs in a line</span><div class="cd"></div></button>
       <button class="cb" id="cb-para" onclick="armSupport('para')"><span class="k">P</span><span class="n">PARADROP</span><span class="c">130 SUPPLY</span><span class="d">Aircraft drops special forces</span><div class="cd"></div></button>
     </div>
@@ -131,7 +132,9 @@ a.tbtn{text-decoration:none;}
         <b>FIRE SUPPORT</b><br>
         <span class="k">R</span> Rocket salvo · <span class="k">B</span> Bomber run · <span class="k">P</span> Paradrop<br>
         Then click the map to pick a target. <span class="k">Esc</span> cancels.<br>
-        Blasts hurt everyone. Keep your troops clear.<br><br>
+        Blasts hurt everyone. Keep your troops clear.<br>
+        <b>ROCKETS</b> come from a stockpile, not supply. You start with 4 and rebuild one every 50s.<br>
+        The enemy has only <b>2</b>. Every objective they take from you steals one of yours. Take it back to recover it.<br><br>
         <b>CAMERA</b><br>
         <span class="k">WASD</span>/arrows · edge scroll · <span class="k">Wheel</span> zoom · <span class="k">Middle-drag</span> pan
       </div>
@@ -169,7 +172,7 @@ const UT={
   hq:{name:'HEADQUARTERS',hp:2600,spd:0,range:165,dmg:11,rof:.33,sight:300,men:0,mobile:false}
 };
 const SUPPORT={
-  rocket:{name:'ROCKET SALVO',cost:120,cd:14},
+  rocket:{name:'ROCKET SALVO',cost:0,cd:14},
   bomber:{name:'BOMBER RUN',cost:150,cd:22},
   para:{name:'PARADROP',cost:130,cd:26}
 };
@@ -311,6 +314,7 @@ let units=[],objs=[],fx=[],rockets=[],planes=[],bombs=[],paras=[],craters=[],tra
 let sup=300,supRate=0,time=0,kills=0,losses=0,strikes=0,running=false,paused=false,over=false;
 let cam={x:0,y:0,z:1},mouse={x:0,y:0,wx:0,wy:0,in:false},drag=null,pan=null,mode=null,sel=[],rally=null;
 let cds={rocket:0,bomber:0,para:0};
+let rocketsP=4,rocketsE=2,rocketRegen=0;const ROCKET_MAX=6,ROCKET_REGEN=50;
 let shake=0,uid=1;
 const ai={t:5,focus:null,focusT:0,reinT:32,rocketT:95,paraT:130};
 let soundOn=true;
@@ -465,6 +469,7 @@ function recruit(type){
 function armSupport(k){
   if(!running||over)return;const s=SUPPORT[k];
   if(cds[k]>0){log(s.name+' RELOADING · '+Math.ceil(cds[k])+'s','bad');return;}
+  if(k==='rocket'&&rocketsP<=0){log('NO ROCKETS IN STOCKPILE · ONE REBUILDS EVERY '+ROCKET_REGEN+'s','bad');return;}
   if(sup<s.cost){log('NOT ENOUGH SUPPLY FOR '+s.name,'bad');return;}
   if(mode===k){mode=null;hint('');cv.classList.remove('target');return;}
   mode=k;cv.classList.add('target');
@@ -474,6 +479,7 @@ function armSupport(k){
 function cancelMode(){mode=null;hint('');cv.classList.remove('target');}
 function fireSupport(k,wx,wy){
   const s=SUPPORT[k];if(sup<s.cost||cds[k]>0)return;
+  if(k==='rocket'){if(rocketsP<=0)return;rocketsP--;}
   sup-=s.cost;cds[k]=s.cd;strikes++;
   if(k==='rocket')launchRockets(0,wx,wy);
   else if(k==='bomber')launchPlane('bomber',0,wx,wy);
@@ -609,6 +615,7 @@ function update(dt){
   // supply
   supRate=5+2.5*objCount(0);sup=Math.min(999,sup+supRate*dt);
   for(const k in cds)cds[k]=Math.max(0,cds[k]-dt);
+  if(rocketsP<ROCKET_MAX){rocketRegen+=dt;if(rocketRegen>=ROCKET_REGEN){rocketRegen=0;rocketsP++;log('ROCKET STOCKPILE +1 · '+rocketsP+' READY','good');}}else rocketRegen=0;
   shake=Math.max(0,shake-dt*20);
 
   updateUnits(dt);updateObjectives(dt);updateAI(dt);
@@ -697,8 +704,8 @@ function updateObjectives(dt){
     let dir=0;if(p&&!e)dir=1;else if(e&&!p)dir=-1;
     if(dir){const rate=.16*Math.min(3,dir>0?p:e);o.cap=clamp(o.cap+dir*rate*dt,-1,1);}
     const prev=o.owner;
-    if(o.cap>=1&&o.owner!==0){o.owner=0;log(o.name+' CAPTURED','good');banner(o.name+' SECURED',1600);}
-    else if(o.cap<=-1&&o.owner!==1){o.owner=1;log(o.name+' LOST TO THE ENEMY','bad');if(prev===0)sAlert();}
+    if(o.cap>=1&&o.owner!==0){o.owner=0;log(o.name+' CAPTURED','good');banner(o.name+' SECURED',1600);if(prev===1&&rocketsE>0&&rocketsP<ROCKET_MAX){rocketsE--;rocketsP++;log('ROCKET RECOVERED FROM '+o.name+' · ENEMY HAS '+rocketsE+' LEFT','good');}}
+    else if(o.cap<=-1&&o.owner!==1){o.owner=1;log(o.name+' LOST TO THE ENEMY','bad');if(prev===0){sAlert();if(rocketsP>0){rocketsP--;rocketsE++;log('ENEMY RAIDED '+o.name+' AND STOLE A ROCKET · THEY NOW HAVE '+rocketsE,'bad');banner('ROCKET STOLEN',1800);}}}
     else if(o.owner===0&&o.cap<=0)o.owner=-1;else if(o.owner===1&&o.cap>=0)o.owner=-1;
     if(prev===0&&o.owner!==0)log(o.name+' CONTROL LOST','bad');
     o.contested=p>0&&e>0;
@@ -742,7 +749,7 @@ function updateAI(dt){
   }
   if(ai.rocketT<=0){
     ai.rocketT=rr(45,70);
-    const cl=bestCluster();if(cl)launchRockets(1,cl.x,cl.y);
+    if(rocketsE>0){const cl=bestCluster();if(cl){rocketsE--;launchRockets(1,cl.x,cl.y);log('ENEMY HAS '+rocketsE+' ROCKET'+(rocketsE===1?'':'S')+' LEFT','bad');}}
   }
   if(ai.paraT<=0){
     ai.paraT=rr(70,100);
@@ -969,9 +976,10 @@ function updateHUD(){
   document.getElementById('h-obj').textContent=objCount(0)+' / '+objs.length;
   document.getElementById('h-units').textContent=units.filter(u=>u.team===0&&!u.dead&&UT[u.type].mobile).length;
   document.getElementById('h-kills').textContent=kills;
+  document.getElementById('h-rockets').textContent=rocketsP+' · '+rocketsE;
   document.getElementById('h-time').textContent=fmtT(time);
-  for(const k in SUPPORT){const b=document.getElementById('cb-'+k);const s=SUPPORT[k];b.classList.toggle('active',mode===k);b.classList.toggle('off',sup<s.cost||cds[k]>0);b.querySelector('.cd').style.width=(cds[k]/s.cd*100)+'%';
-    b.querySelector('.c').textContent=cds[k]>0?'RELOAD '+Math.ceil(cds[k])+'s':s.cost+' SUPPLY';}
+  for(const k in SUPPORT){const b=document.getElementById('cb-'+k);const s=SUPPORT[k];b.classList.toggle('active',mode===k);b.classList.toggle('off',sup<s.cost||cds[k]>0||(k==='rocket'&&rocketsP<=0));b.querySelector('.cd').style.width=(cds[k]/s.cd*100)+'%';
+    b.querySelector('.c').textContent=cds[k]>0?'RELOAD '+Math.ceil(cds[k])+'s':k==='rocket'?(rocketsP>0?'1 ROCKET · '+rocketsP+' LEFT':'NO ROCKETS · '+Math.ceil(ROCKET_REGEN-rocketRegen)+'s'):s.cost+' SUPPLY';}
   document.getElementById('cb-rifle').classList.toggle('off',sup<UT.rifle.cost);
   document.getElementById('cb-sf').classList.toggle('off',sup<UT.sf.cost);
   const s=document.getElementById('sel');
