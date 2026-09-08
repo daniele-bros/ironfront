@@ -127,6 +127,7 @@ a.tbtn{text-decoration:none;}
   <div id="op-select" class="row" style="margin-bottom:14px;flex-wrap:wrap;justify-content:center;max-width:820px;"></div>
   <div class="brief">
     <div><b>MISSION:</b> <span id="brief-mission"></span></div>
+    <div id="brief-win" style="margin-top:4px;color:#e8c84a;">TO WIN: hold all six objectives <b>and</b> destroy the enemy HQ. Rockets and bombs alone will not do it; troops must plant the flag.</div>
     <div style="margin:6px 0 8px;">Supply arrives over time; each objective you hold speeds it up. Spend it on squads and fire support.</div>
     <div class="cols" id="brief-controls">
       <div>
@@ -208,7 +209,7 @@ const BATTLES=[
     {id:'radio',name:'RADIO STATION',cx:55,cy:7,owner:1,bunker:true,sf:true}],
    start:{sup:300,rocketsP:4,rocketsE:2,rifle:4,sf:1,tank:0},
    enemy:{reinBase:24,reinMin:12,tankEvery:3,tankAfter:150,cap:24},
-   brief:'Seize all six objectives or destroy the enemy headquarters. Do not lose your own HQ. One enemy tank guards the airfield: rockets and bombers kill it, rifles barely scratch it.'},
+   brief:'Seize all six objectives and destroy the enemy headquarters. Do not lose your own HQ. One enemy tank guards the airfield: rockets and bombers kill it, rifles barely scratch it.'},
   {id:'ironvale',name:'OPERATION IRONVALE',sub:'DAY 2 · ARMOURED COUNTERSTRIKE',seed:4711,
    river:{base:30,a1:7,f1:.13,a2:2.5,f2:.31,ph:.4},bridges:[6,21,36],vroads:[11,53],forests:34,
    hqP:{cx:3,cy:3},hqE:{cx:61,cy:38},airfield:null,
@@ -221,7 +222,7 @@ const BATTLES=[
     {id:'fortress',name:'FORTRESS',cx:50,cy:32,owner:1,bunker:true,tank:true,sf:true}],
    start:{sup:380,rocketsP:5,rocketsE:3,rifle:4,sf:1,tank:2},
    enemy:{reinBase:22,reinMin:11,tankEvery:2,tankAfter:60,cap:28},
-   brief:'The enemy has fallen back across a wider river and dug in with armour. Seize all six objectives or destroy their headquarters. You have two tanks: keep them on roads and open ground, they cannot enter forest. The enemy holds three rockets this time.'},
+   brief:'The enemy has fallen back across a wider river and dug in with armour. Seize all six objectives and destroy their headquarters. You have two tanks: keep them on roads and open ground, they cannot enter forest. The enemy holds three rockets this time.'},
   {id:'stoneford',name:'OPERATION STONEFORD',sub:'DAY 3 · THE WESTERN FORD',seed:2718,
    river:{base:22,a1:3,f1:.25,a2:2,f2:.11,ph:2},bridges:[8,20,33],vroads:[5,50],forests:30,
    hqP:{cx:3,cy:38},hqE:{cx:61,cy:3},airfield:null,
@@ -530,7 +531,7 @@ function initWorld(){
     for(const [cx,cy] of OP.guards||[]){const q=nearestPassable((cx+.5)*CS,(cy+.5)*CS);mkUnit('rifle',1,q[0],q[1]);}
     sup=0;rocketsP=0;rocketsE=0;rally=null;
     document.getElementById('grp-recruit').style.display='none';document.getElementById('grp-support').style.display='none';document.getElementById('grp-target').style.display='';
-    document.getElementById('brief-controls').style.display='none';document.getElementById('brief-target').style.display='';document.getElementById('h-obj-l').textContent='STATUS';
+    document.getElementById('brief-controls').style.display='none';document.getElementById('brief-target').style.display='';document.getElementById('brief-win').style.display='none';document.getElementById('h-obj-l').textContent='STATUS';
   }else{
   mkUnit('hq',0,(HQ_P.cx)*CS,(HQ_P.cy)*CS);
   mkUnit('hq',1,(HQ_E.cx)*CS,(HQ_E.cy)*CS);
@@ -1087,8 +1088,11 @@ function checkEnd(){
   if(TARGET_MODE){if(!units.some(u=>u.team===0&&!u.dead&&UT[u.type].mobile))endGame(false,'YOUR TEAM WAS LOST');return;}
   const phq=hqOf(0),ehq=hqOf(1);
   if(!phq||phq.dead){endGame(false,'HEADQUARTERS DESTROYED');return;}
-  if(!ehq||ehq.dead){endGame(true,'ENEMY HEADQUARTERS DESTROYED');return;}
-  if(objCount(0)===objs.length){checkEnd.hold=(checkEnd.hold||0)+1/60;if(checkEnd.hold>12){endGame(true,'ALL OBJECTIVES SECURED');}}
+  const hqDown=!ehq||ehq.dead,allObj=objCount(0)===objs.length;
+  if(hqDown&&!checkEnd.hqNote){checkEnd.hqNote=true;if(!allObj){banner('ENEMY HQ DESTROYED · CAPTURE EVERY OBJECTIVE',3000);log('ENEMY HQ DESTROYED · THEIR REINFORCEMENTS HAVE STOPPED · TAKE THE REMAINING OBJECTIVES','good');}}
+  if(allObj&&!hqDown&&!checkEnd.objNote){checkEnd.objNote=true;banner('ALL OBJECTIVES HELD · NOW DESTROY THE ENEMY HQ',3000);log('ALL OBJECTIVES HELD · DESTROY THE ENEMY HEADQUARTERS TO WIN','good');}
+  if(!allObj)checkEnd.objNote=false;
+  if(allObj&&hqDown){checkEnd.hold=(checkEnd.hold||0)+1/60;if(checkEnd.hold>6){endGame(true,'ALL OBJECTIVES SECURED · ENEMY HQ DESTROYED');}}
   else checkEnd.hold=0;
 }
 function endGame(win,why){
@@ -1322,7 +1326,7 @@ function updateHUD(){
       b.classList.toggle('active',!!aiming);b.classList.toggle('off',!ok&&!aiming);
       document.getElementById('aim-c').textContent=aiming?'AIMING… '+Math.ceil((aiming.T-aiming.t)*10)/10+'s':dd>AIM_R?Math.round(dd)+' M · TOO FAR':!los?'NO LINE OF SIGHT':me.path.length?'HOLD STILL':'IN RANGE · PRESS T';
       b.querySelector('.cd').style.width=aiming?(aiming.t/aiming.T*100)+'%':'0%';}
-  }else document.getElementById('h-obj').textContent=objCount(0)+' / '+objs.length;
+  }else{const ehq=hqOf(1);document.getElementById('h-obj').textContent=objCount(0)+' / '+objs.length+(ehq&&!ehq.dead?' · HQ UP':' · HQ DOWN');}
   document.getElementById('h-units').textContent=units.filter(u=>u.team===0&&!u.dead&&UT[u.type].mobile).length;
   document.getElementById('h-kills').textContent=kills;
   document.getElementById('h-rockets').textContent=rocketsP+' · '+rocketsE;
