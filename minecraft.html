@@ -62,8 +62,8 @@ canvas#gl{position:absolute;inset:0;width:100%;height:100%;display:block;image-r
 .bbar i{display:block;height:100%;background:linear-gradient(90deg,#c040ff,#7020c0);}
 .slot.armor{background-image:none}
 .slot.ench .icon,.hslot.ench .icon{filter:drop-shadow(0 0 3px #c060ff) drop-shadow(0 0 1px #fff);}
-.eopt{display:flex;align-items:center;gap:8px;width:220px;height:34px;background:#8b8b8b;border:2px solid;border-color:#373737 #fff #fff #373737;padding:2px 6px;margin-bottom:3px;cursor:pointer;font-size:12px;color:#404040;}
-.eopt.ok{background:#6f8f5f;color:#fff;}.eopt.ok:hover{background:#8ab070;}.eopt .lvl{margin-left:auto;font-size:14px;color:#7fea2f;text-shadow:1px 1px 0 #000;}.eopt.no .lvl{color:#f55;}.eopt .glyph{font-family:serif;letter-spacing:2px;color:#2a2a2a;}
+.eopt{display:flex;align-items:center;gap:8px;width:300px;height:34px;background:#8b8b8b;border:2px solid;border-color:#373737 #fff #fff #373737;padding:2px 6px;margin-bottom:3px;cursor:pointer;font-size:12px;color:#404040;}
+.eopt.ok{background:#6f8f5f;color:#fff;}.eopt.ok:hover{background:#8ab070;}.eopt .lvl{margin-left:auto;font-size:14px;color:#7fea2f;text-shadow:1px 1px 0 #000;}.eopt.no .lvl{color:#f55;}.eopt .glyph{font-family:serif;letter-spacing:1px;color:#555;font-size:11px;opacity:.7;}.eopt .ename{font-size:13px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}.eopt.ok .ename{color:#fff;text-shadow:1px 1px 0 #244;}
 .row{display:flex;align-items:center;gap:8px;}
 .arrow{width:44px;height:30px;position:relative;}
 .arrow:before{content:"";position:absolute;left:4px;top:11px;width:26px;height:8px;background:#8b8b8b;}
@@ -3110,10 +3110,10 @@ function renderEnchant(){const g=game.gui;if(!g||g.type!=='enchant')return;const
   const offers=enchOffers();if(!offers||(st.ench&&st.id!==379)){box.innerHTML='<div class="hint">'+(st&&st.ench?'That item is already enchanted.':'Place an item to see enchantments.')+'</div>';return}
   const glyphs='ᔑ⍑ᓵᒷ⎓⊣⍑╎⋮ꖌꖎᒲリ𝙹!¡ᑑ∷ᓭℸ⚍⍊∴ ̣⨅';
   offers.forEach((o,i)=>{const tier=i+1;const ok=creative||(p.level>=o.cost&&(lap?lap.count:0)>=tier&&p.level>=tier);const el=document.createElement('div');el.className='eopt '+(ok?'ok':'no');
-    let gl='';for(let k=0;k<7;k++)gl+=glyphs[(o.cost*3+k*5+i*11)%glyphs.length];
-    el.innerHTML='<span class="glyph">'+gl+'</span><span class="lvl">'+o.cost+'</span>';el.title=o.hint+' … ?  Cost: '+o.cost+' levels, '+tier+' lapis ('+tier+' level'+(tier>1?'s':'')+' spent)';
+    let gl='';for(let k=0;k<4;k++)gl+=glyphs[(o.cost*3+k*5+i*11)%glyphs.length];
+    el.innerHTML='<span class="glyph">'+gl+'</span><span class="ename">'+o.hint+(o.ench&&Object.keys(o.ench).length>1?' +'+(Object.keys(o.ench).length-1)+' more':'')+'</span><span class="lvl">'+o.cost+'</span>';el.title=o.hint+' … ?  Cost: '+o.cost+' levels, '+tier+' lapis ('+tier+' level'+(tier>1?'s':'')+' spent)';
     el.addEventListener('click',()=>{if(ok)doEnchant(i)});box.appendChild(el)});
-  $('enchHint').textContent='Bookshelves: '+offers[0].b+' / 15.  Hover an option to see one of its enchantments. Levels shown are what you need; you spend 1, 2 or 3 levels and that many lapis.'}
+  $('enchHint').textContent='Bookshelves: '+offers[0].b+' / 15.  Each row names its main enchantment; the number is the level you need. You spend 1, 2 or 3 levels and that many lapis.'}
 function doEnchant(i){const st=enchSlots[0];const lap=enchSlots[1];const p=player;const creative=p.mode==='creative';const offers=enchOffers();if(!offers)return;const o=offers[i];if(!o.ench){showMessage('Nothing to enchant');return}
   if(!creative){if(p.level<o.cost||(lap?lap.count:0)<i+1)return;lap.count-=i+1;if(lap.count<=0)enchSlots[1]=null;removeLevels(i+1)}
   if(st.id===378){st.id=379;st.count=1;const k=Object.keys(o.ench)[0];st.ench={[k]:o.ench[k]}}else st.ench=Object.assign({},o.ench);game.enchSeed=floor(Math.random()*1e9);playSound('enchant');spawnParticles('happy',player.x,player.y+1,player.z,6);
