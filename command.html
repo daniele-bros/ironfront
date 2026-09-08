@@ -117,7 +117,7 @@ a.tbtn{text-decoration:none;}
 <div id="brief" class="screen">
   <h1 id="brief-name">OPERATION RIVERGATE</h1>
   <div class="sub" id="brief-sub">DAY 1</div>
-  <div id="op-select" class="row" style="margin-bottom:14px;"></div>
+  <div id="op-select" class="row" style="margin-bottom:14px;flex-wrap:wrap;justify-content:center;max-width:820px;"></div>
   <div class="brief">
     <div><b>MISSION:</b> <span id="brief-mission"></span></div>
     <div style="margin:6px 0 8px;">Supply arrives over time; each objective you hold speeds it up. Spend it on squads and fire support.</div>
@@ -206,7 +206,111 @@ const OPS=[
     {id:'fortress',name:'FORTRESS',cx:50,cy:32,owner:1,bunker:true,tank:true,sf:true}],
    start:{sup:380,rocketsP:5,rocketsE:3,rifle:4,sf:1,tank:2},
    enemy:{reinBase:22,reinMin:11,tankEvery:2,tankAfter:60,cap:28},
-   brief:'The enemy has fallen back across a wider river and dug in with armour. Seize all six objectives or destroy their headquarters. You have two tanks: keep them on roads and open ground, they cannot enter forest. The enemy holds three rockets this time.'}
+   brief:'The enemy has fallen back across a wider river and dug in with armour. Seize all six objectives or destroy their headquarters. You have two tanks: keep them on roads and open ground, they cannot enter forest. The enemy holds three rockets this time.'},
+  {id:'stoneford',name:'OPERATION STONEFORD',sub:'DAY 3 · THE WESTERN FORD',seed:2718,
+   river:{base:22,a1:3,f1:.25,a2:2,f2:.11,ph:2},bridges:[8,20,33],vroads:[5,50],forests:30,
+   hqP:{cx:3,cy:38},hqE:{cx:61,cy:3},airfield:null,
+   objs:[
+    {id:'mill',name:'MILL',cx:10,cy:26,owner:0},
+    {id:'ford',name:'FORD',cx:27,cy:20,owner:-1},
+    {id:'chapel',name:'CHAPEL',cx:16,cy:6,owner:-1,sf:true},
+    {id:'squarry',name:'STONE QUARRY',cx:36,cy:34,owner:-1,bunker:true},
+    {id:'armoury',name:'ARMOURY',cx:47,cy:12,owner:1,bunker:true,tank:true},
+    {id:'castle',name:'CASTLE',cx:56,cy:30,owner:1,bunker:true,tank:true,sf:true}],
+   start:{sup:400,rocketsP:5,rocketsE:3,rifle:4,sf:2,tank:2},
+   enemy:{reinBase:21,reinMin:10,tankEvery:2,tankAfter:45,cap:30},
+   brief:'The river runs close to our lines here, so the fight is on the far bank. Cross early, take the Ford, then work north and south. The Castle is the enemy anchor: soften it with rockets before the assault.'},
+  {id:'delta',name:'OPERATION DELTA STORM',sub:'DAY 4 · THE WIDE WATER',seed:31337,
+   river:{base:33,a1:2,f1:.3,a2:1.5,f2:.09,ph:.5,rw:2},bridges:[5,21,37],vroads:[9,55],forests:20,
+   hqP:{cx:3,cy:3},hqE:{cx:61,cy:38},airfield:null,
+   objs:[
+    {id:'lock',name:'LOCK',cx:12,cy:21,owner:0},
+    {id:'westbank',name:'WEST BANK',cx:24,cy:6,owner:-1},
+    {id:'marsh',name:'MARSH TOWN',cx:24,cy:36,owner:-1,bunker:true},
+    {id:'eastbank',name:'EAST BANK',cx:43,cy:21,owner:-1,bunker:true,tank:true},
+    {id:'power',name:'POWER STATION',cx:52,cy:6,owner:1,bunker:true,tank:true},
+    {id:'docks',name:'DOCKS',cx:54,cy:34,owner:1,bunker:true,tank:true,sf:true}],
+   start:{sup:420,rocketsP:5,rocketsE:3,rifle:5,sf:2,tank:2},
+   enemy:{reinBase:20,reinMin:10,tankEvery:2,tankAfter:30,cap:32},
+   brief:'A river two hundred metres wide splits the map, with only three crossings. Whoever holds the bridges holds the battle. Bombers are ideal against a column caught on a bridge.'},
+  {id:'highlands',name:'OPERATION HIGHLANDS',sub:'DAY 5 · FOREST WAR',seed:8086,
+   river:null,bridges:[12,30],vroads:[7,57],forests:48,
+   hqP:{cx:3,cy:38},hqE:{cx:61,cy:3},airfield:null,
+   objs:[
+    {id:'logging',name:'LOGGING CAMP',cx:10,cy:30,owner:0},
+    {id:'ranger',name:'RANGER POST',cx:20,cy:12,owner:-1,sf:true},
+    {id:'lodge',name:'HUNTING LODGE',cx:32,cy:22,owner:-1,bunker:true,sf:true},
+    {id:'observatory',name:'OBSERVATORY',cx:44,cy:8,owner:-1,bunker:true,tank:true},
+    {id:'radar',name:'RADAR',cx:52,cy:32,owner:1,bunker:true,tank:true,sf:true},
+    {id:'summit',name:'SUMMIT',cx:56,cy:10,owner:1,bunker:true,tank:true,sf:true}],
+   start:{sup:400,rocketsP:6,rocketsE:4,rifle:5,sf:3,tank:1},
+   enemy:{reinBase:19,reinMin:9,tankEvery:3,tankAfter:60,cap:32,para:[50,80]},
+   brief:'No river, but dense forest everywhere. Tanks are confined to the roads. This is special forces country: their squads are hiding in the trees, and yours can too.'},
+  {id:'twinrivers',name:'OPERATION TWIN RIVERS',sub:'DAY 6 · THE ISLAND',seed:1234,
+   rivers:[{base:20,a1:2,f1:.22,a2:1.5,f2:.1,ph:1},{base:44,a1:2,f1:.2,a2:1.5,f2:.12,ph:2.5}],bridges:[9,21,33],vroads:[5,59],forests:24,
+   hqP:{cx:3,cy:3},hqE:{cx:61,cy:38},airfield:null,
+   objs:[
+    {id:'westfarm',name:'WEST FARM',cx:10,cy:14,owner:0},
+    {id:'ivillage',name:'ISLAND VILLAGE',cx:32,cy:9,owner:-1,bunker:true},
+    {id:'ifort',name:'ISLAND FORT',cx:32,cy:33,owner:-1,bunker:true,tank:true},
+    {id:'midcross',name:'MID CROSSING',cx:32,cy:21,owner:-1,bunker:true,tank:true,sf:true},
+    {id:'eastmill',name:'EAST MILL',cx:52,cy:14,owner:1,bunker:true,tank:true},
+    {id:'eastdepot',name:'EAST DEPOT',cx:54,cy:30,owner:1,bunker:true,tank:true,sf:true}],
+   start:{sup:450,rocketsP:6,rocketsE:4,rifle:5,sf:2,tank:3},
+   enemy:{reinBase:18,reinMin:9,tankEvery:2,tankAfter:20,cap:34},
+   brief:'Two rivers, one island between them, and the island holds three of the six objectives. Take the island and you control every crossing. Lose it and you are fighting on two fronts.'},
+  {id:'nightfall',name:'OPERATION NIGHTFALL',sub:'DAY 7 · NIGHT RAID',seed:6060,
+   river:{base:30,a1:6,f1:.16,a2:2,f2:.4,ph:1},bridges:[14,28],vroads:[8,56],forests:36,tint:'rgba(8,18,60,.34)',
+   hqP:{cx:3,cy:38},hqE:{cx:61,cy:3},airfield:null,
+   objs:[
+    {id:'signal',name:'SIGNAL POST',cx:12,cy:28,owner:0},
+    {id:'outpost',name:'OUTPOST',cx:20,cy:14,owner:-1,sf:true},
+    {id:'ferry',name:'FERRY',cx:24,cy:28,owner:-1,sf:true},
+    {id:'bridgehead',name:'BRIDGEHEAD',cx:36,cy:14,owner:-1,bunker:true,sf:true},
+    {id:'barracks',name:'BARRACKS',cx:50,cy:30,owner:1,bunker:true,tank:true,sf:true},
+    {id:'cmdpost',name:'COMMAND POST',cx:54,cy:8,owner:1,bunker:true,tank:true,sf:true}],
+   start:{sup:420,rocketsP:6,rocketsE:4,rifle:5,sf:3,tank:2},
+   enemy:{reinBase:18,reinMin:9,tankEvery:3,tankAfter:40,cap:34,para:[35,55]},
+   brief:'Night operation. Enemy special forces are everywhere and their transports drop more behind your lines every minute. Keep a reserve at home and never leave an objective unguarded.'},
+  {id:'irongate',name:'OPERATION IRON GATE',sub:'DAY 8 · THE FORTIFIED LINE',seed:4242,
+   river:{base:34,a1:3,f1:.2,a2:2,f2:.13,ph:0},bridges:[10,31],vroads:[8,56],forests:22,
+   hqP:{cx:3,cy:3},hqE:{cx:61,cy:38},airfield:null,
+   objs:[
+    {id:'staging',name:'STAGING AREA',cx:12,cy:10,owner:0},
+    {id:'gatehouse',name:'GATEHOUSE',cx:26,cy:10,owner:-1,bunker:true},
+    {id:'southgate',name:'SOUTH GATE',cx:26,cy:31,owner:-1,bunker:true,tank:true},
+    {id:'citadel',name:'CITADEL',cx:40,cy:20,owner:-1,bunker:true,tank:true,sf:true},
+    {id:'factory',name:'FACTORY',cx:52,cy:10,owner:1,bunker:true,tank:true},
+    {id:'arsenal',name:'ARSENAL',cx:54,cy:32,owner:1,bunker:true,tank:true,sf:true}],
+   start:{sup:480,rocketsP:7,rocketsE:4,rifle:5,sf:2,tank:3},
+   enemy:{reinBase:17,reinMin:8,tankEvery:2,tankAfter:0,cap:36},
+   brief:'Five of the six objectives have an MG bunker and the enemy fields armour from the first minute. Every assault needs a rocket salvo or a bomber run in front of it. Supply is generous; spend it.'},
+  {id:'scorched',name:'OPERATION SCORCHED EARTH',sub:'DAY 9 · TANK COUNTRY',seed:7777,
+   river:null,bridges:[8,34],vroads:[10,54],forests:12,tint:'rgba(210,160,60,.16)',
+   hqP:{cx:3,cy:38},hqE:{cx:61,cy:3},airfield:'airstrip',
+   objs:[
+    {id:'oilfield',name:'OIL FIELD',cx:12,cy:26,owner:0},
+    {id:'crossroads',name:'CROSSROADS',cx:22,cy:8,owner:-1,tank:true},
+    {id:'ruins',name:'RUINS',cx:32,cy:21,owner:-1,bunker:true,tank:true},
+    {id:'airstrip',name:'AIRSTRIP',cx:44,cy:34,owner:-1,bunker:true,tank:true},
+    {id:'refinery',name:'REFINERY',cx:52,cy:10,owner:1,bunker:true,tanks:2},
+    {id:'fueldepot',name:'FUEL DEPOT',cx:54,cy:30,owner:1,bunker:true,tanks:2,sf:true}],
+   start:{sup:500,rocketsP:7,rocketsE:5,rifle:4,sf:2,tank:4},
+   enemy:{reinBase:16,reinMin:8,tankEvery:1,tankAfter:0,cap:36},
+   brief:'Open plain, almost no cover, no river. This is a tank battle: every enemy wave brings armour. Your tanks are cheap, so build a column and keep rockets ready for theirs. Infantry only survives inside the towns.'},
+  {id:'bastion',name:'OPERATION LAST BASTION',sub:'DAY 10 · FINAL ASSAULT',seed:9999,
+   river:{base:36,a1:4,f1:.14,a2:2,f2:.3,ph:2,rw:2},bridges:[7,21,35],vroads:[8,56],forests:28,
+   hqP:{cx:3,cy:38},hqE:{cx:61,cy:3},airfield:null,
+   objs:[
+    {id:'fwdbase',name:'FORWARD BASE',cx:12,cy:28,owner:0},
+    {id:'riverfort',name:'RIVER FORT',cx:27,cy:7,owner:-1,bunker:true,tank:true},
+    {id:'causeway',name:'CAUSEWAY',cx:27,cy:35,owner:-1,bunker:true,tank:true,sf:true},
+    {id:'bastion',name:'BASTION',cx:45,cy:21,owner:-1,bunker:true,tanks:2,sf:true},
+    {id:'warfactory',name:'WAR FACTORY',cx:52,cy:32,owner:1,bunker:true,tanks:2},
+    {id:'highcmd',name:'HIGH COMMAND',cx:55,cy:8,owner:1,bunker:true,tanks:2,sf:true}],
+   start:{sup:550,rocketsP:8,rocketsE:6,rifle:6,sf:3,tank:4},
+   enemy:{reinBase:15,reinMin:7,tankEvery:1,tankAfter:0,cap:40,para:[40,60]},
+   brief:'Their last stronghold. Wide river, three crossings, armour at every objective and six rockets aimed at you. Take it and the theatre is ours.'}
 ];
 let opIndex=0,opWon=0;
 try{opWon=Math.min(OPS.length,parseInt(localStorage.getItem('ifcm_won')||'0')||0);opIndex=Math.min(opWon,Math.max(0,parseInt(localStorage.getItem('ifcm_op')||'0')||0));}catch(e){}
@@ -238,10 +342,12 @@ function nearSpecial(x,y){
 }
 const trees=[], houses=[];
 function genTerrain(){
-  const rv=OP.river;
-  for(let y=0;y<GH;y++){
-    const cx=Math.round(rv.base+Math.sin(y*rv.f1)*rv.a1+Math.sin(y*rv.f2+rv.ph)*rv.a2);
-    for(let d=-1;d<=1;d++)setT(cx+d,y,3);
+  const rivers=OP.rivers||(OP.river?[OP.river]:[]);
+  for(const rv of rivers){const w=rv.rw||1;
+    for(let y=0;y<GH;y++){
+      const cx=Math.round(rv.base+Math.sin(y*rv.f1)*rv.a1+Math.sin(y*rv.f2+rv.ph)*rv.a2);
+      for(let d=-w;d<=w;d++)setT(cx+d,y,3);
+    }
   }
   const bMin=Math.min(...OP.bridges),bMax=Math.max(...OP.bridges);
   for(const r of OP.bridges)for(let x=1;x<GW-1;x++)setT(x,r,T(x,r)===3?4:1);
@@ -356,7 +462,7 @@ let cam={x:0,y:0,z:1},mouse={x:0,y:0,wx:0,wy:0,in:false},drag=null,pan=null,mode
 let cds={rocket:0,bomber:0,para:0};
 let rocketsP=4,rocketsE=2,rocketRegen=0;const ROCKET_MAX=6,ROCKET_REGEN=50;
 let shake=0,uid=1;
-const ai={t:5,focus:null,focusT:0,reinT:32,rocketT:95,paraT:130};
+const ai={t:20,focus:null,focusT:0,reinT:32,rocketT:95,paraT:130};
 let soundOn=true;
 const keys={};
 
@@ -379,9 +485,9 @@ function initWorld(){
   mkUnit('hq',1,(HQ_E.cx)*CS,(HQ_E.cy)*CS);
   for(const o of objs){
     if(o.bunker){const p=nearestPassable(o.x+62,o.y-58);mkUnit('bunker',1,p[0],p[1]);}
-    if(o.owner===1||o.bunker){for(let i=0;i<2;i++){const p=nearestPassable(o.x-50+i*40,o.y+40);mkUnit('rifle',1,p[0],p[1]);}}
-    if(o.sf){const p=nearestPassable(o.x-90,o.y+90);mkUnit('sf',1,p[0],p[1]);}
-    if(o.tank){const p=nearestPassable(o.x+30,o.y+80,true);mkUnit('tank',1,p[0],p[1]);}
+    if(o.owner===1||o.bunker){for(let i=0;i<2;i++){const p=nearestPassable(o.x-50+i*40,o.y+40);mkUnit('rifle',1,p[0],p[1]).guard=o;}}
+    if(o.sf){const p=nearestPassable(o.x-90,o.y+90);mkUnit('sf',1,p[0],p[1]).guard=o;}
+    const nt=o.tanks||(o.tank?1:0);for(let i=0;i<nt;i++){const p=nearestPassable(o.x+30+i*48,o.y+80,true);mkUnit('tank',1,p[0],p[1]).guard=o;}
   }
   const hq=hqOf(0),st=OP.start;
   // deploy toward the map centre from whichever corner the HQ sits in
@@ -396,7 +502,7 @@ function initWorld(){
   document.getElementById('brief-mission').textContent=OP.brief;
   const opSel=document.getElementById('op-select');opSel.innerHTML='';
   OPS.forEach((o,i)=>{const b=document.createElement('button');b.className='cb'+(i===opIndex?' active':'')+(i>opWon?' off':'');
-    b.innerHTML='<span class="n">'+(i+1)+' · '+o.name.replace('OPERATION ','')+'</span><span class="d">'+(i>opWon?'LOCKED · WIN OPERATION '+i+' FIRST':o.sub)+'</span>';
+    b.style.minWidth='150px';b.innerHTML='<span class="n">'+(i+1)+' · '+o.name.replace('OPERATION ','')+'</span><span class="d">'+(i>opWon?'LOCKED · WIN OPERATION '+i+' FIRST':o.sub)+'</span>';
     b.onclick=()=>{if(i>opWon)return;try{localStorage.setItem('ifcm_op',String(i));}catch(e){}if(i!==opIndex)location.reload();};
     opSel.appendChild(b);});
   resize();centerHQ();
@@ -803,6 +909,8 @@ function updateAI(dt){
     const threatened=objs.filter(o=>o.owner===1&&units.some(u=>u.team===0&&!u.dead&&UT[u.type].mobile&&dist(u.x,u.y,o.x,o.y)<260));
     mobiles.forEach((u,i)=>{
       if(u.path.length)return;
+      // garrisons hold their objective until it falls or the enemy goes on the offensive
+      if(u.guard&&time<240){if(u.guard.owner===0)u.guard=null;else{if(dist(u.x,u.y,u.guard.x,u.guard.y)>150){const hv=!!UT[u.type].heavy;const q=nearestPassable(u.guard.x+rr(-50,50),u.guard.y+rr(-50,50),hv);u.path=findPath(u.x,u.y,q[0],q[1],hv)||[];}return;}}
       let tgt=null;
       if(threatened.length&&i%3===0)tgt=threatened[0];else tgt=ai.focus;
       if(!tgt)return;
@@ -827,7 +935,7 @@ function updateAI(dt){
     if(rocketsE>0){const cl=bestCluster();if(cl){rocketsE--;launchRockets(1,cl.x,cl.y);log('ENEMY HAS '+rocketsE+' ROCKET'+(rocketsE===1?'':'S')+' LEFT','bad');}}
   }
   if(ai.paraT<=0){
-    ai.paraT=rr(70,100);
+    const pr=OP.enemy.para||[70,100];ai.paraT=rr(pr[0],pr[1]);
     const mine=objs.filter(o=>o.owner===0);
     if(mine.length){const o=mine[Math.floor(Math.random()*mine.length)];launchPlane('para',1,o.x+rr(-60,60),o.y+rr(-60,60));}
   }
@@ -950,6 +1058,7 @@ function render(){
     const ang=Math.atan2(r.ty-r.sy,r.tx-r.sx);ctx.save();ctx.translate(r.x,r.y-r.h);ctx.rotate(ang);ctx.fillStyle='#d8d0c0';ctx.fillRect(-9,-2.5,18,5);ctx.fillStyle='#ff6a30';ctx.beginPath();ctx.moveTo(-9,-2.5);ctx.lineTo(-15,0);ctx.lineTo(-9,2.5);ctx.fill();ctx.fillStyle='#ffe080';ctx.beginPath();ctx.arc(-13,0,3+Math.random()*2,0,Math.PI*2);ctx.fill();ctx.restore();}
   // planes
   for(const p of planes)drawPlane(p);
+  if(OP.tint){ctx.fillStyle=OP.tint;ctx.fillRect(-100,-100,W+200,H+200);}
   // selection box
   ctx.setTransform(1,0,0,1,0,0);
   if(drag){ctx.strokeStyle='rgba(120,200,255,.9)';ctx.fillStyle='rgba(120,200,255,.12)';ctx.lineWidth=1;const x=Math.min(drag.sx,drag.x),y=Math.min(drag.sy,drag.y),w=Math.abs(drag.x-drag.sx),h=Math.abs(drag.y-drag.sy);ctx.fillRect(x,y,w,h);ctx.strokeRect(x+.5,y+.5,w,h);}
