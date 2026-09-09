@@ -3209,9 +3209,9 @@ function enchApplies(id,k){const it=ITEMS[id];if(!it)return false;if(id===378||i
 function enchConflict(a,b){return a===b||(ENCH[a].ex||[]).includes(b)||(ENCH[b].ex||[]).includes(a)}
 function enchantability(it){if(it.id===378)return 1;return {wood:15,stone:5,iron:14,diamond:10,gold:22,netherite:15,leather:15}[it.mat]||10}
 // Minecraft-style roll: modified level from enchantability, highest rank that fits, then extra enchantments with halving chance
-function rollEnchants(it,level,rng,treasureOK){
+function rollEnchants(it,level,rng,treasureOK,existing){
   const ea=enchantability(it);let l=level+1+floor(rng()*(ea/4+1))+floor(rng()*(ea/4+1));const bonus=1+(rng()-0.5)*0.3+(rng()-0.5)*0.3;l=Math.max(1,Math.round(l*bonus));
-  const pool=[];for(const k in ENCH){const e=ENCH[k];if(e.treasure&&!treasureOK)continue;if(!enchApplies(it.id,k))continue;for(let r=e.max;r>=1;r--){if(l>=e.min(r)){pool.push([k,r,e.w]);break}}}
+  const pool=[];for(const k in ENCH){const e=ENCH[k];if(e.treasure&&!treasureOK)continue;if(!enchApplies(it.id,k))continue;if(existing&&Object.keys(existing).some(o=>o!==k&&enchConflict(o,k)))continue;for(let r=e.max;r>=1;r--){if(l>=e.min(r)){if(!(existing&&(existing[k]||0)>=r))pool.push([k,r,e.w]);break}}}
   const out={};const pick=()=>{const c=pool.filter(q=>!out[q[0]]&&!Object.keys(out).some(o=>enchConflict(o,q[0])));if(!c.length)return false;const tot=c.reduce((s,q)=>s+q[2],0);let r=rng()*tot;for(const q of c){r-=q[2];if(r<=0){out[q[0]]=q[1];return true}}return false};
   if(!pick())return null;let p=(l+1)/50;while(rng()<p&&pick())p/=2;return out}
 function randomBook(rng,level){const e=rollEnchants(ITEMS[378],level||5+floor(rng()*25),rng,true);const k=e?Object.keys(e)[0]:'unbreaking';return {id:379,count:1,ench:{[k]:e?e[k]:1}}} // books carry exactly one enchantment
@@ -3221,19 +3221,21 @@ const enchSlots=[null,null];
 function shelvesAround(x,y,z){let n=0;for(let dx=-2;dx<=2;dx++)for(let dz=-2;dz<=2;dz++){if(abs(dx)!==2&&abs(dz)!==2)continue;for(let dy=0;dy<=1;dy++){if(world.getBlock(x+dx,y+dy,z+dz)!==29)continue;
   const ix=x+(dx>0?1:dx<0?-1:0),iz=z+(dz>0?1:dz<0?-1:0);const b=world.getBlock(ix,y,iz),b2=world.getBlock(ix,y+1,iz);if((b===0||!BLOCKS[b].opaque)&&(b2===0||!BLOCKS[b2].opaque))n++}}return Math.min(15,n)}
 function enchOffers(){const g=game.gui;const st=enchSlots[0];if(!st)return null;const b=shelvesAround(g.x,g.y,g.z);const rng=mulberry32(hashInt(st.id,b,game.enchSeed,7));
-  const base=1+floor(rng()*8)+floor(b/2)+floor(rng()*(b+1));const costs=[Math.max(floor(base/3),1),floor(base*2/3)+1,Math.max(base,b*2)].map(c=>Math.min(30,c));
-  return costs.map((c,i)=>{const r=mulberry32(hashInt(st.id,c,game.enchSeed,i+11));const ench=rollEnchants(ITEMS[st.id],c,r,false);const hint=ench?Object.keys(ench)[0]:null;return {cost:c,ench,hint:hint?enchName(hint,ench[hint]):'-',b}})}
+  const have=st.ench&&st.id!==379?Object.keys(st.ench).length:0;const base=1+floor(rng()*8)+floor(b/2)+floor(rng()*(b+1))+have*3; // re-enchanting an item costs a little more each time
+  const costs=[Math.max(floor(base/3),1),floor(base*2/3)+1,Math.max(base,b*2)].map(c=>Math.min(30,c));
+  return costs.map((c,i)=>{const r=mulberry32(hashInt(st.id,c+have*37,game.enchSeed,i+11));const ench=rollEnchants(ITEMS[st.id],c,r,false,st.id!==379?st.ench:null);const hint=ench?Object.keys(ench)[0]:null;return {cost:c,ench,hint:hint?enchName(hint,ench[hint]):'-',b}})}
 function renderEnchant(){const g=game.gui;if(!g||g.type!=='enchant')return;const box=$('enchOpts');box.innerHTML='';const st=enchSlots[0];const lap=enchSlots[1];const p=player;const creative=p.mode==='creative';
-  const offers=enchOffers();if(!offers||(st.ench&&st.id!==379)){box.innerHTML='<div class="hint">'+(st&&st.ench?'That item is already enchanted.':'Place an item to see enchantments.')+'</div>';return}
+  const offers=enchOffers();if(!offers||st.id===379){box.innerHTML='<div class="hint">'+(st&&st.id===379?'Enchanted books carry one enchantment: combine them at the anvil.':'Place an item to see enchantments.')+'</div>';return}
+  if(offers.every(o=>!o.ench)){game.enchSeed=floor(Math.random()*1e9);box.innerHTML='<div class="hint">Nothing more can be added to this item right now. Take it out and put it back for a new roll, or add bookshelves.</div>';return}
   const glyphs='ᔑ⍑ᓵᒷ⎓⊣⍑╎⋮ꖌꖎᒲリ𝙹!¡ᑑ∷ᓭℸ⚍⍊∴ ̣⨅';
   offers.forEach((o,i)=>{const tier=i+1;const ok=creative||(p.level>=o.cost&&(lap?lap.count:0)>=tier&&p.level>=tier);const el=document.createElement('div');el.className='eopt '+(ok?'ok':'no');
     let gl='';for(let k=0;k<4;k++)gl+=glyphs[(o.cost*3+k*5+i*11)%glyphs.length];
     el.innerHTML='<span class="glyph">'+gl+'</span><span class="ename">'+o.hint+(o.ench&&Object.keys(o.ench).length>1?' +'+(Object.keys(o.ench).length-1)+' more':'')+'</span><span class="lvl">'+o.cost+'</span>';el.title=o.hint+' … ?  Cost: '+o.cost+' levels, '+tier+' lapis ('+tier+' level'+(tier>1?'s':'')+' spent)';
     el.addEventListener('click',()=>{if(ok)doEnchant(i)});box.appendChild(el)});
-  $('enchHint').textContent='Bookshelves: '+offers[0].b+' / 15.  Each row names its main enchantment; the number is the level you need. You spend 1, 2 or 3 levels and that many lapis.'}
+  $('enchHint').textContent='Bookshelves: '+offers[0].b+' / 15.  Each row names its main enchantment; the number is the level you need. You spend 1, 2 or 3 levels and that many lapis.'+(st.ench?'  This item already has '+Object.keys(st.ench).length+' enchantment'+(Object.keys(st.ench).length>1?'s':'')+': new ones are added on top.':'')}
 function doEnchant(i){const st=enchSlots[0];const lap=enchSlots[1];const p=player;const creative=p.mode==='creative';const offers=enchOffers();if(!offers)return;const o=offers[i];if(!o.ench){showMessage('Nothing to enchant');return}
   if(!creative){if(p.level<o.cost||(lap?lap.count:0)<i+1)return;lap.count-=i+1;if(lap.count<=0)enchSlots[1]=null;removeLevels(i+1)}
-  if(st.id===378){st.id=379;st.count=1;const k=Object.keys(o.ench)[0];st.ench={[k]:o.ench[k]}}else st.ench=Object.assign({},o.ench);game.enchSeed=floor(Math.random()*1e9);playSound('enchant');spawnParticles('happy',player.x,player.y+1,player.z,6);
+  if(st.id===378){st.id=379;st.count=1;const k=Object.keys(o.ench)[0];st.ench={[k]:o.ench[k]}}else{const merged=Object.assign({},st.ench||{});for(const k in o.ench)merged[k]=Math.max(merged[k]||0,o.ench[k]);st.ench=merged}game.enchSeed=floor(Math.random()*1e9);playSound('enchant');spawnParticles('happy',player.x,player.y+1,player.z,6);
   showMessage('Enchanted: '+Object.keys(st.ench).map(k=>enchName(k,st.ench[k])).join(', '));afterSlotChange()}
 /* ---- anvil ---- */
 const anvilSlots=[null,null,null];let anvilCost=0;
