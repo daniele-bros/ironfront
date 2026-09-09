@@ -154,7 +154,7 @@ label.lb{font-size:13px;color:#a0a0a0;align-self:flex-start;margin-left:calc(50%
 
 <div id="invGui" class="gui"><div class="panel">
   <div class="row" id="invTop" style="align-items:flex-start;gap:14px">
-    <div class="row" id="armorBox" style="align-items:flex-start;gap:14px"><div><h3 id="armorLabel">Armor</h3><div class="grid" id="armorGrid" style="grid-template-columns:38px"></div></div>
+    <div class="row" id="armorBox" style="align-items:flex-start;gap:14px"><div><h3 id="armorLabel">Armor</h3><div class="grid" id="armorGrid" style="grid-template-columns:38px"></div></div><div><h3>Offhand</h3><div class="grid" id="offGrid" style="grid-template-columns:38px"></div></div>
     <div style="width:110px;height:154px;background:#000;border:2px solid #333;display:flex;align-items:flex-end;justify-content:center;" id="playerPreview"></div></div>
     <div><h3>Crafting</h3><div class="row"><div class="grid g2" id="craft2"></div><div class="arrow"></div><div class="grid" id="craft2out" style="grid-template-columns:52px"></div></div></div>
   </div>
@@ -772,6 +772,7 @@ defItem(393,'totem_of_undying',{icon:'totem',stack:1});
 defItem(394,'nether_star',{icon:'nether_star'});
 defItem(395,'elytra',{icon:'elytra',stack:1,armor:1,points:0,dur:432,elytra:true});
 defItem(396,'shulker_shell',{icon:'shulker_shell'});
+defItem(397,'shield',{icon:'shield',stack:1,dur:336,shield:true});
 let tid=320;
 for(const tt of ['sword','pickaxe','axe','shovel','hoe'])for(const m of ['wood','stone','iron','diamond','gold']){
   defItem(tid++,(m==='wood'?'wooden':m==='gold'?'golden':m)+'_'+tt,{label:MAT[m].name+' '+label(tt),icon:tt,mat:m,stack:1,tool:tt,tier:MAT[m].tier,speed:MAT[m].speed,dur:MAT[m].dur,dmg:TOOL_DMG[tt][m],atkSpd:TOOL_SPD[tt][m],fuel:m==='wood'?10:0});
@@ -817,6 +818,7 @@ spear:["..............bb",".............bbb","............bbbb","...........bbbb
 paper:["................","................","...wwwwwwwww....","...wwwwwwwww....","...wwwwwwwww....","...wlllllllw....","...wwwwwwwww....","...wlllllllw....","...wwwwwwwww....","...wlllllllw....","...wwwwwwwww....","...wwwwwwwww....","...wwwwwwwww....","................","................","................"],
 book:["................","................","..cccccccccc....","..cwwwwwwwwwc...","..cwwwwwwwwwc...","..cwwwwwwwwwc...","..cwwwwwwwwwc...","..cwwwwwwwwwc...","..cwwwwwwwwwc...","..cwwwwwwwwwc...","..cwwwwwwwwwc...","..cwwwwwwwwwc...","..cccccccccc....","................","................","................"],
 rod:["..............yy",".............yyy","............yyy.","...........yyy..","..........yyy...",".........yyy....","........yyy.....",".......yyy......","......yyy.......",".....yyy........","....yyy.........","...yyy..........","..yyy...........",".yyy............","yy..............","................"],
+shield:["................","...mmmmmmmmmm...","..mllmmmiimmmlm.","..mlmmmmiimmmmm.","..mlmmmmiimmmmm.","..mmmmmmiimmmmm.","..miiiiiiiiiiim.","..miiiiiiiiiiim.","..mmmmmmiimmmmm.","..mmmmmmiimmmmm.","...mmmmmiimmmm..","...mmmmmiimmmm..","....mmmmiimmm...",".....mmmiimm....","......mmmmm.....",".......mmm......"],
 elytra:["................","......g..g......",".....gg..gg.....","....glg..glg....","...gllg..gllg...","..glllg..glllg..","..gllg....gllg..",".glllg....glllg.",".gllg......gllg.",".gllg......gllg.","gllg........gllg","gllg........gllg","gll..........llg","gl............lg","g..............g","................"],
 shell:["................","................","....mmmmmmmm....","...mllmmmmmmm...","..mllmmmmmmmmm..","..mlmmmmmmmmmm..",".mmmmmmmmmmmmmm.",".mmmmmmmmmmmmmm.",".mmdmmmmmmmmdmm.","..mddddddddddm..","...mmmmmmmmmm...","................","................","................","................","................"],
 totem:["................","......gggg......",".....gggggg.....",".....gkggkg.....",".....gggggg.....","....yygggyy.....","...yy.gggg.yy...","...y..gggg..y...","......gggg......","......gggg......","......gggg......",".....gggggg.....",".....gg..gg.....",".....gg..gg.....","................","................"],
@@ -876,7 +878,7 @@ bucket:['bucket',{g:[170,170,170],c:[120,120,120]}],water_bucket:['bucket',{g:[1
 flint_and_steel:['flint_and_steel',{g:[160,160,160],f:[60,60,60]}],shears:['shears',{s:[200,200,200],h:[140,90,50]}],
 bowl:['bowl',{w:[130,90,50],c:[100,70,40]}],mushroom_stew:['bowl',{w:[130,90,50],c:[200,150,110]}],
 carrot:['carrot',{o:[240,130,30],g:[70,150,50]}],potato:['potato',{m:[200,160,90],l:[225,190,120]}],baked_potato:['potato',{m:[190,140,70],l:[220,180,110]}],
-paper:['paper',{w:[240,240,235],l:[190,190,185]}],book:['book',{c:[130,80,40],w:[240,235,220]}],enchanted_book:['book',{c:[150,60,200],w:[240,225,255]}],netherite_scrap:['raw',{m:[95,75,70],l:[140,110,95]}],netherite_ingot:['ingot',{l:[110,100,112],m:[75,68,78],d:[45,40,48]}],blaze_rod:['rod',{y:[250,200,60]}],blaze_powder:['dust',{m:[250,170,40]}],eye_of_ender:['eye',{r:[40,120,90],k:[20,40,40]}],totem:['totem',{g:[90,200,90],k:[30,30,30],y:[240,210,80]}],elytra:['elytra',{g:[70,70,80],l:[120,120,135]}],shulker_shell:['shell',{m:[165,95,175],l:[215,160,225],d:[110,55,120]}],nether_star:['gem',{l:[255,255,255],m:[220,240,255],d:[150,200,230]}],saddle:['leather',{m:[95,60,32]}],ender_pearl:['ball',{m:[20,90,80],l:[90,210,170]}],slime_ball:['ball',{m:[110,200,90],l:[180,240,150]}],glowstone_dust:['dust',{m:[245,205,90]}],
+paper:['paper',{w:[240,240,235],l:[190,190,185]}],book:['book',{c:[130,80,40],w:[240,235,220]}],enchanted_book:['book',{c:[150,60,200],w:[240,225,255]}],netherite_scrap:['raw',{m:[95,75,70],l:[140,110,95]}],netherite_ingot:['ingot',{l:[110,100,112],m:[75,68,78],d:[45,40,48]}],blaze_rod:['rod',{y:[250,200,60]}],blaze_powder:['dust',{m:[250,170,40]}],eye_of_ender:['eye',{r:[40,120,90],k:[20,40,40]}],totem:['totem',{g:[90,200,90],k:[30,30,30],y:[240,210,80]}],elytra:['elytra',{g:[70,70,80],l:[120,120,135]}],shield:['shield',{m:[140,100,60],l:[185,140,90],i:[205,205,210]}],shulker_shell:['shell',{m:[165,95,175],l:[215,160,225],d:[110,55,120]}],nether_star:['gem',{l:[255,255,255],m:[220,240,255],d:[150,200,230]}],saddle:['leather',{m:[95,60,32]}],ender_pearl:['ball',{m:[20,90,80],l:[90,210,170]}],slime_ball:['ball',{m:[110,200,90],l:[180,240,150]}],glowstone_dust:['dust',{m:[245,205,90]}],
 quartz:['gem',{l:[255,255,255],m:[235,228,220],d:[180,170,160]}],cookie:['cookie',{c:[190,130,70],k:[70,40,30]}],cooked_cod:['fish',{m:[200,160,110],l:[230,200,150]}],
 door:['door',{p:[140,100,55],d:[160,120,70],w:[170,210,240],k:[70,70,70]}],bed:['bed',{w:[240,240,240],r:[200,30,30],b:[140,100,60]}],
 };
@@ -1595,6 +1597,11 @@ function drawHand(dt){const gl=R.gl;const p=player;const st=p.inv[p.sel];const i
   const sw=p.swing;const swingY=-Math.sin(sw*PI)*0.35,swingR=-Math.sin(sw*PI)*0.9;const bob=Math.sin(p.walkT*2)*0.015*p.walkAmp;const eat=p.eating?Math.sin(game.time*25)*0.03:0;
   const useT=p.bowCharge>0?Math.min(1,p.bowCharge)*0.25:0;
   gl.clear(gl.DEPTH_BUFFER_BIT);gl.enable(gl.BLEND);
+  if(p.shieldItem){ // shield in the left hand: raised in front of the face while blocking, lowered at the side otherwise
+    p.shieldUp=(p.shieldUp||0)+((p.blocking?1:0)-(p.shieldUp||0))*Math.min(1,dt*12);const u=p.shieldUp;EB.clear();
+    const tf=makeTF(-0.5+u*0.2+bob,-0.48+u*0.14+bob,-0.7,-0.25+u*0.15,0.75-u*0.6,0.2-u*0.15,0,0,0,1);
+    EB.box(tf,-0.24,-0.3,-0.03,0.24,0.3,0.03,TEX.oak_planks,[0.8,0.7,0.55],l,true);EB.box(tf,-0.06,-0.32,-0.045,0.06,0.32,0.045,TEX.iron_block,[1,1,1],l,true);EB.box(tf,-0.26,-0.05,-0.045,0.26,0.05,0.045,TEX.iron_block,[1,1,1],l,true);
+    EB.box(tf,-0.1,-0.12,0.03,0.1,0.12,0.12,TEX.steve_arm,[1,1,1],l,true);EB.draw(R.progE,R.atlasTex,{vp:proj,fogStart:100,fogEnd:200})}
   if(!st){EB.clear();const tf=makeTF(0.75+bob,-0.7+swingY+bob,-0.85,-0.55+swingR*0.5,swingR*0.6+0.9,0.35,0,0,0,1);EB.box(tf,-0.11,-0.6,-0.11,0.11,0.2,0.11,TEX.steve_arm,[1,1,1],l,true);EB.draw(R.progE,R.atlasTex,{vp:proj,fogStart:100,fogEnd:200});return}
   if(def.isBlock&&(def.model==='cube'||def.model==='slab'||def.model==='stairs'||def.model==='chest'||def.model==='fence'||def.model==='cactus'||def.model==='snow'||def.model==='farmland'||def.model==='liquid')){
     EB.clear();const tf=makeTF(0.55+bob,-0.62+swingY+bob-eat,-0.9,-0.6+swingR*0.4,swingR*0.4,0,0.5,0.5,0.5,0.4);
@@ -2115,7 +2122,13 @@ class Fang extends Entity{constructor(x,y,z,delay){super(x,y,z);this.w=0.5;this.
 /* ---- damage ---- */
 function damageEntity(e,amount,src){
   if(e.dead||e.dying)return false;if(e.invT>0&&amount<=e.lastDmg)return false;src=src||{};
-  if(e===player){if(player.mode==='creative')return false;if(src.type==='mob'||src.type==='arrow'||src.type==='explosion'){const ap=armorPoints();amount*=1-Math.min(20,ap)*0.04;damageArmor(Math.max(1,floor(amount/4)))}
+  if(e===player){if(player.mode==='creative')return false;
+    if(player.blocking&&player.shieldItem&&src.x!==undefined&&['mob','arrow','explosion','fireball','magic','potion','fang'].includes(src.type)){ // shield: blocks anything coming from the front
+      const dx=src.x-player.x,dz=src.z-player.z;const d=sqrt(dx*dx+dz*dz);const f=eyeDir();
+      if(d<0.3||(dx*f[0]+dz*f[2])/d>0.1){playSound('shield');damageItem(player.shieldItem,Math.max(1,Math.ceil(amount/2)));spawnParticles('block',player.x+f[0]*0.6,player.y+1.2,player.z+f[2]*0.6,4,5);
+        if(src.mob&&src.mob.type==='vindicator'){player.shieldCd=5;player.blocking=false;showMessage('The axe knocks your shield aside!')}
+        if(d>0.3){player.vx-=dx/d*1.5;player.vz-=dz/d*1.5}return false}}
+    if(src.type==='mob'||src.type==='arrow'||src.type==='explosion'){const ap=armorPoints();amount*=1-Math.min(20,ap)*0.04;damageArmor(Math.max(1,floor(amount/4)))}
     { // enchantment protection factor
       let epf=0,th=0;for(const s of player.armor){if(!s||!s.ench)continue;epf+=s.ench.protection||0;th+=s.ench.thorns||0;if(src.type==='fire'||src.type==='lava')epf+=2*(s.ench.fire_protection||0);if(src.type==='explosion')epf+=2*(s.ench.blast_protection||0);if(src.type==='arrow')epf+=2*(s.ench.projectile_protection||0);if(src.type==='fall')epf+=3*(s.ench.feather_falling||0)}
       if(epf)amount*=1-Math.min(20,epf)*0.04;if(th&&src.mob&&Math.random()<th*0.15){damageEntity(src.mob,1+floor(Math.random()*4),{type:'thorns'});damageArmor(2)}}
@@ -2127,7 +2140,7 @@ function damageEntity(e,amount,src){
   if(e.hp<=0){e.dying=true;e.deathT=0;if(e.onDeath)e.onDeath();return true}return true;
 }
 /* ===================== PLAYER ===================== */
-const player={x:0.5,y:80,z:0.5,vx:0,vy:0,vz:0,yaw:0,pitch:0,w:0.6,h:1.8,eyeHeight:1.62,onGround:false,hp:20,maxHp:20,hunger:20,sat:5,exh:0,xp:0,level:0,xpFrac:0,air:300,inv:new Array(36).fill(null),armor:[null,null,null,null],sel:0,mode:'survival',flying:false,sneaking:false,sprinting:false,dead:false,invT:0,hurtT:0,fallDist:0,target:null,breakProgress:0,breakTarget:null,breakCooldown:0,eating:0,bowCharge:0,swing:1,walkT:0,walkAmp:0,atkCd:0,lastAtk:-10,spawn:null,fireT:0,sleeping:0,effects:{},regenT:0,starveT:0,lastSpaceT:-1,lastWT:-1,wasW:false,inWater:false,collidedH:false,lastDmg:0,solidBody:true};
+const player={x:0.5,y:80,z:0.5,vx:0,vy:0,vz:0,yaw:0,pitch:0,w:0.6,h:1.8,eyeHeight:1.62,onGround:false,hp:20,maxHp:20,hunger:20,sat:5,exh:0,xp:0,level:0,xpFrac:0,air:300,inv:new Array(36).fill(null),armor:[null,null,null,null],off:[null],blocking:false,shieldCd:0,sel:0,mode:'survival',flying:false,sneaking:false,sprinting:false,dead:false,invT:0,hurtT:0,fallDist:0,target:null,breakProgress:0,breakTarget:null,breakCooldown:0,eating:0,bowCharge:0,swing:1,walkT:0,walkAmp:0,atkCd:0,lastAtk:-10,spawn:null,fireT:0,sleeping:0,effects:{},regenT:0,starveT:0,lastSpaceT:-1,lastWT:-1,wasW:false,inWater:false,collidedH:false,lastDmg:0,solidBody:true};
 const keys={};let mouseL=false,mouseR=false,mouseRHeld=0;
 const FACE_TO_FACING={4:0,1:1,5:2,0:3};
 function lookFacing(){const dx=-Math.sin(player.yaw),dz=-Math.cos(player.yaw);if(abs(dx)>abs(dz))return dx>0?3:1;return dz>0?0:2}
@@ -2174,8 +2187,12 @@ function updatePlayer(dt){
   // sprinting
   const canSprint=fwd>0&&(p.hunger>6||creative)&&!p.sneaking&&!guiOpen;
   if(canSprint&&(keys.ControlLeft||p.sprintReq))p.sprinting=true;if(!canSprint||(p.collidedH&&!p.flying&&fwd>0&&p.onGround&&false))p.sprinting=false;if(!canSprint)p.sprintReq=false;
+  { // shield: held in hand, or in the offhand when the main hand holds nothing usable
+    const st=heldStack();const hd=st?ITEMS[st.id]:null;const os=p.off[0];const od=os?ITEMS[os.id]:null;
+    p.shieldItem=hd&&hd.shield?st:(od&&od.shield&&(!hd||(!hd.isBlock&&!hd.food&&hd.tool!=='bow'&&(hd.tool||hd.dmg||hd.armor||hd.elytra))))?os:null;
+    if(p.shieldCd>0)p.shieldCd-=dt;p.blocking=!!(mouseR&&!guiOpen&&p.shieldItem&&!p.dead&&p.shieldCd<=0&&!p.riding)}
   let speed=creative&&p.flying?10.8:p.sneaking?1.295*(1+0.5*enchLevel(p.armor[2],'swift_sneak')):p.sprinting?5.612:4.317;if(p.flying&&p.sprinting)speed*=2;
-  if(p.effects.slow)speed*=0.7;if(p.beaconT>0)speed*=1.25;if(!p.flying&&BLOCKS[world.getBlock(floor(p.x),floor(p.y-0.05),floor(p.z))].slow){const ss=enchLevel(p.armor[3],'soul_speed');speed*=ss?1.3+0.15*ss:0.4}
+  if(p.effects.slow)speed*=0.7;if(p.beaconT>0)speed*=1.25;if(p.blocking)speed*=0.35;if(!p.flying&&BLOCKS[world.getBlock(floor(p.x),floor(p.y-0.05),floor(p.z))].slow){const ss=enchLevel(p.armor[3],'soul_speed');speed*=ss?1.3+0.15*ss:0.4}
   const inFluid=(inWater||inLava)&&!p.flying;if(inFluid){speed*=inLava?0.35:0.55;if(inWater)speed*=1+enchLevel(p.armor[3],'depth_strider')/3}
   if(!creative&&p.onGround&&!p.flying){const fw=enchLevel(p.armor[3],'frost_walker');if(fw){const r=fw+1;const by=floor(p.y)-1;for(let dx=-r;dx<=r;dx++)for(let dz=-r;dz<=r;dz++){const bx=floor(p.x)+dx,bz=floor(p.z)+dz;if(dx*dx+dz*dz>r*r)continue;if(world.getBlock(bx,by,bz)===8&&world.getMeta(bx,by,bz)===0&&world.getBlock(bx,by+1,bz)===0)world.setBlock(bx,by,bz,41,0,{silent:true})}}}
   const sy=Math.sin(p.yaw),cy=Math.cos(p.yaw);let mx=(-sy*fwd+cy*strafe),mz=(-cy*fwd-sy*strafe);const ml=sqrt(mx*mx+mz*mz);if(ml>1){mx/=ml;mz/=ml}
@@ -2389,8 +2406,8 @@ function trySleep(bx,by,bz){const p=player;const t=world.time;
 function playerDie(src){const p=player;p.dead=true;p.hp=0;playSound('death');let msg='Player died';const t=src&&src.type;
   if(t==='fall')msg='Player fell from a high place';else if(t==='mob')msg='Player was slain by a monster';else if(t==='arrow')msg='Player was shot by Skeleton';else if(t==='explosion')msg='Player was blown up';else if(t==='lava')msg='Player tried to swim in lava';else if(t==='fire')msg='Player burned to death';else if(t==='drown')msg='Player drowned';else if(t==='starve')msg='Player starved to death';else if(t==='cactus')msg='Player was pricked to death';
   if(p.riding)p.riding.dismount();
-  for(let i=0;i<36;i++)if(p.inv[i]&&enchLevel(p.inv[i],'vanishing_curse'))p.inv[i]=null;for(let i=0;i<4;i++)if(p.armor[i]&&enchLevel(p.armor[i],'vanishing_curse'))p.armor[i]=null;
-  if(!opts.keepInv){for(let i=0;i<36;i++){if(p.inv[i]){spawnItem(p.x,p.y+1,p.z,p.inv[i]);p.inv[i]=null}}for(let i=0;i<4;i++){if(p.armor[i]){spawnItem(p.x,p.y+1,p.z,p.armor[i]);p.armor[i]=null}}
+  for(let i=0;i<36;i++)if(p.inv[i]&&enchLevel(p.inv[i],'vanishing_curse'))p.inv[i]=null;for(let i=0;i<4;i++)if(p.armor[i]&&enchLevel(p.armor[i],'vanishing_curse'))p.armor[i]=null;if(p.off[0]&&enchLevel(p.off[0],'vanishing_curse'))p.off[0]=null;
+  if(!opts.keepInv){for(let i=0;i<36;i++){if(p.inv[i]){spawnItem(p.x,p.y+1,p.z,p.inv[i]);p.inv[i]=null}}for(let i=0;i<4;i++){if(p.armor[i]){spawnItem(p.x,p.y+1,p.z,p.armor[i]);p.armor[i]=null}}if(p.off[0]){spawnItem(p.x,p.y+1,p.z,p.off[0]);p.off[0]=null}
     spawnXP(p.x,p.y+1,p.z,Math.min(100,p.level*7));showMessage('Your items dropped at X '+floor(p.x)+' Y '+floor(p.y)+' Z '+floor(p.z)+' (they vanish after 5 minutes)')}
   else showMessage('You died at X '+floor(p.x)+' Y '+floor(p.y)+' Z '+floor(p.z));
   $('deathMsg').textContent=msg;$('deathScore').textContent='Score: '+(p.level*7+floor(p.xp));$('deathScreen').classList.add('show');document.exitPointerLock&&document.exitPointerLock();updateHotbar();
@@ -2437,7 +2454,7 @@ function addXP(n){const p=player;p.xp+=n;let need=xpToNext(p.level);while(p.xp>=
 function xpToNext(l){return l<16?2*l+7:l<31?5*l-38:9*l-158}
 function armorPoints(){let a=0;for(const s of player.armor)if(s)a+=ITEMS[s.id].points;return a}
 function damageArmor(n){for(const s of player.armor)if(s)damageItem(s,n)}
-function damageItem(st,n){if(player.mode==='creative')return;const ub=enchLevel(st,'unbreaking');if(ub&&Math.random()<ub/(ub+1))return;st.dur=(st.dur||0)+n;const max=ITEMS[st.id].dur;if(max&&st.dur>=max){for(let i=0;i<36;i++)if(player.inv[i]===st)player.inv[i]=null;for(let i=0;i<4;i++)if(player.armor[i]===st)player.armor[i]=null;playSound('itembreak');updateHotbar()}}
+function damageItem(st,n){if(player.mode==='creative')return;const ub=enchLevel(st,'unbreaking');if(ub&&Math.random()<ub/(ub+1))return;st.dur=(st.dur||0)+n;const max=ITEMS[st.id].dur;if(max&&st.dur>=max){for(let i=0;i<36;i++)if(player.inv[i]===st)player.inv[i]=null;for(let i=0;i<4;i++)if(player.armor[i]===st)player.armor[i]=null;if(player.off[0]===st)player.off[0]=null;playSound('itembreak');updateHotbar()}}
 function flashDamage(){const f=$('dmgflash');f.style.background='rgba(255,0,0,.35)';setTimeout(()=>f.style.background='rgba(255,0,0,0)',150)}
 /* ===================== STRUCTURES ===================== */
 const LOOT={
@@ -2449,10 +2466,10 @@ const LOOT={
   mansion:[[379,1,1,6],[263,1,3,8],[266,1,4,12],[260,1,4,12],[308,1,1,8],[272,1,5,15],[271,1,6,10],[301,1,1,8],[284,4,12,10],[289,1,3,8],[283,1,3,8],[257,2,6,10],[I.iron_axe,1,1,5],[I.diamond_axe,1,1,2],[24,1,1,5],[29,1,3,8]],
   monument:[[379,1,1,6],[24,1,1,10],[311,1,4,12],[313,1,3,8],[263,1,2,6],[314,1,4,10],[262,1,4,10],[310,2,5,15],[266,1,2,6]],
   jungle:[[379,1,1,6],[263,1,3,3],[266,1,3,2],[262,2,7,15],[260,1,5,10],[283,4,6,20],[282,3,7,16],[315,1,1,3],[308,1,1,2],[257,2,5,10],[289,1,3,6],[270,2,5,8]],
-  outpost:[[379,1,1,6],[301,1,1,10],[284,4,12,12],[271,3,5,10],[302,3,5,10],[303,2,5,10],[46,2,6,8],[260,1,3,6],[266,1,3,6],[257,2,6,8],[I.iron_sword,1,1,3],[I.iron_helmet,1,1,3],[308,1,1,2]],
+  outpost:[[397,1,1,5],[379,1,1,6],[301,1,1,10],[284,4,12,12],[271,3,5,10],[302,3,5,10],[303,2,5,10],[46,2,6,8],[260,1,3,6],[266,1,3,6],[257,2,6,8],[I.iron_sword,1,1,3],[I.iron_helmet,1,1,3],[308,1,1,2]],
   endcity:[[379,1,1,12],[264,1,1,8],[376,1,2,4],[375,1,2,5],[266,1,3,10],[262,2,7,10],[263,1,4,10],[312,1,3,6],[315,1,1,3],[308,1,1,3],[105,4,12,8],[I.diamond_sword,1,1,4],[I.diamond_pickaxe,1,1,4],[I.diamond_chestplate,1,1,3],[I.diamond_boots,1,1,3],[396,1,2,3]],
   stronghold:[[379,1,1,10],[378,1,3,10],[377,2,7,10],[260,1,5,10],[262,1,3,6],[263,1,3,4],[308,1,1,3],[272,1,3,10],[273,1,3,8],[264,2,5,6],[I.iron_sword,1,1,3],[312,1,2,4]],
-  shipwreck:[[260,6,16,45],[259,4,12,25],[25,1,3,12],[262,1,5,8],[266,1,3,6],[263,1,1,3],[289,1,4,8],[272,1,4,8],[303,1,4,5],[302,1,4,5],[I.iron_sword,1,1,5],[I.iron_pickaxe,1,1,5],[I.iron_helmet,1,1,4],[I.iron_chestplate,1,1,3]],
+  shipwreck:[[260,6,16,45],[259,4,12,25],[25,1,3,12],[262,1,5,8],[266,1,3,6],[263,1,1,3],[289,1,4,8],[272,1,4,8],[303,1,4,5],[302,1,4,5],[I.iron_sword,1,1,5],[I.iron_pickaxe,1,1,5],[I.iron_helmet,1,1,4],[I.iron_chestplate,1,1,3],[397,1,1,5]],
   village:[[315,1,1,3],[272,1,4,20],[273,1,5,15],[271,1,7,10],[270,1,4,10],[260,1,3,5],[266,1,4,3],[257,1,4,10],[303,1,5,10],[302,1,5,10],[6,1,2,5],[289,1,3,5]],
   fortress:[[379,1,1,6],[263,1,3,5],[260,1,5,5],[262,1,3,15],[299,1,1,5],[31,2,4,5],[308,1,1,3],[311,2,6,10],[283,2,5,8]],
   hut:[[283,2,5,10],[287,1,3,10],[286,1,4,10],[265,1,4,8],[285,1,3,8],[64,1,3,8],[65,1,3,8],[34,1,1,2]],
@@ -2981,7 +2998,7 @@ shaped([' |S','| S',' |S'],{'|':256,S:286},[301,1]);
 shaped(['LLL','LSL'],{L:289,S:286},[315,1]); // saddle: 5 leather + string
 shaped(['###'],{'#':94},[377,3]);shapeless([377,377,377,289],[378,1]);shaped(['###','BBB','###'],{'#':PLANKS,B:378},[29,1]);
 shaped([' B ','DOD','OOO'],{B:378,D:263,O:31},[96,1]);shaped(['III',' i ','iii'],{I:25,i:260},[97,1]);
-shapeless([375,375,375,375,262,262,262,262],[376,1]);shapeless([390],[391,2]);shaped(['GGG','GSG','OOO'],{G:17,S:394,O:31},[104,1]);shapeless([391,312],[392,1]);shaped(['S','C','S'],{S:396,C:39},[107,1]);shaped(['PP','PP'],{P:99},[109,4]);shaped(['P','P'],{P:105},[110,2]);shaped(['B','B'],{B:391},[106,4]);shaped(['###','###','###'],{'#':376},[98,1]);shapeless([98],[376,9]);
+shapeless([375,375,375,375,262,262,262,262],[376,1]);shapeless([390],[391,2]);shaped(['GGG','GSG','OOO'],{G:17,S:394,O:31},[104,1]);shapeless([391,312],[392,1]);shaped(['WIW','WWW',' W '],{W:PLANKS,I:260},[397,1]);shaped(['S','C','S'],{S:396,C:39},[107,1]);shaped(['PP','PP'],{P:99},[109,4]);shaped(['P','P'],{P:105},[110,2]);shaped(['B','B'],{B:391},[106,4]);shaped(['###','###','###'],{'#':376},[98,1]);shapeless([98],[376,9]);
 for(const n of ['sword','pickaxe','axe','shovel','hoe','spear','helmet','chestplate','leggings','boots'])shapeless([I['diamond_'+n],376],[I['netherite_'+n],1]);
 shaped(['F','|','f'],{F:269,'|':256,f:288},[284,4]);
 shaped([' #','# '],{'#':260},[300,1]);
@@ -3036,7 +3053,7 @@ function renderSlot(el){const s=el._slot;const st=s.arr[s.idx];const ic=el.query
   ic.style.backgroundImage='url('+ICONS[st.id]+')';cn.textContent=st.count>1?st.count:'';const def=ITEMS[st.id];el.classList.toggle('ench',!!st.ench);
   if(def.dur&&st.dur>0){du.style.display='block';const f=1-st.dur/def.dur;du.firstChild.style.width=(f*100)+'%';du.firstChild.style.background=f>0.5?'#3f3':f>0.25?'#ff3':'#f33'}else du.style.display='none'}
 function renderAllSlots(){for(const el of slotEls)if(el.offsetParent!==null||true)renderSlot(el);const c=$('cursorItem');if(cursor){c.style.display='block';c.querySelector('.icon').style.backgroundImage='url('+ICONS[cursor.id]+')';c.querySelector('.cnt').textContent=cursor.count>1?cursor.count:''}else c.style.display='none';updateHotbar()}
-function showTip(el){const s=el._slot;const st=s.arr[s.idx];if(!st||cursor)return hideTip();const def=ITEMS[st.id];const t=$('tooltip');let extra='';if(def.dur)extra='<small>Durability: '+(def.dur-(st.dur||0))+' / '+def.dur+'</small>';if(def.food)extra+='<small>Hunger: +'+def.food[0]+'</small>';if(def.armor!==undefined)extra+='<small>+'+def.points+' Armor</small>';if(def.dmg)extra+='<small>'+def.dmg+' Attack Damage</small>';if(st.items)extra+='<small>Contains '+st.items.filter(Boolean).length+' stacks</small>';if(def.elytra)extra+='<small>Jump while falling to glide</small>';if(st.ench){for(const k in st.ench)extra+='<small style="color:'+(ENCH[k].curse?'#f66':'#d9a6ff')+'">'+enchName(k,st.ench[k])+'</small>'}
+function showTip(el){const s=el._slot;const st=s.arr[s.idx];if(!st||cursor)return hideTip();const def=ITEMS[st.id];const t=$('tooltip');let extra='';if(def.dur)extra='<small>Durability: '+(def.dur-(st.dur||0))+' / '+def.dur+'</small>';if(def.food)extra+='<small>Hunger: +'+def.food[0]+'</small>';if(def.armor!==undefined)extra+='<small>+'+def.points+' Armor</small>';if(def.dmg)extra+='<small>'+def.dmg+' Attack Damage</small>';if(st.items)extra+='<small>Contains '+st.items.filter(Boolean).length+' stacks</small>';if(def.elytra)extra+='<small>Jump while falling to glide</small>';if(def.shield)extra+='<small>Hold right-click to block (works from the offhand slot too)</small>';if(st.ench){for(const k in st.ench)extra+='<small style="color:'+(ENCH[k].curse?'#f66':'#d9a6ff')+'">'+enchName(k,st.ench[k])+'</small>'}
   t.innerHTML='<span style="color:'+(st.ench?'#e0b0ff':'#fff')+'">'+def.label+'</span>'+extra;t.style.display='block';const r=el.getBoundingClientRect();t.style.left=(r.right+6)+'px';t.style.top=(r.top)+'px'}
 function hideTip(){$('tooltip').style.display='none'}
 function canPlaceIn(slot,st){if(slot.kind==='out'||slot.kind==='cout'||slot.kind==='aout')return false;if(slot.kind==='armor'){const d=ITEMS[st.id];return d.armor===slot.idx}if(slot.kind==='fuel')return !!ITEMS[st.id].fuel;if(slot.kind==='lapis')return st.id===264;if(slot.kind==='ench')return !!(ITEMS[st.id].dur||st.id===378);return true}
@@ -3052,6 +3069,7 @@ function slotClick(slot,button,shift){
     const g=game.gui;let target=null;
     if(arr===player.inv){if(g&&g.type==='chest')target=[g.be.items,0,27];else if(g&&g.type==='furnace'){const d=ITEMS[st.id];target=d.smelt?[g.be.items,0,1]:d.fuel?[g.be.items,1,1]:null}
       else if(ITEMS[st.id].armor!==undefined&&!player.armor[ITEMS[st.id].armor]){player.armor[ITEMS[st.id].armor]=st;arr[i]=null;playSound('click',0.3);afterSlotChange();return}
+      else if(ITEMS[st.id].shield&&!player.off[0]){player.off[0]=st;arr[i]=null;playSound('click',0.3);afterSlotChange();return}
       if(!target)target=i<9?[player.inv,9,27]:[player.inv,0,9]}
     else target=[player.inv,0,36];
     const left=moveInto(st,target[0],target[1],target[2]);if(left===0)arr[i]=null;else st.count=left;
@@ -3080,7 +3098,7 @@ function craftTake(){const cg=currentGrid();if(!cg)return null;const r=matchReci
   updateCraftOutput();return {id:r.out[0],count:r.out[1]}}
 function returnGrid(grid){for(let i=0;i<grid.length;i++){if(grid[i]){if(addToInventory(grid[i]))spawnItem(player.x,player.y+1,player.z,grid[i]);grid[i]=null}}}
 function buildGuis(){
-  mkSlots($('armorGrid'),player.armor,0,4,'armor');mkSlots($('craft2'),craft2,0,4,'craft');mkSlots($('craft2out'),craftOut,0,1,'cout','out');mkSlots($('invMain'),player.inv,9,27);mkSlots($('invHot'),player.inv,0,9);
+  mkSlots($('armorGrid'),player.armor,0,4,'armor');mkSlots($('offGrid'),player.off,0,1,'off');mkSlots($('craft2'),craft2,0,4,'craft');mkSlots($('craft2out'),craftOut,0,1,'cout','out');mkSlots($('invMain'),player.inv,9,27);mkSlots($('invHot'),player.inv,0,9);
   mkSlots($('craft3'),craft3,0,9,'craft');mkSlots($('craft3out'),craftOut,0,1,'cout','out');mkSlots($('tblMain'),player.inv,9,27);mkSlots($('tblHot'),player.inv,0,9);
   mkSlots($('furnMain'),player.inv,9,27);mkSlots($('furnHot'),player.inv,0,9);mkSlots($('chestMain'),player.inv,9,27);mkSlots($('chestHot'),player.inv,0,9);
   document.addEventListener('mousemove',ev=>{const c=$('cursorItem');c.style.left=(ev.clientX-16)+'px';c.style.top=(ev.clientY-16)+'px'});
@@ -3294,6 +3312,7 @@ function playSound(name,vol=1,pitch=1){
     case 'guardian_zap':noise(0.25,'highpass',2500);tone('sawtooth',1800,300,0.25);env(0.005,0.5,0.25);break;
     case 'shulker':tone('sine',300,520,0.25);tone('triangle',150,260,0.25);env(0.01,0.3,0.3);break;
     case 'elytra':noise(0.6,'bandpass',900,2);env(0.05,0.35,0.6);break;
+    case 'shield':noise(0.15,'lowpass',700,1);tone('triangle',220,120,0.15);env(0.003,0.7,0.2);break;
     case 'anvil':tone('square',900,700,0.25);noise(0.2,'bandpass',2500,4);env(0.002,0.6,0.3);break;
     case 'enchant':tone('sine',600,1400,0.5);tone('triangle',900,1800,0.5);noise(0.4,'highpass',3000);env(0.01,0.3,0.5);break;
     case 'blaze':noise(0.5,'highpass',1800);tone('sawtooth',300,200,0.4);env(0.02,0.3,0.5);break;
@@ -3438,7 +3457,7 @@ function startWorld(meta,save){
   game.dims={over:null,nether:null};world=new World(meta.seed);game.seed=meta.seed;game.worldId=meta.id;game.worldName=meta.name;game.difficulty=meta.diff;game.randomDrops=meta.drops==='random';entities.length=0;particles.length=0;activeFurnaces.clear();
   const p=player;p.mode=meta.mode;p.inv.fill(null);p.armor.fill(null);p.sel=0;p.hp=20;p.hunger=20;p.sat=5;p.exh=0;p.xp=0;p.level=0;p.dead=false;p.flying=false;p.effects={};p.spawn=null;p.fireT=0;p.air=300;p.vx=p.vy=p.vz=0;p.riding=null;
   if(save){world.time=save.time;world.day=save.day||0;game.worldSpawn=save.spawn;world.savedMods={};for(const k in save.mods)world.savedMods[k]=save.mods[k];world.savedBents=save.bents||{};world.populated=new Set(save.pop||[]);
-    const sp=save.player;if(sp.hp<=0)game.respawnOnLoad=true;Object.assign(p,{x:sp.x,y:sp.y,z:sp.z,yaw:sp.yaw,pitch:sp.pitch,hp:sp.hp,hunger:sp.hunger,sat:sp.sat,xp:sp.xp,level:sp.level,sel:sp.sel,spawn:sp.spawn,flying:sp.flying||false});for(let i=0;i<36;i++)p.inv[i]=sp.inv[i]||null;for(let i=0;i<4;i++)p.armor[i]=sp.armor[i]||null;
+    const sp=save.player;if(sp.hp<=0)game.respawnOnLoad=true;Object.assign(p,{x:sp.x,y:sp.y,z:sp.z,yaw:sp.yaw,pitch:sp.pitch,hp:sp.hp,hunger:sp.hunger,sat:sp.sat,xp:sp.xp,level:sp.level,sel:sp.sel,spawn:sp.spawn,flying:sp.flying||false});for(let i=0;i<36;i++)p.inv[i]=sp.inv[i]||null;for(let i=0;i<4;i++)p.armor[i]=sp.armor[i]||null;p.off[0]=(sp.off&&sp.off[0])||null;
     game.pendingMobs=save.mobs||[];game.pendingItems=save.items||[];
     if(save.nether){const nw=new World(meta.seed+1,true);nw.savedMods=save.nether.mods||{};nw.savedBents=save.nether.bents||{};nw.populated=new Set(save.nether.pop||[]);game.dims.nether={world:nw,ents:(save.nether.mobs||[]).map(m=>{if(m.type==='wither'){const w=new Wither(m.x,m.y,m.z);w.hp=m.hp;w.state='hunt';return w}const e=new Mob(m.type,m.x,m.y,m.z);e.hp=m.hp;return e}),furn:new Map()}}
     if(save.end){const ew=new World(meta.seed+2,'end');ew.savedMods=save.end.mods||{};ew.savedBents=save.end.bents||{};ew.populated=new Set(save.end.pop||[]);ew.dragonDead=!!save.end.dragonDead;const ents=(save.end.mobs||[]).map(m=>{const e=new Mob(m.type,m.x,m.y,m.z);e.hp=m.hp;return e});
@@ -3470,7 +3489,7 @@ function saveWorld(){if(!world||game.state!=='playing')return;const p=player;con
   const overSaveWorld=world.dimKey==='over'?world:(game.dims.over?game.dims.over.world:null);
   if(overSaveWorld){for(const c of overSaveWorld.chunks.values()){const k=c.cx+','+c.cz;if(!overSaveWorld.savedMods)overSaveWorld.savedMods={};if(!overSaveWorld.savedBents)overSaveWorld.savedBents={};if(c.mods.size)overSaveWorld.savedMods[k]=Array.from(c.mods);if(c.bents.size)overSaveWorld.savedBents[k]=Array.from(c.bents)}Object.assign(mods,overSaveWorld.savedMods||{});Object.assign(bents,overSaveWorld.savedBents||{})}
   const mobs=[],items=[];const overEnts=world.dimKey==='over'?entities:(game.dims.over?game.dims.over.ents:[]);for(const e of overEnts){if(e.dead)continue;if(e instanceof Wither&&!e.dying)mobs.push({type:'wither',x:e.x,y:e.y,z:e.z,hp:e.hp});else if(e instanceof Mob&&!e.dying)mobs.push({type:e.type,x:e.x,y:e.y,z:e.z,hp:e.hp,baby:e.baby,growT:e.growT,sheared:e.sheared,woolId:e.woolId,prof:e.prof,vlevel:e.vlevel,vxp:e.vxp,uses:e.trades?e.trades.map(t=>t.uses):undefined,tamed:e.tamed||undefined,sitting:e.sitting||undefined,color:e.color,hspeed:e.hspeed,hjump:e.hjump,saddled:e.saddled||undefined,maxHp:e.type==='horse'?e.maxHp:undefined,size:e.size,demand:e.trades?e.trades.map(t=>t.demand||0):undefined,restocks:e.restocks});else if(e instanceof ItemEntity)items.push({x:e.x,y:e.y,z:e.z,id:e.stack.id,count:e.stack.count,dur:e.stack.dur,ench:e.stack.ench,items:e.stack.items})}
-  const save={v:1,dim:world.dimKey,nether:netherSave,end:endSave,time:world.time,day:world.day,spawn:game.worldSpawn,player:{x:p.x,y:p.y,z:p.z,yaw:p.yaw,pitch:p.pitch,hp:p.hp,hunger:p.hunger,sat:p.sat,xp:p.xp,level:p.level,sel:p.sel,inv:p.inv,armor:p.armor,spawn:p.spawn,flying:p.flying},mods,bents,mobs:mobs.slice(0,120),items:items.slice(0,100),pop:Array.from(overSaveWorld?overSaveWorld.populated:[])};
+  const save={v:1,dim:world.dimKey,nether:netherSave,end:endSave,time:world.time,day:world.day,spawn:game.worldSpawn,player:{x:p.x,y:p.y,z:p.z,yaw:p.yaw,pitch:p.pitch,hp:p.hp,hunger:p.hunger,sat:p.sat,xp:p.xp,level:p.level,sel:p.sel,inv:p.inv,armor:p.armor,off:p.off,spawn:p.spawn,flying:p.flying},mods,bents,mobs:mobs.slice(0,120),items:items.slice(0,100),pop:Array.from(overSaveWorld?overSaveWorld.populated:[])};
   try{localStorage.setItem('ic_world_'+game.worldId,JSON.stringify(save));const list=worldList();const m=list.find(w=>w.id===game.worldId);if(m){m.played=Date.now();localStorage.setItem('ic_worlds',JSON.stringify(list))}}catch(e){showMessage('Save failed: storage full')}
   if(ridePos){p.y=ridePos[1]}game.lastSave=game.time;
 }
@@ -3577,7 +3596,7 @@ const KITS={
   enchanting:{label:'enchanting table, 15 bookshelves, 100 lapis, 16 books',items:[[96,1],[29,15],[264,100],[378,16]]},
   end:{label:'elytra, 16 eyes of ender, 16 ender pearls, netherite sword',items:[[395,1],[392,16],[312,16],[I.netherite_sword,1]]},
   netherite:{label:'full netherite armor and tools',items:[[386,1],[387,1],[388,1],[389,1],[380,1],[381,1],[382,1],[383,1]]},
-  diamond:{label:'full diamond armor and tools',items:[[I.diamond_helmet,1],[I.diamond_chestplate,1],[I.diamond_leggings,1],[I.diamond_boots,1],[I.diamond_sword,1],[I.diamond_pickaxe,1],[I.diamond_axe,1],[I.diamond_shovel,1]]},
+  diamond:{label:'full diamond armor and tools, plus a shield',items:[[397,1],[I.diamond_helmet,1],[I.diamond_chestplate,1],[I.diamond_leggings,1],[I.diamond_boots,1],[I.diamond_sword,1],[I.diamond_pickaxe,1],[I.diamond_axe,1],[I.diamond_shovel,1]]},
   food:{label:'64 steak, 64 golden apples',items:[[277,64],[308,64]]},
   builder:{label:'stacks of stone, cobblestone, planks, torches, bookshelves',items:[[1,64],[4,64],[5,64],[32,64],[29,64]]}};
 function runCommand(line){const p=player;const raw=line.startsWith('/')?line.slice(1):line;const parts=raw.split(/\s+/);const cmd=(parts[0]||'').toLowerCase();const args=parts.slice(1);const say=showMessage;
