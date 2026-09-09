@@ -224,7 +224,7 @@ label.lb{font-size:13px;color:#a0a0a0;align-self:flex-start;margin-left:calc(50%
   <button class="btn" id="btnSingle">Singleplayer</button>
   <button class="btn" id="btnOptionsT">Options...</button>
   <button class="btn" id="btnControls">Controls</button>
-  <div style="position:absolute;bottom:6px;left:8px;font-size:12px;font-weight:400;color:#aaa">Ironcraft 1.14 (re-enchanting build) &mdash; a browser voxel survival game</div>
+  <div style="position:absolute;bottom:6px;left:8px;font-size:12px;font-weight:400;color:#aaa">Ironcraft 1.15 &mdash; a browser voxel survival game</div>
 </div>
 
 <div id="worldMenu" class="menu dirtbg">
@@ -2382,9 +2382,9 @@ function placeHeldBlock(hd,st,t){
     case 'torch':{if(face===2||(tdef.replaceable&&BLOCKS[below].opaque)){const s=BLOCKS[world.getBlock(px,py-1,pz)];if(!(s.opaque||s.model==='fence'||s.model==='slab'))return;meta=0}else if(face===3)return;else{const wall=BLOCKS[t.id];if(!wall.opaque)return;meta=FACE_TO_FACING[face]+1}break}
     case 'ladder':{if(face===2||face===3)return;if(!tdef.opaque)return;meta=FACE_TO_FACING[face];break}
     case 'door':{if(!BLOCKS[below].solid)return;const up=world.getBlock(px,py+1,pz);if(up!==0&&!BLOCKS[up].replaceable)return;if(boxesOverlapEntity(px,py,pz,px+1,py+2,pz+1))return;
-      world.setBlock(px,py,pz,54,lf);world.setBlock(px,py+1,pz,54,lf|8);consumeHeld();playSoundAt('place_wood',px,py,pz);p.swing=0;return}
+      world.setBlock(px,py,pz,54,lf,{silent:true});world.setBlock(px,py+1,pz,54,lf|8);consumeHeld();playSoundAt('place_wood',px,py,pz);p.swing=0;return}
     case 'bed':{const d=FACE_DIR[FACING_TO_FACE[lf]];const hx=px+d[0],hz=pz+d[2];const hb=world.getBlock(hx,py,hz);if(!(hb===0||BLOCKS[hb].replaceable))return;if(!BLOCKS[below].solid||!BLOCKS[world.getBlock(hx,py-1,hz)].solid)return;
-      world.setBlock(px,py,pz,62,lf);world.setBlock(hx,py,hz,62,lf|4);consumeHeld();playSoundAt('place_wool',px,py,pz);p.swing=0;return}
+      world.setBlock(px,py,pz,62,lf,{silent:true});world.setBlock(hx,py,hz,62,lf|4);consumeHeld();playSoundAt('place_wool',px,py,pz);p.swing=0;return}
     case 'slab':{meta=(face===3||(face!==2&&t.fy>0.5))?1:0;break}
     case 'stairs':{meta=lf|((face===3||(face!==2&&t.fy>0.5))?4:0);break}
     case 'crop':return;
