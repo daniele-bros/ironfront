@@ -1972,7 +1972,7 @@ class Mob extends Entity{
     if(src&&src.type==='player'&&this.def.passive){}
   }
   onDeath(){const r=Math.random;if(this.type==='slime'&&this.size>1){const n=2+floor(r()*3);for(let i=0;i<n;i++){const s=new Mob('slime',this.x+(r()-0.5)*this.w,this.y+0.2,this.z+(r()-0.5)*this.w);s.setSize(this.size-1);s.vx=(r()-0.5)*6;s.vz=(r()-0.5)*6;s.vy=4;s.angry=this.angry;entities.push(s)}}
-    const drops=game.randomDrops?[[randomDropFor(1000+MOB_TYPES.indexOf(this.type)),1]]:this.def.drops(r,this);const loot=this.lastHit>game.time-5?(this.lootLvl||0):0;for(const d of drops){if(d[0]&&d[1]>0)spawnItem(this.x,this.y+0.3,this.z,{id:d[0],count:d[1]+(loot?floor(r()*(loot+1)):0)})}
+    const drops=game.randomDrops?randomDrops():this.def.drops(r,this);const loot=this.lastHit>game.time-5?(this.lootLvl||0):0;for(const d of drops){if(d[0]&&d[1]>0)spawnItem(this.x,this.y+0.3,this.z,{id:d[0],count:d[1]+(loot?floor(r()*(loot+1)):0)})}
     if(this.lastHit>game.time-5)spawnXP(this.x,this.y+0.3,this.z,this.def.xp[0]+floor(Math.random()*(this.def.xp[1]-this.def.xp[0]+1)));playSoundAt(this.def.sound+'_death',this.x,this.y,this.z)}
   interact(stack){ // right click by player, returns true if consumed action
     const d=this.def;
@@ -2301,7 +2301,7 @@ function breakBlock(x,y,z,byPlayer,noDrop){
   if(id===107){const be=world.getBlockEntity(x,y,z);const items=be&&be.items&&be.items.some(Boolean)?be.items:null;world.setBlock(x,y,z,0,0,{noDrop:true});
     if(!(byPlayer&&player.mode==='creative')||items)spawnItem(x+0.5,y+0.3,z+0.5,{id:107,count:1,items:items||undefined});return true}
   world.setBlock(x,y,z,0,0);
-  if(!noDrop&&!(byPlayer&&player.mode==='creative')){const drops=game.randomDrops&&byPlayer?[[randomDropFor(id),1]]:blockDrops(id,meta,tool,st);for(const d of drops)spawnItem(x+0.5,y+0.3,z+0.5,{id:d[0],count:d[1]});
+  if(!noDrop&&!(byPlayer&&player.mode==='creative')){const drops=game.randomDrops&&byPlayer?randomDrops():blockDrops(id,meta,tool,st);for(const d of drops)spawnItem(x+0.5,y+0.3,z+0.5,{id:d[0],count:d[1]});
     if(def.xp&&byPlayer&&canHarvest(def,tool))spawnXP(x+0.5,y+0.5,z+0.5,def.xp[0]+floor(Math.random()*(def.xp[1]-def.xp[0]+1)))}
   return true;
 }
@@ -3419,8 +3419,12 @@ function trySpawnMobs(){
 }
 /* ---- random drops mode: each block type, mob type and chest slot maps to a surprise item, shuffled per world ---- */
 let RANDOM_POOL=null;
-function randomPool(){if(RANDOM_POOL)return RANDOM_POOL;RANDOM_POOL=[];for(const d of ITEMS){if(!d)continue;if([0,7,35,73,74,81,82,86,101].includes(d.id))continue;RANDOM_POOL.push(d.id)}return RANDOM_POOL}
-function randomDropFor(key,extra){const pool=randomPool();const h=hashInt(key,extra||0,911,game.seed);return pool[h%pool.length]}
+function randomPool(){if(RANDOM_POOL)return RANDOM_POOL;RANDOM_POOL=[];for(const d of ITEMS){if(!d)continue;if([0,7,35,73,74,81,82,86,100,101,108].includes(d.id))continue;RANDOM_POOL.push(d.id)}return RANDOM_POOL}
+// random drops re-roll on every single break, and now and then a whole set of gear falls out at once
+const RANDOM_SETS=[[386,387,388,389],[380,381,382,383,384],[I.diamond_helmet,I.diamond_chestplate,I.diamond_leggings,I.diamond_boots],[I.diamond_sword,I.diamond_pickaxe,I.diamond_axe,I.diamond_shovel],[I.iron_helmet,I.iron_chestplate,I.iron_leggings,I.iron_boots],[395,392,392,392],[96,29,29,29,29,29,29,29,29,29,29,29,29,29,29,29,264,264,264]];
+function randomDropFor(){const pool=randomPool();return pool[floor(Math.random()*pool.length)]}
+function randomDrops(){if(Math.random()<0.03){const set=RANDOM_SETS[floor(Math.random()*RANDOM_SETS.length)];showMessage('Jackpot! A full set dropped');playSound('levelup',0.6);const out=[];for(const id of set){const last=out[out.length-1];if(last&&last[0]===id&&ITEMS[id].stack>1)last[1]++;else out.push([id,1])}return out}
+  const id=randomDropFor();return [[id,ITEMS[id].stack>1&&Math.random()<0.25?2+floor(Math.random()*3):1]]}
 /* ---- initial spawn ---- */
 function findSpawn(){for(let r=0;r<400;r+=8){for(let a=0;a<PI*2;a+=0.7){const x=floor(Math.cos(a)*r),z=floor(Math.sin(a)*r);const info=world.columnInfo(x,z);if(info.height>SEA+1&&info.biome!==BI.mountains&&info.biome!==BI.ocean)return [x+0.5,info.height+1,z+0.5]}}return [0.5,80,0.5]}
 /* ---- world lifecycle ---- */
