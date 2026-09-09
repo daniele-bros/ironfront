@@ -3599,15 +3599,66 @@ const KITS={
   diamond:{label:'full diamond armor and tools, plus a shield',items:[[397,1],[I.diamond_helmet,1],[I.diamond_chestplate,1],[I.diamond_leggings,1],[I.diamond_boots,1],[I.diamond_sword,1],[I.diamond_pickaxe,1],[I.diamond_axe,1],[I.diamond_shovel,1]]},
   food:{label:'64 steak, 64 golden apples',items:[[277,64],[308,64]]},
   builder:{label:'stacks of stone, cobblestone, planks, torches, bookshelves',items:[[1,64],[4,64],[5,64],[32,64],[29,64]]}};
+/* ---- /locate and /tp <structure|ore>: replay the structure placement rules to find the nearest one ---- */
+const STRUCT_DEFS={
+  village:{size:20,salt:101,ok:i=>[BI.plains,BI.forest,BI.taiga,BI.snowy_taiga,BI.desert].includes(i.biome)&&i.height>SEA+2},
+  desert_temple:{size:18,salt:102,ok:i=>i.biome===BI.desert},
+  igloo:{size:14,salt:103,ok:i=>i.biome===BI.snowy_taiga},
+  swamp_hut:{size:12,salt:104,ok:i=>i.biome===BI.swamp},
+  ruined_portal:{size:14,salt:105,ok:(i,r)=>i.height>SEA+1&&r()<0.6},
+  mansion:{size:24,salt:110,ok:i=>[BI.forest,BI.birch_forest,BI.taiga].includes(i.biome)&&i.height>SEA+3},
+  monument:{size:16,salt:111,ok:i=>i.biome===BI.deep_ocean,sea:true},
+  shipwreck:{size:8,salt:112,ok:(i,r)=>(i.biome===BI.ocean||i.biome===BI.deep_ocean)&&r()<0.5,sea:true},
+  jungle_temple:{size:12,salt:113,ok:i=>i.biome===BI.jungle&&i.height>SEA+2},
+  stronghold:{size:40,salt:115,ok:()=>true,y:r=>20+floor(r()*8),inside:[2,0,0]},
+  mineshaft:{size:9,salt:106,ok:(i,r)=>r()<0.55,y:r=>18+floor(r()*24),inside:[0,0,0]},
+  fortress:{size:14,salt:107,dim:'nether',ok:()=>true,y:r=>52+floor(r()*20),inside:[0,1,0]},
+  end_city:{size:3,salt:116,dim:'end',ok:(i,r,w,wx,wz)=>{if(sqrt(wx*wx+wz*wz)<170)return false;const c0=w.endIsland(wx,wz);return !!(c0&&[[6,0],[-6,0],[0,6],[0,-6],[5,5],[-5,-5]].every(o=>{const s=w.endIsland(wx+o[0],wz+o[1]);return s&&abs(s[0]-c0[0])<=3}))}}};
+const STRUCT_ALIASES={temple:'desert_temple',pyramid:'desert_temple',hut:'swamp_hut',witch:'swamp_hut',portal:'ruined_portal',ruined:'ruined_portal',ship:'shipwreck',wreck:'shipwreck',city:'end_city',fort:'fortress',nether_fortress:'fortress',jungle:'jungle_temple',mine:'mineshaft',ocean_monument:'monument',woodland_mansion:'mansion',outpost:'village',pillager_outpost:'village'};
+const ORE_NAMES={diamond:33,diamonds:33,iron:13,gold:12,emerald:71,emeralds:71,coal:14,lapis:18,redstone:69,copper:70,ancient_debris:95,debris:95,netherite:95};
+function structKey(name){const n=name.toLowerCase().replace(/[\s-]+/g,'_');if(STRUCT_DEFS[n])return n;if(STRUCT_ALIASES[n])return STRUCT_ALIASES[n];const k=Object.keys(STRUCT_DEFS).find(k=>k.startsWith(n)||k.includes(n));return k||null}
+function locateStructure(key,fromX,fromZ){const d=STRUCT_DEFS[key];const dim=d.dim||'over';let w;if(world.dimKey===dim)w=world;else if(game.dims[dim])w=game.dims[dim].world;else w=new World(dim==='nether'?game.seed+1:dim==='end'?game.seed+2:game.seed,dim==='nether'?true:dim==='end'?'end':false);
+  const size=d.size;const rx0=Math.floor((floor(fromX)>>4)/size),rz0=Math.floor((floor(fromZ)>>4)/size);let best=null;
+  for(let ring=0;ring<=12;ring++){for(let rx=rx0-ring;rx<=rx0+ring;rx++)for(let rz=rz0-ring;rz<=rz0+ring;rz++){if(Math.max(abs(rx-rx0),abs(rz-rz0))!==ring)continue;
+      const r=mulberry32(hashInt(rx,rz,d.salt,w.seed));const cx=rx*size+floor(r()*size),cz=rz*size+floor(r()*size);const wx=cx*16+8,wz=cz*16+8;const info=dim==='over'?w.columnInfo(wx,wz):{biome:0,height:64};
+      if(!d.ok(info,r,w,wx,wz))continue;const y=d.y?d.y(r):null;const dist=Math.hypot(wx-fromX,wz-fromZ);if(!best||dist<best.dist)best={x:wx,z:wz,y,dist,dim,info}}
+    if(best&&best.dist<(ring)*size*16)break}
+  return best}
+function dirName(dx,dz){const a=Math.atan2(dx,-dz);const names=['north','north-east','east','south-east','south','south-west','west','north-west'];return names[((Math.round(a/(PI/4))%8)+8)%8]}
+function nearestOre(id,maxRings){const p=player;const px=floor(p.x),py=floor(p.y),pz=floor(p.z);const cx0=px>>4,cz0=pz>>4;let best=null;
+  const scan=c=>{const bl=c.blocks;for(let i=0;i<bl.length;i++){if(bl[i]!==id)continue;const x=c.cx*16+(i>>11),y=i&127,z=c.cz*16+((i>>7)&15);const d=(x-px)*(x-px)+(y-py)*(y-py)*0.25+(z-pz)*(z-pz);if(!best||d<best.d)best={x,y,z,d}}};
+  for(let ring=0;ring<=maxRings;ring++){for(let cx=cx0-ring;cx<=cx0+ring;cx++)for(let cz=cz0-ring;cz<=cz0+ring;cz++){if(Math.max(abs(cx-cx0),abs(cz-cz0))!==ring)continue;const c=world.generateChunk(cx,cz);populateChunk(c);scan(c)}
+    if(best&&sqrt(best.d)<ring*16)break}
+  return best}
+function tpTo(x,y,z){const p=player;p.x=x;p.y=y;p.z=z;p.vx=p.vy=p.vz=0;p.fallDist=0;p.gliding=false;if(p.riding)p.riding.dismount();ensureChunks(p.x,p.z,2);spawnParticles('portal',p.x,p.y+1,p.z,16);playSound('enderman_tp',0.7)}
+function commandLocate(name,teleport){const p=player;const say=showMessage;const n=(name||'').toLowerCase().replace(/[\s-]+/g,'_');
+  if(!n){say('Usage: /'+(teleport?'tp':'locate')+' <'+Object.keys(STRUCT_DEFS).join('|')+'|diamonds|iron|gold|emerald|debris|spawn_portal>');return}
+  if(n==='spawn_portal'||n==='spawn'){if(world.dimKey!=='over'){say('The spawn portal is in the overworld');return}const s=world.spawnPortalSpot();if(!s){say('No spawn portal in this world');return}ensureChunks(s.x,s.z,1);const y=findGround(s.x,s.z);if(teleport){tpTo(s.x+0.5,y+0.1,s.z+0.5);say('Teleported to the spawn ruined portal')}else say('Spawn ruined portal: '+s.x+' '+y+' '+s.z+' ('+Math.round(Math.hypot(s.x-p.x,s.z-p.z))+' blocks '+dirName(s.x-p.x,s.z-p.z)+')');return}
+  if(ORE_NAMES[n]!==undefined){const id=ORE_NAMES[n];if(id===95&&!world.nether){say('Ancient debris is only in the Nether');return}if(id!==95&&world.dimKey!=='over'){say(ITEMS[id].label+' is only in the overworld');return}
+    say('Searching for '+ITEMS[id].label+'...');const o=nearestOre(id,teleport?7:5);if(!o){say('No '+ITEMS[id].label+' within '+((teleport?7:5)*16)+' blocks');return}
+    const dist=Math.round(Math.hypot(o.x-p.x,o.z-p.z));if(!teleport){say(ITEMS[id].label+' at '+o.x+' '+o.y+' '+o.z+' ('+dist+' blocks '+dirName(o.x-p.x,o.z-p.z)+', '+(o.y<p.y?Math.round(p.y-o.y)+' blocks down':Math.round(o.y-p.y)+' blocks up')+')');return}
+    for(let dy=1;dy<=2;dy++)if(world.getBlock(o.x,o.y+dy,o.z)!==0)world.setBlock(o.x,o.y+dy,o.z,0,0,{silent:true,noDrop:true}); // a 1x2 pocket standing on the ore
+    for(const [dx,dz] of [[1,0],[-1,0],[0,1],[0,-1]])for(let dy=0;dy<=3;dy++){const b=world.getBlock(o.x+dx,o.y+dy,o.z+dz);if(b===9||b===8)world.setBlock(o.x+dx,o.y+dy,o.z+dz,4,0,{silent:true})} // wall off lava and water
+    if(world.getBlock(o.x,o.y+3,o.z)===9||world.getBlock(o.x,o.y+3,o.z)===8)world.setBlock(o.x,o.y+3,o.z,4,0,{silent:true});
+    tpTo(o.x+0.5,o.y+1.05,o.z+0.5);
+    say('Teleported '+dist+' blocks to '+ITEMS[id].label+': it is right under your feet, dig down');return}
+  const key=structKey(n);if(!key){say('Unknown target. Try: '+Object.keys(STRUCT_DEFS).join(', ')+', diamonds, iron, gold, emerald, debris, spawn_portal');return}
+  const d=STRUCT_DEFS[key];const dim=d.dim||'over';const b=locateStructure(key,p.x,p.z);if(!b){say('No '+label(key)+' found nearby');return}
+  const note=n.includes('outpost')?' (outposts stand 40-65 blocks from villages, most villages have one)':'';const dimName={over:'overworld',nether:'Nether',end:'End'}[dim];
+  if(!teleport||world.dimKey!==dim){const where=world.dimKey===dim?Math.round(b.dist)+' blocks '+dirName(b.x-p.x,b.z-p.z):'in the '+dimName;say(label(key)+' at x '+b.x+(b.y!==null?' y '+b.y:'')+' z '+b.z+' ('+where+')'+note);if(teleport)say('Go to the '+dimName+' first, then /tp '+key);return}
+  ensureChunks(b.x,b.z,2);let y;if(b.y!==null){const ins=d.inside||[0,0,0];const tx=b.x+ins[0],ty=b.y+ins[1],tz=b.z+ins[2];for(let dy=0;dy<=1;dy++){const bb=world.getBlock(tx,ty+dy,tz);if(bb!==0)world.setBlock(tx,ty+dy,tz,0,0,{silent:true,noDrop:true})}if(!BLOCKS[world.getBlock(tx,ty-1,tz)].solid)world.setBlock(tx,ty-1,tz,4,0,{silent:true});tpTo(tx+0.5,ty+0.05,tz+0.5)}
+  else{y=d.sea?SEA+1:findGround(b.x,b.z);tpTo(b.x+0.5,y+0.1,b.z+0.5)}
+  say('Teleported '+Math.round(b.dist)+' blocks to the '+label(key)+(d.sea?' (it is below you, in the water)':b.y!==null?' (you are inside it, underground)':'')+note)}
 function runCommand(line){const p=player;const raw=line.startsWith('/')?line.slice(1):line;const parts=raw.split(/\s+/);const cmd=(parts[0]||'').toLowerCase();const args=parts.slice(1);const say=showMessage;
   switch(cmd){
-    case 'help':say('/give <item> [count] [enchant:lvl ...]  /kit <'+Object.keys(KITS).join('|')+'>  /build enchanting');say('/tp <x y z|spawn|home>  /time <day|night|n>  /gamemode <survival|creative>  /spawn <mob>  /heal  /xp <levels>  /seed  /kill');return;
+    case 'help':say('/give <item> [count] [enchant:lvl ...]  /kit <'+Object.keys(KITS).join('|')+'>  /build enchanting');say('/tp <x y z|spawn|home|village|mansion|stronghold|diamonds|...>  /locate <structure|ore>  /time <day|night|n>  /gamemode <survival|creative>  /spawn <mob>  /heal  /xp <levels>  /seed  /kill');return;
     case 'give':{const isEnch=a=>/[:=]/.test(a)||!!Object.keys(ENCH).find(k=>k===a.toLowerCase()||(a.length>=4&&k.startsWith(a.toLowerCase())));const nm=[args[0]||''];let i=1;while(i<args.length&&!/^\d+$/.test(args[i])&&!isEnch(args[i])){nm.push(args[i]);i++}
       const id=findItemId(nm.join('_'));if(id===null){say('Unknown item: '+nm.join(' '));return}
       const cnt=args.slice(i).find(a=>/^\d+$/.test(a));const ench=parseEnch(args.slice(i).filter(isEnch));giveItems(id,cnt?clamp(+cnt,1,2304):1,ench);say('Gave '+(cnt||1)+' x '+ITEMS[id].label+(ench?' ('+Object.keys(ench).map(k=>enchName(k,ench[k])).join(', ')+')':''));return}
     case 'kit':{const k=KITS[(args[0]||'').toLowerCase()];if(!k){say('Kits: '+Object.keys(KITS).map(k=>k+' ('+KITS[k].label+')').join(' | '));return}for(const [id,n] of k.items)giveItems(id,n);say('Kit '+args[0]+': '+k.label);return}
     case 'build':{if((args[0]||'').toLowerCase().startsWith('ench')){if(buildEnchantingRoom()){giveItems(264,100);giveItems(378,8);say('Plus 100 lapis and 8 books in your inventory')}}else say('Usage: /build enchanting');return}
-    case 'tp':{if(args[0]==='spawn'||args[0]==='home'){const s=(args[0]==='home'&&p.spawn)||game.worldSpawn;if(world.dimKey!=='over'){switchDimension(true)}ensureChunks(s[0],s[2],2);const spot=safeSpotNear(s[0],s[2]);p.x=spot[0];p.y=spot[1];p.z=spot[2]}
+    case 'locate':case 'find':commandLocate(args.join('_'),false);return;
+    case 'tp':{if(args.length&&isNaN(parseFloat(args[0]))&&args[0]!=='~'&&!(args.length===1&&(args[0]==='home'||args[0]==='spawn'))){commandLocate(args.join('_'),true);return}if(args[0]==='spawn'||args[0]==='home'){const s=(args[0]==='home'&&p.spawn)||game.worldSpawn;if(world.dimKey!=='over'){switchDimension(true)}ensureChunks(s[0],s[2],2);const spot=safeSpotNear(s[0],s[2]);p.x=spot[0];p.y=spot[1];p.z=spot[2]}
       else{const c=args.map(a=>a.startsWith('~')?null:parseFloat(a));if(args.length<3||c.some((v,i)=>v!==null&&isNaN(v))){say('Usage: /tp x y z (or ~ to keep)');return}p.x=c[0]===null?p.x:c[0]+0.5;p.y=c[1]===null?p.y:c[1];p.z=c[2]===null?p.z:c[2]+0.5;ensureChunks(p.x,p.z,2);if(c[1]===null||!BLOCKS[world.getBlock(floor(p.x),floor(p.y)-1,floor(p.z))].solid)p.y=findGround(p.x,p.z)+0.1}
       p.vx=p.vy=p.vz=0;p.fallDist=0;if(p.riding)p.riding.dismount();say('Teleported to '+floor(p.x)+' '+floor(p.y)+' '+floor(p.z));return}
     case 'time':{const a=(args[0]||'').toLowerCase();const t=a==='day'?1000:a==='noon'?6000:a==='night'?13000:a==='midnight'?18000:parseInt(a);if(isNaN(t)){say('Usage: /time day|night|<0-24000>');return}world.time=((t%24000)+24000)%24000;say('Time set to '+world.time);return}
