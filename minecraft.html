@@ -3593,17 +3593,26 @@ const TP_STRUCT={
   mansion:{size:24,salt:110,ok:m=>[BI.forest,BI.birch_forest,BI.taiga].includes(m.biome)&&m.height>SEA+3,alias:['woodland_mansion']},
   monument:{size:16,salt:111,ok:m=>m.biome===BI.deep_ocean,alias:['ocean_monument'],note:'It is underwater below you'},
   shipwreck:{size:8,salt:112,ok:(m,r)=>(m.biome===BI.ocean||m.biome===BI.deep_ocean)&&r()<0.5,alias:['ship','wreck'],note:'It is underwater below you'},
-  jungle_temple:{size:12,salt:113,ok:m=>m.biome===BI.jungle&&m.height>SEA+2,alias:['jungle']},
+  jungle_temple:{size:12,salt:113,ok:m=>m.biome===BI.jungle&&m.height>SEA+2,alias:['jungletemple']},
   stronghold:{size:40,salt:115,ok:()=>true,inside:r=>({dx:2,y:20+floor(r()*8),yaw:-PI/2}),note:'You are in the main hall; the portal room is at the east end'},
   end_portal:{size:40,salt:115,ok:()=>true,inside:r=>({dx:28,dz:2,y:20+floor(r()*8),yaw:-PI/2}),alias:['endportal','end','portal_room'],note:'The End portal frame is on the platform ahead: fill it with eyes of ender to open it'},
   mineshaft:{size:9,salt:106,ok:(m,r)=>r()<0.55,inside:r=>({dx:0,y:18+floor(r()*24)}),alias:['mine','mine_shaft']},
   fortress:{size:14,salt:107,ok:()=>true,nether:true,inside:r=>({dx:3,y:53+floor(r()*20)}),alias:['nether_fortress'],note:'Blaze spawner is just west of you'},
+  end_city:{size:3,salt:116,end:true,radius:60,alias:['endcity','city','end_ship'],note:'You are on top of the city tower; the End ship with the elytra is moored beside it',
+    locate:(cx,cz,r)=>{const x=cx*16+8,z=cz*16+8;if(sqrt(x*x+z*z)<170)return null;const c0=world.endIsland(x,z);if(!c0)return null;
+      if(![[6,0],[-6,0],[0,6],[0,-6],[5,5],[-5,-5]].every(o=>{const s=world.endIsland(x+o[0],z+o[1]);return s&&abs(s[0]-c0[0])<=3}))return null;return {x,z}}},
 };
+const TP_DIM={over:['overworld','over','home_world','surface'],nether:['nether','the_nether','hell'],end:['the_end','end_dimension','end_world','end_island','dragon_island']};
+function goDim(key){if(key==='over'){if(world.end)leaveEnd();else if(world.nether)switchDimension(false);return}
+  if(key==='nether'){if(world.end)leaveEnd();if(!world.nether)switchDimension(false);return}
+  if(key==='end'){if(world.nether)switchDimension(false);if(!world.end)enterEnd()}}
+const TP_NETHER_RE=/^(nether|soul_|glowstone|quartz|ancient_debris|debris|magma|blaze|zombified_piglin|piglin|wither_skeleton|fortress)/;
+const TP_END_RE=/^(end_stone|end_rod|purpur|chorus|shulker|dragon|ender_dragon|end_city|crystal|end_gateway|end_ship)/;
 function tpStructDef(name){if(TP_STRUCT[name])return TP_STRUCT[name];for(const k in TP_STRUCT){const d=TP_STRUCT[k];if((d.alias||[]).includes(name)||k.startsWith(name))return d}return null}
-function findStructureNear(def,px,pz,maxR){const pcx=floor(px)>>4,pcz=floor(pz)>>4;
+function findStructureNear(def,px,pz,maxR,skip){const pcx=floor(px)>>4,pcz=floor(pz)>>4;
   for(let R=0;R<=maxR;R++){let best=null;
-    for(let dx=-R;dx<=R;dx++)for(let dz=-R;dz<=R;dz++){if(Math.max(abs(dx),abs(dz))!==R)continue;const cx=pcx+dx,cz=pcz+dz;const r=world.regionOrigin(cx,cz,def.size,def.salt);if(!r)continue;
-      const x=cx*16+8,z=cz*16+8;const mid=def.nether?null:world.columnInfo(x,z);if(!def.ok(mid,r))continue;
+    for(let dx=-R;dx<=R;dx++)for(let dz=-R;dz<=R;dz++){if(Math.max(abs(dx),abs(dz))!==R)continue;const cx=pcx+dx,cz=pcz+dz;if(skip&&skip.has(cx+','+cz))continue;const r=world.regionOrigin(cx,cz,def.size,def.salt);if(!r)continue;
+      const x=cx*16+8,z=cz*16+8;if(def.locate){if(!def.locate(cx,cz,r))continue}else{const mid=(def.nether||def.end)?null:world.columnInfo(x,z);if(!def.ok(mid,r))continue}
       const d=Math.hypot(x-px,z-pz);if(!best||d<best.d)best={x,z,d,r}}
     if(best)return best}
   return null}
@@ -3633,30 +3642,58 @@ function spawnNetherPortal(say){const p=player;let fx=Math.round(-Math.sin(p.yaw
     for(const o of [-1,1]){const ox=bx+sx*o,oz=bz+sz*o;if(dy===-1)world.setBlock(ox,by,oz,31,0,{silent:true});else if(!edge){const b=world.getBlock(ox,by,oz);if(b!==0&&b!==82)world.setBlock(ox,by,oz,0,0,{silent:true})}}}
   playSound&&playSound('enchant');say(world.nether?'Nether portal built: walk in to return to the overworld':'Nether portal built ahead of you: walk in to go to the Nether')}
 function finishTp(say,msg){const p=player;p.vx=p.vy=p.vz=0;p.fallDist=0;if(p.riding)p.riding.dismount();ensureChunks(p.x,p.z,2);say(msg+' ('+floor(p.x)+' '+floor(p.y)+' '+floor(p.z)+')')}
+function tpBlockId(n){for(const c of [n,n+'_block',n+'s']){for(let id=1;id<BLOCKS.length;id++)if(BLOCKS[id]&&BLOCKS[id].name===c)return id}
+  const base=n.replace(/s$/,'');for(const test of [b=>b===base,b=>b.startsWith(n),b=>b.startsWith(base),b=>b.includes(n)]){for(let id=1;id<BLOCKS.length;id++){const b=BLOCKS[id];if(b&&b.name&&test(b.name))return id}}return null}
+function tpMobType(n){if(n==='dragon'||n==='ender_dragon'||n==='enderdragon')return 'dragon';if(n==='wither'||n==='wither_boss')return 'wither';if(MOBDEF[n])return n;const base=n.replace(/s$/,'');if(MOBDEF[base])return base;return MOB_TYPES.find(k=>k.startsWith(base))||null}
+function tpBiomeId(n){if(n==='nether')return undefined;if(BI[n]!==undefined)return BI[n];const k=BIOMES.find(b=>b!==('nether')&&(b.startsWith(n)||n.startsWith(b)));return k===undefined?undefined:BI[k]}
+function findBiomeNear(bi,px,pz,maxR){const step=32;const hit=(x,z)=>world.columnInfo(x,z).biome===bi?{x,z}:null;let h=hit(floor(px),floor(pz));if(h)return h;
+  for(let R=step;R<=maxR;R+=step){for(let t=-R;t<=R;t+=step){if((h=hit(floor(px)+t,floor(pz)-R))||(h=hit(floor(px)+t,floor(pz)+R))||(h=hit(floor(px)-R,floor(pz)+t))||(h=hit(floor(px)+R,floor(pz)+t)))return h}}return null}
+function tpToMob(t,say){const p=player;const need=t==='dragon'||t==='shulker'?'end':(t==='blaze'||t==='wither_skeleton'||t==='zombified_piglin')?'nether':null;if(need)goDim(need);
+  const match=e=>!e.dead&&(t==='dragon'?e instanceof Dragon:t==='wither'?e instanceof Wither:(e instanceof Mob&&e.type===t));
+  let best=null;const pick=()=>{for(const e of entities){if(!match(e))continue;const d=Math.hypot(e.x-p.x,e.z-p.z);if(!best||d<best.d)best={e,d}}};pick();
+  if(!best){say('Looking further for a '+label(t)+'...');ensureChunks(p.x,p.z,4);pick()}
+  if(!best){say('No '+label(t)+' is loaded anywhere near you. Mobs only exist in loaded chunks: explore, wait for night, or use /spawn '+t);return}
+  const e=best.e;if(t==='dragon'||e.y-findGround(e.x,e.z)>3){ensureChunks(e.x,e.z,2);const spot=safeSpotNear(e.x,e.z);p.x=spot[0];p.y=spot[1];p.z=spot[2];p.yaw=Math.atan2(-(e.x-p.x),-(e.z-p.z));p.pitch=0.6}
+  else landBeside(floor(e.x),floor(e.y),floor(e.z));
+  finishTp(say,label(t)+' is right in front of you')}
+function tpToOutpost(say){const p=player;goDim('over');const skip=new Set();for(let tries=0;tries<4;tries++){const v=findStructureNear(TP_STRUCT.village,p.x,p.z,60,skip);if(!v)break;skip.add((v.x>>4)+','+(v.z>>4));
+    say('Checking the village at '+v.x+' '+v.z+' for an outpost...');ensureChunks(v.x,v.z,5);let best=null;for(const e of entities){if(!(e instanceof Mob)||e.type!=='pillager'||e.dead)continue;const d=Math.hypot(e.x-v.x,e.z-v.z);if(d<90&&(!best||d<best.d))best={e,d}}
+    if(best){const e=best.e;ensureChunks(e.x,e.z,1);landBeside(floor(e.x),floor(e.y),floor(e.z));finishTp(say,'Teleported to a pillager outpost');return}}
+  say('No outpost found near the closest villages: try again from somewhere else')}
 function tpNamed(name,say){const p=player;const n=name.toLowerCase().replace(/[\s-]+/g,'_');
-  const ore=tpOreName(n);if(ore!==null){const netherOre=ore===85||ore===95;if(netherOre&&world.dimKey!=='nether'){say(BLOCKS[ore].label+' is only found in the Nether');return true}if(!netherOre&&world.dimKey!=='over'){switchDimension(true)}
-    say('Searching for '+BLOCKS[ore].label+'...');const hit=findBlockNear(ore,p.x,p.y,p.z,5);if(!hit){say('No '+BLOCKS[ore].label+' within 5 chunks of you: move somewhere else and try again');return true}
-    landBeside(hit.x,hit.y,hit.z);finishTp(say,BLOCKS[ore].label+' is right in front of you');return true}
-  if(n==='dungeon'||n==='spawner'||n==='monster_room'){if(world.dimKey!=='over'){switchDimension(true)}let best=null;const pick=()=>{for(const s of world.spawners.values()){const d=Math.hypot(s.x-p.x,s.z-p.z);if(!best||d<best.d)best={x:s.x,y:s.y,z:s.z,d}}};
+  // dimensions
+  for(const k in TP_DIM){if(TP_DIM[k].includes(n)){if(world.dimKey===k){say('You are already in the '+(k==='over'?'Overworld':k==='nether'?'Nether':'End'));return true}goDim(k);finishTp(say,'Teleported to the '+(k==='over'?'Overworld':k==='nether'?'Nether':'End'));return true}}
+  if(n==='spawn_portal'||n==='start_portal'){goDim('over');const sp=world.spawnPortalSpot();if(!sp){say('No spawn portal in this world');return true}ensureChunks(sp.x,sp.z,2);const spot=safeSpotNear(sp.x,sp.z);p.x=spot[0];p.y=spot[1];p.z=spot[2];finishTp(say,'Teleported to the ruined portal by spawn');return true}
+  if(n==='dungeon'||n==='spawner'||n==='monster_room'){if(world.end)goDim('over');let best=null;const pick=()=>{for(const s of world.spawners.values()){const d=Math.hypot(s.x-p.x,s.z-p.z);if(!best||d<best.d)best={x:s.x,y:s.y,z:s.z,d}}};
     pick();if(!best){say('Searching for a dungeon...');ensureChunks(p.x,p.z,4);pick()}if(!best){say('No dungeon within 4 chunks of you: move somewhere else and try again');return true}
     landBeside(best.x,best.y,best.z);finishTp(say,'Teleported to a monster spawner');return true}
-  const def=tpStructDef(n);if(!def)return false;
-  if(def.nether&&world.dimKey!=='nether'){say('Nether fortresses are in the Nether: go through a portal first');return true}
-  if(!def.nether&&world.dimKey!=='over'){switchDimension(true)}
-  const hit=findStructureNear(def,p.x,p.z,def.size*3);if(!hit){say('No '+n+' found near you');return true}
-  ensureChunks(hit.x,hit.z,2);
-  if(def.inside){const at=def.inside(hit.r);const x=hit.x+at.dx,z=hit.z+(at.dz||0);for(const yy of [at.y,at.y+1]){const b=world.getBlock(x,yy,z);if(b!==0&&b!==86&&BLOCKS[b].solid)world.setBlock(x,yy,z,0,0,{silent:true})}p.x=x+0.5;p.y=at.y+0.1;p.z=z+0.5;if(at.yaw!==undefined){p.yaw=at.yaw;p.pitch=0}}
-  else{const spot=safeSpotNear(hit.x,hit.z);p.x=spot[0];p.y=spot[1];p.z=spot[2]}
-  finishTp(say,'Teleported to the nearest '+n.replace(/_/g,' ')+(def.note?'. '+def.note:''));return true}
+  if(n==='outpost'||n==='pillager_outpost'||n==='pillagers'){tpToOutpost(say);return true}
+  // structures (an exact biome name such as jungle or desert is handled as a biome below)
+  const def=BIOMES.includes(n)?null:tpStructDef(n);if(def){goDim(def.nether?'nether':def.end?'end':'over');
+    const hit=findStructureNear(def,p.x,p.z,def.radius||250);if(!hit){say('No '+n.replace(/_/g,' ')+' found near you');return true}
+    ensureChunks(hit.x,hit.z,2);
+    if(def.inside){const at=def.inside(hit.r);const x=hit.x+at.dx,z=hit.z+(at.dz||0);for(const yy of [at.y,at.y+1]){const b=world.getBlock(x,yy,z);if(b!==0&&b!==86&&BLOCKS[b].solid)world.setBlock(x,yy,z,0,0,{silent:true})}p.x=x+0.5;p.y=at.y+0.1;p.z=z+0.5;if(at.yaw!==undefined){p.yaw=at.yaw;p.pitch=0}}
+    else{const spot=safeSpotNear(hit.x,hit.z);p.x=spot[0];p.y=spot[1];p.z=spot[2]}
+    finishTp(say,'Teleported to the nearest '+n.replace(/_/g,' ')+(def.note?'. '+def.note:''));return true}
+  // mobs and bosses
+  const mob=tpMobType(n);if(mob){tpToMob(mob,say);return true}
+  // biomes
+  const bi=tpBiomeId(n);if(bi!==undefined){goDim('over');say('Searching for a '+BIOMES[bi].replace(/_/g,' ')+' biome...');const h=findBiomeNear(bi,p.x,p.z,3000);if(!h){say('No '+BIOMES[bi].replace(/_/g,' ')+' within 3000 blocks');return true}
+    ensureChunks(h.x,h.z,2);const spot=safeSpotNear(h.x,h.z);p.x=spot[0];p.y=spot[1];p.z=spot[2];finishTp(say,'Teleported to a '+BIOMES[bi].replace(/_/g,' ')+' biome');return true}
+  // any block (ores first so "diamonds" means the ore, then everything else)
+  const id=tpOreName(n)!==null?tpOreName(n):tpBlockId(n);if(id!==null){const need=TP_NETHER_RE.test(BLOCKS[id].name)?'nether':TP_END_RE.test(BLOCKS[id].name)?'end':null;if(need)goDim(need);
+    say('Searching for '+BLOCKS[id].label+'...');const hit=findBlockNear(id,p.x,p.y,p.z,5);if(!hit){say('No '+BLOCKS[id].label+' within 5 chunks of you: move somewhere else and try again');return true}
+    landBeside(hit.x,hit.y,hit.z);finishTp(say,BLOCKS[id].label+' is right in front of you');return true}
+  return false}
 function runCommand(line){const p=player;const raw=line.trim().replace(/^\/+/,'');const parts=raw.split(/\s+/);const cmd=(parts[0]||'').toLowerCase();const args=parts.slice(1);const say=showMessage;
   switch(cmd){
-    case 'help':say('/give <item> [count] [enchant:lvl ...]  /kit <'+Object.keys(KITS).join('|')+'>  /build enchanting');say('/tp <x y z|spawn|home|diamonds|<ore>|village|stronghold|end portal|mineshaft|mansion|temple|igloo|hut|portal|monument|shipwreck|dungeon|fortress>  /spawn nether portal');say('/time <day|night|n>  /gamemode <survival|creative>  /spawn <mob>  /heal  /xp <levels>  /seed  /kill');return;
+    case 'help':say('/give <item> [count] [enchant:lvl ...]  /kit <'+Object.keys(KITS).join('|')+'>  /build enchanting');say('/tp <x y z|spawn|home|any block|any mob|any biome|any structure|nether|the end|overworld>  e.g. /tp diamonds, /tp creeper, /tp jungle, /tp end city   /spawn nether portal');say('/time <day|night|n>  /gamemode <survival|creative>  /spawn <mob>  /heal  /xp <levels>  /seed  /kill');return;
     case 'give':{const isEnch=a=>/[:=]/.test(a)||!!Object.keys(ENCH).find(k=>k===a.toLowerCase()||(a.length>=4&&k.startsWith(a.toLowerCase())));const nm=[args[0]||''];let i=1;while(i<args.length&&!/^\d+$/.test(args[i])&&!isEnch(args[i])){nm.push(args[i]);i++}
       const id=findItemId(nm.join('_'));if(id===null){say('Unknown item: '+nm.join(' '));return}
       const cnt=args.slice(i).find(a=>/^\d+$/.test(a));const ench=parseEnch(args.slice(i).filter(isEnch));giveItems(id,cnt?clamp(+cnt,1,2304):1,ench);say('Gave '+(cnt||1)+' x '+ITEMS[id].label+(ench?' ('+Object.keys(ench).map(k=>enchName(k,ench[k])).join(', ')+')':''));return}
     case 'kit':case 'kits':{const kn=(args[0]||'').toLowerCase().replace(/s$/,'');const key=KITS[kn]?kn:Object.keys(KITS).find(k=>k.startsWith(kn)&&kn.length>=2);const k=key&&KITS[key];if(k)args[0]=key;if(!k){say('Kits: '+Object.keys(KITS).map(k=>k+' ('+KITS[k].label+')').join(' | '));return}for(const [id,n] of k.items)giveItems(id,n);say('Kit '+args[0]+': '+k.label);return}
     case 'build':{if((args[0]||'').toLowerCase().startsWith('ench')){if(buildEnchantingRoom()){giveItems(264,100);giveItems(378,8);say('Plus 100 lapis and 8 books in your inventory')}}else say('Usage: /build enchanting');return}
-    case 'tp':{if(args.length&&args[0]!=='spawn'&&args[0]!=='home'&&!/^[-~\d.]/.test(args[0])){if(!tpNamed(args.join('_'),say))say('Unknown place. Try: diamonds, iron, gold, emerald, village, stronghold, end portal, mineshaft, mansion, temple, igloo, hut, portal, monument, shipwreck, jungle temple, dungeon, fortress');return}
+    case 'tp':{if(args.length&&!(args.length===1&&(args[0]==='spawn'||args[0]==='home'))&&!/^[-~\d.]/.test(args[0])){if(!tpNamed(args.join('_'),say))say('Unknown place. You can /tp to any block (diamonds, chest, lava...), any mob (creeper, villager, dragon...), any biome (desert, jungle...), any structure (village, stronghold, end portal, mineshaft, mansion, temple, igloo, hut, portal, monument, shipwreck, jungle temple, dungeon, outpost, fortress, end city) or nether / the end / overworld');return}
       if(args[0]==='spawn'||args[0]==='home'){const s=(args[0]==='home'&&p.spawn)||game.worldSpawn;if(world.dimKey!=='over'){switchDimension(true)}ensureChunks(s[0],s[2],2);const spot=safeSpotNear(s[0],s[2]);p.x=spot[0];p.y=spot[1];p.z=spot[2]}
       else{const c=args.map(a=>a.startsWith('~')?null:parseFloat(a));if(args.length<3||c.some((v,i)=>v!==null&&isNaN(v))){say('Usage: /tp x y z (or ~ to keep)');return}p.x=c[0]===null?p.x:c[0]+0.5;p.y=c[1]===null?p.y:c[1];p.z=c[2]===null?p.z:c[2]+0.5;ensureChunks(p.x,p.z,2);if(c[1]===null||!BLOCKS[world.getBlock(floor(p.x),floor(p.y)-1,floor(p.z))].solid)p.y=findGround(p.x,p.z)+0.1}
       p.vx=p.vy=p.vz=0;p.fallDist=0;if(p.riding)p.riding.dismount();say('Teleported to '+floor(p.x)+' '+floor(p.y)+' '+floor(p.z));return}
