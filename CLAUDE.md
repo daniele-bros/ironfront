@@ -1,8 +1,9 @@
-# Iron Front — project instructions
+# Daniele Bros Games — project instructions
 
-WW2 top-down tank combat game. Single self-contained HTML file: all markup,
-CSS, and JavaScript (game loop, rendering, audio, tank/map data) live in one
-file. No build step, no dependencies — open the file in a browser to play.
+A collection of browser games plus a landing page that links them. Every game
+is a single self-contained HTML file: all markup, CSS, and JavaScript (game
+loop, rendering, audio, data) live in one file. No build step, no
+dependencies — open the file in a browser to play.
 
 ## Branching — work off `main`
 
@@ -16,10 +17,12 @@ file. No build step, no dependencies — open the file in a browser to play.
 
 ## Files
 
-- `ww2tanks.html` — the game (the file that gets edited).
-- `index.html` — an identical copy so the Pages root URL (`/`) works. **Keep it
-  in sync with `ww2tanks.html`** — after editing the game, copy it over:
-  `cp ww2tanks.html index.html` and commit both.
+- `index.html` — the **games hub** (landing page). It is NOT a copy of a game.
+  Games are listed in the `GAMES` array at the bottom of the file; when you
+  add a new game file, add one entry there so it shows up on the site.
+- `ww2tanks.html` — **Iron Front**, WW2 top-down tank combat.
+- `command.html` — **Iron Battle**, flat-map real-time strategy.
+- `minecraft.html` — **Ironcraft**, Minecraft-style voxel survival (WebGL2).
 
 ## Verifying changes
 
@@ -34,7 +37,7 @@ There is no test suite. Verify in a headless browser with Playwright:
 Watch for `pageerror`/`console.error` — a clean run with the battlefield
 rendering is the bar. Capture a screenshot to eyeball graphics changes.
 
-## Code orientation
+## Code orientation (Iron Front)
 
 - Tank stats/roster: `TANK_DEFS` array. Tank silhouettes: `TANK_PROFILES` +
   `drawTankFull` / `_hull` / `_turret` / `_casemate`.
