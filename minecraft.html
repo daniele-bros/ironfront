@@ -3594,7 +3594,8 @@ const TP_STRUCT={
   monument:{size:16,salt:111,ok:m=>m.biome===BI.deep_ocean,alias:['ocean_monument'],note:'It is underwater below you'},
   shipwreck:{size:8,salt:112,ok:(m,r)=>(m.biome===BI.ocean||m.biome===BI.deep_ocean)&&r()<0.5,alias:['ship','wreck'],note:'It is underwater below you'},
   jungle_temple:{size:12,salt:113,ok:m=>m.biome===BI.jungle&&m.height>SEA+2,alias:['jungle']},
-  stronghold:{size:40,salt:115,ok:()=>true,inside:r=>({dx:2,y:20+floor(r()*8)}),alias:['end_portal'],note:'You are in the main hall; the portal room is at the east end'},
+  stronghold:{size:40,salt:115,ok:()=>true,inside:r=>({dx:2,y:20+floor(r()*8),yaw:-PI/2}),note:'You are in the main hall; the portal room is at the east end'},
+  end_portal:{size:40,salt:115,ok:()=>true,inside:r=>({dx:28,dz:2,y:20+floor(r()*8),yaw:-PI/2}),alias:['endportal','end','portal_room'],note:'The End portal frame is on the platform ahead: fill it with eyes of ender to open it'},
   mineshaft:{size:9,salt:106,ok:(m,r)=>r()<0.55,inside:r=>({dx:0,y:18+floor(r()*24)}),alias:['mine','mine_shaft']},
   fortress:{size:14,salt:107,ok:()=>true,nether:true,inside:r=>({dx:3,y:53+floor(r()*20)}),alias:['nether_fortress'],note:'Blaze spawner is just west of you'},
 };
@@ -3622,6 +3623,15 @@ function landBeside(x,y,z){const p=player;let sx=null,sz=null;
   const fl=world.getBlock(sx,y-1,sz);if(!BLOCKS[fl].solid||BLOCKS[fl].liquid)world.setBlock(sx,y-1,sz,1,0,{silent:true});
   const top=world.getBlock(x,y+1,z);if(top!==0&&top!==32)world.setBlock(x,y+1,z,0,0,{silent:true});if(world.getBlock(x,y+1,z)===0&&BLOCKS[world.getBlock(x,y,z)].opaque)world.setBlock(x,y+1,z,32,0,{silent:true});
   p.x=sx+0.5;p.y=y+0.1;p.z=sz+0.5;p.yaw=Math.atan2(-(x-sx),-(z-sz));p.pitch=-0.25}
+// a lit nether portal three blocks ahead of the player, its face turned toward them
+function spawnNetherPortal(say){const p=player;let fx=Math.round(-Math.sin(p.yaw)),fz=Math.round(-Math.cos(p.yaw));if(abs(fx)>=abs(fz)){fz=0;fx=fx<0?-1:1}else{fx=0;fz=fz<0?-1:1}
+  const tx=floor(p.x)+fx*3,tz=floor(p.z)+fz*3,ty=floor(p.y);const axis=fz!==0?0:1;
+  for(let i=0;i<=2;i++)for(const w of [0,1]){const wx=floor(p.x)+fx*i+(fz?w:0),wz=floor(p.z)+fz*i+(fx?w:0);const g=world.getBlock(wx,ty-1,wz);if(!BLOCKS[g].solid||BLOCKS[g].liquid)world.setBlock(wx,ty-1,wz,31,0,{silent:true});for(const yy of [ty,ty+1]){const bb=world.getBlock(wx,yy,wz);if(bb!==0&&bb!==82&&!BLOCKS[bb].liquid)world.setBlock(wx,yy,wz,0,0,{silent:true})}} // level walkway from you to the frame // axis 0: frame runs along x (you face it when walking along z)
+  const ax=axis?0:1,az=axis?1:0;const sx=axis?0:1,sz=axis?1:0; // ax/az: along the frame, sx/sz: through it
+  for(let i=-1;i<=2;i++)for(let dy=-1;dy<=3;dy++){const edge=i===-1||i===2||dy===-1||dy===3;const bx=tx+ax*i,bz=tz+az*i,by=ty+dy;
+    world.setBlock(bx,by,bz,edge?31:82,edge?0:axis,{silent:true});
+    for(const o of [-1,1]){const ox=bx+sx*o,oz=bz+sz*o;if(dy===-1)world.setBlock(ox,by,oz,31,0,{silent:true});else if(!edge){const b=world.getBlock(ox,by,oz);if(b!==0&&b!==82)world.setBlock(ox,by,oz,0,0,{silent:true})}}}
+  playSound&&playSound('enchant');say(world.nether?'Nether portal built: walk in to return to the overworld':'Nether portal built ahead of you: walk in to go to the Nether')}
 function finishTp(say,msg){const p=player;p.vx=p.vy=p.vz=0;p.fallDist=0;if(p.riding)p.riding.dismount();ensureChunks(p.x,p.z,2);say(msg+' ('+floor(p.x)+' '+floor(p.y)+' '+floor(p.z)+')')}
 function tpNamed(name,say){const p=player;const n=name.toLowerCase().replace(/[\s-]+/g,'_');
   const ore=tpOreName(n);if(ore!==null){const netherOre=ore===85||ore===95;if(netherOre&&world.dimKey!=='nether'){say(BLOCKS[ore].label+' is only found in the Nether');return true}if(!netherOre&&world.dimKey!=='over'){switchDimension(true)}
@@ -3635,24 +3645,25 @@ function tpNamed(name,say){const p=player;const n=name.toLowerCase().replace(/[\
   if(!def.nether&&world.dimKey!=='over'){switchDimension(true)}
   const hit=findStructureNear(def,p.x,p.z,def.size*3);if(!hit){say('No '+n+' found near you');return true}
   ensureChunks(hit.x,hit.z,2);
-  if(def.inside){const at=def.inside(hit.r);const x=hit.x+at.dx,z=hit.z;for(const yy of [at.y,at.y+1]){const b=world.getBlock(x,yy,z);if(b!==0&&b!==86&&BLOCKS[b].solid)world.setBlock(x,yy,z,0,0,{silent:true})}p.x=x+0.5;p.y=at.y+0.1;p.z=z+0.5}
+  if(def.inside){const at=def.inside(hit.r);const x=hit.x+at.dx,z=hit.z+(at.dz||0);for(const yy of [at.y,at.y+1]){const b=world.getBlock(x,yy,z);if(b!==0&&b!==86&&BLOCKS[b].solid)world.setBlock(x,yy,z,0,0,{silent:true})}p.x=x+0.5;p.y=at.y+0.1;p.z=z+0.5;if(at.yaw!==undefined){p.yaw=at.yaw;p.pitch=0}}
   else{const spot=safeSpotNear(hit.x,hit.z);p.x=spot[0];p.y=spot[1];p.z=spot[2]}
   finishTp(say,'Teleported to the nearest '+n.replace(/_/g,' ')+(def.note?'. '+def.note:''));return true}
-function runCommand(line){const p=player;const raw=line.startsWith('/')?line.slice(1):line;const parts=raw.split(/\s+/);const cmd=(parts[0]||'').toLowerCase();const args=parts.slice(1);const say=showMessage;
+function runCommand(line){const p=player;const raw=line.trim().replace(/^\/+/,'');const parts=raw.split(/\s+/);const cmd=(parts[0]||'').toLowerCase();const args=parts.slice(1);const say=showMessage;
   switch(cmd){
-    case 'help':say('/give <item> [count] [enchant:lvl ...]  /kit <'+Object.keys(KITS).join('|')+'>  /build enchanting');say('/tp <x y z|spawn|home|diamonds|<ore>|village|stronghold|mineshaft|mansion|temple|igloo|hut|portal|monument|shipwreck|dungeon|fortress>');say('/time <day|night|n>  /gamemode <survival|creative>  /spawn <mob>  /heal  /xp <levels>  /seed  /kill');return;
+    case 'help':say('/give <item> [count] [enchant:lvl ...]  /kit <'+Object.keys(KITS).join('|')+'>  /build enchanting');say('/tp <x y z|spawn|home|diamonds|<ore>|village|stronghold|end portal|mineshaft|mansion|temple|igloo|hut|portal|monument|shipwreck|dungeon|fortress>  /spawn nether portal');say('/time <day|night|n>  /gamemode <survival|creative>  /spawn <mob>  /heal  /xp <levels>  /seed  /kill');return;
     case 'give':{const isEnch=a=>/[:=]/.test(a)||!!Object.keys(ENCH).find(k=>k===a.toLowerCase()||(a.length>=4&&k.startsWith(a.toLowerCase())));const nm=[args[0]||''];let i=1;while(i<args.length&&!/^\d+$/.test(args[i])&&!isEnch(args[i])){nm.push(args[i]);i++}
       const id=findItemId(nm.join('_'));if(id===null){say('Unknown item: '+nm.join(' '));return}
       const cnt=args.slice(i).find(a=>/^\d+$/.test(a));const ench=parseEnch(args.slice(i).filter(isEnch));giveItems(id,cnt?clamp(+cnt,1,2304):1,ench);say('Gave '+(cnt||1)+' x '+ITEMS[id].label+(ench?' ('+Object.keys(ench).map(k=>enchName(k,ench[k])).join(', ')+')':''));return}
-    case 'kit':{const k=KITS[(args[0]||'').toLowerCase()];if(!k){say('Kits: '+Object.keys(KITS).map(k=>k+' ('+KITS[k].label+')').join(' | '));return}for(const [id,n] of k.items)giveItems(id,n);say('Kit '+args[0]+': '+k.label);return}
+    case 'kit':case 'kits':{const kn=(args[0]||'').toLowerCase().replace(/s$/,'');const key=KITS[kn]?kn:Object.keys(KITS).find(k=>k.startsWith(kn)&&kn.length>=2);const k=key&&KITS[key];if(k)args[0]=key;if(!k){say('Kits: '+Object.keys(KITS).map(k=>k+' ('+KITS[k].label+')').join(' | '));return}for(const [id,n] of k.items)giveItems(id,n);say('Kit '+args[0]+': '+k.label);return}
     case 'build':{if((args[0]||'').toLowerCase().startsWith('ench')){if(buildEnchantingRoom()){giveItems(264,100);giveItems(378,8);say('Plus 100 lapis and 8 books in your inventory')}}else say('Usage: /build enchanting');return}
-    case 'tp':{if(args.length&&args[0]!=='spawn'&&args[0]!=='home'&&!/^[-~\d.]/.test(args[0])){if(!tpNamed(args.join('_'),say))say('Unknown place. Try: diamonds, iron, gold, emerald, village, stronghold, mineshaft, mansion, temple, igloo, hut, portal, monument, shipwreck, jungle temple, dungeon, fortress');return}
+    case 'tp':{if(args.length&&args[0]!=='spawn'&&args[0]!=='home'&&!/^[-~\d.]/.test(args[0])){if(!tpNamed(args.join('_'),say))say('Unknown place. Try: diamonds, iron, gold, emerald, village, stronghold, end portal, mineshaft, mansion, temple, igloo, hut, portal, monument, shipwreck, jungle temple, dungeon, fortress');return}
       if(args[0]==='spawn'||args[0]==='home'){const s=(args[0]==='home'&&p.spawn)||game.worldSpawn;if(world.dimKey!=='over'){switchDimension(true)}ensureChunks(s[0],s[2],2);const spot=safeSpotNear(s[0],s[2]);p.x=spot[0];p.y=spot[1];p.z=spot[2]}
       else{const c=args.map(a=>a.startsWith('~')?null:parseFloat(a));if(args.length<3||c.some((v,i)=>v!==null&&isNaN(v))){say('Usage: /tp x y z (or ~ to keep)');return}p.x=c[0]===null?p.x:c[0]+0.5;p.y=c[1]===null?p.y:c[1];p.z=c[2]===null?p.z:c[2]+0.5;ensureChunks(p.x,p.z,2);if(c[1]===null||!BLOCKS[world.getBlock(floor(p.x),floor(p.y)-1,floor(p.z))].solid)p.y=findGround(p.x,p.z)+0.1}
       p.vx=p.vy=p.vz=0;p.fallDist=0;if(p.riding)p.riding.dismount();say('Teleported to '+floor(p.x)+' '+floor(p.y)+' '+floor(p.z));return}
     case 'time':{const a=(args[0]||'').toLowerCase();const t=a==='day'?1000:a==='noon'?6000:a==='night'?13000:a==='midnight'?18000:parseInt(a);if(isNaN(t)){say('Usage: /time day|night|<0-24000>');return}world.time=((t%24000)+24000)%24000;say('Time set to '+world.time);return}
     case 'gamemode':case 'gm':{const a=(args[0]||'').toLowerCase();const m=a==='c'||a==='creative'||a==='1'?'creative':a==='s'||a==='survival'||a==='0'?'survival':null;if(!m){say('Usage: /gamemode survival|creative');return}p.mode=m;if(m==='survival')p.flying=false;say('Game mode: '+m);return}
-    case 'spawn':case 'summon':{const t=(args[0]||'').toLowerCase().replace(/[\s-]+/g,'_');const type=MOBDEF[t]?t:MOB_TYPES.find(k=>k.startsWith(t));if(!type){say('Mobs: '+MOB_TYPES.join(', '));return}const n=clamp(parseInt(args[1])||1,1,20);const d=eyeDir();for(let i=0;i<n;i++)entities.push(new Mob(type,p.x+d[0]*3+(Math.random()-0.5)*2,p.y+0.5,p.z+d[2]*3+(Math.random()-0.5)*2));say('Spawned '+n+' '+label(type));return}
+    case 'spawn':case 'summon':{if(/portal/i.test(args.join('_'))){spawnNetherPortal(say);return}const t=(args[0]||'').toLowerCase().replace(/[\s-]+/g,'_');const type=MOBDEF[t]?t:MOB_TYPES.find(k=>k.startsWith(t));if(!type){say('Mobs: '+MOB_TYPES.join(', '));return}const n=clamp(parseInt(args[1])||1,1,20);const d=eyeDir();for(let i=0;i<n;i++)entities.push(new Mob(type,p.x+d[0]*3+(Math.random()-0.5)*2,p.y+0.5,p.z+d[2]*3+(Math.random()-0.5)*2));say('Spawned '+n+' '+label(type));return}
+    case 'portal':spawnNetherPortal(say);return;
     case 'heal':p.hp=p.maxHp;p.hunger=20;p.sat=5;p.fireT=0;p.air=300;p.effects={};say('Healed');return;
     case 'xp':{const n=parseInt(args[0])||10;p.level=Math.max(0,p.level+n);p.xpFrac=0;say('Level '+p.level);updateHUD&&updateHUD();return}
     case 'seed':say('Seed: '+game.seed);return;
