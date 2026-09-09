@@ -2452,7 +2452,7 @@ const LOOT={
   outpost:[[379,1,1,6],[301,1,1,10],[284,4,12,12],[271,3,5,10],[302,3,5,10],[303,2,5,10],[46,2,6,8],[260,1,3,6],[266,1,3,6],[257,2,6,8],[I.iron_sword,1,1,3],[I.iron_helmet,1,1,3],[308,1,1,2]],
   endcity:[[379,1,1,12],[264,1,1,8],[376,1,2,4],[375,1,2,5],[266,1,3,10],[262,2,7,10],[263,1,4,10],[312,1,3,6],[315,1,1,3],[308,1,1,3],[105,4,12,8],[I.diamond_sword,1,1,4],[I.diamond_pickaxe,1,1,4],[I.diamond_chestplate,1,1,3],[I.diamond_boots,1,1,3],[396,1,2,3]],
   stronghold:[[379,1,1,10],[378,1,3,10],[377,2,7,10],[260,1,5,10],[262,1,3,6],[263,1,3,4],[308,1,1,3],[272,1,3,10],[273,1,3,8],[264,2,5,6],[I.iron_sword,1,1,3],[312,1,2,4]],
-  shipwreck:[[260,1,5,20],[262,1,5,12],[266,1,3,10],[263,1,1,4],[289,1,4,15],[272,1,4,15],[303,1,4,10],[302,1,4,10],[24,1,1,3],[I.iron_sword,1,1,5],[I.iron_helmet,1,1,4]],
+  shipwreck:[[260,6,16,45],[259,4,12,25],[25,1,3,12],[262,1,5,8],[266,1,3,6],[263,1,1,3],[289,1,4,8],[272,1,4,8],[303,1,4,5],[302,1,4,5],[I.iron_sword,1,1,5],[I.iron_pickaxe,1,1,5],[I.iron_helmet,1,1,4],[I.iron_chestplate,1,1,3]],
   village:[[315,1,1,3],[272,1,4,20],[273,1,5,15],[271,1,7,10],[270,1,4,10],[260,1,3,5],[266,1,4,3],[257,1,4,10],[303,1,5,10],[302,1,5,10],[6,1,2,5],[289,1,3,5]],
   fortress:[[379,1,1,6],[263,1,3,5],[260,1,5,5],[262,1,3,15],[299,1,1,5],[31,2,4,5],[308,1,1,3],[311,2,6,10],[283,2,5,8]],
   hut:[[283,2,5,10],[287,1,3,10],[286,1,4,10],[265,1,4,8],[285,1,3,8],[64,1,3,8],[65,1,3,8],[34,1,1,2]],
@@ -2484,7 +2484,7 @@ Object.assign(World.prototype,{
     if((r=this.regionOrigin(cx,cz,18,102))&&mid.biome===BI.desert)this.placeDesertTemple(wx+8,wz+8,r);
     if((r=this.regionOrigin(cx,cz,14,103))&&mid.biome===BI.snowy_taiga)this.placeIgloo(wx+8,wz+8,r);
     if((r=this.regionOrigin(cx,cz,12,104))&&mid.biome===BI.swamp)this.placeSwampHut(wx+8,wz+8,r);
-    if((r=this.regionOrigin(cx,cz,5,105))&&mid.height>SEA+1&&r()<0.9)this.placeRuinedPortal(wx+8,wz+8,r);
+    if((r=this.regionOrigin(cx,cz,14,105))&&mid.height>SEA+1&&r()<0.6)this.placeRuinedPortal(wx+8,wz+8,r);
     if((r=this.regionOrigin(cx,cz,24,110))&&[BI.forest,BI.birch_forest,BI.taiga].includes(mid.biome)&&mid.height>SEA+3)this.placeMansion(wx+8,wz+8,mid,r);
     if((r=this.regionOrigin(cx,cz,16,111))&&mid.biome===BI.deep_ocean)this.placeMonument(wx+8,wz+8,mid,r);
     if((r=this.regionOrigin(cx,cz,8,112))&&(mid.biome===BI.ocean||mid.biome===BI.deep_ocean)&&r()<0.5)this.placeShipwreck(wx+8,wz+8,mid,r);
@@ -2666,7 +2666,7 @@ Object.assign(World.prototype,{
       this.setGen(px,y,pz,5,0,false);if(hull){this.setGen(px,y+1,pz,5,0,false);if(abs(i)<6)this.setGen(px,y+2,pz,61,0,false)}}}
     for(let i=-4;i<=4;i++){this.setGen(x+dx*i,y+1,z+dz*i,i===0?0:5,0,false)}
     for(let h=1;h<=7;h++)this.setGen(x+dx*2,y+h,z+dz*2,15,0,false);
-    this.setChest(x-dx*5,y+1,z-dz*5,0,'shipwreck',rng,3+floor(rng()*4));if(rng()<0.5)this.setChest(x+dx*6,y+1,z+dz*6,0,'shipwreck',rng,2+floor(rng()*3));
+    this.setChest(x-dx*5,y+1,z-dz*5,0,'shipwreck',rng,6+floor(rng()*4));this.setChest(x+dx*6,y+1,z+dz*6,0,'shipwreck',rng,5+floor(rng()*4));
   },
   /* ---- jungle temple: mossy cobblestone pyramid with a trapped treasure room ---- */
   placeJungleTemple(x,z,rng){const h=this.surfaceY(x,z);const y=h-1;const M=()=>rng()<0.45?30:4;const hw=5,hl=7;
