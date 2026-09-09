@@ -3616,18 +3616,23 @@ function findStructureNear(def,px,pz,maxR,skip){const pcx=floor(px)>>4,pcz=floor
       const d=Math.hypot(x-px,z-pz);if(!best||d<best.d)best={x,z,d,r}}
     if(best)return best}
   return null}
-// ring-by-ring search outward from the player for the closest block of a type. Chunks that were not loaded are
-// generated just to look inside and thrown away again unless they hold the block, so a wide search stays cheap on memory.
-// Stops at maxR chunks or when the time budget runs out (returns {timeout:true, blocks:<how far it looked>}).
-function findBlockNear(id,px,py,pz,maxR=48,budgetMs=8000){const pcx=floor(px)>>4,pcz=floor(pz)>>4;const t0=performance.now();
-  for(let R=0;R<=maxR;R++){let best=null;
-    for(let dx=-R;dx<=R;dx++)for(let dz=-R;dz<=R;dz++){if(Math.max(abs(dx),abs(dz))!==R)continue;const cx=pcx+dx,cz=pcz+dz;const key=chunkKey(cx,cz);const was=world.chunks.get(key);const had=!!(was&&was.generated);
-      const c=world.generateChunk(cx,cz);const bl=c.blocks;let hit=null;
-      for(let i=0;i<bl.length;i++){if(bl[i]!==id)continue;const x=cx*16+(i>>11),y=i&127,z=cz*16+((i>>7)&15);const d=(x-px)*(x-px)+(y-py)*(y-py)+(z-pz)*(z-pz);if(!hit||d<hit.d)hit={x,y,z,d}}
-      if(hit){if(!best||hit.d<best.d)best=hit}else if(!had)world.chunks.delete(key)}
-    if(best)return best;
-    if(performance.now()-t0>budgetMs)return {timeout:true,blocks:R*16}}
-  return {timeout:false,blocks:maxR*16}}
+// Background search for the closest block of a type. It walks outward ring by ring, a few chunks per frame so the
+// game keeps running, and never gives up until it finds one (or /stop). Chunks that were not loaded are generated
+// just to look inside and thrown away again unless they hold the block, so memory stays flat.
+function ringCells(R){if(R===0)return [[0,0]];const out=[];for(let dx=-R;dx<=R;dx++)for(let dz=-R;dz<=R;dz++)if(Math.max(abs(dx),abs(dz))===R)out.push([dx,dz]);return out}
+function startBlockSearch(id,label,onFound){const p=player;game.tpSearch={id,label,world,px:p.x,py:p.y,pz:p.z,pcx:floor(p.x)>>4,pcz:floor(p.z)>>4,R:0,cells:null,i:0,best:null,t0:performance.now(),lastMsg:performance.now(),onFound};
+  showMessage('Searching for the closest '+label+'... (keeps looking until it finds one; /stop to cancel)')}
+function cancelBlockSearch(quiet){if(!game.tpSearch)return;const S=game.tpSearch;game.tpSearch=null;if(!quiet)showMessage('Stopped searching for '+S.label)}
+function stepBlockSearch(){const S=game.tpSearch;if(!S)return;if(S.world!==world){game.tpSearch=null;showMessage('Search for '+S.label+' cancelled: you changed dimension');return}
+  const t0=performance.now();
+  while(performance.now()-t0<18){
+    if(!S.cells){S.cells=ringCells(S.R);S.i=0;S.best=null}
+    if(S.i>=S.cells.length){if(S.best){game.tpSearch=null;S.onFound(S.best);return}S.R++;S.cells=null;continue}
+    const [dx,dz]=S.cells[S.i++];const cx=S.pcx+dx,cz=S.pcz+dz;const key=chunkKey(cx,cz);const was=world.chunks.get(key);const had=!!(was&&was.generated);
+    const c=world.generateChunk(cx,cz);const bl=c.blocks;let hit=null;
+    for(let i=0;i<bl.length;i++){if(bl[i]!==S.id)continue;const x=cx*16+(i>>11),y=i&127,z=cz*16+((i>>7)&15);const d=(x-S.px)*(x-S.px)+(y-S.py)*(y-S.py)+(z-S.pz)*(z-S.pz);if(!hit||d<hit.d)hit={x,y,z,d}}
+    if(hit){if(!S.best||hit.d<S.best.d)S.best=hit}else if(!had)world.chunks.delete(key)}
+  if(performance.now()-S.lastMsg>4000){S.lastMsg=performance.now();showMessage('Still searching for '+S.label+'... '+(S.R*16)+' blocks out so far (/stop to cancel)')}}
 function tpOreName(name){const n=name.toLowerCase().replace(/[\s-]+/g,'_');const base=n.replace(/s$/,'').replace(/_ores?$/,'');const cands=[n,n+'_ore',base,base+'_ore','nether_'+base+'_ore',/debris/.test(n)?'ancient_debris':base];
   for(const c of cands){for(let id=1;id<BLOCKS.length;id++){const b=BLOCKS[id];if(b&&b.name===c&&(/_ore$/.test(c)||c==='ancient_debris'))return id}}return null}
 // put the player in a 1x2 pocket right next to a block, facing it, with a torch on top of it so it is visible
@@ -3666,12 +3671,11 @@ function tpToOutpost(say){const p=player;goDim('over');const skip=new Set();for(
     say('Checking the village at '+v.x+' '+v.z+' for an outpost...');ensureChunks(v.x,v.z,5);let best=null;for(const e of entities){if(!(e instanceof Mob)||e.type!=='pillager'||e.dead)continue;const d=Math.hypot(e.x-v.x,e.z-v.z);if(d<90&&(!best||d<best.d))best={e,d}}
     if(best){const e=best.e;ensureChunks(e.x,e.z,1);landBeside(floor(e.x),floor(e.y),floor(e.z));finishTp(say,'Teleported to a pillager outpost');return}}
   say('No outpost found near the closest villages: try again from somewhere else')}
-function tpNamed(name,say){const p=player;const n=name.toLowerCase().replace(/[\s-]+/g,'_');
+function tpNamed(name,say){const p=player;const n=name.toLowerCase().replace(/[\s-]+/g,'_');cancelBlockSearch(true);
   // dimensions
   for(const k in TP_DIM){if(TP_DIM[k].includes(n)){if(world.dimKey===k){say('You are already in the '+(k==='over'?'Overworld':k==='nether'?'Nether':'End'));return true}goDim(k);finishTp(say,'Teleported to the '+(k==='over'?'Overworld':k==='nether'?'Nether':'End'));return true}}
   if(n==='spawn_portal'||n==='start_portal'){goDim('over');const sp=world.spawnPortalSpot();if(!sp){say('No spawn portal in this world');return true}ensureChunks(sp.x,sp.z,2);const spot=safeSpotNear(sp.x,sp.z);p.x=spot[0];p.y=spot[1];p.z=spot[2];finishTp(say,'Teleported to the ruined portal by spawn');return true}
-  if(n==='dungeon'||n==='spawner'||n==='monster_room'){if(world.end)goDim('over');say('Searching for the closest monster spawner...');const hit=findBlockNear(86,p.x,p.y,p.z);if(hit.timeout!==undefined){say('No spawner within '+hit.blocks+' blocks of you: move somewhere else and try again');return true}
-    landBeside(hit.x,hit.y,hit.z);finishTp(say,'Teleported to the closest monster spawner');return true}
+  if(n==='dungeon'||n==='spawner'||n==='monster_room'){if(world.end)goDim('over');startBlockSearch(86,'monster spawner',hit=>{landBeside(hit.x,hit.y,hit.z);finishTp(showMessage,'Teleported to the closest monster spawner')});return true}
   if(n==='outpost'||n==='pillager_outpost'||n==='pillagers'){tpToOutpost(say);return true}
   // structures (an exact biome name such as jungle or desert is handled as a biome below)
   const def=BIOMES.includes(n)?null:tpStructDef(n);if(def){goDim(def.nether?'nether':def.end?'end':'over');
@@ -3687,12 +3691,11 @@ function tpNamed(name,say){const p=player;const n=name.toLowerCase().replace(/[\
     ensureChunks(h.x,h.z,2);const spot=safeSpotNear(h.x,h.z);p.x=spot[0];p.y=spot[1];p.z=spot[2];finishTp(say,'Teleported to a '+BIOMES[bi].replace(/_/g,' ')+' biome');return true}
   // any block (ores first so "diamonds" means the ore, then everything else)
   const id=tpOreName(n)!==null?tpOreName(n):tpBlockId(n);if(id!==null){const need=TP_NETHER_RE.test(BLOCKS[id].name)?'nether':TP_END_RE.test(BLOCKS[id].name)?'end':null;if(need)goDim(need);
-    say('Searching for the closest '+BLOCKS[id].label+'...');const hit=findBlockNear(id,p.x,p.y,p.z);if(hit.timeout!==undefined){say('No '+BLOCKS[id].label+' within '+hit.blocks+' blocks of you'+(hit.timeout?' (gave up after 8 seconds of searching)':'')+': move somewhere else and try again');return true}
-    landBeside(hit.x,hit.y,hit.z);finishTp(say,BLOCKS[id].label+' is right in front of you');return true}
+    const lab=BLOCKS[id].label;startBlockSearch(id,lab,hit=>{landBeside(hit.x,hit.y,hit.z);finishTp(showMessage,lab+' is right in front of you')});return true}
   return false}
 function runCommand(line){const p=player;const raw=line.trim().replace(/^\/+/,'');const parts=raw.split(/\s+/);const cmd=(parts[0]||'').toLowerCase();const args=parts.slice(1);const say=showMessage;
   switch(cmd){
-    case 'help':say('/give <item> [count] [enchant:lvl ...]  /kit <'+Object.keys(KITS).join('|')+'>  /build enchanting');say('/tp <x y z|spawn|home|any block|any mob|any biome|any structure|nether|the end|overworld>  e.g. /tp diamonds, /tp creeper, /tp jungle, /tp end city   /spawn nether portal');say('/time <day|night|n>  /gamemode <survival|creative>  /spawn <mob>  /heal  /xp <levels>  /seed  /kill');return;
+    case 'help':say('/give <item> [count] [enchant:lvl ...]  /kit <'+Object.keys(KITS).join('|')+'>  /build enchanting');say('/tp <x y z|spawn|home|any block|any mob|any biome|any structure|nether|the end|overworld>  e.g. /tp diamonds, /tp creeper, /tp jungle, /tp end city   /spawn nether portal   /stop');say('/time <day|night|n>  /gamemode <survival|creative>  /spawn <mob>  /heal  /xp <levels>  /seed  /kill');return;
     case 'give':{const isEnch=a=>/[:=]/.test(a)||!!Object.keys(ENCH).find(k=>k===a.toLowerCase()||(a.length>=4&&k.startsWith(a.toLowerCase())));const nm=[args[0]||''];let i=1;while(i<args.length&&!/^\d+$/.test(args[i])&&!isEnch(args[i])){nm.push(args[i]);i++}
       const id=findItemId(nm.join('_'));if(id===null){say('Unknown item: '+nm.join(' '));return}
       const cnt=args.slice(i).find(a=>/^\d+$/.test(a));const ench=parseEnch(args.slice(i).filter(isEnch));giveItems(id,cnt?clamp(+cnt,1,2304):1,ench);say('Gave '+(cnt||1)+' x '+ITEMS[id].label+(ench?' ('+Object.keys(ench).map(k=>enchName(k,ench[k])).join(', ')+')':''));return}
@@ -3706,6 +3709,7 @@ function runCommand(line){const p=player;const raw=line.trim().replace(/^\/+/,''
     case 'gamemode':case 'gm':{const a=(args[0]||'').toLowerCase();const m=a==='c'||a==='creative'||a==='1'?'creative':a==='s'||a==='survival'||a==='0'?'survival':null;if(!m){say('Usage: /gamemode survival|creative');return}p.mode=m;if(m==='survival')p.flying=false;say('Game mode: '+m);return}
     case 'spawn':case 'summon':{if(/portal/i.test(args.join('_'))){spawnNetherPortal(say);return}const t=(args[0]||'').toLowerCase().replace(/[\s-]+/g,'_');const type=MOBDEF[t]?t:MOB_TYPES.find(k=>k.startsWith(t));if(!type){say('Mobs: '+MOB_TYPES.join(', '));return}const n=clamp(parseInt(args[1])||1,1,20);const d=eyeDir();for(let i=0;i<n;i++)entities.push(new Mob(type,p.x+d[0]*3+(Math.random()-0.5)*2,p.y+0.5,p.z+d[2]*3+(Math.random()-0.5)*2));say('Spawned '+n+' '+label(type));return}
     case 'portal':spawnNetherPortal(say);return;
+    case 'stop':case 'cancel':if(game.tpSearch)cancelBlockSearch();else say('Nothing to stop');return;
     case 'heal':p.hp=p.maxHp;p.hunger=20;p.sat=5;p.fireT=0;p.air=300;p.effects={};say('Healed');return;
     case 'xp':{const n=parseInt(args[0])||10;p.level=Math.max(0,p.level+n);p.xpFrac=0;say('Level '+p.level);updateHUD&&updateHUD();return}
     case 'seed':say('Seed: '+game.seed);return;
@@ -3716,6 +3720,7 @@ let lastT=performance.now();
 function loop(now){
   requestAnimationFrame(loop);let dt=(now-lastT)/1000;lastT=now;if(dt>0.1)dt=0.1;
   if(game.state!=='playing')return;
+  if(game.tpSearch)stepBlockSearch();
   game.frames++;game.fpsT+=dt;if(game.fpsT>=1){game.fps=game.frames;game.frames=0;game.fpsT=0}
   if(!game.paused){
     game.time+=dt;
