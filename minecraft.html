@@ -3581,15 +3581,73 @@ const KITS={
   diamond:{label:'full diamond armor and tools',items:[[I.diamond_helmet,1],[I.diamond_chestplate,1],[I.diamond_leggings,1],[I.diamond_boots,1],[I.diamond_sword,1],[I.diamond_pickaxe,1],[I.diamond_axe,1],[I.diamond_shovel,1]]},
   food:{label:'64 steak, 64 golden apples',items:[[277,64],[308,64]]},
   builder:{label:'stacks of stone, cobblestone, planks, torches, bookshelves',items:[[1,64],[4,64],[5,64],[32,64],[29,64]]}};
+/* ---- /tp targets: ores and structures ---- */
+// structure placement is deterministic per seed (regionOrigin), so we can locate the nearest one without generating chunks.
+// ok() and inside() must draw from the rng in the same order placeStructures/placeX do.
+const TP_STRUCT={
+  village:{size:20,salt:101,ok:m=>[BI.plains,BI.forest,BI.taiga,BI.snowy_taiga,BI.desert].includes(m.biome)&&m.height>SEA+2},
+  temple:{size:18,salt:102,ok:m=>m.biome===BI.desert,alias:['desert_temple','pyramid']},
+  igloo:{size:14,salt:103,ok:m=>m.biome===BI.snowy_taiga},
+  hut:{size:12,salt:104,ok:m=>m.biome===BI.swamp,alias:['swamp_hut','witch','witch_hut']},
+  portal:{size:5,salt:105,ok:(m,r)=>m.height>SEA+1&&r()<0.9,alias:['ruined_portal']},
+  mansion:{size:24,salt:110,ok:m=>[BI.forest,BI.birch_forest,BI.taiga].includes(m.biome)&&m.height>SEA+3,alias:['woodland_mansion']},
+  monument:{size:16,salt:111,ok:m=>m.biome===BI.deep_ocean,alias:['ocean_monument'],note:'It is underwater below you'},
+  shipwreck:{size:8,salt:112,ok:(m,r)=>(m.biome===BI.ocean||m.biome===BI.deep_ocean)&&r()<0.5,alias:['ship','wreck'],note:'It is underwater below you'},
+  jungle_temple:{size:12,salt:113,ok:m=>m.biome===BI.jungle&&m.height>SEA+2,alias:['jungle']},
+  stronghold:{size:40,salt:115,ok:()=>true,inside:r=>({dx:2,y:20+floor(r()*8)}),alias:['end_portal'],note:'You are in the main hall; the portal room is at the east end'},
+  mineshaft:{size:9,salt:106,ok:(m,r)=>r()<0.55,inside:r=>({dx:0,y:18+floor(r()*24)}),alias:['mine','mine_shaft']},
+  fortress:{size:14,salt:107,ok:()=>true,nether:true,inside:r=>({dx:3,y:53+floor(r()*20)}),alias:['nether_fortress'],note:'Blaze spawner is just west of you'},
+};
+function tpStructDef(name){if(TP_STRUCT[name])return TP_STRUCT[name];for(const k in TP_STRUCT){const d=TP_STRUCT[k];if((d.alias||[]).includes(name)||k.startsWith(name))return d}return null}
+function findStructureNear(def,px,pz,maxR){const pcx=floor(px)>>4,pcz=floor(pz)>>4;
+  for(let R=0;R<=maxR;R++){let best=null;
+    for(let dx=-R;dx<=R;dx++)for(let dz=-R;dz<=R;dz++){if(Math.max(abs(dx),abs(dz))!==R)continue;const cx=pcx+dx,cz=pcz+dz;const r=world.regionOrigin(cx,cz,def.size,def.salt);if(!r)continue;
+      const x=cx*16+8,z=cz*16+8;const mid=def.nether?null:world.columnInfo(x,z);if(!def.ok(mid,r))continue;
+      const d=Math.hypot(x-px,z-pz);if(!best||d<best.d)best={x,z,d,r}}
+    if(best)return best}
+  return null}
+function findBlockNear(id,px,py,pz,maxR){const pcx=floor(px)>>4,pcz=floor(pz)>>4;
+  for(let R=0;R<=maxR;R++){let best=null;
+    for(let dx=-R;dx<=R;dx++)for(let dz=-R;dz<=R;dz++){if(Math.max(abs(dx),abs(dz))!==R)continue;const c=world.generateChunk(pcx+dx,pcz+dz);const bl=c.blocks;
+      for(let i=0;i<bl.length;i++){if(bl[i]!==id)continue;const x=c.cx*16+(i>>11),y=i&127,z=c.cz*16+((i>>7)&15);const d=(x-px)*(x-px)+(y-py)*(y-py)+(z-pz)*(z-pz);if(!best||d<best.d)best={x,y,z,d}}}
+    if(best)return best}
+  return null}
+function tpOreName(name){const n=name.toLowerCase().replace(/[\s-]+/g,'_');const base=n.replace(/s$/,'').replace(/_ores?$/,'');const cands=[n,n+'_ore',base,base+'_ore','nether_'+base+'_ore',/debris/.test(n)?'ancient_debris':base];
+  for(const c of cands){for(let id=1;id<BLOCKS.length;id++){const b=BLOCKS[id];if(b&&b.name===c&&(/_ore$/.test(c)||c==='ancient_debris'))return id}}return null}
+// put the player in a 1x2 pocket right next to a block, facing it, with a torch on top of it so it is visible
+function landBeside(x,y,z){const p=player;let sx=null,sz=null;
+  for(const [dx,dz] of [[1,0],[-1,0],[0,1],[0,-1]]){const nx=x+dx,nz=z+dz;const b0=world.getBlock(nx,y,nz),b1=world.getBlock(nx,y+1,nz);if(!BLOCKS[b0].solid&&!BLOCKS[b0].liquid&&!BLOCKS[b1].solid&&!BLOCKS[b1].liquid){sx=nx;sz=nz;break}}
+  if(sx===null){sx=x+1;sz=z}
+  for(const yy of [y,y+1]){if(world.getBlock(sx,yy,sz)!==0)world.setBlock(sx,yy,sz,0,0,{silent:true})}
+  const fl=world.getBlock(sx,y-1,sz);if(!BLOCKS[fl].solid||BLOCKS[fl].liquid)world.setBlock(sx,y-1,sz,1,0,{silent:true});
+  const top=world.getBlock(x,y+1,z);if(top!==0&&top!==32)world.setBlock(x,y+1,z,0,0,{silent:true});if(world.getBlock(x,y+1,z)===0&&BLOCKS[world.getBlock(x,y,z)].opaque)world.setBlock(x,y+1,z,32,0,{silent:true});
+  p.x=sx+0.5;p.y=y+0.1;p.z=sz+0.5;p.yaw=Math.atan2(-(x-sx),-(z-sz));p.pitch=-0.25}
+function finishTp(say,msg){const p=player;p.vx=p.vy=p.vz=0;p.fallDist=0;if(p.riding)p.riding.dismount();ensureChunks(p.x,p.z,2);say(msg+' ('+floor(p.x)+' '+floor(p.y)+' '+floor(p.z)+')')}
+function tpNamed(name,say){const p=player;const n=name.toLowerCase().replace(/[\s-]+/g,'_');
+  const ore=tpOreName(n);if(ore!==null){const netherOre=ore===85||ore===95;if(netherOre&&world.dimKey!=='nether'){say(BLOCKS[ore].label+' is only found in the Nether');return true}if(!netherOre&&world.dimKey!=='over'){switchDimension(true)}
+    say('Searching for '+BLOCKS[ore].label+'...');const hit=findBlockNear(ore,p.x,p.y,p.z,5);if(!hit){say('No '+BLOCKS[ore].label+' within 5 chunks of you: move somewhere else and try again');return true}
+    landBeside(hit.x,hit.y,hit.z);finishTp(say,BLOCKS[ore].label+' is right in front of you');return true}
+  if(n==='dungeon'||n==='spawner'||n==='monster_room'){if(world.dimKey!=='over'){switchDimension(true)}let best=null;const pick=()=>{for(const s of world.spawners.values()){const d=Math.hypot(s.x-p.x,s.z-p.z);if(!best||d<best.d)best={x:s.x,y:s.y,z:s.z,d}}};
+    pick();if(!best){say('Searching for a dungeon...');ensureChunks(p.x,p.z,4);pick()}if(!best){say('No dungeon within 4 chunks of you: move somewhere else and try again');return true}
+    landBeside(best.x,best.y,best.z);finishTp(say,'Teleported to a monster spawner');return true}
+  const def=tpStructDef(n);if(!def)return false;
+  if(def.nether&&world.dimKey!=='nether'){say('Nether fortresses are in the Nether: go through a portal first');return true}
+  if(!def.nether&&world.dimKey!=='over'){switchDimension(true)}
+  const hit=findStructureNear(def,p.x,p.z,def.size*3);if(!hit){say('No '+n+' found near you');return true}
+  ensureChunks(hit.x,hit.z,2);
+  if(def.inside){const at=def.inside(hit.r);const x=hit.x+at.dx,z=hit.z;for(const yy of [at.y,at.y+1]){const b=world.getBlock(x,yy,z);if(b!==0&&b!==86&&BLOCKS[b].solid)world.setBlock(x,yy,z,0,0,{silent:true})}p.x=x+0.5;p.y=at.y+0.1;p.z=z+0.5}
+  else{const spot=safeSpotNear(hit.x,hit.z);p.x=spot[0];p.y=spot[1];p.z=spot[2]}
+  finishTp(say,'Teleported to the nearest '+n.replace(/_/g,' ')+(def.note?'. '+def.note:''));return true}
 function runCommand(line){const p=player;const raw=line.startsWith('/')?line.slice(1):line;const parts=raw.split(/\s+/);const cmd=(parts[0]||'').toLowerCase();const args=parts.slice(1);const say=showMessage;
   switch(cmd){
-    case 'help':say('/give <item> [count] [enchant:lvl ...]  /kit <'+Object.keys(KITS).join('|')+'>  /build enchanting');say('/tp <x y z|spawn|home>  /time <day|night|n>  /gamemode <survival|creative>  /spawn <mob>  /heal  /xp <levels>  /seed  /kill');return;
+    case 'help':say('/give <item> [count] [enchant:lvl ...]  /kit <'+Object.keys(KITS).join('|')+'>  /build enchanting');say('/tp <x y z|spawn|home|diamonds|<ore>|village|stronghold|mineshaft|mansion|temple|igloo|hut|portal|monument|shipwreck|dungeon|fortress>');say('/time <day|night|n>  /gamemode <survival|creative>  /spawn <mob>  /heal  /xp <levels>  /seed  /kill');return;
     case 'give':{const isEnch=a=>/[:=]/.test(a)||!!Object.keys(ENCH).find(k=>k===a.toLowerCase()||(a.length>=4&&k.startsWith(a.toLowerCase())));const nm=[args[0]||''];let i=1;while(i<args.length&&!/^\d+$/.test(args[i])&&!isEnch(args[i])){nm.push(args[i]);i++}
       const id=findItemId(nm.join('_'));if(id===null){say('Unknown item: '+nm.join(' '));return}
       const cnt=args.slice(i).find(a=>/^\d+$/.test(a));const ench=parseEnch(args.slice(i).filter(isEnch));giveItems(id,cnt?clamp(+cnt,1,2304):1,ench);say('Gave '+(cnt||1)+' x '+ITEMS[id].label+(ench?' ('+Object.keys(ench).map(k=>enchName(k,ench[k])).join(', ')+')':''));return}
     case 'kit':{const k=KITS[(args[0]||'').toLowerCase()];if(!k){say('Kits: '+Object.keys(KITS).map(k=>k+' ('+KITS[k].label+')').join(' | '));return}for(const [id,n] of k.items)giveItems(id,n);say('Kit '+args[0]+': '+k.label);return}
     case 'build':{if((args[0]||'').toLowerCase().startsWith('ench')){if(buildEnchantingRoom()){giveItems(264,100);giveItems(378,8);say('Plus 100 lapis and 8 books in your inventory')}}else say('Usage: /build enchanting');return}
-    case 'tp':{if(args[0]==='spawn'||args[0]==='home'){const s=(args[0]==='home'&&p.spawn)||game.worldSpawn;if(world.dimKey!=='over'){switchDimension(true)}ensureChunks(s[0],s[2],2);const spot=safeSpotNear(s[0],s[2]);p.x=spot[0];p.y=spot[1];p.z=spot[2]}
+    case 'tp':{if(args.length&&args[0]!=='spawn'&&args[0]!=='home'&&!/^[-~\d.]/.test(args[0])){if(!tpNamed(args.join('_'),say))say('Unknown place. Try: diamonds, iron, gold, emerald, village, stronghold, mineshaft, mansion, temple, igloo, hut, portal, monument, shipwreck, jungle temple, dungeon, fortress');return}
+      if(args[0]==='spawn'||args[0]==='home'){const s=(args[0]==='home'&&p.spawn)||game.worldSpawn;if(world.dimKey!=='over'){switchDimension(true)}ensureChunks(s[0],s[2],2);const spot=safeSpotNear(s[0],s[2]);p.x=spot[0];p.y=spot[1];p.z=spot[2]}
       else{const c=args.map(a=>a.startsWith('~')?null:parseFloat(a));if(args.length<3||c.some((v,i)=>v!==null&&isNaN(v))){say('Usage: /tp x y z (or ~ to keep)');return}p.x=c[0]===null?p.x:c[0]+0.5;p.y=c[1]===null?p.y:c[1];p.z=c[2]===null?p.z:c[2]+0.5;ensureChunks(p.x,p.z,2);if(c[1]===null||!BLOCKS[world.getBlock(floor(p.x),floor(p.y)-1,floor(p.z))].solid)p.y=findGround(p.x,p.z)+0.1}
       p.vx=p.vy=p.vz=0;p.fallDist=0;if(p.riding)p.riding.dismount();say('Teleported to '+floor(p.x)+' '+floor(p.y)+' '+floor(p.z));return}
     case 'time':{const a=(args[0]||'').toLowerCase();const t=a==='day'?1000:a==='noon'?6000:a==='night'?13000:a==='midnight'?18000:parseInt(a);if(isNaN(t)){say('Usage: /time day|night|<0-24000>');return}world.time=((t%24000)+24000)%24000;say('Time set to '+world.time);return}
