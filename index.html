@@ -95,11 +95,6 @@ main{flex:1;width:100%;max-width:1100px;margin:0 auto;padding:48px 20px 64px;}
 }
 .play:hover{transform:translateY(-2px);box-shadow:0 0 30px rgba(232,48,48,.65),0 6px 0 #7a0808;}
 .play:active{transform:translateY(2px);box-shadow:0 0 18px rgba(232,48,48,.4),0 2px 0 #7a0808;}
-.ghost{
-  text-decoration:none;font-family:var(--font-head);font-size:12px;letter-spacing:3px;
-  color:var(--dim);padding:10px 16px;border:1px solid var(--border);border-radius:2px;transition:color .12s,border-color .12s;
-}
-.ghost:hover{color:var(--gold);border-color:var(--gold);}
 
 .empty{
   grid-column:1/-1;text-align:center;padding:40px;border:1px dashed var(--border);
@@ -136,7 +131,7 @@ footer a:hover{color:var(--gold);}
 </main>
 
 <footer>
-  Made by Daniele Bros &nbsp;·&nbsp; <a href="https://github.com/daniele-bros/ironfront">Source on GitHub</a>
+  Made by Daniele Bros
 </footer>
 
 <script>
@@ -156,8 +151,7 @@ const GAMES = [
       'across nine nations plus Cold War and modern-era branches, fight on seven historic maps ' +
       'from Normandy to Stalingrad, and take on anything from a solo duel to a 1-vs-1000 last ' +
       'stand or endless Ratte boss waves. Earn coins, buy mortars and nukes, and call in artillery.',
-    tags: ['Action', 'Tanks', 'WW2', '300+ vehicles', '6 modes', 'Keyboard + Mouse'],
-    source: 'https://github.com/daniele-bros/ironfront/blob/main/ww2tanks.html'
+    tags: ['Action', 'Tanks', 'WW2', '300+ vehicles', '6 modes', 'Keyboard + Mouse']
   },
   {
     title: 'IRON BATTLE',
@@ -170,8 +164,7 @@ const GAMES = [
       'and tanks, stockpile rockets, and call in aircraft. Hold all six objectives and crush the ' +
       'enemy HQ across a 1,000-operation campaign, with a secret target mission every ten battles. ' +
       'Box-select your units, right-click to move, and manage supply that flows faster the more ground you hold.',
-    tags: ['Strategy', 'RTS', 'Campaign', 'Troops + Tanks + Air', 'Mouse'],
-    source: 'https://github.com/daniele-bros/ironfront/blob/main/command.html'
+    tags: ['Strategy', 'RTS', 'Campaign', 'Troops + Tanks + Air', 'Mouse']
   },
   {
     title: 'IRONCRAFT',
@@ -184,8 +177,7 @@ const GAMES = [
       'with ten biomes, caves, ores, villages, strongholds and mansions. Mine, craft with real ' +
       'recipes, smelt, enchant, tame wolves, ride horses, fight creepers and endermen, then brave ' +
       'the Nether and the End to slay the Ender Dragon and the Wither. Random Drops mode for chaos.',
-    tags: ['Survival', 'Sandbox', '3D · WebGL2', 'Desktop only', 'Keyboard + Mouse'],
-    source: 'https://github.com/daniele-bros/ironfront/blob/main/minecraft.html'
+    tags: ['Survival', 'Sandbox', '3D · WebGL2', 'Desktop only', 'Keyboard + Mouse']
   }
   // { title:'NEXT GAME', subtitle:'…', icon:'🎮', url:'nextgame.html', description:'…', tags:[] },
 ];
@@ -210,7 +202,6 @@ function render(){
           ${g.tags&&g.tags.length?`<div class="tags">${g.tags.map(t=>`<span class="tag">${esc(t)}</span>`).join('')}</div>`:''}
           <div class="card-actions">
             <a class="play" href="${esc(g.url)}">⚔ PLAY</a>
-            ${g.source?`<a class="ghost" href="${esc(g.source)}" target="_blank" rel="noopener">SOURCE</a>`:''}
           </div>
         </div>
       </article>`).join('');
