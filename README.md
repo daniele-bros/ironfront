@@ -1,16 +1,16 @@
-# Daniele Bros Games
+# Iron Games
 
 Browser games, each a single self-contained HTML file with no build step and no dependencies.
 The site is hosted with GitHub Pages at https://daniele-bros.github.io/ironfront/ and serves from `main`.
 
 | File | Game |
 |------|------|
-| `index.html` | **Games hub** – the landing page that lists and links every game |
+| `index.html` | **Iron Games hub** – the landing page that lists and links every game |
 | `ww2tanks.html` | **Iron Front** – top-down WW2 tank combat |
 | `command.html` | **Iron Battle** – flat-map real-time strategy with troops, tanks, rockets and aircraft |
 | `minecraft.html` | **Ironcraft** – a Minecraft-style voxel survival game |
 
-## Adding a game to the hub
+## Adding a game to the Iron Games hub
 
 1. Drop the game's HTML file in this folder (for example `mygame.html`).
 2. Open `index.html` and add one entry to the `GAMES` array near the bottom:

@@ -3,8 +3,21 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1.0">
-<title>Daniele Bros Games</title>
-<meta name="description" content="Play the games made by Daniele Bros — free browser games, no download needed.">
+<title>Iron Games</title>
+<meta name="description" content="Iron Games: free online arcade games you play in your browser. Iron Front WW2 tank combat, Iron Battle real-time strategy, and Ironcraft voxel survival. No download.">
+<meta name="keywords" content="Iron Games, free browser games, online arcade, tank game, WW2 tank game, strategy game, voxel survival game, Iron Front, Iron Battle, Ironcraft">
+<link rel="canonical" href="https://daniele-bros.github.io/ironfront/">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="Iron Games">
+<meta property="og:title" content="Iron Games – Free Browser Arcade">
+<meta property="og:description" content="Play Iron Front, Iron Battle and Ironcraft free in your browser. No download.">
+<meta property="og:url" content="https://daniele-bros.github.io/ironfront/">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="Iron Games – Free Browser Arcade">
+<meta name="twitter:description" content="Play Iron Front, Iron Battle and Ironcraft free in your browser. No download.">
+<script type="application/ld+json">
+{"@context":"https://schema.org","@type":"WebSite","name":"Iron Games","url":"https://daniele-bros.github.io/ironfront/","description":"Free online arcade games you play in your browser: Iron Front, Iron Battle and Ironcraft.","publisher":{"@type":"Organization","name":"Daniele Bros"}}
+</script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Oswald:wght@500;700&family=Share+Tech+Mono&display=swap" rel="stylesheet">
@@ -50,6 +63,7 @@ h1{
 
 /* ---------- games grid ---------- */
 main{flex:1;width:100%;max-width:1100px;margin:0 auto;padding:48px 20px 64px;}
+.intro{font-size:12px;line-height:1.8;color:var(--dim);max-width:720px;margin:0 auto 34px;text-align:center;letter-spacing:.5px;}
 .section-title{
   display:flex;align-items:center;gap:14px;margin-bottom:24px;
   font-family:var(--font-head);font-size:16px;letter-spacing:6px;color:var(--dim);text-transform:uppercase;
@@ -120,18 +134,19 @@ footer a:hover{color:var(--gold);}
 
 <header>
   <div class="eyebrow">Daniele Bros presents</div>
-  <h1>GAME ARCADE</h1>
-  <div class="tagline">Free browser games · No download · Just play</div>
+  <h1>IRON GAMES</h1>
+  <div class="tagline">Free online arcade · No download · Just play</div>
   <div class="count" id="game-count">LOADING…</div>
 </header>
 
 <main>
+  <p class="intro">Iron Games is a free online arcade made by Daniele Bros. Every game runs right in your browser with nothing to install: WW2 tank battles in Iron Front, real-time strategy in Iron Battle, and block-building survival in Ironcraft.</p>
   <div class="section-title">All games</div>
   <div id="games"></div>
 </main>
 
 <footer>
-  Made by Daniele Bros
+  Iron Games &nbsp;·&nbsp; Made by Daniele Bros
 </footer>
 
 <script>

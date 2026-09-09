@@ -1,4 +1,4 @@
-# Daniele Bros Games — project instructions
+# Iron Games — project instructions
 
 A collection of browser games plus a landing page that links them. Every game
 is a single self-contained HTML file: all markup, CSS, and JavaScript (game
@@ -17,7 +17,7 @@ dependencies — open the file in a browser to play.
 
 ## Files
 
-- `index.html` — the **games hub** (landing page). It is NOT a copy of a game.
+- `index.html` — the **Iron Games hub** (landing page). It is NOT a copy of a game.
   Games are listed in the `GAMES` array at the bottom of the file; when you
   add a new game file, add one entry there so it shows up on the site.
 - `ww2tanks.html` — **Iron Front**, WW2 top-down tank combat.
