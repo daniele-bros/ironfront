@@ -2271,7 +2271,7 @@ function throwWindCharge(){const p=player;const e=[p.x,p.y+p.eyeHeight,p.z];cons
 function shootFireball(b,p,diff){const ex=b.x,ey=b.y+b.h*0.6,ez=b.z;let ax=p.x-ex,ay=(p.y+1)-ey,az=p.z-ez;const n=sqrt(ax*ax+ay*ay+az*az)||1;const sp=16;const spread=0.08;
   const f=new Arrow(ex,ey,ez,ax/n*sp+(Math.random()-0.5)*spread*sp,ay/n*sp+(Math.random()-0.5)*spread*sp,az/n*sp+(Math.random()-0.5)*spread*sp,'mob',0);f.fireball=true;f.noGravity=true;
   f.render=function(EB){const l=[1,1];EB.box((x,y,z)=>[this.x+x,this.y+y,this.z+z],-0.16,-0.16,-0.16,0.16,0.16,0.16,TEX.fire,[1,0.8,0.3],l,true)};
-  f.onImpact=function(t){playSoundAt('fizz',this.x,this.y,this.z);spawnParticles('fire',this.x,this.y,this.z,6);if(t===player){damageEntity(player,[3,5,7][diff-1],{x:this.x,y:this.y,z:this.z,type:'fireball',mob:b});player.fireT=Math.max(player.fireT,5)}
+  f.onImpact=function(t){playSoundAt('fizz',this.x,this.y,this.z);spawnParticles('fire',this.x,this.y,this.z,6);if(t===player){damageEntity(player,[3,5,7][diff-1],{x:this.x,y:this.y,z:this.z,type:'fireball',mob:b});player.fireT=Math.max(player.fireT,3)}
     else{const bx=floor(this.x),by=floor(this.y),bz=floor(this.z);if(world.getBlock(bx,by,bz)===0&&BLOCKS[world.getBlock(bx,by-1,bz)].solid&&!world.end)world.setBlock(bx,by,bz,81,0)}};
   entities.push(f);playSoundAt('blaze_shoot',ex,ey,ez)}
 /* ---- evoker spells: fangs along the ground, or a flock of vexes ---- */
@@ -2287,7 +2287,7 @@ class Fang extends Entity{constructor(x,y,z,delay){super(x,y,z);this.w=0.5;this.
 /* ---- damage ---- */
 function damageEntity(e,amount,src){
   if(e.dead||e.dying)return false;if(e.invT>0&&amount<=e.lastDmg)return false;src=src||{};
-  if(e===player){if(player.mode==='creative')return false;if(src.type==='mob'||src.type==='arrow'||src.type==='explosion'){const ap=armorPoints();amount*=1-Math.min(20,ap)*0.04;damageArmor(Math.max(1,floor(amount/4)))}
+  if(e===player){if(player.mode==='creative')return false;if(src.type==='mob'||src.type==='arrow'||src.type==='explosion'){const ap=armorPoints();amount*=1-Math.min(20,ap)*0.04;damageArmor(Math.max(1,floor(amount/4)))}else if(src.type==='fire'||src.type==='lava'){const ap=armorPoints();amount*=1-Math.min(20,ap)*0.02}
     { // enchantment protection factor
       let epf=0,th=0;for(const s of player.armor){if(!s||!s.ench)continue;epf+=s.ench.protection||0;th+=s.ench.thorns||0;if(src.type==='fire'||src.type==='lava')epf+=2*(s.ench.fire_protection||0);if(src.type==='explosion')epf+=2*(s.ench.blast_protection||0);if(src.type==='arrow')epf+=2*(s.ench.projectile_protection||0);if(src.type==='fall')epf+=3*(s.ench.feather_falling||0)}
       if(epf)amount*=1-Math.min(20,epf)*0.04;if(th&&src.mob&&Math.random()<th*0.15){damageEntity(src.mob,1+floor(Math.random()*4),{type:'thorns'});damageArmor(2)}}
@@ -2408,9 +2408,10 @@ function updatePlayer(dt){
   if(inPortal&&Math.random()<dt*6)spawnParticles('portal',p.x+(Math.random()-0.5),p.y+Math.random()*1.8,p.z+(Math.random()-0.5),1);
   // ---- survival stats ----
   if(!creative){
-    if(inLava){if(p.invT<=0){damageEntity(p,4,{type:'lava'})}p.fireT=Math.max(p.fireT,15)}
-    if(entityInBlock(p,id=>id===81)){p.fireT=Math.max(p.fireT,8);if(p.invT<=0)damageEntity(p,1,{type:'fire'})}
-    if(p.fireT>0){p.fireT-=dt;if(inWater)p.fireT=0;p.fireDmgT=(p.fireDmgT||0)+dt;if(p.fireDmgT>=1){p.fireDmgT=0;damageEntity(p,1,{type:'fire'})}}
+    // lava: 3 damage every 0.8s while inside, then a 6s burn (it used to be 4 every half second and a 15s burn)
+    if(inLava){p.lavaDmgT=(p.lavaDmgT||0)-dt;if(p.lavaDmgT<=0){p.lavaDmgT=0.8;damageEntity(p,3,{type:'lava'})}p.fireT=Math.max(p.fireT,6)}else p.lavaDmgT=0;
+    if(entityInBlock(p,id=>id===81)){p.fireT=Math.max(p.fireT,4)}
+    if(p.fireT>0){p.fireT-=dt;if(inWater)p.fireT=0;p.fireDmgT=(p.fireDmgT||0)+dt;if(p.fireDmgT>=1.2){p.fireDmgT=0;damageEntity(p,1,{type:'fire'})}}
     // cactus contact
     const w=p.w/2+0.02;let cac=false;for(let x=floor(p.x-w);x<=floor(p.x+w)&&!cac;x++)for(let y=floor(p.y);y<=floor(p.y+p.h)&&!cac;y++)for(let z=floor(p.z-w);z<=floor(p.z+w);z++)if(world.getBlock(x,y,z)===42){cac=true;break}
     if(cac&&p.invT<=0)damageEntity(p,1,{type:'cactus'});
