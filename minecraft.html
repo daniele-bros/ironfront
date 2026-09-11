@@ -517,6 +517,17 @@ defTex('smoke',p=>{p.fill(0,0,0,0);p.blob(8,8,6,90,90,90);});
 defTex('heart',p=>crossSprite(p,["................","..RRR...RRR.....",".RRRRR.RRRRR....","RRRRRRRRRRRRR...","RRRRRRRRRRRRR...","RRRRRRRRRRRRR...",".RRRRRRRRRRR....","..RRRRRRRRR.....","...RRRRRRR......","....RRRRR.......",".....RRR........","......R.........","................","................","................","................"],{R:[230,40,60]}));
 defTex('cloud',p=>p.fill(255,255,255,200));
 defTex('noise',p=>{p.noise(240,240,240,15)});
+// mob material skins: pattern + shading, tinted by the part colour at draw time
+const shade=(p,k)=>{for(let y=0;y<16;y++)for(let x=0;x<16;x++){const i=(y*16+x)*4;const f=1-(y/15)*k;p.d[i]*=f;p.d[i+1]*=f;p.d[i+2]*=f}};
+defTex('skin_hide',p=>{p.noise(232,232,232,10);for(let i=0;i<7;i++)p.blob(floor(p.rng()*16),floor(p.rng()*16),1.2+p.rng()*1.6,205,205,205);p.speckle(14,178,178,178);shade(p,0.22)});
+defTex('skin_fur',p=>{p.noise(228,228,228,8);for(let x=0;x<16;x++){const dk=p.rng()<0.5;for(let y=0;y<16;y++)if(p.rng()<0.85)p.px(x,y,dk?204:238,dk?204:238,dk?204:238)}p.speckle(18,170,170,170);shade(p,0.26)});
+defTex('skin_cloth',p=>{for(let y=0;y<16;y++)for(let x=0;x<16;x++){const w=((x>>1)+(y>>1))&1;const v=w?236:214;p.px(x,y,v,v,v)}p.speckle(10,196,196,196);shade(p,0.18)});
+defTex('skin_bone',p=>{p.noise(242,240,232,6);for(let y=3;y<16;y+=4)p.rect(0,y,16,1,196,192,184);p.speckle(8,205,200,190);for(let i=0;i<3;i++){const x=floor(p.rng()*16);p.rect(x,floor(p.rng()*12),1,3,180,176,168)}shade(p,0.2)});
+defTex('skin_scales',p=>{for(let y=0;y<16;y+=2)for(let x=0;x<16;x+=2){const v=200+floor(p.rng()*50);p.rect(x,y,2,2,v,v,v)}p.speckle(12,160,160,160);shade(p,0.2)});
+defTex('skin_wool',p=>{p.noise(244,244,244,5);for(let i=0;i<9;i++){const cx=floor(p.rng()*16),cy=floor(p.rng()*16);p.blob(cx,cy,2,250,250,250);p.px(cx,cy,214,214,214)}p.speckle(10,220,220,220);shade(p,0.16)});
+defTex('skin_slime',p=>{p.noise(236,236,236,6);for(let i=0;i<6;i++)p.blob(floor(p.rng()*16),floor(p.rng()*16),1+p.rng(),252,252,252);p.speckle(6,210,210,210);shade(p,0.12)});
+defTex('skin_slick',p=>{p.noise(240,240,240,4);p.speckle(5,225,225,225);shade(p,0.3)});
+const MOB_SKIN_NAMES={warden:'skin_hide',zombie:'skin_hide',husk:'skin_hide',zombified_piglin:'skin_hide',skeleton:'skin_bone',stray:'skin_bone',wither_skeleton:'skin_bone',creeper:'skin_scales',spider:'skin_fur',cave_spider:'skin_fur',pig:'skin_hide',cow:'skin_fur',horse:'skin_fur',wolf:'skin_fur',sheep:'skin_wool',chicken:'skin_fur',villager:'skin_cloth',witch:'skin_cloth',pillager:'skin_cloth',vindicator:'skin_cloth',evoker:'skin_cloth',vex:'skin_cloth',enderman:'skin_slick',slime:'skin_slime',guardian:'skin_scales',shulker:'skin_scales',stalker:'skin_hide',cartoon_cat:'skin_fur',breeze:'skin_slime',iron_golem:'skin_scales'};
 // mob faces
 defTex('pig_face',p=>{p.noise(240,170,170,6);p.rect(3,4,2,2,40,40,60);p.rect(11,4,2,2,40,40,60);p.rect(5,9,6,4,220,120,130);p.px(6,10,150,70,80);p.px(9,10,150,70,80)});
 defTex('cow_face',p=>{p.noise(120,80,55,6);p.rect(4,2,8,4,110,70,45);p.rect(3,5,2,2,40,40,60);p.rect(11,5,2,2,40,40,60);p.rect(4,10,8,5,230,225,220);p.px(6,12,170,140,140);p.px(9,12,170,140,140)});
@@ -598,6 +609,14 @@ defTex('trial_spawner',p=>{p.noise(34,32,30,6);p.rect(1,1,14,14,52,50,48);p.rect
 defTex('vault',p=>{p.noise(44,46,50,6);p.rect(1,1,14,14,74,80,86);p.rect(3,3,10,10,50,54,60);p.rect(7,5,2,3,0,0,0);p.rect(6,8,4,3,0,0,0);p.rect(2,2,12,1,235,170,60);p.rect(2,13,12,1,235,170,60)});
 defTex('vault_used',p=>{p.noise(44,46,50,6);p.rect(1,1,14,14,64,66,70);p.rect(3,3,10,10,40,42,46);p.rect(7,5,2,3,25,25,28);p.rect(6,8,4,3,25,25,28)});
 defTex('breeze_face',p=>{p.noise(60,72,105,6);p.rect(3,5,3,3,235,245,255);p.rect(10,5,3,3,235,245,255);p.rect(4,6,1,1,40,50,90);p.rect(11,6,1,1,40,50,90)});
+defTex('deepslate',p=>{p.noise(72,72,76,8);for(let y=0;y<16;y+=4)p.rect(0,y,16,1,60,60,64);p.speckle(8,88,88,92)});
+defTex('deepslate_bricks',p=>{p.noise(78,78,82,6);for(let y=0;y<16;y+=4){p.rect(0,y,16,1,52,52,56);const o=(y/4)%2?4:0;for(let x=o;x<16;x+=8)p.rect(x,y,1,4,52,52,56)}p.speckle(6,96,96,100)});
+defTex('sculk',p=>{p.noise(12,32,40,6);for(let i=0;i<6;i++)p.blob(floor(p.rng()*16),floor(p.rng()*16),1+p.rng()*1.5,20,110,120);p.speckle(10,40,200,210)});
+defTex('sculk_shrieker',p=>{p.noise(14,34,40,5);p.rect(2,2,12,12,30,70,78);p.rect(4,4,8,8,8,12,14);for(let i=0;i<4;i++){p.rect(5+i*2,5,1,6,190,230,220)}p.rect(0,7,16,2,25,120,130)});
+defTex('sculk_sensor',p=>{p.noise(16,40,46,5);p.rect(1,1,14,14,26,80,90);p.rect(3,3,10,10,10,20,22);p.rect(6,2,4,12,60,200,210);p.rect(2,6,12,4,60,200,210)});
+defTex('soul_lantern',p=>{p.noise(40,42,48,5);p.rect(3,2,10,12,70,170,200);p.rect(5,4,6,8,150,235,255);p.rect(0,0,16,2,30,30,34);p.rect(0,14,16,2,30,30,34)});
+defTex('golem_face',p=>{p.noise(200,198,190,8);p.rect(3,5,3,2,40,40,46);p.rect(10,5,3,2,40,40,46);p.rect(6,7,4,6,120,118,110);p.rect(4,3,8,1,150,148,140)});
+defTex('warden_face',p=>{p.noise(24,44,48,6);p.rect(2,9,12,3,16,26,28);for(let i=0;i<5;i++)p.rect(2+i*3,4,1,3,60,220,230);p.rect(5,10,6,1,30,140,150)});
 defTex('player_face',p=>{p.noise(215,168,130,6);p.rect(3,5,2,2,255,255,255);p.rect(4,5,1,2,60,40,120);p.rect(10,5,2,2,255,255,255);p.rect(11,5,1,2,60,40,120);p.rect(6,11,4,1,150,80,70)});
 defTex('villager_face',p=>{p.noise(200,160,120,6);p.rect(2,4,3,2,60,120,60);p.rect(11,4,3,2,60,120,60);p.rect(2,3,12,1,110,70,40);p.rect(6,6,4,7,190,145,105);p.rect(5,13,6,1,150,110,80)});
 defTex('sheep_wool',p=>{p.noise(235,235,235,10);for(let i=0;i<10;i++)p.blob(floor(p.rng()*16),floor(p.rng()*16),1.5,215,215,215)});
@@ -729,6 +748,12 @@ defBlock(112,'vault',{tex:'vault',hard:50,tool:'pickaxe',needsTool:true,drop:()=
 defBlock(113,'vault_used',{label:'Vault (empty)',tex:'vault_used',hard:50,tool:'pickaxe',needsTool:true,drop:()=>[],resist:3600000});
 defBlock(114,'copper_block',{tex:'copper_block',hard:3,tool:'pickaxe',needsTool:true,tier:1,resist:6});
 defBlock(115,'tuff',{tex:'tuff',hard:1.5,tool:'pickaxe',needsTool:true,resist:6});
+defBlock(116,'deepslate',{tex:'deepslate',hard:3,tool:'pickaxe',needsTool:true,resist:6});
+defBlock(117,'deepslate_bricks',{tex:'deepslate_bricks',hard:3.5,tool:'pickaxe',needsTool:true,resist:6});
+defBlock(118,'sculk',{tex:'sculk',hard:0.6,tool:'hoe',light:1,drop:()=>[],xp:[1,1]});
+defBlock(119,'sculk_shrieker',{tex:'sculk_shrieker',hard:3,tool:'hoe',light:2,transparent:true,drop:()=>[],xp:[5,5]});
+defBlock(120,'sculk_sensor',{tex:'sculk_sensor',hard:1.5,tool:'hoe',light:1,transparent:true,drop:()=>[],xp:[5,5]});
+defBlock(121,'soul_lantern',{tex:'soul_lantern',hard:3.5,tool:'pickaxe',needsTool:true,light:9,transparent:true});
 defBlock(91,'prismarine',{tex:'prismarine',hard:1.5,tool:'pickaxe',needsTool:true,resist:6});
 defBlock(92,'dark_prismarine',{tex:'dark_prismarine',hard:1.5,tool:'pickaxe',needsTool:true,resist:6});
 defBlock(93,'sea_lantern',{tex:'sea_lantern',hard:0.3,light:15,sound:'glass',drop:()=>[[314,2]]});
@@ -1033,7 +1058,7 @@ const BI={};BIOMES.forEach((b,i)=>BI[b]=i);
 const LIGHT_OPACITY=id=>{const d=BLOCKS[id];if(d.opaque)return 15;if(id===8)return 2;if(d.leaves)return 1;return 0};
 class World{
   constructor(seed,nether){
-    this.nether=nether===true||nether==='nether';this.end=nether==='end';this.dimKey=this.end?'end':this.nether?'nether':'over';this.seed=seed;this.nEnd=new Simplex((seed|0)+13);this.chunks=new Map();this.pending=new Map();this.populated=new Set();this.pendingLoot=new Map();this.spawners=new Map();this.trials=new Map();this.tickQueue=new Map();this.time=1000;this.day=0;
+    this.nether=nether===true||nether==='nether';this.end=nether==='end';this.dimKey=this.end?'end':this.nether?'nether':'over';this.seed=seed;this.nEnd=new Simplex((seed|0)+13);this.chunks=new Map();this.pending=new Map();this.populated=new Set();this.pendingLoot=new Map();this.spawners=new Map();this.trials=new Map();this.shriekers=new Map();this.warning=0;this.warningT=0;this.tickQueue=new Map();this.time=1000;this.day=0;
     const s=seed|0;this.nT=new Simplex(s);this.nH=new Simplex(s+1);this.nM=new Simplex(s+2);this.nD=new Simplex(s+3);this.nTemp=new Simplex(s+4);this.nHum=new Simplex(s+5);
     this.nC1=new Simplex(s+6);this.nC2=new Simplex(s+7);this.nC3=new Simplex(s+8);this.nC4=new Simplex(s+11);this.nC5=new Simplex(s+12);this.nVar=new Simplex(s+9);this.nR=new Simplex(s+10);
     this.dirtyLight=new Set();
@@ -1613,6 +1638,7 @@ function renderFrame(dt){
   if(!underwater&&!inLava&&!world.nether){const sk=world.getSky(floor(p.x),floor(eyeY),floor(p.z));const f=clamp(sk/15,0,1);const m=0.15+0.85*f;R.fogColor=[R.fogColor[0]*m,R.fogColor[1]*m,R.fogColor[2]*m]}
   if(game.wx&&world.dimKey==='over'&&!underwater&&!inLava){const I=game.wx.I;if(I>0.01){const g=Math.max(sc.day,0.12);const st=[0.24*g,0.26*g,0.3*g];R.fogColor=[lerp(R.fogColor[0],st[0],I*0.85),lerp(R.fogColor[1],st[1],I*0.85),lerp(R.fogColor[2],st[2],I*0.85)];R.fogStart*=1-0.5*I;R.fogEnd*=1-0.45*I;R.day*=1-0.55*I}
     const f=game.wx.flash;if(f>0){R.fogColor=[lerp(R.fogColor[0],1,f*0.9),lerp(R.fogColor[1],1,f*0.9),lerp(R.fogColor[2],1,f*0.9)];R.day=Math.min(1,R.day+f);R.ambient+=f*0.6}}
+  if(game.wardenNear>0&&!underwater&&!inLava){const k=game.wardenNear*(0.75+0.25*Math.sin(game.time*2.5));R.ambient*=1-0.75*k;R.fogStart*=1-0.7*k;R.fogEnd*=1-0.6*k;R.day*=1-0.6*k;const m=1-0.75*k;R.fogColor=[R.fogColor[0]*m,R.fogColor[1]*m,R.fogColor[2]*m];game.wardenNear=Math.max(0,game.wardenNear-0.02)}
   if(game.hx&&!world.nether&&!world.end&&!underwater&&!inLava){const nt=1-sc.day;R.ambient*=1-0.6*nt;R.fogStart*=1-0.65*nt;R.fogEnd*=1-0.5*nt;const m=1-0.6*nt;R.fogColor=[R.fogColor[0]*m,R.fogColor[1]*m,R.fogColor[2]*m]}
   gl.clearColor(R.fogColor[0],R.fogColor[1],R.fogColor[2],1);gl.clear(gl.COLOR_BUFFER_BIT|gl.DEPTH_BUFFER_BIT);
   // ---- sky objects ----
@@ -1831,8 +1857,11 @@ function spawnParticles(type,x,y,z,n,extra){
       case 'bubble':p.col=[0.7,0.85,1];p.grav=-8;p.life=0.8;p.size=0.06;p.vx*=0.2;p.vz*=0.2;p.vy=0.5;p.bright=0.5;break;
       case 'portal':p.col=[0.7,0.3,1];p.grav=-1;p.life=1;p.size=0.08;p.vx*=0.5;p.vz*=0.5;p.vy=(Math.random()-0.5)*2;p.bright=1;p.fade=true;break;
       case 'happy':p.col=[0.6,1,0.4];p.grav=-1;p.life=1;p.size=0.1;p.vy=0.5;p.bright=1;break;
-      case 'rain':p.col=[0.55,0.65,0.85];p.grav=0;p.vx=1.6;p.vz=0.4;p.vy=-19;p.life=0.7;p.size=0.035;p.bright=0.4;break;
-      case 'funnel':{const h=extra?extra.h:0,a=extra?extra.a:0;const g=0.18+Math.random()*0.1;p.col=[g,g,g+0.03];p.grav=0;p.vx=Math.cos(a)*7;p.vz=-Math.sin(a)*7;p.vy=2+Math.random()*2;p.life=0.4+Math.random()*0.2;p.size=0.3+h*0.012;p.fade=true;p.bright=0.15;break}
+      case 'rain':{const g=extra?extra.gust:0;p.col=[0.55,0.65,0.85];p.grav=0;p.vx=1.6+g*6;p.vz=0.4+g*3;p.vy=-19;p.life=0.7;p.size=0.035;p.bright=0.4;break}
+      case 'funnel':{const h=extra?extra.h:0,a=extra?extra.a:0,r=extra?extra.r:2;const t=Math.min(1,h/42);const g=0.16+t*0.22+Math.random()*0.05;p.col=[g+0.06*(1-t),g+0.02*(1-t),g-0.02*(1-t)];p.tile=TEX.smoke;p.grav=0;const sp=6+r*0.9;p.vx=Math.cos(a)*sp;p.vz=-Math.sin(a)*sp;p.vy=3+Math.random()*3;p.life=0.35+Math.random()*0.25;p.size=0.5+t*1.6+Math.random()*0.3;p.fade=true;p.bright=0.1;break}
+      case 'wallcloud':{const g=0.14+Math.random()*0.06;p.col=[g,g,g+0.03];p.tile=TEX.smoke;p.grav=0;const a=extra?extra.a:0;p.vx=Math.cos(a)*2;p.vz=-Math.sin(a)*2;p.vy=0;p.life=0.9+Math.random()*0.5;p.size=2.6+Math.random()*1.4;p.fade=true;p.bright=0.05;break}
+      case 'debris':{const def=BLOCKS[extra&&extra.id||3];p.tile=def.faces[2];p.u0=floor(Math.random()*12)/16;p.v0=floor(Math.random()*12)/16;p.us=0.25;const a=extra?extra.a:0;p.grav=4;p.vx=Math.cos(a)*9+(Math.random()-0.5)*3;p.vz=-Math.sin(a)*9+(Math.random()-0.5)*3;p.vy=6+Math.random()*7;p.life=1+Math.random()*0.8;p.size=0.12+Math.random()*0.16;break}
+      case 'dust':{const a=extra?extra.a:0;p.col=[0.42,0.36,0.28];p.tile=TEX.smoke;p.grav=-0.5;p.vx=Math.sin(a)*5;p.vz=Math.cos(a)*5;p.vy=0.6;p.life=0.7+Math.random()*0.5;p.size=0.7+Math.random()*0.6;p.fade=true;p.bright=0.05;break}
       case 'flash':p.col=[1,0.9,0.5];p.grav=0;p.vx*=0.4;p.vz*=0.4;p.vy=(Math.random()-0.5)*0.8;p.life=0.06+Math.random()*0.05;p.size=0.05;p.bright=1;p.fade=true;break;
       case 'bolt':p.col=[1,1,1];p.grav=0;p.vx=0;p.vz=0;p.vy=0;p.life=0.18+Math.random()*0.1;p.size=0.28;p.bright=1;p.fade=true;break;
     }
@@ -1888,6 +1917,8 @@ const MOBDEF={
   stray:{hp:20,w:0.6,h:1.99,speed:3.4,dmg:3,undead:true,ranged:true,slowArrow:true,drops:r=>[[283,floor(r()*3)],[284,floor(r()*3)]],xp:[5,5],sound:'skeleton',follow:16},
   cave_spider:{hp:12,w:0.7,h:0.5,speed:4.6,dmg:2,poison:true,scale:0.5,drops:r=>[[286,floor(r()*3)],[r()<0.33?287:0,1]],xp:[5,5],sound:'spider',follow:16,neutral:true,lightNeutral:true},
   cartoon_cat:{hp:220,w:0.9,h:4.2,speed:6.8,dmg:0,undead:true,noBurn:true,drops:()=>[],xp:[40,60],sound:'cattune',follow:90,tall:true,noDespawn:true},
+  iron_golem:{hp:100,w:1.4,h:2.7,speed:2.6,dmg:14,neutral:true,noBurn:true,drops:r=>[[260,3+floor(r()*3)],[22,floor(r()*3)]],xp:[0,0],sound:'golem',follow:20,noDespawn:true},
+  warden:{hp:500,w:0.9,h:2.9,speed:3.6,dmg:0,neutral:true,undead:false,noBurn:true,drops:r=>[[263,2],[266,3]],xp:[5,5],sound:'warden',follow:0,tall:true,noDespawn:true},
   breeze:{hp:30,w:0.6,h:1.77,speed:4.2,dmg:0,ranged:'wind',noBurn:true,drops:r=>[[471,1+floor(r()*2)]],xp:[10,10],sound:'wind',follow:24},
   stalker:{hp:60,w:0.7,h:3.4,speed:4.4,dmg:0,undead:true,noBurn:true,drops:()=>[],xp:[0,0],sound:'enderman',follow:60,tall:true},
   enderman:{hp:40,w:0.6,h:2.9,speed:5.2,dmg:7,drops:r=>[[312,floor(r()*2)]],xp:[5,5],sound:'enderman',follow:64,neutral:true,tall:true},
@@ -1903,6 +1934,8 @@ class Mob extends Entity{
     this.moveDir=null;this.wanderT=0;this.idleT=1+Math.random()*3;this.hurtT=0;this.deathT=0;this.walkT=0;this.walkAmp=0;this.atkCd=0;this.fireT=0;this.panicT=0;this.loveT=0;this.baby=false;this.growT=0;this.soundT=10+Math.random()*30;this.swell=0;this.eatT=0;this.eggT=300+Math.random()*300;this.angry=false;this.lastHit=0;
     if(type==='villager'){const r=Math.random();this.prof=r<0.1?'nitwit':PROF_NAMES[floor(Math.random()*(PROF_NAMES.length-1))];this.trades=villagerTrades(this.prof);this.vlevel=1;this.vxp=0;this.restockT=240+Math.random()*120}
     if(type==='cartoon_cat'){this.stretch=0;this.lastRoar=0}
+    if(type==='iron_golem'){this.armT=0}
+    if(type==='warden'){this.emergeT=3;this.born=game.time;this.lastVib=game.time;this.boomCd=4;this.sniffT=6}
     if(type==='sheep'){const r=Math.random();this.woolId=r<0.82?20:r<0.87?76:r<0.92?75:r<0.97?77:20;this.sheared=false}
     if(type==='slime'){this.setSize(Math.random()<0.4?3:Math.random()<0.5?2:1);this.hopT=Math.random()*2}
     this.tpT=2+Math.random()*4;this.drinkT=0;this.stareT=0;this.drinking=0;this.screamT=0;this.tamed=false;this.sitting=false;this.prey=null;this.shakeT=0;
@@ -1962,6 +1995,8 @@ class Mob extends Entity{
       if(game.gui&&game.gui.type==='trade'&&game.gui.villager===this){this.moveDir=null;this.wanderT=1;if(dist3>6)closeGui()}}
     if(this.type==='stalker'){if(this.updateStalker(dt,p,dist,dist3))return}
     if(this.type==='cartoon_cat')this.updateCartoonCat(dt,p,dist,dist3);
+    if(this.type==='iron_golem')this.updateGolem(dt,p,dist,dist3);
+    if(this.type==='warden'){if(this.updateWarden(dt,p,dist,dist3))return}
     if(this.type==='wolf'){ // wild: hunts sheep/skeletons, pack anger; tamed: follows, sits, defends owner
       if(this.tamed){this.angry=false;if(dist3>12&&!this.sitting&&!p.dead&&p.onGround)this.teleport(true,true)}
       if(this.prey&&(this.prey.dead||this.prey.dying||Math.hypot(this.prey.x-this.x,this.prey.z-this.z)>20))this.prey=null;
@@ -1988,7 +2023,7 @@ class Mob extends Entity{
     const d=this.def;let target=null;let speed=d.speed*(this.baby?1.3:1);const diff=game.difficulty;
     const stealth=(player.armor[1]&&ITEMS[player.armor[1].id].ghillie&&!(this.lastHit&&this.lastHit>game.time-15))?(p.sneaking?0.12:0.3):1;
     const hostile=!d.passive&&diff>0&&(!d.neutral||this.angry||(d.lightNeutral&&Math.max(world.getSky(floor(this.x),floor(this.y),floor(this.z))*R.day,world.getLight(floor(this.x),floor(this.y),floor(this.z)))<9));
-    if(hostile&&!p.dead&&!this.frozen&&dist3<d.follow*(p.sneaking?0.5:1)*stealth){target=[p.x,p.z];this.angry=true}
+    if(hostile&&!p.dead&&!this.frozen&&dist3<d.follow*(p.sneaking?0.5:1)*stealth){target=[p.x,p.z];if(!this.angry&&!d.neutral){this.noticeT=0.35+Math.random()*0.3;if(dist3<20)playSoundAt(d.sound,this.x,this.y,this.z,1,0.75)}this.angry=true}
     if(d.passive&&!p.dead){ // follow player holding food
       const held=p.inv[p.sel];if(held&&d.food.includes(held.id)&&dist<6&&!this.baby){target=[p.x,p.z];speed*=1.2}
       if(this.loveT>0){for(const o of entities){if(o!==this&&o instanceof Mob&&o.type===this.type&&o.loveT>0&&!o.baby){const ox=o.x-this.x,oz=o.z-this.z;const od=sqrt(ox*ox+oz*oz);if(od<8){target=[o.x,o.z];if(od<1.2&&this.loveT>0&&o.loveT>0&&this.age>o.age){this.loveT=0;o.loveT=0;const b=new Mob(this.type,this.x,this.y,this.z);b.baby=true;b.growT=120;if(this.type==='sheep')b.woolId=Math.random()<0.5?this.woolId:o.woolId;entities.push(b);spawnParticles('heart',this.x,this.y+this.h,this.z,6);spawnXP(this.x,this.y,this.z,1+floor(Math.random()*7))}break}}}}
@@ -2013,7 +2048,9 @@ class Mob extends Entity{
       if(this.type==='creeper'&&dist3<3&&!this.panicT){this.moveDir=null}
     }
     // head look
-    if(dist3<8&&!p.dead){this.headYaw=Math.atan2(-dx,-dz)-this.yaw;this.headPitch=Math.atan2(dy,dist)}else{this.headYaw*=0.9;this.headPitch*=0.9}
+    if((d.animal||(d.food&&d.food.length))&&d.passive&&!this.baby&&this.panicT<=0&&Math.hypot(this.vx,this.vz)<0.6){this.grazeT=(this.grazeT||0)-dt;if(this.grazeT<-3&&Math.random()<dt*0.4)this.grazeT=2+Math.random()*2.5}else if(this.grazeT>0&&this.panicT>0)this.grazeT=0;
+    if(this.grazeT>0){this.moveDir=null;this.headYaw*=0.85;this.headPitch+=(0.9-this.headPitch)*Math.min(1,dt*6)}
+    else if(dist3<8&&!p.dead){this.headYaw=Math.atan2(-dx,-dz)-this.yaw;this.headPitch=Math.atan2(dy,dist)}else{this.headYaw*=0.9;this.headPitch*=0.9}
     if(d.flying){ // blazes hover above the ground and drift towards the player's height; vexes fly straight through blocks
       let mx=0,mz=0;if(this.moveDir){mx=this.moveDir[0]*speed;mz=this.moveDir[1]*speed}this.vx+=(mx-this.vx)*Math.min(1,dt*4);this.vz+=(mz-this.vz)*Math.min(1,dt*4);
       let wantY;if(d.ghost){wantY=hostile?p.y+1:this.y+Math.sin(this.age*2)*0.5}else{let g=0;while(g<6&&!BLOCKS[world.getBlockPhys(floor(this.x),floor(this.y)-1-g,floor(this.z))].solid)g++;wantY=hostile?Math.max(p.y+1.5,this.y-g+2.5):this.y-g+2+Math.sin(this.age)*0.5}
@@ -2024,7 +2061,7 @@ class Mob extends Entity{
       if(this.type==='blaze'&&Math.random()<dt*3)spawnParticles('smoke',this.x+(Math.random()-0.5)*0.6,this.y+Math.random()*1.5,this.z+(Math.random()-0.5)*0.6,1);
     } else {
     // movement
-    const inW=this.inWater;let mx=0,mz=0;if(this.moveDir){mx=this.moveDir[0]*speed;mz=this.moveDir[1]*speed}
+    const inW=this.inWater;let mx=0,mz=0;if(this.moveDir){mx=this.moveDir[0]*speed;mz=this.moveDir[1]*speed}if(this.noticeT>0){this.noticeT-=dt;mx=mz=0} // a beat of surprise before the charge
     const acc=this.onGround?12:3;this.vx+=(mx-this.vx)*Math.min(1,acc*dt);this.vz+=(mz-this.vz)*Math.min(1,acc*dt);
     if(this.type==='slime'){if(this.onGround){if(this.hopT<=0&&(this.moveDir||target)){this.vy=5+this.size*1.2;this.hopT=(target?0.4:1.5)+Math.random()*1.5;playSoundAt('slime',this.x,this.y,this.z,1,1.4-this.size*0.2)}else{this.vx*=0.6;this.vz*=0.6}}}
     else if(this.moveDir&&this.collidedH&&this.onGround){this.vy=this.type==='spider'?4:8.5}
@@ -2094,7 +2131,7 @@ class Mob extends Entity{
     let roll=0,ex=this.x,ey=this.y,ez=this.z;if(this.dying){roll=Math.min(1,this.deathT*1.5)*PI/2}
     const swing=Math.sin(this.walkT)*this.walkAmp*0.9;const hy=this.headYaw,hp=this.headPitch;
     const part=(b,px,py,pz,rx,ry,rz,tiles,col)=>{const tf=partTF(ex,ey,ez,this.yaw,px,py,pz,rx,ry,rz,s,roll);EB.box(tf,b[0],b[1],b[2],b[3],b[4],b[5],tiles,[col[0]*hurt[0],col[1]*hurt[1],col[2]*hurt[2]],l,true)};
-    const W=TEX.white,N=TEX.noise;const face=(t)=>[N,N,N,N,N,t];
+    const W=TEX.white,N=TEX[MOB_SKIN_NAMES[this.type]]||TEX.noise;const face=(t)=>[N,N,N,N,N,t];
     switch(this.type){
       case 'pig':{const c=[0.94,0.66,0.66];for(const [lx,lz,sg] of [[-3,-5,1],[3,-5,-1],[-3,5,-1],[3,5,1]])part([lx-2,-6,lz-2,lx+2,0,lz+2],0,6,0,swing*sg,0,0,N,c);
         part([-5,6,-8,5,14,8],0,0,0,0,0,0,N,c);part([-4,-2,-8,4,6,0],0,10,-6,hp,hy,0,face(TEX.pig_face),c);part([-2,-1,-9,2,2,-8],0,10,-6,hp,hy,0,W,[0.86,0.47,0.5]);break}
@@ -2122,6 +2159,16 @@ class Mob extends Entity{
         part([-4,6,-2,4,18,2],0,0,0,0,0,0,sc,c);part([-4,0,-4,4,8,4],0,18,0,hp,hy,0,[sc,sc,sc,sc,sc,TEX.creeper_face],c);break}
       case 'blaze':{const c=[1,0.85,0.4];const sk=TEX.blaze_skin;part([-4,10,-4,4,18,4],0,0,0,hp,hy,0,[sk,sk,sk,sk,sk,TEX.blaze_face],c);
         for(let ring=0;ring<3;ring++){const ry=ring===0?12:ring===1?6:1;const rr=ring===1?5:4;const sp=this.age*(ring===1?-2:2)+ring;for(let i=0;i<4;i++){const a=sp+i*PI/2;const rx=Math.cos(a)*rr,rz=Math.sin(a)*rr;part([rx-1,ry-4+Math.sin(this.age*4+i+ring)*1.2,rz-1,rx+1,ry+4,rz+1],0,0,0,0,0,0,sk,[1,0.75,0.3])}}break}
+      case 'iron_golem':{const c=[0.78,0.77,0.72],dk=[0.55,0.54,0.5];const swingA=this.armT>0?-1.6:swing*0.5;
+        part([-3,-15,-3,3,0,3],-4,15,0,swing*0.7,0,0,N,c);part([-3,-15,-3,3,0,3],4,15,0,-swing*0.7,0,0,N,c);
+        part([-9,15,-5,9,33,5],0,0,0,0,0,0,N,c);part([-7,27,-5.5,7,33,5.5],0,0,0,0,0,0,N,dk);part([-5,15,-4,5,26,4],0,0,0,0,0,0,N,[0.45,0.6,0.35]);
+        part([-2.5,-24,-2.5,2.5,0,2.5],-11,33,0,swingA,0,0.1,N,c);part([-2.5,-24,-2.5,2.5,0,2.5],11,33,0,swingA,0,-0.1,N,c);
+        part([-4,0,-4,4,9,4],0,33,0,hp,hy,0,face(TEX.golem_face),c);part([-1,2,-5,1,5,-4],0,33,0,hp,hy,0,N,dk);break}
+      case 'warden':{const c=[0.12,0.2,0.22],gl=[0.35,0.95,0.9];const em=this.emergeT>0?-(this.emergeT/3)*46:0;const sw=swing*0.8;
+        part([-3.5,-18+em,-3.5,3.5,0+em,3.5],-5,18,0,sw,0,0,N,c);part([-3.5,-18+em,-3.5,3.5,0+em,3.5],5,18,0,-sw,0,0,N,c);
+        part([-9,18+em,-5,9,38+em,5],0,0,0,0.1,0,0,N,c);part([-4,22+em,-5.6,4,32+em,-5],0,0,0,0.1,0,0,W,[gl[0]*(0.7+0.3*Math.sin(this.age*4)),gl[1],gl[2]]);part([-2,24+em,-5.8,2,30+em,-5.4],0,0,0,0.1,0,0,W,[0.8,1,1]);
+        part([-3,-26+em,-3,3,0+em,3],-12,36,0,0.4-sw,0,0.15,N,c);part([-3,-26+em,-3,3,0+em,3],12,36,0,0.4+sw,0,-0.15,N,c);
+        part([-6,0+em,-6,6,10+em,6],0,38,-1,hp+0.2,hy,0,face(TEX.warden_face),c);part([-9,8+em,-2,-5,16+em,0],0,38,-1,hp+0.2,hy,0.5,N,c);part([5,8+em,-2,9,16+em,0],0,38,-1,hp+0.2,hy,-0.5,N,c);break}
       case 'breeze':{const hc=[0.3,0.36,0.5];part([-3.5,20,-3.5,3.5,27,3.5],0,0,0,hp,hy,0,face(TEX.breeze_face),hc);
         for(let ring=0;ring<4;ring++){const ry=2+ring*5;const rr=1.5+ring*1.2;const sp=this.age*(ring%2?-3:3)+ring;for(let i=0;i<4;i++){const a=sp+i*PI/2;const rx=Math.cos(a)*rr,rz=Math.sin(a)*rr;part([rx-1.3,ry-2,rz-1.3,rx+1.3,ry+2,rz+1.3],0,0,0,0,0,0,N,[0.78,0.86,0.98])}}break}
       case 'vex':{const c=[0.85,0.87,0.95];const fl=Math.sin(this.age*14)*0.8;part([-2,-6,-1.5,2,0,1.5],0,10,0,0.4,0,0,N,c);part([-2.5,0,-2.5,2.5,5,2.5],0,10,0,hp,hy,0,face(TEX.vex_face),c);
@@ -2496,6 +2543,8 @@ function useItem(){
     entities.push(a);consumeHeld();playSound('bow',0.5);p.swing=0;return}
   if(hd.plants&&t&&t.block&&t.face===2&&t.id===36&&world.getBlock(t.bx,t.by+1,t.bz)===0){world.setBlock(t.bx,t.by+1,t.bz,hd.plants,0);consumeHeld();playSoundAt('place_grass',t.bx,t.by,t.bz);p.swing=0;return}
   if(hd&&hd.id===472){throwWindCharge();return}
+  if(hd&&hd.id===22&&t&&t.block&&t.id===25){const bx=t.bx,by=t.by,bz=t.bz;const iron=(x,y,z)=>world.getBlock(x,y,z)===25;
+    for(const [ax,az] of [[1,0],[0,1]]){if(iron(bx,by-1,bz)&&iron(bx+ax,by-1,bz+az)&&iron(bx-ax,by-1,bz-az)&&iron(bx,by-2,bz)){for(const [x,y,z] of [[bx,by,bz],[bx+ax,by-1,bz+az],[bx-ax,by-1,bz-az],[bx,by-1,bz],[bx,by-2,bz]])world.setBlock(x,y,z,0,0);consumeHeld();const g=new Mob('iron_golem',bx+0.5,by-2,bz+0.5);entities.push(g);spawnParticles('happy',bx+0.5,by,bz+0.5,14);playSound('golem',1,0.7);showMessage('An Iron Golem rises to protect you');p.swing=0;return}}}
   if(hd.spawnMob&&t&&t.block){const n=FACE_DIR[t.face];const m=new Mob(hd.spawnMob,t.bx+n[0]+0.5,t.by+(n[1]<0?-2:n[1]),t.bz+n[2]+0.5);entities.push(m);consumeHeld();playSoundAt('pop',m.x,m.y,m.z);p.swing=0;return}
   if(hd.isBlock&&t&&t.block){placeHeldBlock(hd,st,t)}
 }
@@ -2535,7 +2584,7 @@ function trySleep(bx,by,bz){const p=player;const t=world.time;
   for(const e of entities){if(e instanceof Mob&&!e.def.passive&&!e.dead){const dx=e.x-bx,dz=e.z-bz;if(dx*dx+dz*dz<64){showMessage('You may not rest now, there are monsters nearby');return}}}
   p.spawn=[bx+0.5,by+0.6,bz+0.5];p.sleeping=0.01;$('sleepfade').style.opacity=1;showMessage('Respawn point set')}
 function playerDie(src){const p=player;p.dead=true;p.hp=0;playSound('death');let msg='Player died';const t=src&&src.type;
-  if(t==='fall')msg='Player fell from a high place';else if(t==='mob')msg='Player was slain by a monster';else if(t==='arrow')msg='Player was shot by Skeleton';else if(t==='explosion')msg='Player was blown up';else if(t==='lava')msg='Player tried to swim in lava';else if(t==='fire')msg='Player burned to death';else if(t==='drown')msg='Player drowned';else if(t==='starve')msg='Player starved to death';else if(t==='cactus')msg='Player was pricked to death';else if(t==='lightning')msg='Player was struck by lightning';else if(t==='tornado')msg='Player was swept away by a tornado';
+  if(t==='fall')msg='Player fell from a high place';else if(t==='mob')msg='Player was slain by a monster';else if(t==='arrow')msg='Player was shot by Skeleton';else if(t==='explosion')msg='Player was blown up';else if(t==='lava')msg='Player tried to swim in lava';else if(t==='fire')msg='Player burned to death';else if(t==='drown')msg='Player drowned';else if(t==='starve')msg='Player starved to death';else if(t==='cactus')msg='Player was pricked to death';else if(t==='lightning')msg='Player was struck by lightning';else if(t==='tornado')msg='Player was swept away by a tornado';else if(t==='sonic')msg='Player was obliterated by a sonically-charged shriek';
   if(p.riding)p.riding.dismount();
   for(let i=0;i<36;i++)if(p.inv[i]&&enchLevel(p.inv[i],'vanishing_curse'))p.inv[i]=null;for(let i=0;i<4;i++)if(p.armor[i]&&enchLevel(p.armor[i],'vanishing_curse'))p.armor[i]=null;
   if(!opts.keepInv){for(let i=0;i<36;i++){if(p.inv[i]){spawnItem(p.x,p.y+1,p.z,p.inv[i]);p.inv[i]=null}}for(let i=0;i<4;i++){if(p.armor[i]){spawnItem(p.x,p.y+1,p.z,p.armor[i]);p.armor[i]=null}}
@@ -2603,6 +2652,7 @@ const LOOT={
   stronghold:[[379,1,1,10],[378,1,3,10],[377,2,7,10],[260,1,5,10],[262,1,3,6],[263,1,3,4],[308,1,1,3],[272,1,3,10],[273,1,3,8],[264,2,5,6],[I.iron_sword,1,1,3],[312,1,2,4]],
   shipwreck:[[260,1,5,20],[262,1,5,12],[266,1,3,10],[263,1,1,4],[289,1,4,15],[272,1,4,15],[303,1,4,10],[302,1,4,10],[24,1,1,3],[I.iron_sword,1,1,5],[I.iron_helmet,1,1,4]],
   village:[[315,1,1,3],[272,1,4,20],[273,1,5,15],[271,1,7,10],[270,1,4,10],[260,1,3,5],[266,1,4,3],[257,1,4,10],[303,1,5,10],[302,1,5,10],[6,1,2,5],[289,1,3,5]],
+  ancient_city:[[379,1,1,22],[263,1,4,10],[308,1,2,7],[312,1,3,8],[266,2,6,8],[260,2,5,8],[264,2,6,6],[315,1,1,3],[I.diamond_leggings,1,1,2],[I.diamond_boots,1,1,2],[469,1,1,1]],
   vault:[[379,1,1,8],[263,1,4,10],[266,2,8,12],[260,2,6,10],[262,2,5,8],[308,1,2,6],[312,1,3,5],[315,1,1,3],[I.diamond_pickaxe,1,1,3],[I.diamond_sword,1,1,3],[I.diamond_chestplate,1,1,2],[284,8,20,10],[267,4,12,8]],
   vault_ominous:[[469,1,1,40],[379,1,2,12],[263,3,8,12],[266,5,12,10],[308,2,4,8],[376,1,2,4],[I.diamond_helmet,1,1,4],[I.diamond_leggings,1,1,4],[I.diamond_boots,1,1,4],[395,1,1,1]],
   fortress:[[379,1,1,6],[263,1,3,5],[260,1,5,5],[262,1,3,15],[299,1,1,5],[31,2,4,5],[308,1,1,3],[311,2,6,10],[283,2,5,8]],
@@ -2616,7 +2666,7 @@ Object.assign(World.prototype,{
   setChest(x,y,z,facing,table,rng,n){this.setGen(x,y,z,39,facing,false);const items=rollLoot(LOOT[table],rng,n||3+floor(rng()*5));const c=this.getChunk(x>>4,z>>4);
     if(c&&c.generated){c.bents.set(cidx(x&15,y,z&15),{items})}else{const k=chunkKey(x>>4,z>>4);let l=this.pendingLoot.get(k);if(!l){l=[];this.pendingLoot.set(k,l)}l.push([x&15,y,z&15,items])}},
   applyPendingLoot(c){const k=chunkKey(c.cx,c.cz);const l=this.pendingLoot.get(k);if(!l)return;for(const [lx,ly,lz,items] of l){const i=cidx(lx,ly,lz);if(c.blocks[i]===39&&!c.bents.has(i))c.bents.set(i,{items:items.map(s=>s?{id:s.id,count:s.count}:null)})}},
-  registerSpawners(c){const bl=c.blocks;for(let i=0;i<bl.length;i++){if(bl[i]===86){const x=c.cx*16+(i>>11),y=i&127,z=c.cz*16+((i>>7)&15);this.spawners.set(x+','+y+','+z,{x,y,z,type:c.meta[i]&3,t:5+Math.random()*10})}else if(bl[i]===111){const x=c.cx*16+(i>>11),y=i&127,z=c.cz*16+((i>>7)&15);if(!this.trials.has(x+','+y+','+z))this.trials.set(x+','+y+','+z,{x,y,z,kind:c.meta[i]&3,state:'idle',mobs:[],total:0,cd:0,t:0})}}},
+  registerSpawners(c){const bl=c.blocks;for(let i=0;i<bl.length;i++){if(bl[i]===86){const x=c.cx*16+(i>>11),y=i&127,z=c.cz*16+((i>>7)&15);this.spawners.set(x+','+y+','+z,{x,y,z,type:c.meta[i]&3,t:5+Math.random()*10})}else if(bl[i]===111){const x=c.cx*16+(i>>11),y=i&127,z=c.cz*16+((i>>7)&15);if(!this.trials.has(x+','+y+','+z))this.trials.set(x+','+y+','+z,{x,y,z,kind:c.meta[i]&3,state:'idle',mobs:[],total:0,cd:0,t:0})}else if(bl[i]===119){const x=c.cx*16+(i>>11),y=i&127,z=c.cz*16+((i>>7)&15);if(!this.shriekers.has(x+','+y+','+z))this.shriekers.set(x+','+y+','+z,{x,y,z,cd:0})}}},
   fill(x0,y0,z0,x1,y1,z1,id,meta=0){for(let x=x0;x<=x1;x++)for(let y=y0;y<=y1;y++)for(let z=z0;z<=z1;z++)this.setGen(x,y,z,id,meta,false)},
   regionOrigin(cx,cz,size,salt){const rx=Math.floor(cx/size),rz=Math.floor(cz/size);const r=mulberry32(hashInt(rx,rz,salt,this.seed));const ox=rx*size+floor(r()*size),oz=rz*size+floor(r()*size);return ox===cx&&oz===cz?r:null},
   surfaceY(x,z){return this.columnInfo(x,z).height},
@@ -2645,10 +2695,28 @@ Object.assign(World.prototype,{
     if((r=this.regionOrigin(cx,cz,12,113))&&mid.biome===BI.jungle&&mid.height>SEA+2)this.placeJungleTemple(wx+8,wz+8,r);
     if((r=this.regionOrigin(cx,cz,40,115)))this.placeStronghold(wx+8,wz+8,r);
     if((r=this.regionOrigin(cx,cz,28,117))&&mid.height>SEA)this.placeTrialChamber(wx+8,wz+8,r);
+    if((r=this.regionOrigin(cx,cz,36,118))&&mid.height>SEA+4)this.placeAncientCity(wx+8,wz+8,r);
     if((r=this.regionOrigin(cx,cz,9,106))&&r()<0.55)this.placeMineshaft(wx+8,wz+8,r);
     if(rng()<0.12)this.placeDungeon(wx+2+floor(rng()*12),8+floor(rng()*42),wz+2+floor(rng()*12),rng);
   },
   placeNetherStructures(c,rng){const r=this.regionOrigin(c.cx,c.cz,14,107);if(r)this.placeFortress(c.cx*16+8,c.cz*16+8,r)},
+  /* ---- ancient city: a vast deepslate ruin in the deep dark, crawling with sculk, shriekers and one very light sleeper ---- */
+  placeAncientCity(x,z,rng){const y=12+floor(rng()*6);const D=116,B=117,S=118,K=119,E=120,L=121;const key='ac:'+(x>>4)+','+(z>>4);this.populated.add(key);const HW=30,HL=24,H=10;
+    for(let dx=-HW;dx<=HW;dx++)for(let dz=-HL;dz<=HL;dz++){for(let dy=0;dy<H;dy++)this.setGen(x+dx,y+dy,z+dz,0,0,false);this.setGen(x+dx,y-1,z+dz,rng()<0.85?D:B,0,false);this.setGen(x+dx,y+H,z+dz,D,0,false);if(abs(dx)===HW||abs(dz)===HL)for(let dy=0;dy<H;dy++)this.setGen(x+dx,y+dy,z+dz,rng()<0.7?D:B,0,false)}
+    // streets and pillars
+    for(let dx=-HW;dx<=HW;dx++)for(let s=-2;s<=2;s++)this.setGen(x+dx,y-1,z+s,B,0,false);for(let dz=-HL;dz<=HL;dz++)for(let s=-2;s<=2;s++)this.setGen(x+s,y-1,z+dz,B,0,false);
+    for(let dx=-HW+3;dx<=HW-3;dx+=6)for(const sd of [-3,3])for(let dy=0;dy<H;dy++)this.setGen(x+dx,y+dy,z+sd,B,0,false);
+    // ruined houses in the quadrants, with loot
+    for(let i=0;i<10;i++){const hx=x+(rng()<0.5?-1:1)*(6+floor(rng()*20)),hz=z+(rng()<0.5?-1:1)*(6+floor(rng()*14));const hw=2+floor(rng()*2),hh=3+floor(rng()*2);
+      for(let dx=-hw;dx<=hw;dx++)for(let dz=-hw;dz<=hw;dz++)for(let dy=0;dy<=hh;dy++){const wall=abs(dx)===hw||abs(dz)===hw||dy===hh;if(wall&&rng()<0.8)this.setGen(hx+dx,y+dy,hz+dz,rng()<0.75?B:D,0,false);else if(!wall)this.setGen(hx+dx,y+dy,hz+dz,0,0,false)}
+      this.setGen(hx,y,hz-hw,0,0,false);this.setGen(hx,y+1,hz-hw,0,0,false);this.setGen(hx,y+hh+1,hz,L,0,false);if(rng()<0.8)this.setChest(hx+(rng()<0.5?1:-1),y,hz+1,0,'ancient_city',rng,3+floor(rng()*4))}
+    // the centrepiece: a great frame with the sculk heart, shriekers around it
+    for(let dx=-6;dx<=6;dx++)for(let dy=0;dy<=8;dy++){const edge=abs(dx)===6||dy===8||dy===0;if(edge)this.setGen(x+dx,y+dy,z+HL-3,B,0,false)}for(let dx=-4;dx<=4;dx++)for(let dy=1;dy<=7;dy++)this.setGen(x+dx,y+dy,z+HL-3,abs(dx)<=1&&dy>=2&&dy<=5?L:S,0,false);
+    // sculk spreads over the floor; shriekers and sensors sit in it
+    for(let i=0;i<48;i++){const cx=x+floor((rng()-0.5)*2*HW),cz=z+floor((rng()-0.5)*2*HL);const r=1+rng()*2.5;for(let dx=-3;dx<=3;dx++)for(let dz=-3;dz<=3;dz++)if(dx*dx+dz*dz<=r*r&&this.getGen(cx+dx,y-1,cz+dz)===D)this.setGen(cx+dx,y-1,cz+dz,S,0,false)}
+    for(let i=0;i<9;i++){const cx=x+floor((rng()-0.5)*2*(HW-3)),cz=z+floor((rng()-0.5)*2*(HL-3));if(this.getGen(cx,y,cz)===0){this.setGen(cx,y,cz,K,0,false)}}
+    for(let i=0;i<14;i++){const cx=x+floor((rng()-0.5)*2*(HW-3)),cz=z+floor((rng()-0.5)*2*(HL-3));if(this.getGen(cx,y,cz)===0)this.setGen(cx,y,cz,E,0,false)}
+  },
   /* ---- trial chamber: a buried complex of tuff and copper with trial spawners and key-locked vaults ---- */
   placeTrialChamber(x,z,rng){const y=22+floor(rng()*10);const T=115,C=114,B=52,L=93;const key='tc:'+(x>>4)+','+(z>>4);this.populated.add(key);
     const room=(cx,cz,hw,hl,h)=>{for(let dx=-hw;dx<=hw;dx++)for(let dz=-hl;dz<=hl;dz++)for(let dy=-1;dy<=h;dy++){const wall=abs(dx)===hw||abs(dz)===hl||dy===-1||dy===h;const edge=wall&&((abs(dx)===hw&&abs(dz)===hl)||(dy===-1&&(abs(dx)===hw||abs(dz)===hl))||(dy===h&&(abs(dx)===hw||abs(dz)===hl)));this.setGen(cx+dx,y+dy,cz+dz,wall?(edge?C:(rng()<0.25?B:T)):0,0,false)}
@@ -2704,7 +2772,7 @@ Object.assign(World.prototype,{
       if(houses.some(o=>abs(o[0]-hx)<(o[2]+w)/2+3&&abs(o[1]-hz)<(o[3]+l)/2+3))continue;houses.push([hx,hz,w,l]);
       const facing=abs(x-hx)>abs(z-hz)?(x>hx?3:1):(z>hz?0:2);
       this.placeHouse(hx,info.height+1,hz,w,l,facing,M,rng,kind);placed++;
-      if(spawnVillagers){const m=new Mob('villager',hx+0.5,info.height+1.1,hz+0.5);entities.push(m)}
+      if(spawnVillagers){const m=new Mob('villager',hx+0.5,info.height+1.1,hz+0.5);entities.push(m);if(!this._golemDone||this._golemDone!==key){this._golemDone=key;const g=new Mob('iron_golem',hx+2.5,info.height+1.1,hz+0.5);entities.push(g)}}
       // path to well
       let px=hx,pz=hz;let guard=0;while((px!==x||pz!==z)&&guard++<80){if(px!==x)px+=x>px?1:-1;else pz+=z>pz?1:-1;const py=this.surfaceY(px,pz);const top=this.getGen(px,py,pz);if(top===2||top===3||top===10||top===0)this.setGen(px,py,pz,M.path,0,false);const ab=this.getGen(px,py+1,pz);if(ab===23||ab===21||ab===22)this.setGen(px,py+1,pz,0,0,false)}
     }
@@ -2911,6 +2979,14 @@ function tickTrials(dt){const p=player;for(const [k,s] of world.trials){if(world
         for(let tries=0;tries<12;tries++){const bx=s.x+floor(Math.random()*7)-3,bz=s.z+floor(Math.random()*7)-3;if(world.getBlock(bx,s.y,bz)!==0||world.getBlock(bx,s.y+1,bz)!==0||!BLOCKS[world.getBlock(bx,s.y-1,bz)].solid)continue;const m=new Mob(type,bx+0.5,s.y,bz+0.5);m.def=Object.assign({},MOBDEF[type],{noBurn:true,noDespawn:true,follow:40});m.angry=true;entities.push(m);s.mobs.push(m);s.spawned++;spawnParticles('smoke',m.x,m.y+1,m.z,6);playSoundAt('pop',m.x,m.y,m.z,1,0.6);break}}
       if(s.spawned>=s.total&&s.mobs.length===0){s.state='cooldown';s.cd=600;spawnItem(s.x+0.5,s.y+1.2,s.z+0.5,{id:470,count:1});spawnXP(s.x+0.5,s.y+1.2,s.z+0.5,30);playSound('levelup',0.9);showMessage('Trial complete! A Trial Key pops out. Use it on a vault.')}
       if(d2>40*40){for(const m of s.mobs)m.dead=true;s.state='idle'}}}}
+/* ---- sculk shriekers: they hear you move, and four shrieks wake the Warden ---- */
+function tickShriekers(dt){const p=player;const w=world;if(w.warning>0){w.warningT-=dt;if(w.warningT<=0){w.warning--;w.warningT=90}}
+  const moving=!p.dead&&((Math.hypot(p.vx,p.vz)>1.2&&!p.sneaking)||p.breakProgress>0||p.swing<0.4);
+  if(w.shriekCd>0)w.shriekCd-=dt;for(const [k,s] of w.shriekers){if(w.getBlock(s.x,s.y,s.z)!==119){w.shriekers.delete(k);continue}if(s.cd>0){s.cd-=dt;continue}if(w.shriekCd>0)continue;const dx=s.x+0.5-p.x,dy=s.y-p.y,dz=s.z+0.5-p.z;if(dx*dx+dz*dz>7*7||abs(dy)>5||!moving)continue;
+    s.cd=12;w.shriekCd=1.5;w.warning=Math.min(4,w.warning+1);w.warningT=90;playSoundAt('shriek',s.x,s.y,s.z,1,0.9+Math.random()*0.3);spawnParticles('smoke',s.x+0.5,s.y+1,s.z+0.5,10);game.wardenNear=Math.max(game.wardenNear||0,0.5);
+    if(w.warning<4){showMessage('The sculk shrieks... ('+w.warning+'/4) Sneak and stay still, or something will come')}
+    else if(!entities.some(e=>e instanceof Mob&&e.type==='warden'&&!e.dead)){w.warning=0;let spot=null;for(let t=0;t<30&&!spot;t++){const a=Math.random()*PI*2,r=6+Math.random()*6;const bx=floor(p.x+Math.sin(a)*r),bz=floor(p.z+Math.cos(a)*r);const yy=isStandable(bx,bz);if(yy!==null&&abs(yy-p.y)<6&&w.getBlock(bx,yy+2,bz)===0)spot=[bx+0.5,yy,bz+0.5]}if(!spot)spot=[p.x+4,p.y,p.z];
+      const m=new Mob('warden',spot[0],spot[1],spot[2]);entities.push(m);playSound('warden',1,0.7);showMessage('THE WARDEN EMERGES. Run, quietly.')}}}
 function openVault(bx,by,bz){const p=player;const st=heldStack();const meta=world.getMeta(bx,by,bz);if(!st||st.id!==470){showMessage('Locked. It takes a Trial Key: beat a trial spawner to earn one');playSound('hit_stone',0.6,0.4);return}
   consumeHeld();const rng=Math.random;let items=rollLoot(LOOT[meta?'vault_ominous':'vault'],rng,meta?5:4).filter(Boolean);let cores=0;items=items.filter(i=>i.id!==469||cores++===0);if(meta&&!cores)items.push({id:469,count:1});if(meta&&rng()<0.5)items.push({id:379,count:1,ench:{wind_burst:1+floor(rng()*3)}});
   for(const it of items)spawnItem(bx+0.5,by+1.1,bz+0.5,it,[(rng()-0.5)*3,4,(rng()-0.5)*3]);world.setBlock(bx,by,bz,113,0);playSound('levelup',1,0.8);spawnParticles('happy',bx+0.5,by+1.2,bz+0.5,12);showMessage(meta?'The ominous vault opens: a Heavy Core! Put it over a Breeze Rod to forge a Mace':'The vault opens')}
@@ -3475,6 +3551,11 @@ function playSound(name,vol=1,pitch=1){
     case 'portal':{const o=tone('sine',120,480,1.2);const l=c.createOscillator();l.frequency.value=5;const lg=c.createGain();lg.gain.value=40;l.connect(lg);lg.connect(o.frequency);l.start(t);l.stop(t+1.2);noise(1.2,'bandpass',900,2);env(0.05,0.6,1.2);break}
     case 'fizz':noise(0.5,'highpass',3000);env(0.01,0.5,0.5);break;
     case 'wind':noise(0.5,'bandpass',700+Math.random()*400,1.5);env(0.05,0.6,0.5);break;
+    case 'golem':noise(0.25,'lowpass',220,1);tone('sine',70,40,0.25);env(0.005,0.9,0.25);break;
+    case 'warden':{const o=tone('sawtooth',48,32,1.4);const l=c.createOscillator();l.frequency.value=7;const lg=c.createGain();lg.gain.value=10;l.connect(lg);lg.connect(o.frequency);l.start(t);l.stop(t+1.4);noise(1.4,'lowpass',160);env(0.05,1.3,1.4);break}
+    case 'shriek':tone('square',1900,500,0.7);noise(0.7,'bandpass',2600,3);env(0.01,0.9,0.7);break;
+    case 'sniff':noise(0.25,'highpass',900,1);env(0.02,0.35,0.25);break;
+    case 'boom':noise(0.7,'lowpass',110,1);tone('sine',65,18,0.7);env(0.005,1.6,0.7);break;
     case 'shear':noise(0.15,'bandpass',2500,4);env(0.005,0.5,0.15);break;
     case 'itembreak':noise(0.2,'bandpass',900,2);tone('square',600,200,0.2);env(0.005,0.6,0.2);break;
     case 'click':noise(0.03,'bandpass',2000,3);env(0.002,0.4,0.03);break;
@@ -3820,6 +3901,7 @@ const TP_STRUCT={
   end_portal:{size:40,salt:115,ok:()=>true,inside:r=>({dx:28,dz:2,y:20+floor(r()*8),yaw:-PI/2}),alias:['endportal','end','portal_room'],note:'The End portal frame is on the platform ahead: fill it with eyes of ender to open it'},
   mineshaft:{size:9,salt:106,ok:(m,r)=>r()<0.55,inside:r=>({dx:0,y:18+floor(r()*24)}),alias:['mine','mine_shaft']},
   fortress:{size:14,salt:107,ok:()=>true,nether:true,inside:r=>({dx:3,y:53+floor(r()*20)}),alias:['nether_fortress'],note:'Blaze spawner is just west of you'},
+  ancient_city:{size:36,salt:118,ok:m=>m.height>SEA+4,inside:r=>({dx:0,y:12+floor(r()*6)}),alias:['ancient','ancientcity','deep_dark','deepdark'],note:'Sneak. Shriekers hear footsteps, and four shrieks wake the Warden'},
   trial_chamber:{size:28,salt:117,ok:m=>m.height>SEA,inside:r=>({dx:-5,y:22+floor(r()*10)}),alias:['trial','trials','trial_chambers','chamber','chambers'],note:'Trial spawners wake when you get close; beat one for a Trial Key and open the vault'},
   end_city:{size:3,salt:116,end:true,radius:60,alias:['endcity','city','end_ship'],note:'You are on top of the city tower; the End ship with the elytra is moored beside it',
     locate:(cx,cz,r)=>{const x=cx*16+8,z=cz*16+8;if(sqrt(x*x+z*z)<170)return null;const c0=world.endIsland(x,z);if(!c0)return null;
@@ -3999,7 +4081,8 @@ function updateWeatherLoops(){const W=game.wx;if(!AU.ctx||!W)return;if(!W.rainL)
   const wd=W.tornado?Math.hypot(W.tornado.x-player.x,W.tornado.z-player.z):999;W.windL.g.gain.setTargetAtTime(clamp(0.85-wd/60,0,0.8)*on,t,0.25);if(W.tornado)W.windL.f.frequency.setTargetAtTime(140+Math.random()*140,t,0.4)}
 function stopWeatherLoops(){const W=game.wx;if(!W||!AU.ctx)return;const t=AU.ctx.currentTime;if(W.rainL)W.rainL.g.gain.setTargetAtTime(0,t,0.1);if(W.windL)W.windL.g.gain.setTargetAtTime(0,t,0.1)}
 function lightningStrike(x,z,fromHost){const bx=floor(x),bz=floor(z);if(MP.active&&MP.host)mpSend({t:'bolt',x,z});if(!world.hasChunk(bx,bz))return;const y=findGround(bx,bz);const W=game.wx;const p=player;W.flash=1;
-  for(let i=0;i<46;i++)spawnParticles('bolt',bx+0.5+(Math.random()-0.5)*0.7,y+i*1.2,bz+0.5+(Math.random()-0.5)*0.7,1);
+  {const trace=(x0,z0,top,bottom,jag,branch)=>{let cx=x0,cz=z0;for(let yy=top;yy>bottom;yy-=0.8){cx+=(Math.random()-0.5)*jag;cz+=(Math.random()-0.5)*jag;spawnParticles('bolt',cx,yy,cz,1);if(branch&&Math.random()<0.06)trace(cx,cz,yy,Math.max(bottom,yy-6-Math.random()*8),jag*1.6,false)}};trace(bx+0.5,bz+0.5,y+52,y,0.55,true)}
+  setTimeout(()=>{if(game.wx)game.wx.flash=Math.max(game.wx.flash,0.7)},90);
   const d=Math.hypot(bx-p.x,bz-p.z);setTimeout(()=>{if(game.state==='playing')playSound('thunder',clamp(1.3-d/90,0.15,1),0.8+Math.random()*0.4)},Math.min(2500,d*14));
   const below=world.getBlock(bx,y-1,bz);if(!fromHost&&world.getBlock(bx,y,bz)===0&&BLOCKS[below].opaque&&below!==8&&below!==9)world.setBlock(bx,y,bz,81,0,{silent:true});
   for(const e of entities){if(e.dead||!(e instanceof Mob))continue;if(Math.hypot(e.x-bx-0.5,e.z-bz-0.5)<3&&abs(e.y-y)<4){damageEntity(e,10,{type:'lightning'});e.fireT=Math.max(e.fireT||0,4)}}
@@ -4010,7 +4093,10 @@ function tickWeather(dt){const W=game.wx;const p=player;if(W.flash>0)W.flash=Mat
   if(!guest){W.t-=dt;if(W.t<=0){if(W.storm){W.storm=false;W.t=150+Math.random()*300;showMessage('The storm passes.')}else{W.storm=true;W.t=70+Math.random()*90;W.tornadoRoll=Math.random()<0.65;W.tornadoAt=W.t-(12+Math.random()*30);showMessage('Dark clouds gather... a thunderstorm rolls in');playSound('thunder',0.5,0.7)}}
   W.I+=((W.storm?1:0)-W.I)*Math.min(1,dt*0.3)}
   if(MP.active&&MP.host){W.syncT=(W.syncT||0)-dt;if(W.syncT<=0){W.syncT=0.5;mpSend(mpWeatherState())}}
-  if(W.I>0.05){const n=floor(30*W.I);for(let i=0;i<n;i++){const x=p.x+(Math.random()-0.5)*26,z=p.z+(Math.random()-0.5)*26;if(world.getSky(floor(x),floor(p.y)+6,floor(z))<14)continue;spawnParticles('rain',x,p.y+7+Math.random()*7,z,1)}
+  W.gust=Math.sin(game.time*0.55)*Math.sin(game.time*0.13+1)*W.I;
+  if(W.I>0.05){const n=floor(34*W.I);for(let i=0;i<n;i++){const x=p.x+(Math.random()-0.5)*26,z=p.z+(Math.random()-0.5)*26;if(world.getSky(floor(x),floor(p.y)+6,floor(z))<14)continue;spawnParticles('rain',x,p.y+7+Math.random()*7,z,1,{gust:W.gust})}
+    for(let i=0;i<floor(6*W.I);i++){const x=p.x+(Math.random()-0.5)*14,z=p.z+(Math.random()-0.5)*14;const gy2=findGround(x,z);if(world.getSky(floor(x),gy2,floor(z))<14||gy2>p.y+8||gy2<p.y-8)continue;spawnParticles('splash',x,gy2+0.05,z,1)}
+    if(!p.dead&&!p.riding&&world.getSky(floor(p.x),floor(p.y+1.5),floor(p.z))>=14){p.vx+=W.gust*2.2*dt;p.vz+=W.gust*1.1*dt}
     if(!guest){W.lt-=dt;if(W.lt<=0){W.lt=(3+Math.random()*9)/W.I;lightningStrike(p.x+(Math.random()-0.5)*90,p.z+(Math.random()-0.5)*90)}}
     if(!guest&&W.storm&&W.tornadoRoll&&W.t<W.tornadoAt&&!W.tornado){W.tornadoRoll=false;const a=Math.random()*PI*2;W.tornado={x:p.x+Math.sin(a)*55,z:p.z+Math.cos(a)*55,y:p.y,dir:a+PI+(Math.random()-0.5)*0.6,life:50+Math.random()*50,spin:0,t:0,brk:0};showMessage('TORNADO! Run!');playSound('thunder',1,0.55)}}
   if(W.tornado)tickTornado(dt);updateWeatherLoops()}
@@ -4018,7 +4104,14 @@ function tornadoFree(x,y,z,w){const h=w/2;for(const [ox,oz] of [[-h,-h],[h,-h],[
 function tickTornado(dt){const W=game.wx,T=W.tornado,p=player;const guest=MP.active&&!MP.host;T.life-=dt;T.spin+=dt*6;T.t+=dt;if(T.life<=0&&!guest){W.tornado=null;showMessage('The tornado dissipates.');return}
   if(!guest){T.dir+=(Math.random()-0.5)*dt*0.8;const toP=Math.atan2(p.x-T.x,p.z-T.z);let dd=toP-T.dir;dd=Math.atan2(Math.sin(dd),Math.cos(dd));T.dir+=dd*dt*0.18}
   const sp=3.4;T.x+=Math.sin(T.dir)*sp*dt;T.z+=Math.cos(T.dir)*sp*dt;if(!world.hasChunk(floor(T.x),floor(T.z)))return;const gy=findGround(T.x,T.z);T.y=gy;
-  for(let i=0;i<26;i++){const h=Math.random()*40;const r=1.2+h*0.22;const a=T.spin*1.5+h*0.35+Math.random()*0.7;spawnParticles('funnel',T.x+Math.sin(a)*r,gy+h,T.z+Math.cos(a)*r,1,{h,a})}
+  // funnel: narrow at the ground, flaring into a wall cloud, leaning as it spins; dirt at the base, grey up top
+  const lean=Math.sin(T.spin*0.23)*0.09,leanZ=Math.cos(T.spin*0.17)*0.09;
+  for(let i=0;i<56;i++){const u=Math.pow(Math.random(),0.7);const h=u*42;const r=0.7+Math.pow(u,1.7)*10+Math.random()*0.6;const a=T.spin*2.2+h*0.28+Math.random()*0.5;const cx=T.x+lean*h,cz=T.z+leanZ*h;spawnParticles('funnel',cx+Math.sin(a)*r,gy+h,cz+Math.cos(a)*r,1,{h,a,r})}
+  // wall cloud overhead
+  for(let i=0;i<8;i++){const a=T.spin*0.6+Math.random()*PI*2;const r=9+Math.random()*7;spawnParticles('wallcloud',T.x+lean*42+Math.sin(a)*r,gy+41+Math.random()*4,T.z+leanZ*42+Math.cos(a)*r,1,{a})}
+  // debris: chunks of whatever the ground is, whipped up around the base, and a dust skirt
+  for(let i=0;i<7;i++){const a=Math.random()*PI*2;const r=1.5+Math.random()*4;const px=T.x+Math.sin(a)*r,pz=T.z+Math.cos(a)*r;const gid=world.getBlock(floor(px),findGround(px,pz)-1,floor(pz))||3;spawnParticles('debris',px,gy+0.3+Math.random()*3,pz,1,{a,id:gid})}
+  for(let i=0;i<5;i++){const a=Math.random()*PI*2;const r=3+Math.random()*5;spawnParticles('dust',T.x+Math.sin(a)*r,gy+0.2,T.z+Math.cos(a)*r,1,{a})}
   T.brk+=dt;if(!guest&&T.brk>0.12){T.brk=0;for(let k=0;k<2;k++){const bx=floor(T.x+(Math.random()-0.5)*6),bz=floor(T.z+(Math.random()-0.5)*6);const by=findGround(bx,bz)-1;if(by<gy-4||by>gy+8||by<1)continue;const id=world.getBlock(bx,by,bz);const B=BLOCKS[id];if(id===0||id===7||id===31||B.liquid||B.hard<0||B.hard>=30)continue;const ch=world.getChunk(bx>>4,bz>>4);if(ch&&ch.mods.has(cidx(bx&15,by,bz&15)))continue;
       world.setBlock(bx,by,bz,0,0,{noDrop:true,silent:true});const fb=new FallingBlock(bx,by+1,bz,id);fb.vy=9+Math.random()*8;fb.vx=(Math.random()-0.5)*10;fb.vz=(Math.random()-0.5)*10;entities.push(fb);spawnParticles('block',bx+0.5,by+1,bz+0.5,3,id)}}
   const pull=(e,isP)=>{const dx=T.x-e.x,dz=T.z-e.z;const d=Math.hypot(dx,dz);if(d>14)return;const s=(14-d)/14;const nx=dx/(d||1),nz=dz/(d||1);const ax=(nx*26-nz*14)*s,az=(nz*26+nx*14)*s;e.vx+=ax*dt;e.vz+=az*dt;if(isP&&d>1.5){const nx2=e.x+nx*3.5*s*dt,nz2=e.z+nz*3.5*s*dt;if(tornadoFree(nx2,e.y,nz2,e.w)){e.x=nx2;e.z=nz2}}
@@ -4053,6 +4146,24 @@ function tickHorror(dt){const H=game.hx;const p=player;if(world.dimKey!=='over'|
   let near=null;for(const e of entities){if(e instanceof Mob&&e.type==='stalker'&&!e.dead){const d=Math.hypot(e.x-p.x,e.z-p.z);if(!near||d<near.d)near={e,d}}}
   if(near&&near.d<16){H.beat-=dt;if(H.beat<=0){H.beat=0.22+near.d/16*0.9;playSound('heartbeat',0.9,near.d<5?1.35:1)}}}
 Object.assign(Mob.prototype,{
+  // Iron golem: guards villages, hurls hostile mobs into the air; only turns on you if you hit it
+  updateGolem(dt,p,dist,dist3){if(this.armT>0)this.armT-=dt;if(this.angry)return;let best=null;
+    for(const e of entities){if(!(e instanceof Mob)||e===this||e.dead||e.dying||e.def.passive||e.type==='iron_golem'||(e.type==='wolf'&&e.tamed)||e.def.neutral)continue;const d=Math.hypot(e.x-this.x,e.z-this.z);if(d<16&&(!best||d<best.d))best={e,d}}
+    if(!best){this.guardT=(this.guardT||0)-dt;return}const e=best.e;const dx=e.x-this.x,dz=e.z-this.z;this.yaw=Math.atan2(-dx,-dz);
+    if(best.d>2.3){this.moveDir=[dx/best.d,dz/best.d];this.wanderT=0.5}else{this.moveDir=null;if(this.atkCd<=0){this.atkCd=1.2;this.armT=0.5;if(damageEntity(e,8+Math.random()*13,{type:'mob',mob:this,x:this.x,y:this.y,z:this.z,kb:6})){e.vy=Math.max(e.vy,10);e.fallDist=0}playSoundAt('golem',this.x,this.y,this.z,1,0.9)}}},
+  // Warden: blind, hunts by vibration, sonic boom at range, huge melee, returns to the deep when nothing moves for a minute
+  updateWarden(dt,p,dist,dist3){if(this.emergeT>0){this.emergeT-=dt;this.moveDir=null;this.vx=this.vz=0;if(Math.random()<dt*20)spawnParticles('block',this.x+(Math.random()-0.5)*2,this.y+0.2,this.z+(Math.random()-0.5)*2,1,118);return true}
+    if(this.boomCd>0)this.boomCd-=dt;if(this.atkCd>0)this.atkCd-=dt;if(this.hurtT>0)this.hurtT-=dt;if(this.invT>0)this.invT-=dt;
+    const moving=!p.dead&&((Math.hypot(p.vx,p.vz)>1.2&&!p.sneaking)||p.swing<0.4||p.breakProgress>0||(this.lastHit>game.time-2));
+    if(dist<20&&moving){this.lastVib=game.time;this.vib=[p.x,p.z]}
+    if(dist<2.6&&!p.dead){this.lastVib=game.time;this.vib=[p.x,p.z]}
+    const hunting=this.vib&&game.time-this.lastVib<14;game.wardenNear=Math.max(game.wardenNear||0,Math.max(0,1-dist/26));
+    if(hunting){const dx=this.vib[0]-this.x,dz=this.vib[1]-this.z;const dd=Math.hypot(dx,dz);this.yaw=Math.atan2(-dx,-dz);this.moveDir=dd>1.2?[dx/dd,dz/dd]:null;this.wanderT=1;
+      if(dist<3.2&&abs((p.y+1)-(this.y+1.5))<3&&this.atkCd<=0&&!p.dead){this.atkCd=1.1;damageEntity(p,30,{type:'mob',mob:this,x:this.x,y:this.y,z:this.z,kb:11});playSound('warden',1,1.3);flashDamage()}
+      else if(dist>=3.2&&dist<16&&this.boomCd<=0&&game.time-this.lastVib<4&&!p.dead){this.boomCd=5.5;this.moveDir=null;playSound('boom',1,1);setTimeout(()=>{if(this.dead||p.dead)return;const d2=Math.hypot(p.x-this.x,p.z-this.z);if(d2<20){for(let i=0;i<12;i++){const t=i/12;spawnParticles('bolt',this.x+(p.x-this.x)*t,this.y+1.8+((p.y+1)-(this.y+1.8))*t,this.z+(p.z-this.z)*t,2)}damageEntity(p,10,{type:'sonic',mob:this,x:this.x,y:this.y,z:this.z,kb:14});p.vy=Math.max(p.vy,6);playSound('boom',1,0.6);flashDamage()}},900)}}
+    else{this.sniffT-=dt;if(this.sniffT<=0){this.sniffT=5+Math.random()*6;this.moveDir=null;this.wanderT=2;playSoundAt('sniff',this.x,this.y,this.z,1,1);spawnParticles('smoke',this.x,this.y+2.4,this.z,3)}}
+    if(game.time-this.lastVib>60&&game.time-this.born>20){this.dead=true;for(let i=0;i<30;i++)spawnParticles('block',this.x+(Math.random()-0.5)*2,this.y+Math.random()*2,this.z+(Math.random()-0.5)*2,1,118);playSoundAt('warden',this.x,this.y,this.z,1,0.6);showMessage('The Warden burrows back into the deep dark')}
+    return false},
   // Cartoon Cat: hunts from far away, limbs stretch as it runs, lashes out from four blocks with a roar and a shower of black-and-white sticks
   updateCartoonCat(dt,p,dist,dist3){const hs=sqrt(this.vx*this.vx+this.vz*this.vz);this.stretch+=(Math.min(1,hs/4)-this.stretch)*Math.min(1,dt*6);
     if(dist<4.6&&abs((p.y+1)-(this.y+2))<4&&this.atkCd<=0&&!p.dead&&!blockedLOS(this.x,this.y+3,this.z,p.x,p.y+1,p.z)){this.atkCd=1.7;damageEntity(p,12,{type:'mob',mob:this,x:this.x,y:this.y,z:this.z,kb:13});playSound('roar',1,0.9+Math.random()*0.3);
@@ -4115,7 +4226,7 @@ function runCommand(line){const p=player;const raw=line.trim().replace(/^\/+/,''
       const cnt=args.slice(i).find(a=>/^\d+$/.test(a));const ench=parseEnch(args.slice(i).filter(isEnch));giveItems(id,cnt?clamp(+cnt,1,2304):1,ench);say('Gave '+(cnt||1)+' x '+ITEMS[id].label+(ench?' ('+Object.keys(ench).map(k=>enchName(k,ench[k])).join(', ')+')':''));return}
     case 'kit':case 'kits':{const kn=(args[0]||'').toLowerCase().replace(/s$/,'');const key=KITS[kn]?kn:Object.keys(KITS).find(k=>k.startsWith(kn)&&kn.length>=2);const k=key&&KITS[key];if(k)args[0]=key;if(!k){say('Kits: '+Object.keys(KITS).map(k=>k+' ('+KITS[k].label+')').join(' | '));return}for(const [id,n] of k.items)giveItems(id,n);say('Kit '+args[0]+': '+k.label);return}
     case 'build':{if((args[0]||'').toLowerCase().startsWith('ench')){if(buildEnchantingRoom()){giveItems(264,100);giveItems(378,8);say('Plus 100 lapis and 8 books in your inventory')}}else say('Usage: /build enchanting');return}
-    case 'tp':{if(args.length&&!(args.length===1&&(args[0]==='spawn'||args[0]==='home'))&&!/^[-~\d.]/.test(args[0])){if(!tpNamed(args.join('_'),say))say('Unknown place. You can /tp to any block (diamonds, chest, lava...), any mob (creeper, villager, dragon...), any biome (desert, jungle...), any structure (village, stronghold, end portal, mineshaft, mansion, temple, igloo, hut, portal, monument, shipwreck, jungle temple, dungeon, outpost, fortress, end city, trial chamber) or nether / the end / overworld');return}
+    case 'tp':{if(args.length&&!(args.length===1&&(args[0]==='spawn'||args[0]==='home'))&&!/^[-~\d.]/.test(args[0])){if(!tpNamed(args.join('_'),say))say('Unknown place. You can /tp to any block (diamonds, chest, lava...), any mob (creeper, villager, dragon...), any biome (desert, jungle...), any structure (village, stronghold, end portal, mineshaft, mansion, temple, igloo, hut, portal, monument, shipwreck, jungle temple, dungeon, outpost, fortress, end city, trial chamber, ancient city) or nether / the end / overworld');return}
       if(args[0]==='spawn'||args[0]==='home'){const s=(args[0]==='home'&&p.spawn)||game.worldSpawn;if(world.dimKey!=='over'){switchDimension(true)}ensureChunks(s[0],s[2],2);const spot=safeSpotNear(s[0],s[2]);p.x=spot[0];p.y=spot[1];p.z=spot[2]}
       else{const c=args.map(a=>a.startsWith('~')?null:parseFloat(a));if(args.length<3||c.some((v,i)=>v!==null&&isNaN(v))){say('Usage: /tp x y z (or ~ to keep)');return}p.x=c[0]===null?p.x:c[0]+0.5;p.y=c[1]===null?p.y:c[1];p.z=c[2]===null?p.z:c[2]+0.5;ensureChunks(p.x,p.z,2);if(c[1]===null||!BLOCKS[world.getBlock(floor(p.x),floor(p.y)-1,floor(p.z))].solid)p.y=findGround(p.x,p.z)+0.1}
       p.vx=p.vy=p.vz=0;p.fallDist=0;if(p.riding)p.riding.dismount();say('Teleported to '+floor(p.x)+' '+floor(p.y)+' '+floor(p.z));return}
@@ -4150,7 +4261,7 @@ function loop(now){
       if(game.tick%2===0){updateHUD();updateFurnaceGui()}
       if(game.tick%200===0)saveWorld();
     }
-    tickFurnaces(dt);tickSpawners(dt);tickTrials(dt);if(typeof beaconTick==='function')beaconTick();if(MP.active)mpTick(dt);
+    tickFurnaces(dt);tickSpawners(dt);tickTrials(dt);tickShriekers(dt);if(typeof beaconTick==='function')beaconTick();if(MP.active)mpTick(dt);
     updateMusic(dt);
     if(player.sleeping>0&&player.sleeping>2.2)$('sleepfade').style.opacity=1;
   }
