@@ -269,7 +269,7 @@ label.lb{font-size:13px;color:#a0a0a0;align-self:flex-start;margin-left:calc(50%
   <button class="btn modbtn" data-mod="apocalypse">Zombie Apocalypse: OFF</button>
   <div class="hint" style="color:#aaa;width:440px;margin:0 0 4px">The dead come in waves, day or night, and they never burn. Each wave is bigger and nastier than the last: zombies, then husks, skeletons, spiders, creepers and worse. Survive as many as you can.</div>
   <button class="btn modbtn" data-mod="guns">Guns: OFF</button>
-  <div class="hint" style="color:#aaa;width:440px;margin:0 0 4px">Start with a pistol and 32 bullets. Craft a rifle (full auto), a shotgun and a sniper rifle (hold Shift to look through the scope) from iron and planks, make bullets from iron and leather, and pick ammo off the monsters you drop. Right-click to fire.</div>
+  <div class="hint" style="color:#aaa;width:440px;margin:0 0 4px">Start with a pistol and 32 bullets. Craft a rifle (full auto), a shotgun and a sniper rifle (hold Shift to look through the scope) from iron and planks, a ghillie suit from leather and leaves so mobs only notice you up close, make bullets from iron and leather, and pick ammo off the monsters you drop. Right-click to fire.</div>
   <button class="btn modbtn" data-mod="structures">Structure Chaos: OFF</button>
   <div class="hint" style="color:#aaa;width:440px;margin:0 0 4px">A random structure every hundred blocks: villages, temples, mansions, outposts, igloos, huts, portals and dungeons wherever you go.</div>
   <div class="btnrow" style="margin-top:12px"><button class="btn half" id="btnFunDone">Done</button><button class="btn half" id="btnFunClear">Clear All</button></div>
@@ -813,6 +813,7 @@ defItem(469,'heavy_core',{icon:'heavy_core',stack:64});
 defItem(470,'trial_key',{icon:'trial_key',stack:64});
 defItem(471,'breeze_rod',{icon:'breeze_rod',stack:64});
 defItem(472,'wind_charge',{icon:'wind_charge',stack:64});
+defItem(473,'ghillie_suit',{icon:'ghillie',stack:1,armor:1,points:3,dur:300,mat:'leather',ghillie:true});
 defItem(466,'sniper',{icon:'sniper',stack:1,dur:700,label:'Sniper Rifle',gun:{dmg:26,rate:1.3,speed:230,spread:0.002,hipSpread:0.06,pellets:1,ammo:463,auto:false,snd:'sniper',recoil:0.1,scope:true}});
 defItem(302,'carrot',{icon:'carrot',food:[3,3.6],plants:73});
 defItem(303,'potato',{icon:'potato',food:[1,0.6],plants:74,smelt:304});
@@ -905,6 +906,7 @@ rifle:["................","................","..............dd","..........ddddd
 shotgun:["................","................","..............dd","...........dddd.",".......dddddddd.","..dddddhhhhhhhd.",".dwwwwwdddddddd.","dwwwwwwdd.dddd..","dwwww..ddd......",".ww...dgg.......","......dgg.......","......dgg.......","................","................","................","................"],
 breeze_rod:["................","..............ww",".............wbw","............wbw.","...........wbw..","..........wbw...",".........wbw....","........wbw.....",".......wbw......","......wbw.......",".....wbw........","....wbw.........","...wbw..........","..ww............","................","................"],
 wind_charge:["................","................","......wwww......","....wwbbbbww....","...wbbwwwwbbw...","..wbbwwddwwbbw..","..wbwwddddwwbw..",".wbbwddwwddwbbw.",".wbbwddwwddwbbw.","..wbwwddddwwbw..","..wbbwwddwwbbw..","...wbbwwwwbbw...","....wwbbbbww....","......wwww......","................","................"],
+ghillie:["................","...gdgggdggdg...","..ggdggdggdggg..","..dggdgdggdgdg..","..gdgggdggdggd..","..ggdgdgggdgdg..","..dgggdggdgggg..","..gdggdggdgdgg..","..ggdgggdggdgg..","..gdggdgdgggdg..","..dgggdggdggdg..","..ggdgdgggdggg..","..gdgggdggdgdg..","...gdggdgggdg...","................","................"],
 mace:["................",".....dddddd.....","....dddddddd....","....ddhhhhdd....","....ddhhhhdd....","....dddddddd....",".....dddddd.....",".......ss.......",".......ss.......",".......ss.......",".......ss.......",".......ss.......",".......ss.......",".......gg.......",".......gg.......","................"],
 trident:["................","...t..tt..t.....","...t..tt..t.....","...t..tt..t.....","...tttttttt.....","......tt........","......ss........","......ss........","......ss........","......ss........","......ss........","......ss........","......ss........","......ss........","................","................"],
 heavy_core:["................","................","................","...dddddddddd...","..dkkkkkkkkkkd..","..dkhhhhhhhhkd..","..dkhhhhhhhhkd..","..dkhhhhhhhhkd..","..dkhhhhhhhhkd..","..dkhhhhhhhhkd..","..dkhhhhhhhhkd..","..dkkkkkkkkkkd..","...dddddddddd...","................","................","................"],
@@ -949,7 +951,7 @@ beef:['meat',{m:[200,60,60],f:[240,220,220]}],cooked_beef:['meat',{m:[130,70,40]
 chicken:['drumstick',{m:[230,170,160],b:[240,230,220]}],cooked_chicken:['drumstick',{m:[200,130,70],b:[240,230,220]}],
 mutton:['meat',{m:[210,80,80],f:[240,220,220]}],cooked_mutton:['meat',{m:[150,80,50],f:[200,150,110]}],
 rotten_flesh:['meat',{m:[120,90,60],f:[90,120,60]}],bone:['bone',{w:[235,235,225]}],arrow:['arrow',{w:[200,200,210],l:[240,240,250],s:[140,110,70],f:[230,230,230]}],
-bow:['bow',{s:[140,100,60],w:[230,230,230]}],pistol:['pistol',{d:[55,55,62],h:[125,125,135],g:[95,62,40]}],rifle:['rifle',{d:[55,55,62],h:[125,125,135],g:[95,62,40],w:[120,80,45]}],shotgun:['shotgun',{d:[50,50,55],h:[120,120,125],g:[95,62,40],w:[130,85,45]}],bullet:['bullet',{b:[205,165,70],w:[150,150,160]}],sniper:['sniper',{d:[45,48,52],h:[120,125,135],g:[80,55,35],w:[95,70,40],s:[30,30,35]}],mace:['mace',{d:[60,58,64],h:[120,116,125],s:[120,80,45],g:[85,55,30]}],breeze_rod:['breeze_rod',{w:[215,230,245],b:[120,160,210]}],wind_charge:['wind_charge',{w:[225,235,250],b:[130,170,220],d:[80,110,170]}],trident:['trident',{t:[90,225,215],s:[70,180,170]}],heavy_core:['heavy_core',{d:[38,38,42],k:[70,70,78],h:[110,110,120]}],trial_key:['trial_key',{g:[235,175,60]}],shell:['shell',{b:[205,165,70],r:[200,40,40]}],feather:['feather',{w:[240,240,240],s:[200,200,200]}],string:['string',{w:[235,235,235]}],
+bow:['bow',{s:[140,100,60],w:[230,230,230]}],pistol:['pistol',{d:[55,55,62],h:[125,125,135],g:[95,62,40]}],rifle:['rifle',{d:[55,55,62],h:[125,125,135],g:[95,62,40],w:[120,80,45]}],shotgun:['shotgun',{d:[50,50,55],h:[120,120,125],g:[95,62,40],w:[130,85,45]}],bullet:['bullet',{b:[205,165,70],w:[150,150,160]}],sniper:['sniper',{d:[45,48,52],h:[120,125,135],g:[80,55,35],w:[95,70,40],s:[30,30,35]}],ghillie:['ghillie',{g:[70,110,45],d:[40,70,30]}],mace:['mace',{d:[60,58,64],h:[120,116,125],s:[120,80,45],g:[85,55,30]}],breeze_rod:['breeze_rod',{w:[215,230,245],b:[120,160,210]}],wind_charge:['wind_charge',{w:[225,235,250],b:[130,170,220],d:[80,110,170]}],trident:['trident',{t:[90,225,215],s:[70,180,170]}],heavy_core:['heavy_core',{d:[38,38,42],k:[70,70,78],h:[110,110,120]}],trial_key:['trial_key',{g:[235,175,60]}],shell:['shell',{b:[205,165,70],r:[200,40,40]}],feather:['feather',{w:[240,240,240],s:[200,200,200]}],string:['string',{w:[235,235,235]}],
 egg:['egg',{m:[230,215,180],l:[245,235,210]}],snowball:['ball',{m:[240,245,255],l:[255,255,255]}],clay_ball:['ball',{m:[160,165,175],l:[190,195,205]}],
 spider_eye:['eye',{r:[150,30,30],k:[30,10,10]}],leather:['leather',{m:[170,100,50]}],brick:['brick',{m:[150,80,65]}],
 bucket:['bucket',{g:[170,170,170],c:[120,120,120]}],water_bucket:['bucket',{g:[170,170,170],c:[50,100,220]}],lava_bucket:['bucket',{g:[170,170,170],c:[240,110,20]}],milk_bucket:['bucket',{g:[170,170,170],c:[245,245,245]}],
@@ -1984,8 +1986,9 @@ class Mob extends Entity{
     this.soundT-=dt;if(this.soundT<=0){const passive=this.def.passive;this.soundT=passive?20+Math.random()*40:8+Math.random()*20;
       if(dist3<16&&this.type!=='creeper'&&game.time-(game.lastAmbient||0)>(passive?5:2)){game.lastAmbient=game.time;playSoundAt(this.def.sound,this.x,this.y,this.z,this.baby?1.5:1,passive?0.5:0.8)}}
     const d=this.def;let target=null;let speed=d.speed*(this.baby?1.3:1);const diff=game.difficulty;
+    const stealth=(player.armor[1]&&ITEMS[player.armor[1].id].ghillie&&!(this.lastHit&&this.lastHit>game.time-15))?(p.sneaking?0.12:0.3):1;
     const hostile=!d.passive&&diff>0&&(!d.neutral||this.angry||(d.lightNeutral&&Math.max(world.getSky(floor(this.x),floor(this.y),floor(this.z))*R.day,world.getLight(floor(this.x),floor(this.y),floor(this.z)))<9));
-    if(hostile&&!p.dead&&!this.frozen&&dist3<d.follow*(p.sneaking?0.5:1)){target=[p.x,p.z];this.angry=true}
+    if(hostile&&!p.dead&&!this.frozen&&dist3<d.follow*(p.sneaking?0.5:1)*stealth){target=[p.x,p.z];this.angry=true}
     if(d.passive&&!p.dead){ // follow player holding food
       const held=p.inv[p.sel];if(held&&d.food.includes(held.id)&&dist<6&&!this.baby){target=[p.x,p.z];speed*=1.2}
       if(this.loveT>0){for(const o of entities){if(o!==this&&o instanceof Mob&&o.type===this.type&&o.loveT>0&&!o.baby){const ox=o.x-this.x,oz=o.z-this.z;const od=sqrt(ox*ox+oz*oz);if(od<8){target=[o.x,o.z];if(od<1.2&&this.loveT>0&&o.loveT>0&&this.age>o.age){this.loveT=0;o.loveT=0;const b=new Mob(this.type,this.x,this.y,this.z);b.baby=true;b.growT=120;if(this.type==='sheep')b.woolId=Math.random()<0.5?this.woolId:o.woolId;entities.push(b);spawnParticles('heart',this.x,this.y+this.h,this.z,6);spawnXP(this.x,this.y,this.z,1+floor(Math.random()*7))}break}}}}
@@ -2036,11 +2039,11 @@ class Mob extends Entity{
     // attacks
     if(hostile&&!p.dead){
       if(this.type==='creeper'){const los=dist3<3;if(los){this.swell+=dt;if(this.swell>=1.5){this.dying=true;this.dead=true;explode(this.x,this.y+0.5,this.z,3);return}if(this.swell<0.05)playSoundAt('fuse',this.x,this.y,this.z)}else if(dist3>7){this.swell=Math.max(0,this.swell-dt*2)}else{this.swell=Math.max(0,this.swell-dt)}}
-      else if(d.ranged==='potion'){if(dist3<10&&this.atkCd<=0&&this.drinking<=0&&this.canSee(p)){this.atkCd=diff===3?2.5:3.5;throwPotion(this,p,diff)}}
-      else if(d.ranged==='fireball'){if(dist3<24&&this.atkCd<=0&&this.canSee(p)){this.burst=(this.burst||0)+1;this.atkCd=this.burst>=3?(this.burst=0,4):0.35;shootFireball(this,p,diff)}}
+      else if(d.ranged==='potion'){if(dist3<10*stealth&&this.atkCd<=0&&this.drinking<=0&&this.canSee(p)){this.atkCd=diff===3?2.5:3.5;throwPotion(this,p,diff)}}
+      else if(d.ranged==='fireball'){if(dist3<24*stealth&&this.atkCd<=0&&this.canSee(p)){this.burst=(this.burst||0)+1;this.atkCd=this.burst>=3?(this.burst=0,4):0.35;shootFireball(this,p,diff)}}
       else if(d.ranged==='spell'){if(this.atkCd<=0&&this.canSee(p)){this.atkCd=5;castSpell(this,p,diff)}}
-      else if(d.ranged==='wind'){if(dist3<14&&this.atkCd<=0&&this.canSee(p)){this.atkCd=1.5+Math.random();shootWindCharge(this,p)}if(this.onGround&&Math.random()<dt*1.3){this.vy=7+Math.random()*4;const a=Math.random()*PI*2;this.vx+=Math.sin(a)*5;this.vz+=Math.cos(a)*5;playSoundAt('wind',this.x,this.y,this.z,0.4,1.4)}}
-      else if(d.ranged){if(dist3<15&&this.atkCd<=0&&dist3>1.5&&this.canSee(p)){this.atkCd=diff===3?2:3;const ex=this.x,ey=this.y+this.h*0.85,ez=this.z;let ax=p.x-ex,ay=(p.y+1)-ey,az=p.z-ez;const l=sqrt(ax*ax+ay*ay+az*az);ay+=l*0.06;const sp=30;const n=sqrt(ax*ax+ay*ay+az*az);const spread=0.05*(4-diff);const ar=new Arrow(ex,ey,ez,ax/n*sp+(Math.random()-0.5)*spread*sp,ay/n*sp+(Math.random()-0.5)*spread*sp,az/n*sp+(Math.random()-0.5)*spread*sp,'mob',(d.arrowDmg?d.arrowDmg[diff-1]:[2.5,3.5,4.5][diff-1])+floor(Math.random()*2));if(d.slowArrow){ar.effect='slow';ar.effectT=30}entities.push(ar);playSoundAt('bow',ex,ey,ez)}}
+      else if(d.ranged==='wind'){if(dist3<14*stealth&&this.atkCd<=0&&this.canSee(p)){this.atkCd=1.5+Math.random();shootWindCharge(this,p)}if(this.onGround&&Math.random()<dt*1.3){this.vy=7+Math.random()*4;const a=Math.random()*PI*2;this.vx+=Math.sin(a)*5;this.vz+=Math.cos(a)*5;playSoundAt('wind',this.x,this.y,this.z,0.4,1.4)}}
+      else if(d.ranged){if(dist3<15*stealth&&this.atkCd<=0&&dist3>1.5&&this.canSee(p)){this.atkCd=diff===3?2:3;const ex=this.x,ey=this.y+this.h*0.85,ez=this.z;let ax=p.x-ex,ay=(p.y+1)-ey,az=p.z-ez;const l=sqrt(ax*ax+ay*ay+az*az);ay+=l*0.06;const sp=30;const n=sqrt(ax*ax+ay*ay+az*az);const spread=0.05*(4-diff);const ar=new Arrow(ex,ey,ez,ax/n*sp+(Math.random()-0.5)*spread*sp,ay/n*sp+(Math.random()-0.5)*spread*sp,az/n*sp+(Math.random()-0.5)*spread*sp,'mob',(d.arrowDmg?d.arrowDmg[diff-1]:[2.5,3.5,4.5][diff-1])+floor(Math.random()*2));if(d.slowArrow){ar.effect='slow';ar.effectT=30}entities.push(ar);playSoundAt('bow',ex,ey,ez)}}
       else{const reach=this.w/2+p.w/2+0.6;const base=this.dmgOverride!==undefined?this.dmgOverride:d.dmg;if(base>0&&dist<reach&&abs(dy)<(d.tall?3.5:2)&&this.atkCd<=0&&!blockedLOS(this.x,this.y+this.h*0.8,this.z,p.x,p.y+1,p.z)){this.atkCd=1;const dm=[base*0.8,base,base*1.5][diff-1];
         if(damageEntity(p,dm,{x:this.x,y:this.y,z:this.z,type:'mob',mob:this})){if(d.hungerHit)p.effects.hunger=Math.max(p.effects.hunger||0,7*diff);if(d.witherHit)p.effects.wither=Math.max(p.effects.wither||0,10);if(d.poison&&diff>1)p.effects.poison=Math.max(p.effects.poison||0,diff===3?15:7)}
         if((this.type==='spider'||this.type==='cave_spider')&&this.onGround)this.vy=5}}
@@ -2208,9 +2211,9 @@ class ShulkerBullet extends Entity{constructor(x,y,z,owner){super(x,y,z);this.w=
     if(d<0.9){this.dead=true;if(damageEntity(p,4,{x:ox,y:oy,z:oz,type:'magic',mob:this.owner,kb:3})){p.effects.levitation=Math.max(p.effects.levitation||0,10);showMessage('Levitation!')}spawnParticles('smoke',this.x,this.y,this.z,6)}}
   onDeath(){this.dead=true;spawnParticles('smoke',this.x,this.y,this.z,6)}
   render(EB){const tf=makeTF(this.x,this.y,this.z,this.age*4,this.age*2,0,0,0,0,1);EB.box(tf,-0.15,-0.15,-0.15,0.15,0.15,0.15,TEX.white,[0.9,0.85,0.95],[1,1],true);EB.box(tf,-0.05,-0.25,-0.05,0.05,0.25,0.05,TEX.white,[0.5,0.2,0.6],[1,1],true)}}
-function windBurst(x,y,z,byPlayer){playSoundAt('wind',x,y,z,1,0.8);for(let i=0;i<14;i++)spawnParticles('bolt',x+(Math.random()-0.5)*2.5,y+(Math.random()-0.5)*2,z+(Math.random()-0.5)*2.5,1);spawnParticles('smoke',x,y,z,6);
+function windBurst(x,y,z,byPlayer,skipPlayer){playSoundAt('wind',x,y,z,1,0.8);for(let i=0;i<14;i++)spawnParticles('bolt',x+(Math.random()-0.5)*2.5,y+(Math.random()-0.5)*2,z+(Math.random()-0.5)*2.5,1);spawnParticles('smoke',x,y,z,6);
   const push=(e,isP)=>{const dx=e.x-x,dy=(e.y+0.5)-y,dz=e.z-z;const d=sqrt(dx*dx+dy*dy+dz*dz);if(d>3.2)return;const k=1-d/3.2;const h=sqrt(dx*dx+dz*dz)||1;e.vx+=dx/h*7*k;e.vz+=dz/h*7*k;e.vy=Math.max(e.vy,0)+(isP?10:8)*k+3;if(isP){e.onGround=false;e.fallDist=0;if(!byPlayer&&e.mode!=='creative')damageEntity(e,1,{type:'mob'})}};
-  for(const e of entities){if(!(e instanceof Mob)||e.dead||e.dying)continue;push(e,false)}if(!player.dead&&!player.riding)push(player,true)}
+  for(const e of entities){if(!(e instanceof Mob)||e.dead||e.dying)continue;push(e,false)}if(!player.dead&&!player.riding&&!skipPlayer)push(player,true)}
 function shootWindCharge(b,p){const ex=b.x,ey=b.y+b.h*0.7,ez=b.z;let ax=p.x-ex,ay=(p.y+1)-ey,az=p.z-ez;const n=sqrt(ax*ax+ay*ay+az*az)||1;const sp=22;
   const w=new Arrow(ex,ey,ez,ax/n*sp,ay/n*sp,az/n*sp,'mob',0);w.wind=true;w.noGravity=true;
   w.render=function(EB){const l=[1,1];const t=this.age*12;EB.box((x,y,z)=>[this.x+x,this.y+y,this.z+z],-0.14,-0.14,-0.14,0.14,0.14,0.14,TEX.white,[0.85,0.92,1],l,true);EB.box((x,y,z)=>[this.x+x*Math.cos(t)-z*Math.sin(t),this.y+y,this.z+x*Math.sin(t)+z*Math.cos(t)],-0.28,-0.04,-0.04,0.28,0.04,0.04,TEX.white,[0.6,0.75,0.95],l,true)};
@@ -2444,7 +2447,7 @@ function breakBlock(x,y,z,byPlayer,noDrop){
   return true;
 }
 /* ---- left click ---- */
-function maceSmash(hit,fall){const p=player;p.fallDist=0;p.vy=Math.max(p.vy,0);playSound('explode',0.5,1.6);playSound('hit_stone',1,0.5);spawnParticles('explosion',hit.x,hit.y+0.2,hit.z,10);
+function maceSmash(hit,fall){const p=player;p.fallDist=0;p.vy=Math.max(p.vy,0);const st=heldStack();const wb=st?enchLevel(st,'wind_burst'):0;if(wb){p.vy=9+wb*3.5;p.onGround=false;windBurst(hit.x,hit.y+0.5,hit.z,true,true);showMessage('Wind Burst! You are launched back up: land another smash')}playSound('explode',0.5,1.6);playSound('hit_stone',1,0.5);spawnParticles('explosion',hit.x,hit.y+0.2,hit.z,10);
   for(let i=0;i<24;i++)spawnParticles('block',hit.x+(Math.random()-0.5)*4,hit.y+0.1,hit.z+(Math.random()-0.5)*4,1,world.getBlock(floor(hit.x),floor(hit.y)-1,floor(hit.z))||1);
   for(const e of entities){if(!(e instanceof Mob)||e===hit||e.dead||e.dying||(e.type==='wolf'&&e.tamed))continue;const dx=e.x-hit.x,dz=e.z-hit.z;const d=sqrt(dx*dx+dz*dz);if(d<4&&abs(e.y-hit.y)<3){const k=(4-d)/4;e.vx+=dx/(d||1)*14*k;e.vz+=dz/(d||1)*14*k;e.vy+=7*k}}
   showMessage('SMASH! '+Math.round(fall)+' blocks of fall turned into damage')}
@@ -2909,7 +2912,7 @@ function tickTrials(dt){const p=player;for(const [k,s] of world.trials){if(world
       if(s.spawned>=s.total&&s.mobs.length===0){s.state='cooldown';s.cd=600;spawnItem(s.x+0.5,s.y+1.2,s.z+0.5,{id:470,count:1});spawnXP(s.x+0.5,s.y+1.2,s.z+0.5,30);playSound('levelup',0.9);showMessage('Trial complete! A Trial Key pops out. Use it on a vault.')}
       if(d2>40*40){for(const m of s.mobs)m.dead=true;s.state='idle'}}}}
 function openVault(bx,by,bz){const p=player;const st=heldStack();const meta=world.getMeta(bx,by,bz);if(!st||st.id!==470){showMessage('Locked. It takes a Trial Key: beat a trial spawner to earn one');playSound('hit_stone',0.6,0.4);return}
-  consumeHeld();const rng=Math.random;let items=rollLoot(LOOT[meta?'vault_ominous':'vault'],rng,meta?5:4).filter(Boolean);let cores=0;items=items.filter(i=>i.id!==469||cores++===0);if(meta&&!cores)items.push({id:469,count:1});
+  consumeHeld();const rng=Math.random;let items=rollLoot(LOOT[meta?'vault_ominous':'vault'],rng,meta?5:4).filter(Boolean);let cores=0;items=items.filter(i=>i.id!==469||cores++===0);if(meta&&!cores)items.push({id:469,count:1});if(meta&&rng()<0.5)items.push({id:379,count:1,ench:{wind_burst:1+floor(rng()*3)}});
   for(const it of items)spawnItem(bx+0.5,by+1.1,bz+0.5,it,[(rng()-0.5)*3,4,(rng()-0.5)*3]);world.setBlock(bx,by,bz,113,0);playSound('levelup',1,0.8);spawnParticles('happy',bx+0.5,by+1.2,bz+0.5,12);showMessage(meta?'The ominous vault opens: a Heavy Core! Put it over a Breeze Rod to forge a Mace':'The vault opens')}
 /* ---- spawner blocks ---- */
 function tickSpawners(dt){const p=player;for(const [k,s] of world.spawners){const dx=s.x+0.5-p.x,dy=s.y+0.5-p.y,dz=s.z+0.5-p.z;if(dx*dx+dy*dy+dz*dz>16*16)continue;s.t-=dt;if(s.t>0)continue;s.t=10+Math.random()*30;
@@ -3155,6 +3158,7 @@ RECIPES.push({p:['ii.','iii','p..'],k:{i:260,p:PLANKS},out:[462,1],shaped:true,g
 RECIPES.push({p:['gii','iii','p.i'],k:{i:260,p:PLANKS,g:17},out:[466,1],shaped:true,guns:true});
 RECIPES.push({s:[260,289],out:[463,8],shaped:false,guns:true});
 RECIPES.push({s:[260,289,289],out:[464,4],shaped:false,guns:true});
+RECIPES.push({p:['l.l','lgl','lgl'],k:{l:289,g:16},out:[473,1],shaped:true,guns:true});
 shaped(['h','b'],{h:469,b:471},[467,1]);
 shapeless([471],[472,4]);
 shaped(['ppp','.s.','.s.'],{p:91,s:256},[468,1]);
@@ -3346,6 +3350,7 @@ const ENCH={
   loyalty:{n:'Loyalty',max:3,w:5,min:l=>5+(l-1)*7,on:['trident']},
   channeling:{n:'Channeling',max:1,w:1,min:l=>25,on:['trident']},
   density:{n:'Density',max:5,w:5,min:l=>5+(l-1)*8,on:['mace']},
+  wind_burst:{n:'Wind Burst',max:3,w:2,min:l=>15+(l-1)*9,on:['mace'],treasure:true},
   knockback:{n:'Knockback',max:2,w:5,min:l=>5+(l-1)*20,on:['sword','spear']},
   fire_aspect:{n:'Fire Aspect',max:2,w:2,min:l=>10+(l-1)*20,on:['sword','spear']},
   looting:{n:'Looting',max:3,w:2,min:l=>15+(l-1)*9,on:['sword','spear']},
@@ -3789,7 +3794,7 @@ function buildEnchantingRoom(){ // an enchanting table two blocks ahead of the p
   const n=shelvesAround(tx,ty,tz);playSound('enchant');showMessage('Enchanting table placed with '+placed+' bookshelves ('+n+' of 15 count: '+(n>=15?'max level 30 unlocked':'clear the blocks between the shelves and the table')+')');return true}
 const KITS={
   trials:{label:'mace, trident, 4 trial keys, heavy core, 4 breeze rods, 8 wind charges',items:[[467,1],[468,1],[470,4],[469,1],[471,4],[472,8]]},
-  guns:{label:'pistol, rifle, shotgun, sniper rifle, 128 bullets, 32 shells',items:[[460,1],[461,1],[462,1],[466,1],[463,128],[464,32]]},
+  guns:{label:'pistol, rifle, shotgun, sniper rifle, ghillie suit, 128 bullets, 32 shells',items:[[460,1],[461,1],[462,1],[466,1],[473,1],[463,128],[464,32]]},
   enchanting:{label:'enchanting table, 15 bookshelves, 100 lapis, 16 books',items:[[96,1],[29,15],[264,100],[378,16]]},
   end:{label:'elytra, 16 eyes of ender, 16 ender pearls, netherite sword',items:[[395,1],[392,16],[312,16],[I.netherite_sword,1]]},
   netherite:{label:'full netherite armor and tools',items:[[386,1],[387,1],[388,1],[389,1],[380,1],[381,1],[382,1],[383,1]]},
