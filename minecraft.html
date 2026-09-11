@@ -1769,11 +1769,11 @@ Entity.nextId=1;
 class ItemEntity extends Entity{
   constructor(x,y,z,stack,delay){super(x,y,z);this.w=0.25;this.h=0.25;this.stack=stack;this.pickupDelay=delay||0.5;this.rot=Math.random()*PI*2;this.bobOff=Math.random()*PI*2}
   update(dt){this.age+=dt;this.pickupDelay-=dt;this.physics(dt,{step:0,friction:0.6});this.rot+=dt*1.5;if(this.age>300){this.dead=true;return}
-    if(this.inLava&&!(ITEMS[this.stack.id].mat==='netherite'||this.stack.id===375||this.stack.id===376||this.stack.id===95||this.stack.id===98)){this.dead=true;return}
+    if(this.inLava&&!(ITEMS[this.stack.id].mat==='netherite'||this.stack.id===375||this.stack.id===376||this.stack.id===95||this.stack.id===98)){this.dead=true;if(this.nid&&MP.active)mpSend({t:'ir',nid:this.nid});return}
     // merge
-    if(this.age%1<dt*2)for(const o of entities){if(o===this||!(o instanceof ItemEntity)||o.dead)continue;if(o.stack.id===this.stack.id&&!this.stack.dur&&!this.stack.ench&&!o.stack.ench&&abs(o.x-this.x)<0.8&&abs(o.y-this.y)<0.8&&abs(o.z-this.z)<0.8){const max=ITEMS[this.stack.id].stack;if(this.stack.count+o.stack.count<=max){this.stack.count+=o.stack.count;o.dead=true}}}
+    if(this.age%1<dt*2)for(const o of entities){if(o===this||!(o instanceof ItemEntity)||o.dead)continue;if(o.stack.id===this.stack.id&&!this.stack.dur&&!this.stack.ench&&!o.stack.ench&&abs(o.x-this.x)<0.8&&abs(o.y-this.y)<0.8&&abs(o.z-this.z)<0.8){const max=ITEMS[this.stack.id].stack;if(this.stack.count+o.stack.count<=max){this.stack.count+=o.stack.count;o.dead=true;if(MP.active){if(o.nid)mpSend({t:'ir',nid:o.nid});if(this.nid)mpSend({t:'ic',nid:this.nid,count:this.stack.count})}}}}
     // pickup
-    if(this.pickupDelay<=0&&!player.dead){const p=player;if(abs(p.x-this.x)<1.0&&this.y>p.y-0.5&&this.y<p.y+p.h+0.5&&abs(p.z-this.z)<1.0){const left=addToInventory(this.stack);if(left===0){this.dead=true;playSound('pop');updateHotbar()}else this.stack.count=left}}
+    if(this.pickupDelay<=0&&!player.dead){const p=player;if(abs(p.x-this.x)<1.0&&this.y>p.y-0.5&&this.y<p.y+p.h+0.5&&abs(p.z-this.z)<1.0){const left=addToInventory(this.stack);if(left===0){this.dead=true;playSound('pop');updateHotbar();if(this.nid&&MP.active)mpSend({t:'ir',nid:this.nid})}else if(left!==this.stack.count){this.stack.count=left;if(this.nid&&MP.active)mpSend({t:'ic',nid:this.nid,count:left})}}}
   }
   render(EB,EBI){const s=this.stack;const def=ITEMS[s.id];const l=lightAt(this.x,this.y+0.2,this.z);const bob=Math.sin(game.time*2+this.bobOff)*0.06+0.1;
     const n=s.count>=48?4:s.count>=16?3:s.count>=2?2:1;
@@ -1783,7 +1783,10 @@ class ItemEntity extends Entity{
       const P=[tf(-sz/2,sz/2,0),tf(sz/2,sz/2,0),tf(sz/2,-sz/2,0),tf(-sz/2,-sz/2,0)];EBI.quad(P,uv,[l[0],l[1],1],[1,1,1]);EBI.quad([P[3],P[2],P[1],P[0]],[uv[3],uv[2],uv[1],uv[0]],[l[0],l[1],1],[1,1,1])}}
   }
 }
-function spawnItem(x,y,z,stack,vel,delay){if(!stack||stack.count<=0)return;const e=new ItemEntity(x,y,z,{id:stack.id,count:stack.count,dur:stack.dur,ench:stack.ench,items:stack.items},delay);if(vel){e.vx=vel[0];e.vy=vel[1];e.vz=vel[2]}else{e.vx=(Math.random()-0.5)*2;e.vy=2+Math.random()*2;e.vz=(Math.random()-0.5)*2}entities.push(e);return e}
+function spawnItem(x,y,z,stack,vel,delay,opt){if(!stack||stack.count<=0)return;const e=new ItemEntity(x,y,z,{id:stack.id,count:stack.count,dur:stack.dur,ench:stack.ench,items:stack.items},delay);if(vel){e.vx=vel[0];e.vy=vel[1];e.vz=vel[2]}else{e.vx=(Math.random()-0.5)*2;e.vy=2+Math.random()*2;e.vz=(Math.random()-0.5)*2}entities.push(e);
+  // multiplayer: everyone sees the same dropped items (mob loot stays local because mobs are)
+  if(opt&&opt.nid)e.nid=opt.nid;else if(MP.active&&!(opt&&opt.local)){e.nid=MP.myId+':'+(++MP.nidN);mpSend({t:'i',nid:e.nid,x:e.x,y:e.y,z:e.z,vx:e.vx,vy:e.vy,vz:e.vz,s:e.stack,d:e.pickupDelay,dim:world.dimKey})}
+  return e}
 function dropInventory(items,x,y,z){for(let i=0;i<items.length;i++){if(items[i]){spawnItem(x+0.5,y+0.5,z+0.5,items[i]);items[i]=null}}}
 /* ===================== XP ORB ===================== */
 class XPOrb extends Entity{constructor(x,y,z,v){super(x,y,z);this.w=0.3;this.h=0.3;this.value=v;this.vx=(Math.random()-0.5)*3;this.vy=2+Math.random()*2;this.vz=(Math.random()-0.5)*3}
@@ -2040,7 +2043,7 @@ class Mob extends Entity{
         const fx=this.x+this.moveDir[0]*1.2,fz=this.z+this.moveDir[1]*1.2;let drop=0;while(drop<4&&!BLOCKS[world.getBlockPhys(floor(fx),floor(this.y-1-drop),floor(fz))].solid)drop++;if(drop>=3||world.getBlock(floor(fx),floor(this.y),floor(fz))===8||world.getBlock(floor(fx),floor(this.y),floor(fz))===9){this.moveDir=null;this.wanderT=0.5}}
       if(this.type==='sheep'&&this.sheared&&this.eatT<=0&&Math.random()<dt*0.05){const bx=floor(this.x),bz=floor(this.z);if(world.getBlock(bx,floor(this.y)-1,bz)===2){this.eatT=2}}
       if(this.eatT>0){this.eatT-=dt;this.moveDir=null;if(this.eatT<=0){const bx=floor(this.x),bz=floor(this.z);world.setBlock(bx,floor(this.y)-1,bz,3,0);this.sheared=false;playSoundAt('grass',this.x,this.y,this.z)}}
-      if(this.type==='chicken'){this.eggT-=dt;if(this.eggT<=0){this.eggT=300+Math.random()*300;spawnItem(this.x,this.y,this.z,{id:290,count:1},[0,0.5,0]);playSoundAt('pop',this.x,this.y,this.z)}}
+      if(this.type==='chicken'){this.eggT-=dt;if(this.eggT<=0){this.eggT=300+Math.random()*300;spawnItem(this.x,this.y,this.z,{id:290,count:1},[0,0.5,0],undefined,{local:true});playSoundAt('pop',this.x,this.y,this.z)}}
     } else {
       const tx=target[0]-this.x,tz=target[1]-this.z;const l=sqrt(tx*tx+tz*tz)||1;this.moveDir=[tx/l,tz/l];this.yaw=Math.atan2(-tx,-tz);
       if((this.type==='skeleton'||this.type==='stray'||this.type==='pillager')&&dist<8&&!this.panicT){ // keep distance and strafe
@@ -2108,7 +2111,7 @@ class Mob extends Entity{
     if(src&&src.type==='player'&&this.def.passive){}
   }
   onDeath(){const r=Math.random;if(this.type==='slime'&&this.size>1){const n=2+floor(r()*3);for(let i=0;i<n;i++){const s=new Mob('slime',this.x+(r()-0.5)*this.w,this.y+0.2,this.z+(r()-0.5)*this.w);s.setSize(this.size-1);s.vx=(r()-0.5)*6;s.vz=(r()-0.5)*6;s.vy=4;s.angry=this.angry;entities.push(s)}}
-    const drops=game.randomDrops?randomDrops():this.def.drops(r,this);if(game.mods&&game.mods.guns&&!this.def.passive&&!this.def.animal&&Math.random()<0.6)drops.push([Math.random()<0.75?463:464,2+floor(Math.random()*4)]);const loot=this.lastHit>game.time-5?(this.lootLvl||0):0;for(const d of drops){if(d[0]&&d[1]>0)spawnItem(this.x,this.y+0.3,this.z,{id:d[0],count:d[1]+(loot?floor(r()*(loot+1)):0)})}
+    const drops=game.randomDrops?randomDrops():this.def.drops(r,this);if(game.mods&&game.mods.guns&&!this.def.passive&&!this.def.animal&&Math.random()<0.6)drops.push([Math.random()<0.75?463:464,2+floor(Math.random()*4)]);const loot=this.lastHit>game.time-5?(this.lootLvl||0):0;for(const d of drops){if(d[0]&&d[1]>0)spawnItem(this.x,this.y+0.3,this.z,{id:d[0],count:d[1]+(loot?floor(r()*(loot+1)):0)},null,undefined,{local:true})}
     if(this.lastHit>game.time-5)spawnXP(this.x,this.y+0.3,this.z,this.def.xp[0]+floor(Math.random()*(this.def.xp[1]-this.def.xp[0]+1)));playSoundAt(this.def.sound+'_death',this.x,this.y,this.z)}
   interact(stack){ // right click by player, returns true if consumed action
     const d=this.def;
@@ -2577,7 +2580,7 @@ function placeHeldBlock(hd,st,t){
   if(hd.facing)meta=(lf+2)&3;
   // collision with entities
   if(hd.solid){const bs=blockBoxes(id,meta,'c',px,py,pz);for(const b of bs)if(boxesOverlapEntity(px+b[0],py+b[1],pz+b[2],px+b[3],py+b[4],pz+b[5]))return}
-  world.setBlock(px,py,pz,id,meta);if(id===107&&st.items)world.getBlockEntity(px,py,pz,()=>({items:st.items.map(s=>s?Object.assign({},s):null)}));consumeHeld();playSoundAt('place_'+hd.sound,px,py,pz);p.swing=0;
+  world.setBlock(px,py,pz,id,meta);if(id===107&&st.items){const be=world.getBlockEntity(px,py,pz,()=>({items:st.items.map(s=>s?Object.assign({},s):null)}));mpSendBE(px,py,pz,be)}consumeHeld();playSoundAt('place_'+hd.sound,px,py,pz);p.swing=0;
   if(id===103)checkWitherBuild(px,py,pz);
 }
 function trySleep(bx,by,bz){const p=player;const t=world.time;
@@ -3340,7 +3343,7 @@ function slotClick(slot,button,shift){
 function moveInto(st,arr,off,n){const def=ITEMS[st.id];let c=st.count;if(!st.dur&&!st.ench)for(let i=off;i<off+n&&c>0;i++){const s=arr[i];if(s&&s.id===st.id&&!s.dur&&!s.ench&&s.count<def.stack){const k=Math.min(c,def.stack-s.count);s.count+=k;c-=k}}
   for(let i=off;i<off+n&&c>0;i++){if(!arr[i]){arr[i]={id:st.id,count:c,dur:st.dur,ench:st.ench};c=0}}return c}
 function takeFurnaceXP(){const g=game.gui;if(g&&g.type==='furnace'&&g.be.xp>=1){const n=floor(g.be.xp);g.be.xp-=n;addXP(n);playSound('orb')}}
-function afterSlotChange(){updateCraftOutput();const g=game.gui;if(g&&g.type==='furnace'){activateFurnace(g.x,g.y,g.z)}if(g&&g.type==='enchant')renderEnchant();if(g&&g.type==='anvil')updateAnvil();renderAllSlots();if(g&&g.type==='table')renderRecipeBook();if(g&&g.type==='trade')renderTrades()}
+function afterSlotChange(){updateCraftOutput();const g=game.gui;if(g&&g.type==='furnace'){activateFurnace(g.x,g.y,g.z)}if(g&&g.be&&(g.type==='chest'||g.type==='furnace'))mpSendBE(g.x,g.y,g.z,g.be);if(g&&g.type==='enchant')renderEnchant();if(g&&g.type==='anvil')updateAnvil();renderAllSlots();if(g&&g.type==='table')renderRecipeBook();if(g&&g.type==='trade')renderTrades()}
 const craft2=[null,null,null,null],craft3=new Array(9).fill(null),craftOut=[null];
 function currentGrid(){const g=game.gui;if(!g)return null;if(g.type==='inv')return [craft2,2,2];if(g.type==='table')return [craft3,3,3];return null}
 function updateCraftOutput(){const cg=currentGrid();if(!cg){craftOut[0]=null;return}const r=matchRecipe(cg[0],cg[1],cg[2]);craftOut[0]=r?{id:r.out[0],count:r.out[1]}:null}
@@ -3751,7 +3754,7 @@ function finishLoad(){const p=player;if(!game.pendingMobs.length&&player.spawn==
     for(const type of ['sheep','pig','cow','chicken','horse']){for(let t=0;t<12;t++){const a=Math.random()*PI*2,r=8+Math.random()*14;if(spawnPack(type,floor(s[0]+Math.cos(a)*r),floor(s[2]+Math.sin(a)*r),type==='chicken'?4:3,false)>0)break}}}else{const bx=floor(p.x),bz=floor(p.z);const inSolid=y=>{const b=world.getBlock(bx,y,bz);return b!==0&&BLOCKS[b].solid};let fy=floor(p.y),n=0;if(inSolid(fy)||inSolid(fy+1)){while(n<40&&(inSolid(fy)||inSolid(fy+1))){fy++;n++}p.y=fy+0.1}}
   if(game.respawnOnLoad){game.respawnOnLoad=false;respawn()}
   for(const m of game.pendingMobs){if(m.type==='wither'){const w=new Wither(m.x,m.y,m.z);w.hp=m.hp;w.state='hunt';entities.push(w);continue}const e=new Mob(m.type,m.x,m.y,m.z);e.hp=m.hp;e.baby=m.baby;e.growT=m.growT||0;if(m.sheared!==undefined)e.sheared=m.sheared;if(m.woolId)e.woolId=m.woolId;if(m.prof&&PROFS[m.prof]){e.prof=m.prof;e.trades=villagerTrades(m.prof);e.vlevel=m.vlevel||1;e.vxp=m.vxp||0;if(m.uses)m.uses.forEach((u,i)=>{if(e.trades[i])e.trades[i].uses=u});if(m.demand)m.demand.forEach((u,i)=>{if(e.trades[i])e.trades[i].demand=u});e.restocks=m.restocks||0}if(m.size&&e.type==='slime')e.setSize(m.size);if(m.tamed){e.tamed=true;if(e.type==='wolf')e.maxHp=20;e.sitting=!!m.sitting}if(e.type==='horse'){if(m.color!==undefined)e.color=m.color;if(m.hspeed)e.hspeed=m.hspeed;if(m.hjump)e.hjump=m.hjump;if(m.maxHp)e.maxHp=m.maxHp;e.saddled=!!m.saddled}entities.push(e)}
-  for(const it of game.pendingItems)spawnItem(it.x,it.y,it.z,{id:it.id,count:it.count,dur:it.dur,ench:it.ench,items:it.items});
+  for(const it of game.pendingItems)spawnItem(it.x,it.y,it.z,{id:it.id,count:it.count,dur:it.dur,ench:it.ench,items:it.items},null,undefined,{local:true});
   for(const c of world.chunks.values())for(const [i,be] of c.bents){if(be.burn>0){const x=c.cx*16+(i>>11),y=i&127,z=c.cz*16+((i>>7)&15);activateFurnace(x,y,z)}}
   updateChunks(200);game.state='playing';game.paused=false;game.gui=null;hideMenus();$('hud').style.display='block';$('overlay').style.display='block';updateHUD();updateHotbar();lockPointer();game.lastSave=game.time;
   if(!game.loadedOnce){showMessage('Welcome to Ironcraft! Punch trees to get wood.');game.loadedOnce=true}
@@ -3970,7 +3973,7 @@ const PUBLIC_SERVERS=[
   {room:'ironcraft-pub-gun-range',name:'Gun Range',seed:'iron-gun-range',mods:{guns:true,apocalypse:true}},
   {room:'ironcraft-pub-river-town',name:'River Town',seed:'iron-river-town',mods:{}},
   {room:'ironcraft-pub-snow-peaks',name:'Snow Peaks',seed:'iron-snow-peaks',mods:{}}];
-const MP={active:false,peer:null,conns:[],host:false,room:null,name:'',remote:new Map(),sendT:0,timeT:0,myId:null,public:false,lobbyPeer:null,lobbyConn:null,lobbyList:new Map(),createPublic:false};
+const MP={active:false,peer:null,conns:[],host:false,room:null,name:'',remote:new Map(),sendT:0,timeT:0,myId:null,public:false,lobbyPeer:null,lobbyConn:null,lobbyList:new Map(),createPublic:false,nidN:0,pendingItems:[]};
 function mpStatus(t){const el=$('mpStatus');if(el)el.textContent=t}
 function loadPeerJS(){return new Promise((res,rej)=>{if(window.Peer)return res();const sc=document.createElement('script');sc.src='https://cdn.jsdelivr.net/npm/peerjs@1.5.4/dist/peerjs.min.js';sc.onload=()=>res();sc.onerror=()=>rej(new Error('Could not load the networking library. Are you online?'));document.head.appendChild(sc)})}
 function mpName(){const n=(($('mpName')&&$('mpName').value)||'').trim().slice(0,16)||'Player'+floor(100+Math.random()*900);opts.mpName=n;saveOpts();return n}
@@ -4018,7 +4021,7 @@ function mpHost(room,seed,mods,worldId,isPublic,code,keepWorld){const peer=new P
     if(!meta){const pub=PUBLIC_SERVERS.find(s=>s.room===room);meta={id:worldId,name:pub?'Public: '+pub.name:'Room '+code.toUpperCase(),seed,mode:'survival',diff:2,drops:mods.random?'random':'normal',mods,room:isPublic?room:undefined,created:Date.now(),played:Date.now()};list.push(meta);localStorage.setItem('ic_worlds',JSON.stringify(list))}else if(isPublic&&!meta.room){meta.room=room;localStorage.setItem('ic_worlds',JSON.stringify(list))}
     if(keepWorld){game.noSave=!isPublic;return}initAudio();loadWorld(meta);setTimeout(()=>showMessage(isPublic?'You are hosting '+meta.name+'. Anyone who picks it joins you. Press T to chat.':'Hosting. Room code: '+code.toUpperCase()+' (friends type it under Join by Code). Press T to chat.'),1500)});
   peer.on('connection',conn=>{conn.on('open',()=>{MP.conns.push(conn);conn.on('data',d=>mpOnData(conn,d));conn.on('close',()=>mpDrop(conn));conn.on('error',()=>mpDrop(conn));
-    if(!world)return;conn.send({t:'hello',seed:game.seed,mods:game.mods,worldName:game.worldName,time:world.time,day:world.day,spawn:game.worldSpawn,blocks:mpCollectBlocks(),wx:mpWeatherState(),wave:game.ax?{wave:game.ax.wave,active:game.ax.active,next:game.ax.next,left:game.ax.left||0,roster:game.ax.roster}:null,hostId:MP.myId,hostName:MP.name,players:[...MP.remote.values()].map(r=>({id:r.pid,name:r.name}))})})});
+    if(!world)return;conn.send({t:'hello',seed:game.seed,mods:game.mods,worldName:game.worldName,time:world.time,day:world.day,spawn:game.worldSpawn,blocks:mpCollectBlocks(),wx:mpWeatherState(),wave:game.ax?{wave:game.ax.wave,active:game.ax.active,next:game.ax.next,left:game.ax.left||0,roster:game.ax.roster}:null,hostId:MP.myId,hostName:MP.name,players:[...MP.remote.values()].map(r=>({id:r.pid,name:r.name})),items:mpItemList(),bents:mpBentList()})})});
   peer.on('error',err=>{if(err.type==='peer-unavailable'){MP.lobbyConnecting=false;if(MP.public)lobbyServe();return}if(err.type==='unavailable-id'){mpStatus('Someone just opened this server: joining them...');setTimeout(()=>mpJoin(room,String(seed),mods,worldId,isPublic),800)}else mpStatus('Network error: '+err.type)})}
 function mpBecomeGuest(peer,conn,worldId){MP.peer=peer;MP.conns=[conn];MP.worldId=worldId;MP.public=!!worldId;MP.host=false;MP.myId=peer.id;MP.active=true;mpStatus('Connected! Receiving the world...');
   conn.on('data',d=>mpOnData(conn,d));conn.on('close',()=>{if(MP.active&&!MP.host)mpHostLost()});conn.on('error',()=>{})}
@@ -4037,10 +4040,10 @@ function mpOnData(conn,d){if(!d||!d.t)return;
       if(keep){game.noSave=!MP.worldId;for(const r of MP.remote.values())r.dead=true;MP.remote.clear()}
       else if(MP.worldId){const list=worldList();let meta=list.find(w=>w.id===MP.worldId);if(!meta){meta={id:MP.worldId,name:'Public: '+(pub?pub.name:(d.worldName||'world')),seed:d.seed,mode:'survival',diff:2,drops:d.mods&&d.mods.random?'random':'normal',mods:d.mods||{},room:MP.room,created:Date.now(),played:Date.now()};list.push(meta);localStorage.setItem('ic_worlds',JSON.stringify(list))}else if(!meta.room){meta.room=MP.room;localStorage.setItem('ic_worlds',JSON.stringify(list))}loadWorld(meta);game.noSave=false}
       else{const meta={id:'mp-guest',name:'Multiplayer',seed:d.seed,mode:'survival',diff:2,drops:d.mods&&d.mods.random?'random':'normal',mods:d.mods||{}};startWorld(meta,null);game.noSave=true}
-      MP.hostId=d.hostId;world.time=d.time;world.day=d.day;if(d.spawn)game.worldSpawn=d.spawn;mpApplyBlocks(d.blocks||{});if(d.wx)mpApplyWeather(d.wx);if(d.wave&&game.ax){const A=game.ax;A.wave=d.wave.wave;A.next=d.wave.next;A.left=d.wave.left;if(d.wave.active){A.active=true;A.pendingRoster=d.wave.roster||waveRoster(d.wave.wave)}}
+      MP.hostId=d.hostId;world.time=d.time;world.day=d.day;if(d.spawn)game.worldSpawn=d.spawn;mpApplyBlocks(d.blocks||{});if(d.bents)mpApplyBents(d.bents);if(d.items){for(const e of entities)if(e instanceof ItemEntity)e.dead=true;MP.pendingItems=[];for(const it of d.items)mpItemIn(it)}if(d.wx)mpApplyWeather(d.wx);if(d.wave&&game.ax){const A=game.ax;A.wave=d.wave.wave;A.next=d.wave.next;A.left=d.wave.left;if(d.wave.active){A.active=true;A.pendingRoster=d.wave.roster||waveRoster(d.wave.wave)}}
       mpRemote(d.hostId,d.hostName);for(const pl of d.players||[])if(pl.id!==MP.myId)mpRemote(pl.id,pl.name);mpStatus('');setTimeout(()=>showMessage('Joined '+(d.hostName||'the host')+"'s world. Press T to chat."),1500);break}
     case 'p':{if(d.id===MP.myId)break;if(MP.host)conn.mpId=d.id;const r=mpRemote(d.id,d.name);r.setTarget(d);if(MP.host)mpRelay(conn,d);break}
-    case 'b':{if(!world)break;if(world.hasChunk(d.x,d.z))world.setBlock(d.x,d.y,d.z,d.id,d.meta,{remote:true});else{const k=(d.x>>4)+','+(d.z>>4);world.savedMods=world.savedMods||{};(world.savedMods[k]||(world.savedMods[k]=[])).push([cidx(d.x&15,d.y,d.z&15),d.id|(d.meta<<8)])}if(MP.host)mpRelay(conn,d);break}
+    case 'b':{if(!world)break;if(world.hasChunk(d.x,d.z))world.setBlock(d.x,d.y,d.z,d.id,d.meta,{remote:true,noDrop:true});else{const k=(d.x>>4)+','+(d.z>>4);world.savedMods=world.savedMods||{};(world.savedMods[k]||(world.savedMods[k]=[])).push([cidx(d.x&15,d.y,d.z&15),d.id|(d.meta<<8)])}if(MP.host)mpRelay(conn,d);break}
     case 'c':{showMessage('<'+d.name+'> '+d.text);if(MP.host)mpRelay(conn,d);break}
     case 'time':{if(!MP.host&&world){world.time=d.time;world.day=d.day}break}
     case 'wx':{if(!MP.host)mpApplyWeather(d);break}
@@ -4048,13 +4051,29 @@ function mpOnData(conn,d){if(!d||!d.t)return;
     case 'wavestart':{const A=game.ax;if(MP.host||!A)break;if(!A.active||A.wave!==d.wave){startWave(A,d.wave,d.roster||waveRoster(d.wave));A.left=A.mobs.length}break}
     case 'waveleft':{if(MP.host)conn.waveLeft=d.n;break}
     case 'bolt':{if(!MP.host&&game.wx&&world)lightningStrike(d.x,d.z,true);break}
+    case 'i':{if(MP.host)mpRelay(conn,d);mpItemIn(d);break}
+    case 'ir':{if(MP.host)mpRelay(conn,d);{const e=entities.find(e=>e.nid===d.nid);if(e)e.dead=true;MP.pendingItems=MP.pendingItems.filter(it=>it.nid!==d.nid)}break}
+    case 'ic':{if(MP.host)mpRelay(conn,d);{const e=entities.find(e=>e.nid===d.nid);if(e&&e.stack)e.stack.count=d.count;const pi=MP.pendingItems.find(it=>it.nid===d.nid);if(pi)pi.s.count=d.count}break}
+    case 'be':{if(MP.host)mpRelay(conn,d);mpApplyBE(d);break}
     case 'leave':{mpRemove(d.id);if(MP.host)mpRelay(conn,d);break}}}
+// dropped items: spawn when the chunk (and dimension) is here, otherwise hold them until it is
+function mpItemIn(d){if(entities.some(e=>e.nid===d.nid)||MP.pendingItems.some(it=>it.nid===d.nid))return;if(world&&world.dimKey===(d.dim||'over')&&world.hasChunk(floor(d.x),floor(d.z)))spawnItem(d.x,d.y,d.z,d.s,[d.vx,d.vy,d.vz],d.d,{nid:d.nid});else MP.pendingItems.push(d)}
+function mpFlushItems(){if(!MP.pendingItems.length||!world)return;MP.pendingItems=MP.pendingItems.filter(d=>{if(world.dimKey!==(d.dim||'over')||!world.hasChunk(floor(d.x),floor(d.z)))return true;if(!entities.some(e=>e.nid===d.nid))spawnItem(d.x,d.y,d.z,d.s,[d.vx,d.vy,d.vz],d.d,{nid:d.nid});return false})}
+function mpItemList(){const out=[];for(const e of entities){if(!(e instanceof ItemEntity)||e.dead)continue;if(!e.nid)e.nid=MP.myId+':'+(++MP.nidN);out.push({nid:e.nid,x:e.x,y:e.y,z:e.z,vx:e.vx,vy:e.vy,vz:e.vz,s:e.stack,d:Math.max(0,e.pickupDelay),dim:world.dimKey})}return out.concat(MP.pendingItems)}
+// chests and furnaces: whoever changes one sends its whole contents; the copy on every other screen is replaced in place
+function mpSendBE(x,y,z,be){if(!MP.active||!be)return;mpSend({t:'be',x,y,z,dim:world.dimKey,be:{items:be.items,burn:be.burn||0,burnMax:be.burnMax||0,cook:be.cook||0}})}
+function mpApplyBE(d){if(!world||world.dimKey!==(d.dim||'over'))return;const src=d.be||{};if(world.hasChunk(d.x,d.z)){const id=world.getBlock(d.x,d.y,d.z);if(!BLOCKS[id].gui)return;const be=BLOCKS[id].gui==='furnace'?furnaceEntity(d.x,d.y,d.z):world.getBlockEntity(d.x,d.y,d.z,()=>({items:new Array((src.items||[]).length||27).fill(null)}));if(src.items){be.items.length=0;for(const it of src.items)be.items.push(it?Object.assign({},it):null)}if(src.burn!==undefined&&be.burnMax!==undefined){be.burn=src.burn;be.burnMax=src.burnMax;be.cook=src.cook}
+    const g=game.gui;if(g&&g.be===be)renderAllSlots()}
+  else{world.savedBents=world.savedBents||{};const k=(d.x>>4)+','+(d.z>>4);const l=world.savedBents[k]||(world.savedBents[k]=[]);const i=cidx(d.x&15,d.y,d.z&15);const j=l.findIndex(e=>+e[0]===i);const be={items:src.items||[]};if(j>=0)l[j]=[i,be];else l.push([i,be])}}
+function mpBentList(){const out={};const src=world.savedBents||{};for(const k in src)out[k]=src[k];for(const c of world.chunks.values()){if(c.bents.size)out[c.cx+','+c.cz]=Array.from(c.bents)}return out}
+function mpApplyBents(bents){for(const k in bents){const [cx,cz]=k.split(',').map(Number);for(const [i,be] of bents[k]){const x=cx*16+((+i)>>11),y=(+i)&127,z=cz*16+(((+i)>>7)&15);mpApplyBE({x,y,z,dim:world.dimKey,be})}}}
 function mpRelay(from,d){for(const c of MP.conns)if(c!==from&&c.open)c.send(d)}
 function mpSend(d){for(const c of MP.conns)if(c.open)c.send(d)}
 function mpRemote(id,name){if(!id)return null;let r=MP.remote.get(id);if(!r){r=new RemotePlayer(id,name||'Player');MP.remote.set(id,r);entities.push(r);if(game.state==='playing')showMessage((name||'Player')+' joined')}else if(name)r.name=name;return r}
 function mpRemove(id){const r=MP.remote.get(id);if(!r)return;r.dead=true;MP.remote.delete(id);showMessage(r.name+' left');const el=$('nametags').querySelector('[data-id="'+id+'"]');if(el)el.remove()}
 function mpDrop(conn){const i=MP.conns.indexOf(conn);if(i>=0)MP.conns.splice(i,1);if(conn.mpId){mpRemove(conn.mpId);mpSend({t:'leave',id:conn.mpId})}}
-function mpTick(dt){const p=player;MP.sendT-=dt;if(MP.sendT<=0){MP.sendT=0.1;const st=heldStack();mpSend({t:'p',id:MP.myId,name:MP.name,x:p.x,y:p.y,z:p.z,yaw:p.yaw,pitch:p.pitch,held:st?st.id:0,sneak:!!p.sneaking,dead:!!p.dead})}
+function mpTick(dt){const p=player;MP.sendT-=dt;if(MP.sendT<=0){MP.sendT=0.1;const st=heldStack();mpSend({t:'p',id:MP.myId,name:MP.name,x:p.x,y:p.y,z:p.z,yaw:p.yaw,pitch:p.pitch,held:st?st.id:0,sneak:!!p.sneaking,dead:!!p.dead,armor:p.armor.map(a=>a?a.id:0),sw:p.swing<0.9?1:0})}
+  mpFlushItems();
   if(MP.host){MP.timeT-=dt;if(MP.timeT<=0){MP.timeT=5;mpSend({t:'time',time:world.time,day:world.day})}if(MP.public){MP.annT=(MP.annT||0)-dt;if(MP.annT<=0){MP.annT=8;lobbyAnnounce()}}}
   for(const r of MP.remote.values())if(r.dead){MP.remote.delete(r.pid)}
   mpNameTags()}
@@ -4064,17 +4083,31 @@ function mpNameTags(){const box=$('nametags');const W=R.canvas.clientWidth,H=R.c
     const cx=(m[0]*x+m[4]*y+m[8]*z+m[12])/cw,cy=(m[1]*x+m[5]*y+m[9]*z+m[13])/cw;const d=Math.hypot(x-player.x,z-player.z);if(d>48||abs(cx)>1.1||abs(cy)>1.1){el.style.display='none';continue}
     el.style.display='block';el.textContent=r.name;el.style.left=((cx+1)/2*W)+'px';el.style.top=((1-cy)/2*H)+'px';el.style.fontSize=Math.max(9,16-d/4)+'px'}}
 function mpChat(text){text=text.slice(0,120);showMessage('<'+MP.name+'> '+text);mpSend({t:'c',name:MP.name,text})}
-function mpLeave(quiet){lobbyStop();MP.public=false;if(MP.peer){try{mpSend({t:'leave',id:MP.myId})}catch(e){}try{MP.peer.destroy()}catch(e){}}for(const r of MP.remote.values())r.dead=true;MP.remote.clear();MP.conns=[];MP.peer=null;MP.active=false;MP.host=false;const nt=$('nametags');if(nt)nt.innerHTML='';if(!quiet)mpStatus('')}
+function mpLeave(quiet){lobbyStop();MP.public=false;MP.pendingItems=[];if(MP.peer){try{mpSend({t:'leave',id:MP.myId})}catch(e){}try{MP.peer.destroy()}catch(e){}}for(const r of MP.remote.values())r.dead=true;MP.remote.clear();MP.conns=[];MP.peer=null;MP.active=false;MP.host=false;const nt=$('nametags');if(nt)nt.innerHTML='';if(!quiet)mpStatus('')}
 class RemotePlayer extends Entity{constructor(id,name){super(0,-100,0);this.pid=id;this.name=name;this.w=0.6;this.h=1.8;this.tx=0;this.ty=-100;this.tz=0;this.tyaw=0;this.walkT=0;this.walkAmp=0;this.held=0;this.sneak=false;this.remote=true;this.hasTarget=false;this.hidden=false}
-  setTarget(d){if(!this.hasTarget){this.x=d.x;this.y=d.y;this.z=d.z;this.yaw=d.yaw;this.hasTarget=true}this.tx=d.x;this.ty=d.y;this.tz=d.z;this.tyaw=d.yaw;this.pitch=d.pitch||0;this.held=d.held||0;this.sneak=!!d.sneak;if(d.name)this.name=d.name;this.hidden=!!d.dead}
+  setTarget(d){if(!this.hasTarget){this.x=d.x;this.y=d.y;this.z=d.z;this.yaw=d.yaw;this.hasTarget=true}this.tx=d.x;this.ty=d.y;this.tz=d.z;this.tyaw=d.yaw;this.pitch=d.pitch||0;this.held=d.held||0;this.sneak=!!d.sneak;if(d.name)this.name=d.name;this.hidden=!!d.dead;this.armor=d.armor||[0,0,0,0];if(d.sw&&!this.swPrev)this.swingT=0.4;this.swPrev=!!d.sw}
   update(dt){this.age+=dt;if(!this.hasTarget)return;const k=Math.min(1,dt*12);const ox=this.x,oz=this.z;this.x+=(this.tx-this.x)*k;this.y+=(this.ty-this.y)*k;this.z+=(this.tz-this.z)*k;let dy=this.tyaw-this.yaw;dy=Math.atan2(Math.sin(dy),Math.cos(dy));this.yaw+=dy*k;
-    const hs=Math.hypot(this.x-ox,this.z-oz)/Math.max(dt,1e-3);this.walkAmp+=(Math.min(1,hs/3)-this.walkAmp)*Math.min(1,dt*8);this.walkT+=hs*dt*1.6}
-  render(EB){if(this.hidden||!this.hasTarget)return;const l=lightAt(this.x,this.y+1,this.z);const s=1/16;const N=TEX.noise;const part=(b,px,py,pz,rx,ry,rz,tiles,col)=>{const tf=partTF(this.x,this.y,this.z,this.yaw,px,py,pz,rx,ry,rz,s,0);EB.box(tf,b[0],b[1],b[2],b[3],b[4],b[5],tiles,col,l,true)};
+    const hs=Math.hypot(this.x-ox,this.z-oz)/Math.max(dt,1e-3);this.walkAmp+=(Math.min(1,hs/3)-this.walkAmp)*Math.min(1,dt*8);this.walkT+=hs*dt*1.6;if(this.swingT>0)this.swingT-=dt}
+  render(EB,EBI){if(this.hidden||!this.hasTarget)return;const l=lightAt(this.x,this.y+1,this.z);const s=1/16;const N=TEX.noise;const part=(b,px,py,pz,rx,ry,rz,tiles,col)=>{const tf=partTF(this.x,this.y,this.z,this.yaw,px,py,pz,rx,ry,rz,s,0);EB.box(tf,b[0],b[1],b[2],b[3],b[4],b[5],tiles,col,l,true)};
     const swing=Math.sin(this.walkT)*this.walkAmp*0.9;const skin=[0.85,0.66,0.52],shirt=[0.2,0.62,0.85],pants=[0.25,0.3,0.6];const t=2;
     part([-t,-12,-t,t,0,t],-2,12,0,swing,0,0,N,pants);part([-t,-12,-t,t,0,t],2,12,0,-swing,0,0,N,pants);
     part([-4,12,-2,4,24,2],0,0,0,this.sneak?0.35:0,0,0,N,shirt);
-    part([-t,-10,-t,t,2,t],-4,22,0,-swing,0,0.05,N,shirt);part([-t,-10,-t,t,2,t],4,22,0,swing,0,-0.05,N,shirt);
-    part([-4,0,-4,4,8,4],0,24,0,-this.pitch,0,0,[N,N,N,N,N,TEX.player_face],skin)}}
+    const hit=this.swingT>0?Math.sin(this.swingT/0.4*PI)*1.6:0;const armR=swing-hit;
+    part([-t,-10,-t,t,2,t],-4,22,0,-swing,0,0.05,N,shirt);part([-t,-10,-t,t,2,t],4,22,0,armR,0,-0.05,N,shirt);
+    part([-4,0,-4,4,8,4],0,24,0,-this.pitch,0,0,[N,N,N,N,N,TEX.player_face],skin);
+    // armor: coloured shells over the body parts, by material
+    const W=TEX.white,A=this.armor||[0,0,0,0];const ac=i=>{const d=A[i]?ITEMS[A[i]]:null;if(!d||d.elytra)return null;if(d.ghillie)return [0.32,0.45,0.2];const c=ARMOR[d.mat]&&ARMOR[d.mat].color;return c?[c[0]/255,c[1]/255,c[2]/255]:[0.7,0.7,0.7]};
+    const hc=ac(0),cc=ac(1),lc=ac(2),bc=ac(3),o=0.55;
+    if(bc){part([-t-o,-12-o,-t-o,t+o,-7,t+o],-2,12,0,swing,0,0,W,bc);part([-t-o,-12-o,-t-o,t+o,-7,t+o],2,12,0,-swing,0,0,W,bc)}
+    if(lc){const lo=o-0.15;part([-t-lo,bc?-7:-12-lo,-t-lo,t+lo,0.5,t+lo],-2,12,0,swing,0,0,W,lc);part([-t-lo,bc?-7:-12-lo,-t-lo,t+lo,0.5,t+lo],2,12,0,-swing,0,0,W,lc);part([-4-lo,12-lo,-2-lo,4+lo,16,2+lo],0,0,0,0,0,0,W,lc)}
+    if(cc){part([-4-o,lc?16:12-o,-2-o,4+o,24+o,2+o],0,0,0,this.sneak?0.35:0,0,0,W,cc);part([-t-o,-10-o,-t-o,t+o,2+o,t+o],-4,22,0,-swing,0,0.05,W,cc);part([-t-o,-10-o,-t-o,t+o,2+o,t+o],4,22,0,armR,0,-0.05,W,cc)}
+    if(A[1]&&ITEMS[A[1]]&&ITEMS[A[1]].elytra){const wc=[0.36,0.32,0.42];part([-7,-13,0,-0.5,0,1],-1,24,2.5,-0.25,0,0.4,W,wc);part([0.5,-13,0,7,0,1],1,24,2.5,-0.25,0,-0.4,W,wc)}
+    if(hc){const hp=(b)=>part(b,0,24,0,-this.pitch,0,0,W,hc);hp([-4-o,5.5,-4-o,4+o,8+o,4+o]);hp([-4-o,-o,2.5,4+o,8+o,4+o]);hp([-4-o,-o,-4-o,-2.5,8+o,4+o]);hp([2.5,-o,-4-o,4+o,8+o,4+o])} // open-faced so you can still see who it is
+    // held item in the right hand: blocks as a small cube, everything else as its icon
+    if(this.held&&ITEMS[this.held]){const def=ITEMS[this.held];const atf=partTF(this.x,this.y,this.z,this.yaw,4,22,0,armR,0,-0.05,s,0);
+      if(def.isBlock&&ITEMTILE[this.held]===undefined){const rb=renderBoxes(this.held,0,0,0,0);for(const b of rb)EB.box(atf,b[0]*6-3,b[1]*6-14,b[2]*6-9,b[3]*6-3,b[4]*6-14,b[5]*6-9,b[6],b[8]?[b[8][0]/255,b[8][1]/255,b[8][2]/255]:[1,1,1],l,false)}
+      else if(EBI&&ITEMTILE[this.held]!==undefined){const tile=ITEMTILE[this.held];const uv=[[(tile%16)/16,floor(tile/16)/16],[(tile%16+1)/16,floor(tile/16)/16],[(tile%16+1)/16,(floor(tile/16)+1)/16],[(tile%16)/16,(floor(tile/16)+1)/16]];
+        const rx=Math.sin(0.8)*10,rz=-Math.cos(0.8)*10;const P=[atf(0,-3,-1),atf(rx,-3,-1+rz),atf(rx,-13,-1+rz),atf(0,-13,-1)];EBI.quad(P,uv,[l[0],l[1],1],[1,1,1]);EBI.quad([P[3],P[2],P[1],P[0]],[uv[3],uv[2],uv[1],uv[0]],[l[0],l[1],1],[1,1,1])}}}}
 /* ===================== FUN MODS: weather, tornadoes, horror ===================== */
 function weatherLoop(freq){const c=AU.ctx;const s=c.createBufferSource();s.buffer=noiseBuf(2);s.loop=true;const f=c.createBiquadFilter();f.type='lowpass';f.frequency.value=freq;const g=c.createGain();g.gain.value=0;s.connect(f);f.connect(g);g.connect(AU.master);s.start();return {s,f,g}}
 function updateWeatherLoops(){const W=game.wx;if(!AU.ctx||!W)return;if(!W.rainL)W.rainL=weatherLoop(900);if(!W.windL)W.windL=weatherLoop(180);const t=AU.ctx.currentTime;const on=opts.volume===0?0:1;
