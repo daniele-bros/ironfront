@@ -3557,7 +3557,7 @@ function newWorld(name,seedStr,mode,diff,mods){const drops=mods&&mods.random?'ra
 }
 function worldList(){try{return JSON.parse(localStorage.getItem('ic_worlds')||'[]')}catch(e){return []}}
 function startWorld(meta,save){
-  game.mods=modsOf(meta);game.noSave=false;game.wx=game.mods.weather?{storm:false,I:0,t:30+Math.random()*60,lt:4,flash:0,tornado:null}:null;game.hx=game.mods.horror?{amb:15,beat:0}:null;game.ax=game.mods.apocalypse?{wave:0,next:75,active:false,mobs:[],warned:{}}:null;
+  game.mods=modsOf(meta);game.noSave=false;game.wx=game.mods.weather?{storm:false,I:0,t:30+Math.random()*60,lt:4,flash:0,tornado:null}:null;game.hx=game.mods.horror?{amb:15,beat:0}:null;game.ax=game.mods.apocalypse?{wave:0,next:75,active:false,mobs:[],warned:{},left:0}:null;
   game.dims={over:null,nether:null};world=new World(meta.seed);game.seed=meta.seed;game.worldId=meta.id;game.worldName=meta.name;game.difficulty=game.mods.hardcore?3:(game.mods.apocalypse?Math.max(1,meta.diff):meta.diff);game.randomDrops=game.mods.random;entities.length=0;particles.length=0;activeFurnaces.clear();
   const p=player;p.mode=meta.mode;p.inv.fill(null);p.armor.fill(null);p.sel=0;p.hp=20;p.hunger=20;p.sat=5;p.exh=0;p.xp=0;p.level=0;p.dead=false;p.flying=false;p.effects={};p.spawn=null;p.fireT=0;p.air=300;p.vx=p.vy=p.vz=0;p.riding=null;
   if(save){if(game.ax&&save.apoc)game.ax.wave=save.apoc.wave||0;world.time=save.time;world.day=save.day||0;game.worldSpawn=save.spawn;world.savedMods={};for(const k in save.mods)world.savedMods[k]=save.mods[k];world.savedBents=save.bents||{};world.populated=new Set(save.pop||[]);
@@ -3815,7 +3815,7 @@ function mpHost(room,seed,mods,worldId,isPublic,code){const peer=new Peer(room);
     if(!meta){const pub=PUBLIC_SERVERS.find(s=>s.room===room);meta={id:worldId,name:pub?'Public: '+pub.name:'Room '+code.toUpperCase(),seed,mode:'survival',diff:2,drops:mods.random?'random':'normal',mods,created:Date.now(),played:Date.now()};list.push(meta);localStorage.setItem('ic_worlds',JSON.stringify(list))}
     initAudio();loadWorld(meta);setTimeout(()=>showMessage(isPublic?'You are hosting '+meta.name+'. Anyone who picks it joins you. Press T to chat.':'Hosting. Room code: '+code.toUpperCase()+' (friends type it under Join by Code). Press T to chat.'),1500)});
   peer.on('connection',conn=>{conn.on('open',()=>{MP.conns.push(conn);conn.on('data',d=>mpOnData(conn,d));conn.on('close',()=>mpDrop(conn));conn.on('error',()=>mpDrop(conn));
-    if(!world)return;conn.send({t:'hello',seed:game.seed,mods:game.mods,time:world.time,day:world.day,spawn:game.worldSpawn,blocks:mpCollectBlocks(),wx:mpWeatherState(),hostId:MP.myId,hostName:MP.name,players:[...MP.remote.values()].map(r=>({id:r.pid,name:r.name}))})})});
+    if(!world)return;conn.send({t:'hello',seed:game.seed,mods:game.mods,time:world.time,day:world.day,spawn:game.worldSpawn,blocks:mpCollectBlocks(),wx:mpWeatherState(),wave:game.ax?{wave:game.ax.wave,active:game.ax.active,next:game.ax.next,left:game.ax.left||0,roster:game.ax.roster}:null,hostId:MP.myId,hostName:MP.name,players:[...MP.remote.values()].map(r=>({id:r.pid,name:r.name}))})})});
   peer.on('error',err=>{if(err.type==='unavailable-id'){mpStatus('Someone just opened this server: joining them...');setTimeout(()=>mpJoin(room,String(seed),mods,worldId,isPublic),800)}else mpStatus('Network error: '+err.type)})}
 function mpBecomeGuest(peer,conn){MP.peer=peer;MP.conns=[conn];MP.host=false;MP.myId=peer.id;MP.active=true;mpStatus('Connected! Receiving the world...');
   conn.on('data',d=>mpOnData(conn,d));conn.on('close',()=>{if(MP.active){showMessage('The host left. You are on your own now.');mpLeave(false)}});conn.on('error',()=>{})}
@@ -3826,13 +3826,16 @@ function mpCollectBlocks(){const out={};const src=world.savedMods||{};for(const 
 function mpApplyBlocks(blocks){world.savedMods=world.savedMods||{};for(const k in blocks){world.savedMods[k]=blocks[k];const [cx,cz]=k.split(',').map(Number);const c=world.getChunk(cx,cz);if(c&&c.generated){for(const [i,v] of blocks[k]){world.setBlock(cx*16+(i>>11),i&127,cz*16+((i>>7)&15),v&255,v>>8,{remote:true,silent:true})}}}}
 function mpOnData(conn,d){if(!d||!d.t)return;
   switch(d.t){
-    case 'hello':{const meta={id:'mp-guest',name:'Multiplayer',seed:d.seed,mode:'survival',diff:2,drops:d.mods&&d.mods.random?'random':'normal',mods:d.mods||{}};initAudio();startWorld(meta,null);game.noSave=true;world.time=d.time;world.day=d.day;if(d.spawn)game.worldSpawn=d.spawn;mpApplyBlocks(d.blocks||{});if(d.wx)mpApplyWeather(d.wx);
+    case 'hello':{const meta={id:'mp-guest',name:'Multiplayer',seed:d.seed,mode:'survival',diff:2,drops:d.mods&&d.mods.random?'random':'normal',mods:d.mods||{}};initAudio();startWorld(meta,null);game.noSave=true;world.time=d.time;world.day=d.day;if(d.spawn)game.worldSpawn=d.spawn;mpApplyBlocks(d.blocks||{});if(d.wx)mpApplyWeather(d.wx);if(d.wave&&game.ax){const A=game.ax;A.wave=d.wave.wave;A.next=d.wave.next;A.left=d.wave.left;if(d.wave.active){A.active=true;A.pendingRoster=d.wave.roster||waveRoster(d.wave.wave)}}
       mpRemote(d.hostId,d.hostName);for(const pl of d.players||[])if(pl.id!==MP.myId)mpRemote(pl.id,pl.name);mpStatus('');setTimeout(()=>showMessage('Joined '+(d.hostName||'the host')+"'s world. Press T to chat."),1500);break}
     case 'p':{if(d.id===MP.myId)break;if(MP.host)conn.mpId=d.id;const r=mpRemote(d.id,d.name);r.setTarget(d);if(MP.host)mpRelay(conn,d);break}
     case 'b':{if(!world)break;if(world.hasChunk(d.x,d.z))world.setBlock(d.x,d.y,d.z,d.id,d.meta,{remote:true});else{const k=(d.x>>4)+','+(d.z>>4);world.savedMods=world.savedMods||{};(world.savedMods[k]||(world.savedMods[k]=[])).push([cidx(d.x&15,d.y,d.z&15),d.id|(d.meta<<8)])}if(MP.host)mpRelay(conn,d);break}
     case 'c':{showMessage('<'+d.name+'> '+d.text);if(MP.host)mpRelay(conn,d);break}
     case 'time':{if(!MP.host&&world){world.time=d.time;world.day=d.day}break}
     case 'wx':{if(!MP.host)mpApplyWeather(d);break}
+    case 'wave':{const A=game.ax;if(MP.host||!A)break;if(d.ended&&A.active){for(const m of A.mobs)m.dead=true;A.mobs=[];showMessage('Wave '+d.wave+' cleared! Next wave in '+floor(d.next)+'s');playSound('levelup',0.8)}A.wave=d.wave;A.active=d.active;A.next=d.next;A.left=d.left;break}
+    case 'wavestart':{const A=game.ax;if(MP.host||!A)break;if(!A.active||A.wave!==d.wave){startWave(A,d.wave,d.roster||waveRoster(d.wave));A.left=A.mobs.length}break}
+    case 'waveleft':{if(MP.host)conn.waveLeft=d.n;break}
     case 'bolt':{if(!MP.host&&game.wx&&world)lightningStrike(d.x,d.z,true);break}
     case 'leave':{mpRemove(d.id);if(MP.host)mpRelay(conn,d);break}}}
 function mpRelay(from,d){for(const c of MP.conns)if(c!==from&&c.open)c.send(d)}
@@ -3900,14 +3903,23 @@ function waveRoster(w){const n=Math.min(44,6+w*3);const out=[];for(let i=0;i<n;i
     if(w>=10&&r<0.05)t='wither_skeleton';else if(w>=8&&r<0.10)t='enderman';else if(w>=5&&r<0.20)t='creeper';else if(w>=4&&r<0.30)t='spider';else if(w>=3&&r<0.48)t='skeleton';else if(w>=2&&r<0.65)t='husk';out.push(t)}return out}
 function spawnWaveMob(type){const p=player;for(let t=0;t<40;t++){const a=Math.random()*PI*2,r=20+Math.random()*14;const bx=floor(p.x+Math.sin(a)*r),bz=floor(p.z+Math.cos(a)*r);const y=isStandable(bx,bz);if(y===null)continue;
     const m=new Mob(type,bx+0.5,y,bz+0.5);m.def=Object.assign({},MOBDEF[type],{follow:140,noBurn:true,noDespawn:true});m.waveMob=true;m.angry=true;entities.push(m);spawnParticles('smoke',m.x,m.y+1,m.z,6);return m}return null}
-function tickApocalypse(dt){const A=game.ax;const p=player;if(world.dimKey!=='over'||game.paused||p.dead){return}const hud=$('waveHud');hud.style.display='block';
-  if(A.active){A.mobs=A.mobs.filter(m=>!m.dead&&!m.dying);A.timeout-=dt;
-    if(A.mobs.length===0||A.timeout<=0){for(const m of A.mobs)m.dead=true;A.active=false;A.next=45+Math.min(60,A.wave*4);A.warned={};const xp=10+A.wave*5;p.level+=Math.max(1,floor(A.wave/2));playSound('levelup',0.8);showMessage((A.timeout<=0?'Wave '+A.wave+' timed out.':'Wave '+A.wave+' cleared!')+' +'+Math.max(1,floor(A.wave/2))+' levels. Next wave in '+floor(A.next)+'s');updateHUD&&updateHUD()}
-    else hud.textContent='WAVE '+A.wave+'  ·  '+A.mobs.length+' LEFT';return}
-  A.next-=dt;const n=Math.ceil(A.next);hud.textContent='NEXT WAVE IN '+Math.max(0,n)+'s';
-  for(const w of [30,10,5,3]){if(n===w&&!A.warned[w]){A.warned[w]=true;showMessage('Wave '+(A.wave+1)+' in '+w+' seconds...');if(w===10)playSound('horn',0.9,0.9)}}
-  if(A.next<=0){A.wave++;A.active=true;A.timeout=240;A.mobs=[];const roster=waveRoster(A.wave);for(const t of roster){const m=spawnWaveMob(t);if(m)A.mobs.push(m)}
-    showMessage('WAVE '+A.wave+': '+A.mobs.length+' undead are coming!');playSound('horn',1,0.7);playSound('zombie',1,0.8)}}
+function waveHudText(A){return A.active?'WAVE '+A.wave+'  ·  '+A.left+' LEFT':'NEXT WAVE IN '+Math.max(0,Math.ceil(A.next))+'s'}
+function startWave(A,wave,roster){A.wave=wave;A.active=true;A.timeout=240;A.mobs=[];A.roster=roster;for(const t of roster){const m=spawnWaveMob(t);if(m)A.mobs.push(m)}A.left=A.mobs.length;
+  showMessage('WAVE '+wave+': '+A.mobs.length+' undead are coming!');playSound('horn',1,0.7);playSound('zombie',1,0.8)}
+function endWave(A,timedOut){for(const m of A.mobs)m.dead=true;A.active=false;A.roster=null;A.next=45+Math.min(60,A.wave*4);A.warned={};const lv=Math.max(1,floor(A.wave/2));player.level+=lv;playSound('levelup',0.8);
+  showMessage((timedOut?'Wave '+A.wave+' timed out.':'Wave '+A.wave+' cleared!')+' +'+lv+' levels. Next wave in '+floor(A.next)+'s');updateHUD&&updateHUD()}
+function tickApocalypse(dt){const A=game.ax;const p=player;if(world.dimKey!=='over'||game.paused||p.dead){return}const hud=$('waveHud');hud.style.display='block';const guest=MP.active&&!MP.host;
+  A.mobs=A.mobs.filter(m=>!m.dead&&!m.dying);
+  if(guest){ // the host runs the clock; we fight our own copy of each wave and report what is left
+    if(A.pendingRoster){const r=A.pendingRoster;A.pendingRoster=null;startWave(A,A.wave,r)}
+    A.repT=(A.repT||0)-dt;if(A.repT<=0){A.repT=0.5;mpSend({t:'waveleft',n:A.mobs.length})}hud.textContent=waveHudText(A);return}
+  if(A.active){A.timeout-=dt;let guestsLeft=0;for(const c of MP.conns)guestsLeft+=c.waveLeft||0;A.left=A.mobs.length+guestsLeft;
+    if(A.left===0||A.timeout<=0){endWave(A,A.timeout<=0);if(MP.active)mpSend({t:'wave',wave:A.wave,active:false,next:A.next,left:0,ended:true})}
+    else hud.textContent=waveHudText(A)}
+  else{A.next-=dt;const n=Math.ceil(A.next);hud.textContent=waveHudText(A);
+    for(const w of [30,10,5,3]){if(n===w&&!A.warned[w]){A.warned[w]=true;showMessage('Wave '+(A.wave+1)+' in '+w+' seconds...');if(w===10)playSound('horn',0.9,0.9)}}
+    if(A.next<=0){const roster=waveRoster(A.wave+1);startWave(A,A.wave+1,roster);if(MP.active)mpSend({t:'wavestart',wave:A.wave,roster})}}
+  if(MP.active){A.syncT=(A.syncT||0)-dt;if(A.syncT<=0){A.syncT=0.5;mpSend({t:'wave',wave:A.wave,active:A.active,next:A.next,left:A.left||0})}}}
 function tickHorror(dt){const H=game.hx;const p=player;if(world.dimKey!=='over'||game.paused||p.dead)return;const night=R.day<0.35;
   H.amb-=dt;if(H.amb<=0){H.amb=night?12+Math.random()*25:45+Math.random()*60;const r=Math.random();playSound(r<0.5?'whisper':r<0.8?'creak':'heartbeat',0.45+Math.random()*0.4,0.75+Math.random()*0.5)}
   let near=null;for(const e of entities){if(e instanceof Mob&&e.type==='stalker'&&!e.dead){const d=Math.hypot(e.x-p.x,e.z-p.z);if(!near||d<near.d)near={e,d}}}
