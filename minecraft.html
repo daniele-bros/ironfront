@@ -246,15 +246,10 @@ label.lb{font-size:13px;color:#a0a0a0;align-self:flex-start;margin-left:calc(50%
 <div id="mpMenu" class="menu dirtbg">
   <h2 class="sh">Multiplayer</h2>
   <label class="lb">Your name</label><input class="tx" id="mpName" maxlength="16" placeholder="Player">
-  <div class="hint" style="color:#ff6;width:440px;margin:4px 0 2px;font-weight:700">PUBLIC SERVERS &mdash; no code needed, just click one</div>
-  <div class="hint" style="color:#aaa;width:440px;margin:0 0 6px">Anyone can walk in. You join whoever is already playing there, or open it up yourself if it is empty. Everyone sees each other, builds together and chats with T. Public worlds save on your computer like regular worlds, so you keep your stuff, can play them alone from Singleplayer, and bring the latest state with you when you open one up.</div>
-  <button class="btn pubbtn" data-i="0">Green Hills &mdash; classic survival, no mods</button>
-  <button class="btn pubbtn" data-i="5">River Town &mdash; classic survival, no mods</button>
-  <button class="btn pubbtn" data-i="6">Snow Peaks &mdash; classic survival, no mods</button>
-  <button class="btn pubbtn" data-i="1">Storm Coast &mdash; weather mod</button>
-  <button class="btn pubbtn" data-i="2">Dead Zone &mdash; zombie apocalypse</button>
-  <button class="btn pubbtn" data-i="3">Chaos Lands &mdash; structure chaos + random blocks</button>
-  <button class="btn pubbtn" data-i="4">Gun Range &mdash; guns + zombie waves</button>
+  <div class="hint" style="color:#ff6;width:440px;margin:4px 0 2px;font-weight:700">OPEN PUBLIC SERVERS &mdash; click one to join, no code needed</div>
+  <div class="hint" style="color:#aaa;width:440px;margin:0 0 6px">Worlds other players have open right now. Public worlds save on your computer like regular worlds: you keep your stuff, can play them alone from Singleplayer, and bring the latest state with you when you host.</div>
+  <div id="mpList" style="width:440px;max-height:180px;overflow-y:auto;margin-bottom:6px"></div>
+  <div class="btnrow"><button class="btn half" id="btnMpCreate">Create New Public World</button><button class="btn half" id="btnMpRefresh">Refresh List</button></div>
   <div class="btnrow" style="margin-top:10px"><button class="btn half" id="btnMpHost">Host Private World</button><input class="tx half" id="mpCode" maxlength="8" placeholder="Room code" style="text-transform:uppercase"></div>
   <div class="btnrow"><button class="btn half" id="btnMpJoin">Join by Code</button><button class="btn half" id="btnMpBack">Back</button></div>
   <div class="hint" id="mpStatus" style="color:#ff6;width:440px;margin-top:8px;min-height:18px"></div>
@@ -281,7 +276,7 @@ label.lb{font-size:13px;color:#a0a0a0;align-self:flex-start;margin-left:calc(50%
 </div>
 
 <div id="createMenu" class="menu dirtbg">
-  <h2 class="sh">Create New World</h2>
+  <h2 class="sh" id="createTitle">Create New World</h2>
   <label class="lb">World Name</label><input class="tx" id="wName" value="New World" maxlength="24">
   <label class="lb">Seed for the world generator (leave blank for random)</label><input class="tx" id="wSeed" placeholder="">
   <button class="btn" id="btnMode">Game Mode: Survival</button>
@@ -602,6 +597,7 @@ defTex('copper_block',p=>{p.noise(192,112,78,9);for(let i=0;i<16;i+=4){p.rect(0,
 defTex('trial_spawner',p=>{p.noise(34,32,30,6);p.rect(1,1,14,14,52,50,48);p.rect(3,3,10,10,20,18,16);p.rect(5,5,6,6,240,120,20);p.rect(7,7,2,2,255,220,90);p.rect(0,7,16,2,70,68,64);p.rect(7,0,2,16,70,68,64)});
 defTex('vault',p=>{p.noise(44,46,50,6);p.rect(1,1,14,14,74,80,86);p.rect(3,3,10,10,50,54,60);p.rect(7,5,2,3,0,0,0);p.rect(6,8,4,3,0,0,0);p.rect(2,2,12,1,235,170,60);p.rect(2,13,12,1,235,170,60)});
 defTex('vault_used',p=>{p.noise(44,46,50,6);p.rect(1,1,14,14,64,66,70);p.rect(3,3,10,10,40,42,46);p.rect(7,5,2,3,25,25,28);p.rect(6,8,4,3,25,25,28)});
+defTex('breeze_face',p=>{p.noise(60,72,105,6);p.rect(3,5,3,3,235,245,255);p.rect(10,5,3,3,235,245,255);p.rect(4,6,1,1,40,50,90);p.rect(11,6,1,1,40,50,90)});
 defTex('player_face',p=>{p.noise(215,168,130,6);p.rect(3,5,2,2,255,255,255);p.rect(4,5,1,2,60,40,120);p.rect(10,5,2,2,255,255,255);p.rect(11,5,1,2,60,40,120);p.rect(6,11,4,1,150,80,70)});
 defTex('villager_face',p=>{p.noise(200,160,120,6);p.rect(2,4,3,2,60,120,60);p.rect(11,4,3,2,60,120,60);p.rect(2,3,12,1,110,70,40);p.rect(6,6,4,7,190,145,105);p.rect(5,13,6,1,150,110,80)});
 defTex('sheep_wool',p=>{p.noise(235,235,235,10);for(let i=0;i<10;i++)p.blob(floor(p.rng()*16),floor(p.rng()*16),1.5,215,215,215)});
@@ -815,6 +811,8 @@ defItem(467,'mace',{icon:'mace',stack:1,dur:500,tool:'mace',dmg:6,atkSpd:0.6,mat
 defItem(468,'trident',{icon:'trident',stack:1,dur:250,tool:'trident',dmg:9,atkSpd:1.1,mat:'diamond'});
 defItem(469,'heavy_core',{icon:'heavy_core',stack:64});
 defItem(470,'trial_key',{icon:'trial_key',stack:64});
+defItem(471,'breeze_rod',{icon:'breeze_rod',stack:64});
+defItem(472,'wind_charge',{icon:'wind_charge',stack:64});
 defItem(466,'sniper',{icon:'sniper',stack:1,dur:700,label:'Sniper Rifle',gun:{dmg:26,rate:1.3,speed:230,spread:0.002,hipSpread:0.06,pellets:1,ammo:463,auto:false,snd:'sniper',recoil:0.1,scope:true}});
 defItem(302,'carrot',{icon:'carrot',food:[3,3.6],plants:73});
 defItem(303,'potato',{icon:'potato',food:[1,0.6],plants:74,smelt:304});
@@ -905,6 +903,8 @@ arrow:["..............ww",".............wwl","............www.","...........ss..
 pistol:["................","................","................","..dddddddddddd..",".dhhhhhhhhhhhdd.",".dddddddddddddd.","..ddd....ddddd..","..dgg...........","..dggg..........","..dggg..........","...ggg..........","...ggg..........","....gg..........","................","................","................"],
 rifle:["................","................","..............dd","..........ddddd.","......ddddddddd.","..ddddddhhhhhhd.",".dwwwwwddddddd..","dwwwwwdd.ddd....","dwww..ddd.......",".ww...dgg.......","......dgg.......",".......gg.......","................","................","................","................"],
 shotgun:["................","................","..............dd","...........dddd.",".......dddddddd.","..dddddhhhhhhhd.",".dwwwwwdddddddd.","dwwwwwwdd.dddd..","dwwww..ddd......",".ww...dgg.......","......dgg.......","......dgg.......","................","................","................","................"],
+breeze_rod:["................","..............ww",".............wbw","............wbw.","...........wbw..","..........wbw...",".........wbw....","........wbw.....",".......wbw......","......wbw.......",".....wbw........","....wbw.........","...wbw..........","..ww............","................","................"],
+wind_charge:["................","................","......wwww......","....wwbbbbww....","...wbbwwwwbbw...","..wbbwwddwwbbw..","..wbwwddddwwbw..",".wbbwddwwddwbbw.",".wbbwddwwddwbbw.","..wbwwddddwwbw..","..wbbwwddwwbbw..","...wbbwwwwbbw...","....wwbbbbww....","......wwww......","................","................"],
 mace:["................",".....dddddd.....","....dddddddd....","....ddhhhhdd....","....ddhhhhdd....","....dddddddd....",".....dddddd.....",".......ss.......",".......ss.......",".......ss.......",".......ss.......",".......ss.......",".......ss.......",".......gg.......",".......gg.......","................"],
 trident:["................","...t..tt..t.....","...t..tt..t.....","...t..tt..t.....","...tttttttt.....","......tt........","......ss........","......ss........","......ss........","......ss........","......ss........","......ss........","......ss........","......ss........","................","................"],
 heavy_core:["................","................","................","...dddddddddd...","..dkkkkkkkkkkd..","..dkhhhhhhhhkd..","..dkhhhhhhhhkd..","..dkhhhhhhhhkd..","..dkhhhhhhhhkd..","..dkhhhhhhhhkd..","..dkhhhhhhhhkd..","..dkkkkkkkkkkd..","...dddddddddd...","................","................","................"],
@@ -949,7 +949,7 @@ beef:['meat',{m:[200,60,60],f:[240,220,220]}],cooked_beef:['meat',{m:[130,70,40]
 chicken:['drumstick',{m:[230,170,160],b:[240,230,220]}],cooked_chicken:['drumstick',{m:[200,130,70],b:[240,230,220]}],
 mutton:['meat',{m:[210,80,80],f:[240,220,220]}],cooked_mutton:['meat',{m:[150,80,50],f:[200,150,110]}],
 rotten_flesh:['meat',{m:[120,90,60],f:[90,120,60]}],bone:['bone',{w:[235,235,225]}],arrow:['arrow',{w:[200,200,210],l:[240,240,250],s:[140,110,70],f:[230,230,230]}],
-bow:['bow',{s:[140,100,60],w:[230,230,230]}],pistol:['pistol',{d:[55,55,62],h:[125,125,135],g:[95,62,40]}],rifle:['rifle',{d:[55,55,62],h:[125,125,135],g:[95,62,40],w:[120,80,45]}],shotgun:['shotgun',{d:[50,50,55],h:[120,120,125],g:[95,62,40],w:[130,85,45]}],bullet:['bullet',{b:[205,165,70],w:[150,150,160]}],sniper:['sniper',{d:[45,48,52],h:[120,125,135],g:[80,55,35],w:[95,70,40],s:[30,30,35]}],mace:['mace',{d:[60,58,64],h:[120,116,125],s:[120,80,45],g:[85,55,30]}],trident:['trident',{t:[90,225,215],s:[70,180,170]}],heavy_core:['heavy_core',{d:[38,38,42],k:[70,70,78],h:[110,110,120]}],trial_key:['trial_key',{g:[235,175,60]}],shell:['shell',{b:[205,165,70],r:[200,40,40]}],feather:['feather',{w:[240,240,240],s:[200,200,200]}],string:['string',{w:[235,235,235]}],
+bow:['bow',{s:[140,100,60],w:[230,230,230]}],pistol:['pistol',{d:[55,55,62],h:[125,125,135],g:[95,62,40]}],rifle:['rifle',{d:[55,55,62],h:[125,125,135],g:[95,62,40],w:[120,80,45]}],shotgun:['shotgun',{d:[50,50,55],h:[120,120,125],g:[95,62,40],w:[130,85,45]}],bullet:['bullet',{b:[205,165,70],w:[150,150,160]}],sniper:['sniper',{d:[45,48,52],h:[120,125,135],g:[80,55,35],w:[95,70,40],s:[30,30,35]}],mace:['mace',{d:[60,58,64],h:[120,116,125],s:[120,80,45],g:[85,55,30]}],breeze_rod:['breeze_rod',{w:[215,230,245],b:[120,160,210]}],wind_charge:['wind_charge',{w:[225,235,250],b:[130,170,220],d:[80,110,170]}],trident:['trident',{t:[90,225,215],s:[70,180,170]}],heavy_core:['heavy_core',{d:[38,38,42],k:[70,70,78],h:[110,110,120]}],trial_key:['trial_key',{g:[235,175,60]}],shell:['shell',{b:[205,165,70],r:[200,40,40]}],feather:['feather',{w:[240,240,240],s:[200,200,200]}],string:['string',{w:[235,235,235]}],
 egg:['egg',{m:[230,215,180],l:[245,235,210]}],snowball:['ball',{m:[240,245,255],l:[255,255,255]}],clay_ball:['ball',{m:[160,165,175],l:[190,195,205]}],
 spider_eye:['eye',{r:[150,30,30],k:[30,10,10]}],leather:['leather',{m:[170,100,50]}],brick:['brick',{m:[150,80,65]}],
 bucket:['bucket',{g:[170,170,170],c:[120,120,120]}],water_bucket:['bucket',{g:[170,170,170],c:[50,100,220]}],lava_bucket:['bucket',{g:[170,170,170],c:[240,110,20]}],milk_bucket:['bucket',{g:[170,170,170],c:[245,245,245]}],
@@ -1886,6 +1886,7 @@ const MOBDEF={
   stray:{hp:20,w:0.6,h:1.99,speed:3.4,dmg:3,undead:true,ranged:true,slowArrow:true,drops:r=>[[283,floor(r()*3)],[284,floor(r()*3)]],xp:[5,5],sound:'skeleton',follow:16},
   cave_spider:{hp:12,w:0.7,h:0.5,speed:4.6,dmg:2,poison:true,scale:0.5,drops:r=>[[286,floor(r()*3)],[r()<0.33?287:0,1]],xp:[5,5],sound:'spider',follow:16,neutral:true,lightNeutral:true},
   cartoon_cat:{hp:220,w:0.9,h:4.2,speed:6.8,dmg:0,undead:true,noBurn:true,drops:()=>[],xp:[40,60],sound:'cattune',follow:90,tall:true,noDespawn:true},
+  breeze:{hp:30,w:0.6,h:1.77,speed:4.2,dmg:0,ranged:'wind',noBurn:true,drops:r=>[[471,1+floor(r()*2)]],xp:[10,10],sound:'wind',follow:24},
   stalker:{hp:60,w:0.7,h:3.4,speed:4.4,dmg:0,undead:true,noBurn:true,drops:()=>[],xp:[0,0],sound:'enderman',follow:60,tall:true},
   enderman:{hp:40,w:0.6,h:2.9,speed:5.2,dmg:7,drops:r=>[[312,floor(r()*2)]],xp:[5,5],sound:'enderman',follow:64,neutral:true,tall:true},
   slime:{hp:16,w:2.04,h:2.04,speed:2.4,dmg:4,drops:(r,e)=>e.size===1?[[313,floor(r()*3)]]:[],xp:[4,4],sound:'slime',follow:16},
@@ -2038,6 +2039,7 @@ class Mob extends Entity{
       else if(d.ranged==='potion'){if(dist3<10&&this.atkCd<=0&&this.drinking<=0&&this.canSee(p)){this.atkCd=diff===3?2.5:3.5;throwPotion(this,p,diff)}}
       else if(d.ranged==='fireball'){if(dist3<24&&this.atkCd<=0&&this.canSee(p)){this.burst=(this.burst||0)+1;this.atkCd=this.burst>=3?(this.burst=0,4):0.35;shootFireball(this,p,diff)}}
       else if(d.ranged==='spell'){if(this.atkCd<=0&&this.canSee(p)){this.atkCd=5;castSpell(this,p,diff)}}
+      else if(d.ranged==='wind'){if(dist3<14&&this.atkCd<=0&&this.canSee(p)){this.atkCd=1.5+Math.random();shootWindCharge(this,p)}if(this.onGround&&Math.random()<dt*1.3){this.vy=7+Math.random()*4;const a=Math.random()*PI*2;this.vx+=Math.sin(a)*5;this.vz+=Math.cos(a)*5;playSoundAt('wind',this.x,this.y,this.z,0.4,1.4)}}
       else if(d.ranged){if(dist3<15&&this.atkCd<=0&&dist3>1.5&&this.canSee(p)){this.atkCd=diff===3?2:3;const ex=this.x,ey=this.y+this.h*0.85,ez=this.z;let ax=p.x-ex,ay=(p.y+1)-ey,az=p.z-ez;const l=sqrt(ax*ax+ay*ay+az*az);ay+=l*0.06;const sp=30;const n=sqrt(ax*ax+ay*ay+az*az);const spread=0.05*(4-diff);const ar=new Arrow(ex,ey,ez,ax/n*sp+(Math.random()-0.5)*spread*sp,ay/n*sp+(Math.random()-0.5)*spread*sp,az/n*sp+(Math.random()-0.5)*spread*sp,'mob',(d.arrowDmg?d.arrowDmg[diff-1]:[2.5,3.5,4.5][diff-1])+floor(Math.random()*2));if(d.slowArrow){ar.effect='slow';ar.effectT=30}entities.push(ar);playSoundAt('bow',ex,ey,ez)}}
       else{const reach=this.w/2+p.w/2+0.6;const base=this.dmgOverride!==undefined?this.dmgOverride:d.dmg;if(base>0&&dist<reach&&abs(dy)<(d.tall?3.5:2)&&this.atkCd<=0&&!blockedLOS(this.x,this.y+this.h*0.8,this.z,p.x,p.y+1,p.z)){this.atkCd=1;const dm=[base*0.8,base,base*1.5][diff-1];
         if(damageEntity(p,dm,{x:this.x,y:this.y,z:this.z,type:'mob',mob:this})){if(d.hungerHit)p.effects.hunger=Math.max(p.effects.hunger||0,7*diff);if(d.witherHit)p.effects.wither=Math.max(p.effects.wither||0,10);if(d.poison&&diff>1)p.effects.poison=Math.max(p.effects.poison||0,diff===3?15:7)}
@@ -2117,6 +2119,8 @@ class Mob extends Entity{
         part([-4,6,-2,4,18,2],0,0,0,0,0,0,sc,c);part([-4,0,-4,4,8,4],0,18,0,hp,hy,0,[sc,sc,sc,sc,sc,TEX.creeper_face],c);break}
       case 'blaze':{const c=[1,0.85,0.4];const sk=TEX.blaze_skin;part([-4,10,-4,4,18,4],0,0,0,hp,hy,0,[sk,sk,sk,sk,sk,TEX.blaze_face],c);
         for(let ring=0;ring<3;ring++){const ry=ring===0?12:ring===1?6:1;const rr=ring===1?5:4;const sp=this.age*(ring===1?-2:2)+ring;for(let i=0;i<4;i++){const a=sp+i*PI/2;const rx=Math.cos(a)*rr,rz=Math.sin(a)*rr;part([rx-1,ry-4+Math.sin(this.age*4+i+ring)*1.2,rz-1,rx+1,ry+4,rz+1],0,0,0,0,0,0,sk,[1,0.75,0.3])}}break}
+      case 'breeze':{const hc=[0.3,0.36,0.5];part([-3.5,20,-3.5,3.5,27,3.5],0,0,0,hp,hy,0,face(TEX.breeze_face),hc);
+        for(let ring=0;ring<4;ring++){const ry=2+ring*5;const rr=1.5+ring*1.2;const sp=this.age*(ring%2?-3:3)+ring;for(let i=0;i<4;i++){const a=sp+i*PI/2;const rx=Math.cos(a)*rr,rz=Math.sin(a)*rr;part([rx-1.3,ry-2,rz-1.3,rx+1.3,ry+2,rz+1.3],0,0,0,0,0,0,N,[0.78,0.86,0.98])}}break}
       case 'vex':{const c=[0.85,0.87,0.95];const fl=Math.sin(this.age*14)*0.8;part([-2,-6,-1.5,2,0,1.5],0,10,0,0.4,0,0,N,c);part([-2.5,0,-2.5,2.5,5,2.5],0,10,0,hp,hy,0,face(TEX.vex_face),c);
         part([-1,-5,-1,1,0,1],-3,9.5,0,-1.4,0,0,N,c);part([-1,-5,-1,1,0,1],3,9.5,0,-1.4,0,0,N,c);part([-0.5,-1,-6,0.5,0,-1],-3,9.5,0,-1.4,0,0,W,[0.75,0.75,0.8]);
         part([-8,0,-1,0,4,1],-2,9,1,0,0,fl,N,[0.75,0.78,0.9]);part([0,0,-1,8,4,1],2,9,1,0,0,-fl,N,[0.75,0.78,0.9]);break}
@@ -2204,6 +2208,16 @@ class ShulkerBullet extends Entity{constructor(x,y,z,owner){super(x,y,z);this.w=
     if(d<0.9){this.dead=true;if(damageEntity(p,4,{x:ox,y:oy,z:oz,type:'magic',mob:this.owner,kb:3})){p.effects.levitation=Math.max(p.effects.levitation||0,10);showMessage('Levitation!')}spawnParticles('smoke',this.x,this.y,this.z,6)}}
   onDeath(){this.dead=true;spawnParticles('smoke',this.x,this.y,this.z,6)}
   render(EB){const tf=makeTF(this.x,this.y,this.z,this.age*4,this.age*2,0,0,0,0,1);EB.box(tf,-0.15,-0.15,-0.15,0.15,0.15,0.15,TEX.white,[0.9,0.85,0.95],[1,1],true);EB.box(tf,-0.05,-0.25,-0.05,0.05,0.25,0.05,TEX.white,[0.5,0.2,0.6],[1,1],true)}}
+function windBurst(x,y,z,byPlayer){playSoundAt('wind',x,y,z,1,0.8);for(let i=0;i<14;i++)spawnParticles('bolt',x+(Math.random()-0.5)*2.5,y+(Math.random()-0.5)*2,z+(Math.random()-0.5)*2.5,1);spawnParticles('smoke',x,y,z,6);
+  const push=(e,isP)=>{const dx=e.x-x,dy=(e.y+0.5)-y,dz=e.z-z;const d=sqrt(dx*dx+dy*dy+dz*dz);if(d>3.2)return;const k=1-d/3.2;const h=sqrt(dx*dx+dz*dz)||1;e.vx+=dx/h*7*k;e.vz+=dz/h*7*k;e.vy=Math.max(e.vy,0)+(isP?10:8)*k+3;if(isP){e.onGround=false;e.fallDist=0;if(!byPlayer&&e.mode!=='creative')damageEntity(e,1,{type:'mob'})}};
+  for(const e of entities){if(!(e instanceof Mob)||e.dead||e.dying)continue;push(e,false)}if(!player.dead&&!player.riding)push(player,true)}
+function shootWindCharge(b,p){const ex=b.x,ey=b.y+b.h*0.7,ez=b.z;let ax=p.x-ex,ay=(p.y+1)-ey,az=p.z-ez;const n=sqrt(ax*ax+ay*ay+az*az)||1;const sp=22;
+  const w=new Arrow(ex,ey,ez,ax/n*sp,ay/n*sp,az/n*sp,'mob',0);w.wind=true;w.noGravity=true;
+  w.render=function(EB){const l=[1,1];const t=this.age*12;EB.box((x,y,z)=>[this.x+x,this.y+y,this.z+z],-0.14,-0.14,-0.14,0.14,0.14,0.14,TEX.white,[0.85,0.92,1],l,true);EB.box((x,y,z)=>[this.x+x*Math.cos(t)-z*Math.sin(t),this.y+y,this.z+x*Math.sin(t)+z*Math.cos(t)],-0.28,-0.04,-0.04,0.28,0.04,0.04,TEX.white,[0.6,0.75,0.95],l,true)};
+  w.onImpact=function(t){windBurst(this.x,this.y,this.z,false)};entities.push(w);playSoundAt('wind',ex,ey,ez,0.7,1.2)}
+function throwWindCharge(){const p=player;const e=[p.x,p.y+p.eyeHeight,p.z];const d=eyeDir();const sp=26;const w=new Arrow(e[0]+d[0]*0.5,e[1]+d[1]*0.5-0.1,e[2]+d[2]*0.5,d[0]*sp,d[1]*sp,d[2]*sp,'player',0);w.wind=true;w.noGravity=true;
+  w.render=function(EB){const l=[1,1];const t=this.age*12;EB.box((x,y,z)=>[this.x+x,this.y+y,this.z+z],-0.14,-0.14,-0.14,0.14,0.14,0.14,TEX.white,[0.85,0.92,1],l,true);EB.box((x,y,z)=>[this.x+x*Math.cos(t)-z*Math.sin(t),this.y+y,this.z+x*Math.sin(t)+z*Math.cos(t)],-0.28,-0.04,-0.04,0.28,0.04,0.04,TEX.white,[0.6,0.75,0.95],l,true)};
+  w.onImpact=function(t){windBurst(this.x,this.y,this.z,true)};entities.push(w);consumeHeld();playSound('wind',0.7,1.2);p.swing=0}
 function shootFireball(b,p,diff){const ex=b.x,ey=b.y+b.h*0.6,ez=b.z;let ax=p.x-ex,ay=(p.y+1)-ey,az=p.z-ez;const n=sqrt(ax*ax+ay*ay+az*az)||1;const sp=16;const spread=0.08;
   const f=new Arrow(ex,ey,ez,ax/n*sp+(Math.random()-0.5)*spread*sp,ay/n*sp+(Math.random()-0.5)*spread*sp,az/n*sp+(Math.random()-0.5)*spread*sp,'mob',0);f.fireball=true;f.noGravity=true;
   f.render=function(EB){const l=[1,1];EB.box((x,y,z)=>[this.x+x,this.y+y,this.z+z],-0.16,-0.16,-0.16,0.16,0.16,0.16,TEX.fire,[1,0.8,0.3],l,true)};
@@ -2478,6 +2492,7 @@ function useItem(){
       if(this.thrown===290&&Math.random()<0.125&&!this.hatched){this.hatched=true;const c=new Mob('chicken',this.x,this.y,this.z);c.baby=true;c.growT=120;entities.push(c)}this.dead=true}};
     entities.push(a);consumeHeld();playSound('bow',0.5);p.swing=0;return}
   if(hd.plants&&t&&t.block&&t.face===2&&t.id===36&&world.getBlock(t.bx,t.by+1,t.bz)===0){world.setBlock(t.bx,t.by+1,t.bz,hd.plants,0);consumeHeld();playSoundAt('place_grass',t.bx,t.by,t.bz);p.swing=0;return}
+  if(hd&&hd.id===472){throwWindCharge();return}
   if(hd.spawnMob&&t&&t.block){const n=FACE_DIR[t.face];const m=new Mob(hd.spawnMob,t.bx+n[0]+0.5,t.by+(n[1]<0?-2:n[1]),t.bz+n[2]+0.5);entities.push(m);consumeHeld();playSoundAt('pop',m.x,m.y,m.z);p.swing=0;return}
   if(hd.isBlock&&t&&t.block){placeHeldBlock(hd,st,t)}
 }
@@ -2495,9 +2510,9 @@ function placeHeldBlock(hd,st,t){
     case 'torch':{if(face===2||(tdef.replaceable&&BLOCKS[below].opaque)){const s=BLOCKS[world.getBlock(px,py-1,pz)];if(!(s.opaque||s.model==='fence'||s.model==='slab'))return;meta=0}else if(face===3)return;else{const wall=BLOCKS[t.id];if(!wall.opaque)return;meta=FACE_TO_FACING[face]+1}break}
     case 'ladder':{if(face===2||face===3)return;if(!tdef.opaque)return;meta=FACE_TO_FACING[face];break}
     case 'door':{if(!BLOCKS[below].solid)return;const up=world.getBlock(px,py+1,pz);if(up!==0&&!BLOCKS[up].replaceable)return;if(boxesOverlapEntity(px,py,pz,px+1,py+2,pz+1))return;
-      world.setBlock(px,py,pz,54,lf);world.setBlock(px,py+1,pz,54,lf|8);consumeHeld();playSoundAt('place_wood',px,py,pz);p.swing=0;return}
+      world.setBlock(px,py,pz,54,lf,{silent:true});world.setBlock(px,py+1,pz,54,lf|8);consumeHeld();playSoundAt('place_wood',px,py,pz);p.swing=0;return}
     case 'bed':{const d=FACE_DIR[FACING_TO_FACE[lf]];const hx=px+d[0],hz=pz+d[2];const hb=world.getBlock(hx,py,hz);if(!(hb===0||BLOCKS[hb].replaceable))return;if(!BLOCKS[below].solid||!BLOCKS[world.getBlock(hx,py-1,hz)].solid)return;
-      world.setBlock(px,py,pz,62,lf);world.setBlock(hx,py,hz,62,lf|4);consumeHeld();playSoundAt('place_wool',px,py,pz);p.swing=0;return}
+      world.setBlock(px,py,pz,62,lf,{silent:true});world.setBlock(hx,py,hz,62,lf|4);consumeHeld();playSoundAt('place_wool',px,py,pz);p.swing=0;return}
     case 'slab':{meta=(face===3||(face!==2&&t.fy>0.5))?1:0;break}
     case 'stairs':{meta=lf|((face===3||(face!==2&&t.fy>0.5))?4:0);break}
     case 'crop':return;
@@ -2640,7 +2655,7 @@ Object.assign(World.prototype,{
     const hall=(x0,z0,dx,dz,len)=>{const px=dz?1:0,pz=dx?1:0;for(let i=0;i<len;i++){const hx=x0+dx*i,hz=z0+dz*i;for(let sd=-1;sd<=1;sd++)for(let h=-1;h<=3;h++){const wall=abs(sd)===1&&false||h===-1||h===3;this.setGen(hx+px*sd,y+h,hz+pz*sd,h===-1||h===3?T:0,0,false)}for(let h=0;h<3;h++){this.setGen(hx+px*2,y+h,hz+pz*2,T,0,false);this.setGen(hx-px*2,y+h,hz-pz*2,T,0,false)}if(i%3===1)this.setGen(hx,y+3,hz,L,0,false)}};
     room(x,z,7,7,6);for(const [dx,dz] of [[1,0],[-1,0],[0,1],[0,-1]]){hall(x+dx*8,z+dz*8,dx,dz,9);room(x+dx*21,z+dz*21,4,4,4)}
     // the centre: an ominous vault on a copper pedestal flanked by two trial spawners; each side room has its own spawner and a normal vault
-    this.setGen(x,y,z,C,0,false);this.setGen(x,y+1,z,112,1,false);this.setGen(x-3,y,z,111,0,false);this.setGen(x+3,y,z,111,1,false);
+    this.setGen(x,y,z,C,0,false);this.setGen(x,y+1,z,112,1,false);this.setGen(x-3,y,z,111,3,false);this.setGen(x+3,y,z,111,1,false);
     for(const [dx,dz] of [[1,0],[-1,0],[0,1],[0,-1]]){const rx=x+dx*21,rz=z+dz*21;this.setGen(rx,y,rz,111,floor(rng()*4),false);this.setGen(rx+dx*3,y,rz+dz*3,112,0,false);if(rng()<0.5)this.setChest(rx-dz*3,y,rz+dx*3,0,'dungeon',rng,2+floor(rng()*3))}
     // a 2x2 shaft up to daylight with a copper marker on top
     const sx=x+5,sz=z+5;const top=this.surfaceY(sx,sz);for(let yy=y;yy<=top+1;yy++)for(let dx=0;dx<2;dx++)for(let dz=0;dz<2;dz++)this.setGen(sx+dx,yy,sz+dz,0,0,false);for(let yy=y;yy<=top;yy++){this.setGen(sx-1,yy,sz,38,3,false);this.setGen(sx-1,yy,sz+1,38,3,false)}
@@ -2889,13 +2904,13 @@ function tickTrials(dt){const p=player;for(const [k,s] of world.trials){if(world
     if(s.state==='cooldown'){s.cd-=dt;if(s.cd<=0)s.state='idle';continue}
     if(s.state==='idle'){if(d2<7*7&&!p.dead&&game.difficulty>0&&!blockedLOS(s.x+0.5,s.y+0.8,s.z+0.5,p.x,p.y+1,p.z)){s.state='active';s.total=6+floor(Math.random()*3);s.spawned=0;s.mobs=[];s.t=0;playSound('horn',0.5,1.4);showMessage('The trial spawner awakens! Defeat every mob it summons to earn a Trial Key');spawnParticles('fire',s.x+0.5,s.y+1.2,s.z+0.5,12)}continue}
     if(s.state==='active'){s.mobs=s.mobs.filter(m=>!m.dead&&!m.dying);if(Math.random()<dt*4)spawnParticles('fire',s.x+0.5,s.y+1.1,s.z+0.5,1);s.t-=dt;
-      if(s.spawned<s.total&&s.mobs.length<3&&s.t<=0){s.t=1.2;const types=[['zombie','husk'],['skeleton','stray'],['spider','cave_spider'],['slime','zombie']][s.kind];const type=types[floor(Math.random()*types.length)];
+      if(s.spawned<s.total&&s.mobs.length<3&&s.t<=0){s.t=1.2;const types=[['zombie','husk'],['skeleton','stray'],['spider','cave_spider'],['breeze']][s.kind];const type=types[floor(Math.random()*types.length)];
         for(let tries=0;tries<12;tries++){const bx=s.x+floor(Math.random()*7)-3,bz=s.z+floor(Math.random()*7)-3;if(world.getBlock(bx,s.y,bz)!==0||world.getBlock(bx,s.y+1,bz)!==0||!BLOCKS[world.getBlock(bx,s.y-1,bz)].solid)continue;const m=new Mob(type,bx+0.5,s.y,bz+0.5);m.def=Object.assign({},MOBDEF[type],{noBurn:true,noDespawn:true,follow:40});m.angry=true;entities.push(m);s.mobs.push(m);s.spawned++;spawnParticles('smoke',m.x,m.y+1,m.z,6);playSoundAt('pop',m.x,m.y,m.z,1,0.6);break}}
       if(s.spawned>=s.total&&s.mobs.length===0){s.state='cooldown';s.cd=600;spawnItem(s.x+0.5,s.y+1.2,s.z+0.5,{id:470,count:1});spawnXP(s.x+0.5,s.y+1.2,s.z+0.5,30);playSound('levelup',0.9);showMessage('Trial complete! A Trial Key pops out. Use it on a vault.')}
       if(d2>40*40){for(const m of s.mobs)m.dead=true;s.state='idle'}}}}
 function openVault(bx,by,bz){const p=player;const st=heldStack();const meta=world.getMeta(bx,by,bz);if(!st||st.id!==470){showMessage('Locked. It takes a Trial Key: beat a trial spawner to earn one');playSound('hit_stone',0.6,0.4);return}
   consumeHeld();const rng=Math.random;let items=rollLoot(LOOT[meta?'vault_ominous':'vault'],rng,meta?5:4).filter(Boolean);let cores=0;items=items.filter(i=>i.id!==469||cores++===0);if(meta&&!cores)items.push({id:469,count:1});
-  for(const it of items)spawnItem(bx+0.5,by+1.1,bz+0.5,it,[(rng()-0.5)*3,4,(rng()-0.5)*3]);world.setBlock(bx,by,bz,113,0);playSound('levelup',1,0.8);spawnParticles('happy',bx+0.5,by+1.2,bz+0.5,12);showMessage(meta?'The ominous vault opens: a Heavy Core! Combine it with a stick to forge a Mace':'The vault opens')}
+  for(const it of items)spawnItem(bx+0.5,by+1.1,bz+0.5,it,[(rng()-0.5)*3,4,(rng()-0.5)*3]);world.setBlock(bx,by,bz,113,0);playSound('levelup',1,0.8);spawnParticles('happy',bx+0.5,by+1.2,bz+0.5,12);showMessage(meta?'The ominous vault opens: a Heavy Core! Put it over a Breeze Rod to forge a Mace':'The vault opens')}
 /* ---- spawner blocks ---- */
 function tickSpawners(dt){const p=player;for(const [k,s] of world.spawners){const dx=s.x+0.5-p.x,dy=s.y+0.5-p.y,dz=s.z+0.5-p.z;if(dx*dx+dy*dy+dz*dz>16*16)continue;s.t-=dt;if(s.t>0)continue;s.t=10+Math.random()*30;
   if(world.getBlock(s.x,s.y,s.z)!==86){world.spawners.delete(k);continue}let type=['zombie','skeleton','spider','blaze'][s.type];if(s.type===2){if(s.web===undefined){s.web=false;for(let ox=-2;ox<=2&&!s.web;ox++)for(let oz=-2;oz<=2&&!s.web;oz++)for(let oy=-1;oy<=2;oy++)if(world.getBlock(s.x+ox,s.y+oy,s.z+oz)===87){s.web=true;break}}if(s.web)type='cave_spider'}let near=0;for(const e of entities)if(e instanceof Mob&&e.type===type&&abs(e.x-s.x)<9&&abs(e.y-s.y)<9&&abs(e.z-s.z)<9)near++;if(near>=6||game.difficulty===0)continue;
@@ -3140,7 +3155,8 @@ RECIPES.push({p:['ii.','iii','p..'],k:{i:260,p:PLANKS},out:[462,1],shaped:true,g
 RECIPES.push({p:['gii','iii','p.i'],k:{i:260,p:PLANKS,g:17},out:[466,1],shaped:true,guns:true});
 RECIPES.push({s:[260,289],out:[463,8],shaped:false,guns:true});
 RECIPES.push({s:[260,289,289],out:[464,4],shaped:false,guns:true});
-shaped(['h','s'],{h:469,s:256},[467,1]);
+shaped(['h','b'],{h:469,b:471},[467,1]);
+shapeless([471],[472,4]);
 shaped(['ppp','.s.','.s.'],{p:91,s:256},[468,1]);
 shaped(['# #',' # '],{'#':260},[296,1]);
 shaped(['#|#','#|#'],{'#':PLANKS,'|':256},[61,3]);
@@ -3453,6 +3469,7 @@ function playSound(name,vol=1,pitch=1){
     case 'ignite':noise(0.3,'highpass',1500);tone('sawtooth',200,600,0.12);env(0.005,0.5,0.3);break;
     case 'portal':{const o=tone('sine',120,480,1.2);const l=c.createOscillator();l.frequency.value=5;const lg=c.createGain();lg.gain.value=40;l.connect(lg);lg.connect(o.frequency);l.start(t);l.stop(t+1.2);noise(1.2,'bandpass',900,2);env(0.05,0.6,1.2);break}
     case 'fizz':noise(0.5,'highpass',3000);env(0.01,0.5,0.5);break;
+    case 'wind':noise(0.5,'bandpass',700+Math.random()*400,1.5);env(0.05,0.6,0.5);break;
     case 'shear':noise(0.15,'bandpass',2500,4);env(0.005,0.5,0.15);break;
     case 'itembreak':noise(0.2,'bandpass',900,2);tone('square',600,200,0.2);env(0.005,0.6,0.2);break;
     case 'click':noise(0.03,'bandpass',2000,3);env(0.002,0.4,0.03);break;
@@ -3676,18 +3693,18 @@ const SPLASHES=['Just like the real thing!','Punch trees!','Creepers gonna creep
 function setupMenus(){
   $('splash').textContent=SPLASHES[floor(Math.random()*SPLASHES.length)];
   $('btnSingle').onclick=()=>{refreshWorldList();showMenu('worldMenu')};
-  $('btnMulti').onclick=()=>{$('mpName').value=opts.mpName||'';mpStatus('');showMenu('mpMenu')};$('btnMpBack').onclick=()=>showMenu('titleMenu');
-  for(const b of document.querySelectorAll('.pubbtn'))b.onclick=()=>{const sv=PUBLIC_SERVERS[+b.dataset.i];mpJoin(sv.room,sv.seed,sv.mods,'pub-'+b.dataset.i,true)};
+  $('btnMulti').onclick=()=>{$('mpName').value=opts.mpName||'';mpStatus('');showMenu('mpMenu');mpRefreshList()};$('btnMpRefresh').onclick=()=>mpRefreshList();
+  $('btnMpCreate').onclick=()=>{MP.createPublic=true;$('createTitle').textContent='Create New Public World';$('wName').value='My Public World';$('wSeed').value='';showMenu('createMenu')};$('btnMpBack').onclick=()=>showMenu('titleMenu');
   $('btnMpHost').onclick=()=>{const code=Array.from({length:5},()=>'abcdefghjkmnpqrstuvwxyz23456789'[floor(Math.random()*31)]).join('');mpHostPrivate(code)};
   $('btnMpJoin').onclick=()=>{const code=($('mpCode').value||'').trim().toLowerCase();if(!code){mpStatus('Type the room code your friend gave you');return}mpJoin('ironcraft-room-'+code,'0',{},'mp-guest',false)};$('btnWorldBack').onclick=()=>showMenu('titleMenu');
-  $('btnCreate').onclick=()=>{$('wName').value='New World';$('wSeed').value='';showMenu('createMenu')};$('btnCreateBack').onclick=()=>showMenu('worldMenu');
+  $('btnCreate').onclick=()=>{MP.createPublic=false;$('createTitle').textContent='Create New World';$('wName').value='New World';$('wSeed').value='';showMenu('createMenu')};$('btnCreateBack').onclick=()=>{if(MP.createPublic){MP.createPublic=false;showMenu('mpMenu')}else showMenu('worldMenu')};
   const mods={weather:false,horror:false,random:false,hardcore:false,structures:false,apocalypse:false,guns:false};
   const refreshFun=()=>{for(const b of document.querySelectorAll('.modbtn')){const k=b.dataset.mod;b.textContent=MODN[k]+': '+(mods[k]?'ON':'OFF');b.style.color=mods[k]?'#8f8':''}const on=Object.keys(mods).filter(k=>mods[k]);$('btnFun').textContent='Fun Mods: '+(on.length?on.map(k=>MODN[k]).join(', '):'None')};
   $('btnFun').onclick=()=>showMenu('funMenu');for(const b of document.querySelectorAll('.modbtn'))b.onclick=()=>{mods[b.dataset.mod]=!mods[b.dataset.mod];refreshFun()};
   $('btnFunDone').onclick=()=>showMenu('createMenu');$('btnFunClear').onclick=()=>{for(const k in mods)mods[k]=false;refreshFun()};refreshFun();
   let mode='survival',diff=2;$('btnMode').onclick=()=>{mode=mode==='survival'?'creative':'survival';$('btnMode').textContent='Game Mode: '+(mode==='survival'?'Survival':'Creative')};
   $('btnDiff').onclick=()=>{diff=(diff+1)%4;$('btnDiff').textContent='Difficulty: '+['Peaceful','Easy','Normal','Hard'][diff]};
-  $('btnCreateGo').onclick=()=>{initAudio();newWorld($('wName').value||'New World',$('wSeed').value.trim(),mode,diff,Object.assign({},mods))};
+  $('btnCreateGo').onclick=()=>{initAudio();if(MP.createPublic){MP.createPublic=false;mpCreatePublic($('wName').value||'Public World',$('wSeed').value.trim(),mode,diff,Object.assign({},mods));return}newWorld($('wName').value||'New World',$('wSeed').value.trim(),mode,diff,Object.assign({},mods))};
   $('btnPlay').onclick=()=>{const w=worldList().find(w=>w.id===selWorld);if(w){initAudio();loadWorld(w)}};
   $('btnDelete').onclick=()=>{if(!selWorld)return;if(!confirm('Delete this world? This cannot be undone.'))return;localStorage.removeItem('ic_world_'+selWorld);localStorage.setItem('ic_worlds',JSON.stringify(worldList().filter(w=>w.id!==selWorld)));selWorld=null;refreshWorldList()};
   let optBack='titleMenu';$('btnOptionsT').onclick=()=>{optBack='titleMenu';showMenu('optionsMenu')};$('btnOptionsP').onclick=()=>{optBack='pauseMenu';showMenu('optionsMenu')};$('btnOptionsBack').onclick=()=>{saveOpts();showMenu(optBack)};
@@ -3771,7 +3788,7 @@ function buildEnchantingRoom(){ // an enchanting table two blocks ahead of the p
   for(let dx=-1;dx<=1;dx++)for(let dz=-1;dz<=1;dz++){if(dx===0&&dz===0)continue;for(let dy=0;dy<=1;dy++){const b=world.getBlock(tx+dx,ty+dy,tz+dz);if(b!==0&&BLOCKS[b].opaque&&b!==29&&b!==96&&(BLOCKS[b].replaceable||BLOCKS[b].plant))world.setBlock(tx+dx,ty+dy,tz+dz,0,0)}}
   const n=shelvesAround(tx,ty,tz);playSound('enchant');showMessage('Enchanting table placed with '+placed+' bookshelves ('+n+' of 15 count: '+(n>=15?'max level 30 unlocked':'clear the blocks between the shelves and the table')+')');return true}
 const KITS={
-  trials:{label:'mace, trident with Loyalty III, 4 trial keys, heavy core',items:[[467,1],[470,4],[469,1]]},
+  trials:{label:'mace, trident, 4 trial keys, heavy core, 4 breeze rods, 8 wind charges',items:[[467,1],[468,1],[470,4],[469,1],[471,4],[472,8]]},
   guns:{label:'pistol, rifle, shotgun, sniper rifle, 128 bullets, 32 shells',items:[[460,1],[461,1],[462,1],[466,1],[463,128],[464,32]]},
   enchanting:{label:'enchanting table, 15 bookshelves, 100 lapis, 16 books',items:[[96,1],[29,15],[264,100],[378,16]]},
   end:{label:'elytra, 16 eyes of ender, 16 ender pearls, netherite sword',items:[[395,1],[392,16],[312,16],[I.netherite_sword,1]]},
@@ -3863,12 +3880,12 @@ const PUBLIC_SERVERS=[
   {room:'ironcraft-pub-gun-range',name:'Gun Range',seed:'iron-gun-range',mods:{guns:true,apocalypse:true}},
   {room:'ironcraft-pub-river-town',name:'River Town',seed:'iron-river-town',mods:{}},
   {room:'ironcraft-pub-snow-peaks',name:'Snow Peaks',seed:'iron-snow-peaks',mods:{}}];
-const MP={active:false,peer:null,conns:[],host:false,room:null,name:'',remote:new Map(),sendT:0,timeT:0,myId:null};
+const MP={active:false,peer:null,conns:[],host:false,room:null,name:'',remote:new Map(),sendT:0,timeT:0,myId:null,public:false,lobbyPeer:null,lobbyConn:null,lobbyList:new Map(),createPublic:false};
 function mpStatus(t){const el=$('mpStatus');if(el)el.textContent=t}
 function loadPeerJS(){return new Promise((res,rej)=>{if(window.Peer)return res();const sc=document.createElement('script');sc.src='https://cdn.jsdelivr.net/npm/peerjs@1.5.4/dist/peerjs.min.js';sc.onload=()=>res();sc.onerror=()=>rej(new Error('Could not load the networking library. Are you online?'));document.head.appendChild(sc)})}
 function mpName(){const n=(($('mpName')&&$('mpName').value)||'').trim().slice(0,16)||'Player'+floor(100+Math.random()*900);opts.mpName=n;saveOpts();return n}
 function mpSeed(str){return isNaN(+str)?hashStr(str):(+str|0)}
-async function mpJoin(room,seedStr,mods,worldId,isPublic){
+async function mpJoin(room,seedStr,mods,worldId,isPublic,listed){
   try{mpStatus('Loading network...');await loadPeerJS()}catch(e){mpStatus(e.message);return}
   mpLeave(true);MP.name=mpName();MP.room=room;mpStatus('Looking for a host...');
   const r=await new Promise(res=>{let done=false;const finish=v=>{if(!done){done=true;res(v)}};let peer;try{peer=new Peer()}catch(e){return finish({err:e})}
@@ -3879,16 +3896,41 @@ async function mpJoin(room,seedStr,mods,worldId,isPublic){
   if(r.peer)try{r.peer.destroy()}catch(e){}
   if(r.err&&r.err.type&&r.err.type!=='peer-unavailable'){mpStatus('Network error: '+r.err.type+'. Try again in a moment.');return}
   if(!isPublic){mpStatus('No world with that code is online right now.');return}
+  if(listed){mpStatus('That world just closed. Refresh the list.');mpRefreshList();return}
   mpStatus('Nobody is on this server yet: opening it up...');mpHost(room,mpSeed(seedStr),mods,worldId,isPublic)}
+const LOBBY_ID='ironcraft-lobby';
+function mpModsLabel(m){const on=Object.keys(m||{}).filter(k=>m[k]&&MODN[k]);return on.length?on.map(k=>MODN[k]).join(', '):'no mods'}
+function mpRenderList(list){const box=$('mpList');box.innerHTML='';if(list===null){box.innerHTML='<div class="hint" style="color:#f88">Could not reach the server list. Are you online?</div>';return}
+  if(!list.length){box.innerHTML='<div class="hint" style="color:#aaa">Nobody has a public world open right now. Create one and it shows up here for everyone.</div>';return}
+  for(const e of list){const b=document.createElement('button');b.className='btn';b.style.fontSize='13px';b.textContent=e.name+' — '+e.players+' player'+(e.players===1?'':'s')+' — '+mpModsLabel(e.mods)+(e.hostName?' — host: '+e.hostName:'');b.onclick=()=>mpJoin(e.room,'0',{},'pub-'+e.room.replace(/[^a-z0-9]/gi,''),true,true);box.appendChild(b)}}
+function mpRefreshList(){$('mpList').innerHTML='<div class="hint" style="color:#aaa">Looking for open servers...</div>';
+  loadPeerJS().then(()=>{if(MP.lobbyPeer){mpRenderList(lobbyEntries());return}const peer=new Peer();let done=false;const finish=list=>{if(done)return;done=true;mpRenderList(list);setTimeout(()=>{try{peer.destroy()}catch(e){}},300)};const to=setTimeout(()=>finish([]),6000);
+    peer.on('open',()=>{const c=peer.connect(LOBBY_ID,{reliable:true});c.on('open',()=>c.send({t:'list'}));c.on('data',d=>{if(d&&d.t==='servers'){clearTimeout(to);finish(d.list||[])}});c.on('error',()=>{clearTimeout(to);finish([])})});
+    peer.on('error',err=>{clearTimeout(to);finish(err&&err.type==='peer-unavailable'?[]:null)})}).catch(()=>mpRenderList(null))}
+function lobbyEntries(){const now=Date.now();return [...MP.lobbyList.values()].filter(e=>now-e.ts<30000).map(e=>({room:e.room,name:e.name,mods:e.mods,players:e.players,hostName:e.hostName}))}
+function lobbyServe(){if(MP.lobbyPeer||MP.lobbyTrying)return;MP.lobbyTrying=true;const lp=new Peer(LOBBY_ID);
+  lp.on('open',()=>{MP.lobbyPeer=lp;MP.lobbyTrying=false;lobbyAnnounce()});
+  lp.on('error',()=>{MP.lobbyTrying=false;try{lp.destroy()}catch(e){}});
+  lp.on('connection',c=>{c.on('data',d=>{if(!d||!d.t)return;if(d.t==='announce')MP.lobbyList.set(d.room,Object.assign({},d,{ts:Date.now()}));else if(d.t==='unannounce')MP.lobbyList.delete(d.room);else if(d.t==='list'){try{c.send({t:'servers',list:lobbyEntries()})}catch(e){}}})})}
+function lobbyStop(){if(MP.lobbyConn){try{MP.lobbyConn.send({t:'unannounce',room:MP.room});MP.lobbyConn.close()}catch(e){}MP.lobbyConn=null}if(MP.lobbyPeer){try{MP.lobbyPeer.destroy()}catch(e){}MP.lobbyPeer=null}MP.lobbyList.clear()}
+function lobbyAnnounce(){if(!MP.active||!MP.host||!MP.public||!world)return;const msg={t:'announce',room:MP.room,name:game.worldName,mods:game.mods,players:MP.conns.length+1,hostName:MP.name};
+  if(MP.lobbyPeer){MP.lobbyList.set(MP.room,Object.assign({},msg,{ts:Date.now()}));return}
+  if(MP.lobbyConn&&MP.lobbyConn.open){MP.lobbyConn.send(msg);return}
+  if(MP.lobbyConnecting)return;MP.lobbyConnecting=true;const c=MP.peer.connect(LOBBY_ID,{reliable:true});const to=setTimeout(()=>{MP.lobbyConnecting=false;try{c.close()}catch(e){}lobbyServe()},5000);
+  c.on('open',()=>{clearTimeout(to);MP.lobbyConnecting=false;MP.lobbyConn=c;c.send(msg)});c.on('close',()=>{if(MP.lobbyConn===c)MP.lobbyConn=null});c.on('error',()=>{clearTimeout(to);MP.lobbyConnecting=false;lobbyServe()})}
+function mpCreatePublic(name,seedStr,mode,diff,mods){loadPeerJS().then(()=>{mpLeave(true);MP.name=mpName();const seed=seedStr?(isNaN(+seedStr)?hashStr(seedStr):(+seedStr|0)):(Math.random()*2147483647|0);
+  const room='ironcraft-pub-'+name.toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/^-|-$/g,'').slice(0,20)+'-'+Math.random().toString(36).slice(2,6);const worldId='pub-'+room.replace(/[^a-z0-9]/gi,'');
+  const meta={id:worldId,name,seed,mode,diff,drops:mods.random?'random':'normal',mods,created:Date.now(),played:Date.now()};const list=worldList();list.push(meta);localStorage.setItem('ic_worlds',JSON.stringify(list));
+  mpStatus('Opening your public world...');showMenu('mpMenu');mpHost(room,seed,mods,worldId,true)}).catch(e=>mpStatus(e.message))}
 function mpHostPrivate(code){loadPeerJS().then(()=>{mpLeave(true);MP.name=mpName();mpStatus('Starting your world...');mpHost('ironcraft-room-'+code,(Math.random()*2147483647)|0,{},'room-'+code,false,code)}).catch(e=>mpStatus(e.message))}
-function mpHost(room,seed,mods,worldId,isPublic,code){const peer=new Peer(room);MP.peer=peer;MP.room=room;
+function mpHost(room,seed,mods,worldId,isPublic,code){const peer=new Peer(room);MP.peer=peer;MP.room=room;MP.public=!!isPublic;MP.lobbyList=MP.lobbyList||new Map();MP.annT=1;
   peer.on('open',id=>{MP.active=true;MP.host=true;MP.myId=id;mpStatus('');const list=worldList();let meta=list.find(w=>w.id===worldId);
     if(!meta){const pub=PUBLIC_SERVERS.find(s=>s.room===room);meta={id:worldId,name:pub?'Public: '+pub.name:'Room '+code.toUpperCase(),seed,mode:'survival',diff:2,drops:mods.random?'random':'normal',mods,created:Date.now(),played:Date.now()};list.push(meta);localStorage.setItem('ic_worlds',JSON.stringify(list))}
     initAudio();loadWorld(meta);setTimeout(()=>showMessage(isPublic?'You are hosting '+meta.name+'. Anyone who picks it joins you. Press T to chat.':'Hosting. Room code: '+code.toUpperCase()+' (friends type it under Join by Code). Press T to chat.'),1500)});
   peer.on('connection',conn=>{conn.on('open',()=>{MP.conns.push(conn);conn.on('data',d=>mpOnData(conn,d));conn.on('close',()=>mpDrop(conn));conn.on('error',()=>mpDrop(conn));
-    if(!world)return;conn.send({t:'hello',seed:game.seed,mods:game.mods,time:world.time,day:world.day,spawn:game.worldSpawn,blocks:mpCollectBlocks(),wx:mpWeatherState(),wave:game.ax?{wave:game.ax.wave,active:game.ax.active,next:game.ax.next,left:game.ax.left||0,roster:game.ax.roster}:null,hostId:MP.myId,hostName:MP.name,players:[...MP.remote.values()].map(r=>({id:r.pid,name:r.name}))})})});
-  peer.on('error',err=>{if(err.type==='unavailable-id'){mpStatus('Someone just opened this server: joining them...');setTimeout(()=>mpJoin(room,String(seed),mods,worldId,isPublic),800)}else mpStatus('Network error: '+err.type)})}
-function mpBecomeGuest(peer,conn,worldId){MP.peer=peer;MP.conns=[conn];MP.worldId=worldId;MP.host=false;MP.myId=peer.id;MP.active=true;mpStatus('Connected! Receiving the world...');
+    if(!world)return;conn.send({t:'hello',seed:game.seed,mods:game.mods,worldName:game.worldName,time:world.time,day:world.day,spawn:game.worldSpawn,blocks:mpCollectBlocks(),wx:mpWeatherState(),wave:game.ax?{wave:game.ax.wave,active:game.ax.active,next:game.ax.next,left:game.ax.left||0,roster:game.ax.roster}:null,hostId:MP.myId,hostName:MP.name,players:[...MP.remote.values()].map(r=>({id:r.pid,name:r.name}))})})});
+  peer.on('error',err=>{if(err.type==='peer-unavailable'){MP.lobbyConnecting=false;if(MP.public)lobbyServe();return}if(err.type==='unavailable-id'){mpStatus('Someone just opened this server: joining them...');setTimeout(()=>mpJoin(room,String(seed),mods,worldId,isPublic),800)}else mpStatus('Network error: '+err.type)})}
+function mpBecomeGuest(peer,conn,worldId){MP.peer=peer;MP.conns=[conn];MP.worldId=worldId;MP.public=!!worldId;MP.host=false;MP.myId=peer.id;MP.active=true;mpStatus('Connected! Receiving the world...');
   conn.on('data',d=>mpOnData(conn,d));conn.on('close',()=>{if(MP.active){showMessage('The host left. You are on your own now.');mpLeave(false)}});conn.on('error',()=>{})}
 function mpWeatherState(){const W=game.wx;if(!W)return {t:'wx',off:true};return {t:'wx',storm:W.storm,I:W.I,tornado:W.tornado?{x:W.tornado.x,z:W.tornado.z,dir:W.tornado.dir,life:W.tornado.life,spin:W.tornado.spin}:null}}
 function mpApplyWeather(d){const W=game.wx;if(!W||d.off||(MP.active&&MP.host))return;if(d.storm&&!W.storm)showMessage('Dark clouds gather... a thunderstorm rolls in');if(!d.storm&&W.storm)showMessage('The storm passes.');W.storm=d.storm;W.I=d.I;
@@ -3898,7 +3940,7 @@ function mpApplyBlocks(blocks){world.savedMods=world.savedMods||{};for(const k i
 function mpOnData(conn,d){if(!d||!d.t)return;
   switch(d.t){
     case 'hello':{initAudio();const pub=MP.worldId&&PUBLIC_SERVERS.find(sv=>sv.room===MP.room);
-      if(pub){const list=worldList();let meta=list.find(w=>w.id===MP.worldId);if(!meta){meta={id:MP.worldId,name:'Public: '+pub.name,seed:d.seed,mode:'survival',diff:2,drops:d.mods&&d.mods.random?'random':'normal',mods:d.mods||{},created:Date.now(),played:Date.now()};list.push(meta);localStorage.setItem('ic_worlds',JSON.stringify(list))}loadWorld(meta);game.noSave=false}
+      if(MP.worldId){const list=worldList();let meta=list.find(w=>w.id===MP.worldId);if(!meta){meta={id:MP.worldId,name:'Public: '+(pub?pub.name:(d.worldName||'world')),seed:d.seed,mode:'survival',diff:2,drops:d.mods&&d.mods.random?'random':'normal',mods:d.mods||{},created:Date.now(),played:Date.now()};list.push(meta);localStorage.setItem('ic_worlds',JSON.stringify(list))}loadWorld(meta);game.noSave=false}
       else{const meta={id:'mp-guest',name:'Multiplayer',seed:d.seed,mode:'survival',diff:2,drops:d.mods&&d.mods.random?'random':'normal',mods:d.mods||{}};startWorld(meta,null);game.noSave=true}
       world.time=d.time;world.day=d.day;if(d.spawn)game.worldSpawn=d.spawn;mpApplyBlocks(d.blocks||{});if(d.wx)mpApplyWeather(d.wx);if(d.wave&&game.ax){const A=game.ax;A.wave=d.wave.wave;A.next=d.wave.next;A.left=d.wave.left;if(d.wave.active){A.active=true;A.pendingRoster=d.wave.roster||waveRoster(d.wave.wave)}}
       mpRemote(d.hostId,d.hostName);for(const pl of d.players||[])if(pl.id!==MP.myId)mpRemote(pl.id,pl.name);mpStatus('');setTimeout(()=>showMessage('Joined '+(d.hostName||'the host')+"'s world. Press T to chat."),1500);break}
@@ -3918,7 +3960,7 @@ function mpRemote(id,name){if(!id)return null;let r=MP.remote.get(id);if(!r){r=n
 function mpRemove(id){const r=MP.remote.get(id);if(!r)return;r.dead=true;MP.remote.delete(id);showMessage(r.name+' left');const el=$('nametags').querySelector('[data-id="'+id+'"]');if(el)el.remove()}
 function mpDrop(conn){const i=MP.conns.indexOf(conn);if(i>=0)MP.conns.splice(i,1);if(conn.mpId){mpRemove(conn.mpId);mpSend({t:'leave',id:conn.mpId})}}
 function mpTick(dt){const p=player;MP.sendT-=dt;if(MP.sendT<=0){MP.sendT=0.1;const st=heldStack();mpSend({t:'p',id:MP.myId,name:MP.name,x:p.x,y:p.y,z:p.z,yaw:p.yaw,pitch:p.pitch,held:st?st.id:0,sneak:!!p.sneaking,dead:!!p.dead})}
-  if(MP.host){MP.timeT-=dt;if(MP.timeT<=0){MP.timeT=5;mpSend({t:'time',time:world.time,day:world.day})}}
+  if(MP.host){MP.timeT-=dt;if(MP.timeT<=0){MP.timeT=5;mpSend({t:'time',time:world.time,day:world.day})}if(MP.public){MP.annT=(MP.annT||0)-dt;if(MP.annT<=0){MP.annT=8;lobbyAnnounce()}}}
   for(const r of MP.remote.values())if(r.dead){MP.remote.delete(r.pid)}
   mpNameTags()}
 function mpNameTags(){const box=$('nametags');const W=R.canvas.clientWidth,H=R.canvas.clientHeight;const m=R.vp;if(!m)return;
@@ -3927,7 +3969,7 @@ function mpNameTags(){const box=$('nametags');const W=R.canvas.clientWidth,H=R.c
     const cx=(m[0]*x+m[4]*y+m[8]*z+m[12])/cw,cy=(m[1]*x+m[5]*y+m[9]*z+m[13])/cw;const d=Math.hypot(x-player.x,z-player.z);if(d>48||abs(cx)>1.1||abs(cy)>1.1){el.style.display='none';continue}
     el.style.display='block';el.textContent=r.name;el.style.left=((cx+1)/2*W)+'px';el.style.top=((1-cy)/2*H)+'px';el.style.fontSize=Math.max(9,16-d/4)+'px'}}
 function mpChat(text){text=text.slice(0,120);showMessage('<'+MP.name+'> '+text);mpSend({t:'c',name:MP.name,text})}
-function mpLeave(quiet){if(MP.peer){try{mpSend({t:'leave',id:MP.myId})}catch(e){}try{MP.peer.destroy()}catch(e){}}for(const r of MP.remote.values())r.dead=true;MP.remote.clear();MP.conns=[];MP.peer=null;MP.active=false;MP.host=false;const nt=$('nametags');if(nt)nt.innerHTML='';if(!quiet)mpStatus('')}
+function mpLeave(quiet){lobbyStop();MP.public=false;if(MP.peer){try{mpSend({t:'leave',id:MP.myId})}catch(e){}try{MP.peer.destroy()}catch(e){}}for(const r of MP.remote.values())r.dead=true;MP.remote.clear();MP.conns=[];MP.peer=null;MP.active=false;MP.host=false;const nt=$('nametags');if(nt)nt.innerHTML='';if(!quiet)mpStatus('')}
 class RemotePlayer extends Entity{constructor(id,name){super(0,-100,0);this.pid=id;this.name=name;this.w=0.6;this.h=1.8;this.tx=0;this.ty=-100;this.tz=0;this.tyaw=0;this.walkT=0;this.walkAmp=0;this.held=0;this.sneak=false;this.remote=true;this.hasTarget=false;this.hidden=false}
   setTarget(d){if(!this.hasTarget){this.x=d.x;this.y=d.y;this.z=d.z;this.yaw=d.yaw;this.hasTarget=true}this.tx=d.x;this.ty=d.y;this.tz=d.z;this.tyaw=d.yaw;this.pitch=d.pitch||0;this.held=d.held||0;this.sneak=!!d.sneak;if(d.name)this.name=d.name;this.hidden=!!d.dead}
   update(dt){this.age+=dt;if(!this.hasTarget)return;const k=Math.min(1,dt*12);const ox=this.x,oz=this.z;this.x+=(this.tx-this.x)*k;this.y+=(this.ty-this.y)*k;this.z+=(this.tz-this.z)*k;let dy=this.tyaw-this.yaw;dy=Math.atan2(Math.sin(dy),Math.cos(dy));this.yaw+=dy*k;
