@@ -551,6 +551,9 @@ defTex('arrow_tex',p=>{p.fill(0,0,0,0);p.rect(0,7,16,2,180,150,110);p.rect(13,6,
 defTex('egg_tex',p=>{p.noise(230,215,180,6)});
 defTex('coal_block',p=>{p.noise(28,28,28,8);p.speckle(16,50,50,50)});
 defTex('netherrack',p=>{p.noise(110,40,40,14);p.speckle(24,140,60,60);p.speckle(16,80,25,25)});
+defTex('pumpkin_side',p=>{p.noise(214,118,30,10);for(const x of [1,5,9,13]){p.rect(x,0,1,16,170,88,20);p.rect(x+3,0,1,16,235,140,40)}p.rect(0,15,16,1,160,80,18)});
+defTex('pumpkin_top',p=>{p.noise(214,118,30,10);for(const x of [1,5,9,13]){p.rect(x,0,1,16,170,88,20)}p.rect(6,6,4,4,90,110,40);p.rect(7,7,2,2,60,80,30)});
+defTex('carved_pumpkin_front',p=>{p.noise(214,118,30,10);for(const x of [1,5,9,13]){p.rect(x,0,1,16,170,88,20);p.rect(x+3,0,1,16,235,140,40)}p.rect(2,4,3,3,20,12,6);p.rect(11,4,3,3,20,12,6);p.rect(7,7,2,2,20,12,6);p.rect(3,11,10,2,20,12,6);p.rect(5,10,2,1,20,12,6);p.rect(9,10,2,1,20,12,6);p.px(4,13,20,12,6);p.px(11,13,20,12,6)});
 defTex('soul_sand',p=>{p.noise(82,62,50,8);p.speckle(14,60,45,35);p.rect(3,4,3,3,50,38,30);p.rect(10,9,3,3,50,38,30);p.px(4,5,30,22,18);p.px(11,10,30,22,18)});
 defTex('nether_quartz_ore',p=>{p.noise(110,40,40,14);for(let i=0;i<7;i++){const x=floor(p.rng()*15),y=floor(p.rng()*15);p.rect(x,y,2,2,235,225,215);p.shade(x+1,y+1,0.8)}});
 defTex('nether_portal',p=>{for(let y=0;y<16;y++)for(let x=0;x<16;x++){const w=Math.sin(x*0.9+y*0.5)*0.5+Math.sin(y*1.3-x*0.4)*0.5;const f=0.6+w*0.3;p.px(x,y,120*f,20*f,200*f,200)}});
@@ -753,6 +756,8 @@ defBlock(117,'deepslate_bricks',{tex:'deepslate_bricks',hard:3.5,tool:'pickaxe',
 defBlock(118,'sculk',{tex:'sculk',hard:0.6,tool:'hoe',light:1,drop:()=>[],xp:[1,1]});
 defBlock(119,'sculk_shrieker',{tex:'sculk_shrieker',hard:3,tool:'hoe',light:2,transparent:true,drop:()=>[],xp:[5,5]});
 defBlock(120,'sculk_sensor',{tex:'sculk_sensor',hard:1.5,tool:'hoe',light:1,transparent:true,drop:()=>[],xp:[5,5]});
+defBlock(122,'pumpkin',{tex:{side:'pumpkin_side',top:'pumpkin_top'},hard:1,tool:'axe',sound:'wood'});
+defBlock(123,'carved_pumpkin',{tex:{side:'pumpkin_side',top:'pumpkin_top',front:'carved_pumpkin_front'},hard:1,tool:'axe',sound:'wood',facing:true});
 defBlock(121,'soul_lantern',{tex:'soul_lantern',hard:3.5,tool:'pickaxe',needsTool:true,light:9,transparent:true});
 defBlock(91,'prismarine',{tex:'prismarine',hard:1.5,tool:'pickaxe',needsTool:true,resist:6});
 defBlock(92,'dark_prismarine',{tex:'dark_prismarine',hard:1.5,tool:'pickaxe',needsTool:true,resist:6});
@@ -1278,6 +1283,7 @@ class World{
         if(r<treeP){this.placeTree(X,h+1,Z,type,rng)}
         else if(r<treeP+grassP&&(bi!==BI.snowy_taiga)){this.setGen(X,h+1,Z,23)}
         else if(r<treeP+grassP+flowerP){this.setGen(X,h+1,Z,rng()<0.5?21:22)}
+        else if(r<treeP+grassP+flowerP+0.0012&&(bi===BI.plains||bi===BI.forest||bi===BI.swamp)){for(let k=0;k<2+floor(rng()*3);k++){const px=X+floor(rng()*3)-1,pz=Z+floor(rng()*3)-1;const ph=this.surfaceY(px,pz);if(this.getGen(px,ph+1,pz)===0&&this.getGen(px,ph,pz)===2)this.setGen(px,ph+1,pz,122)}}
         else if(r<treeP+grassP+flowerP+0.002&&(bi===BI.forest||bi===BI.swamp)){this.setGen(X,h+1,Z,rng()<0.5?64:65)}
         else if(h===SEA&&r<treeP+grassP+flowerP+0.06&&[[1,0],[-1,0],[0,1],[0,-1]].some(d=>this.columnInfo(X+d[0],Z+d[1]).height<SEA)){const n=2+floor(rng()*2);for(let k=0;k<n;k++)this.setGen(X,h+1+k,Z,94)}
       } else if(top===10&&h===SEA&&rng()<0.08&&[[1,0],[-1,0],[0,1],[0,-1]].some(d=>this.columnInfo(X+d[0],Z+d[1]).height<SEA)){const n=2+floor(rng()*2);for(let k=0;k<n;k++)this.setGen(X,h+1+k,Z,94)}
@@ -2547,8 +2553,9 @@ function useItem(){
     entities.push(a);consumeHeld();playSound('bow',0.5);p.swing=0;return}
   if(hd.plants&&t&&t.block&&t.face===2&&t.id===36&&world.getBlock(t.bx,t.by+1,t.bz)===0){world.setBlock(t.bx,t.by+1,t.bz,hd.plants,0);consumeHeld();playSoundAt('place_grass',t.bx,t.by,t.bz);p.swing=0;return}
   if(hd&&hd.id===472){throwWindCharge();return}
-  if(hd&&hd.id===22&&t&&t.block&&t.id===25){const bx=t.bx,by=t.by,bz=t.bz;const iron=(x,y,z)=>world.getBlock(x,y,z)===25;
-    for(const [ax,az] of [[1,0],[0,1]]){if(iron(bx,by-1,bz)&&iron(bx+ax,by-1,bz+az)&&iron(bx-ax,by-1,bz-az)&&iron(bx,by-2,bz)){for(const [x,y,z] of [[bx,by,bz],[bx+ax,by-1,bz+az],[bx-ax,by-1,bz-az],[bx,by-1,bz],[bx,by-2,bz]])world.setBlock(x,y,z,0,0);consumeHeld();const g=new Mob('iron_golem',bx+0.5,by-2,bz+0.5);entities.push(g);spawnParticles('happy',bx+0.5,by,bz+0.5,14);playSound('golem',1,0.7);showMessage('An Iron Golem rises to protect you');p.swing=0;return}}}
+  if(hd&&hd.id===300&&t&&t.block&&t.id===122){const lf=Math.round(((p.yaw%(PI*2))+PI*2)%(PI*2)/(PI/2))&3;world.setBlock(t.bx,t.by,t.bz,123,(lf+2)&3);damageItem(st,1);playSoundAt('shear',t.bx,t.by,t.bz);spawnParticles('block',t.bx+0.5,t.by+0.5,t.bz+0.5,6,122);p.swing=0;updateHotbar();return}
+  if(hd&&hd.id===123&&t&&t.block&&t.face===2&&t.id===25){const bx=t.bx,by=t.by,bz=t.bz;const iron=(x,y,z)=>world.getBlock(x,y,z)===25;
+    for(const [ax,az] of [[1,0],[0,1]]){if(iron(bx+ax,by,bz+az)&&iron(bx-ax,by,bz-az)&&iron(bx,by-1,bz)&&world.getBlock(bx,by+1,bz)===0){for(const [x,y,z] of [[bx,by,bz],[bx+ax,by,bz+az],[bx-ax,by,bz-az],[bx,by-1,bz]])world.setBlock(x,y,z,0,0);consumeHeld();const g=new Mob('iron_golem',bx+0.5,by-1,bz+0.5);entities.push(g);spawnParticles('happy',bx+0.5,by+1,bz+0.5,14);playSound('golem',1,0.7);showMessage('An Iron Golem rises to protect you');p.swing=0;return}}}
   if(hd.spawnMob&&t&&t.block){const n=FACE_DIR[t.face];const m=new Mob(hd.spawnMob,t.bx+n[0]+0.5,t.by+(n[1]<0?-2:n[1]),t.bz+n[2]+0.5);entities.push(m);consumeHeld();playSoundAt('pop',m.x,m.y,m.z);p.swing=0;return}
   if(hd.isBlock&&t&&t.block){placeHeldBlock(hd,st,t)}
 }
@@ -4028,9 +4035,9 @@ function mpBecomeGuest(peer,conn,worldId){MP.peer=peer;MP.conns=[conn];MP.worldI
 function mpHostLost(){const room=MP.room,worldId=MP.worldId,seed=game.seed,mods=game.mods;const ids=[MP.myId,...[...MP.remote.keys()].filter(id=>id!==MP.hostId)].sort();saveWorld();
   if(ids[0]===MP.myId){showMessage('The host left: you are hosting this world now');mpLeave(true);MP.room=room;MP.worldId=worldId;MP.name=MP.name||mpName();mpHost(room,seed,mods,worldId,!!worldId,'',true)}
   else{showMessage('The host left: reconnecting to '+(MP.remote.get(ids[0])||{name:'the next host'}).name+'...');mpLeave(true);MP.room=room;MP.worldId=worldId;setTimeout(()=>{if(!MP.active)mpJoin(room,String(seed),mods,worldId,!!worldId,false)},3500)}}
-function mpWeatherState(){const W=game.wx;if(!W)return {t:'wx',off:true};return {t:'wx',storm:W.storm,I:W.I,tornado:W.tornado?{x:W.tornado.x,z:W.tornado.z,dir:W.tornado.dir,life:W.tornado.life,spin:W.tornado.spin}:null}}
+function mpWeatherState(){const W=game.wx;if(!W)return {t:'wx',off:true};return {t:'wx',storm:W.storm,I:W.I,tornado:W.tornado?{x:W.tornado.x,z:W.tornado.z,dir:W.tornado.dir,life:W.tornado.life,spin:W.tornado.spin,ef:W.tornado.ef||1}:null}}
 function mpApplyWeather(d){const W=game.wx;if(!W||d.off||(MP.active&&MP.host))return;if(d.storm&&!W.storm)showMessage('Dark clouds gather... a thunderstorm rolls in');if(!d.storm&&W.storm)showMessage('The storm passes.');W.storm=d.storm;W.I=d.I;
-  if(d.tornado){if(!W.tornado){W.tornado={x:d.tornado.x,z:d.tornado.z,y:player.y,dir:d.tornado.dir,life:d.tornado.life,spin:d.tornado.spin,t:1,brk:0};showMessage('TORNADO! Run!');playSound('thunder',1,0.55)}else Object.assign(W.tornado,d.tornado)}else if(W.tornado){W.tornado=null;showMessage('The tornado dissipates.')}}
+  if(d.tornado){if(!W.tornado){W.tornado={x:d.tornado.x,z:d.tornado.z,y:player.y,dir:d.tornado.dir,life:d.tornado.life,spin:d.tornado.spin,t:1,brk:0,ef:d.tornado.ef||1};showMessage(EF[W.tornado.ef].say);playSound('thunder',1,0.55)}else Object.assign(W.tornado,d.tornado)}else if(W.tornado){W.tornado=null;showMessage('The tornado dissipates.')}}
 function mpCollectBlocks(){const out={};const src=world.savedMods||{};for(const k in src)out[k]=src[k];for(const c of world.chunks.values()){if(c.mods.size)out[c.cx+','+c.cz]=Array.from(c.mods)}return out}
 function mpApplyBlocks(blocks){world.savedMods=world.savedMods||{};for(const k in blocks){world.savedMods[k]=blocks[k];const [cx,cz]=k.split(',').map(Number);const c=world.getChunk(cx,cz);if(c&&c.generated){for(const [i,v] of blocks[k]){world.setBlock(cx*16+(i>>11),i&127,cz*16+((i>>7)&15),v&255,v>>8,{remote:true,silent:true})}}}}
 function mpOnData(conn,d){if(!d||!d.t)return;
@@ -4112,7 +4119,7 @@ class RemotePlayer extends Entity{constructor(id,name){super(0,-100,0);this.pid=
 function weatherLoop(freq){const c=AU.ctx;const s=c.createBufferSource();s.buffer=noiseBuf(2);s.loop=true;const f=c.createBiquadFilter();f.type='lowpass';f.frequency.value=freq;const g=c.createGain();g.gain.value=0;s.connect(f);f.connect(g);g.connect(AU.master);s.start();return {s,f,g}}
 function updateWeatherLoops(){const W=game.wx;if(!AU.ctx||!W)return;if(!W.rainL)W.rainL=weatherLoop(900);if(!W.windL)W.windL=weatherLoop(180);const t=AU.ctx.currentTime;const on=opts.volume===0?0:1;
   const outdoor=world.getSky(floor(player.x),floor(player.y+2),floor(player.z))>=12?1:0.35;W.rainL.g.gain.setTargetAtTime(0.16*W.I*outdoor*on,t,0.4);
-  const wd=W.tornado?Math.hypot(W.tornado.x-player.x,W.tornado.z-player.z):999;W.windL.g.gain.setTargetAtTime(clamp(0.85-wd/60,0,0.8)*on,t,0.25);if(W.tornado)W.windL.f.frequency.setTargetAtTime(140+Math.random()*140,t,0.4)}
+  const ts=W.tornado?EF[W.tornado.ef||1].size:1;const wd=W.tornado?Math.hypot(W.tornado.x-player.x,W.tornado.z-player.z):999;W.windL.g.gain.setTargetAtTime(clamp(0.85-wd/(60*ts),0,0.8)*on,t,0.25);if(W.tornado)W.windL.f.frequency.setTargetAtTime((140+Math.random()*140)/Math.sqrt(ts),t,0.4)}
 function stopWeatherLoops(){const W=game.wx;if(!W||!AU.ctx)return;const t=AU.ctx.currentTime;if(W.rainL)W.rainL.g.gain.setTargetAtTime(0,t,0.1);if(W.windL)W.windL.g.gain.setTargetAtTime(0,t,0.1)}
 function lightningStrike(x,z,fromHost){const bx=floor(x),bz=floor(z);if(MP.active&&MP.host)mpSend({t:'bolt',x,z});if(!world.hasChunk(bx,bz))return;const y=findGround(bx,bz);const W=game.wx;const p=player;W.flash=1;
   {const trace=(x0,z0,top,bottom,jag,branch)=>{let cx=x0,cz=z0;for(let yy=top;yy>bottom;yy-=0.8){cx+=(Math.random()-0.5)*jag;cz+=(Math.random()-0.5)*jag;spawnParticles('bolt',cx,yy,cz,1);if(branch&&Math.random()<0.06)trace(cx,cz,yy,Math.max(bottom,yy-6-Math.random()*8),jag*1.6,false)}};trace(bx+0.5,bz+0.5,y+52,y,0.55,true)}
@@ -4132,24 +4139,31 @@ function tickWeather(dt){const W=game.wx;const p=player;if(W.flash>0)W.flash=Mat
     for(let i=0;i<floor(6*W.I);i++){const x=p.x+(Math.random()-0.5)*14,z=p.z+(Math.random()-0.5)*14;const gy2=findGround(x,z);if(world.getSky(floor(x),gy2,floor(z))<14||gy2>p.y+8||gy2<p.y-8)continue;spawnParticles('splash',x,gy2+0.05,z,1)}
     if(!p.dead&&!p.riding&&world.getSky(floor(p.x),floor(p.y+1.5),floor(p.z))>=14){p.vx+=W.gust*2.2*dt;p.vz+=W.gust*1.1*dt}
     if(!guest){W.lt-=dt;if(W.lt<=0){W.lt=(3+Math.random()*9)/W.I;lightningStrike(p.x+(Math.random()-0.5)*90,p.z+(Math.random()-0.5)*90)}}
-    if(!guest&&W.storm&&W.tornadoRoll&&W.t<W.tornadoAt&&!W.tornado){W.tornadoRoll=false;const a=Math.random()*PI*2;W.tornado={x:p.x+Math.sin(a)*55,z:p.z+Math.cos(a)*55,y:p.y,dir:a+PI+(Math.random()-0.5)*0.6,life:50+Math.random()*50,spin:0,t:0,brk:0};showMessage('TORNADO! Run!');playSound('thunder',1,0.55)}}
+    if(!guest&&W.storm&&W.tornadoRoll&&W.t<W.tornadoAt&&!W.tornado){W.tornadoRoll=false;const a=Math.random()*PI*2;const ef=rollEF();W.tornado={x:p.x+Math.sin(a)*55,z:p.z+Math.cos(a)*55,y:p.y,dir:a+PI+(Math.random()-0.5)*0.6,life:(50+Math.random()*50)*EF[ef].life,spin:0,t:0,brk:0,ef};showMessage(EF[ef].say);playSound('thunder',1,0.55-ef*0.05)}}
   if(W.tornado)tickTornado(dt);updateWeatherLoops()}
+// Enhanced Fujita scale: size, pull, how much it rips up and how hard a block (or a wall you built) has to be to survive
+const EF=[null,{n:'EF1',size:1,pull:1,rip:2,ripR:6,hard:30,builds:false,dmg:2,life:1,say:'EF1 TORNADO! Run!'},
+  {n:'EF2',size:1.3,pull:1.25,rip:4,ripR:8,hard:30,builds:false,dmg:3,life:1.15,say:'EF2 TORNADO! It throws trees and dirt: get inside'},
+  {n:'EF3',size:1.7,pull:1.55,rip:7,ripR:11,hard:30,builds:false,dmg:4,life:1.3,say:'EF3 TORNADO! It tears up stone: stay behind solid walls'},
+  {n:'EF4',size:2.1,pull:1.9,rip:12,ripR:14,hard:50,builds:true,dmg:6,life:1.45,say:'EF4 TORNADO! It rips houses apart: get underground'},
+  {n:'EF5',size:2.6,pull:2.4,rip:18,ripR:18,hard:1e9,builds:true,dmg:8,life:1.6,say:'EF5 TORNADO! Nothing above ground survives this. Dig down NOW'}];
+function rollEF(){const r=Math.random();return r<0.4?1:r<0.67?2:r<0.85?3:r<0.95?4:5}
 function tornadoFree(x,y,z,w){const h=w/2;for(const [ox,oz] of [[-h,-h],[h,-h],[-h,h],[h,h]])for(const oy of [0.05,0.95,1.75]){const b=world.getBlock(floor(x+ox),floor(y+oy),floor(z+oz));if(BLOCKS[b].solid)return false}return true}
-function tickTornado(dt){const W=game.wx,T=W.tornado,p=player;const guest=MP.active&&!MP.host;T.life-=dt;T.spin+=dt*6;T.t+=dt;if(T.life<=0&&!guest){W.tornado=null;showMessage('The tornado dissipates.');return}
+function tickTornado(dt){const W=game.wx,T=W.tornado,p=player;const guest=MP.active&&!MP.host;const E=EF[T.ef||1],S=E.size;T.life-=dt;T.spin+=dt*6;T.t+=dt;if(T.life<=0&&!guest){W.tornado=null;showMessage('The '+E.n+' tornado dissipates.');return}
   if(!guest){T.dir+=(Math.random()-0.5)*dt*0.8;const toP=Math.atan2(p.x-T.x,p.z-T.z);let dd=toP-T.dir;dd=Math.atan2(Math.sin(dd),Math.cos(dd));T.dir+=dd*dt*0.18}
-  const sp=3.4;T.x+=Math.sin(T.dir)*sp*dt;T.z+=Math.cos(T.dir)*sp*dt;if(!world.hasChunk(floor(T.x),floor(T.z)))return;const gy=findGround(T.x,T.z);T.y=gy;
+  const sp=3.4-(T.ef-1)*0.25;T.x+=Math.sin(T.dir)*sp*dt;T.z+=Math.cos(T.dir)*sp*dt;if(!world.hasChunk(floor(T.x),floor(T.z)))return;const gy=findGround(T.x,T.z);T.y=gy;
   // funnel: narrow at the ground, flaring into a wall cloud, leaning as it spins; dirt at the base, grey up top
   const lean=Math.sin(T.spin*0.23)*0.09,leanZ=Math.cos(T.spin*0.17)*0.09;
-  for(let i=0;i<56;i++){const u=Math.pow(Math.random(),0.7);const h=u*42;const r=0.7+Math.pow(u,1.7)*10+Math.random()*0.6;const a=T.spin*2.2+h*0.28+Math.random()*0.5;const cx=T.x+lean*h,cz=T.z+leanZ*h;spawnParticles('funnel',cx+Math.sin(a)*r,gy+h,cz+Math.cos(a)*r,1,{h,a,r})}
+  for(let i=0;i<floor(56*S);i++){const u=Math.pow(Math.random(),0.7);const h=u*(36+6*S);const r=(0.7+Math.pow(u,1.7)*10+Math.random()*0.6)*S;const a=T.spin*2.2+h*0.28+Math.random()*0.5;const cx=T.x+lean*h,cz=T.z+leanZ*h;spawnParticles('funnel',cx+Math.sin(a)*r,gy+h,cz+Math.cos(a)*r,1,{h,a,r})}
   // wall cloud overhead
-  for(let i=0;i<8;i++){const a=T.spin*0.6+Math.random()*PI*2;const r=9+Math.random()*7;spawnParticles('wallcloud',T.x+lean*42+Math.sin(a)*r,gy+41+Math.random()*4,T.z+leanZ*42+Math.cos(a)*r,1,{a})}
+  for(let i=0;i<floor(8*S);i++){const a=T.spin*0.6+Math.random()*PI*2;const r=(9+Math.random()*7)*S;spawnParticles('wallcloud',T.x+lean*42+Math.sin(a)*r,gy+35+6*S+Math.random()*4,T.z+leanZ*42+Math.cos(a)*r,1,{a})}
   // debris: chunks of whatever the ground is, whipped up around the base, and a dust skirt
-  for(let i=0;i<7;i++){const a=Math.random()*PI*2;const r=1.5+Math.random()*4;const px=T.x+Math.sin(a)*r,pz=T.z+Math.cos(a)*r;const gid=world.getBlock(floor(px),findGround(px,pz)-1,floor(pz))||3;spawnParticles('debris',px,gy+0.3+Math.random()*3,pz,1,{a,id:gid})}
-  for(let i=0;i<5;i++){const a=Math.random()*PI*2;const r=3+Math.random()*5;spawnParticles('dust',T.x+Math.sin(a)*r,gy+0.2,T.z+Math.cos(a)*r,1,{a})}
-  T.brk+=dt;if(!guest&&T.brk>0.12){T.brk=0;for(let k=0;k<2;k++){const bx=floor(T.x+(Math.random()-0.5)*6),bz=floor(T.z+(Math.random()-0.5)*6);const by=findGround(bx,bz)-1;if(by<gy-4||by>gy+8||by<1)continue;const id=world.getBlock(bx,by,bz);const B=BLOCKS[id];if(id===0||id===7||id===31||B.liquid||B.hard<0||B.hard>=30)continue;const ch=world.getChunk(bx>>4,bz>>4);if(ch&&ch.mods.has(cidx(bx&15,by,bz&15)))continue;
+  for(let i=0;i<floor(7*S);i++){const a=Math.random()*PI*2;const r=(1.5+Math.random()*4)*S;const px=T.x+Math.sin(a)*r,pz=T.z+Math.cos(a)*r;const gid=world.getBlock(floor(px),findGround(px,pz)-1,floor(pz))||3;spawnParticles('debris',px,gy+0.3+Math.random()*3,pz,1,{a,id:gid})}
+  for(let i=0;i<floor(5*S);i++){const a=Math.random()*PI*2;const r=(3+Math.random()*5)*S;spawnParticles('dust',T.x+Math.sin(a)*r,gy+0.2,T.z+Math.cos(a)*r,1,{a})}
+  T.brk+=dt;if(!guest&&T.brk>0.12){T.brk=0;let fbs=0;for(const e of entities)if(e instanceof FallingBlock&&!e.dead)fbs++;for(let k=0;k<E.rip&&fbs<160;k++){fbs++;const bx=floor(T.x+(Math.random()-0.5)*E.ripR),bz=floor(T.z+(Math.random()-0.5)*E.ripR);const by=findGround(bx,bz)-1-(E.builds&&Math.random()<0.3?floor(Math.random()*3):0);if(by<gy-4||by>gy+8+4*S||by<1)continue;const id=world.getBlock(bx,by,bz);const B=BLOCKS[id];if(id===0||id===7||id===31||B.liquid||B.hard<0||B.hard>=E.hard)continue;const ch=world.getChunk(bx>>4,bz>>4);if(!E.builds&&ch&&ch.mods.has(cidx(bx&15,by,bz&15)))continue;
       world.setBlock(bx,by,bz,0,0,{noDrop:true,silent:true});const fb=new FallingBlock(bx,by+1,bz,id);fb.vy=9+Math.random()*8;fb.vx=(Math.random()-0.5)*10;fb.vz=(Math.random()-0.5)*10;entities.push(fb);spawnParticles('block',bx+0.5,by+1,bz+0.5,3,id)}}
-  const pull=(e,isP)=>{const dx=T.x-e.x,dz=T.z-e.z;const d=Math.hypot(dx,dz);if(d>14)return;const s=(14-d)/14;const nx=dx/(d||1),nz=dz/(d||1);const ax=(nx*26-nz*14)*s,az=(nz*26+nx*14)*s;e.vx+=ax*dt;e.vz+=az*dt;if(isP&&d>1.5){const nx2=e.x+nx*3.5*s*dt,nz2=e.z+nz*3.5*s*dt;if(tornadoFree(nx2,e.y,nz2,e.w)){e.x=nx2;e.z=nz2}}
-    if(d<3.5&&e.y<gy+34){e.vy+=(isP?34:30)*dt;if(e.vy>12)e.vy=12;e.fallDist=0;e.onGround=false;if(isP&&T.t>1&&Math.random()<dt*0.5)damageEntity(e,2,{type:'tornado'})}};
+  const R=14*S,P=E.pull;const pull=(e,isP)=>{const dx=T.x-e.x,dz=T.z-e.z;const d=Math.hypot(dx,dz);if(d>R)return;const s=(R-d)/R;const nx=dx/(d||1),nz=dz/(d||1);const ax=(nx*26-nz*14)*s*P,az=(nz*26+nx*14)*s*P;e.vx+=ax*dt;e.vz+=az*dt;if(isP&&d>1.5){const nx2=e.x+nx*3.5*s*P*dt,nz2=e.z+nz*3.5*s*P*dt;if(tornadoFree(nx2,e.y,nz2,e.w)){e.x=nx2;e.z=nz2}}
+    if(d<3.5*S&&e.y<gy+30+4*S){e.vy+=(isP?34:30)*P*dt;if(e.vy>10+2*S)e.vy=10+2*S;e.fallDist=0;e.onGround=false;if(isP&&T.t>1&&Math.random()<dt*0.5)damageEntity(e,E.dmg,{type:'tornado'})}};
   for(const e of entities){if(e.dead||e instanceof Dragon||e instanceof Wither)continue;if(e instanceof Mob||e instanceof ItemEntity||e instanceof FallingBlock)pull(e,false)}
   const sheltered=world.getSky(floor(p.x),floor(p.y+1.5),floor(p.z))<14;
   if(!p.dead&&!p.flying&&!sheltered){pull(p,p.mode!=='creative')}}
@@ -4254,7 +4268,7 @@ function tpNamed(name,say){const p=player;const n=name.toLowerCase().replace(/[\
   return false}
 function runCommand(line){const p=player;const raw=line.trim().replace(/^\/+/,'');const parts=raw.split(/\s+/);const cmd=(parts[0]||'').toLowerCase();const args=parts.slice(1);const say=showMessage;
   switch(cmd){
-    case 'help':say('/give <item> [count] [enchant:lvl ...]  /kit <'+Object.keys(KITS).join('|')+'>  /build enchanting');say('/tp <x y z|spawn|home|any block|any mob|any biome|any structure|nether|the end|overworld>  e.g. /tp diamonds, /tp creeper, /tp jungle, /tp end city   /spawn nether portal   /stop');say('/time <day|night|n>  /gamemode <survival|creative>  /spawn <mob>  /heal  /xp <levels>  /seed  /kill');return;
+    case 'help':say('/give <item> [count] [enchant:lvl ...]  /kit <'+Object.keys(KITS).join('|')+'>  /build enchanting');say('/tp <x y z|spawn|home|any block|any mob|any biome|any structure|nether|the end|overworld>  e.g. /tp diamonds, /tp creeper, /tp jungle, /tp end city   /spawn nether portal   /stop');say('/time <day|night|n>  /gamemode <survival|creative>  /spawn <mob>  /heal  /xp <levels>  /seed  /kill  /tornado <1-5> (weather mod)');return;
     case 'give':{if(args.length>=2&&/^(@[aprse]|me|self|you|play\w*|steve|alex)$/i.test(args[0]))args.shift();if(!args.length){say('Usage: /give [player] <item> [count] [enchant:lvl ...]   e.g. /give player anvil, /give @p netherite 5');return}const isEnch=a=>/[:=]/.test(a)||!!Object.keys(ENCH).find(k=>k===a.toLowerCase()||(a.length>=4&&k.startsWith(a.toLowerCase())));const nm=[args[0]||''];let i=1;while(i<args.length&&!/^\d+$/.test(args[i])&&!isEnch(args[i])){nm.push(args[i]);i++}
       const id=findItemId(nm.join('_'));if(id===null){say('Unknown item: '+nm.join(' '));return}
       const cnt=args.slice(i).find(a=>/^\d+$/.test(a));const ench=parseEnch(args.slice(i).filter(isEnch));giveItems(id,cnt?clamp(+cnt,1,2304):1,ench);say('Gave '+(cnt||1)+' x '+ITEMS[id].label+(ench?' ('+Object.keys(ench).map(k=>enchName(k,ench[k])).join(', ')+')':''));return}
@@ -4269,6 +4283,7 @@ function runCommand(line){const p=player;const raw=line.trim().replace(/^\/+/,''
     case 'spawn':case 'summon':{if(/portal/i.test(args.join('_'))){spawnNetherPortal(say);return}const t=(args[0]||'').toLowerCase().replace(/[\s-]+/g,'_');const type=MOBDEF[t]?t:MOB_TYPES.find(k=>k.startsWith(t));if(!type){say('Mobs: '+MOB_TYPES.join(', '));return}const n=clamp(parseInt(args[1])||1,1,20);const d=eyeDir();for(let i=0;i<n;i++)entities.push(new Mob(type,p.x+d[0]*3+(Math.random()-0.5)*2,p.y+0.5,p.z+d[2]*3+(Math.random()-0.5)*2));say('Spawned '+n+' '+label(type));return}
     case 'portal':spawnNetherPortal(say);return;
     case 'stop':case 'cancel':if(game.tpSearch)cancelBlockSearch();else say('Nothing to stop');return;
+    case 'tornado':{if(!game.wx){say('Tornadoes need the Weather fun mod on this world');return}if(MP.active&&!MP.host){say('Only the host can call a tornado');return}const ef=Math.min(5,Math.max(1,parseInt(args[0])||rollEF()));const W=game.wx;W.storm=true;W.I=Math.max(W.I,0.6);W.t=Math.max(W.t,60);const a=Math.random()*PI*2;W.tornado={x:p.x+Math.sin(a)*45,z:p.z+Math.cos(a)*45,y:p.y,dir:a+PI+(Math.random()-0.5)*0.4,life:(50+Math.random()*50)*EF[ef].life,spin:0,t:0,brk:0,ef};say(EF[ef].say);playSound('thunder',1,0.55-ef*0.05);return}
     case 'heal':p.hp=p.maxHp;p.hunger=20;p.sat=5;p.fireT=0;p.air=300;p.effects={};say('Healed');return;
     case 'xp':{const n=parseInt(args[0])||10;p.level=Math.max(0,p.level+n);p.xpFrac=0;say('Level '+p.level);updateHUD&&updateHUD();return}
     case 'seed':say('Seed: '+game.seed);return;
