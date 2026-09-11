@@ -3722,12 +3722,13 @@ function tickTornado(dt){const W=game.wx,T=W.tornado,p=player;T.life-=dt;T.spin+
   T.dir+=(Math.random()-0.5)*dt*0.8;const toP=Math.atan2(p.x-T.x,p.z-T.z);let dd=toP-T.dir;dd=Math.atan2(Math.sin(dd),Math.cos(dd));T.dir+=dd*dt*0.18;
   const sp=3.4;T.x+=Math.sin(T.dir)*sp*dt;T.z+=Math.cos(T.dir)*sp*dt;if(!world.hasChunk(floor(T.x),floor(T.z)))return;const gy=findGround(T.x,T.z);T.y=gy;
   for(let i=0;i<26;i++){const h=Math.random()*40;const r=1.2+h*0.22;const a=T.spin*1.5+h*0.35+Math.random()*0.7;spawnParticles('funnel',T.x+Math.sin(a)*r,gy+h,T.z+Math.cos(a)*r,1,{h,a})}
-  T.brk+=dt;if(T.brk>0.12){T.brk=0;for(let k=0;k<2;k++){const bx=floor(T.x+(Math.random()-0.5)*6),bz=floor(T.z+(Math.random()-0.5)*6);const by=findGround(bx,bz)-1;if(by<gy-4||by>gy+8||by<1)continue;const id=world.getBlock(bx,by,bz);const B=BLOCKS[id];if(id===0||id===7||id===31||B.liquid||B.hard<0||B.hard>=30)continue;
+  T.brk+=dt;if(T.brk>0.12){T.brk=0;for(let k=0;k<2;k++){const bx=floor(T.x+(Math.random()-0.5)*6),bz=floor(T.z+(Math.random()-0.5)*6);const by=findGround(bx,bz)-1;if(by<gy-4||by>gy+8||by<1)continue;const id=world.getBlock(bx,by,bz);const B=BLOCKS[id];if(id===0||id===7||id===31||B.liquid||B.hard<0||B.hard>=30)continue;const ch=world.getChunk(bx>>4,bz>>4);if(ch&&ch.mods.has(cidx(bx&15,by,bz&15)))continue;
       world.setBlock(bx,by,bz,0,0,{noDrop:true,silent:true});const fb=new FallingBlock(bx,by+1,bz,id);fb.vy=9+Math.random()*8;fb.vx=(Math.random()-0.5)*10;fb.vz=(Math.random()-0.5)*10;entities.push(fb);spawnParticles('block',bx+0.5,by+1,bz+0.5,3,id)}}
   const pull=(e,isP)=>{const dx=T.x-e.x,dz=T.z-e.z;const d=Math.hypot(dx,dz);if(d>14)return;const s=(14-d)/14;const nx=dx/(d||1),nz=dz/(d||1);const ax=(nx*26-nz*14)*s,az=(nz*26+nx*14)*s;e.vx+=ax*dt;e.vz+=az*dt;if(isP&&d>1.5){const nx2=e.x+nx*3.5*s*dt,nz2=e.z+nz*3.5*s*dt;if(tornadoFree(nx2,e.y,nz2,e.w)){e.x=nx2;e.z=nz2}}
     if(d<3.5&&e.y<gy+34){e.vy+=(isP?34:30)*dt;if(e.vy>12)e.vy=12;e.fallDist=0;e.onGround=false;if(isP&&T.t>1&&Math.random()<dt*0.5)damageEntity(e,2,{type:'tornado'})}};
   for(const e of entities){if(e.dead||e instanceof Dragon||e instanceof Wither)continue;if(e instanceof Mob||e instanceof ItemEntity||e instanceof FallingBlock)pull(e,false)}
-  if(!p.dead&&!p.flying){pull(p,p.mode!=='creative')}}
+  const sheltered=world.getSky(floor(p.x),floor(p.y+1.5),floor(p.z))<14;
+  if(!p.dead&&!p.flying&&!sheltered){pull(p,p.mode!=='creative')}}
 /* ---- Zombie Apocalypse: the dead come in waves ---- */
 function waveRoster(w){const n=Math.min(44,6+w*3);const out=[];for(let i=0;i<n;i++){const r=Math.random();let t='zombie';
     if(w>=10&&r<0.05)t='wither_skeleton';else if(w>=8&&r<0.10)t='enderman';else if(w>=5&&r<0.20)t='creeper';else if(w>=4&&r<0.30)t='spider';else if(w>=3&&r<0.48)t='skeleton';else if(w>=2&&r<0.65)t='husk';out.push(t)}return out}
