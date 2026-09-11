@@ -3717,13 +3717,14 @@ function tickWeather(dt){const W=game.wx;const p=player;if(W.flash>0)W.flash=Mat
     W.lt-=dt;if(W.lt<=0){W.lt=(3+Math.random()*9)/W.I;lightningStrike(p.x+(Math.random()-0.5)*90,p.z+(Math.random()-0.5)*90)}
     if(W.storm&&W.tornadoRoll&&W.t<W.tornadoAt&&!W.tornado){W.tornadoRoll=false;const a=Math.random()*PI*2;W.tornado={x:p.x+Math.sin(a)*55,z:p.z+Math.cos(a)*55,y:p.y,dir:a+PI+(Math.random()-0.5)*0.6,life:50+Math.random()*50,spin:0,t:0,brk:0};showMessage('TORNADO! Run!');playSound('thunder',1,0.55)}}
   if(W.tornado)tickTornado(dt);updateWeatherLoops()}
+function tornadoFree(x,y,z,w){const h=w/2;for(const [ox,oz] of [[-h,-h],[h,-h],[-h,h],[h,h]])for(const oy of [0.05,0.95,1.75]){const b=world.getBlock(floor(x+ox),floor(y+oy),floor(z+oz));if(BLOCKS[b].solid)return false}return true}
 function tickTornado(dt){const W=game.wx,T=W.tornado,p=player;T.life-=dt;T.spin+=dt*6;T.t+=dt;if(T.life<=0){W.tornado=null;showMessage('The tornado dissipates.');return}
   T.dir+=(Math.random()-0.5)*dt*0.8;const toP=Math.atan2(p.x-T.x,p.z-T.z);let dd=toP-T.dir;dd=Math.atan2(Math.sin(dd),Math.cos(dd));T.dir+=dd*dt*0.18;
   const sp=3.4;T.x+=Math.sin(T.dir)*sp*dt;T.z+=Math.cos(T.dir)*sp*dt;if(!world.hasChunk(floor(T.x),floor(T.z)))return;const gy=findGround(T.x,T.z);T.y=gy;
   for(let i=0;i<26;i++){const h=Math.random()*40;const r=1.2+h*0.22;const a=T.spin*1.5+h*0.35+Math.random()*0.7;spawnParticles('funnel',T.x+Math.sin(a)*r,gy+h,T.z+Math.cos(a)*r,1,{h,a})}
   T.brk+=dt;if(T.brk>0.12){T.brk=0;for(let k=0;k<2;k++){const bx=floor(T.x+(Math.random()-0.5)*6),bz=floor(T.z+(Math.random()-0.5)*6);const by=findGround(bx,bz)-1;if(by<gy-4||by>gy+8||by<1)continue;const id=world.getBlock(bx,by,bz);const B=BLOCKS[id];if(id===0||id===7||id===31||B.liquid||B.hard<0||B.hard>=30)continue;
       world.setBlock(bx,by,bz,0,0,{noDrop:true,silent:true});const fb=new FallingBlock(bx,by+1,bz,id);fb.vy=9+Math.random()*8;fb.vx=(Math.random()-0.5)*10;fb.vz=(Math.random()-0.5)*10;entities.push(fb);spawnParticles('block',bx+0.5,by+1,bz+0.5,3,id)}}
-  const pull=(e,isP)=>{const dx=T.x-e.x,dz=T.z-e.z;const d=Math.hypot(dx,dz);if(d>14)return;const s=(14-d)/14;const nx=dx/(d||1),nz=dz/(d||1);const ax=(nx*26-nz*14)*s,az=(nz*26+nx*14)*s;e.vx+=ax*dt;e.vz+=az*dt;if(isP&&d>1.5){e.x+=nx*3.5*s*dt;e.z+=nz*3.5*s*dt}
+  const pull=(e,isP)=>{const dx=T.x-e.x,dz=T.z-e.z;const d=Math.hypot(dx,dz);if(d>14)return;const s=(14-d)/14;const nx=dx/(d||1),nz=dz/(d||1);const ax=(nx*26-nz*14)*s,az=(nz*26+nx*14)*s;e.vx+=ax*dt;e.vz+=az*dt;if(isP&&d>1.5){const nx2=e.x+nx*3.5*s*dt,nz2=e.z+nz*3.5*s*dt;if(tornadoFree(nx2,e.y,nz2,e.w)){e.x=nx2;e.z=nz2}}
     if(d<3.5&&e.y<gy+34){e.vy+=(isP?34:30)*dt;if(e.vy>12)e.vy=12;e.fallDist=0;e.onGround=false;if(isP&&T.t>1&&Math.random()<dt*0.5)damageEntity(e,2,{type:'tornado'})}};
   for(const e of entities){if(e.dead||e instanceof Dragon||e instanceof Wither)continue;if(e instanceof Mob||e instanceof ItemEntity||e instanceof FallingBlock)pull(e,false)}
   if(!p.dead&&!p.flying){pull(p,p.mode!=='creative')}}
