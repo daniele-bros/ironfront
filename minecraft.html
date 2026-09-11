@@ -2634,8 +2634,10 @@ Object.assign(World.prototype,{
   /* ---- trial chamber: a buried complex of tuff and copper with trial spawners and key-locked vaults ---- */
   placeTrialChamber(x,z,rng){const y=22+floor(rng()*10);const T=115,C=114,B=52,L=93;const key='tc:'+(x>>4)+','+(z>>4);this.populated.add(key);
     const room=(cx,cz,hw,hl,h)=>{for(let dx=-hw;dx<=hw;dx++)for(let dz=-hl;dz<=hl;dz++)for(let dy=-1;dy<=h;dy++){const wall=abs(dx)===hw||abs(dz)===hl||dy===-1||dy===h;const edge=wall&&((abs(dx)===hw&&abs(dz)===hl)||(dy===-1&&(abs(dx)===hw||abs(dz)===hl))||(dy===h&&(abs(dx)===hw||abs(dz)===hl)));this.setGen(cx+dx,y+dy,cz+dz,wall?(edge?C:(rng()<0.25?B:T)):0,0,false)}
-      for(const [ox,oz] of [[-hw+1,-hl+1],[hw-1,-hl+1],[-hw+1,hl-1],[hw-1,hl-1]])this.setGen(cx+ox,y+h,cz+oz,L,0,false)};
-    const hall=(x0,z0,dx,dz,len)=>{const px=dz?1:0,pz=dx?1:0;for(let i=0;i<len;i++){const hx=x0+dx*i,hz=z0+dz*i;for(let sd=-1;sd<=1;sd++)for(let h=-1;h<=3;h++){const wall=abs(sd)===1&&false||h===-1||h===3;this.setGen(hx+px*sd,y+h,hz+pz*sd,h===-1||h===3?T:0,0,false)}for(let h=0;h<3;h++){this.setGen(hx+px*2,y+h,hz+pz*2,T,0,false);this.setGen(hx-px*2,y+h,hz-pz*2,T,0,false)}if(i%5===2)this.setGen(hx,y+3,hz,L,0,false)}};
+      for(const [ox,oz] of [[-hw+1,-hl+1],[hw-1,-hl+1],[-hw+1,hl-1],[hw-1,hl-1]])this.setGen(cx+ox,y+h,cz+oz,L,0,false);
+      for(let dx=-hw+2;dx<=hw-2;dx+=3){this.setGen(cx+dx,y+2,cz-hl,L,0,false);this.setGen(cx+dx,y+2,cz+hl,L,0,false)}for(let dz=-hl+2;dz<=hl-2;dz+=3){this.setGen(cx-hw,y+2,cz+dz,L,0,false);this.setGen(cx+hw,y+2,cz+dz,L,0,false)}
+      for(let dx=-hw+2;dx<=hw-2;dx+=4)for(let dz=-hl+2;dz<=hl-2;dz+=4)this.setGen(cx+dx,y-1,cz+dz,L,0,false)};
+    const hall=(x0,z0,dx,dz,len)=>{const px=dz?1:0,pz=dx?1:0;for(let i=0;i<len;i++){const hx=x0+dx*i,hz=z0+dz*i;for(let sd=-1;sd<=1;sd++)for(let h=-1;h<=3;h++){const wall=abs(sd)===1&&false||h===-1||h===3;this.setGen(hx+px*sd,y+h,hz+pz*sd,h===-1||h===3?T:0,0,false)}for(let h=0;h<3;h++){this.setGen(hx+px*2,y+h,hz+pz*2,T,0,false);this.setGen(hx-px*2,y+h,hz-pz*2,T,0,false)}if(i%3===1)this.setGen(hx,y+3,hz,L,0,false)}};
     room(x,z,7,7,6);for(const [dx,dz] of [[1,0],[-1,0],[0,1],[0,-1]]){hall(x+dx*8,z+dz*8,dx,dz,9);room(x+dx*21,z+dz*21,4,4,4)}
     // the centre: an ominous vault on a copper pedestal flanked by two trial spawners; each side room has its own spawner and a normal vault
     this.setGen(x,y,z,C,0,false);this.setGen(x,y+1,z,112,1,false);this.setGen(x-3,y,z,111,0,false);this.setGen(x+3,y,z,111,1,false);
