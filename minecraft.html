@@ -41,6 +41,10 @@ canvas#gl{position:absolute;inset:0;width:100%;height:100%;display:block;image-r
 #vignette{position:absolute;inset:0;background:radial-gradient(ellipse at center,rgba(0,0,0,0) 55%,rgba(0,0,0,.35) 100%);}
 #dmgflash{position:absolute;inset:0;background:rgba(255,0,0,0);transition:background .15s;}
 #nametags{position:absolute;inset:0;pointer-events:none;overflow:hidden;}
+#scopeov{position:absolute;inset:0;display:none;pointer-events:none;background:radial-gradient(circle at center,rgba(0,0,0,0) 0,rgba(0,0,0,0) 34%,rgba(0,0,0,.92) 36%,rgba(0,0,0,.97) 100%);}
+#scopeov:before,#scopeov:after{content:'';position:absolute;background:rgba(0,0,0,.85);}
+#scopeov:before{left:50%;top:14%;width:2px;height:72%;transform:translateX(-50%);}
+#scopeov:after{top:50%;left:14%;height:2px;width:72%;transform:translateY(-50%);}
 .nametag{position:absolute;transform:translate(-50%,-100%);background:rgba(0,0,0,.45);color:#fff;padding:1px 6px;font-weight:700;white-space:nowrap;pointer-events:none;border-radius:2px;}
 #overlay{position:absolute;inset:0;pointer-events:none;display:none;}
 #sleepfade{position:absolute;inset:0;background:#000;opacity:0;pointer-events:none;transition:opacity 2s;}
@@ -142,7 +146,7 @@ label.lb{font-size:13px;color:#a0a0a0;align-self:flex-start;margin-left:calc(50%
 </head>
 <body>
 <canvas id="gl"></canvas>
-<div id="overlay"><div id="nametags"></div><div id="waterov"></div><div id="fireov"></div><div id="dmgflash"></div><div id="vignette"></div><div id="sleepfade"></div></div>
+<div id="overlay"><div id="nametags"></div><div id="scopeov"></div><div id="waterov"></div><div id="fireov"></div><div id="dmgflash"></div><div id="vignette"></div><div id="sleepfade"></div></div>
 <div id="hud">
   <div id="crosshair"></div>
   <div id="bossbar" style="display:none"><div id="bossname">Ender Dragon</div><div class="bbar"><i id="bossfill"></i></div></div>
@@ -242,12 +246,14 @@ label.lb{font-size:13px;color:#a0a0a0;align-self:flex-start;margin-left:calc(50%
 <div id="mpMenu" class="menu dirtbg">
   <h2 class="sh">Multiplayer</h2>
   <label class="lb">Your name</label><input class="tx" id="mpName" maxlength="16" placeholder="Player">
-  <div class="hint" style="color:#aaa;width:440px;margin:4px 0 6px">Public servers are shared worlds: pick one and you join whoever is playing there, or open it up yourself if it is empty. Everyone sees each other, builds together and chats with T.</div>
+  <div class="hint" style="color:#ff6;width:440px;margin:4px 0 2px;font-weight:700">PUBLIC SERVERS &mdash; no code needed, just click one</div>
+  <div class="hint" style="color:#aaa;width:440px;margin:0 0 6px">Anyone can walk in. You join whoever is already playing there, or open it up yourself if it is empty. Everyone sees each other, builds together and chats with T.</div>
   <button class="btn pubbtn" data-i="0">Green Hills &mdash; classic survival</button>
   <button class="btn pubbtn" data-i="1">Storm Coast &mdash; weather mod</button>
   <button class="btn pubbtn" data-i="2">Dead Zone &mdash; zombie apocalypse</button>
   <button class="btn pubbtn" data-i="3">Chaos Lands &mdash; structure chaos + random blocks</button>
   <button class="btn pubbtn" data-i="4">Gun Range &mdash; guns + zombie waves</button>
+  <button class="btn pubbtn" data-i="5">Speedway &mdash; cars + structure chaos</button>
   <div class="btnrow" style="margin-top:10px"><button class="btn half" id="btnMpHost">Host Private World</button><input class="tx half" id="mpCode" maxlength="8" placeholder="Room code" style="text-transform:uppercase"></div>
   <div class="btnrow"><button class="btn half" id="btnMpJoin">Join by Code</button><button class="btn half" id="btnMpBack">Back</button></div>
   <div class="hint" id="mpStatus" style="color:#ff6;width:440px;margin-top:8px;min-height:18px"></div>
@@ -259,15 +265,17 @@ label.lb{font-size:13px;color:#a0a0a0;align-self:flex-start;margin-left:calc(50%
   <button class="btn modbtn" data-mod="weather">Weather: OFF</button>
   <div class="hint" style="color:#aaa;width:440px;margin:0 0 4px">Thunderstorms roll in with rain and lightning strikes, and tornadoes tear across the land ripping up blocks and throwing you into the sky.</div>
   <button class="btn modbtn" data-mod="horror">Horror: OFF</button>
-  <div class="hint" style="color:#aaa;width:440px;margin:0 0 4px">Pitch-black nights you can barely see through, monsters that never burn in daylight, whispers in the dark and a Stalker that only moves when you are not looking.</div>
+  <div class="hint" style="color:#aaa;width:440px;margin:0 0 4px">Pitch-black nights you can barely see through, monsters that never burn in daylight, whispers in the dark, a Stalker that only moves when you are not looking, and Cartoon Cat: a towering grinning cat that hunts you from far away and lashes out with stretching limbs.</div>
   <button class="btn modbtn" data-mod="random">Random Blocks: OFF</button>
   <div class="hint" style="color:#aaa;width:440px;margin:0 0 4px">Every block you break, mob you kill and chest you open gives a random item. About one in thirty is a jackpot with a whole gear set.</div>
   <button class="btn modbtn" data-mod="hardcore">Hardcore: OFF</button>
   <div class="hint" style="color:#aaa;width:440px;margin:0 0 4px">Hard difficulty and one life only. When you die the world is deleted.</div>
   <button class="btn modbtn" data-mod="apocalypse">Zombie Apocalypse: OFF</button>
   <div class="hint" style="color:#aaa;width:440px;margin:0 0 4px">The dead come in waves, day or night, and they never burn. Each wave is bigger and nastier than the last: zombies, then husks, skeletons, spiders, creepers and worse. Survive as many as you can.</div>
+  <button class="btn modbtn" data-mod="cars">Cars: OFF</button>
+  <div class="hint" style="color:#aaa;width:440px;margin:0 0 4px">Start with a car. Right-click it to hop in: W to drive, S to brake and reverse, steer with the mouse, Space to honk, Shift to get out. Craft more from iron and coal. Anything you hit at speed goes flying.</div>
   <button class="btn modbtn" data-mod="guns">Guns: OFF</button>
-  <div class="hint" style="color:#aaa;width:440px;margin:0 0 4px">Start with a pistol and 32 bullets. Craft a rifle (full auto) and a shotgun from iron and planks, make bullets from iron and leather, and pick ammo off the monsters you drop. Right-click to fire.</div>
+  <div class="hint" style="color:#aaa;width:440px;margin:0 0 4px">Start with a pistol and 32 bullets. Craft a rifle (full auto), a shotgun and a sniper rifle (hold Shift to look through the scope) from iron and planks, make bullets from iron and leather, and pick ammo off the monsters you drop. Right-click to fire.</div>
   <button class="btn modbtn" data-mod="structures">Structure Chaos: OFF</button>
   <div class="hint" style="color:#aaa;width:440px;margin:0 0 4px">A random structure every hundred blocks: villages, temples, mansions, outposts, igloos, huts, portals and dungeons wherever you go.</div>
   <div class="btnrow" style="margin-top:12px"><button class="btn half" id="btnFunDone">Done</button><button class="btn half" id="btnFunClear">Clear All</button></div>
@@ -589,6 +597,7 @@ defTex('end_bricks',p=>{p.noise(215,215,160,8);for(const y of [0,8])p.rect(0,y,1
 defTex('gateway',p=>{p.noise(8,4,14,6);p.speckle(24,120,60,200);p.speckle(12,40,220,180);p.rect(6,6,4,4,20,10,40)});
 defTex('beacon',p=>{p.noise(40,60,80,6);p.rect(2,2,12,12,170,240,255);p.rect(5,5,6,6,255,255,255);p.rect(0,13,16,3,60,60,70)});
 defTex('stalker_face',p=>{p.noise(225,222,210,5);p.rect(2,3,5,4,0,0,0);p.rect(9,3,5,4,0,0,0);p.rect(4,5,2,2,255,30,30);p.rect(11,5,2,2,255,30,30);p.rect(3,11,10,3,0,0,0);for(let i=0;i<10;i+=2)p.rect(3+i,11,1,1,225,222,210)});
+defTex('cartoon_cat_face',p=>{p.noise(8,8,10,3);p.rect(1,2,5,5,255,255,255);p.rect(10,2,5,5,255,255,255);p.rect(3,4,2,2,0,0,0);p.rect(12,4,2,2,0,0,0);p.rect(0,9,16,5,255,255,255);for(let i=1;i<16;i+=2)p.rect(i,9,1,5,0,0,0);p.rect(0,11,16,1,0,0,0)});
 defTex('player_face',p=>{p.noise(215,168,130,6);p.rect(3,5,2,2,255,255,255);p.rect(4,5,1,2,60,40,120);p.rect(10,5,2,2,255,255,255);p.rect(11,5,1,2,60,40,120);p.rect(6,11,4,1,150,80,70)});
 defTex('villager_face',p=>{p.noise(200,160,120,6);p.rect(2,4,3,2,60,120,60);p.rect(11,4,3,2,60,120,60);p.rect(2,3,12,1,110,70,40);p.rect(6,6,4,7,190,145,105);p.rect(5,13,6,1,150,110,80)});
 defTex('sheep_wool',p=>{p.noise(235,235,235,10);for(let i=0;i<10;i++)p.blob(floor(p.rng()*16),floor(p.rng()*16),1.5,215,215,215)});
@@ -793,6 +802,8 @@ defItem(461,'rifle',{icon:'rifle',stack:1,dur:900,gun:{dmg:8,rate:0.11,speed:130
 defItem(462,'shotgun',{icon:'shotgun',stack:1,dur:500,gun:{dmg:4,rate:0.85,speed:75,spread:0.11,pellets:7,ammo:464,auto:false,snd:'shotgun',recoil:0.06}});
 defItem(463,'bullet',{icon:'bullet',stack:64});
 defItem(464,'shell',{icon:'shell',stack:64,label:'Shotgun Shell'});
+defItem(465,'car',{icon:'car',stack:1,spawnMob:'car'});
+defItem(466,'sniper',{icon:'sniper',stack:1,dur:700,label:'Sniper Rifle',gun:{dmg:26,rate:1.3,speed:230,spread:0.002,hipSpread:0.06,pellets:1,ammo:463,auto:false,snd:'sniper',recoil:0.1,scope:true}});
 defItem(302,'carrot',{icon:'carrot',food:[3,3.6],plants:73});
 defItem(303,'potato',{icon:'potato',food:[1,0.6],plants:74,smelt:304});
 defItem(304,'baked_potato',{icon:'baked_potato',food:[5,6]});
@@ -882,6 +893,8 @@ arrow:["..............ww",".............wwl","............www.","...........ss..
 pistol:["................","................","................","..dddddddddddd..",".dhhhhhhhhhhhdd.",".dddddddddddddd.","..ddd....ddddd..","..dgg...........","..dggg..........","..dggg..........","...ggg..........","...ggg..........","....gg..........","................","................","................"],
 rifle:["................","................","..............dd","..........ddddd.","......ddddddddd.","..ddddddhhhhhhd.",".dwwwwwddddddd..","dwwwwwdd.ddd....","dwww..ddd.......",".ww...dgg.......","......dgg.......",".......gg.......","................","................","................","................"],
 shotgun:["................","................","..............dd","...........dddd.",".......dddddddd.","..dddddhhhhhhhd.",".dwwwwwdddddddd.","dwwwwwwdd.dddd..","dwwww..ddd......",".ww...dgg.......","......dgg.......","......dgg.......","................","................","................","................"],
+sniper:["................","..............dd",".....ss.....dd..",".....ss...ddd...","....ddddddddd...","..ddddhhhhhhhd..",".dwwwwwddddddd..","dwwwwwdd.ddd....","dwww..ddd.......",".ww...dgg.......","......dgg.......",".......gg.......","................","................","................","................"],
+car:["................","................","................","......dddddd....","....ddwwwwwwdd..","...dwwwwwwwwwwd.","..rrrrrrrrrrrrrr","..rrrrrrrrrrrrrr","..rrrrrrrrrrrrrr","..rrrrrrrrrrrrrr","...kk.......kk..","..kkkk.....kkkk.","..kkkk.....kkkk.","...kk.......kk..","................","................"],
 bullet:["................","................","................",".......ww.......","......wwww......","......bbbb......","......bbbb......","......bbbb......","......bbbb......","......bbbb......","......bbbb......","......bbbb......",".....bbbbbb.....","................","................","................"],
 shell:["................","................","................","......rrrr......","......rrrr......","......rrrr......","......rrrr......","......rrrr......","......rrrr......","......rrrr......","......bbbb......","......bbbb......",".....bbbbbb.....","................","................","................"],
 bow:["......ssss......","....ss....ss....","...s..w.....s...","..s...w......s..","..s...w......s..",".s....w.......s.",".s....w.......s.",".s....w.......s.",".s....w.......s.","..s...w......s..","..s...w......s..","...s..w.....s...","....ss....ss....","......ssss......","................","................"],
@@ -921,7 +934,7 @@ beef:['meat',{m:[200,60,60],f:[240,220,220]}],cooked_beef:['meat',{m:[130,70,40]
 chicken:['drumstick',{m:[230,170,160],b:[240,230,220]}],cooked_chicken:['drumstick',{m:[200,130,70],b:[240,230,220]}],
 mutton:['meat',{m:[210,80,80],f:[240,220,220]}],cooked_mutton:['meat',{m:[150,80,50],f:[200,150,110]}],
 rotten_flesh:['meat',{m:[120,90,60],f:[90,120,60]}],bone:['bone',{w:[235,235,225]}],arrow:['arrow',{w:[200,200,210],l:[240,240,250],s:[140,110,70],f:[230,230,230]}],
-bow:['bow',{s:[140,100,60],w:[230,230,230]}],pistol:['pistol',{d:[55,55,62],h:[125,125,135],g:[95,62,40]}],rifle:['rifle',{d:[55,55,62],h:[125,125,135],g:[95,62,40],w:[120,80,45]}],shotgun:['shotgun',{d:[50,50,55],h:[120,120,125],g:[95,62,40],w:[130,85,45]}],bullet:['bullet',{b:[205,165,70],w:[150,150,160]}],shell:['shell',{b:[205,165,70],r:[200,40,40]}],feather:['feather',{w:[240,240,240],s:[200,200,200]}],string:['string',{w:[235,235,235]}],
+bow:['bow',{s:[140,100,60],w:[230,230,230]}],pistol:['pistol',{d:[55,55,62],h:[125,125,135],g:[95,62,40]}],rifle:['rifle',{d:[55,55,62],h:[125,125,135],g:[95,62,40],w:[120,80,45]}],shotgun:['shotgun',{d:[50,50,55],h:[120,120,125],g:[95,62,40],w:[130,85,45]}],bullet:['bullet',{b:[205,165,70],w:[150,150,160]}],car:['car',{d:[40,40,45],w:[160,210,240],r:[210,40,40],k:[25,25,25]}],sniper:['sniper',{d:[45,48,52],h:[120,125,135],g:[80,55,35],w:[95,70,40],s:[30,30,35]}],shell:['shell',{b:[205,165,70],r:[200,40,40]}],feather:['feather',{w:[240,240,240],s:[200,200,200]}],string:['string',{w:[235,235,235]}],
 egg:['egg',{m:[230,215,180],l:[245,235,210]}],snowball:['ball',{m:[240,245,255],l:[255,255,255]}],clay_ball:['ball',{m:[160,165,175],l:[190,195,205]}],
 spider_eye:['eye',{r:[150,30,30],k:[30,10,10]}],leather:['leather',{m:[170,100,50]}],brick:['brick',{m:[150,80,65]}],
 bucket:['bucket',{g:[170,170,170],c:[120,120,120]}],water_bucket:['bucket',{g:[170,170,170],c:[50,100,220]}],lava_bucket:['bucket',{g:[170,170,170],c:[240,110,20]}],milk_bucket:['bucket',{g:[170,170,170],c:[245,245,245]}],
@@ -1573,7 +1586,7 @@ function skyColors(t){ // t: fraction of day (0 = 6:00 sunrise)
 function renderFrame(dt){
   const gl=R.gl,canvas=R.canvas;const W=canvas.clientWidth,H=canvas.clientHeight;if(canvas.width!==W||canvas.height!==H){canvas.width=W;canvas.height=H}gl.viewport(0,0,W,H);
   const p=player;const eyeY=p.y+p.eyeHeight;R.eye=[p.x,eyeY,p.z];R.aspect=W/H;
-  let fov=opts.fov*PI/180;if(p.sprinting)fov*=1.1;if(p.bowCharge>0)fov*=1-Math.min(p.bowCharge,1)*0.15;
+  let fov=opts.fov*PI/180;if(p.sprinting)fov*=1.1;if(p.scoped)fov*=0.2;if(p.bowCharge>0)fov*=1-Math.min(p.bowCharge,1)*0.15;
   R.proj=m4perspective(fov,R.aspect,0.05,1000);R.view=m4mul(m4rotX(-p.pitch),m4mul(m4rotY(-p.yaw),m4trans(-p.x,-eyeY,-p.z)));R.vp=m4mul(R.proj,R.view);R.planes=frustumPlanes(R.vp);
   const sc=skyColors(world.time/24000);R.day=(world.nether||world.end)?0:sc.day;R.gamma=opts.brightness/100;R.ambient=world.end?0.32+0.08*R.gamma:world.nether?0.10+0.06*R.gamma:0.015+0.06*R.gamma;
   const headBlock=world.getBlock(floor(p.x),floor(eyeY),floor(p.z));const underwater=headBlock===8,inLava=headBlock===9;
@@ -1855,6 +1868,8 @@ const MOBDEF={
   husk:{hp:20,w:0.6,h:1.95,speed:3.2,dmg:3,undead:true,noBurn:true,hungerHit:true,drops:r=>[[282,floor(r()*3)],[r()<0.025?[260,302,303][floor(r()*3)]:0,1]],xp:[5,5],sound:'zombie',follow:35},
   stray:{hp:20,w:0.6,h:1.99,speed:3.4,dmg:3,undead:true,ranged:true,slowArrow:true,drops:r=>[[283,floor(r()*3)],[284,floor(r()*3)]],xp:[5,5],sound:'skeleton',follow:16},
   cave_spider:{hp:12,w:0.7,h:0.5,speed:4.6,dmg:2,poison:true,scale:0.5,drops:r=>[[286,floor(r()*3)],[r()<0.33?287:0,1]],xp:[5,5],sound:'spider',follow:16,neutral:true,lightNeutral:true},
+  car:{hp:80,w:1.8,h:1.3,speed:0,passive:true,drops:()=>[[465,1]],xp:[0,0],sound:'engine',noDespawn:true,vehicle:true},
+  cartoon_cat:{hp:220,w:0.9,h:4.2,speed:6.8,dmg:0,undead:true,noBurn:true,drops:()=>[],xp:[40,60],sound:'cattune',follow:90,tall:true,noDespawn:true},
   stalker:{hp:60,w:0.7,h:3.4,speed:4.4,dmg:0,undead:true,noBurn:true,drops:()=>[],xp:[0,0],sound:'enderman',follow:60,tall:true},
   enderman:{hp:40,w:0.6,h:2.9,speed:5.2,dmg:7,drops:r=>[[312,floor(r()*2)]],xp:[5,5],sound:'enderman',follow:64,neutral:true,tall:true},
   slime:{hp:16,w:2.04,h:2.04,speed:2.4,dmg:4,drops:(r,e)=>e.size===1?[[313,floor(r()*3)]]:[],xp:[4,4],sound:'slime',follow:16},
@@ -1868,6 +1883,8 @@ class Mob extends Entity{
   constructor(type,x,y,z){super(x,y,z);const d=MOBDEF[type];this.type=type;this.def=d;this.w=d.w;this.h=d.h;this.hp=d.hp;this.maxHp=d.hp;this.solidBody=true;this.yaw=Math.random()*PI*2;this.headYaw=0;this.headPitch=0;
     this.moveDir=null;this.wanderT=0;this.idleT=1+Math.random()*3;this.hurtT=0;this.deathT=0;this.walkT=0;this.walkAmp=0;this.atkCd=0;this.fireT=0;this.panicT=0;this.loveT=0;this.baby=false;this.growT=0;this.soundT=10+Math.random()*30;this.swell=0;this.eatT=0;this.eggT=300+Math.random()*300;this.angry=false;this.lastHit=0;
     if(type==='villager'){const r=Math.random();this.prof=r<0.1?'nitwit':PROF_NAMES[floor(Math.random()*(PROF_NAMES.length-1))];this.trades=villagerTrades(this.prof);this.vlevel=1;this.vxp=0;this.restockT=240+Math.random()*120}
+    if(type==='car'){this.color=floor(Math.random()*6);this.speedV=0;this.wheelT=0;this.tamed=true;this.saddled=true;this.engT=0;this.hornCd=0;this.runCd=0}
+    if(type==='cartoon_cat'){this.stretch=0;this.lastRoar=0}
     if(type==='sheep'){const r=Math.random();this.woolId=r<0.82?20:r<0.87?76:r<0.92?75:r<0.97?77:20;this.sheared=false}
     if(type==='slime'){this.setSize(Math.random()<0.4?3:Math.random()<0.5?2:1);this.hopT=Math.random()*2}
     this.tpT=2+Math.random()*4;this.drinkT=0;this.stareT=0;this.drinking=0;this.screamT=0;this.tamed=false;this.sitting=false;this.prey=null;this.shakeT=0;
@@ -1881,6 +1898,7 @@ class Mob extends Entity{
     for(const [ox,oz] of [[cy*1.3,-sy*1.3],[-cy*1.3,sy*1.3],[-sy*1.6,-cy*1.6],[sy*1.6,cy*1.6]]){const x=this.x+ox,z=this.z+oz;const w=p.w/2;if(!collectBoxes(x-w,this.y,z-w,x+w,this.y+1.8,z+w).length){p.x=x;p.z=z;p.y=this.y;placed=true;break}}
     if(!placed){p.x=this.x;p.z=this.z;p.y=this.y+this.h+0.05}p.vx=p.vy=p.vz=0;p.fallDist=0}
   ride(dt,fwd,strafe,jump,sprint){ // called from updatePlayer while the player is on this horse
+    if(this.type==='car'){this.driveCar(dt,fwd,strafe,jump,sprint);return}
     const p=player;this.yaw=p.yaw;this.headYaw=0;this.headPitch=0;if(this.hurtT>0)this.hurtT-=dt;if(this.invT>0)this.invT-=dt;if(this.jumpCd>0)this.jumpCd-=dt;
     if(!this.tamed){this.buckT-=dt;if(this.buckT<=0){spawnParticles('smoke',this.x,this.y+this.h,this.z,6);playSoundAt('horse',this.x,this.y,this.z,1,0.9);this.dismount();p.vy=5;p.vx+=(Math.random()-0.5)*4;p.vz+=(Math.random()-0.5)*4;return}}
     if(!this.saddled){fwd=0;strafe=0;jump=false}
@@ -1918,6 +1936,7 @@ class Mob extends Entity{
   update(dt){
     this.age+=dt;if(this.dying){this.deathT+=dt;if(this.deathT>1){this.dead=true}if(this.rider)this.dismount();return}
     if(this.rider){if(this.rider!==player||player.riding!==this){this.rider=null}else return}
+    if(this.type==='car'){this.speedV*=Math.pow(0.15,dt);this.vx*=Math.pow(0.05,dt);this.vz*=Math.pow(0.05,dt);if(this.hurtT>0)this.hurtT-=dt;if(this.invT>0)this.invT-=dt;this.physics(dt,{step:1.05,friction:0.6,gravity:32});return}
     if(this.type==='guardian'){this.updateGuardian(dt);return}
     if(this.def.static){this.updateShulker(dt);return}
     const p=player;const dx=p.x-this.x,dz=p.z-this.z,dy=(p.y+1)-(this.y+this.h*0.8);const dist=sqrt(dx*dx+dz*dz),dist3=sqrt(dx*dx+dy*dy+dz*dz);
@@ -1926,6 +1945,7 @@ class Mob extends Entity{
     if(this.type==='villager'){this.restockT-=dt;if(this.restockT<=0){this.restockT=600;let any=false;for(const t of this.trades){if(t.uses>0)any=true;t.uses=0;t.demand=floor((t.demand||0)/2)}if(any&&Math.hypot(this.x-p.x,this.z-p.z)<16)spawnParticles('happy',this.x,this.y+this.h,this.z,4)}
       if(game.gui&&game.gui.type==='trade'&&game.gui.villager===this){this.moveDir=null;this.wanderT=1;if(dist3>6)closeGui()}}
     if(this.type==='stalker'){if(this.updateStalker(dt,p,dist,dist3))return}
+    if(this.type==='cartoon_cat')this.updateCartoonCat(dt,p,dist,dist3);
     if(this.type==='wolf'){ // wild: hunts sheep/skeletons, pack anger; tamed: follows, sits, defends owner
       if(this.tamed){this.angry=false;if(dist3>12&&!this.sitting&&!p.dead&&p.onGround)this.teleport(true,true)}
       if(this.prey&&(this.prey.dead||this.prey.dying||Math.hypot(this.prey.x-this.x,this.prey.z-this.z)>20))this.prey=null;
@@ -2038,6 +2058,7 @@ class Mob extends Entity{
   interact(stack){ // right click by player, returns true if consumed action
     const d=this.def;
     if(this.type==='villager'){if(this.baby)return false;if(this.prof==='nitwit'){playSoundAt('villager_no',this.x,this.y,this.z);return true}openTradeGui(this);return true}
+    if(this.type==='car'){if(this.mount()){showMessage('Vroom! W to drive, S to brake and reverse, mouse to steer, Space to honk, Shift to get out.');playSoundAt('engine',this.x,this.y,this.z,1.2,0.8)}return true}
     if(this.type==='horse'){if(this.baby)return false;
       if(stack&&stack.id===315&&this.tamed&&!this.saddled){this.saddled=true;consumeHeld();playSoundAt('leather',this.x,this.y,this.z);showMessage('Saddled! Right-click to ride, W A S D to steer, Space to jump, Shift to get off.');return true}
       if(stack&&d.food.includes(stack.id)){const it=ITEMS[stack.id];if(stack.id===308&&this.tamed&&this.loveT<=0){consumeHeld();this.loveT=30;spawnParticles('heart',this.x,this.y+this.h+0.2,this.z,5);return true}
@@ -2101,6 +2122,18 @@ class Mob extends Entity{
         else if(vin&&this.angry){part([-1.5,-8,-1.5,1.5,2,1.5],5,20,0,-1.4,0,0,N,robe);part([-0.5,-1,-9,0.5,1,-1],5,20,0,-1.4,0,0,W,[0.45,0.3,0.15]);part([-2.5,-3,-10,2.5,0,-7],5,20,0,-1.4,0,0,W,[0.75,0.75,0.78])}part([-4,6,-3.2,4,14,-3],0,0,0,0,0,0,W,P.apron);part([-2,-12,-2,2,0,2],-2,12,0,swing*0.5,0,0,N,[0.3,0.25,0.35]);part([-2,-12,-2,2,0,2],2,12,0,-swing*0.5,0,0,N,[0.3,0.25,0.35]);
         part([-4,12,-3,4,24,3],0,0,0,0,0,0,N,robe);part([-4,8,-3,4,12,3],0,0,0,0,0,0,N,robe);part([-4,-2,-3,4,2,3],0,20,0,0,0,0,N,skin);
         part([-4,0,-4,4,10,4],0,24,0,hp,hy,0,face(evo?TEX.evoker_face:vin?TEX.vindicator_face:TEX.villager_face),skin);part([-1,2,-6,1,6,-4],0,24,0,hp,hy,0,N,skin);break}
+      case 'car':{const cols=[[0.85,0.15,0.15],[0.15,0.35,0.9],[0.95,0.8,0.1],[0.1,0.6,0.25],[0.92,0.92,0.92],[0.15,0.15,0.17]];const c=cols[this.color]||cols[0];const wr=this.wheelT||0;
+        for(const [lx,lz] of [[-13,-15],[13,-15],[-13,15],[13,15]])part([-4,-4,-4,4,4,4],lx,5,lz,wr,0,0,N,[0.1,0.1,0.1]);
+        part([-14,5,-24,14,14,24],0,0,0,0,0,0,N,c);part([-11,14,-9,11,23,13],0,0,0,0,0,0,N,[0.55,0.75,0.9]);part([-11,14,-10,11,23,-9.5],0,0,0,0,0,0,N,[0.3,0.5,0.7]);
+        part([-12,8,-24.5,-8,11,-24],0,0,0,0,0,0,N,[1,0.95,0.6]);part([8,8,-24.5,12,11,-24],0,0,0,0,0,0,N,[1,0.95,0.6]);part([-12,8,24,-8,11,24.5],0,0,0,0,0,0,N,[0.9,0.1,0.1]);part([8,8,24,12,11,24.5],0,0,0,0,0,0,N,[0.9,0.1,0.1]);break}
+      case 'cartoon_cat':{ // towering ink-black cat with white gloves, a huge grin and limbs that stretch as it runs
+        const k=[0.03,0.03,0.04],gl=[0.95,0.95,0.95];const st=1+(this.stretch||0)*0.9;const sw=swing*1.3;
+        part([-1.5,-30*st,-1.5,1.5,0,1.5],-4,30*st,0,sw,0,0.05,N,k);part([-1.5,-30*st,-1.5,1.5,0,1.5],4,30*st,0,-sw,0,-0.05,N,k);
+        part([-5,0,-3,5,20,3],0,30*st,0,0.15,0,0,N,k);
+        part([-1.5,-26*st,-1.5,1.5,0,1.5],-7,49*st,0,0.9+sw*0.5,0,0.2,N,k);part([-3,-30*st,-3,3,-26*st,3],-7,49*st,0,0.9+sw*0.5,0,0.2,N,gl);
+        part([-1.5,-26*st,-1.5,1.5,0,1.5],7,49*st,0,0.9-sw*0.5,0,-0.2,N,k);part([-3,-30*st,-3,3,-26*st,3],7,49*st,0,0.9-sw*0.5,0,-0.2,N,gl);
+        part([-7,0,-6,7,13,6],0,49*st,-2,hp+0.2,hy,0,face(TEX.cartoon_cat_face),k);part([-6,13,-2,-2,19,2],0,49*st,-2,hp+0.2,hy,0,N,k);part([2,13,-2,6,19,2],0,49*st,-2,hp+0.2,hy,0,N,k);
+        part([-1,0,0,1,2,22],0,32*st,5,-0.6+Math.sin(this.age*3)*0.2,0,0,N,k);break}
       case 'horse':{const cols=[[0.55,0.36,0.22],[0.18,0.14,0.12],[0.92,0.9,0.86],[0.7,0.45,0.25],[0.5,0.48,0.46],[0.35,0.22,0.14],[0.8,0.65,0.45]];const c=cols[this.color]||cols[0];const mane=this.color===2?[0.85,0.83,0.8]:[0.15,0.1,0.08];
         for(const [lx,lz,sg] of [[-4,-8,1],[4,-8,-1],[-4,8,-1],[4,8,1]])part([lx-2,-14,lz-2,lx+2,0,lz+2],0,14,0,swing*sg*0.8,0,0,N,c);
         part([-5,14,-11,5,24,11],0,0,0,0,0,0,N,c);
@@ -2232,7 +2265,7 @@ function updatePlayer(dt){
   // ---- input ----
   const guiOpen=game.gui!==null||game.paused;
   let fwd=0,strafe=0;if(!guiOpen){if(keys.KeyW||keys.ArrowUp)fwd+=1;if(keys.KeyS||keys.ArrowDown)fwd-=1;if(keys.KeyA)strafe-=1;if(keys.KeyD)strafe+=1}
-  const wantSneak=!guiOpen&&(keys.ShiftLeft||keys.ShiftRight);const inWater=entityInWater(p),inLava=entityInLava(p);p.inWater=inWater;
+  const wantSneak=!guiOpen&&(keys.ShiftLeft||keys.ShiftRight);{const hs=heldStack();const hg=hs&&ITEMS[hs.id].gun;const sc=!!(hg&&hg.scope&&wantSneak&&!p.riding);if(sc!==!!p.scoped){p.scoped=sc;$('scopeov').style.display=sc?'block':'none';if(sc)playSound('pop',0.3,0.6)}}const inWater=entityInWater(p),inLava=entityInLava(p);p.inWater=inWater;
   if(p.riding){const h=p.riding;if(h.dead||h.dying||wantSneak){h.dismount()}else{h.ride(dt,fwd,strafe,keys.Space&&!guiOpen,keys.ControlLeft||p.sprintReq);p.sprinting=false;spearCharge(dt,h)}}
   const headId=world.getBlock(floor(p.x),floor(p.y+p.eyeHeight),floor(p.z));const headWater=headId===8;
   const ladder=onLadder(p);
@@ -2360,7 +2393,7 @@ function fireGun(st,hd){const p=player;const g=hd.gun;if(p.gunCd>0)return;if(!g.
   if(p.mode!=='creative'&&!hasItem(g.ammo)){if(!p.gunHeld){showMessage('Out of '+ITEMS[g.ammo].label+'s');playSound('pop',0.4,0.5)}p.gunHeld=true;return}
   p.gunHeld=true;p.gunCd=g.rate;if(p.mode!=='creative')removeItem(g.ammo,1);damageItem(st,1);const volley=(game.volley=(game.volley||0)+1);
   const e=[p.x,p.y+p.eyeHeight,p.z];const d=eyeDir();
-  for(let i=0;i<g.pellets;i++){const sx=d[0]+(Math.random()-0.5)*g.spread*2,sy=d[1]+(Math.random()-0.5)*g.spread*2,sz=d[2]+(Math.random()-0.5)*g.spread*2;const L=sqrt(sx*sx+sy*sy+sz*sz);
+  const spread=g.scope&&!p.scoped?g.hipSpread:g.spread;for(let i=0;i<g.pellets;i++){const sx=d[0]+(Math.random()-0.5)*spread*2,sy=d[1]+(Math.random()-0.5)*spread*2,sz=d[2]+(Math.random()-0.5)*spread*2;const L=sqrt(sx*sx+sy*sy+sz*sz);
     const b=new Arrow(e[0]+d[0]*0.6,e[1]+d[1]*0.6-0.05,e[2]+d[2]*0.6,sx/L*g.speed,sy/L*g.speed,sz/L*g.speed,'player',g.dmg);b.bullet=true;b.noGravity=true;b.kb=g.pellets>1?2:3;b.volley=volley;entities.push(b)}
   spawnParticles('flash',e[0]+d[0]*1.5+0.15,e[1]+d[1]*1.5-0.2,e[2]+d[2]*1.5,g.pellets>1?6:3);
   playSound(g.snd,1,0.9+Math.random()*0.2);p.pitch+=g.recoil;p.swing=0;p.exh+=0.02}
@@ -3054,10 +3087,12 @@ shaped(['WWW'],{W:271},[272,1]);
 shaped(['# #',' # '],{'#':PLANKS},[294,4]);
 shapeless([64,65,294],[295,1]);
 RECIPES.push({p:['iii','.pi'],k:{i:260,p:PLANKS},out:[460,1],shaped:true,guns:true});
-RECIPES.push({p:['..ii','iiii','p...'],k:{i:260,p:PLANKS},out:[461,1],shaped:true,guns:true});
-RECIPES.push({p:['.ii','iii','p..'],k:{i:260,p:PLANKS},out:[462,1],shaped:true,guns:true});
+RECIPES.push({p:['.ii','iii','p.i'],k:{i:260,p:PLANKS},out:[461,1],shaped:true,guns:true});
+RECIPES.push({p:['ii.','iii','p..'],k:{i:260,p:PLANKS},out:[462,1],shaped:true,guns:true});
+RECIPES.push({p:['gii','iii','p.i'],k:{i:260,p:PLANKS,g:17},out:[466,1],shaped:true,guns:true});
 RECIPES.push({s:[260,289],out:[463,8],shaped:false,guns:true});
 RECIPES.push({s:[260,289,289],out:[464,4],shaped:false,guns:true});
+RECIPES.push({p:['iii','iii','c.c'],k:{i:260,c:257},out:[465,1],shaped:true,cars:true});
 shaped(['# #',' # '],{'#':260},[296,1]);
 shaped(['#|#','#|#'],{'#':PLANKS,'|':256},[61,3]);
 shaped(['#  ','## ','###'],{'#':PLANKS},[58,4]);shaped(['#  ','## ','###'],{'#':4},[59,4]);shaped(['#  ','## ','###'],{'#':52},[60,4]);
@@ -3085,7 +3120,7 @@ function matchRecipe(grid,w,h){
   // bounding box of items
   let minx=w,miny=h,maxx=-1,maxy=-1;const ids=[];for(let y=0;y<h;y++)for(let x=0;x<w;x++){const s=grid[y*w+x];if(s){ids.push(s.id);if(x<minx)minx=x;if(x>maxx)maxx=x;if(y<miny)miny=y;if(y>maxy)maxy=y}}
   if(maxx<0)return null;const bw=maxx-minx+1,bh=maxy-miny+1;
-  for(const r of RECIPES){if(r.guns&&!(game.mods&&game.mods.guns))continue;
+  for(const r of RECIPES){if(r.guns&&!(game.mods&&game.mods.guns))continue;if(r.cars&&!(game.mods&&game.mods.cars))continue;
     if(r.shaped){const ph=r.p.length,pw=r.p[0].length;if(pw!==bw||ph!==bh)continue;
       for(const mirror of [false,true]){let ok=true;for(let y=0;y<bh&&ok;y++)for(let x=0;x<bw;x++){const ch=r.p[y][mirror?bw-1-x:x];const s=grid[(miny+y)*w+(minx+x)];const id=s?s.id:0;const k=ch===' '?undefined:r.k[ch];if(!keyMatch(k,id)){ok=false;break}}if(ok)return r}}
     else{if(r.s.length!==ids.length)continue;const need=r.s.slice();let ok=true;for(const id of ids){let f=-1;for(let i=0;i<need.length;i++)if(keyMatch(need[i],id)){f=i;break}if(f<0){ok=false;break}need.splice(f,1)}if(ok)return r}
@@ -3190,7 +3225,7 @@ function closeGui(){const g=game.gui;if(!g)return;returnGrid(craft2);returnGrid(
 function updateFurnaceGui(){const g=game.gui;if(!g||g.type!=='furnace')return;const be=g.be;$('furnArrow').firstChild.style.width=(be.cook/10*26)+'px';$('furnFire').firstChild.style.height=(be.burnMax?be.burn/be.burnMax*22:0)+'px';renderAllSlots()}
 function renderRecipeBook(){const rb=$('rbook');rb.innerHTML='<div class="hint" style="margin:0 0 4px">Recipe book — click to fill</div>';const counts={};for(const s of player.inv)if(s)counts[s.id]=(counts[s.id]||0)+s.count;
   const seen=new Set();
-  for(const r of RECIPES){if(r.guns&&!(game.mods&&game.mods.guns))continue;if(seen.has(r.out[0]+'_'+(r.shaped?r.p.join(''):r.s.join(''))))continue;seen.add(r.out[0]+'_'+(r.shaped?r.p.join(''):r.s.join('')));
+  for(const r of RECIPES){if(r.guns&&!(game.mods&&game.mods.guns))continue;if(r.cars&&!(game.mods&&game.mods.cars))continue;if(seen.has(r.out[0]+'_'+(r.shaped?r.p.join(''):r.s.join(''))))continue;seen.add(r.out[0]+'_'+(r.shaped?r.p.join(''):r.s.join('')));
     const need=recipeNeeds(r,counts);const el=document.createElement('div');el.className='r'+(need?'':' no');el.innerHTML='<div class="icon" style="background-image:url('+ICONS[r.out[0]]+')"></div>'+(r.out[1]>1?'<div class="cnt">'+r.out[1]+'</div>':'');el.title=ITEMS[r.out[0]].label;
     el.addEventListener('click',()=>{if(need)fillRecipe(r,need)});rb.appendChild(el)}
 }
@@ -3352,6 +3387,10 @@ function playSound(name,vol=1,pitch=1){
     case 'horn':tone('sawtooth',160,150,1.3);tone('square',80,80,1.3);noise(1.3,'lowpass',300);env(0.05,0.7,1.3);break;
     case 'creak':tone('triangle',85,150,0.7);noise(0.7,'bandpass',600,4);env(0.06,0.35,0.7);break;
     case 'fuse':noise(1.5,'highpass',2000);env(0.05,0.35,1.4);break;
+    case 'engine':{const o=tone('sawtooth',48,48,0.32);const l=c.createOscillator();l.frequency.value=22*pitch;const lg=c.createGain();lg.gain.value=14;l.connect(lg);lg.connect(o.frequency);l.start(t);l.stop(t+0.32);noise(0.32,'lowpass',180);env(0.02,0.45,0.32);break}
+    case 'cattune':{[0,0.12,0.24,0.4,0.55].forEach((d,i)=>{const o=c.createOscillator();o.type='square';o.frequency.value=[392,494,330,262,233][i]*(0.9+Math.random()*0.2)*pitch;const gg=c.createGain();gg.gain.setValueAtTime(0.22*vol,t+d);gg.gain.exponentialRampToValueAtTime(0.001,t+d+0.25);const f=c.createBiquadFilter();f.type='lowpass';f.frequency.value=900;o.connect(f);f.connect(gg);gg.connect(AU.master);o.start(t+d);o.stop(t+d+0.3)});return}
+    case 'roar':tone('sawtooth',220,45,1.1);noise(1.1,'bandpass',500,2);tone('square',110,30,1);env(0.02,1.2,1.1);break;
+    case 'sniper':noise(0.14,'highpass',1400,1);tone('square',170,35,0.16);noise(0.6,'lowpass',350,1);env(0.002,1.3,0.6);break;
     case 'gun':noise(0.09,'highpass',1800,1);tone('square',220,60,0.09);env(0.002,1,0.12);break;
     case 'rifle':noise(0.07,'highpass',2400,1);tone('sawtooth',300,80,0.07);env(0.002,0.8,0.09);break;
     case 'shotgun':noise(0.35,'lowpass',900,1);noise(0.08,'highpass',2000,1);tone('sine',120,40,0.3);env(0.002,1.4,0.35);break;
@@ -3507,7 +3546,7 @@ function trySpawnMobs(){
     const sk=world.getSky(x,y,z),bl=world.getLight(x,y,z);const effSky=Math.max(0,sk-11*(1-day));
     if(world.end){if(hostile<40&&game.difficulty>0&&Math.random()<0.5){const n=1+floor(Math.random()*3);for(let i=0;i<n;i++){const ox=x+floor(Math.random()*5)-2,oz=z+floor(Math.random()*5)-2;if(world.getBlock(ox,y,oz)!==0||world.getBlock(ox,y+1,oz)!==0||world.getBlock(ox,y+2,oz)!==0||world.getBlock(ox,y-1,oz)!==99)continue;entities.push(new Mob('enderman',ox+0.5,y,oz+0.5));hostile++}}continue}
     if(world.nether){if(hostile<24&&game.difficulty>0&&Math.random()<0.5){const nearFort=world.getBlock(x,y-1,z)===88||world.getBlock(x,y-2,z)===88;const type=nearFort&&Math.random()<0.6?'wither_skeleton':nearFort&&Math.random()<0.3?'blaze':'zombified_piglin';const n=type==='blaze'?1:2+floor(Math.random()*3);for(let i=0;i<n;i++){const ox=x+floor(Math.random()*5)-2,oz=z+floor(Math.random()*5)-2;if(world.getBlock(ox,y,oz)!==0||world.getBlock(ox,y+1,oz)!==0||!BLOCKS[world.getBlock(ox,y-1,oz)].opaque)continue;entities.push(new Mob(type,ox+0.5,y,oz+0.5));hostile++}}continue}
-    if(bl===0&&effSky<1&&hostile<(night?60:30)*(horror?1.5:1)&&game.difficulty>0){let type=pickHostile(c,x,y,z);if(!type)continue;if(horror&&night&&Math.random()<0.15&&!entities.some(e=>e instanceof Mob&&e.type==='stalker'&&!e.dead))type='stalker';const n=(type==='spider'||type==='slime'||type==='witch')?1:type==='enderman'?1+floor(Math.random()*2):1+floor(Math.random()*3);
+    if(bl===0&&effSky<1&&hostile<(night?60:30)*(horror?1.5:1)&&game.difficulty>0){let type=pickHostile(c,x,y,z);if(!type)continue;if(horror&&night&&Math.random()<0.15&&!entities.some(e=>e instanceof Mob&&e.type==='stalker'&&!e.dead))type='stalker';else if(horror&&night&&Math.random()<0.05&&!entities.some(e=>e instanceof Mob&&e.type==='cartoon_cat'&&!e.dead))type='cartoon_cat';const n=(type==='spider'||type==='slime'||type==='witch')?1:type==='enderman'?1+floor(Math.random()*2):1+floor(Math.random()*3);
       for(let i=0;i<n;i++){const ox=x+floor(Math.random()*5)-2,oz=z+floor(Math.random()*5)-2;if(world.getBlock(ox,y,oz)!==0||world.getBlock(ox,y+1,oz)!==0||!BLOCKS[world.getBlock(ox,y-1,oz)].opaque)continue;if(MOBDEF[type].tall&&world.getBlock(ox,y+2,oz)!==0)continue;const m=new Mob(type,ox+0.5,y,oz+0.5);if(type==='slime'&&y<40&&Math.random()<0.5)m.setSize(3);if(boxesOverlapEntity(m.x-m.w/2,m.y,m.z-m.w/2,m.x+m.w/2,m.y+m.h,m.z+m.w/2))continue;entities.push(m);hostile++}}
   }
   // passive animals: surface only, daylight, grass
@@ -3525,8 +3564,8 @@ function randomDrops(){if(Math.random()<0.03){const set=RANDOM_SETS[floor(Math.r
 /* ---- initial spawn ---- */
 function findSpawn(){for(let r=0;r<400;r+=8){for(let a=0;a<PI*2;a+=0.7){const x=floor(Math.cos(a)*r),z=floor(Math.sin(a)*r);const info=world.columnInfo(x,z);if(info.height>SEA+1&&info.biome!==BI.mountains&&info.biome!==BI.ocean)return [x+0.5,info.height+1,z+0.5]}}return [0.5,80,0.5]}
 /* ---- world lifecycle ---- */
-const MODN={weather:'Weather',horror:'Horror',random:'Random Blocks',hardcore:'Hardcore',structures:'Structure Chaos',apocalypse:'Zombie Apocalypse',guns:'Guns'};
-function modsOf(meta){const m=Object.assign({weather:false,horror:false,random:false,hardcore:false,structures:false,apocalypse:false,guns:false},meta.mods||{});if(!meta.mods&&meta.drops==='random')m.random=true;return m}
+const MODN={weather:'Weather',horror:'Horror',random:'Random Blocks',hardcore:'Hardcore',structures:'Structure Chaos',apocalypse:'Zombie Apocalypse',guns:'Guns',cars:'Cars'};
+function modsOf(meta){const m=Object.assign({weather:false,horror:false,random:false,hardcore:false,structures:false,apocalypse:false,guns:false,cars:false},meta.mods||{});if(!meta.mods&&meta.drops==='random')m.random=true;return m}
 function newWorld(name,seedStr,mode,diff,mods){const drops=mods&&mods.random?'random':'normal';
   const seed=seedStr?(isNaN(+seedStr)?hashStr(seedStr):(+seedStr|0)):(Math.random()*2147483647|0);
   const id='w'+Date.now().toString(36);const list=worldList();list.push({id,name,seed,mode,diff,drops,mods:mods||{},created:Date.now(),played:Date.now()});localStorage.setItem('ic_worlds',JSON.stringify(list));
@@ -3545,7 +3584,7 @@ function startWorld(meta,save){
       if(!ew.dragonDead){const d=new Dragon(0,80,-30);if(save.end.dragonHp)d.hp=save.end.dragonHp;ents.push(d)}for(const c of (save.end.crystals||[]))ents.push(new Crystal(c[0],c[1],c[2]));ew.crystalsPlaced=true;game.dims.end={world:ew,ents,furn:new Map()}}
     if(save.dim==='nether'&&game.dims.nether){game.dims.over={world,ents:[],furn:new Map()};const nw=game.dims.nether;nw.world.time=world.time;nw.world.day=world.day;world=nw.world;game.pendingMobs=[];entities.push(...nw.ents);game.dims.nether=null}
     else if(save.dim==='end'&&game.dims.end){game.dims.over={world,ents:[],furn:new Map()};const ew=game.dims.end;ew.world.time=world.time;ew.world.day=world.day;world=ew.world;game.pendingMobs=[];entities.push(...ew.ents);game.dims.end=null}}
-  else{if(game.mods.guns){p.inv[0]={id:460,count:1};p.inv[1]={id:463,count:32}}world.time=1000;world.day=0;game.worldSpawn=findSpawn();p.x=game.worldSpawn[0];p.y=game.worldSpawn[1];p.z=game.worldSpawn[2];p.yaw=0;p.pitch=0;game.pendingMobs=[];game.pendingItems=[];game.freshWorld=true;
+  else{if(game.mods.guns){p.inv[0]={id:460,count:1};p.inv[1]={id:463,count:32}}if(game.mods.cars){p.inv[game.mods.guns?2:0]={id:465,count:1}}world.time=1000;world.day=0;game.worldSpawn=findSpawn();p.x=game.worldSpawn[0];p.y=game.worldSpawn[1];p.z=game.worldSpawn[2];p.yaw=0;p.pitch=0;game.pendingMobs=[];game.pendingItems=[];game.freshWorld=true;
     if(meta.mode==='creative'){}}
   game.state='loading';showMenu('loading');$('loadText').textContent='Building terrain';
   const need=[];const pcx=floor(p.x)>>4,pcz=floor(p.z)>>4;const r0=Math.min(opts.renderDist,6);for(let dx=-r0-1;dx<=r0+1;dx++)for(let dz=-r0-1;dz<=r0+1;dz++)need.push([pcx+dx,pcz+dz]);need.sort((a,b)=>(a[0]-pcx)**2+(a[1]-pcz)**2-((b[0]-pcx)**2+(b[1]-pcz)**2));
@@ -3591,7 +3630,7 @@ function setupMenus(){
   $('btnMpHost').onclick=()=>{const code=Array.from({length:5},()=>'abcdefghjkmnpqrstuvwxyz23456789'[floor(Math.random()*31)]).join('');mpHostPrivate(code)};
   $('btnMpJoin').onclick=()=>{const code=($('mpCode').value||'').trim().toLowerCase();if(!code){mpStatus('Type the room code your friend gave you');return}mpJoin('ironcraft-room-'+code,'0',{},'mp-guest',false)};$('btnWorldBack').onclick=()=>showMenu('titleMenu');
   $('btnCreate').onclick=()=>{$('wName').value='New World';$('wSeed').value='';showMenu('createMenu')};$('btnCreateBack').onclick=()=>showMenu('worldMenu');
-  const mods={weather:false,horror:false,random:false,hardcore:false,structures:false,apocalypse:false,guns:false};
+  const mods={weather:false,horror:false,random:false,hardcore:false,structures:false,apocalypse:false,guns:false,cars:false};
   const refreshFun=()=>{for(const b of document.querySelectorAll('.modbtn')){const k=b.dataset.mod;b.textContent=MODN[k]+': '+(mods[k]?'ON':'OFF');b.style.color=mods[k]?'#8f8':''}const on=Object.keys(mods).filter(k=>mods[k]);$('btnFun').textContent='Fun Mods: '+(on.length?on.map(k=>MODN[k]).join(', '):'None')};
   $('btnFun').onclick=()=>showMenu('funMenu');for(const b of document.querySelectorAll('.modbtn'))b.onclick=()=>{mods[b.dataset.mod]=!mods[b.dataset.mod];refreshFun()};
   $('btnFunDone').onclick=()=>showMenu('createMenu');$('btnFunClear').onclick=()=>{for(const k in mods)mods[k]=false;refreshFun()};refreshFun();
@@ -3681,7 +3720,8 @@ function buildEnchantingRoom(){ // an enchanting table two blocks ahead of the p
   for(let dx=-1;dx<=1;dx++)for(let dz=-1;dz<=1;dz++){if(dx===0&&dz===0)continue;for(let dy=0;dy<=1;dy++){const b=world.getBlock(tx+dx,ty+dy,tz+dz);if(b!==0&&BLOCKS[b].opaque&&b!==29&&b!==96&&(BLOCKS[b].replaceable||BLOCKS[b].plant))world.setBlock(tx+dx,ty+dy,tz+dz,0,0)}}
   const n=shelvesAround(tx,ty,tz);playSound('enchant');showMessage('Enchanting table placed with '+placed+' bookshelves ('+n+' of 15 count: '+(n>=15?'max level 30 unlocked':'clear the blocks between the shelves and the table')+')');return true}
 const KITS={
-  guns:{label:'pistol, rifle, shotgun, 128 bullets, 32 shells',items:[[460,1],[461,1],[462,1],[463,128],[464,32]]},
+  cars:{label:'three cars',items:[[465,3]]},
+  guns:{label:'pistol, rifle, shotgun, sniper rifle, 128 bullets, 32 shells',items:[[460,1],[461,1],[462,1],[466,1],[463,128],[464,32]]},
   enchanting:{label:'enchanting table, 15 bookshelves, 100 lapis, 16 books',items:[[96,1],[29,15],[264,100],[378,16]]},
   end:{label:'elytra, 16 eyes of ender, 16 ender pearls, netherite sword',items:[[395,1],[392,16],[312,16],[I.netherite_sword,1]]},
   netherite:{label:'full netherite armor and tools',items:[[386,1],[387,1],[388,1],[389,1],[380,1],[381,1],[382,1],[383,1]]},
@@ -3768,7 +3808,8 @@ const PUBLIC_SERVERS=[
   {room:'ironcraft-pub-storm-coast',name:'Storm Coast',seed:'iron-storm-coast',mods:{weather:true}},
   {room:'ironcraft-pub-dead-zone',name:'Dead Zone',seed:'iron-dead-zone',mods:{apocalypse:true}},
   {room:'ironcraft-pub-chaos-lands',name:'Chaos Lands',seed:'iron-chaos-lands',mods:{structures:true,random:true}},
-  {room:'ironcraft-pub-gun-range',name:'Gun Range',seed:'iron-gun-range',mods:{guns:true,apocalypse:true}}];
+  {room:'ironcraft-pub-gun-range',name:'Gun Range',seed:'iron-gun-range',mods:{guns:true,apocalypse:true}},
+  {room:'ironcraft-pub-speedway',name:'Speedway',seed:'iron-speedway',mods:{cars:true,structures:true}}];
 const MP={active:false,peer:null,conns:[],host:false,room:null,name:'',remote:new Map(),sendT:0,timeT:0,myId:null};
 function mpStatus(t){const el=$('mpStatus');if(el)el.textContent=t}
 function loadPeerJS(){return new Promise((res,rej)=>{if(window.Peer)return res();const sc=document.createElement('script');sc.src='https://cdn.jsdelivr.net/npm/peerjs@1.5.4/dist/peerjs.min.js';sc.onload=()=>res();sc.onerror=()=>rej(new Error('Could not load the networking library. Are you online?'));document.head.appendChild(sc)})}
@@ -3883,6 +3924,23 @@ function tickHorror(dt){const H=game.hx;const p=player;if(world.dimKey!=='over'|
   let near=null;for(const e of entities){if(e instanceof Mob&&e.type==='stalker'&&!e.dead){const d=Math.hypot(e.x-p.x,e.z-p.z);if(!near||d<near.d)near={e,d}}}
   if(near&&near.d<16){H.beat-=dt;if(H.beat<=0){H.beat=0.22+near.d/16*0.9;playSound('heartbeat',0.9,near.d<5?1.35:1)}}}
 Object.assign(Mob.prototype,{
+  driveCar(dt,fwd,strafe,jump,sprint){const p=player;this.yaw=p.yaw;if(this.hurtT>0)this.hurtT-=dt;if(this.invT>0)this.invT-=dt;if(this.hornCd>0)this.hornCd-=dt;if(this.runCd>0)this.runCd-=dt;
+    const max=sprint?19:13;if(fwd>0)this.speedV+=(this.speedV<0?16:8)*dt;else if(fwd<0)this.speedV-=(this.speedV>0?14:6)*dt;else this.speedV*=Math.pow(0.35,dt);
+    this.speedV=clamp(this.speedV,-6,max);if(abs(this.speedV)<0.05)this.speedV=0;
+    const sy=Math.sin(this.yaw),cy=Math.cos(this.yaw);const slip=this.inWater?0.3:1;this.vx=-sy*this.speedV*slip;this.vz=-cy*this.speedV*slip;
+    if(this.inWater&&this.vy<2)this.vy+=20*dt;
+    this.physics(dt,{step:1.05,friction:1,gravity:this.inWater?8:32});
+    const hs=sqrt(this.vx*this.vx+this.vz*this.vz);if(abs(this.speedV)>4&&hs<abs(this.speedV)*0.4){playSoundAt('hit_stone',this.x,this.y,this.z,1,0.6);spawnParticles('smoke',this.x-sy*1.5,this.y+0.8,this.z-cy*1.5,4);this.speedV*=0.15}
+    this.wheelT=(this.wheelT||0)+this.speedV*dt*2.2;
+    if(abs(this.speedV)>5&&this.runCd<=0){for(const e of entities){if(!(e instanceof Mob)||e===this||e.dead||e.dying||e.type==='car'||(e.type==='wolf'&&e.tamed))continue;const dx=e.x-this.x,dz=e.z-this.z;if(dx*dx+dz*dz<2.6*2.6&&abs(e.y-this.y)<2){if(damageEntity(e,4+abs(this.speedV)*0.9,{type:'player',x:this.x-sy*2,y:this.y,z:this.z-cy*2,kb:12})){this.runCd=0.4;playSoundAt('hit_wood',e.x,e.y,e.z,1,0.7);spawnParticles('crit',e.x,e.y+1,e.z,6)}}}}
+    if(jump&&this.hornCd<=0){this.hornCd=0.7;playSoundAt('horn',this.x,this.y,this.z,0.9,1.7)}
+    this.engT-=dt;if(this.engT<=0){this.engT=0.3;playSoundAt('engine',this.x,this.y,this.z,0.5+abs(this.speedV)/20,0.7+abs(this.speedV)/14)}
+    p.x=this.x;p.z=this.z;p.y=this.y+0.45;p.vx=this.vx;p.vy=0;p.vz=this.vz;p.onGround=true;p.fallDist=0;p.inWater=this.inWater;p.walkAmp=0},
+  // Cartoon Cat: hunts from far away, limbs stretch as it runs, lashes out from four blocks with a roar and a shower of black-and-white sticks
+  updateCartoonCat(dt,p,dist,dist3){const hs=sqrt(this.vx*this.vx+this.vz*this.vz);this.stretch+=(Math.min(1,hs/4)-this.stretch)*Math.min(1,dt*6);
+    if(dist<4.6&&abs((p.y+1)-(this.y+2))<4&&this.atkCd<=0&&!p.dead&&!blockedLOS(this.x,this.y+3,this.z,p.x,p.y+1,p.z)){this.atkCd=1.7;damageEntity(p,12,{type:'mob',mob:this,x:this.x,y:this.y,z:this.z,kb:13});playSound('roar',1,0.9+Math.random()*0.3);
+      for(let i=0;i<10;i++){const t=i/10;spawnParticles(i%2?'bolt':'smoke',this.x+(p.x-this.x)*t,this.y+3+((p.y+1)-(this.y+3))*t,this.z+(p.z-this.z)*t,1)}}
+    if(dist<28&&game.time-this.lastRoar>9+Math.random()*10){this.lastRoar=game.time;playSoundAt('cattune',this.x,this.y,this.z,1,0.8+Math.random()*0.4)}},
   // The Stalker: stands still while you look at it, closes in when you look away, vanishes if stared at, strikes from behind then relocates
   updateStalker(dt,p,dist,dist3){const d=eyeDir();const vx=this.x-p.x,vy=(this.y+1.6)-(p.y+p.eyeHeight),vz=this.z-p.z;const L=sqrt(vx*vx+vy*vy+vz*vz)||1;const dot=(vx*d[0]+vy*d[1]+vz*d[2])/L;
     const seen=dot>0.92&&dist<48&&!p.dead;this.watchT=seen?(this.watchT||0)+dt:0;this.frozen=seen;
