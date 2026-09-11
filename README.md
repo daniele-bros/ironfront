@@ -30,6 +30,8 @@ The card, play button, and game counter update automatically.
 
 ## Ironcraft
 
+Multiplayer: the title screen has a Multiplayer button with four public servers (Green Hills, Storm Coast, Dead Zone, Chaos Lands) plus private rooms by code. There is no game server: players connect to each other directly through the browser (PeerJS), the first person into a public server hosts it and later arrivals join them. Players see each other with name tags, block changes and chat (press T) are shared.
+
 Open `minecraft.html` in a modern desktop browser (WebGL2 required). Everything is generated in code: textures, item icons, terrain, sounds.
 
 What's in it, modelled on the real game:

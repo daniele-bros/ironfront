@@ -40,6 +40,8 @@ canvas#gl{position:absolute;inset:0;width:100%;height:100%;display:block;image-r
 #debug{position:absolute;left:4px;top:4px;font-weight:400;font-size:12px;line-height:14px;white-space:pre;background:rgba(0,0,0,.3);padding:2px 4px;display:none;}
 #vignette{position:absolute;inset:0;background:radial-gradient(ellipse at center,rgba(0,0,0,0) 55%,rgba(0,0,0,.35) 100%);}
 #dmgflash{position:absolute;inset:0;background:rgba(255,0,0,0);transition:background .15s;}
+#nametags{position:absolute;inset:0;pointer-events:none;overflow:hidden;}
+.nametag{position:absolute;transform:translate(-50%,-100%);background:rgba(0,0,0,.45);color:#fff;padding:1px 6px;font-weight:700;white-space:nowrap;pointer-events:none;border-radius:2px;}
 #overlay{position:absolute;inset:0;pointer-events:none;display:none;}
 #sleepfade{position:absolute;inset:0;background:#000;opacity:0;pointer-events:none;transition:opacity 2s;}
 #fireov{position:absolute;inset:0;background:linear-gradient(0deg,rgba(255,120,0,.55),rgba(255,60,0,.15) 60%,rgba(255,0,0,0));display:none;}
@@ -140,7 +142,7 @@ label.lb{font-size:13px;color:#a0a0a0;align-self:flex-start;margin-left:calc(50%
 </head>
 <body>
 <canvas id="gl"></canvas>
-<div id="overlay"><div id="waterov"></div><div id="fireov"></div><div id="dmgflash"></div><div id="vignette"></div><div id="sleepfade"></div></div>
+<div id="overlay"><div id="nametags"></div><div id="waterov"></div><div id="fireov"></div><div id="dmgflash"></div><div id="vignette"></div><div id="sleepfade"></div></div>
 <div id="hud">
   <div id="crosshair"></div>
   <div id="bossbar" style="display:none"><div id="bossname">Ender Dragon</div><div class="bbar"><i id="bossfill"></i></div></div>
@@ -224,6 +226,7 @@ label.lb{font-size:13px;color:#a0a0a0;align-self:flex-start;margin-left:calc(50%
   <h1 class="title">IRONCRAFT</h1>
   <div class="splash" id="splash" style="margin:-70px 0 0 330px">Just like the real thing!</div>
   <button class="btn" id="btnSingle">Singleplayer</button>
+  <button class="btn" id="btnMulti">Multiplayer</button>
   <button class="btn" id="btnOptionsT">Options...</button>
   <button class="btn" id="btnControls">Controls</button>
   <div style="position:absolute;bottom:6px;left:8px;font-size:12px;font-weight:400;color:#aaa">Ironcraft 1.0 &mdash; a browser voxel survival game</div>
@@ -234,6 +237,19 @@ label.lb{font-size:13px;color:#a0a0a0;align-self:flex-start;margin-left:calc(50%
   <div class="list" id="worldList"></div>
   <div class="btnrow"><button class="btn half" id="btnPlay">Play Selected World</button><button class="btn half" id="btnCreate">Create New World</button></div>
   <div class="btnrow"><button class="btn half" id="btnDelete">Delete</button><button class="btn half" id="btnWorldBack">Cancel</button></div>
+</div>
+
+<div id="mpMenu" class="menu dirtbg">
+  <h2 class="sh">Multiplayer</h2>
+  <label class="lb">Your name</label><input class="tx" id="mpName" maxlength="16" placeholder="Player">
+  <div class="hint" style="color:#aaa;width:440px;margin:4px 0 6px">Public servers are shared worlds: pick one and you join whoever is playing there, or open it up yourself if it is empty. Everyone sees each other, builds together and chats with T.</div>
+  <button class="btn pubbtn" data-i="0">Green Hills &mdash; classic survival</button>
+  <button class="btn pubbtn" data-i="1">Storm Coast &mdash; weather mod</button>
+  <button class="btn pubbtn" data-i="2">Dead Zone &mdash; zombie apocalypse</button>
+  <button class="btn pubbtn" data-i="3">Chaos Lands &mdash; structure chaos + random blocks</button>
+  <div class="btnrow" style="margin-top:10px"><button class="btn half" id="btnMpHost">Host Private World</button><input class="tx half" id="mpCode" maxlength="8" placeholder="Room code" style="text-transform:uppercase"></div>
+  <div class="btnrow"><button class="btn half" id="btnMpJoin">Join by Code</button><button class="btn half" id="btnMpBack">Back</button></div>
+  <div class="hint" id="mpStatus" style="color:#ff6;width:440px;margin-top:8px;min-height:18px"></div>
 </div>
 
 <div id="funMenu" class="menu dirtbg">
@@ -569,7 +585,8 @@ defTex('shulker_face',p=>{p.noise(200,190,90,8);p.rect(3,4,3,3,20,20,20);p.rect(
 defTex('end_bricks',p=>{p.noise(215,215,160,8);for(const y of [0,8])p.rect(0,y,16,1,170,170,120);p.rect(0,1,1,7,170,170,120);p.rect(8,9,1,7,170,170,120);p.speckle(8,235,235,190)});
 defTex('gateway',p=>{p.noise(8,4,14,6);p.speckle(24,120,60,200);p.speckle(12,40,220,180);p.rect(6,6,4,4,20,10,40)});
 defTex('beacon',p=>{p.noise(40,60,80,6);p.rect(2,2,12,12,170,240,255);p.rect(5,5,6,6,255,255,255);p.rect(0,13,16,3,60,60,70)});
-defTex('stalker_face',p=>{p.noise(4,4,6,2);p.rect(3,5,3,2,255,255,255);p.rect(10,5,3,2,255,255,255);p.rect(6,11,4,1,110,0,0)});
+defTex('stalker_face',p=>{p.noise(225,222,210,5);p.rect(2,3,5,4,0,0,0);p.rect(9,3,5,4,0,0,0);p.rect(4,5,2,2,255,30,30);p.rect(11,5,2,2,255,30,30);p.rect(3,11,10,3,0,0,0);for(let i=0;i<10;i+=2)p.rect(3+i,11,1,1,225,222,210)});
+defTex('player_face',p=>{p.noise(215,168,130,6);p.rect(3,5,2,2,255,255,255);p.rect(4,5,1,2,60,40,120);p.rect(10,5,2,2,255,255,255);p.rect(11,5,1,2,60,40,120);p.rect(6,11,4,1,150,80,70)});
 defTex('villager_face',p=>{p.noise(200,160,120,6);p.rect(2,4,3,2,60,120,60);p.rect(11,4,3,2,60,120,60);p.rect(2,3,12,1,110,70,40);p.rect(6,6,4,7,190,145,105);p.rect(5,13,6,1,150,110,80)});
 defTex('sheep_wool',p=>{p.noise(235,235,235,10);for(let i=0;i<10;i++)p.blob(floor(p.rng()*16),floor(p.rng()*16),1.5,215,215,215)});
 
@@ -995,7 +1012,7 @@ class World{
     if(y<0||y>=CH)return false;const c=this.chunks.get(chunkKey(x>>4,z>>4));if(!c||!c.generated)return false;
     const i=cidx(x&15,y,z&15);const old=c.blocks[i],oldMeta=c.meta[i];if(old===id&&oldMeta===meta)return true;
     c.blocks[i]=id;c.meta[i]=meta;
-    if(!opt.gen)c.mods.set(i,id|(meta<<8));
+    if(!opt.gen)c.mods.set(i,id|(meta<<8));if(!opt.gen&&!opt.remote&&MP.active)mpSend({t:'b',x,y,z,id,meta});
     if(old===86&&id!==86)this.spawners.delete(x+','+y+','+z);
     if(old!==id&&c.bents.has(i)&&BLOCKS[old].gui){if(!opt.keepEntity){const be=c.bents.get(i);c.bents.delete(i);if(!opt.noDrop&&be&&be.items&&typeof dropInventory==='function')dropInventory(be.items,x,y,z)}}
     if(c.lit){this.updateLightAt(x,y,z,old,id)}
@@ -1823,7 +1840,7 @@ const MOBDEF={
   husk:{hp:20,w:0.6,h:1.95,speed:3.2,dmg:3,undead:true,noBurn:true,hungerHit:true,drops:r=>[[282,floor(r()*3)],[r()<0.025?[260,302,303][floor(r()*3)]:0,1]],xp:[5,5],sound:'zombie',follow:35},
   stray:{hp:20,w:0.6,h:1.99,speed:3.4,dmg:3,undead:true,ranged:true,slowArrow:true,drops:r=>[[283,floor(r()*3)],[284,floor(r()*3)]],xp:[5,5],sound:'skeleton',follow:16},
   cave_spider:{hp:12,w:0.7,h:0.5,speed:4.6,dmg:2,poison:true,scale:0.5,drops:r=>[[286,floor(r()*3)],[r()<0.33?287:0,1]],xp:[5,5],sound:'spider',follow:16,neutral:true,lightNeutral:true},
-  stalker:{hp:60,w:0.6,h:2.7,speed:4.4,dmg:0,undead:true,noBurn:true,drops:()=>[],xp:[0,0],sound:'enderman',follow:60,tall:true},
+  stalker:{hp:60,w:0.7,h:3.4,speed:4.4,dmg:0,undead:true,noBurn:true,drops:()=>[],xp:[0,0],sound:'enderman',follow:60,tall:true},
   enderman:{hp:40,w:0.6,h:2.9,speed:5.2,dmg:7,drops:r=>[[312,floor(r()*2)]],xp:[5,5],sound:'enderman',follow:64,neutral:true,tall:true},
   slime:{hp:16,w:2.04,h:2.04,speed:2.4,dmg:4,drops:(r,e)=>e.size===1?[[313,floor(r()*3)]]:[],xp:[4,4],sound:'slime',follow:16},
   witch:{hp:26,w:0.6,h:1.95,speed:2.6,dmg:0,ranged:'potion',drops:r=>{const pool=[265,314,285,307,286,283];return [[pool[floor(r()*6)],1+floor(r()*2)],[pool[floor(r()*6)],floor(r()*2)]]},xp:[5,5],sound:'witch',follow:16},
@@ -1974,7 +1991,7 @@ class Mob extends Entity{
       else if(d.ranged==='fireball'){if(dist3<24&&this.atkCd<=0&&this.canSee(p)){this.burst=(this.burst||0)+1;this.atkCd=this.burst>=3?(this.burst=0,4):0.35;shootFireball(this,p,diff)}}
       else if(d.ranged==='spell'){if(this.atkCd<=0&&this.canSee(p)){this.atkCd=5;castSpell(this,p,diff)}}
       else if(d.ranged){if(dist3<15&&this.atkCd<=0&&dist3>1.5&&this.canSee(p)){this.atkCd=diff===3?2:3;const ex=this.x,ey=this.y+this.h*0.85,ez=this.z;let ax=p.x-ex,ay=(p.y+1)-ey,az=p.z-ez;const l=sqrt(ax*ax+ay*ay+az*az);ay+=l*0.06;const sp=30;const n=sqrt(ax*ax+ay*ay+az*az);const spread=0.05*(4-diff);const ar=new Arrow(ex,ey,ez,ax/n*sp+(Math.random()-0.5)*spread*sp,ay/n*sp+(Math.random()-0.5)*spread*sp,az/n*sp+(Math.random()-0.5)*spread*sp,'mob',(d.arrowDmg?d.arrowDmg[diff-1]:[2.5,3.5,4.5][diff-1])+floor(Math.random()*2));if(d.slowArrow){ar.effect='slow';ar.effectT=30}entities.push(ar);playSoundAt('bow',ex,ey,ez)}}
-      else{const reach=this.w/2+p.w/2+0.6;const base=this.dmgOverride!==undefined?this.dmgOverride:d.dmg;if(base>0&&dist<reach&&abs(dy)<(d.tall?3.5:2)&&this.atkCd<=0){this.atkCd=1;const dm=[base*0.8,base,base*1.5][diff-1];
+      else{const reach=this.w/2+p.w/2+0.6;const base=this.dmgOverride!==undefined?this.dmgOverride:d.dmg;if(base>0&&dist<reach&&abs(dy)<(d.tall?3.5:2)&&this.atkCd<=0&&!blockedLOS(this.x,this.y+this.h*0.8,this.z,p.x,p.y+1,p.z)){this.atkCd=1;const dm=[base*0.8,base,base*1.5][diff-1];
         if(damageEntity(p,dm,{x:this.x,y:this.y,z:this.z,type:'mob',mob:this})){if(d.hungerHit)p.effects.hunger=Math.max(p.effects.hunger||0,7*diff);if(d.witherHit)p.effects.wither=Math.max(p.effects.wither||0,10);if(d.poison&&diff>1)p.effects.poison=Math.max(p.effects.poison||0,diff===3?15:7)}
         if((this.type==='spider'||this.type==='cave_spider')&&this.onGround)this.vy=5}}
     }
@@ -2085,7 +2102,13 @@ class Mob extends Entity{
         part([-3,3,-1,-1,5,1],0,hy0,hz0,hp,hy,0,N,c);part([1,3,-1,3,5,1],0,hy0,hz0,hp,hy,0,N,c);
         if(this.tamed)part([-3.2,-3.2,-1,3.2,-1.5,1],0,hy0,hz0,hp,hy,0,W,[0.85,0.1,0.1]);
         const tailUp=this.tamed?(this.hp/this.maxHp)*1.2-0.3:(this.angry?0.9:-0.6);part([-1,-1,0,1,1,7],0,sit?7:9,3,-tailUp,0,0,N,c);break}
-      case 'stalker':case 'enderman':{const st=this.type==='stalker';const c=st?[0.02,0.02,0.03]:[0.09,0.09,0.1];const sh=(this.screamT>0||(st&&this.frozen&&Math.random()<0.15))?(Math.random()-0.5)*0.25:0;const eye=st?TEX.stalker_face:TEX.enderman_face;
+      case 'stalker':{ // gaunt bone-white giant: stilt legs, hunched torso, arms that reach past its knees, an oversized head with hollow eyes
+        const c=[0.8,0.78,0.72],dk=[0.16,0.13,0.13];const sh=this.frozen&&Math.random()<0.12?(Math.random()-0.5)*0.35:0;const reach=this.frozen?1.1:0.55;
+        part([-1.3,-34,-1.3,1.3,0,1.3],-3,34,0,swing*0.5,0,0.06,N,c);part([-1.3,-34,-1.3,1.3,0,1.3],3,34,0,-swing*0.5,0,-0.06,N,c);
+        part([-4.5,0,-2.5,4.5,18,2.5],sh,34,0,0.3,0,0,N,dk);part([-3.5,14,-3,3.5,18,3],sh,34,0,0.3,0,0,N,c);
+        part([-1.2,-32,-1.2,1.2,0,1.2],-6,51,-3,reach+swing*0.2,0,0.12,N,c);part([-1.2,-32,-1.2,1.2,0,1.2],6,51,-3,reach-swing*0.2,0,-0.12,N,c);
+        part([-5.5,0,-5,5.5,11,5],sh,50,-5,hp+0.4,hy,0,face(TEX.stalker_face),c);break}
+      case 'enderman':{const c=[0.09,0.09,0.1];const sh=this.screamT>0?(Math.random()-0.5)*0.25:0;const eye=TEX.enderman_face;
         part([-1,-30,-1,1,0,1],-2,30,0,swing*0.6,0,0,N,c);part([-1,-30,-1,1,0,1],2,30,0,-swing*0.6,0,0,N,c);
         part([-4,30,-2,4,42,2],sh,0,0,0,0,0,N,c);part([-1,-30,-1,1,0,1],-5,42,0,this.angry?-0.3:swing*0.4,0,0.05,N,c);part([-1,-30,-1,1,0,1],5,42,0,this.angry?-0.3:-swing*0.4,0,-0.05,N,c);
         part([-4,0,-4,4,8,4],sh,42,0,hp,hy,0,[N,N,N,N,N,eye],c);if(this.angry)part([-4,-3,-4,4,0,4],sh,42,0,hp+0.3,hy,0,N,c);break}
@@ -2163,6 +2186,8 @@ function lookFacing(){const dx=-Math.sin(player.yaw),dz=-Math.cos(player.yaw);if
 function heldStack(){return player.inv[player.sel]}
 function heldDef(){const s=heldStack();return s?ITEMS[s.id]:null}
 /* ---- raycast ---- */
+// true when a solid block sits between two points (used so mobs cannot hit you through walls)
+function blockedLOS(ax,ay,az,bx,by,bz){const dx=bx-ax,dy=by-ay,dz=bz-az;const L=sqrt(dx*dx+dy*dy+dz*dz);const n=Math.max(2,Math.ceil(L*5));for(let i=1;i<n;i++){const t=i/n;const id=world.getBlock(floor(ax+dx*t),floor(ay+dy*t),floor(az+dz*t));if(id!==0&&BLOCKS[id].solid)return true}return false}
 function raycast(ox,oy,oz,dx,dy,dz,maxDist,liquids){
   const len=sqrt(dx*dx+dy*dy+dz*dz);if(len===0)return null;dx/=len;dy/=len;dz/=len;
   let x=floor(ox),y=floor(oy),z=floor(oz);const sx=dx>0?1:-1,sy=dy>0?1:-1,sz=dz>0?1:-1;
@@ -3517,7 +3542,7 @@ function saveWorld(){if(!world||game.state!=='playing'||game.noSave)return;const
   if(ridePos){p.y=ridePos[1]}game.lastSave=game.time;
 }
 function loadWorld(meta){let save=null;try{save=JSON.parse(localStorage.getItem('ic_world_'+meta.id))}catch(e){}startWorld(meta,save)}
-function quitToTitle(){if(player.riding)player.riding.dismount();if(game.wx)stopWeatherLoops();$('waveHud').style.display='none';saveWorld();game.state='title';document.exitPointerLock&&document.exitPointerLock();for(const c of world.chunks.values())deleteChunkMesh(c);for(const k in game.dims){const d=game.dims[k];if(d)for(const c of d.world.chunks.values())deleteChunkMesh(c)}game.dims={over:null,nether:null};world=null;entities.length=0;$('hud').style.display='none';$('overlay').style.display='none';for(const el of document.querySelectorAll('.gui'))el.classList.remove('show');game.gui=null;game.paused=false;showMenu('titleMenu')}
+function quitToTitle(){if(player.riding)player.riding.dismount();if(MP.active)mpLeave(false);if(game.wx)stopWeatherLoops();$('waveHud').style.display='none';saveWorld();game.state='title';document.exitPointerLock&&document.exitPointerLock();for(const c of world.chunks.values())deleteChunkMesh(c);for(const k in game.dims){const d=game.dims[k];if(d)for(const c of d.world.chunks.values())deleteChunkMesh(c)}game.dims={over:null,nether:null};world=null;entities.length=0;$('hud').style.display='none';$('overlay').style.display='none';for(const el of document.querySelectorAll('.gui'))el.classList.remove('show');game.gui=null;game.paused=false;showMenu('titleMenu')}
 /* ---- menus ---- */
 function showMenu(id){for(const m of document.querySelectorAll('.menu'))m.classList.remove('show');if(id)$(id).classList.add('show')}
 function hideMenus(){showMenu(null)}
@@ -3527,7 +3552,11 @@ function refreshWorldList(){const l=$('worldList');l.innerHTML='';const list=wor
 const SPLASHES=['Just like the real thing!','Punch trees!','Creepers gonna creep','Also try Iron Front!','Now with 100% more blocks','Don\'t dig straight down','Made of pixels','Seed: whatever you type','Infinite worlds!','Survive the night'];
 function setupMenus(){
   $('splash').textContent=SPLASHES[floor(Math.random()*SPLASHES.length)];
-  $('btnSingle').onclick=()=>{refreshWorldList();showMenu('worldMenu')};$('btnWorldBack').onclick=()=>showMenu('titleMenu');
+  $('btnSingle').onclick=()=>{refreshWorldList();showMenu('worldMenu')};
+  $('btnMulti').onclick=()=>{$('mpName').value=opts.mpName||'';mpStatus('');showMenu('mpMenu')};$('btnMpBack').onclick=()=>showMenu('titleMenu');
+  for(const b of document.querySelectorAll('.pubbtn'))b.onclick=()=>{const sv=PUBLIC_SERVERS[+b.dataset.i];mpJoin(sv.room,sv.seed,sv.mods,'pub-'+b.dataset.i,true)};
+  $('btnMpHost').onclick=()=>{const code=Array.from({length:5},()=>'abcdefghjkmnpqrstuvwxyz23456789'[floor(Math.random()*31)]).join('');mpHostPrivate(code)};
+  $('btnMpJoin').onclick=()=>{const code=($('mpCode').value||'').trim().toLowerCase();if(!code){mpStatus('Type the room code your friend gave you');return}mpJoin('ironcraft-room-'+code,'0',{},'mp-guest',false)};$('btnWorldBack').onclick=()=>showMenu('titleMenu');
   $('btnCreate').onclick=()=>{$('wName').value='New World';$('wSeed').value='';showMenu('createMenu')};$('btnCreateBack').onclick=()=>showMenu('worldMenu');
   const mods={weather:false,horror:false,random:false,hardcore:false,structures:false,apocalypse:false};
   const refreshFun=()=>{for(const b of document.querySelectorAll('.modbtn')){const k=b.dataset.mod;b.textContent=MODN[k]+': '+(mods[k]?'ON':'OFF');b.style.color=mods[k]?'#8f8':''}const on=Object.keys(mods).filter(k=>mods[k]);$('btnFun').textContent='Fun Mods: '+(on.length?on.map(k=>MODN[k]).join(', '):'None')};
@@ -3573,7 +3602,7 @@ function setupInput(){
   document.addEventListener('mousemove',ev=>{game.mousePos={x:ev.clientX,y:ev.clientY};if((document.pointerLockElement!==c&&!game.noLock)||game.gui||game.paused)return;const s=opts.sens/100*0.0022;player.yaw-=ev.movementX*s;player.pitch-=ev.movementY*s;player.pitch=clamp(player.pitch,-PI/2+0.001,PI/2-0.001)});
   document.addEventListener('pointerlockerror',()=>{if(!game.noLock){game.noLock=true;showMessage('Mouse lock unavailable: move the mouse to look around, keep it near a screen edge to keep turning')}});
   document.addEventListener('pointerlockchange',()=>{if(document.pointerLockElement===c)clearTimeout(game.lockTimer);if(document.pointerLockElement!==c&&game.state==='playing'&&!game.gui&&!player.dead&&!game.paused&&!game.cmdOpen){pauseGame()}});
-  $('cmd').addEventListener('keydown',ev=>{if(ev.code==='Enter'||ev.code==='NumpadEnter'){const v=$('cmd').value;closeCmd();if(v.trim())runCommand(v.trim())}else if(ev.code==='Escape'){closeCmd()}ev.stopPropagation()});
+  $('cmd').addEventListener('keydown',ev=>{if(ev.code==='Enter'||ev.code==='NumpadEnter'){const v=$('cmd').value;closeCmd();if(v.trim()){const s=v.trim();if(MP.active&&!s.startsWith('/'))mpChat(s);else runCommand(s)}}else if(ev.code==='Escape'){closeCmd()}ev.stopPropagation()});
   document.addEventListener('wheel',ev=>{if(game.state!=='playing'||game.gui||game.paused)return;player.sel=(player.sel+(ev.deltaY>0?1:-1)+9)%9;updateHotbar()},{passive:true});
   document.addEventListener('keydown',ev=>{
     if(ev.target&&ev.target.tagName==='INPUT'&&ev.code!=='Escape'){return}
@@ -3697,6 +3726,78 @@ function spawnNetherPortal(say){const p=player;let fx=Math.round(-Math.sin(p.yaw
     for(const o of [-1,1]){const ox=bx+sx*o,oz=bz+sz*o;if(dy===-1)world.setBlock(ox,by,oz,31,0,{silent:true});else if(!edge){const b=world.getBlock(ox,by,oz);if(b!==0&&b!==82)world.setBlock(ox,by,oz,0,0,{silent:true})}}}
   playSound&&playSound('enchant');say(world.nether?'Nether portal built: walk in to return to the overworld':'Nether portal built ahead of you: walk in to go to the Nether')}
 function finishTp(say,msg){const p=player;p.vx=p.vy=p.vz=0;p.fallDist=0;if(p.riding)p.riding.dismount();ensureChunks(p.x,p.z,2);say(msg+' ('+floor(p.x)+' '+floor(p.y)+' '+floor(p.z)+')')}
+/* ===================== MULTIPLAYER: peer-to-peer rooms over PeerJS ===================== */
+// No game server exists: one player hosts the world in their browser and others connect directly to it.
+// Public servers are fixed room names, so whoever arrives first becomes the host and everyone after joins them.
+const PUBLIC_SERVERS=[
+  {room:'ironcraft-pub-green-hills',name:'Green Hills',seed:'iron-green-hills',mods:{}},
+  {room:'ironcraft-pub-storm-coast',name:'Storm Coast',seed:'iron-storm-coast',mods:{weather:true}},
+  {room:'ironcraft-pub-dead-zone',name:'Dead Zone',seed:'iron-dead-zone',mods:{apocalypse:true}},
+  {room:'ironcraft-pub-chaos-lands',name:'Chaos Lands',seed:'iron-chaos-lands',mods:{structures:true,random:true}}];
+const MP={active:false,peer:null,conns:[],host:false,room:null,name:'',remote:new Map(),sendT:0,timeT:0,myId:null};
+function mpStatus(t){const el=$('mpStatus');if(el)el.textContent=t}
+function loadPeerJS(){return new Promise((res,rej)=>{if(window.Peer)return res();const sc=document.createElement('script');sc.src='https://cdn.jsdelivr.net/npm/peerjs@1.5.4/dist/peerjs.min.js';sc.onload=()=>res();sc.onerror=()=>rej(new Error('Could not load the networking library. Are you online?'));document.head.appendChild(sc)})}
+function mpName(){const n=(($('mpName')&&$('mpName').value)||'').trim().slice(0,16)||'Player'+floor(100+Math.random()*900);opts.mpName=n;saveOpts();return n}
+function mpSeed(str){return isNaN(+str)?hashStr(str):(+str|0)}
+async function mpJoin(room,seedStr,mods,worldId,isPublic){
+  try{mpStatus('Loading network...');await loadPeerJS()}catch(e){mpStatus(e.message);return}
+  mpLeave(true);MP.name=mpName();MP.room=room;mpStatus('Looking for a host...');
+  const r=await new Promise(res=>{let done=false;const finish=v=>{if(!done){done=true;res(v)}};let peer;try{peer=new Peer()}catch(e){return finish({err:e})}
+    const to=setTimeout(()=>finish({peer,conn:null,timeout:true}),8000);
+    peer.on('open',()=>{const conn=peer.connect(room,{reliable:true});conn.on('open',()=>{clearTimeout(to);finish({peer,conn})});conn.on('error',()=>{clearTimeout(to);finish({peer,conn:null})})});
+    peer.on('error',err=>{clearTimeout(to);finish({peer,conn:null,err})})});
+  if(r.conn){mpBecomeGuest(r.peer,r.conn);return}
+  if(r.peer)try{r.peer.destroy()}catch(e){}
+  if(r.err&&r.err.type&&r.err.type!=='peer-unavailable'){mpStatus('Network error: '+r.err.type+'. Try again in a moment.');return}
+  if(!isPublic){mpStatus('No world with that code is online right now.');return}
+  mpStatus('Nobody is on this server yet: opening it up...');mpHost(room,mpSeed(seedStr),mods,worldId,isPublic)}
+function mpHostPrivate(code){loadPeerJS().then(()=>{mpLeave(true);MP.name=mpName();mpStatus('Starting your world...');mpHost('ironcraft-room-'+code,(Math.random()*2147483647)|0,{},'room-'+code,false,code)}).catch(e=>mpStatus(e.message))}
+function mpHost(room,seed,mods,worldId,isPublic,code){const peer=new Peer(room);MP.peer=peer;MP.room=room;
+  peer.on('open',id=>{MP.active=true;MP.host=true;MP.myId=id;mpStatus('');const list=worldList();let meta=list.find(w=>w.id===worldId);
+    if(!meta){const pub=PUBLIC_SERVERS.find(s=>s.room===room);meta={id:worldId,name:pub?'Public: '+pub.name:'Room '+code.toUpperCase(),seed,mode:'survival',diff:2,drops:mods.random?'random':'normal',mods,created:Date.now(),played:Date.now()};list.push(meta);localStorage.setItem('ic_worlds',JSON.stringify(list))}
+    initAudio();loadWorld(meta);setTimeout(()=>showMessage(isPublic?'You are hosting '+meta.name+'. Anyone who picks it joins you. Press T to chat.':'Hosting. Room code: '+code.toUpperCase()+' (friends type it under Join by Code). Press T to chat.'),1500)});
+  peer.on('connection',conn=>{conn.on('open',()=>{MP.conns.push(conn);conn.on('data',d=>mpOnData(conn,d));conn.on('close',()=>mpDrop(conn));conn.on('error',()=>mpDrop(conn));
+    if(!world)return;conn.send({t:'hello',seed:game.seed,mods:game.mods,time:world.time,day:world.day,spawn:game.worldSpawn,blocks:mpCollectBlocks(),hostId:MP.myId,hostName:MP.name,players:[...MP.remote.values()].map(r=>({id:r.pid,name:r.name}))})})});
+  peer.on('error',err=>{if(err.type==='unavailable-id'){mpStatus('Someone just opened this server: joining them...');setTimeout(()=>mpJoin(room,String(seed),mods,worldId,isPublic),800)}else mpStatus('Network error: '+err.type)})}
+function mpBecomeGuest(peer,conn){MP.peer=peer;MP.conns=[conn];MP.host=false;MP.myId=peer.id;MP.active=true;mpStatus('Connected! Receiving the world...');
+  conn.on('data',d=>mpOnData(conn,d));conn.on('close',()=>{if(MP.active){showMessage('The host left. You are on your own now.');mpLeave(false)}});conn.on('error',()=>{})}
+function mpCollectBlocks(){const out={};const src=world.savedMods||{};for(const k in src)out[k]=src[k];for(const c of world.chunks.values()){if(c.mods.size)out[c.cx+','+c.cz]=Array.from(c.mods)}return out}
+function mpApplyBlocks(blocks){world.savedMods=world.savedMods||{};for(const k in blocks){world.savedMods[k]=blocks[k];const [cx,cz]=k.split(',').map(Number);const c=world.getChunk(cx,cz);if(c&&c.generated){for(const [i,v] of blocks[k]){world.setBlock(cx*16+(i>>11),i&127,cz*16+((i>>7)&15),v&255,v>>8,{remote:true,silent:true})}}}}
+function mpOnData(conn,d){if(!d||!d.t)return;
+  switch(d.t){
+    case 'hello':{const meta={id:'mp-guest',name:'Multiplayer',seed:d.seed,mode:'survival',diff:2,drops:d.mods&&d.mods.random?'random':'normal',mods:d.mods||{}};initAudio();startWorld(meta,null);game.noSave=true;world.time=d.time;world.day=d.day;if(d.spawn)game.worldSpawn=d.spawn;mpApplyBlocks(d.blocks||{});
+      mpRemote(d.hostId,d.hostName);for(const pl of d.players||[])if(pl.id!==MP.myId)mpRemote(pl.id,pl.name);mpStatus('');setTimeout(()=>showMessage('Joined '+(d.hostName||'the host')+"'s world. Press T to chat."),1500);break}
+    case 'p':{if(d.id===MP.myId)break;if(MP.host)conn.mpId=d.id;const r=mpRemote(d.id,d.name);r.setTarget(d);if(MP.host)mpRelay(conn,d);break}
+    case 'b':{if(!world)break;if(world.hasChunk(d.x,d.z))world.setBlock(d.x,d.y,d.z,d.id,d.meta,{remote:true});else{const k=(d.x>>4)+','+(d.z>>4);world.savedMods=world.savedMods||{};(world.savedMods[k]||(world.savedMods[k]=[])).push([cidx(d.x&15,d.y,d.z&15),d.id|(d.meta<<8)])}if(MP.host)mpRelay(conn,d);break}
+    case 'c':{showMessage('<'+d.name+'> '+d.text);if(MP.host)mpRelay(conn,d);break}
+    case 'time':{if(!MP.host&&world){world.time=d.time;world.day=d.day}break}
+    case 'leave':{mpRemove(d.id);if(MP.host)mpRelay(conn,d);break}}}
+function mpRelay(from,d){for(const c of MP.conns)if(c!==from&&c.open)c.send(d)}
+function mpSend(d){for(const c of MP.conns)if(c.open)c.send(d)}
+function mpRemote(id,name){if(!id)return null;let r=MP.remote.get(id);if(!r){r=new RemotePlayer(id,name||'Player');MP.remote.set(id,r);entities.push(r);if(game.state==='playing')showMessage((name||'Player')+' joined')}else if(name)r.name=name;return r}
+function mpRemove(id){const r=MP.remote.get(id);if(!r)return;r.dead=true;MP.remote.delete(id);showMessage(r.name+' left');const el=$('nametags').querySelector('[data-id="'+id+'"]');if(el)el.remove()}
+function mpDrop(conn){const i=MP.conns.indexOf(conn);if(i>=0)MP.conns.splice(i,1);if(conn.mpId){mpRemove(conn.mpId);mpSend({t:'leave',id:conn.mpId})}}
+function mpTick(dt){const p=player;MP.sendT-=dt;if(MP.sendT<=0){MP.sendT=0.1;const st=heldStack();mpSend({t:'p',id:MP.myId,name:MP.name,x:p.x,y:p.y,z:p.z,yaw:p.yaw,pitch:p.pitch,held:st?st.id:0,sneak:!!p.sneaking,dead:!!p.dead})}
+  if(MP.host){MP.timeT-=dt;if(MP.timeT<=0){MP.timeT=5;mpSend({t:'time',time:world.time,day:world.day})}}
+  for(const r of MP.remote.values())if(r.dead){MP.remote.delete(r.pid)}
+  mpNameTags()}
+function mpNameTags(){const box=$('nametags');const W=R.canvas.clientWidth,H=R.canvas.clientHeight;const m=R.vp;if(!m)return;
+  for(const r of MP.remote.values()){let el=box.querySelector('[data-id="'+r.pid+'"]');if(!el){el=document.createElement('div');el.dataset.id=r.pid;el.className='nametag';box.appendChild(el)}
+    if(r.hidden||!r.hasTarget){el.style.display='none';continue}const x=r.x,y=r.y+2.2,z=r.z;const cw=m[3]*x+m[7]*y+m[11]*z+m[15];if(cw<=0.1){el.style.display='none';continue}
+    const cx=(m[0]*x+m[4]*y+m[8]*z+m[12])/cw,cy=(m[1]*x+m[5]*y+m[9]*z+m[13])/cw;const d=Math.hypot(x-player.x,z-player.z);if(d>48||abs(cx)>1.1||abs(cy)>1.1){el.style.display='none';continue}
+    el.style.display='block';el.textContent=r.name;el.style.left=((cx+1)/2*W)+'px';el.style.top=((1-cy)/2*H)+'px';el.style.fontSize=Math.max(9,16-d/4)+'px'}}
+function mpChat(text){text=text.slice(0,120);showMessage('<'+MP.name+'> '+text);mpSend({t:'c',name:MP.name,text})}
+function mpLeave(quiet){if(MP.peer){try{mpSend({t:'leave',id:MP.myId})}catch(e){}try{MP.peer.destroy()}catch(e){}}for(const r of MP.remote.values())r.dead=true;MP.remote.clear();MP.conns=[];MP.peer=null;MP.active=false;MP.host=false;const nt=$('nametags');if(nt)nt.innerHTML='';if(!quiet)mpStatus('')}
+class RemotePlayer extends Entity{constructor(id,name){super(0,-100,0);this.pid=id;this.name=name;this.w=0.6;this.h=1.8;this.tx=0;this.ty=-100;this.tz=0;this.tyaw=0;this.walkT=0;this.walkAmp=0;this.held=0;this.sneak=false;this.remote=true;this.hasTarget=false;this.hidden=false}
+  setTarget(d){if(!this.hasTarget){this.x=d.x;this.y=d.y;this.z=d.z;this.yaw=d.yaw;this.hasTarget=true}this.tx=d.x;this.ty=d.y;this.tz=d.z;this.tyaw=d.yaw;this.pitch=d.pitch||0;this.held=d.held||0;this.sneak=!!d.sneak;if(d.name)this.name=d.name;this.hidden=!!d.dead}
+  update(dt){this.age+=dt;if(!this.hasTarget)return;const k=Math.min(1,dt*12);const ox=this.x,oz=this.z;this.x+=(this.tx-this.x)*k;this.y+=(this.ty-this.y)*k;this.z+=(this.tz-this.z)*k;let dy=this.tyaw-this.yaw;dy=Math.atan2(Math.sin(dy),Math.cos(dy));this.yaw+=dy*k;
+    const hs=Math.hypot(this.x-ox,this.z-oz)/Math.max(dt,1e-3);this.walkAmp+=(Math.min(1,hs/3)-this.walkAmp)*Math.min(1,dt*8);this.walkT+=hs*dt*1.6}
+  render(EB){if(this.hidden||!this.hasTarget)return;const l=lightAt(this.x,this.y+1,this.z);const s=1/16;const N=TEX.noise;const part=(b,px,py,pz,rx,ry,rz,tiles,col)=>{const tf=partTF(this.x,this.y,this.z,this.yaw,px,py,pz,rx,ry,rz,s,0);EB.box(tf,b[0],b[1],b[2],b[3],b[4],b[5],tiles,col,l,true)};
+    const swing=Math.sin(this.walkT)*this.walkAmp*0.9;const skin=[0.85,0.66,0.52],shirt=[0.2,0.62,0.85],pants=[0.25,0.3,0.6];const t=2;
+    part([-t,-12,-t,t,0,t],-2,12,0,swing,0,0,N,pants);part([-t,-12,-t,t,0,t],2,12,0,-swing,0,0,N,pants);
+    part([-4,12,-2,4,24,2],0,0,0,this.sneak?0.35:0,0,0,N,shirt);
+    part([-t,-10,-t,t,2,t],-4,22,0,-swing,0,0.05,N,shirt);part([-t,-10,-t,t,2,t],4,22,0,swing,0,-0.05,N,shirt);
+    part([-4,0,-4,4,8,4],0,24,0,-this.pitch,0,0,[N,N,N,N,N,TEX.player_face],skin)}}
 /* ===================== FUN MODS: weather, tornadoes, horror ===================== */
 function weatherLoop(freq){const c=AU.ctx;const s=c.createBufferSource();s.buffer=noiseBuf(2);s.loop=true;const f=c.createBiquadFilter();f.type='lowpass';f.frequency.value=freq;const g=c.createGain();g.gain.value=0;s.connect(f);f.connect(g);g.connect(AU.master);s.start();return {s,f,g}}
 function updateWeatherLoops(){const W=game.wx;if(!AU.ctx||!W)return;if(!W.rainL)W.rainL=weatherLoop(900);if(!W.windL)W.windL=weatherLoop(180);const t=AU.ctx.currentTime;const on=opts.volume===0?0:1;
@@ -3752,7 +3853,7 @@ Object.assign(Mob.prototype,{
     const seen=dot>0.92&&dist<48&&!p.dead;this.watchT=seen?(this.watchT||0)+dt:0;this.frozen=seen;
     if(seen){this.moveDir=null;this.vx*=0.1;this.vz*=0.1;this.headYaw=0;this.yaw=Math.atan2(-vx,-vz)}
     if(seen&&this.watchT>1.7){this.watchT=0;this.vanishes=(this.vanishes||0)+1;spawnParticles('smoke',this.x,this.y+1.3,this.z,18);playSound('whisper',0.9,0.6);if(this.vanishes>=4){this.dead=true;return true}this.relocate(p,d);return true}
-    if(!seen&&dist3<2.6&&this.atkCd<=0){this.atkCd=3;damageEntity(p,7,{type:'mob',mob:this,x:this.x,y:this.y,z:this.z,kb:8});playSound('scream',1,0.85+Math.random()*0.3);const f=$('dmgflash');f.style.background='rgba(0,0,0,.9)';setTimeout(()=>f.style.background='rgba(255,0,0,0)',300);spawnParticles('smoke',this.x,this.y+1.3,this.z,14);this.relocate(p,d);return true}
+    if(!seen&&dist3<2.6&&this.atkCd<=0&&!blockedLOS(this.x,this.y+2,this.z,p.x,p.y+1,p.z)){this.atkCd=3;damageEntity(p,7,{type:'mob',mob:this,x:this.x,y:this.y,z:this.z,kb:8});playSound('scream',1,0.85+Math.random()*0.3);const f=$('dmgflash');f.style.background='rgba(0,0,0,.9)';setTimeout(()=>f.style.background='rgba(255,0,0,0)',300);spawnParticles('smoke',this.x,this.y+1.3,this.z,14);this.relocate(p,d);return true}
     return false},
   relocate(p,d){for(let i=0;i<30;i++){const a=Math.atan2(-d[0],-d[2])+(Math.random()-0.5)*1.4;const r=16+Math.random()*14;const bx=floor(p.x+Math.sin(a)*r),bz=floor(p.z+Math.cos(a)*r);const y=isStandable(bx,bz);if(y===null||y<1)continue;if(world.getBlock(bx,y+2,bz)!==0)continue;this.x=bx+0.5;this.y=y;this.z=bz+0.5;this.vx=this.vy=this.vz=0;this.fallDist=0;this.watchT=0;return true}return false}
 });
@@ -3839,7 +3940,7 @@ function loop(now){
       if(game.tick%2===0){updateHUD();updateFurnaceGui()}
       if(game.tick%200===0)saveWorld();
     }
-    tickFurnaces(dt);tickSpawners(dt);if(typeof beaconTick==='function')beaconTick();
+    tickFurnaces(dt);tickSpawners(dt);if(typeof beaconTick==='function')beaconTick();if(MP.active)mpTick(dt);
     updateMusic(dt);
     if(player.sleeping>0&&player.sleeping>2.2)$('sleepfade').style.opacity=1;
   }
