@@ -5,7 +5,7 @@
 ## Games
 
 - [Iron Front](https://irongames.win/ww2tanks.html): WW2 top-down tank combat. Drive tanks like the Sherman, Tiger and T-34 across a battlefield, fight waves of enemy armour, unlock tanks in the garage and tech tree, and survive Ratte boss waves.
-- [Iron Battle](https://irongames.win/command.html): real-time strategy on a flat map. Build a base, produce units and command your army against the enemy.
+- [Iron Battle](https://irongames.win/command.html): real-time strategy on a flat tactical map. Recruit squads and tanks, secure objectives, manage supply, launch rockets and aircraft, and command your army across a 1,000-operation campaign.
 - [Ironcraft](https://irongames.win/minecraft.html): Minecraft-style voxel survival built with WebGL. Mine, craft, build, farm and fight through the Overworld, Nether and End. Villages, trial chambers, ancient cities and the Warden, iron golems, enchanting, netherite, elytra, mace and tridents. Fun mods add EF1 to EF5 tornadoes and thunderstorms, horror monsters, zombie apocalypse waves and guns. Free public multiplayer servers connect players directly through the browser with shared blocks, items, chests, weather and chat.
 
 ## Guides
@@ -13,6 +13,12 @@
 - [Ironcraft guide](https://irongames.win/ironcraft-guide.html): controls, chat commands, multiplayer, fun mods, structures and bosses.
 - [Iron Front guide](https://irongames.win/iron-front-guide.html): controls, all game modes, tanks and tech tree, maps.
 - [Iron Battle guide](https://irongames.win/iron-battle-guide.html): controls, units and costs, fire support, target missions.
+
+## Activities for kids and homeschool families
+
+- [Iron Games Activity Hub](https://irongames.win/activities.html): 36 free, substantial play-and-learn missions for kids, parents and homeschoolers.
+- Topics include creative building, math, writing, science questions, map reading, history research, resource management, family tournaments and short brain breaks.
+- Every activity includes setup instructions, challenge steps, discussion prompts, an extension and a parent note.
 
 ## Facts
 

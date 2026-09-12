@@ -57,6 +57,9 @@ h1{
   text-shadow:0 0 60px rgba(220,180,40,.45),0 3px 0 rgba(0,0,0,.9);
 }
 .tagline{font-size:12px;letter-spacing:5px;color:#a0b070;margin-top:14px;text-transform:uppercase;}
+.toplinks{display:flex;justify-content:center;gap:18px;flex-wrap:wrap;margin-top:22px;position:relative;z-index:1;}
+.toplinks a{font-size:11px;letter-spacing:3px;color:var(--gold);text-decoration:none;border:1px solid var(--border);padding:8px 12px;background:rgba(0,0,0,.3);}
+.toplinks a:hover{border-color:var(--gold);}
 .count{
   display:inline-block;margin-top:26px;padding:6px 16px;font-size:10px;letter-spacing:3px;
   color:var(--khaki);border:1px solid var(--border);border-radius:2px;background:rgba(0,0,0,.35);
@@ -90,10 +93,12 @@ main{flex:1;width:100%;max-width:1100px;margin:0 auto;padding:48px 20px 64px;}
   content:"";position:absolute;inset:0;pointer-events:none;
   background:repeating-linear-gradient(0deg,rgba(0,0,0,.18) 0 2px,transparent 2px 5px);
 }
+.card-art video{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;background:#050703;}
 .card-art .badge{
   position:absolute;top:10px;left:10px;font-size:9px;letter-spacing:3px;padding:4px 9px;
-  border:1px solid rgba(232,200,74,.5);color:var(--gold);background:rgba(0,0,0,.6);border-radius:2px;
+  border:1px solid rgba(232,200,74,.5);color:var(--gold);background:rgba(0,0,0,.72);border-radius:2px;z-index:2;
 }
+.preview-label{position:absolute;right:10px;bottom:9px;z-index:2;font-size:8px;letter-spacing:2px;color:#fff;background:rgba(0,0,0,.72);padding:4px 7px;border-left:2px solid var(--red);}
 .card-body{padding:18px 20px 20px;display:flex;flex-direction:column;gap:12px;flex:1;}
 .card h2{font-family:var(--font-head);font-size:26px;letter-spacing:5px;color:var(--gold);line-height:1;}
 .card .sub{font-size:11px;letter-spacing:3px;color:#a0b070;text-transform:uppercase;margin-top:-4px;}
@@ -152,6 +157,7 @@ footer a:hover{color:var(--gold);}
   <div class="eyebrow">Daniele Bros presents</div>
   <h1>IRON GAMES</h1>
   <div class="tagline">Free online arcade · No download · Just play</div>
+  <nav class="toplinks" aria-label="Main navigation"><a href="#games">PLAY GAMES</a><a href="activities.html">ACTIVITY HUB</a><a href="#faq">QUICK ANSWERS</a></nav>
   <div class="count" id="game-count">LOADING…</div>
 </header>
 
@@ -161,7 +167,17 @@ footer a:hover{color:var(--gold);}
   <!-- To add a game: drop its HTML file in this folder and copy one <article class="card"> below. The count and analytics update themselves. -->
   <div id="games">
     <article class="card">
-      <div class="card-art"><span class="badge">FLAGSHIP</span><span aria-hidden="true">💥</span></div>
+      <div class="card-art"><video autoplay muted loop playsinline preload="auto" poster="media/ironcraft-preview.jpg" aria-hidden="true"><source src="media/ironcraft-preview.mp4" type="video/mp4"></video><span class="badge">NEW</span><span class="preview-label">LIVE GAMEPLAY</span></div>
+      <div class="card-body">
+        <h2>IRONCRAFT</h2>
+        <div class="sub">Voxel Survival</div>
+        <p>A Minecraft-style survival sandbox in your browser. Infinite procedurally generated worlds with ten biomes, caves, ores, villages, trial chambers, ancient cities and the Warden. Mine, craft with real recipes, smelt, enchant, tame wolves, ride horses, fight creepers and endermen, then brave the Nether and the End to slay the Ender Dragon and the Wither. Free public multiplayer servers, plus fun mods with EF1 to EF5 tornadoes, horror monsters, zombie waves and guns.</p>
+        <div class="tags"><span class="tag">Survival</span><span class="tag">Sandbox</span><span class="tag">Multiplayer</span><span class="tag">3D · WebGL2</span><span class="tag">Desktop only</span><span class="tag">Keyboard + Mouse</span></div>
+        <div class="card-actions"><a class="play" href="minecraft.html" data-game="IRONCRAFT">⚔ PLAY</a><a class="guide" href="ironcraft-guide.html">GUIDE</a></div>
+      </div>
+    </article>
+    <article class="card">
+      <div class="card-art"><video autoplay muted loop playsinline preload="auto" poster="media/iron-front-preview.jpg" aria-hidden="true"><source src="media/iron-front-preview.mp4" type="video/mp4"></video><span class="badge">FLAGSHIP</span><span class="preview-label">LIVE GAMEPLAY</span></div>
       <div class="card-body">
         <h2>IRON FRONT</h2>
         <div class="sub">WW2 Tank Combat</div>
@@ -171,7 +187,7 @@ footer a:hover{color:var(--gold);}
       </div>
     </article>
     <article class="card">
-      <div class="card-art"><span class="badge">NEW</span><span aria-hidden="true">🗺️</span></div>
+      <div class="card-art"><video autoplay muted loop playsinline preload="auto" poster="media/iron-battle-preview.jpg" aria-hidden="true"><source src="media/iron-battle-preview.mp4" type="video/mp4"></video><span class="badge">NEW</span><span class="preview-label">LIVE GAMEPLAY</span></div>
       <div class="card-body">
         <h2>IRON BATTLE</h2>
         <div class="sub">Real-Time Strategy</div>
@@ -180,17 +196,12 @@ footer a:hover{color:var(--gold);}
         <div class="card-actions"><a class="play" href="command.html" data-game="IRON BATTLE">⚔ PLAY</a><a class="guide" href="iron-battle-guide.html">GUIDE</a></div>
       </div>
     </article>
-    <article class="card">
-      <div class="card-art"><span class="badge">NEW</span><span aria-hidden="true">⛏️</span></div>
-      <div class="card-body">
-        <h2>IRONCRAFT</h2>
-        <div class="sub">Voxel Survival</div>
-        <p>A Minecraft-style survival sandbox in your browser. Infinite procedurally generated worlds with ten biomes, caves, ores, villages, trial chambers, ancient cities and the Warden. Mine, craft with real recipes, smelt, enchant, tame wolves, ride horses, fight creepers and endermen, then brave the Nether and the End to slay the Ender Dragon and the Wither. Free public multiplayer servers, plus fun mods with EF1 to EF5 tornadoes, horror monsters, zombie waves and guns.</p>
-        <div class="tags"><span class="tag">Survival</span><span class="tag">Sandbox</span><span class="tag">Multiplayer</span><span class="tag">3D · WebGL2</span><span class="tag">Desktop only</span><span class="tag">Keyboard + Mouse</span></div>
-        <div class="card-actions"><a class="play" href="minecraft.html" data-game="IRONCRAFT">⚔ PLAY</a><a class="guide" href="ironcraft-guide.html">GUIDE</a></div>
-      </div>
-    </article>
   </div>
+
+  <section id="activities">
+    <div class="section-title">Play with a purpose</div>
+    <div class="qa"><h3>Homeschool activities, challenges and guides</h3><p>Turn a game session into a building challenge, a strategy lesson, a history question or a family tournament. The Iron Games Activity Hub has dozens of free ideas for kids, parents and homeschool families.</p><div class="card-actions"><a class="play" href="activities.html">EXPLORE ACTIVITIES</a></div></div>
+  </section>
 
   <section id="faq">
     <div class="section-title">Quick answers</div>
@@ -242,6 +253,7 @@ footer a:hover{color:var(--gold);}
   const cards=document.querySelectorAll('#games .card');
   const n=cards.length;
   document.getElementById('game-count').textContent=`${n} GAME${n===1?'':'S'} · MORE COMING`;
+  document.querySelectorAll('.card-art video').forEach(video=>{video.muted=true;video.play().catch(()=>{});});
   document.querySelectorAll('#games a.play').forEach(a=>a.addEventListener('click',()=>{if(window.trackEvent)trackEvent('select_game',{game:a.dataset.game})}));
 })();
 </script>
