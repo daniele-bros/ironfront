@@ -2,11 +2,13 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<meta name="viewport" content="width=device-width,initial-scale=1.0,viewport-fit=cover">
 <title>Iron Front – Free WW2 Tank Game in Your Browser | Iron Games</title>
 <meta name="description" content="Iron Front is a free WW2 top-down tank game you play in your browser with no download: 300+ tanks across nine nations, seven historic maps, boss waves and artillery. By Daniele Bros.">
 <meta name="robots" content="index,follow,max-snippet:-1,max-image-preview:large">
 <link rel="canonical" href="https://irongames.win/ww2tanks.html">
+<link rel="icon" href="favicon.svg" type="image/svg+xml">
+<link rel="manifest" href="site.webmanifest">
 <meta property="og:type" content="website">
 <meta property="og:site_name" content="Iron Games">
 <meta property="og:title" content="Iron Front – Free WW2 Tank Game in Your Browser | Iron Games">
@@ -25,7 +27,7 @@ body{background:var(--dark);color:var(--cream);font-family:'Courier New',monospa
 .hv{font-size:clamp(12px,1.35vw,15px);color:var(--cream);white-space:nowrap;}
 .hpbg{background:#111;border:1px solid #2a2a2a;height:6px;border-radius:3px;overflow:hidden;width:100px;margin-top:2px;}
 .hpfill{height:100%;border-radius:3px;transition:width .3s,background .3s;}
-#arena-wrap{flex:1;position:relative;overflow:hidden;}
+#arena-wrap{flex:1;position:relative;overflow:hidden;touch-action:none;}
 #gameCanvas{display:block;}
 #dmg-flash{position:absolute;inset:0;background:rgba(200,60,60,0);pointer-events:none;z-index:30;transition:background .12s;}
 #killfeed{position:absolute;top:8px;left:8px;z-index:20;display:flex;flex-direction:column;gap:3px;pointer-events:none;}
@@ -147,6 +149,22 @@ body[data-state="mode"] #screen-title { display:none!important; }
   #hud-bot .khint{display:none;}
   .hpbg{width:56px;}
 }
+#tank-touch-controls{display:none;position:absolute;inset:0;z-index:35;pointer-events:none;font-family:'Oswald',sans-serif;}
+.tank-stick{position:absolute;left:max(14px,env(safe-area-inset-left));bottom:max(78px,calc(env(safe-area-inset-bottom) + 64px));width:126px;height:126px;border:2px solid rgba(200,168,75,.55);border-radius:50%;background:rgba(7,10,5,.4);pointer-events:auto;touch-action:none;}
+.tank-stick-knob{position:absolute;left:37px;top:37px;width:48px;height:48px;border-radius:50%;border:2px solid #e8c84a;background:rgba(50,63,27,.9);box-shadow:0 0 16px rgba(232,200,74,.35);}
+.tank-touch-actions{position:absolute;right:max(14px,env(safe-area-inset-right));bottom:max(78px,calc(env(safe-area-inset-bottom) + 64px));display:flex;align-items:flex-end;gap:12px;pointer-events:auto;}
+.tank-touch-btn{width:76px;height:76px;border-radius:50%;border:2px solid #c8a84b;background:rgba(25,30,14,.86);color:#f2dda0;font:700 14px 'Oswald',sans-serif;letter-spacing:1px;box-shadow:0 4px 18px rgba(0,0,0,.55);touch-action:none;}
+.tank-touch-btn.fire{width:94px;height:94px;border-color:#ff5b48;background:rgba(113,24,18,.9);color:#fff;}
+.tank-touch-btn.pressed{transform:scale(.94);filter:brightness(1.35);}
+#tank-rotate-hint{display:none;position:absolute;inset:0;z-index:90;align-items:center;justify-content:center;text-align:center;background:#080a05;color:#e8c84a;font:700 18px 'Oswald',sans-serif;letter-spacing:2px;padding:28px;}
+@media (pointer:coarse),(hover:none){
+  body[data-state="game"] #tank-touch-controls{display:block;}
+  #hud-bot{padding-bottom:max(4px,env(safe-area-inset-bottom));}
+  #btn-exit-battle{right:max(10px,env(safe-area-inset-right))!important;}
+}
+@media (pointer:coarse) and (orientation:portrait), (hover:none) and (orientation:portrait){
+  body[data-state="game"] #tank-rotate-hint{display:flex;}
+}
 /* Critical HP pulse */
 @keyframes hpCrit{0%,100%{box-shadow:none}50%{box-shadow:0 0 12px 3px rgba(231,76,60,.55)}}
 .hp-critical{animation:hpCrit 0.7s ease-in-out infinite;}
@@ -202,6 +220,14 @@ body[data-state="mode"] #screen-title { display:none!important; }
 <div id="arena-wrap">
   <canvas id="glCanvas" style="position:absolute;inset:0;z-index:1;display:none;"></canvas>
   <canvas id="gameCanvas" tabindex="0" style="position:relative;z-index:2;"></canvas>
+  <div id="tank-touch-controls" aria-label="Touch driving controls">
+    <div class="tank-stick" id="tank-stick" aria-label="Move tank"><div class="tank-stick-knob" id="tank-stick-knob"></div></div>
+    <div class="tank-touch-actions">
+      <button class="tank-touch-btn" id="tank-boost" type="button">BOOST</button>
+      <button class="tank-touch-btn fire" id="tank-fire" type="button">FIRE</button>
+    </div>
+  </div>
+  <div id="tank-rotate-hint">ROTATE YOUR DEVICE<br>FOR THE BEST BATTLE VIEW</div>
   <div id="team-bar" style="display:none;position:absolute;top:5px;left:50%;transform:translateX(-50%);display:none;gap:8px;z-index:15;pointer-events:none;">
     <div id="tb-allies" style="font-size:11px;color:#2ecc71;font-family:'Share Tech Mono',monospace;"></div>
     <div id="tb-enemies" style="font-size:11px;color:#e74c3c;font-family:'Share Tech Mono',monospace;"></div>
@@ -7309,6 +7335,36 @@ window.addEventListener('load',()=>{
     if(document&&document.readyState!=='loading')bindInput();
     else if(document)document.addEventListener('DOMContentLoaded',bindInput);
   }
+})();
+
+// Mobile battle controls: left thumb drives, right side aims/fires, boost holds Shift.
+(function setupTankTouchControls(){
+  const stick=document.getElementById('tank-stick'),knob=document.getElementById('tank-stick-knob');
+  const fire=document.getElementById('tank-fire'),boost=document.getElementById('tank-boost'),cv=document.getElementById('gameCanvas');
+  if(!stick||!knob||!fire||!boost||!cv)return;
+  const clearMove=()=>{keys.KeyW=keys.KeyA=keys.KeyS=keys.KeyD=false;knob.style.transform='translate(0,0)';};
+  const move=(clientX,clientY)=>{
+    const r=stick.getBoundingClientRect(),cx=r.left+r.width/2,cy=r.top+r.height/2;
+    let dx=clientX-cx,dy=clientY-cy;const max=r.width*.31,len=Math.hypot(dx,dy)||1;
+    if(len>max){dx=dx/len*max;dy=dy/len*max;}
+    knob.style.transform=`translate(${dx}px,${dy}px)`;
+    keys.KeyA=dx<-12;keys.KeyD=dx>12;keys.KeyW=dy<-12;keys.KeyS=dy>12;
+  };
+  stick.addEventListener('pointerdown',e=>{stick.setPointerCapture(e.pointerId);move(e.clientX,e.clientY);e.preventDefault();});
+  stick.addEventListener('pointermove',e=>{if(stick.hasPointerCapture(e.pointerId))move(e.clientX,e.clientY);});
+  stick.addEventListener('pointerup',clearMove);stick.addEventListener('pointercancel',clearMove);
+  const hold=(el,on,off)=>{
+    el.addEventListener('pointerdown',e=>{el.setPointerCapture(e.pointerId);el.classList.add('pressed');on();e.preventDefault();});
+    const done=()=>{el.classList.remove('pressed');off();};el.addEventListener('pointerup',done);el.addEventListener('pointercancel',done);
+  };
+  hold(fire,()=>{_fireHeld=true;if(typeof tryShoot==='function')tryShoot();},()=>{_fireHeld=false;});
+  hold(boost,()=>{keys.ShiftLeft=true;},()=>{keys.ShiftLeft=false;});
+  cv.addEventListener('touchstart',e=>{
+    const t=e.changedTouches[0];if(!t)return;const r=cv.getBoundingClientRect();mouseX=t.clientX-r.left;mouseY=t.clientY-r.top;
+  },{passive:true});
+  cv.addEventListener('touchmove',e=>{
+    const t=e.changedTouches[0];if(!t)return;const r=cv.getBoundingClientRect();mouseX=t.clientX-r.left;mouseY=t.clientY-r.top;e.preventDefault();
+  },{passive:false});
 })();
 
 // ════════════════════════════════════════════════════════════════════

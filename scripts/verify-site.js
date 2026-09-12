@@ -8,7 +8,8 @@ const root = path.resolve(__dirname, '..');
 const mime = {
   '.css': 'text/css; charset=utf-8', '.html': 'text/html; charset=utf-8',
   '.jpg': 'image/jpeg', '.js': 'text/javascript; charset=utf-8', '.mp4': 'video/mp4',
-  '.png': 'image/png', '.txt': 'text/plain; charset=utf-8', '.xml': 'application/xml; charset=utf-8',
+  '.png': 'image/png', '.svg': 'image/svg+xml', '.webmanifest': 'application/manifest+json',
+  '.txt': 'text/plain; charset=utf-8', '.xml': 'application/xml; charset=utf-8',
 };
 
 const server = http.createServer((req, res) => {
@@ -71,6 +72,7 @@ const server = http.createServer((req, res) => {
     const activityFiles = fs.readdirSync(root).filter(name => name.endsWith('.html') && ![
       'index.html', 'activities.html', 'minecraft.html', 'ww2tanks.html', 'command.html',
       'ironcraft-guide.html', 'iron-front-guide.html', 'iron-battle-guide.html',
+      'privacy.html', 'safety.html',
     ].includes(name));
     assert.strictEqual(activityFiles.length, 36);
 

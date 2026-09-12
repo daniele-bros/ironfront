@@ -2,11 +2,13 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<meta name="viewport" content="width=device-width,initial-scale=1.0,viewport-fit=cover">
 <title>Iron Battle – Free Real-Time Strategy Game in Your Browser | Iron Games</title>
 <meta name="description" content="Iron Battle is a free real-time strategy game you play in your browser with no download: command squads, tanks, rockets and aircraft, hold six objectives and destroy the enemy HQ across a 1,000-operation campaign. By Daniele Bros.">
 <meta name="robots" content="index,follow,max-snippet:-1,max-image-preview:large">
 <link rel="canonical" href="https://irongames.win/command.html">
+<link rel="icon" href="favicon.svg" type="image/svg+xml">
+<link rel="manifest" href="site.webmanifest">
 <meta property="og:type" content="website">
 <meta property="og:site_name" content="Iron Games">
 <meta property="og:title" content="Iron Battle – Free Real-Time Strategy Game in Your Browser | Iron Games">
@@ -33,7 +35,7 @@ body{background:var(--dark);color:var(--cream);font-family:'Share Tech Mono','Co
 .tbtn:hover{color:#e8c84a;border-color:#e8c84a;}
 a.tbtn{text-decoration:none;}
 #wrap{flex:1;position:relative;overflow:hidden;background:#1b2610;}
-#cv{display:block;position:absolute;inset:0;cursor:default;}
+#cv{display:block;position:absolute;inset:0;cursor:default;touch-action:none;}
 #cv.target{cursor:crosshair;}
 #cv.pan{cursor:grabbing;}
 #hint{position:absolute;top:10px;left:50%;transform:translateX(-50%);background:rgba(0,0,0,.75);border:1px solid rgba(200,168,75,.5);color:#e8c84a;padding:6px 16px;font-size:11px;letter-spacing:2px;pointer-events:none;z-index:20;display:none;white-space:nowrap;}
@@ -78,6 +80,21 @@ a.tbtn{text-decoration:none;}
 .stats{display:flex;gap:30px;margin:14px 0;}
 .stats div{display:flex;flex-direction:column;align-items:center;}
 .stats .v{font-size:26px;color:#e8c84a;font-family:'Oswald',sans-serif;}
+.mobile-help{display:none;color:#e8c84a;border:1px solid #3a5018;background:#0a0d07;padding:7px 9px;margin-top:8px;font-size:10px;line-height:1.5;}
+@media(max-width:960px){
+  #top{padding:max(4px,env(safe-area-inset-top)) max(7px,env(safe-area-inset-right)) 4px max(7px,env(safe-area-inset-left));gap:5px;flex-wrap:nowrap;overflow-x:auto;}
+  #top .brand{font-size:14px;letter-spacing:2px;white-space:nowrap;}
+  #top .brand small,#top .stat:nth-of-type(4),#top .stat:nth-of-type(5),#top .stat:nth-of-type(6){display:none;}
+  .stat{min-width:54px}.hv{font-size:12px}.tbtn{padding:5px 7px;white-space:nowrap;}
+  #bot{flex-wrap:nowrap;overflow-x:auto;gap:10px;padding:5px max(7px,env(safe-area-inset-right)) max(5px,env(safe-area-inset-bottom)) max(7px,env(safe-area-inset-left));scrollbar-width:thin;}
+  #bot .grp{flex:0 0 auto}.cb{min-width:102px;padding:8px 7px}.cb .d,.cb .k{display:none}.cb .n{font-size:10px}.row{gap:4px;}
+  #sel{left:6px;bottom:6px;min-width:0;max-width:52vw;padding:5px 7px;font-size:9px}#sel .r{font-size:8px}
+  #mmwrap{right:6px;bottom:6px}#mm{width:150px;height:98px;}
+  #hint{max-width:90vw;white-space:normal;text-align:center;font-size:9px;}
+  .screen{padding:max(12px,env(safe-area-inset-top)) max(12px,env(safe-area-inset-right)) max(12px,env(safe-area-inset-bottom)) max(12px,env(safe-area-inset-left));}
+  .brief{padding:11px 13px}.brief .cols>div{min-width:210px}.mobile-help{display:block;}
+}
+@media(max-width:520px){#top .stat:nth-of-type(3){display:none}#mm{width:124px;height:81px}.screen h1{letter-spacing:4px}.screen .sub{letter-spacing:3px}.bigbtn{padding:12px 30px;font-size:19px;}}
 </style>
 <script src="analytics.js"></script>
 </head>
@@ -103,7 +120,7 @@ a.tbtn{text-decoration:none;}
   <div id="log"></div>
   <div id="banner"></div>
   <div id="sel"><div class="t">NO SELECTION</div><div class="r">Drag to box-select · Right-click to move</div></div>
-  <div id="mmwrap"><canvas id="mm" width="234" width="234" height="152"></canvas></div>
+  <div id="mmwrap"><canvas id="mm" width="234" height="152"></canvas></div>
 </div>
 <div id="bot">
   <div class="grp" id="grp-recruit"><div class="hl">RECRUIT · SPAWN AT HQ</div>
@@ -150,6 +167,7 @@ a.tbtn{text-decoration:none;}
     <div><b>MISSION:</b> <span id="brief-mission"></span></div>
     <div id="brief-win" style="margin-top:4px;color:#e8c84a;">TO WIN: hold all six objectives <b>and</b> destroy the enemy HQ. Rockets and bombs alone will not do it; troops must plant the flag.</div>
     <div style="margin:6px 0 8px;">Supply arrives over time; each objective you hold speeds it up. Spend it on squads and fire support.</div>
+    <div class="mobile-help"><b>TOUCH:</b> tap a unit to select it, then tap the ground to move. Drag the battlefield to pan, pinch to zoom, and tap support buttons before choosing a target.</div>
     <div class="cols" id="brief-controls">
       <div>
         <b>TROOPS</b><br>
@@ -933,6 +951,38 @@ cv.addEventListener('wheel',e=>{
   const nz=clamp(cam.z*(e.deltaY<0?1.12:1/1.12),.45,2.2);
   cam.z=nz;cam.x=wx-sx/nz;cam.y=wy-sy/nz;clampCam();
 },{passive:false});
+let touchGesture=null;
+cv.addEventListener('touchstart',e=>{
+  ac();e.preventDefault();
+  const r=cv.getBoundingClientRect();
+  if(e.touches.length>=2){
+    const a=e.touches[0],b=e.touches[1],mx=(a.clientX+b.clientX)/2-r.left,my=(a.clientY+b.clientY)/2-r.top;
+    touchGesture={kind:'pinch',dist:Math.hypot(a.clientX-b.clientX,a.clientY-b.clientY),zoom:cam.z,wx:cam.x+mx/cam.z,wy:cam.y+my/cam.z};return;
+  }
+  const t=e.touches[0];touchGesture={kind:'tap',sx:t.clientX-r.left,sy:t.clientY-r.top,lx:t.clientX-r.left,ly:t.clientY-r.top,cx:cam.x,cy:cam.y,moved:false};
+},{passive:false});
+cv.addEventListener('touchmove',e=>{
+  if(!touchGesture)return;e.preventDefault();const r=cv.getBoundingClientRect();
+  if(e.touches.length>=2){
+    const a=e.touches[0],b=e.touches[1],mx=(a.clientX+b.clientX)/2-r.left,my=(a.clientY+b.clientY)/2-r.top;
+    if(touchGesture.kind!=='pinch')touchGesture={kind:'pinch',dist:Math.hypot(a.clientX-b.clientX,a.clientY-b.clientY),zoom:cam.z,wx:cam.x+mx/cam.z,wy:cam.y+my/cam.z};
+    const nz=clamp(touchGesture.zoom*Math.hypot(a.clientX-b.clientX,a.clientY-b.clientY)/Math.max(1,touchGesture.dist),.45,2.2);
+    cam.z=nz;cam.x=touchGesture.wx-mx/nz;cam.y=touchGesture.wy-my/nz;clampCam();return;
+  }
+  if(touchGesture.kind!=='tap'||!e.touches[0])return;const t=e.touches[0],x=t.clientX-r.left,y=t.clientY-r.top;
+  if(Math.hypot(x-touchGesture.sx,y-touchGesture.sy)>8)touchGesture.moved=true;
+  if(touchGesture.moved){cam.x-= (x-touchGesture.lx)/cam.z;cam.y-= (y-touchGesture.ly)/cam.z;clampCam();}
+  touchGesture.lx=x;touchGesture.ly=y;
+},{passive:false});
+cv.addEventListener('touchend',e=>{
+  if(!touchGesture)return;e.preventDefault();const g=touchGesture;touchGesture=null;if(g.kind!=='tap'||g.moved)return;
+  const [wx,wy]=toWorld(g.sx,g.sy);
+  if(mode){fireSupport(mode,clamp(wx,0,W),clamp(wy,0,H));return;}
+  let best=null,bd=28/cam.z;
+  for(const u of units)if(u.team===0&&UT[u.type].mobile&&!u.dead){const dd=dist(u.x,u.y,wx,wy);if(dd<bd){bd=dd;best=u;}}
+  if(best){sel.forEach(u=>u.sel=false);sel=[best];best.sel=true;sSelect();}
+  else if(sel.length)issueMove(clamp(wx,8,W-8),clamp(wy,8,H-8));
+},{passive:false});
 window.addEventListener('keydown',e=>{
   if(e.target&&(e.target.tagName==='INPUT'))return;
   keys[e.key]=true;const k=e.key.toLowerCase();if(e.key.startsWith('Arrow'))e.preventDefault();
@@ -947,13 +997,17 @@ window.addEventListener('keyup',e=>{keys[e.key]=false;});
 // minimap
 mm.addEventListener('contextmenu',e=>e.preventDefault());
 mm.addEventListener('mousedown',e=>{
-  const r=mm.getBoundingClientRect();const wx=(e.clientX-r.left)/mm.width*W,wy=(e.clientY-r.top)/mm.height*H;
+  const r=mm.getBoundingClientRect();const wx=(e.clientX-r.left)/r.width*W,wy=(e.clientY-r.top)/r.height*H;
   if(e.button===2){if(sel.length)issueMove(clamp(wx,8,W-8),clamp(wy,8,H-8));return;}
   if(mode){fireSupport(mode,wx,wy);return;}
   centerOn(wx,wy);mm._d=true;
 });
 window.addEventListener('mouseup',()=>{mm._d=false;});
-mm.addEventListener('mousemove',e=>{if(!mm._d)return;const r=mm.getBoundingClientRect();centerOn((e.clientX-r.left)/mm.width*W,(e.clientY-r.top)/mm.height*H);});
+mm.addEventListener('mousemove',e=>{if(!mm._d)return;const r=mm.getBoundingClientRect();centerOn((e.clientX-r.left)/r.width*W,(e.clientY-r.top)/r.height*H);});
+mm.addEventListener('touchstart',e=>{
+  const t=e.touches[0];if(!t)return;e.preventDefault();const r=mm.getBoundingClientRect(),wx=(t.clientX-r.left)/r.width*W,wy=(t.clientY-r.top)/r.height*H;
+  if(mode)fireSupport(mode,wx,wy);else if(sel.length)issueMove(clamp(wx,8,W-8),clamp(wy,8,H-8));else centerOn(wx,wy);
+},{passive:false});
 
 // ════════════════════════════════════════
 // UPDATE
