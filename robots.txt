@@ -1,5 +1,34 @@
+# Everyone welcome, including search and AI crawlers.
 User-agent: *
 Allow: /
 Disallow: /node_modules/
+
+# ChatGPT (OpenAI) crawlers
+User-agent: GPTBot
+Allow: /
+User-agent: OAI-SearchBot
+Allow: /
+User-agent: ChatGPT-User
+Allow: /
+
+# Gemini (Google) crawlers
+User-agent: Googlebot
+Allow: /
+User-agent: Google-Extended
+Allow: /
+
+# Bing powers ChatGPT search results
+User-agent: Bingbot
+Allow: /
+
+# Other AI assistants
+User-agent: ClaudeBot
+Allow: /
+User-agent: Claude-SearchBot
+Allow: /
+User-agent: PerplexityBot
+Allow: /
+User-agent: Applebot-Extended
+Allow: /
 
 Sitemap: https://irongames.win/sitemap.xml
