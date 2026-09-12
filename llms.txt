@@ -1,0 +1,48 @@
+# Iron Games
+
+> Iron Games (https://irongames.win/) is a free online arcade of browser games made by Daniele Bros. No download, no account: open the page and play. Works on desktop browsers with keyboard and mouse.
+
+## Games
+
+- [Iron Front](https://irongames.win/ww2tanks.html): WW2 top-down tank combat. Drive tanks like the Sherman, Tiger and T-34 across a battlefield, fight waves of enemy armour, unlock tanks in the garage and tech tree, and survive Ratte boss waves.
+- [Iron Battle](https://irongames.win/command.html): real-time strategy on a flat tactical map. Recruit squads and tanks, secure objectives, manage supply, launch rockets and aircraft, and command your army across a 1,000-operation campaign.
+- [Ironcraft](https://irongames.win/minecraft.html): Minecraft-style voxel survival built with WebGL. Mine, craft, build, farm and fight through the Overworld, Nether and End. Villages, trial chambers, ancient cities and the Dreadwarden, Iron Men, enchanting, netherite, elytra, mace and tridents. Fun mods add EF1 to EF5 tornadoes and thunderstorms, horror monsters, zombie apocalypse waves and guns. Free public multiplayer servers connect players directly through the browser with shared blocks, items, chests, weather and chat.
+
+## Guides
+
+- [Ironcraft guide](https://irongames.win/ironcraft-guide.html): controls, chat commands, multiplayer, fun mods, structures and bosses.
+- [Iron Front guide](https://irongames.win/iron-front-guide.html): controls, all game modes, tanks and tech tree, maps.
+- [Iron Battle guide](https://irongames.win/iron-battle-guide.html): controls, units and costs, fire support, target missions.
+
+## Activities for kids and homeschool families
+
+- [Iron Games Activity Hub](https://irongames.win/activities.html): 36 free, substantial play-and-learn missions for kids, parents and homeschoolers.
+- Topics include creative building, math, writing, science questions, map reading, history research, resource management, family tournaments and short brain breaks.
+- Every activity includes setup instructions, challenge steps, discussion prompts, an extension and a parent note.
+
+## Facts
+
+- Free to play, no download, no sign-up, no ads required to play.
+- Runs in Chrome, Edge, Firefox and Safari on desktop.
+- Site: https://irongames.win/
+
+## Quick answers
+
+- Is Iron Games free? Yes. All three games are completely free to play, with no account, no download and nothing to buy. Coins and unlocks inside the games are earned by playing.
+- Do I need to download or install anything? No. Each game is a single web page. Open it in your browser and it loads in seconds.
+- What games can I play on Iron Games? Iron Front is top-down WW2 tank combat. Iron Battle is real-time strategy on a tactical map. Ironcraft is a Minecraft-style voxel survival sandbox.
+- Can I play Ironcraft with friends? Yes. Click Multiplayer on the Ironcraft title screen to see a live list of public worlds you can join without a code, create your own public world, or open a private room and share its code. Players connect directly to each other through the browser.
+- Which browsers and devices work? Desktop Chrome, Edge, Firefox and Safari with a keyboard and mouse. Ironcraft needs WebGL2, which every current desktop browser has. The games are made for desktop and laptop screens.
+- Is Ironcraft the same as Minecraft? No. Ironcraft is an original browser game by Daniele Bros inspired by Minecraft. It is not affiliated with Mojang or Microsoft.
+- Does my progress save? Yes. Worlds, unlocks and coins are saved in your browser on the device you play on, so come back to the same browser to continue.
+- What are the Ironcraft fun mods? Optional modes you pick when creating a world: Weather with thunderstorms and EF1 to EF5 tornadoes, Horror, Random Blocks, Hardcore, Structure Chaos, Zombie Apocalypse waves and Guns. They can be mixed.
+- How do I find diamonds or a village in Ironcraft? Press T to open chat and type a teleport command such as /tp diamonds, /tp village, /tp trial chamber or /tp ancient city. It finds the closest one and takes you there.
+- Who makes Iron Games? Daniele Bros. The games are updated regularly with new features, and the site lives at irongames.win.
+
+## How to play Ironcraft with friends
+
+1. Open Ironcraft and click Multiplayer on the title screen.
+2. Type a player name.
+3. Pick a public world from the live list to join it instantly, or click Create New Public World to host one for everyone.
+4. For a private game, host a room and give friends its code. They enter the code to join.
+5. Press T in the game to chat. Blocks, dropped items, chests, weather and zombie waves are shared.
