@@ -2,22 +2,24 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width,initial-scale=1.0">
-<title>Ironcraft – Free Minecraft-Style Survival Game in Your Browser | Iron Games</title>
-<meta name="description" content="Ironcraft is a free Minecraft-style voxel survival game you play in your browser with no download: public multiplayer servers, the Nether and End, trial chambers, ancient cities and the Dreadwarden, plus fun mods with EF1 to EF5 tornadoes, horror, undead waves and guns. By Daniele Bros.">
+<meta name="viewport" content="width=device-width,initial-scale=1.0,viewport-fit=cover">
+<title>Ironcraft – Free Voxel Survival Sandbox in Your Browser | Iron Games</title>
+<meta name="description" content="Ironcraft is a free browser-based voxel survival sandbox with building, exploration, private or safety-limited public multiplayer, and optional weather, horror and survival challenges. By Daniele Bros.">
 <meta name="robots" content="index,follow,max-snippet:-1,max-image-preview:large">
 <link rel="canonical" href="https://irongames.win/minecraft.html">
+<link rel="icon" href="favicon.svg" type="image/svg+xml">
+<link rel="manifest" href="site.webmanifest">
 <meta property="og:type" content="website">
 <meta property="og:site_name" content="Iron Games">
-<meta property="og:title" content="Ironcraft – Free Minecraft-Style Survival Game in Your Browser | Iron Games">
-<meta property="og:description" content="Ironcraft is a free Minecraft-style voxel survival game you play in your browser with no download: public multiplayer servers, the Nether and End, trial chambers, ancient cities and the Dreadwarden, plus fun mods with EF1 to EF5 tornadoes, horror, undead waves and guns. By Daniele Bros.">
+<meta property="og:title" content="Ironcraft – Free Voxel Survival Sandbox in Your Browser | Iron Games">
+<meta property="og:description" content="Build, explore and survive in a free browser-based voxel sandbox by Daniele Bros.">
 <meta property="og:url" content="https://irongames.win/minecraft.html">
 <meta name="twitter:card" content="summary">
-<meta name="twitter:title" content="Ironcraft – Free Minecraft-Style Survival Game in Your Browser | Iron Games">
-<meta name="twitter:description" content="Ironcraft is a free Minecraft-style voxel survival game you play in your browser with no download: public multiplayer servers, the Nether and End, trial chambers, ancient cities and the Dreadwarden, plus fun mods with EF1 to EF5 tornadoes, horror, undead waves and guns. By Daniele Bros.">
-<script type="application/ld+json">{"@context": "https://schema.org", "@graph": [{"@type": "VideoGame", "name": "Ironcraft", "url": "https://irongames.win/minecraft.html", "genre": ["Survival", "Sandbox", "Voxel", "Multiplayer"], "gamePlatform": "Web browser", "applicationCategory": "Game", "operatingSystem": "Any", "isAccessibleForFree": true, "offers": {"@type": "Offer", "price": "0", "priceCurrency": "USD", "availability": "https://schema.org/InStock"}, "author": {"@type": "Organization", "name": "Daniele Bros"}, "publisher": {"@type": "Organization", "name": "Daniele Bros"}, "inLanguage": "en", "dateModified": "2026-09-12", "description": "Ironcraft is a free Minecraft-style voxel survival game you play in your browser with no download: public multiplayer servers, the Nether and End, trial chambers, ancient cities and the Dreadwarden, plus fun mods with EF1 to EF5 tornadoes, horror, undead waves and guns. By Daniele Bros."}, {"@type": "BreadcrumbList", "itemListElement": [{"@type": "ListItem", "position": 1, "name": "Iron Games", "item": "https://irongames.win/"}, {"@type": "ListItem", "position": 2, "name": "Ironcraft", "item": "https://irongames.win/minecraft.html"}]}]}</script>
+<meta name="twitter:title" content="Ironcraft – Free Voxel Survival Sandbox in Your Browser | Iron Games">
+<meta name="twitter:description" content="Build, explore and survive in a free browser-based voxel sandbox by Daniele Bros.">
+<script type="application/ld+json">{"@context":"https://schema.org","@graph":[{"@type":"VideoGame","name":"Ironcraft","url":"https://irongames.win/minecraft.html","genre":["Survival","Sandbox","Voxel","Multiplayer"],"gamePlatform":"Web browser","applicationCategory":"Game","operatingSystem":"Any","isAccessibleForFree":true,"offers":{"@type":"Offer","price":"0","priceCurrency":"USD","availability":"https://schema.org/InStock"},"author":{"@type":"Organization","name":"Daniele Bros"},"publisher":{"@type":"Organization","name":"Daniele Bros"},"inLanguage":"en","dateModified":"2026-09-12","description":"Ironcraft is a free browser-based voxel survival sandbox with building, exploration and optional challenge modes."},{"@type":"BreadcrumbList","itemListElement":[{"@type":"ListItem","position":1,"name":"Iron Games","item":"https://irongames.win/"},{"@type":"ListItem","position":2,"name":"Ironcraft","item":"https://irongames.win/minecraft.html"}]}]}</script>
 <style>
-:root{--btn:#6d6d6d;--btnh:#7f8fce;--txt:#e0e0e0;--shadow:#3f3f3f;--panel:#c6c6c6;--slot:#8b8b8b;}
+:root{--btn:#172128;--btnh:#243945;--txt:#f4e6c4;--shadow:#05080a;--panel:#d8d0bd;--slot:#66747a;--iron:#d39a33;--ember:#c74632;}
 *{box-sizing:border-box;margin:0;padding:0;}
 html,body{width:100%;height:100%;overflow:hidden;background:#000;}
 body{font-family:'Segoe UI',Verdana,Arial,sans-serif;font-weight:700;color:var(--txt);user-select:none;-webkit-user-select:none;font-size:14px;}
@@ -29,20 +31,20 @@ canvas#gl{position:absolute;inset:0;width:100%;height:100%;display:block;image-r
 #crosshair:before,#crosshair:after{content:"";position:absolute;background:#ddd;}
 #crosshair:before{left:8px;top:0;width:2px;height:18px;}
 #crosshair:after{top:8px;left:0;width:18px;height:2px;}
-#hotbar{position:absolute;bottom:4px;left:50%;transform:translateX(-50%);display:flex;background:rgba(0,0,0,.55);border:2px solid #1a1a1a;padding:1px;}
-.hslot{width:44px;height:44px;border:2px solid #8b8b8b;position:relative;background:rgba(40,40,40,.4);}
-.hslot.sel{border:3px solid #fff;outline:2px solid #fff;z-index:2;}
+#hotbar{position:absolute;bottom:6px;left:50%;transform:translateX(-50%);display:flex;gap:3px;background:rgba(5,10,13,.76);border:1px solid #d39a33;border-radius:7px;padding:4px;box-shadow:0 4px 20px rgba(0,0,0,.45);}
+.hslot{width:44px;height:44px;border:1px solid #66747a;border-radius:4px;position:relative;background:rgba(38,53,61,.68);}
+.hslot.sel{border:2px solid #f0b94e;outline:1px solid #8a3025;z-index:2;background:rgba(98,70,28,.68);}
 .icon{position:absolute;left:4px;top:4px;width:32px;height:32px;background-size:contain;background-repeat:no-repeat;image-rendering:pixelated;}
 .cnt{position:absolute;right:2px;bottom:0px;font-size:14px;color:#fff;text-shadow:1px 1px 0 #3f3f3f;}
 .dur{position:absolute;left:4px;bottom:3px;width:32px;height:3px;background:#000;}
 .dur i{display:block;height:100%;}
-#status{position:absolute;bottom:56px;left:50%;transform:translateX(-50%);width:364px;height:44px;}
-#hearts,#food,#armor,#air{position:absolute;display:flex;gap:0px;}
-#hearts{left:0;bottom:12px;}#armor{left:0;bottom:24px;}
-#food{right:0;bottom:12px;flex-direction:row-reverse;}#air{right:0;bottom:24px;flex-direction:row-reverse;}
+#status{position:absolute;bottom:62px;left:50%;transform:translateX(-50%);width:min(400px,94vw);height:52px;display:grid;grid-template-columns:1fr 1fr;gap:4px 8px;align-content:end;}
+#hearts,#food,#armor,#air{position:relative;display:block;min-height:13px;}
+.meter{display:grid;grid-template-columns:48px 1fr 28px;align-items:center;gap:4px;font:700 9px/1 'Segoe UI',Arial,sans-serif;letter-spacing:.6px;color:#f4e6c4;text-shadow:1px 1px #000;}
+.meter>i{height:8px;border:1px solid #071014;border-radius:4px;background:rgba(0,0,0,.65);overflow:hidden;box-shadow:0 0 0 1px rgba(255,255,255,.12);}.meter>i>b{display:block;height:100%;border-radius:3px;}.meter em{font-style:normal;text-align:right;}
 .ic{width:18px;height:18px;margin-right:-1px;background-size:contain;background-repeat:no-repeat;image-rendering:pixelated;}
-#xpbar{position:absolute;bottom:0;left:0;width:100%;height:10px;background:url() ;background:#1b1b1b;border:1px solid #000;}
-#xpfill{height:100%;background:#7fea2f;width:0%;}
+#xpbar{position:absolute;bottom:-12px;left:0;width:100%;height:8px;background:#071014;border:1px solid #d39a33;border-radius:4px;overflow:hidden;}
+#xpfill{height:100%;background:linear-gradient(90deg,#3d8f83,#76d3b7);width:0%;}
 #xplvl{position:absolute;bottom:2px;left:50%;transform:translateX(-50%);color:#80ff20;font-size:14px;text-shadow:1px 1px 0 #000;}
 #itemname{position:absolute;bottom:66px;left:50%;transform:translateX(-50%);font-size:16px;color:#fff;opacity:0;transition:opacity .4s;}
 #cmd{position:absolute;left:8px;bottom:112px;width:70%;max-width:560px;background:rgba(0,0,0,.65);color:#fff;border:1px solid #999;padding:7px 9px;font:15px monospace;display:none;z-index:30;outline:none;pointer-events:auto}
@@ -97,18 +99,18 @@ canvas#gl{position:absolute;inset:0;width:100%;height:100%;display:block;image-r
 #tooltip small{display:block;color:#aaa;font-weight:400;}
 .menu{position:absolute;inset:0;display:none;flex-direction:column;align-items:center;justify-content:center;gap:6px;}
 .menu.show{display:flex;}
-.dirtbg{background:#000;}
-.dirtbg:before{content:"";position:absolute;inset:0;background-image:var(--dirt);background-size:64px 64px;image-rendering:pixelated;opacity:.35;}
+.dirtbg{background:radial-gradient(circle at 22% 18%,rgba(35,82,93,.45),transparent 34%),radial-gradient(circle at 82% 76%,rgba(147,54,36,.3),transparent 38%),linear-gradient(145deg,#071014,#121b20 58%,#090d10);}
+.dirtbg:before{content:"";position:absolute;inset:0;background-image:linear-gradient(rgba(211,154,51,.07) 1px,transparent 1px),linear-gradient(90deg,rgba(211,154,51,.07) 1px,transparent 1px);background-size:32px 32px;opacity:.5;}
 .menu>*{position:relative;}
-.btn{width:400px;height:40px;background:#6d6d6d;border:2px solid #000;box-shadow:inset 2px 2px 0 #aaa,inset -2px -2px 0 #555;color:#e0e0e0;font:inherit;font-size:16px;text-shadow:2px 2px 0 #3f3f3f;cursor:pointer;display:flex;align-items:center;justify-content:center;}
-.btn:hover{background:#7f8fce;color:#ffffa0;box-shadow:inset 2px 2px 0 #bbc;inset -2px -2px 0 #446;}
+.btn{width:400px;height:42px;background:linear-gradient(180deg,#21303a,#111a20);border:1px solid #d39a33;border-left:5px solid #d39a33;border-radius:5px;box-shadow:0 4px 14px rgba(0,0,0,.35);color:#f4e6c4;font:inherit;font-size:15px;letter-spacing:1.5px;text-transform:uppercase;text-shadow:none;cursor:pointer;display:flex;align-items:center;justify-content:center;}
+.btn:hover{background:linear-gradient(180deg,#314957,#1a2931);color:#fff3c7;box-shadow:0 0 18px rgba(211,154,51,.24);}
 .btn:disabled{background:#3a3a3a;color:#a0a0a0;cursor:default;box-shadow:none;}
 .btn.half{width:196px;}
 .btnrow{display:flex;gap:8px;}
-h1.title{font-family:'Arial Black',Impact,sans-serif;font-size:72px;letter-spacing:6px;color:#ddd;text-shadow:5px 5px 0 #3a3a3a,0 0 20px rgba(0,0,0,.5);margin-bottom:20px;transform:perspective(600px) rotateX(10deg);}
-.splash{position:absolute;color:#ff0;font-size:18px;transform:rotate(-18deg);animation:sp .5s infinite alternate;pointer-events:none;text-shadow:2px 2px 0 #3f3f00;}
+h1.title{font-family:'Arial Black',Impact,sans-serif;font-size:72px;letter-spacing:9px;color:#e2a943;text-shadow:0 5px 0 #4f2f17,0 0 34px rgba(211,154,51,.26);margin-bottom:20px;transform:none;}
+.splash{position:absolute;color:#ffe5aa;background:#8a3025;border:1px solid #e2a943;border-radius:3px;padding:5px 10px;font-size:13px;letter-spacing:1px;transform:none;animation:none;pointer-events:none;text-shadow:none;}
 @keyframes sp{from{transform:rotate(-18deg) scale(1)}to{transform:rotate(-18deg) scale(1.08)}}
-.list{width:400px;height:220px;overflow:auto;background:rgba(0,0,0,.5);border:1px solid #000;}
+.list{width:400px;height:220px;overflow:auto;background:rgba(3,8,10,.72);border:1px solid #d39a33;border-radius:5px;}
 .witem{padding:6px 8px;border:1px solid transparent;cursor:pointer;font-size:14px;}
 .witem small{display:block;color:#888;font-weight:400;font-size:12px;}
 .witem.sel{border-color:#fff;}
@@ -154,6 +156,24 @@ label.lb{font-size:13px;color:#a0a0a0;align-self:flex-start;margin-left:calc(50%
 .palhead .hint{margin:0;}
 #palette::-webkit-scrollbar{width:14px;}#palette::-webkit-scrollbar-track{background:#000;}#palette::-webkit-scrollbar-thumb{background:#8b8b8b;border:2px solid #000;}
 @media (max-width:960px){.rbook{position:static;width:auto;height:170px;margin-top:8px;}}
+/* Touch controls are activated by JavaScript only while the game is playable. */
+#mobileControls{display:none;position:absolute;inset:0;z-index:45;pointer-events:none;touch-action:none}
+#mobileControls.active{display:block}
+#mobileLook{position:absolute;right:0;top:58px;bottom:76px;width:58%;pointer-events:auto;touch-action:none}
+.mobile-stick{position:absolute;left:max(18px,env(safe-area-inset-left));bottom:max(88px,calc(env(safe-area-inset-bottom) + 72px));width:116px;height:116px;border:2px solid rgba(255,255,255,.5);border-radius:50%;background:rgba(0,0,0,.3);pointer-events:auto;touch-action:none}
+.mobile-stick-knob{position:absolute;left:34px;top:34px;width:44px;height:44px;border-radius:50%;background:rgba(255,255,255,.7);border:2px solid #fff;box-shadow:0 2px 8px #000}
+.mobile-action{position:absolute;z-index:3;width:62px;height:62px;border-radius:50%;border:2px solid rgba(255,255,255,.8);background:rgba(25,25,25,.72);color:#fff;font:700 11px/1.1 'Segoe UI',Arial,sans-serif;text-shadow:1px 1px 0 #000;pointer-events:auto;touch-action:none}
+#mobileMine{right:max(18px,env(safe-area-inset-right));bottom:max(88px,calc(env(safe-area-inset-bottom) + 72px));background:rgba(145,45,35,.82)}
+#mobileUse{right:max(92px,calc(env(safe-area-inset-right) + 74px));bottom:max(78px,calc(env(safe-area-inset-bottom) + 62px))}
+#mobileJump{right:max(28px,calc(env(safe-area-inset-right) + 10px));bottom:max(160px,calc(env(safe-area-inset-bottom) + 144px))}
+#mobileInv{right:max(102px,calc(env(safe-area-inset-right) + 84px));bottom:max(150px,calc(env(safe-area-inset-bottom) + 134px));width:54px;height:54px}
+#mobileMenu{top:max(10px,env(safe-area-inset-top));right:max(10px,env(safe-area-inset-right));width:48px;height:48px}
+.mobile-orient{display:none;position:absolute;left:50%;top:68px;transform:translateX(-50%);padding:5px 10px;background:rgba(0,0,0,.7);border:1px solid #888;color:#fff;font-size:11px;white-space:nowrap}
+@media (pointer:coarse),(hover:none){#hotbar{pointer-events:auto;bottom:max(5px,env(safe-area-inset-bottom))}.hslot{width:min(44px,10.5vw);height:min(44px,10.5vw)}.hslot .icon{width:min(32px,8vw);height:min(32px,8vw)}}
+@media (max-width:700px){.btn,input.tx,.list,.slider{width:min(92vw,400px)}.btnrow{width:min(92vw,400px)}.btn.half{width:calc(50% - 4px);font-size:13px}.tx.half{width:calc(50% - 4px)}label.lb{margin-left:4vw}.ctl{width:92vw;grid-template-columns:1fr;font-size:12px}h1.title{font-size:clamp(38px,14vw,58px);letter-spacing:3px}.splash{font-size:13px!important;margin:-54px 0 0 210px!important}#mpMenu .hint,#mpList{width:92vw!important}.menu{overflow-y:auto;padding:48px 8px 30px;justify-content:flex-start}.menu#titleMenu{justify-content:center}.panel{max-width:100vw;max-height:100vh;overflow:auto}.grid{grid-template-columns:repeat(9,min(38px,10.5vw))}.slot{width:min(38px,10.5vw);height:min(38px,10.5vw)}}
+@media (max-height:500px){#titleMenu{padding:6px 8px 22px;gap:3px}#titleMenu h1.title{font-size:42px;letter-spacing:5px;margin-bottom:2px}#titleMenu .btn{height:34px;font-size:12px;width:min(58vw,360px)}#splash,#titleAbout,#versionNote{display:none!important}#legalNote{bottom:4px!important;font-size:8px!important;line-height:1.2}#icHome{top:6px!important;left:6px!important;font-size:10px!important;padding:4px 8px!important}}
+@media (pointer:coarse),(hover:none){#chat{bottom:max(126px,calc(env(safe-area-inset-bottom) + 116px));max-width:42vw;font-size:11px}#itemname{bottom:max(126px,calc(env(safe-area-inset-bottom) + 116px));font-size:12px}}
+@media (orientation:portrait) and (pointer:coarse){.mobile-orient{display:block}}
 </style>
 <script src="analytics.js"></script>
 </head>
@@ -170,6 +190,16 @@ label.lb{font-size:13px;color:#a0a0a0;align-self:flex-start;margin-left:calc(50%
   <div id="itemname" class="sh"></div>
   <div id="status"><div id="armor"></div><div id="hearts"></div><div id="food"></div><div id="air"></div><div id="xpbar"><div id="xpfill"></div></div><div id="xplvl"></div></div>
   <div id="hotbar"></div>
+  <div id="mobileControls" aria-label="Touch game controls">
+    <div id="mobileLook" aria-label="Drag to look"></div>
+    <div id="mobileJoy" class="mobile-stick" aria-label="Move"><div class="mobile-stick-knob"></div></div>
+    <button id="mobileMine" class="mobile-action" type="button">MINE<br>ATTACK</button>
+    <button id="mobileUse" class="mobile-action" type="button">USE</button>
+    <button id="mobileJump" class="mobile-action" type="button">JUMP</button>
+    <button id="mobileInv" class="mobile-action" type="button">PACK</button>
+    <button id="mobileMenu" class="mobile-action" type="button">II</button>
+    <div class="mobile-orient">Turn sideways for the best view</div>
+  </div>
 </div>
 
 <div id="invGui" class="gui"><div class="panel">
@@ -239,33 +269,35 @@ label.lb{font-size:13px;color:#a0a0a0;align-self:flex-start;margin-left:calc(50%
 <div id="tooltip"></div>
 
 <div id="titleMenu" class="menu dirtbg show">
-  <a href="index.html" title="Back to Iron Games" style="position:absolute;top:12px;left:12px;z-index:2;background:#6f6f6f;color:#fff;font-weight:700;font-size:14px;padding:6px 14px;border:2px solid #000;box-shadow:inset -2px -3px 0 #3d3d3d,inset 2px 2px 0 #a6a6a6;text-decoration:none;text-shadow:2px 2px 0 #3d3d3d;" onmouseover="this.style.background='#8f8fbf'" onmouseout="this.style.background='#6f6f6f'">&#9664; Iron Games</a>
+  <a id="icHome" href="/" title="Back to Iron Games" style="position:absolute;top:12px;left:12px;z-index:2;background:#172128;color:#f4e6c4;font-weight:700;font-size:14px;padding:6px 14px;border:1px solid #d39a33;border-radius:4px;text-decoration:none;">&#9664; Iron Games</a>
   <h1 class="title">IRONCRAFT</h1>
-  <div class="splash" id="splash" style="margin:-70px 0 0 330px">Just like the real thing!</div>
-  <button class="btn" id="btnSingle">Singleplayer</button>
-  <button class="btn" id="btnMulti">Multiplayer</button>
-  <button class="btn" id="btnOptionsT">Options...</button>
-  <button class="btn" id="btnControls">Controls</button>
-  <p style="position:absolute;bottom:40px;left:0;right:0;text-align:center;font-size:12px;font-weight:400;color:#ddd;text-shadow:1px 1px 0 #000;margin:0;pointer-events:none;">Ironcraft is a free Minecraft-style survival game you play in your browser, with public multiplayer servers. Part of Iron Games by Daniele Bros. Not affiliated with Mojang.</p>
-  <div style="position:absolute;bottom:6px;left:8px;font-size:12px;font-weight:400;color:#aaa">Ironcraft 1.0 &mdash; a browser voxel survival game</div>
+  <div class="splash" id="splash" style="margin:-70px 0 0 330px">BUILD YOUR OWN LEGEND</div>
+  <button class="btn" id="btnSingle">Solo Worlds</button>
+  <button class="btn" id="btnMulti">Play Together</button>
+  <button class="btn" id="btnOptionsT">Game Settings</button>
+  <button class="btn" id="btnControls">How to Play</button>
+  <p id="titleAbout" style="position:absolute;bottom:43px;left:0;right:0;text-align:center;font-size:12px;font-weight:400;color:#ddd;text-shadow:1px 1px 0 #000;margin:0;padding:0 14px;pointer-events:none;">A free voxel survival sandbox by Daniele Bros. Public rooms use random aliases and have chat disabled.</p>
+  <p id="legalNote" style="position:absolute;bottom:22px;left:0;right:0;text-align:center;font-size:10px;font-weight:500;color:#e1b65f;margin:0;padding:0 14px;pointer-events:none;">NOT AN OFFICIAL MINECRAFT PRODUCT. NOT APPROVED BY OR ASSOCIATED WITH MOJANG OR MICROSOFT.</p>
+  <div id="versionNote" style="position:absolute;bottom:6px;left:8px;font-size:12px;font-weight:400;color:#aaa">Ironcraft 1.0 &mdash; a browser voxel survival game</div>
 </div>
 
 <div id="worldMenu" class="menu dirtbg">
-  <h2 class="sh">Select World</h2>
+  <h2 class="sh">Your Expeditions</h2>
   <div class="list" id="worldList"></div>
-  <div class="btnrow"><button class="btn half" id="btnPlay">Play Selected World</button><button class="btn half" id="btnCreate">Create New World</button></div>
-  <div class="btnrow"><button class="btn half" id="btnDelete">Delete</button><button class="btn half" id="btnWorldBack">Cancel</button></div>
+  <div class="btnrow"><button class="btn half" id="btnPlay">Enter Selected World</button><button class="btn half" id="btnCreate">Start New World</button></div>
+  <div class="btnrow"><button class="btn half" id="btnDelete">Remove World</button><button class="btn half" id="btnWorldBack">Return</button></div>
 </div>
 
 <div id="mpMenu" class="menu dirtbg">
   <h2 class="sh">Multiplayer</h2>
-  <label class="lb">Your name</label><input class="tx" id="mpName" maxlength="16" placeholder="Player">
-  <div class="hint" style="color:#ff6;width:440px;margin:4px 0 2px;font-weight:700">OPEN PUBLIC SERVERS &mdash; click one to join, no code needed</div>
-  <div class="hint" style="color:#aaa;width:440px;margin:0 0 6px">Worlds other players have open right now. Public worlds save on your computer like regular worlds: you keep your stuff, can play them alone from Singleplayer, and bring the latest state with you when you host.</div>
-  <div id="mpList" style="width:440px;max-height:180px;overflow-y:auto;margin-bottom:6px"></div>
-  <div class="btnrow"><button class="btn half" id="btnMpCreate">Create New Public World</button><button class="btn half" id="btnMpRefresh">Refresh List</button></div>
-  <div class="btnrow" style="margin-top:10px"><button class="btn half" id="btnMpHost">Host Private World</button><input class="tx half" id="mpCode" maxlength="8" placeholder="Room code" style="text-transform:uppercase"></div>
+  <div class="hint" style="color:#8f8;width:440px;margin:4px 0 2px;font-weight:700">PRIVATE PLAY RECOMMENDED &mdash; use a room code with people you know</div>
+  <label class="lb">Name for private rooms</label><input class="tx" id="mpName" maxlength="16" placeholder="Use a nickname, not your real name">
+  <div class="btnrow" style="margin-top:6px"><button class="btn half" id="btnMpHost">Host Private World</button><input class="tx half" id="mpCode" maxlength="8" placeholder="Room code" style="text-transform:uppercase"></div>
   <div class="btnrow"><button class="btn half" id="btnMpJoin">Join by Code</button><button class="btn half" id="btnMpBack">Back</button></div>
+  <div class="hint" style="color:#ffb45b;width:440px;margin:12px 0 2px;font-weight:700">PUBLIC WORLDS &mdash; ask a parent or guardian first</div>
+  <div class="hint" style="color:#ccc;width:440px;margin:0 0 6px">Anyone can join. Public chat is disabled, names are replaced with random aliases, and custom public-world names are hidden. <a href="safety.html" target="_blank" style="color:#ffdb78">Family safety</a></div>
+  <div id="mpList" style="width:440px;max-height:130px;overflow-y:auto;margin-bottom:6px"></div>
+  <div class="btnrow"><button class="btn half" id="btnMpCreate">Create Safe Public World</button><button class="btn half" id="btnMpRefresh">Refresh List</button></div>
   <div class="hint" id="mpStatus" style="color:#ff6;width:440px;margin-top:8px;min-height:18px"></div>
 </div>
 
@@ -280,7 +312,7 @@ label.lb{font-size:13px;color:#a0a0a0;align-self:flex-start;margin-left:calc(50%
   <div class="hint" style="color:#aaa;width:440px;margin:0 0 4px">Every block you break, mob you kill and chest you open gives a random item. About one in thirty is a jackpot with a whole gear set.</div>
   <button class="btn modbtn" data-mod="hardcore">Hardcore: OFF</button>
   <div class="hint" style="color:#aaa;width:440px;margin:0 0 4px">Hard difficulty and one life only. When you die the world is deleted.</div>
-  <button class="btn modbtn" data-mod="apocalypse">Undead Apocalypse: OFF</button>
+  <button class="btn modbtn" data-mod="apocalypse">Zombie Apocalypse: OFF</button>
   <div class="hint" style="color:#aaa;width:440px;margin:0 0 4px">The dead come in waves, day or night, and they never burn. Each wave is bigger and nastier than the last: Rotters, then Dune Rotters, Bonewalkers, spiders, Hissers and worse. Survive as many as you can.</div>
   <button class="btn modbtn" data-mod="guns">Guns: OFF</button>
   <div class="hint" style="color:#aaa;width:440px;margin:0 0 4px">Start with a pistol and 32 bullets. Craft a rifle (full auto), a shotgun and a sniper rifle (hold Shift to look through the scope) from iron and planks, a ghillie suit from leather and leaves so mobs only notice you up close, make bullets from iron and leather, and pick ammo off the monsters you drop. Right-click to fire.</div>
@@ -1952,7 +1984,7 @@ const MOBDEF={
 const EGG_COLORS={pig:[[240,160,170],[220,100,120]],cow:[[110,70,50],[230,225,220]],sheep:[[235,235,235],[240,180,180]],villager:[[120,90,60],[80,140,80]],chicken:[[240,240,240],[220,60,40]],zombie:[[60,130,60],[110,150,110]],skeleton:[[190,190,190],[90,90,90]],creeper:[[70,170,60],[20,20,20]],spider:[[50,45,45],[200,30,30]],zombified_piglin:[[220,140,140],[80,110,60]],horse:[[150,110,70],[230,220,200]],wolf:[[200,200,195],[210,150,110]],husk:[[150,130,85],[210,190,150]],stray:[[110,130,150],[210,220,230]],cave_spider:[[20,45,75],[180,40,40]],enderman:[[20,20,25],[200,80,255]],slime:[[110,200,90],[170,240,150]],witch:[[60,30,80],[90,170,60]],vindicator:[[130,135,140],[60,60,65]],guardian:[[90,160,150],[240,150,60]],pillager:[[110,110,115],[50,60,55]],evoker:[[70,70,80],[220,180,60]],blaze:[[240,180,40],[255,240,150]],vex:[[200,210,230],[60,90,150]],shulker:[[150,80,160],[210,200,90]]};
 const MOB_TYPES=Object.keys(MOBDEF);
 // Display names. Internal ids stay as they are; only what players read changes.
-const MOB_LABEL={zombie:'Rotter',skeleton:'Bonewalker',creeper:'Hisser',enderman:'Voidwalker',slime:'Ooze',witch:'Hexer',zombified_piglin:'Ashen Hog',pillager:'Raider',vindicator:'Axeman',evoker:'Fang Mage',vex:'Wisp',wither_skeleton:'Ashwalker',blaze:'Ember',guardian:'Deep Sentinel',husk:'Dune Rotter',stray:'Frost Bonewalker',shulker:'Shellguard',warden:'Dreadwarden',breeze:'Gale Sprite',iron_golem:'Iron Colossus',cave_spider:'Venom Spider',villager:'Villager',dragon:'Void Dragon',wither:'Skullbane'};
+const MOB_LABEL={zombie:'Rotter',skeleton:'Bonewalker',creeper:'Hisser',enderman:'Voidwalker',slime:'Ooze',witch:'Hexer',zombified_piglin:'Ashen Hog',pillager:'Raider',vindicator:'Axeman',evoker:'Fang Mage',vex:'Wisp',wither_skeleton:'Ashwalker',blaze:'Ember',guardian:'Deep Sentinel',husk:'Dune Rotter',stray:'Frost Bonewalker',shulker:'Shellguard',warden:'Dreadwarden',breeze:'Gale Sprite',iron_golem:'Iron Man',cave_spider:'Venom Spider',villager:'Villager',dragon:'Void Dragon',wither:'Skullbane'};
 function mobLabel(t){return MOB_LABEL[t]||label(t)}
 // typed names in commands: accept the display name, the old name, plurals and prefixes
 const MOB_BY_LABEL={};for(const k in MOB_LABEL)MOB_BY_LABEL[MOB_LABEL[k].toLowerCase().replace(/\s+/g,'_')]=k;MOB_BY_LABEL.void_dragon='dragon';MOB_BY_LABEL.skullbane='wither';
@@ -2575,7 +2607,7 @@ function useItem(){
   if(hd&&hd.id===472){throwWindCharge();return}
   if(hd&&hd.id===300&&t&&t.block&&t.id===122){const lf=Math.round(((p.yaw%(PI*2))+PI*2)%(PI*2)/(PI/2))&3;world.setBlock(t.bx,t.by,t.bz,123,(lf+2)&3);damageItem(st,1);playSoundAt('shear',t.bx,t.by,t.bz);spawnParticles('block',t.bx+0.5,t.by+0.5,t.bz+0.5,6,122);p.swing=0;updateHotbar();return}
   if(hd&&hd.id===123&&t&&t.block&&t.face===2&&t.id===25){const bx=t.bx,by=t.by,bz=t.bz;const iron=(x,y,z)=>world.getBlock(x,y,z)===25;
-    for(const [ax,az] of [[1,0],[0,1]]){if(iron(bx+ax,by,bz+az)&&iron(bx-ax,by,bz-az)&&iron(bx,by-1,bz)&&world.getBlock(bx,by+1,bz)===0){for(const [x,y,z] of [[bx,by,bz],[bx+ax,by,bz+az],[bx-ax,by,bz-az],[bx,by-1,bz]])world.setBlock(x,y,z,0,0);consumeHeld();const g=new Mob('iron_golem',bx+0.5,by-1,bz+0.5);entities.push(g);spawnParticles('happy',bx+0.5,by+1,bz+0.5,14);playSound('golem',1,0.7);showMessage('An Iron Colossus rises to protect you');p.swing=0;return}}}
+    for(const [ax,az] of [[1,0],[0,1]]){if(iron(bx+ax,by,bz+az)&&iron(bx-ax,by,bz-az)&&iron(bx,by-1,bz)&&world.getBlock(bx,by+1,bz)===0){for(const [x,y,z] of [[bx,by,bz],[bx+ax,by,bz+az],[bx-ax,by,bz-az],[bx,by-1,bz]])world.setBlock(x,y,z,0,0);consumeHeld();const g=new Mob('iron_golem',bx+0.5,by-1,bz+0.5);entities.push(g);spawnParticles('happy',bx+0.5,by+1,bz+0.5,14);playSound('golem',1,0.7);showMessage('An Iron Man rises to protect you');p.swing=0;return}}}
   if(hd.spawnMob&&t&&t.block){const n=FACE_DIR[t.face];const m=new Mob(hd.spawnMob,t.bx+n[0]+0.5,t.by+(n[1]<0?-2:n[1]),t.bz+n[2]+0.5);entities.push(m);consumeHeld();playSoundAt('pop',m.x,m.y,m.z);p.swing=0;return}
   if(hd.isBlock&&t&&t.block){placeHeldBlock(hd,st,t)}
 }
@@ -3395,9 +3427,9 @@ function openGui(type,x,y,z){const g={type,x,y,z};if(type==='furnace'){g.be=furn
   if(type==='enchant'){if(!$('enchItem')._done){mkSlots($('enchItem'),enchSlots,0,1,'ench');mkSlots($('enchLapis'),enchSlots,1,1,'lapis');mkSlots($('enchMain'),player.inv,9,27);mkSlots($('enchHot'),player.inv,0,9);$('enchItem')._done=true}game.enchSeed=game.enchSeed||floor(Math.random()*1e9)}
   if(type==='anvil'){if(!$('anvilA')._done){mkSlots($('anvilA'),anvilSlots,0,1,'anvil');mkSlots($('anvilB'),anvilSlots,1,1,'anvil');mkSlots($('anvilOut'),anvilSlots,2,1,'aout','out');mkSlots($('anvilMain'),player.inv,9,27);mkSlots($('anvilHot'),player.inv,0,9);$('anvilA')._done=true}}
   game.gui=g;$({inv:'invGui',table:'tableGui',furnace:'furnGui',chest:'chestGui',enchant:'enchantGui',anvil:'anvilGui'}[type]).classList.add('show');document.exitPointerLock&&document.exitPointerLock();mouseL=false;mouseR=false;
-  updateCraftOutput();renderAllSlots();if(type==='table')renderRecipeBook();if(type==='inv')renderPalette();if(type==='enchant')renderEnchant();if(type==='anvil')updateAnvil();$('hud').style.display='none'}
+  updateCraftOutput();renderAllSlots();if(type==='table')renderRecipeBook();if(type==='inv')renderPalette();if(type==='enchant')renderEnchant();if(type==='anvil')updateAnvil();$('hud').style.display='none';syncMobileControls()}
 function closeGui(){const g=game.gui;if(!g)return;returnGrid(craft2);returnGrid(craft3);returnGrid(enchSlots);anvilSlots[2]=null;returnGrid(anvilSlots);if(cursor){if(addToInventory(cursor))spawnItem(player.x,player.y+1,player.z,cursor);cursor=null}
-  if(g.type==='chest')playSoundAt('chest',g.x,g.y,g.z);for(const el of document.querySelectorAll('.gui'))el.classList.remove('show');$('invGui').classList.remove('full');game.gui=null;hideTip();renderAllSlots();$('hud').style.display='block';if(!game.paused)lockPointer()}
+  if(g.type==='chest')playSoundAt('chest',g.x,g.y,g.z);for(const el of document.querySelectorAll('.gui'))el.classList.remove('show');$('invGui').classList.remove('full');game.gui=null;hideTip();renderAllSlots();$('hud').style.display='block';syncMobileControls();if(!game.paused)lockPointer()}
 function updateFurnaceGui(){const g=game.gui;if(!g||g.type!=='furnace')return;const be=g.be;$('furnArrow').firstChild.style.width=(be.cook/10*26)+'px';$('furnFire').firstChild.style.height=(be.burnMax?be.burn/be.burnMax*22:0)+'px';renderAllSlots()}
 function renderRecipeBook(){const rb=$('rbook');rb.innerHTML='<div class="hint" style="margin:0 0 4px">Recipe book — click to fill</div>';const counts={};for(const s of player.inv)if(s)counts[s.id]=(counts[s.id]||0)+s.count;
   const seen=new Set();
@@ -3428,14 +3460,14 @@ function doTrade(v,t){const price=tradePrice(t);if(t.uses>=t.max){playSoundAt('v
 /* ===================== HUD ===================== */
 const HUDI={};
 function buildHUD(){for(const k of ['heart','food','armor'])for(const s of ['full','half','empty'])HUDI[k+s]=hudIcon(k,s);HUDI.air=hudIcon('air');
-  const hb=$('hotbar');hb.innerHTML='';for(let i=0;i<9;i++){const el=document.createElement('div');el.className='hslot';el.innerHTML='<div class="icon"></div><div class="cnt"></div><div class="dur" style="display:none"><i></i></div>';el._slot={arr:player.inv,idx:i};hb.appendChild(el)}}
+  const hb=$('hotbar');hb.innerHTML='';for(let i=0;i<9;i++){const el=document.createElement('div');el.className='hslot';el.innerHTML='<div class="icon"></div><div class="cnt"></div><div class="dur" style="display:none"><i></i></div>';el._slot={arr:player.inv,idx:i};el.addEventListener('pointerdown',ev=>{if(game.state!=='playing'||game.gui||game.paused)return;ev.preventDefault();ev.stopPropagation();player.sel=i;updateHotbar()});hb.appendChild(el)}}
 let lastSel=-1,itemNameT=null;
 function updateHotbar(){const hb=$('hotbar').children;for(let i=0;i<9;i++){renderSlot(hb[i]);hb[i].classList.toggle('sel',i===player.sel)}
   if(player.sel!==lastSel){lastSel=player.sel;const st=player.inv[player.sel];const n=$('itemname');n.textContent=st?ITEMS[st.id].label:'';n.style.opacity=1;clearTimeout(itemNameT);itemNameT=setTimeout(()=>n.style.opacity=0,1500)}}
-function updateHUD(){const p=player;const creative=p.mode==='creative';{const dr=entities.find(e=>(e instanceof Dragon||e instanceof Wither)&&!e.dead);$('bossbar').style.display=dr?'block':'none';if(dr){$('bossfill').style.width=Math.max(0,dr.hp/dr.maxHp*100)+'%';$('bossname').textContent=dr instanceof Wither?'Skullbane':'Void Dragon'}}$('status').style.display=creative?'none':'block';if(creative)return;
-  const row=(el,kind,val,max)=>{let h='';for(let i=0;i<max/2;i++){const v=val-i*2;h+='<div class="ic" style="background-image:url('+HUDI[kind+(v>=2?'full':v>=1?'half':'empty')]+')"></div>'}el.innerHTML=h};
-  row($('hearts'),'heart',Math.ceil(p.hp),20);row($('food'),'food',Math.ceil(p.hunger),20);const ap=armorPoints();if(ap>0)row($('armor'),'armor',ap,20);else $('armor').innerHTML='';
-  const headWater=world.getBlock(floor(p.x),floor(p.y+p.eyeHeight),floor(p.z))===8;if(headWater){let h='';for(let i=0;i<10;i++)if(p.air>i*30)h+='<div class="ic" style="background-image:url('+HUDI.air+')"></div>';$('air').innerHTML=h}else $('air').innerHTML='';
+function updateHUD(){syncMobileControls();const p=player;const creative=p.mode==='creative';{const dr=entities.find(e=>(e instanceof Dragon||e instanceof Wither)&&!e.dead);$('bossbar').style.display=dr?'block':'none';if(dr){$('bossfill').style.width=Math.max(0,dr.hp/dr.maxHp*100)+'%';$('bossname').textContent=dr instanceof Wither?'Wither':'Ender Dragon'}}$('status').style.display=creative?'none':'grid';if(creative)return;
+  const meter=(el,label,val,max,color)=>{const pct=Math.max(0,Math.min(100,val/max*100));el.innerHTML='<div class="meter"><span>'+label+'</span><i><b style="width:'+pct+'%;background:'+color+'"></b></i><em>'+Math.ceil(val)+'</em></div>'};
+  meter($('hearts'),'HEALTH',p.hp,20,'linear-gradient(90deg,#9d2f2f,#ef6653)');meter($('food'),'ENERGY',p.hunger,20,'linear-gradient(90deg,#a76f27,#efbd51)');const ap=armorPoints();if(ap>0)meter($('armor'),'ARMOR',ap,20,'linear-gradient(90deg,#456473,#98b7c4)');else $('armor').innerHTML='';
+  const headWater=world.getBlock(floor(p.x),floor(p.y+p.eyeHeight),floor(p.z))===8;if(headWater)meter($('air'),'AIR',p.air,300,'linear-gradient(90deg,#2776a7,#67d7ef)');else $('air').innerHTML='';
   $('xpfill').style.width=(p.xp/xpToNext(p.level)*100)+'%';$('xplvl').textContent=p.level>0?p.level:'';
   $('hearts').style.animation=p.hp<=4?'sp .3s infinite alternate':'';$('hearts').style.transform='';
   $('fireov').style.display=p.fireT>0?'block':'none';$('waterov').style.display=headWater?'block':'none'}
@@ -3749,7 +3781,7 @@ function randomDrops(){if(Math.random()<0.03){const set=RANDOM_SETS[floor(Math.r
 /* ---- initial spawn ---- */
 function findSpawn(){for(let r=0;r<400;r+=8){for(let a=0;a<PI*2;a+=0.7){const x=floor(Math.cos(a)*r),z=floor(Math.sin(a)*r);const info=world.columnInfo(x,z);if(info.height>SEA+1&&info.biome!==BI.mountains&&info.biome!==BI.ocean)return [x+0.5,info.height+1,z+0.5]}}return [0.5,80,0.5]}
 /* ---- world lifecycle ---- */
-const MODN={weather:'Weather',horror:'Horror',random:'Random Blocks',hardcore:'Hardcore',structures:'Structure Chaos',apocalypse:'Undead Apocalypse',guns:'Guns'};
+const MODN={weather:'Weather',horror:'Horror',random:'Random Blocks',hardcore:'Hardcore',structures:'Structure Chaos',apocalypse:'Zombie Apocalypse',guns:'Guns'};
 function modsOf(meta){const m=Object.assign({weather:false,horror:false,random:false,hardcore:false,structures:false,apocalypse:false,guns:false},meta.mods||{});if(!meta.mods&&meta.drops==='random')m.random=true;return m}
 function newWorld(name,seedStr,mode,diff,mods){const drops=mods&&mods.random?'random':'normal';
   const seed=seedStr?(isNaN(+seedStr)?hashStr(seedStr):(+seedStr|0)):(Math.random()*2147483647|0);
@@ -3784,7 +3816,7 @@ function finishLoad(){const p=player;if(!game.pendingMobs.length&&player.spawn==
   for(const it of game.pendingItems)spawnItem(it.x,it.y,it.z,{id:it.id,count:it.count,dur:it.dur,ench:it.ench,items:it.items},null,undefined,{local:true});
   for(const c of world.chunks.values())for(const [i,be] of c.bents){if(be.burn>0){const x=c.cx*16+(i>>11),y=i&127,z=c.cz*16+((i>>7)&15);activateFurnace(x,y,z)}}
   updateChunks(200);game.state='playing';game.paused=false;game.gui=null;hideMenus();$('hud').style.display='block';$('overlay').style.display='block';updateHUD();updateHotbar();lockPointer();game.lastSave=game.time;
-  if(!game.loadedOnce){showMessage('Welcome to Ironcraft! Punch trees to get wood.');game.loadedOnce=true}
+  if(!game.loadedOnce){showMessage('Welcome to Ironcraft! Gather materials and build a shelter.');game.loadedOnce=true}
 }
 function saveWorld(){if(!world||game.state!=='playing'||game.noSave)return;const p=player;const ridePos=p.riding?[p.x,p.y,p.z]:null;if(ridePos){p.y=p.riding.y}const mods={},bents={};if(world.nether&&player.spawnOver)void 0;
   const other=world.dimKey==='nether'?null:game.dims.nether;let netherSave=null;const endDim=world.end?{world,ents:entities}:game.dims.end;
@@ -3808,7 +3840,7 @@ function hideMenus(){showMenu(null)}
 let selWorld=null;
 function refreshWorldList(){const l=$('worldList');l.innerHTML='';const list=worldList().sort((a,b)=>b.played-a.played);for(const w of list){const el=document.createElement('div');el.className='witem'+(selWorld===w.id?' sel':'');el.innerHTML=w.name+'<small>'+new Date(w.played).toLocaleString()+' &middot; '+(w.mode==='creative'?'Creative':'Survival')+' &middot; '+['Peaceful','Easy','Normal','Hard'][w.diff]+(()=>{const m=modsOf(w);const on=Object.keys(m).filter(k=>m[k]);return (w.room?' &middot; Public':'')+(on.length?' &middot; '+on.map(k=>MODN[k]).join(', '):'')})()+'</small>';el.addEventListener('click',()=>{selWorld=w.id;refreshWorldList()});el.addEventListener('dblclick',()=>{selWorld=w.id;initAudio();openWorld(w)});l.appendChild(el)}
   $('btnPlay').disabled=!selWorld;$('btnDelete').disabled=!selWorld}
-const SPLASHES=['Just like the real thing!','Punch trees!','Creepers gonna creep','Also try Iron Front!','Now with 100% more blocks','Don\'t dig straight down','Made of pixels','Seed: whatever you type','Infinite worlds!','Survive the night'];
+const SPLASHES=['Build your own legend','Storm season is here','Also try Iron Front!','Make the horizon yours','Made of pixels','Every seed tells a story','Wild worlds ahead','Survive the night','Create. Explore. Adapt.'];
 function setupMenus(){
   $('splash').textContent=SPLASHES[floor(Math.random()*SPLASHES.length)];
   $('btnSingle').onclick=()=>{refreshWorldList();showMenu('worldMenu')};
@@ -3837,8 +3869,8 @@ function setupMenus(){
   $('btnKeepInv').onclick=()=>{opts.keepInv=!opts.keepInv;$('btnKeepInv').textContent='Keep Inventory on Death: '+(opts.keepInv?'ON':'OFF');saveOpts()};$('btnKeepInv').textContent='Keep Inventory on Death: '+(opts.keepInv?'ON':'OFF');
   $('btnClouds').onclick=()=>{opts.clouds=!opts.clouds;$('btnClouds').textContent='Clouds: '+(opts.clouds?'ON':'OFF')};$('btnClouds').textContent='Clouds: '+(opts.clouds?'ON':'OFF');
 }
-function pauseGame(){if(game.state!=='playing')return;game.paused=true;showMenu('pauseMenu');document.exitPointerLock&&document.exitPointerLock();mouseL=mouseR=false;saveWorld()}
-function resumeGame(){game.paused=false;hideMenus();lockPointer()}
+function pauseGame(){if(game.state!=='playing')return;game.paused=true;showMenu('pauseMenu');document.exitPointerLock&&document.exitPointerLock();mouseL=mouseR=false;saveWorld();syncMobileControls()}
+function resumeGame(){game.paused=false;hideMenus();syncMobileControls();lockPointer()}
 function lockPointer(){if(game.state!=='playing'||game.gui||game.paused||player.dead)return;const c=$('gl');if(game.noLock||document.pointerLockElement===c)return;
   const fail=()=>{if(document.pointerLockElement!==c&&!game.noLock){game.noLock=true;showMessage('Mouse lock unavailable: move the mouse to look around, keep it near a screen edge to keep turning')}};
   if(!c.requestPointerLock){fail();return}
@@ -3886,6 +3918,29 @@ function setupInput(){
   window.addEventListener('beforeunload',()=>{if(game.state==='playing')saveWorld()});
   window.addEventListener('pagehide',()=>{if(game.state==='playing')saveWorld()});
   document.addEventListener('visibilitychange',()=>{if(document.hidden&&game.state==='playing')saveWorld()});
+}
+function isTouchDevice(){return matchMedia('(pointer:coarse)').matches||/Android|iPhone|iPad|Mobile/i.test(navigator.userAgent)}
+function syncMobileControls(){const el=$('mobileControls');if(!el)return;el.classList.toggle('active',isTouchDevice()&&game.state==='playing'&&!game.paused&&!game.gui&&!player.dead)}
+function setupMobileControls(){
+  if(!isTouchDevice())return;
+  game.noLock=true;
+  const joy=$('mobileJoy'),knob=joy.querySelector('.mobile-stick-knob');let joyId=null;
+  const resetJoy=()=>{keys.KeyW=keys.KeyA=keys.KeyS=keys.KeyD=false;player.sprintReq=false;knob.style.transform='translate(0,0)';joyId=null};
+  const moveJoy=ev=>{const r=joy.getBoundingClientRect(),dx=ev.clientX-(r.left+r.width/2),dy=ev.clientY-(r.top+r.height/2),m=Math.hypot(dx,dy),lim=r.width*.34,k=m>lim?lim/m:1,x=dx*k,y=dy*k;knob.style.transform='translate('+x+'px,'+y+'px)';const dead=lim*.24;keys.KeyW=y<-dead;keys.KeyS=y>dead;keys.KeyA=x<-dead;keys.KeyD=x>dead;player.sprintReq=m>lim*.82};
+  joy.addEventListener('pointerdown',ev=>{ev.preventDefault();initAudio();joyId=ev.pointerId;joy.setPointerCapture(ev.pointerId);moveJoy(ev)});
+  joy.addEventListener('pointermove',ev=>{if(ev.pointerId===joyId){ev.preventDefault();moveJoy(ev)}});
+  joy.addEventListener('pointerup',ev=>{if(ev.pointerId===joyId)resetJoy()});joy.addEventListener('pointercancel',resetJoy);
+  const look=$('mobileLook');let lookId=null,lx=0,ly=0;
+  look.addEventListener('pointerdown',ev=>{ev.preventDefault();initAudio();lookId=ev.pointerId;lx=ev.clientX;ly=ev.clientY;look.setPointerCapture(ev.pointerId)});
+  look.addEventListener('pointermove',ev=>{if(ev.pointerId!==lookId||game.paused||game.gui)return;ev.preventDefault();const dx=ev.clientX-lx,dy=ev.clientY-ly;lx=ev.clientX;ly=ev.clientY;const s=opts.sens/100*.006;player.yaw-=dx*s;player.pitch=clamp(player.pitch-dy*s,-PI/2+.001,PI/2-.001)});
+  const endLook=ev=>{if(!ev||ev.pointerId===lookId)lookId=null};look.addEventListener('pointerup',endLook);look.addEventListener('pointercancel',endLook);
+  const hold=(id,down,up)=>{const el=$(id);el.addEventListener('pointerdown',ev=>{ev.preventDefault();ev.stopPropagation();el.setPointerCapture(ev.pointerId);initAudio();down()});el.addEventListener('pointerup',ev=>{ev.preventDefault();up()});el.addEventListener('pointercancel',up)};
+  hold('mobileMine',()=>{mouseL=true;attack()},()=>{mouseL=false});
+  hold('mobileUse',()=>{mouseR=true;mouseRHeld=0;useItem()},()=>{mouseR=false});
+  hold('mobileJump',()=>{keys.Space=true},()=>{keys.Space=false});
+  $('mobileInv').addEventListener('pointerdown',ev=>{ev.preventDefault();ev.stopPropagation();if(game.state==='playing'&&!game.paused&&!game.gui)openGui('inv')});
+  $('mobileMenu').addEventListener('pointerdown',ev=>{ev.preventDefault();ev.stopPropagation();if(game.state==='playing'&&!game.gui)pauseGame()});
+  window.addEventListener('blur',resetJoy);syncMobileControls();
 }
 /* ---- command console ---- */
 function openCmd(prefill){if(game.state!=='playing'||game.paused||game.gui)return;game.cmdOpen=true;for(const k in keys)keys[k]=false;mouseL=mouseR=false;const el=$('cmd');el.style.display='block';el.value=prefill||'';document.exitPointerLock&&document.exitPointerLock();el.focus();el.setSelectionRange(el.value.length,el.value.length)}
@@ -4002,14 +4057,16 @@ const PUBLIC_SERVERS=[
   {room:'ironcraft-pub-gun-range',name:'Gun Range',seed:'iron-gun-range',mods:{guns:true,apocalypse:true}},
   {room:'ironcraft-pub-river-town',name:'River Town',seed:'iron-river-town',mods:{}},
   {room:'ironcraft-pub-snow-peaks',name:'Snow Peaks',seed:'iron-snow-peaks',mods:{}}];
-const MP={active:false,peer:null,conns:[],host:false,room:null,name:'',remote:new Map(),sendT:0,timeT:0,myId:null,public:false,lobbyPeer:null,lobbyConn:null,lobbyList:new Map(),createPublic:false,nidN:0,pendingItems:[]};
+const MP={active:false,peer:null,conns:[],host:false,room:null,name:'',publicName:'',remote:new Map(),sendT:0,timeT:0,myId:null,public:false,lobbyPeer:null,lobbyConn:null,lobbyList:new Map(),createPublic:false,nidN:0,pendingItems:[]};
 function mpStatus(t){const el=$('mpStatus');if(el)el.textContent=t}
 function loadPeerJS(){return new Promise((res,rej)=>{if(window.Peer)return res();const sc=document.createElement('script');sc.src='https://cdn.jsdelivr.net/npm/peerjs@1.5.4/dist/peerjs.min.js';sc.onload=()=>res();sc.onerror=()=>rej(new Error('Could not load the networking library. Are you online?'));document.head.appendChild(sc)})}
-function mpName(){const n=(($('mpName')&&$('mpName').value)||'').trim().slice(0,16)||'Player'+floor(100+Math.random()*900);opts.mpName=n;saveOpts();return n}
+function publicAlias(id){let h=17;for(const ch of String(id||'safe'))h=(h*31+ch.charCodeAt(0))>>>0;return 'Player'+(100+h%900)}
+function publicWorldLabel(room){const fixed=PUBLIC_SERVERS.find(s=>s.room===room);return fixed?fixed.name:'Community World '+publicAlias(room).slice(6)}
+function mpName(isPublic){if(isPublic){if(!MP.publicName)MP.publicName=publicAlias(Date.now()+':'+Math.random());return MP.publicName}const n=(($('mpName')&&$('mpName').value)||'').trim().replace(/[^a-z0-9 _-]/gi,'').slice(0,16)||publicAlias(Math.random());opts.mpName=n;saveOpts();return n}
 function mpSeed(str){return isNaN(+str)?hashStr(str):(+str|0)}
 async function mpJoin(room,seedStr,mods,worldId,isPublic,listed){
   try{mpStatus('Loading network...');await loadPeerJS()}catch(e){mpStatus(e.message);return}
-  mpLeave(true);MP.name=mpName();MP.room=room;mpStatus('Looking for a host...');
+  mpLeave(true);MP.public=!!isPublic;MP.name=mpName(isPublic);MP.room=room;mpStatus('Looking for a host...');
   const r=await new Promise(res=>{let done=false;const finish=v=>{if(!done){done=true;res(v)}};let peer;try{peer=new Peer()}catch(e){return finish({err:e})}
     const to=setTimeout(()=>finish({peer,conn:null,timeout:true}),8000);
     peer.on('open',()=>{const conn=peer.connect(room,{reliable:true});conn.on('open',()=>{clearTimeout(to);finish({peer,conn})});conn.on('error',()=>{clearTimeout(to);finish({peer,conn:null})})});
@@ -4024,7 +4081,7 @@ const LOBBY_ID='ironcraft-lobby';
 function mpModsLabel(m){const on=Object.keys(m||{}).filter(k=>m[k]&&MODN[k]);return on.length?on.map(k=>MODN[k]).join(', '):'no mods'}
 function mpRenderList(list){const box=$('mpList');box.innerHTML='';if(list===null){box.innerHTML='<div class="hint" style="color:#f88">Could not reach the server list. Are you online?</div>';return}
   if(!list.length){box.innerHTML='<div class="hint" style="color:#aaa">Nobody has a public world open right now. Create one and it shows up here for everyone.</div>';return}
-  for(const e of list){const b=document.createElement('button');b.className='btn';b.style.fontSize='13px';b.textContent=e.name+' — '+e.players+' player'+(e.players===1?'':'s')+' — '+mpModsLabel(e.mods)+(e.hostName?' — host: '+e.hostName:'');b.onclick=()=>mpJoin(e.room,'0',{},'pub-'+e.room.replace(/[^a-z0-9]/gi,''),true,true);box.appendChild(b)}}
+  for(const e of list){const b=document.createElement('button');b.className='btn';b.style.fontSize='13px';b.textContent=publicWorldLabel(e.room)+' — '+e.players+' player'+(e.players===1?'':'s')+' — '+mpModsLabel(e.mods);b.onclick=()=>mpJoin(e.room,'0',{},'pub-'+e.room.replace(/[^a-z0-9]/gi,''),true,true);box.appendChild(b)}}
 function mpRefreshList(){$('mpList').innerHTML='<div class="hint" style="color:#aaa">Looking for open servers...</div>';
   loadPeerJS().then(()=>{if(MP.lobbyPeer){mpRenderList(lobbyEntries());return}const peer=new Peer();let done=false;const finish=list=>{if(done)return;done=true;mpRenderList(list);setTimeout(()=>{try{peer.destroy()}catch(e){}},300)};const to=setTimeout(()=>finish([]),6000);
     peer.on('open',()=>{const c=peer.connect(LOBBY_ID,{reliable:true});c.on('open',()=>c.send({t:'list'}));c.on('data',d=>{if(d&&d.t==='servers'){clearTimeout(to);finish(d.list||[])}});c.on('error',()=>{clearTimeout(to);finish([])})});
@@ -4040,22 +4097,22 @@ function lobbyAnnounce(){if(!MP.active||!MP.host||!MP.public||!world)return;cons
   if(MP.lobbyConn&&MP.lobbyConn.open){MP.lobbyConn.send(msg);return}
   if(MP.lobbyConnecting)return;MP.lobbyConnecting=true;const c=MP.peer.connect(LOBBY_ID,{reliable:true});const to=setTimeout(()=>{MP.lobbyConnecting=false;try{c.close()}catch(e){}lobbyServe()},5000);
   c.on('open',()=>{clearTimeout(to);MP.lobbyConnecting=false;MP.lobbyConn=c;c.send(msg)});c.on('close',()=>{if(MP.lobbyConn===c)MP.lobbyConn=null});c.on('error',()=>{clearTimeout(to);MP.lobbyConnecting=false;lobbyServe()})}
-function mpCreatePublic(name,seedStr,mode,diff,mods){loadPeerJS().then(()=>{mpLeave(true);MP.name=mpName();const seed=seedStr?(isNaN(+seedStr)?hashStr(seedStr):(+seedStr|0)):(Math.random()*2147483647|0);
+function mpCreatePublic(name,seedStr,mode,diff,mods){loadPeerJS().then(()=>{mpLeave(true);MP.public=true;MP.name=mpName(true);name=publicWorldLabel('community-'+Date.now()+Math.random());const seed=seedStr?(isNaN(+seedStr)?hashStr(seedStr):(+seedStr|0)):(Math.random()*2147483647|0);
   const room='ironcraft-pub-'+name.toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/^-|-$/g,'').slice(0,20)+'-'+Math.random().toString(36).slice(2,6);const worldId='pub-'+room.replace(/[^a-z0-9]/gi,'');
   const meta={id:worldId,name,seed,mode,diff,drops:mods.random?'random':'normal',mods,room,created:Date.now(),played:Date.now()};const list=worldList();list.push(meta);localStorage.setItem('ic_worlds',JSON.stringify(list));
   mpStatus('Opening your public world...');showMenu('mpMenu');mpHost(room,seed,mods,worldId,true)}).catch(e=>mpStatus(e.message))}
-function mpHostPrivate(code){loadPeerJS().then(()=>{mpLeave(true);MP.name=mpName();mpStatus('Starting your world...');mpHost('ironcraft-room-'+code,(Math.random()*2147483647)|0,{},'room-'+code,false,code)}).catch(e=>mpStatus(e.message))}
+function mpHostPrivate(code){loadPeerJS().then(()=>{mpLeave(true);MP.name=mpName(false);mpStatus('Starting your world...');mpHost('ironcraft-room-'+code,(Math.random()*2147483647)|0,{},'room-'+code,false,code)}).catch(e=>mpStatus(e.message))}
 function mpHost(room,seed,mods,worldId,isPublic,code,keepWorld){const peer=new Peer(room);MP.peer=peer;MP.room=room;MP.public=!!isPublic;MP.lobbyList=MP.lobbyList||new Map();MP.annT=1;MP.worldId=worldId;
   peer.on('open',id=>{MP.active=true;MP.host=true;MP.myId=id;mpStatus('');const list=worldList();let meta=list.find(w=>w.id===worldId);
     if(!meta){const pub=PUBLIC_SERVERS.find(s=>s.room===room);meta={id:worldId,name:pub?'Public: '+pub.name:'Room '+code.toUpperCase(),seed,mode:'survival',diff:2,drops:mods.random?'random':'normal',mods,room:isPublic?room:undefined,created:Date.now(),played:Date.now()};list.push(meta);localStorage.setItem('ic_worlds',JSON.stringify(list))}else if(isPublic&&!meta.room){meta.room=room;localStorage.setItem('ic_worlds',JSON.stringify(list))}
-    if(keepWorld){game.noSave=!isPublic;return}initAudio();loadWorld(meta);setTimeout(()=>showMessage(isPublic?'You are hosting '+meta.name+'. Anyone who picks it joins you. Press T to chat.':'Hosting. Room code: '+code.toUpperCase()+' (friends type it under Join by Code). Press T to chat.'),1500)});
+    if(keepWorld){game.noSave=!isPublic;return}initAudio();loadWorld(meta);setTimeout(()=>showMessage(isPublic?'You are hosting a public world. Chat is disabled and a random alias is used.':'Hosting. Room code: '+code.toUpperCase()+' (friends type it under Join by Code). Press T to chat.'),1500)});
   peer.on('connection',conn=>{conn.on('open',()=>{MP.conns.push(conn);conn.on('data',d=>mpOnData(conn,d));conn.on('close',()=>mpDrop(conn));conn.on('error',()=>mpDrop(conn));
     if(!world)return;conn.send({t:'hello',seed:game.seed,mods:game.mods,worldName:game.worldName,time:world.time,day:world.day,spawn:game.worldSpawn,blocks:mpCollectBlocks(),wx:mpWeatherState(),wave:game.ax?{wave:game.ax.wave,active:game.ax.active,next:game.ax.next,left:game.ax.left||0,roster:game.ax.roster}:null,hostId:MP.myId,hostName:MP.name,players:[...MP.remote.values()].map(r=>({id:r.pid,name:r.name})),items:mpItemList(),bents:mpBentList()})})});
   peer.on('error',err=>{if(err.type==='peer-unavailable'){MP.lobbyConnecting=false;if(MP.public)lobbyServe();return}if(err.type==='unavailable-id'){mpStatus('Someone just opened this server: joining them...');setTimeout(()=>mpJoin(room,String(seed),mods,worldId,isPublic),800)}else mpStatus('Network error: '+err.type)})}
 function mpBecomeGuest(peer,conn,worldId){MP.peer=peer;MP.conns=[conn];MP.worldId=worldId;MP.public=!!worldId;MP.host=false;MP.myId=peer.id;MP.active=true;mpStatus('Connected! Receiving the world...');
   conn.on('data',d=>mpOnData(conn,d));conn.on('close',()=>{if(MP.active&&!MP.host)mpHostLost()});conn.on('error',()=>{})}
 function mpHostLost(){const room=MP.room,worldId=MP.worldId,seed=game.seed,mods=game.mods;const ids=[MP.myId,...[...MP.remote.keys()].filter(id=>id!==MP.hostId)].sort();saveWorld();
-  if(ids[0]===MP.myId){showMessage('The host left: you are hosting this world now');mpLeave(true);MP.room=room;MP.worldId=worldId;MP.name=MP.name||mpName();mpHost(room,seed,mods,worldId,!!worldId,'',true)}
+  if(ids[0]===MP.myId){showMessage('The host left: you are hosting this world now');mpLeave(true);MP.room=room;MP.worldId=worldId;MP.name=MP.name||mpName(!!worldId);mpHost(room,seed,mods,worldId,!!worldId,'',true)}
   else{showMessage('The host left: reconnecting to '+(MP.remote.get(ids[0])||{name:'the next host'}).name+'...');mpLeave(true);MP.room=room;MP.worldId=worldId;setTimeout(()=>{if(!MP.active)mpJoin(room,String(seed),mods,worldId,!!worldId,false)},3500)}}
 function mpWeatherState(){const W=game.wx;if(!W)return {t:'wx',off:true};return {t:'wx',storm:W.storm,I:W.I,tornado:W.tornado?{x:W.tornado.x,z:W.tornado.z,dir:W.tornado.dir,life:W.tornado.life,spin:W.tornado.spin,ef:W.tornado.ef||1}:null}}
 function mpApplyWeather(d){const W=game.wx;if(!W||d.off||(MP.active&&MP.host))return;if(d.storm&&!W.storm)showMessage('Dark clouds gather... a thunderstorm rolls in');if(!d.storm&&W.storm)showMessage('The storm passes.');W.storm=d.storm;W.I=d.I;
@@ -4070,10 +4127,10 @@ function mpOnData(conn,d){if(!d||!d.t)return;
       else if(MP.worldId){const list=worldList();let meta=list.find(w=>w.id===MP.worldId);if(!meta){meta={id:MP.worldId,name:'Public: '+(pub?pub.name:(d.worldName||'world')),seed:d.seed,mode:'survival',diff:2,drops:d.mods&&d.mods.random?'random':'normal',mods:d.mods||{},room:MP.room,created:Date.now(),played:Date.now()};list.push(meta);localStorage.setItem('ic_worlds',JSON.stringify(list))}else if(!meta.room){meta.room=MP.room;localStorage.setItem('ic_worlds',JSON.stringify(list))}loadWorld(meta);game.noSave=false}
       else{const meta={id:'mp-guest',name:'Multiplayer',seed:d.seed,mode:'survival',diff:2,drops:d.mods&&d.mods.random?'random':'normal',mods:d.mods||{}};startWorld(meta,null);game.noSave=true}
       MP.hostId=d.hostId;world.time=d.time;world.day=d.day;if(d.spawn)game.worldSpawn=d.spawn;mpApplyBlocks(d.blocks||{});if(d.bents)mpApplyBents(d.bents);if(d.items){for(const e of entities)if(e instanceof ItemEntity)e.dead=true;MP.pendingItems=[];for(const it of d.items)mpItemIn(it)}if(d.wx)mpApplyWeather(d.wx);if(d.wave&&game.ax){const A=game.ax;A.wave=d.wave.wave;A.next=d.wave.next;A.left=d.wave.left;if(d.wave.active){A.active=true;A.pendingRoster=d.wave.roster||waveRoster(d.wave.wave)}}
-      mpRemote(d.hostId,d.hostName);for(const pl of d.players||[])if(pl.id!==MP.myId)mpRemote(pl.id,pl.name);mpStatus('');setTimeout(()=>showMessage('Joined '+(d.hostName||'the host')+"'s world. Press T to chat."),1500);break}
+      mpRemote(d.hostId,d.hostName);for(const pl of d.players||[])if(pl.id!==MP.myId)mpRemote(pl.id,pl.name);mpStatus('');setTimeout(()=>showMessage(MP.public?'Joined a public world. Chat is disabled and names use random aliases.':'Joined '+(d.hostName||'the host')+"'s private world. Press T to chat."),1500);break}
     case 'p':{if(d.id===MP.myId)break;if(MP.host)conn.mpId=d.id;const r=mpRemote(d.id,d.name);r.setTarget(d);if(MP.host)mpRelay(conn,d);break}
     case 'b':{if(!world)break;if(world.hasChunk(d.x,d.z))world.setBlock(d.x,d.y,d.z,d.id,d.meta,{remote:true,noDrop:true});else{const k=(d.x>>4)+','+(d.z>>4);world.savedMods=world.savedMods||{};(world.savedMods[k]||(world.savedMods[k]=[])).push([cidx(d.x&15,d.y,d.z&15),d.id|(d.meta<<8)])}if(MP.host)mpRelay(conn,d);break}
-    case 'c':{showMessage('<'+d.name+'> '+d.text);if(MP.host)mpRelay(conn,d);break}
+    case 'c':{if(MP.public)break;showMessage('<'+String(d.name||'Player').slice(0,16)+'> '+String(d.text||'').slice(0,120));if(MP.host)mpRelay(conn,d);break}
     case 'time':{if(!MP.host&&world){world.time=d.time;world.day=d.day}break}
     case 'wx':{if(!MP.host)mpApplyWeather(d);break}
     case 'wave':{const A=game.ax;if(MP.host||!A)break;if(d.ended&&A.active){for(const m of A.mobs)m.dead=true;A.mobs=[];showMessage('Wave '+d.wave+' cleared! Next wave in '+floor(d.next)+'s');playSound('levelup',0.8)}A.wave=d.wave;A.active=d.active;A.next=d.next;A.left=d.left;break}
@@ -4098,7 +4155,7 @@ function mpBentList(){const out={};const src=world.savedBents||{};for(const k in
 function mpApplyBents(bents){for(const k in bents){const [cx,cz]=k.split(',').map(Number);for(const [i,be] of bents[k]){const x=cx*16+((+i)>>11),y=(+i)&127,z=cz*16+(((+i)>>7)&15);mpApplyBE({x,y,z,dim:world.dimKey,be})}}}
 function mpRelay(from,d){for(const c of MP.conns)if(c!==from&&c.open)c.send(d)}
 function mpSend(d){for(const c of MP.conns)if(c.open)c.send(d)}
-function mpRemote(id,name){if(!id)return null;let r=MP.remote.get(id);if(!r){r=new RemotePlayer(id,name||'Player');MP.remote.set(id,r);entities.push(r);if(game.state==='playing')showMessage((name||'Player')+' joined')}else if(name)r.name=name;return r}
+function mpRemote(id,name){if(!id)return null;if(MP.public)name=publicAlias(id);else name=String(name||'Player').replace(/[^a-z0-9 _-]/gi,'').slice(0,16)||'Player';let r=MP.remote.get(id);if(!r){r=new RemotePlayer(id,name);MP.remote.set(id,r);entities.push(r);if(game.state==='playing')showMessage(name+' joined')}else if(name)r.name=name;return r}
 function mpRemove(id){const r=MP.remote.get(id);if(!r)return;r.dead=true;MP.remote.delete(id);showMessage(r.name+' left');const el=$('nametags').querySelector('[data-id="'+id+'"]');if(el)el.remove()}
 function mpDrop(conn){const i=MP.conns.indexOf(conn);if(i>=0)MP.conns.splice(i,1);if(conn.mpId){mpRemove(conn.mpId);mpSend({t:'leave',id:conn.mpId})}}
 function mpTick(dt){const p=player;MP.sendT-=dt;if(MP.sendT<=0){MP.sendT=0.1;const st=heldStack();mpSend({t:'p',id:MP.myId,name:MP.name,x:p.x,y:p.y,z:p.z,yaw:p.yaw,pitch:p.pitch,held:st?st.id:0,sneak:!!p.sneaking,dead:!!p.dead,armor:p.armor.map(a=>a?a.id:0),sw:p.swing<0.9?1:0})}
@@ -4111,7 +4168,7 @@ function mpNameTags(){const box=$('nametags');const W=R.canvas.clientWidth,H=R.c
     if(r.hidden||!r.hasTarget){el.style.display='none';continue}const x=r.x,y=r.y+2.2,z=r.z;const cw=m[3]*x+m[7]*y+m[11]*z+m[15];if(cw<=0.1){el.style.display='none';continue}
     const cx=(m[0]*x+m[4]*y+m[8]*z+m[12])/cw,cy=(m[1]*x+m[5]*y+m[9]*z+m[13])/cw;const d=Math.hypot(x-player.x,z-player.z);if(d>48||abs(cx)>1.1||abs(cy)>1.1){el.style.display='none';continue}
     el.style.display='block';el.textContent=r.name;el.style.left=((cx+1)/2*W)+'px';el.style.top=((1-cy)/2*H)+'px';el.style.fontSize=Math.max(9,16-d/4)+'px'}}
-function mpChat(text){text=text.slice(0,120);showMessage('<'+MP.name+'> '+text);mpSend({t:'c',name:MP.name,text})}
+function mpChat(text){if(MP.public){showMessage('Public chat is disabled. Use a private room with people you know.');return}text=String(text||'').replace(/[\u0000-\u001f\u007f]/g,'').slice(0,120);if(!text)return;showMessage('<'+MP.name+'> '+text);mpSend({t:'c',name:MP.name,text})}
 function mpLeave(quiet){lobbyStop();MP.public=false;MP.pendingItems=[];if(MP.peer){try{mpSend({t:'leave',id:MP.myId})}catch(e){}try{MP.peer.destroy()}catch(e){}}for(const r of MP.remote.values())r.dead=true;MP.remote.clear();MP.conns=[];MP.peer=null;MP.active=false;MP.host=false;const nt=$('nametags');if(nt)nt.innerHTML='';if(!quiet)mpStatus('')}
 class RemotePlayer extends Entity{constructor(id,name){super(0,-100,0);this.pid=id;this.name=name;this.w=0.6;this.h=1.8;this.tx=0;this.ty=-100;this.tz=0;this.tyaw=0;this.walkT=0;this.walkAmp=0;this.held=0;this.sneak=false;this.remote=true;this.hasTarget=false;this.hidden=false}
   setTarget(d){if(!this.hasTarget){this.x=d.x;this.y=d.y;this.z=d.z;this.yaw=d.yaw;this.hasTarget=true}this.tx=d.x;this.ty=d.y;this.tz=d.z;this.tyaw=d.yaw;this.pitch=d.pitch||0;this.held=d.held||0;this.sneak=!!d.sneak;if(d.name)this.name=d.name;this.hidden=!!d.dead;this.armor=d.armor||[0,0,0,0];if(d.sw&&!this.swPrev)this.swingT=0.4;this.swPrev=!!d.sw}
@@ -4343,7 +4400,7 @@ function loop(now){
 /* ---- boot ---- */
 function boot(){
   try{initGL()}catch(e){console.error(e.stack);document.body.innerHTML='<div style="padding:40px;color:#fff;font-size:18px">WebGL2 is required to play. '+e.message+'</div>';return}
-  buildHUD();buildGuis();setupMenus();setupInput();
+  buildHUD();buildGuis();setupMenus();setupInput();setupMobileControls();
   document.documentElement.style.setProperty('--dirt','url('+tileCanvas(TEX.dirt).toDataURL()+')');
   $('overlay').style.display='none';
   window.game=game;window.player=player;window.getWorld=()=>world;window.dbg={key:(k,v)=>{keys[k]=v},mouse:(l,r)=>{mouseL=l;mouseR=r},entities,spawnMob:(t,x,y,z)=>{const m=new Mob(t,x,y,z);entities.push(m);return m},openGui,closeGui,craft2,craft3,craftOut,updateCraftOutput,slotClick,saveWorld,addToInventory,breakBlock};
