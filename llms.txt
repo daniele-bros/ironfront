@@ -6,7 +6,7 @@
 
 - [Iron Front](https://irongames.win/ww2tanks.html): WW2 top-down tank combat. Drive tanks like the Sherman, Tiger and T-34 across a battlefield, fight waves of enemy armour, unlock tanks in the garage and tech tree, and survive Ratte boss waves.
 - [Iron Battle](https://irongames.win/command.html): real-time strategy on a flat map. Build a base, produce units and command your army against the enemy.
-- [Ironcraft](https://irongames.win/minecraft.html): Minecraft-style voxel survival built with WebGL. Mine, craft, build, farm and fight through the Overworld, Nether and End. Villages, trial chambers, ancient cities and the Warden, iron golems, enchanting, netherite, elytra, mace and tridents. Fun mods add EF1 to EF5 tornadoes and thunderstorms, horror monsters, zombie apocalypse waves and guns. Free public multiplayer servers connect players directly through the browser with shared blocks, items, chests, weather and chat.
+- [Ironcraft](https://irongames.win/minecraft.html): Minecraft-style voxel survival built with WebGL. Mine, craft, build, farm and fight through the Overworld, Nether and End. Villages, trial chambers, ancient cities and the Dreadwarden, Iron Colossi, enchanting, netherite, elytra, mace and tridents. Fun mods add EF1 to EF5 tornadoes and thunderstorms, horror monsters, Rotter apocalypse waves and guns. Free public multiplayer servers connect players directly through the browser with shared blocks, items, chests, weather and chat.
 
 ## Guides
 
@@ -29,7 +29,7 @@
 - Which browsers and devices work? Desktop Chrome, Edge, Firefox and Safari with a keyboard and mouse. Ironcraft needs WebGL2, which every current desktop browser has. The games are made for desktop and laptop screens.
 - Is Ironcraft the same as Minecraft? No. Ironcraft is an original browser game by Daniele Bros inspired by Minecraft. It is not affiliated with Mojang or Microsoft.
 - Does my progress save? Yes. Worlds, unlocks and coins are saved in your browser on the device you play on, so come back to the same browser to continue.
-- What are the Ironcraft fun mods? Optional modes you pick when creating a world: Weather with thunderstorms and EF1 to EF5 tornadoes, Horror, Random Blocks, Hardcore, Structure Chaos, Zombie Apocalypse waves and Guns. They can be mixed.
+- What are the Ironcraft fun mods? Optional modes you pick when creating a world: Weather with thunderstorms and EF1 to EF5 tornadoes, Horror, Random Blocks, Hardcore, Structure Chaos, Undead Apocalypse waves and Guns. They can be mixed.
 - How do I find diamonds or a village in Ironcraft? Press T to open chat and type a teleport command such as /tp diamonds, /tp village, /tp trial chamber or /tp ancient city. It finds the closest one and takes you there.
 - Who makes Iron Games? Daniele Bros. The games are updated regularly with new features, and the site lives at irongames.win.
 
@@ -39,4 +39,4 @@
 2. Type a player name.
 3. Pick a public world from the live list to join it instantly, or click Create New Public World to host one for everyone.
 4. For a private game, host a room and give friends its code. They enter the code to join.
-5. Press T in the game to chat. Blocks, dropped items, chests, weather and zombie waves are shared.
+5. Press T in the game to chat. Blocks, dropped items, chests, weather and undead waves are shared.
