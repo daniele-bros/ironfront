@@ -6,7 +6,7 @@ const site = 'https://irongames.win';
 const updated = '2026-09-12';
 
 const gameInfo = {
-  General: { play: 'index.html', label: 'Choose a game', note: 'All three Iron Games run in a desktop browser with no download or purchase.' },
+  General: { play: '/', label: 'Choose a game', note: 'All three Iron Games run in a desktop browser with no download or purchase.' },
   Ironcraft: { play: 'minecraft.html', label: 'Play Ironcraft', note: 'Ironcraft is a 3D sandbox with building, survival, optional mods and multiplayer.' },
   'Iron Front': { play: 'ww2tanks.html', label: 'Play Iron Front', note: 'Iron Front is a top-down tank action game with historic maps, tech trees and several battle modes.' },
   'Iron Battle': { play: 'command.html', label: 'Play Iron Battle', note: 'Iron Battle is a real-time strategy game about units, objectives, supply and support choices.' },
@@ -286,7 +286,7 @@ function esc(value) {
 }
 
 function header() {
-  return `<header class="site-head"><nav class="nav"><a class="brand" href="index.html">IRON GAMES</a><div class="navlinks"><a href="index.html#games">PLAY</a><a href="activities.html">ACTIVITIES</a><a href="ironcraft-guide.html">IRONCRAFT GUIDE</a><a href="iron-front-guide.html">IRON FRONT GUIDE</a><a href="iron-battle-guide.html">IRON BATTLE GUIDE</a></div></nav></header>`;
+  return `<header class="site-head"><nav class="nav"><a class="brand" href="/">IRON GAMES</a><div class="navlinks"><a href="/#games">PLAY</a><a href="activities.html">ACTIVITIES</a><a href="ironcraft-guide.html">IRONCRAFT GUIDE</a><a href="iron-front-guide.html">IRON FRONT GUIDE</a><a href="iron-battle-guide.html">IRON BATTLE GUIDE</a></div></nav></header>`;
 }
 
 function relatedFor(current) {
@@ -314,8 +314,8 @@ function renderHub() {
   return `<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Free Homeschool Game Activities and Kids Challenges | Iron Games</title><meta name="description" content="Explore ${pages.length} free browser-game activities for homeschoolers, kids and families: building, math, history, writing, strategy and game-night challenges."><meta name="robots" content="index,follow,max-snippet:-1,max-image-preview:large"><link rel="canonical" href="${site}/activities.html"><meta property="og:type" content="website"><meta property="og:title" content="Iron Games Activity Hub"><meta property="og:description" content="Free browser-game challenges, homeschool activities and family play ideas."><meta property="og:url" content="${site}/activities.html"><link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link href="https://fonts.googleapis.com/css2?family=Oswald:wght@500;700&family=Share+Tech+Mono&display=swap" rel="stylesheet"><link rel="stylesheet" href="learn.css"><script type="application/ld+json">${JSON.stringify(jsonLd)}</script><script src="analytics.js"></script></head><body>${header()}<main><div class="crumbs"><a href="index.html">HOME</a> / ACTIVITY HUB</div><header class="hero"><div class="eyebrow">FREE IDEAS FOR KIDS, FAMILIES AND HOMESCHOOLERS</div><h1>IRON GAMES ACTIVITY HUB</h1><p class="lead">Choose from ${pages.length} substantial missions that mix free browser games with building, writing, math, map reading, history questions, family competition and strategic thinking. No worksheets or sign-up required.</p><div class="quick"><span class="pill">${pages.length} ACTIVITIES</span><span class="pill">3 FREE GAMES</span><span class="pill">NO DOWNLOAD</span><span class="pill">PLAY + REFLECT</span></div></header><p class="copy hub-intro">Each activity has a setup, clear challenge steps, discussion prompts and an extension. Pick one page that matches the player’s interest and the time available. Adults can use the ideas as light enrichment, a rainy-day plan or a starting point for a longer homeschool project.</p>${categories.map(([name, list]) => `<section class="hub-group"><h2 class="section-title">${esc(name)}</h2><div class="cards">${list.map(p => `<article class="card"><div class="game">${esc(p.game.toUpperCase())}</div><h2>${esc(p.title)}</h2><p>${esc(p.description)}</p><a href="${p.slug}.html">OPEN ACTIVITY →</a></article>`).join('')}</div></section>`).join('')}<section class="cta"><div><h2>Want to play first?</h2><div>Choose Ironcraft, Iron Front or Iron Battle on the main arcade page.</div></div><a class="button" href="index.html#games">PLAY FREE</a></section></main><footer>IRON GAMES · MADE BY DANIELE BROS · FREE BROWSER GAMES AND ACTIVITY IDEAS</footer></body></html>`;
 }
 
-for (const item of pages) fs.writeFileSync(path.join(root, `${item.slug}.html`), renderPage(item));
-fs.writeFileSync(path.join(root, 'activities.html'), renderHub());
+for (const item of pages) fs.writeFileSync(path.join(root, `${item.slug}.html`), renderPage(item).replaceAll('href="index.html', 'href="/'));
+fs.writeFileSync(path.join(root, 'activities.html'), renderHub().replaceAll('href="index.html', 'href="/'));
 
 const core = [
   ['/', 'weekly', '1.0'], ['/activities.html', 'weekly', '0.9'],

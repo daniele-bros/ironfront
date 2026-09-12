@@ -47,6 +47,9 @@ const server = http.createServer((req, res) => {
   page.on('response', response => { if (response.status() >= 400) errors.push(`${response.status()} ${response.url()}`); });
 
   try {
+    await page.goto(`http://127.0.0.1:${port}/index.html?short-url-check=1`, { waitUntil: 'networkidle' });
+    assert.strictEqual(await page.evaluate(() => location.pathname), '/');
+    assert.strictEqual(await page.evaluate(() => location.search), '?short-url-check=1');
     await page.goto(`http://127.0.0.1:${port}/`, { waitUntil: 'networkidle' });
     await page.waitForTimeout(2500);
     assert.strictEqual(await page.locator('#games .card').first().locator('h2').textContent(), 'IRONCRAFT');
@@ -84,6 +87,7 @@ const server = http.createServer((req, res) => {
     const localRefs = new Set();
     for (const file of fs.readdirSync(root).filter(name => name.endsWith('.html'))) {
       const html = fs.readFileSync(path.join(root, file), 'utf8');
+      assert(!html.includes('href="index.html'), `${file} links to the long homepage URL`);
       for (const match of html.matchAll(/(?:href|src)="([^"#?]+)"/g)) {
         const ref = match[1];
         if (/^(?:https?:|data:|mailto:)/.test(ref)) continue;
