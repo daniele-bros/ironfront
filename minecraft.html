@@ -2713,7 +2713,7 @@ Object.assign(World.prototype,{
     if((r=this.regionOrigin(cx,cz,18,102))&&mid.biome===BI.desert)this.placeDesertTemple(wx+8,wz+8,r);
     if((r=this.regionOrigin(cx,cz,14,103))&&mid.biome===BI.snowy_taiga)this.placeIgloo(wx+8,wz+8,r);
     if((r=this.regionOrigin(cx,cz,12,104))&&mid.biome===BI.swamp)this.placeSwampHut(wx+8,wz+8,r);
-    if((r=this.regionOrigin(cx,cz,5,105))&&mid.height>SEA+1&&r()<0.9)this.placeRuinedPortal(wx+8,wz+8,r);
+    if((r=this.regionOrigin(cx,cz,14,105))&&mid.height>SEA+1&&r()<0.6)this.placeRuinedPortal(wx+8,wz+8,r);
     if((r=this.regionOrigin(cx,cz,24,110))&&[BI.forest,BI.birch_forest,BI.taiga].includes(mid.biome)&&mid.height>SEA+3)this.placeMansion(wx+8,wz+8,mid,r);
     if((r=this.regionOrigin(cx,cz,16,111))&&mid.biome===BI.deep_ocean)this.placeMonument(wx+8,wz+8,mid,r);
     if((r=this.regionOrigin(cx,cz,8,112))&&(mid.biome===BI.ocean||mid.biome===BI.deep_ocean)&&r()<0.5)this.placeShipwreck(wx+8,wz+8,mid,r);
@@ -3917,7 +3917,7 @@ const TP_STRUCT={
   temple:{size:18,salt:102,ok:m=>m.biome===BI.desert,alias:['desert_temple','pyramid']},
   igloo:{size:14,salt:103,ok:m=>m.biome===BI.snowy_taiga},
   hut:{size:12,salt:104,ok:m=>m.biome===BI.swamp,alias:['swamp_hut','witch','witch_hut']},
-  portal:{size:5,salt:105,ok:(m,r)=>m.height>SEA+1&&r()<0.9,alias:['ruined_portal']},
+  portal:{size:14,salt:105,ok:(m,r)=>m.height>SEA+1&&r()<0.6,alias:['ruined_portal']},
   mansion:{size:24,salt:110,ok:m=>[BI.forest,BI.birch_forest,BI.taiga].includes(m.biome)&&m.height>SEA+3,alias:['woodland_mansion']},
   monument:{size:16,salt:111,ok:m=>m.biome===BI.deep_ocean,alias:['ocean_monument'],note:'It is underwater below you'},
   shipwreck:{size:8,salt:112,ok:(m,r)=>(m.biome===BI.ocean||m.biome===BI.deep_ocean)&&r()<0.5,alias:['ship','wreck'],note:'It is underwater below you'},
