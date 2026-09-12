@@ -8,6 +8,12 @@
 - [Iron Battle](https://irongames.win/command.html): real-time strategy on a flat map. Build a base, produce units and command your army against the enemy.
 - [Ironcraft](https://irongames.win/minecraft.html): Minecraft-style voxel survival built with WebGL. Mine, craft, build, farm and fight through the Overworld, Nether and End. Villages, trial chambers, ancient cities and the Warden, iron golems, enchanting, netherite, elytra, mace and tridents. Fun mods add EF1 to EF5 tornadoes and thunderstorms, horror monsters, zombie apocalypse waves and guns. Free public multiplayer servers connect players directly through the browser with shared blocks, items, chests, weather and chat.
 
+## Guides
+
+- [Ironcraft guide](https://irongames.win/ironcraft-guide.html): controls, chat commands, multiplayer, fun mods, structures and bosses.
+- [Iron Front guide](https://irongames.win/iron-front-guide.html): controls, all game modes, tanks and tech tree, maps.
+- [Iron Battle guide](https://irongames.win/iron-battle-guide.html): controls, units and costs, fire support, target missions.
+
 ## Facts
 
 - Free to play, no download, no sign-up, no ads required to play.

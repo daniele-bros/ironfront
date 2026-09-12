@@ -15,18 +15,7 @@ The site is hosted with GitHub Pages at https://irongames.win/ and serves from `
 1. Drop the game's HTML file in this folder (for example `mygame.html`).
 2. Open `index.html` and copy one `<article class="card">` block inside `#games` (the cards are plain HTML so crawlers can read them). Also add the game to `sitemap.xml` and `llms.txt`:
 
-```js
-{
-  title: 'MY GAME',
-  subtitle: 'One-line hook',
-  icon: '🎮',
-  url: 'mygame.html',
-  description: 'What the game is about.',
-  tags: ['Puzzle', 'Mouse only']
-}
-```
-
-The card, play button, and game counter update automatically.
+The play button and game counter update automatically. Guide pages (`*-guide.html`) hold the written how-to-play content that search engines and AI assistants read.
 
 ## Ironcraft
 
