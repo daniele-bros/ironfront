@@ -1,7 +1,7 @@
 // Google Analytics (GA4) for Iron Games. Every page loads this file.
 // Set GA_MEASUREMENT_ID to the Measurement ID from analytics.google.com
 // (Admin > Data streams > your web stream). It looks like G-XXXXXXXXXX.
-window.GA_MEASUREMENT_ID = 'G-XXXXXXXXXX';
+window.GA_MEASUREMENT_ID = 'G-92R7H8KF4R';
 
 (function(){
   var id = window.GA_MEASUREMENT_ID;

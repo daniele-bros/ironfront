@@ -2,4 +2,4 @@ User-agent: *
 Allow: /
 Disallow: /node_modules/
 
-Sitemap: https://daniele-bros.github.io/ironfront/sitemap.xml
+Sitemap: https://irongames.win/sitemap.xml

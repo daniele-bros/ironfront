@@ -1,7 +1,7 @@
 # Iron Games
 
 Browser games, each a single self-contained HTML file with no build step and no dependencies.
-The site is hosted with GitHub Pages at https://daniele-bros.github.io/ironfront/ and serves from `main`.
+The site is hosted with GitHub Pages at https://irongames.win/ and serves from `main`.
 
 | File | Game |
 |------|------|
