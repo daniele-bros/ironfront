@@ -129,6 +129,7 @@ footer a:hover{color:var(--gold);}
   .card h2{font-size:22px;letter-spacing:4px;}
 }
 </style>
+<script src="analytics.js"></script>
 </head>
 <body>
 
@@ -216,10 +217,11 @@ function render(){
           <p>${esc(g.description||'')}</p>
           ${g.tags&&g.tags.length?`<div class="tags">${g.tags.map(t=>`<span class="tag">${esc(t)}</span>`).join('')}</div>`:''}
           <div class="card-actions">
-            <a class="play" href="${esc(g.url)}">⚔ PLAY</a>
+            <a class="play" href="${esc(g.url)}" data-game="${esc(g.title)}">⚔ PLAY</a>
           </div>
         </div>
       </article>`).join('');
+    grid.querySelectorAll('a.play').forEach(a=>a.addEventListener('click',()=>{if(window.trackEvent)trackEvent('select_game',{game:a.dataset.game})}));
   }
   const n=GAMES.length;
   document.getElementById('game-count').textContent=`${n} GAME${n===1?'':'S'} · MORE COMING`;

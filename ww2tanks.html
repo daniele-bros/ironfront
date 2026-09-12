@@ -166,6 +166,7 @@ body[data-state="mode"] #screen-title { display:none!important; }
 .nav-title{font-family:'Oswald',sans-serif;font-size:16px;color:var(--khaki);letter-spacing:2px;margin-bottom:4px;}
 .nav-sub{font-size:9px;color:var(--dim);letter-spacing:1px;}
 </style>
+<script src="analytics.js"></script>
 </head>
 <body>
 <div id="hud-top">
@@ -2720,6 +2721,7 @@ function resetProgress(){
 // START GAME
 // ════════════════════════════════════════
 function startGame(){
+  if(window.trackEvent)trackEvent('game_start',{game:'Iron Front'});
   ensureValidMap();
   if(!selectedMap){selectedMap=MAPS[0];}
   hideAllScreens();

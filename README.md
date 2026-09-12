@@ -71,3 +71,7 @@ What's in it, modelled on the real game:
 - Survival and Creative modes (creative flight and item palette), four difficulties, multiple worlds saved in the browser, options for render distance, FOV, sensitivity, brightness and sound.
 
 Controls: WASD move, mouse look, Space jump, Shift sneak, Ctrl / double-tap W sprint, left click mine or attack, right click place or use, scroll or 1–9 select, E inventory, Q drop, F3 debug, Esc pause.
+
+## Analytics
+
+All pages load `analytics.js`, which sets up Google Analytics 4. Put your Measurement ID (from analytics.google.com, Admin > Data streams, looks like `G-XXXXXXXXXX`) in `GA_MEASUREMENT_ID` at the top of that file. Until a real ID is set nothing is loaded or sent, and local `file://` previews are never tracked. Pages send page views automatically, the hub sends a `select_game` event when a Play button is clicked, and each game sends `game_start` (Ironcraft includes whether it is multiplayer and which fun mods are on).

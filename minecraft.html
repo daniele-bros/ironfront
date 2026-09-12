@@ -143,6 +143,7 @@ label.lb{font-size:13px;color:#a0a0a0;align-self:flex-start;margin-left:calc(50%
 #palette::-webkit-scrollbar{width:14px;}#palette::-webkit-scrollbar-track{background:#000;}#palette::-webkit-scrollbar-thumb{background:#8b8b8b;border:2px solid #000;}
 @media (max-width:960px){.rbook{position:static;width:auto;height:170px;margin-top:8px;}}
 </style>
+<script src="analytics.js"></script>
 </head>
 <body>
 <canvas id="gl"></canvas>
@@ -3737,7 +3738,7 @@ function newWorld(name,seedStr,mode,diff,mods){const drops=mods&&mods.random?'ra
   startWorld({id,name,seed,mode,diff,drops,mods:mods||{}},null);
 }
 function worldList(){try{return JSON.parse(localStorage.getItem('ic_worlds')||'[]')}catch(e){return []}}
-function startWorld(meta,save){
+function startWorld(meta,save){if(window.trackEvent)trackEvent('game_start',{game:'Ironcraft',multiplayer:!!(MP&&MP.active),mods:Object.keys(modsOf(meta)).filter(k=>modsOf(meta)[k]).join(',')||'none'});
   game.mods=modsOf(meta);game.noSave=false;game.wx=game.mods.weather?{storm:false,I:0,t:30+Math.random()*60,lt:4,flash:0,tornado:null}:null;game.hx=game.mods.horror?{amb:15,beat:0}:null;game.ax=game.mods.apocalypse?{wave:0,next:75,active:false,mobs:[],warned:{},left:0}:null;
   game.dims={over:null,nether:null};world=new World(meta.seed);game.seed=meta.seed;game.worldId=meta.id;game.worldName=meta.name;game.difficulty=game.mods.hardcore?3:(game.mods.apocalypse?Math.max(1,meta.diff):meta.diff);game.randomDrops=game.mods.random;entities.length=0;particles.length=0;activeFurnaces.clear();
   const p=player;p.mode=meta.mode;p.inv.fill(null);p.armor.fill(null);p.sel=0;p.hp=20;p.hunger=20;p.sat=5;p.exh=0;p.xp=0;p.level=0;p.dead=false;p.flying=false;p.effects={};p.spawn=null;p.fireT=0;p.air=300;p.vx=p.vy=p.vz=0;p.riding=null;

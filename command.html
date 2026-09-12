@@ -65,6 +65,7 @@ a.tbtn{text-decoration:none;}
 .stats div{display:flex;flex-direction:column;align-items:center;}
 .stats .v{font-size:26px;color:#e8c84a;font-family:'Oswald',sans-serif;}
 </style>
+<script src="analytics.js"></script>
 </head>
 <body>
 <div id="top">
@@ -1470,7 +1471,7 @@ function loop(now){
   render();updateHUD();
   requestAnimationFrame(loop);
 }
-function beginMission(){
+function beginMission(){if(window.trackEvent)trackEvent('game_start',{game:'Iron Battle'});
   document.getElementById('brief').classList.add('hidden');ac();
   running=true;last=performance.now();
   banner(OP.name+' · BEGIN',2400);
