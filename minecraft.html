@@ -2000,7 +2000,7 @@ class Mob extends Entity{
     if(type==='sheep'){const r=Math.random();this.woolId=r<0.82?20:r<0.87?76:r<0.92?75:r<0.97?77:20;this.sheared=false}
     if(type==='slime'){this.setSize(Math.random()<0.4?3:Math.random()<0.5?2:1);this.hopT=Math.random()*2}
     this.tpT=2+Math.random()*4;this.drinkT=0;this.stareT=0;this.drinking=0;this.screamT=0;this.tamed=false;this.sitting=false;this.prey=null;this.shakeT=0;
-    if(type==='horse'){this.color=floor(Math.random()*7);this.hp=this.maxHp=15+floor(Math.random()*16);this.hspeed=5.5+Math.random()*6.5;this.hjump=7.5+Math.random()*4;this.temper=0;this.temperMax=floor(Math.random()*100);this.saddled=false;this.rider=null;this.buckT=0;this.jumpCd=0;this.gallopT=0}
+    if(type==='horse'){this.color=floor(Math.random()*7);this.hp=this.maxHp=15+floor(Math.random()*16);this.hspeed=7+Math.random()*6;this.hjump=7.5+Math.random()*4;this.temper=0;this.temperMax=floor(Math.random()*100);this.saddled=false;this.rider=null;this.buckT=0;this.jumpCd=0;this.gallopT=0}
   }
   setSize(n){this.size=n;this.w=0.51*n;this.h=0.51*n;this.hp=this.maxHp=n*n;this.dmgOverride=n===1?0:n}
   mount(){const p=player;if(p.riding||this.rider||this.baby)return false;p.riding=this;this.rider=p;this.moveDir=null;this.panicT=0;p.sneaking=false;p.h=1.8;p.eyeHeight=1.62;
@@ -2013,11 +2013,11 @@ class Mob extends Entity{
     const p=player;this.yaw=p.yaw;this.headYaw=0;this.headPitch=0;if(this.hurtT>0)this.hurtT-=dt;if(this.invT>0)this.invT-=dt;if(this.jumpCd>0)this.jumpCd-=dt;
     if(!this.tamed){this.buckT-=dt;if(this.buckT<=0){spawnParticles('smoke',this.x,this.y+this.h,this.z,6);playSoundAt('horse',this.x,this.y,this.z,1,0.9);this.dismount();p.vy=5;p.vx+=(Math.random()-0.5)*4;p.vz+=(Math.random()-0.5)*4;return}}
     if(!this.saddled){fwd=0;strafe=0;jump=false}
-    const speed=this.hspeed*(sprint&&fwd>0?1.25:1);const sy=Math.sin(this.yaw),cy=Math.cos(this.yaw);let mx=(-sy*fwd+cy*strafe*0.5),mz=(-cy*fwd-sy*strafe*0.5);const ml=sqrt(mx*mx+mz*mz);if(ml>1){mx/=ml;mz/=ml}
+    const speed=this.hspeed*(sprint&&fwd>0?1.3:1);const sy=Math.sin(this.yaw),cy=Math.cos(this.yaw);let mx=(-sy*fwd+cy*strafe*0.5),mz=(-cy*fwd-sy*strafe*0.5);const ml=sqrt(mx*mx+mz*mz);if(ml>1){mx/=ml;mz/=ml}
     const acc=this.onGround?8:2;this.vx+=(mx*speed-this.vx)*Math.min(1,acc*dt);this.vz+=(mz*speed-this.vz)*Math.min(1,acc*dt);
     if(jump&&this.onGround&&this.jumpCd<=0){this.vy=this.hjump;this.jumpCd=0.2;this.fallDist=0}
     if(this.inWater&&this.vy<2)this.vy+=30*dt;
-    this.physics(dt,{step:1.05,friction:0.6,gravity:this.inWater?8:32});
+    this.physics(dt,{step:1.05,friction:1,gravity:this.inWater?8:32}); // no ground friction while ridden: the steering above already brakes, and 0.6 was eating 60% of the horse's speed
     const hs=sqrt(this.vx*this.vx+this.vz*this.vz);this.walkAmp+=(Math.min(1,hs/3)-this.walkAmp)*Math.min(1,dt*8);this.walkT+=hs*dt*1.6;
     this.gallopT+=hs*dt;if(this.gallopT>2.5&&this.onGround){this.gallopT=0;if(hs>1)playSoundAt('horse_gallop',this.x,this.y,this.z,0.6)}
     p.x=this.x;p.z=this.z;p.y=this.y+this.h*0.72;p.vx=this.vx;p.vy=0;p.vz=this.vz;p.onGround=true;p.fallDist=0;p.inWater=this.inWater;p.walkAmp=0}
