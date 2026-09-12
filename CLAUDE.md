@@ -18,8 +18,10 @@ dependencies — open the file in a browser to play.
 ## Files
 
 - `index.html` — the **Iron Games hub** (landing page). It is NOT a copy of a game.
-  Games are listed in the `GAMES` array at the bottom of the file; when you
-  add a new game file, add one entry there so it shows up on the site.
+  Games are static `<article class="card">` blocks inside `#games` (kept as
+  plain HTML so search and AI crawlers that do not run JavaScript can read
+  them); when you add a new game file, copy one card. Also add the game to the
+  FAQ/structured data in `index.html`, `sitemap.xml` and `llms.txt`.
 - `ww2tanks.html` — **Iron Front**, WW2 top-down tank combat.
 - `command.html` — **Iron Battle**, flat-map real-time strategy.
 - `minecraft.html` — **Ironcraft**, Minecraft-style voxel survival (WebGL2).

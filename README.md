@@ -13,7 +13,7 @@ The site is hosted with GitHub Pages at https://irongames.win/ and serves from `
 ## Adding a game to the Iron Games hub
 
 1. Drop the game's HTML file in this folder (for example `mygame.html`).
-2. Open `index.html` and add one entry to the `GAMES` array near the bottom:
+2. Open `index.html` and copy one `<article class="card">` block inside `#games` (the cards are plain HTML so crawlers can read them). Also add the game to `sitemap.xml` and `llms.txt`:
 
 ```js
 {
