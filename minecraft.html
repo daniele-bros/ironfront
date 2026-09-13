@@ -932,7 +932,8 @@ for(const m of ['wood','stone','iron','diamond','gold']){
 tid=380; // netherite gear (crafted by combining the diamond version with a netherite ingot)
 for(const tt of ['sword','pickaxe','axe','shovel','hoe','spear']){const m='netherite';defItem(tid++,'netherite_'+tt,{label:'Netherite '+label(tt),icon:tt,mat:m,stack:1,tool:tt,tier:MAT[m].tier,speed:tt==='spear'?1:MAT[m].speed,dur:MAT[m].dur,dmg:TOOL_DMG[tt][m],atkSpd:TOOL_SPD[tt][m],fuel:0})}
 ['helmet','chestplate','leggings','boots'].forEach((slot,i)=>{defItem(tid++,'netherite_'+slot,{label:'Netherite '+(slot==='chestplate'?'Chestplate':label(slot)),icon:slot,mat:'netherite',stack:1,armor:i,points:ARMOR.netherite[slot],dur:ARMOR.netherite.dur[i]})});
-const FLAMMABLE={5:20,50:20,51:20,15:5,44:5,46:5,16:60,45:60,47:60,20:30,75:30,76:30,77:30,23:100,21:100,22:100,63:100,29:30,61:20,58:20,55:20,54:20,38:20,34:20,39:20,62:30,28:15,6:60,48:60,49:60};
+// Planks and everything built from them (fences, stairs, slabs, doors, ladders, tables, chests, beds) do not catch fire, so a wooden house is safe from lightning and lava splash. Logs, leaves, wool, plants, bookshelves and TNT still burn.
+const FLAMMABLE={15:5,44:5,46:5,16:60,45:60,47:60,20:30,75:30,76:30,77:30,23:100,21:100,22:100,63:100,29:30,28:15,6:60,48:60,49:60};
 const toolSpeedFor=(item)=>item&&item.speed?item.speed:1;
 function canHarvest(def,item){ if(def.hard<0)return false; if(!def.needsTool)return true; if(!item||!item.tool||item.tool!==def.tool)return false; return item.tier>=def.tier }
 function breakDamagePerTick(def,item,onGround,inWater){ // Minecraft formula: fraction of block broken per tick
@@ -1874,9 +1875,13 @@ class Arrow extends Entity{constructor(x,y,z,vx,vy,vz,owner,dmg){super(x,y,z);th
 function segAABB(x0,y0,z0,x1,y1,z1,bx0,by0,bz0,bx1,by1,bz1){let tmin=0,tmax=1;const d=[x1-x0,y1-y0,z1-z0],o=[x0,y0,z0],lo=[bx0,by0,bz0],hi=[bx1,by1,bz1];
   for(let i=0;i<3;i++){if(abs(d[i])<1e-9){if(o[i]<lo[i]||o[i]>hi[i])return false}else{let t1=(lo[i]-o[i])/d[i],t2=(hi[i]-o[i])/d[i];if(t1>t2){const t=t1;t1=t2;t2=t}tmin=Math.max(tmin,t1);tmax=Math.min(tmax,t2);if(tmin>tmax)return false}}return true}
 /* ===================== FALLING BLOCK / TNT ===================== */
-class FallingBlock extends Entity{constructor(x,y,z,id){super(x+0.5,y,z+0.5);this.w=0.98;this.h=0.98;this.bid=id}
+class FallingBlock extends Entity{constructor(x,y,z,id){super(x+0.5,y,z+0.5);this.w=0.7;this.h=0.98;this.bid=id}
   update(dt){this.age+=dt;if(!world.hasChunk(floor(this.x),floor(this.z)))return; // wait in place until the ground under it is loaded again
-    this.physics(dt,{fall:false});if(this.onGround||this.inWater){const bx=floor(this.x),by=Math.round(this.y),bz=floor(this.z);const cur=world.getBlock(bx,by,bz);if(cur===0||BLOCKS[cur].replaceable){world.setBlock(bx,by,bz,this.bid,0)}else spawnItem(this.x,this.y,this.z,{id:this.bid,count:1});this.dead=true}
+    this.physics(dt,{fall:false});if(this.onGround||this.inWater){let bx=floor(this.x),bz=floor(this.z);const by=Math.round(this.y);
+    // land on the column that is actually holding it up: a block resting on the edge of a neighbour must not be placed over thin air
+    const held=(x,z)=>{const b=world.getBlock(x,by-1,z);return b!==0&&!BLOCKS[b].liquid&&BLOCKS[b].solid};
+    if(!this.inWater&&!held(bx,bz)){const r=this.w/2;const c=[[floor(this.x-r),floor(this.z-r)],[floor(this.x+r),floor(this.z-r)],[floor(this.x-r),floor(this.z+r)],[floor(this.x+r),floor(this.z+r)]].find(([cx,cz])=>held(cx,cz));if(c){bx=c[0];bz=c[1]}else{this.onGround=false;this.vx+=(Math.random()-0.5)*1.5;this.vz+=(Math.random()-0.5)*1.5;this.vy=-1;return}}
+    const cur=world.getBlock(bx,by,bz);if(cur===0||BLOCKS[cur].replaceable){world.setBlock(bx,by,bz,this.bid,0)}else spawnItem(this.x,this.y,this.z,{id:this.bid,count:1});this.dead=true}
     if(this.y<-8){this.dead=true}else if(this.age>180){spawnItem(this.x,this.y,this.z,{id:this.bid,count:1});this.dead=true}}
   render(EB){const l=lightAt(this.x,this.y+0.5,this.z);const tf=(x,y,z)=>[this.x-0.5+x,this.y+y,this.z-0.5+z];const rb=renderBoxes(this.bid,0,0,0,0);for(const b of rb)EB.box(tf,b[0],b[1],b[2],b[3],b[4],b[5],b[6],[1,1,1],l,false)}}
 function spawnFallingBlock(x,y,z,id){entities.push(new FallingBlock(x,y,z,id))}
@@ -4241,9 +4246,9 @@ function tickTornado(dt){const W=game.wx,T=W.tornado,p=player;const guest=MP.act
   // debris: chunks of whatever the ground is, whipped up around the base, and a dust skirt
   for(let i=0;i<floor(7*S);i++){const a=Math.random()*PI*2;const r=(1.5+Math.random()*4)*S;const px=T.x+Math.sin(a)*r,pz=T.z+Math.cos(a)*r;const gid=world.getBlock(floor(px),findGround(px,pz)-1,floor(pz))||3;spawnParticles('debris',px,gy+0.3+Math.random()*3,pz,1,{a,id:gid})}
   for(let i=0;i<floor(5*S);i++){const a=Math.random()*PI*2;const r=(3+Math.random()*5)*S;spawnParticles('dust',T.x+Math.sin(a)*r,gy+0.2,T.z+Math.cos(a)*r,1,{a})}
-  T.brk+=dt;if(!guest&&T.brk>0.12){T.brk=0;let fbs=0;for(const e of entities)if(e instanceof FallingBlock&&!e.dead)fbs++;for(let k=0;k<E.rip&&fbs<160;k++){fbs++;const bx=floor(T.x+(Math.random()-0.5)*E.ripR),bz=floor(T.z+(Math.random()-0.5)*E.ripR);const by=findGround(bx,bz)-1-(E.builds&&Math.random()<0.3?floor(Math.random()*3):0);if(by<gy-4||by>gy+8+4*S||by<1)continue;const id=world.getBlock(bx,by,bz);const B=BLOCKS[id];if(id===0||id===7||id===31||B.liquid||B.hard<0||B.hard>=E.hard)continue;const ch=world.getChunk(bx>>4,bz>>4);if(!E.builds&&ch&&ch.mods.has(cidx(bx&15,by,bz&15)))continue;
+  T.brk+=dt;if(!guest&&T.brk>0.12){T.brk=0;let fbs=0;for(const e of entities)if(e instanceof FallingBlock&&!e.dead)fbs++;for(let k=0;k<E.rip&&fbs<320;k++){fbs++;const bx=floor(T.x+(Math.random()-0.5)*E.ripR),bz=floor(T.z+(Math.random()-0.5)*E.ripR);const by=findGround(bx,bz)-1-(E.builds&&Math.random()<0.3?floor(Math.random()*3):0);if(by<gy-4||by>gy+8+4*S||by<1)continue;const id=world.getBlock(bx,by,bz);const B=BLOCKS[id];if(id===0||id===7||id===31||B.liquid||B.hard<0||B.hard>=E.hard)continue;const ch=world.getChunk(bx>>4,bz>>4);if(!E.builds&&ch&&ch.mods.has(cidx(bx&15,by,bz&15)))continue;
       world.setBlock(bx,by,bz,0,0,{noDrop:true});const fb=new FallingBlock(bx,by+1,bz,id);fb.vy=9+Math.random()*8;fb.vx=(Math.random()-0.5)*10;fb.vz=(Math.random()-0.5)*10;entities.push(fb);spawnParticles('block',bx+0.5,by+1,bz+0.5,3,id);
-      for(let yy=by+1;yy<by+8&&fbs<160;yy++){const aid=world.getBlock(bx,yy,bz);const A=BLOCKS[aid];if(aid===0||aid===7||aid===31||A.liquid||A.hard<0)break;if(!A.solid){world.setBlock(bx,yy,bz,0,0);continue}world.setBlock(bx,yy,bz,0,0,{noDrop:true});const f2=new FallingBlock(bx,yy+1,bz,aid);f2.vy=8+Math.random()*8;f2.vx=(Math.random()-0.5)*10;f2.vz=(Math.random()-0.5)*10;entities.push(f2);fbs++}}}
+      for(let yy=by+1;yy<by+12;yy++){const aid=world.getBlock(bx,yy,bz);const A=BLOCKS[aid];if(aid===0||aid===7||aid===31||A.liquid||A.hard<0)break;if(!A.solid){world.setBlock(bx,yy,bz,0,0);continue}if(fbs<320){world.setBlock(bx,yy,bz,0,0,{noDrop:true});const f2=new FallingBlock(bx,yy+1,bz,aid);f2.vy=8+Math.random()*8;f2.vx=(Math.random()-0.5)*10;f2.vz=(Math.random()-0.5)*10;entities.push(f2);fbs++}else world.setBlock(bx,yy,bz,0,0,{noDrop:!!A.leaves})}}}
   const R=14*S,P=E.pull;const pull=(e,isP)=>{const dx=T.x-e.x,dz=T.z-e.z;const d=Math.hypot(dx,dz);if(d>R)return;const s=(R-d)/R;const nx=dx/(d||1),nz=dz/(d||1);const ax=(nx*26-nz*14)*s*P,az=(nz*26+nx*14)*s*P;e.vx+=ax*dt;e.vz+=az*dt;if(isP&&d>1.5){const nx2=e.x+nx*3.5*s*P*dt,nz2=e.z+nz*3.5*s*P*dt;if(tornadoFree(nx2,e.y,nz2,e.w)){e.x=nx2;e.z=nz2}}
     if(d<3.5*S&&e.y<gy+30+4*S){e.vy+=(isP?34:30)*P*dt;if(e.vy>10+2*S)e.vy=10+2*S;e.fallDist=0;e.onGround=false;if(isP&&T.t>1&&Math.random()<dt*0.5)damageEntity(e,E.dmg,{type:'tornado'})}};
   for(const e of entities){if(e.dead||e instanceof Dragon||e instanceof Wither)continue;if(e instanceof Mob||e instanceof ItemEntity||e instanceof FallingBlock)pull(e,false)}
@@ -4382,7 +4387,7 @@ function loop(now){
     game.time+=dt;
     updateChunks(6);
     edgeLook(dt);keyLook(dt);updatePlayer(dt);
-    for(let i=entities.length-1;i>=0;i--){const e=entities[i];const dx=e.x-player.x,dz=e.z-player.z;if(dx*dx+dz*dz<96*96||e instanceof FallingBlock)e.update(dt);if(e.dead){entities[i]=entities[entities.length-1];entities.pop()}}
+    for(let i=entities.length-1;i>=0;i--){const e=entities[i];const dx=e.x-player.x,dz=e.z-player.z;if(dx*dx+dz*dz<96*96||e instanceof FallingBlock||((e instanceof Mob||e instanceof ItemEntity)&&!e.onGround&&!e.inWater&&world.hasChunk(floor(e.x),floor(e.z))))e.update(dt);if(e.dead){entities[i]=entities[entities.length-1];entities.pop()}}
     updateParticles(dt);if(game.wx)tickWeather(dt);if(game.hx)tickHorror(dt);if(game.ax)tickApocalypse(dt);
     // fixed 20 tps
     game.tickAcc+=dt;let n=0;while(game.tickAcc>=0.05&&n<4){game.tickAcc-=0.05;n++;game.tick++;world.time=(world.time+1)%24000;if(world.time===0)world.day++;
