@@ -303,7 +303,7 @@ label.lb{font-size:13px;color:#a0a0a0;align-self:flex-start;margin-left:calc(50%
 
 <div id="funMenu" class="menu dirtbg">
   <h2 class="sh">Fun Mods</h2>
-  <div class="hint" style="color:#aaa;width:440px;margin-bottom:6px">Mix and match. They are baked into the world when you create it.</div>
+  <div class="hint" id="funHint" style="color:#aaa;width:440px;margin-bottom:6px">Mix and match. You can change them later from the pause menu.</div>
   <button class="btn modbtn" data-mod="weather">Weather: OFF</button>
   <div class="hint" style="color:#aaa;width:440px;margin:0 0 4px">Thunderstorms roll in with rain and lightning strikes, and tornadoes tear across the land ripping up blocks and throwing you into the sky.</div>
   <button class="btn modbtn" data-mod="horror">Horror: OFF</button>
@@ -365,6 +365,7 @@ label.lb{font-size:13px;color:#a0a0a0;align-self:flex-start;margin-left:calc(50%
   <h2 class="sh">Game menu</h2>
   <button class="btn" id="btnResume">Back to Game</button>
   <button class="btn" id="btnOptionsP">Options...</button>
+  <button class="btn" id="btnModsP">Fun Mods...</button>
   <button class="btn" id="btnSaveQuit">Save and Quit to Title</button>
 </div>
 
@@ -3548,16 +3549,19 @@ function enchOffers(){const g=game.gui;const st=enchSlots[0];if(!st)return null;
   const base=1+floor(rng()*8)+floor(b/2)+floor(rng()*(b+1));const costs=[Math.max(floor(base/3),1),floor(base*2/3)+1,Math.max(base,b*2)].map(c=>Math.min(30,c));
   return costs.map((c,i)=>{const r=mulberry32(hashInt(st.id,c,game.enchSeed,i+11));const ench=rollEnchants(ITEMS[st.id],c,r,false);const hint=ench?Object.keys(ench)[0]:null;return {cost:c,ench,hint:hint?enchName(hint,ench[hint]):'-',b}})}
 function renderEnchant(){const g=game.gui;if(!g||g.type!=='enchant')return;const box=$('enchOpts');box.innerHTML='';const st=enchSlots[0];const lap=enchSlots[1];const p=player;const creative=p.mode==='creative';
-  const offers=enchOffers();if(!offers||(st.ench&&st.id!==379)){box.innerHTML='<div class="hint">'+(st&&st.ench?'That item is already enchanted.':'Place an item to see enchantments.')+'</div>';return}
+  const offers=enchOffers();if(!offers){box.innerHTML='<div class="hint">Place an item to see enchantments.</div>';return}if(st.ench&&st.id===379){box.innerHTML='<div class="hint">That book is already enchanted. Use an anvil to put it on gear.</div>';return}
   const glyphs='ᔑ⍑ᓵᒷ⎓⊣⍑╎⋮ꖌꖎᒲリ𝙹!¡ᑑ∷ᓭℸ⚍⍊∴ ̣⨅';
   offers.forEach((o,i)=>{const tier=i+1;const ok=creative||(p.level>=o.cost&&(lap?lap.count:0)>=tier&&p.level>=tier);const el=document.createElement('div');el.className='eopt '+(ok?'ok':'no');
     let gl='';for(let k=0;k<4;k++)gl+=glyphs[(o.cost*3+k*5+i*11)%glyphs.length];
-    el.innerHTML='<span class="glyph">'+gl+'</span><span class="ename">'+o.hint+(o.ench&&Object.keys(o.ench).length>1?' +'+(Object.keys(o.ench).length-1)+' more':'')+'</span><span class="lvl">'+o.cost+'</span>';el.title=o.hint+' … ?  Cost: '+o.cost+' levels, '+tier+' lapis ('+tier+' level'+(tier>1?'s':'')+' spent)';
-    el.addEventListener('click',()=>{if(ok)doEnchant(i)});box.appendChild(el)});
-  $('enchHint').textContent='Bookshelves: '+offers[0].b+' / 15.  Each row names its main enchantment; the number is the level you need. You spend 1, 2 or 3 levels and that many lapis.'}
+    const gain=st.ench&&o.ench?enchGain(st,o.ench):null;const label=gain?(gain.names.length?gain.names.join(', '):'nothing new'):o.hint+(o.ench&&Object.keys(o.ench).length>1?' +'+(Object.keys(o.ench).length-1)+' more':'');if(gain&&!gain.names.length)el.className='eopt no';
+    el.innerHTML='<span class="glyph">'+gl+'</span><span class="ename">'+label+'</span><span class="lvl">'+o.cost+'</span>';el.title=(gain?'Adds: '+label:o.hint+' … ?')+'  Cost: '+o.cost+' levels, '+tier+' lapis ('+tier+' level'+(tier>1?'s':'')+' spent)';
+    el.addEventListener('click',()=>{if(ok&&!(gain&&!gain.names.length))doEnchant(i)});box.appendChild(el)});
+  $('enchHint').textContent='Bookshelves: '+offers[0].b+' / 15.  '+(st.ench?'Already enchanted: each row shows what it would add or upgrade. Same enchantment again raises it a level; clashing ones (like Sharpness and Smite) are skipped.':'Each row names its main enchantment; the number is the level you need.')+' You spend 1, 2 or 3 levels and that many lapis.'}
+// what an offer adds to an already enchanted item: new enchantments, upgrades of ones it has (same level again bumps it one rank, up to the max), never a clashing one
+function enchGain(st,offer){const cur=st.ench||{};const out=Object.assign({},cur);const names=[];for(const k in offer){const d=ENCH[k];if(!d)continue;if(Object.keys(cur).some(c=>c!==k&&((d.ex||[]).includes(c)||((ENCH[c]||{}).ex||[]).includes(k))))continue;const have=cur[k]||0;let lv=offer[k];if(have>=lv)lv=Math.min(d.max,have+1);if(lv<=have)continue;out[k]=lv;names.push(enchName(k,lv))}return {ench:out,names}}
 function doEnchant(i){const st=enchSlots[0];const lap=enchSlots[1];const p=player;const creative=p.mode==='creative';const offers=enchOffers();if(!offers)return;const o=offers[i];if(!o.ench){showMessage('Nothing to enchant');return}
   if(!creative){if(p.level<o.cost||(lap?lap.count:0)<i+1)return;lap.count-=i+1;if(lap.count<=0)enchSlots[1]=null;removeLevels(i+1)}
-  if(st.id===378){st.id=379;st.count=1;const k=Object.keys(o.ench)[0];st.ench={[k]:o.ench[k]}}else st.ench=Object.assign({},o.ench);game.enchSeed=floor(Math.random()*1e9);playSound('enchant');spawnParticles('happy',player.x,player.y+1,player.z,6);
+  if(st.id===378){st.id=379;st.count=1;const k=Object.keys(o.ench)[0];st.ench={[k]:o.ench[k]}}else if(st.ench){const gn=enchGain(st,o.ench);if(!gn.names.length){showMessage('That would add nothing');return}st.ench=gn.ench}else st.ench=Object.assign({},o.ench);game.enchSeed=floor(Math.random()*1e9);playSound('enchant');spawnParticles('happy',player.x,player.y+1,player.z,6);
   showMessage('Enchanted: '+Object.keys(st.ench).map(k=>enchName(k,st.ench[k])).join(', '));afterSlotChange()}
 /* ---- anvil ---- */
 const anvilSlots=[null,null,null];let anvilCost=0;
@@ -3789,6 +3793,14 @@ function randomDrops(){if(Math.random()<0.03){const set=RANDOM_SETS[floor(Math.r
 function findSpawn(){for(let r=0;r<400;r+=8){for(let a=0;a<PI*2;a+=0.7){const x=floor(Math.cos(a)*r),z=floor(Math.sin(a)*r);const info=world.columnInfo(x,z);if(info.height>SEA+1&&info.biome!==BI.mountains&&info.biome!==BI.ocean)return [x+0.5,info.height+1,z+0.5]}}return [0.5,80,0.5]}
 /* ---- world lifecycle ---- */
 const MODN={weather:'Weather',horror:'Horror',random:'Random Blocks',hardcore:'Hardcore',structures:'Structure Chaos',apocalypse:'Zombie Apocalypse',guns:'Guns'};
+function applyModsLive(m,fromHost){if(!world||game.state!=='playing')return;const old=game.mods||{};game.mods=Object.assign({weather:false,horror:false,random:false,hardcore:false,structures:false,apocalypse:false,guns:false},m);const g=game.mods;
+  if(g.weather&&!game.wx)game.wx={storm:false,I:0,t:20+Math.random()*40,lt:4,flash:0,tornado:null};else if(!g.weather&&game.wx){stopWeatherLoops();game.wx=null}
+  game.hx=g.horror?(game.hx||{amb:15,beat:0}):null;
+  if(g.apocalypse&&!game.ax)game.ax={wave:0,next:60,active:false,mobs:[],warned:{},left:0};else if(!g.apocalypse&&game.ax){for(const mb of game.ax.mobs)mb.dead=true;game.ax=null;$('waveHud').style.display='none'}
+  game.randomDrops=g.random;const bd=game.baseDiff===undefined?2:game.baseDiff;game.difficulty=g.hardcore?3:(g.apocalypse?Math.max(1,bd):bd);
+  const list=worldList();const meta=list.find(w=>w.id===game.worldId);if(meta){meta.mods=Object.assign({},g);meta.drops=g.random?'random':'normal';localStorage.setItem('ic_worlds',JSON.stringify(list))}
+  if(MP.active&&MP.host&&!fromHost)mpSend({t:'mods',mods:g});
+  const on=Object.keys(g).filter(k=>g[k]).map(k=>MODN[k]);showMessage('Fun mods: '+(on.length?on.join(', '):'none')+(g.weather&&!old.weather?'. Clouds are gathering...':''));if(game.gui)renderAllSlots()}
 function modsOf(meta){const m=Object.assign({weather:false,horror:false,random:false,hardcore:false,structures:false,apocalypse:false,guns:false},meta.mods||{});if(!meta.mods&&meta.drops==='random')m.random=true;return m}
 function newWorld(name,seedStr,mode,diff,mods){const drops=mods&&mods.random?'random':'normal';
   const seed=seedStr?(isNaN(+seedStr)?hashStr(seedStr):(+seedStr|0)):(Math.random()*2147483647|0);
@@ -3797,7 +3809,7 @@ function newWorld(name,seedStr,mode,diff,mods){const drops=mods&&mods.random?'ra
 }
 function worldList(){try{return JSON.parse(localStorage.getItem('ic_worlds')||'[]')}catch(e){return []}}
 function startWorld(meta,save){if(window.trackEvent)trackEvent('game_start',{game:'Ironcraft',multiplayer:!!(MP&&MP.active),mods:Object.keys(modsOf(meta)).filter(k=>modsOf(meta)[k]).join(',')||'none'});
-  game.mods=modsOf(meta);game.noSave=false;game.wx=game.mods.weather?{storm:false,I:0,t:30+Math.random()*60,lt:4,flash:0,tornado:null}:null;game.hx=game.mods.horror?{amb:15,beat:0}:null;game.ax=game.mods.apocalypse?{wave:0,next:75,active:false,mobs:[],warned:{},left:0}:null;
+  game.mods=modsOf(meta);game.baseDiff=meta.diff;game.noSave=false;game.wx=game.mods.weather?{storm:false,I:0,t:30+Math.random()*60,lt:4,flash:0,tornado:null}:null;game.hx=game.mods.horror?{amb:15,beat:0}:null;game.ax=game.mods.apocalypse?{wave:0,next:75,active:false,mobs:[],warned:{},left:0}:null;
   game.dims={over:null,nether:null};world=new World(meta.seed);game.seed=meta.seed;game.worldId=meta.id;game.worldName=meta.name;game.difficulty=game.mods.hardcore?3:(game.mods.apocalypse?Math.max(1,meta.diff):meta.diff);game.randomDrops=game.mods.random;entities.length=0;particles.length=0;activeFurnaces.clear();
   const p=player;p.mode=meta.mode;p.inv.fill(null);p.armor.fill(null);p.sel=0;p.hp=20;p.hunger=20;p.sat=5;p.exh=0;p.xp=0;p.level=0;p.dead=false;p.flying=false;p.effects={};p.spawn=null;p.fireT=0;p.air=300;p.vx=p.vy=p.vz=0;p.riding=null;
   if(save){if(game.ax&&save.apoc)game.ax.wave=save.apoc.wave||0;world.time=save.time;world.day=save.day||0;game.worldSpawn=save.spawn;world.savedMods={};for(const k in save.mods)world.savedMods[k]=save.mods[k];world.savedBents=save.bents||{};world.populated=new Set(save.pop||[]);
@@ -3858,8 +3870,10 @@ function setupMenus(){
   $('btnCreate').onclick=()=>{MP.createPublic=false;$('createTitle').textContent='Create New World';$('wName').value='New World';$('wSeed').value='';showMenu('createMenu')};$('btnCreateBack').onclick=()=>{if(MP.createPublic){MP.createPublic=false;showMenu('mpMenu')}else showMenu('worldMenu')};
   const mods={weather:false,horror:false,random:false,hardcore:false,structures:false,apocalypse:false,guns:false};
   const refreshFun=()=>{for(const b of document.querySelectorAll('.modbtn')){const k=b.dataset.mod;b.textContent=MODN[k]+': '+(mods[k]?'ON':'OFF');b.style.color=mods[k]?'#8f8':''}const on=Object.keys(mods).filter(k=>mods[k]);$('btnFun').textContent='Fun Mods: '+(on.length?on.map(k=>MODN[k]).join(', '):'None')};
-  $('btnFun').onclick=()=>showMenu('funMenu');for(const b of document.querySelectorAll('.modbtn'))b.onclick=()=>{mods[b.dataset.mod]=!mods[b.dataset.mod];refreshFun()};
-  $('btnFunDone').onclick=()=>showMenu('createMenu');$('btnFunClear').onclick=()=>{for(const k in mods)mods[k]=false;refreshFun()};refreshFun();
+  let funLive=false;$('btnFun').onclick=()=>{funLive=false;$('funHint').textContent='Mix and match. You can change them later from the pause menu.';showMenu('funMenu')};for(const b of document.querySelectorAll('.modbtn'))b.onclick=()=>{mods[b.dataset.mod]=!mods[b.dataset.mod];refreshFun()};
+  // from the pause menu: edit the mods of the world you are playing and apply them on the spot
+  $('btnModsP').onclick=()=>{if(MP.active&&!MP.host){showMessage('Only the host can change fun mods');return}Object.assign(mods,game.mods);refreshFun();funLive=true;$('funHint').textContent='Changes apply to this world right away and are saved with it.';showMenu('funMenu')};
+  $('btnFunDone').onclick=()=>{if(funLive){funLive=false;applyModsLive(Object.assign({},mods));for(const k in mods)mods[k]=false;refreshFun();showMenu('pauseMenu')}else showMenu('createMenu')};$('btnFunClear').onclick=()=>{for(const k in mods)mods[k]=false;refreshFun()};refreshFun();
   let mode='survival',diff=2;$('btnMode').onclick=()=>{mode=mode==='survival'?'creative':'survival';$('btnMode').textContent='Game Mode: '+(mode==='survival'?'Survival':'Creative')};
   $('btnDiff').onclick=()=>{diff=(diff+1)%4;$('btnDiff').textContent='Difficulty: '+['Peaceful','Easy','Normal','Hard'][diff]};
   $('btnCreateGo').onclick=()=>{initAudio();if(MP.createPublic){MP.createPublic=false;mpCreatePublic($('wName').value||'Public World',$('wSeed').value.trim(),mode,diff,Object.assign({},mods));return}newWorld($('wName').value||'New World',$('wSeed').value.trim(),mode,diff,Object.assign({},mods))};
@@ -4148,6 +4162,7 @@ function mpOnData(conn,d){if(!d||!d.t)return;
     case 'ir':{if(MP.host)mpRelay(conn,d);{const e=entities.find(e=>e.nid===d.nid);if(e)e.dead=true;MP.pendingItems=MP.pendingItems.filter(it=>it.nid!==d.nid)}break}
     case 'ic':{if(MP.host)mpRelay(conn,d);{const e=entities.find(e=>e.nid===d.nid);if(e&&e.stack)e.stack.count=d.count;const pi=MP.pendingItems.find(it=>it.nid===d.nid);if(pi)pi.s.count=d.count}break}
     case 'be':{if(MP.host)mpRelay(conn,d);mpApplyBE(d);break}
+    case 'mods':{if(MP.host)break;applyModsLive(d.mods||{},true);break}
     case 'leave':{mpRemove(d.id);if(MP.host)mpRelay(conn,d);break}}}
 // dropped items: spawn when the chunk (and dimension) is here, otherwise hold them until it is
 function mpItemIn(d){if(entities.some(e=>e.nid===d.nid)||MP.pendingItems.some(it=>it.nid===d.nid))return;if(world&&world.dimKey===(d.dim||'over')&&world.hasChunk(floor(d.x),floor(d.z)))spawnItem(d.x,d.y,d.z,d.s,[d.vx,d.vy,d.vz],d.d,{nid:d.nid});else MP.pendingItems.push(d)}
@@ -4370,6 +4385,7 @@ function runCommand(line){const p=player;const raw=line.trim().replace(/^\/+/,''
     case 'spawn':case 'summon':{if(/portal/i.test(args.join('_'))){spawnNetherPortal(say);return}const words=args.filter(a=>!/^\d+$/.test(a)),num=args.find(a=>/^\d+$/.test(a));const t=words.join('_');const type=mobTypeFromName(t);if(!type){say('Mobs: '+MOB_TYPES.map(k=>mobLabel(k)).join(', '));return}const n=clamp(parseInt(num)||1,1,20);const d=eyeDir();for(let i=0;i<n;i++)entities.push(new Mob(type,p.x+d[0]*3+(Math.random()-0.5)*2,p.y+0.5,p.z+d[2]*3+(Math.random()-0.5)*2));say('Spawned '+n+' '+mobLabel(type));return}
     case 'portal':spawnNetherPortal(say);return;
     case 'stop':case 'cancel':if(game.tpSearch)cancelBlockSearch();else say('Nothing to stop');return;
+    case 'mods':case 'mod':{if(MP.active&&!MP.host){say('Only the host can change fun mods');return}const keys=Object.keys(MODN);if(!args.length){say('Fun mods: '+keys.map(k=>MODN[k]+' '+(game.mods[k]?'ON':'OFF')).join(', '));say('Usage: /mods <weather|horror|random|hardcore|structures|apocalypse|guns> <on|off>');return}const k=keys.find(k=>k.startsWith(args[0].toLowerCase()))||(/^(storm|tornado)/i.test(args[0])?'weather':/^zombie|^wave/i.test(args[0])?'apocalypse':null);if(!k){say('Unknown mod. Mods: '+keys.join(', '));return}const on=args[1]?/^(on|1|true|yes)$/i.test(args[1]):!game.mods[k];const m=Object.assign({},game.mods);m[k]=on;applyModsLive(m);return}
     case 'tornado':{if(!game.wx){say('Tornadoes need the Weather fun mod on this world');return}if(MP.active&&!MP.host){say('Only the host can call a tornado');return}const ef=Math.min(5,Math.max(1,parseInt(args[0])||rollEF()));const W=game.wx;W.storm=true;W.I=Math.max(W.I,0.6);W.t=Math.max(W.t,60);const a=Math.random()*PI*2;W.tornado={x:p.x+Math.sin(a)*45,z:p.z+Math.cos(a)*45,y:p.y,dir:a+PI+(Math.random()-0.5)*0.4,life:(50+Math.random()*50)*EF[ef].life,spin:0,t:0,brk:0,ef};say(EF[ef].say);playSound('thunder',1,0.55-ef*0.05);return}
     case 'heal':p.hp=p.maxHp;p.hunger=20;p.sat=5;p.fireT=0;p.air=300;p.effects={};say('Healed');return;
     case 'xp':{const n=parseInt(args[0])||10;p.level=Math.max(0,p.level+n);p.xpFrac=0;say('Level '+p.level);updateHUD&&updateHUD();return}
