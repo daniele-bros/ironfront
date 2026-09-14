@@ -2356,7 +2356,8 @@ class Fang extends Entity{constructor(x,y,z,delay){super(x,y,z);this.w=0.5;this.
 /* ---- damage ---- */
 function damageEntity(e,amount,src){
   if(e.dead||e.dying)return false;if(e.invT>0&&amount<=e.lastDmg)return false;src=src||{};
-  if(e===player){if(player.mode==='creative')return false;if(src.type==='mob'||src.type==='arrow'||src.type==='explosion'){const ap=armorPoints();amount*=1-Math.min(20,ap)*0.04;damageArmor(Math.max(1,floor(amount/4)))}else if(src.type==='fire'||src.type==='lava'){const ap=armorPoints();amount*=1-Math.min(20,ap)*0.02}
+  if(e instanceof RemotePlayer){if(!pvpOn()||e.hidden)return false;e.invT=0.5;e.lastDmg=amount;e.hurtT=0.5;mpSend({t:'hit',to:e.pid,by:MP.myId,from:MP.name,amount,type:src.type||'player',x:src.x,y:src.y,z:src.z,kb:src.kb||4});playSoundAt('hurt',e.x,e.y,e.z,0.8);return true}
+  if(e===player){if(player.mode==='creative')return false;if(src.type==='mob'||src.type==='arrow'||src.type==='explosion'||src.type==='pvp'){const ap=armorPoints();amount*=1-Math.min(20,ap)*0.04;damageArmor(Math.max(1,floor(amount/4)))}else if(src.type==='fire'||src.type==='lava'){const ap=armorPoints();amount*=1-Math.min(20,ap)*0.02}
     { // enchantment protection factor
       let epf=0,th=0;for(const s of player.armor){if(!s||!s.ench)continue;epf+=s.ench.protection||0;th+=s.ench.thorns||0;if(src.type==='fire'||src.type==='lava')epf+=2*(s.ench.fire_protection||0);if(src.type==='explosion')epf+=2*(s.ench.blast_protection||0);if(src.type==='arrow')epf+=2*(s.ench.projectile_protection||0);if(src.type==='fall')epf+=3*(s.ench.feather_falling||0)}
       if(epf)amount*=1-Math.min(20,epf)*0.04;if(th&&src.mob&&Math.random()<th*0.15){damageEntity(src.mob,1+floor(Math.random()*4),{type:'thorns'});damageArmor(2)}}
@@ -2655,10 +2656,11 @@ function trySleep(bx,by,bz){const p=player;const t=world.time;
   for(const e of entities){if(e instanceof Mob&&!e.def.passive&&!e.dead){const dx=e.x-bx,dz=e.z-bz;if(dx*dx+dz*dz<64){showMessage('You may not rest now, there are monsters nearby');return}}}
   p.spawn=[bx+0.5,by+0.6,bz+0.5];p.sleeping=0.01;$('sleepfade').style.opacity=1;showMessage('Respawn point set')}
 function playerDie(src){const p=player;p.dead=true;p.hp=0;playSound('death');let msg='Player died';const t=src&&src.type;
-  if(t==='fall')msg='Player fell from a high place';else if(t==='mob')msg='Player was slain by a monster';else if(t==='arrow')msg='Player was shot by a Bonewalker';else if(t==='explosion')msg='Player was blown up';else if(t==='lava')msg='Player tried to swim in lava';else if(t==='fire')msg='Player burned to death';else if(t==='drown')msg='Player drowned';else if(t==='starve')msg='Player starved to death';else if(t==='cactus')msg='Player was pricked to death';else if(t==='lightning')msg='Player was struck by lightning';else if(t==='tornado')msg='Player was swept away by a tornado';else if(t==='sonic')msg='Player was obliterated by a sonically-charged shriek';
+  if(t==='fall')msg='Player fell from a high place';else if(t==='pvp')msg='Player was slain by '+(src.name||'another player');else if(t==='mob')msg='Player was slain by a monster';else if(t==='arrow')msg='Player was shot by a Bonewalker';else if(t==='explosion')msg='Player was blown up';else if(t==='lava')msg='Player tried to swim in lava';else if(t==='fire')msg='Player burned to death';else if(t==='drown')msg='Player drowned';else if(t==='starve')msg='Player starved to death';else if(t==='cactus')msg='Player was pricked to death';else if(t==='lightning')msg='Player was struck by lightning';else if(t==='tornado')msg='Player was swept away by a tornado';else if(t==='sonic')msg='Player was obliterated by a sonically-charged shriek';
   if(p.riding)p.riding.dismount();
   for(let i=0;i<36;i++)if(p.inv[i]&&enchLevel(p.inv[i],'vanishing_curse'))p.inv[i]=null;for(let i=0;i<4;i++)if(p.armor[i]&&enchLevel(p.armor[i],'vanishing_curse'))p.armor[i]=null;
-  if(!opts.keepInv){for(let i=0;i<36;i++){if(p.inv[i]){spawnItem(p.x,p.y+1,p.z,p.inv[i]);p.inv[i]=null}}for(let i=0;i<4;i++){if(p.armor[i]){spawnItem(p.x,p.y+1,p.z,p.armor[i]);p.armor[i]=null}}
+  if(pvpOn()){for(let i=0;i<36;i++)p.inv[i]=null;for(let i=0;i<4;i++)p.armor[i]=null;showMessage('You died at X '+floor(p.x)+' Y '+floor(p.y)+' Z '+floor(p.z)+'. On public servers everything you carried is lost.')}
+  else if(!opts.keepInv){for(let i=0;i<36;i++){if(p.inv[i]){spawnItem(p.x,p.y+1,p.z,p.inv[i]);p.inv[i]=null}}for(let i=0;i<4;i++){if(p.armor[i]){spawnItem(p.x,p.y+1,p.z,p.armor[i]);p.armor[i]=null}}
     spawnXP(p.x,p.y+1,p.z,Math.min(100,p.level*7));showMessage('Your items dropped at X '+floor(p.x)+' Y '+floor(p.y)+' Z '+floor(p.z)+' (they vanish after 5 minutes)')}
   else showMessage('You died at X '+floor(p.x)+' Y '+floor(p.y)+' Z '+floor(p.z));
   if(game.mods&&game.mods.hardcore){msg+=' \u2014 HARDCORE: this world is gone';$('btnRespawn').style.display='none';$('btnDeathQuit').textContent='Game Over';localStorage.removeItem('ic_world_'+game.worldId);localStorage.setItem('ic_worlds',JSON.stringify(worldList().filter(w=>w.id!==game.worldId)));game.noSave=true}else{$('btnRespawn').style.display='';$('btnDeathQuit').textContent='Title Screen'}
@@ -4165,6 +4167,8 @@ function mpOnData(conn,d){if(!d||!d.t)return;
     case 'ic':{if(MP.host)mpRelay(conn,d);{const e=entities.find(e=>e.nid===d.nid);if(e&&e.stack)e.stack.count=d.count;const pi=MP.pendingItems.find(it=>it.nid===d.nid);if(pi)pi.s.count=d.count}break}
     case 'be':{if(MP.host)mpRelay(conn,d);mpApplyBE(d);break}
     case 'mods':{if(MP.host)break;applyModsLive(d.mods||{},true);break}
+    case 'hit':{if(MP.host)mpRelay(conn,d);if(d.to!==MP.myId||!pvpOn()||!world||player.dead)break;const was=player.hp;damageEntity(player,d.amount,{type:'pvp',x:d.x,y:d.y,z:d.z,kb:d.kb,name:d.from,pid:d.by});if(player.dead&&was>0)mpSend({t:'killed',to:d.by,name:MP.name});break}
+    case 'killed':{if(MP.host)mpRelay(conn,d);if(d.to===MP.myId){showMessage('You killed '+d.name);playSound('levelup',0.8,1.2)}break}
     case 'leave':{mpRemove(d.id);if(MP.host)mpRelay(conn,d);break}}}
 // dropped items: spawn when the chunk (and dimension) is here, otherwise hold them until it is
 function mpItemIn(d){if(entities.some(e=>e.nid===d.nid)||MP.pendingItems.some(it=>it.nid===d.nid))return;if(world&&world.dimKey===(d.dim||'over')&&world.hasChunk(floor(d.x),floor(d.z)))spawnItem(d.x,d.y,d.z,d.s,[d.vx,d.vy,d.vz],d.d,{nid:d.nid});else MP.pendingItems.push(d)}
@@ -4177,6 +4181,8 @@ function mpApplyBE(d){if(!world||world.dimKey!==(d.dim||'over'))return;const src
   else{world.savedBents=world.savedBents||{};const k=(d.x>>4)+','+(d.z>>4);const l=world.savedBents[k]||(world.savedBents[k]=[]);const i=cidx(d.x&15,d.y,d.z&15);const j=l.findIndex(e=>+e[0]===i);const be={items:src.items||[]};if(j>=0)l[j]=[i,be];else l.push([i,be])}}
 function mpBentList(){const out={};const src=world.savedBents||{};for(const k in src)out[k]=src[k];for(const c of world.chunks.values()){if(c.bents.size)out[c.cx+','+c.cz]=Array.from(c.bents)}return out}
 function mpApplyBents(bents){for(const k in bents){const [cx,cz]=k.split(',').map(Number);for(const [i,be] of bents[k]){const x=cx*16+((+i)>>11),y=(+i)&127,z=cz*16+(((+i)>>7)&15);mpApplyBE({x,y,z,dim:world.dimKey,be})}}}
+// Player versus player is on in public servers only; private rooms stay peaceful
+function pvpOn(){return !!(MP.active&&MP.public)}
 function mpRelay(from,d){for(const c of MP.conns)if(c!==from&&c.open)c.send(d)}
 function mpSend(d){for(const c of MP.conns)if(c.open)c.send(d)}
 function mpRemote(id,name){if(!id)return null;if(MP.public)name=publicAlias(id);else name=String(name||'Player').replace(/[^a-z0-9 _-]/gi,'').slice(0,16)||'Player';let r=MP.remote.get(id);if(!r){r=new RemotePlayer(id,name);MP.remote.set(id,r);entities.push(r);if(game.state==='playing')showMessage(name+' joined')}else if(name)r.name=name;return r}
@@ -4194,11 +4200,13 @@ function mpNameTags(){const box=$('nametags');const W=R.canvas.clientWidth,H=R.c
     el.style.display='block';el.textContent=r.name;el.style.left=((cx+1)/2*W)+'px';el.style.top=((1-cy)/2*H)+'px';el.style.fontSize=Math.max(9,16-d/4)+'px'}}
 function mpChat(text){if(MP.public){showMessage('Public chat is disabled. Use a private room with people you know.');return}text=String(text||'').replace(/[\u0000-\u001f\u007f]/g,'').slice(0,120);if(!text)return;showMessage('<'+MP.name+'> '+text);mpSend({t:'c',name:MP.name,text})}
 function mpLeave(quiet){lobbyStop();MP.public=false;MP.pendingItems=[];if(MP.peer){try{mpSend({t:'leave',id:MP.myId})}catch(e){}try{MP.peer.destroy()}catch(e){}}for(const r of MP.remote.values())r.dead=true;MP.remote.clear();MP.conns=[];MP.peer=null;MP.active=false;MP.host=false;const nt=$('nametags');if(nt)nt.innerHTML='';if(!quiet)mpStatus('')}
-class RemotePlayer extends Entity{constructor(id,name){super(0,-100,0);this.pid=id;this.name=name;this.w=0.6;this.h=1.8;this.tx=0;this.ty=-100;this.tz=0;this.tyaw=0;this.walkT=0;this.walkAmp=0;this.held=0;this.sneak=false;this.remote=true;this.hasTarget=false;this.hidden=false}
+class RemotePlayer extends Entity{constructor(id,name){super(0,-100,0);this.pid=id;this.name=name;this.w=0.6;this.h=1.8;this.hurtT=0;this.invT=0;this.lastDmg=0;this.tx=0;this.ty=-100;this.tz=0;this.tyaw=0;this.walkT=0;this.walkAmp=0;this.held=0;this.sneak=false;this.remote=true;this.hasTarget=false;this.hidden=false}
   setTarget(d){if(!this.hasTarget){this.x=d.x;this.y=d.y;this.z=d.z;this.yaw=d.yaw;this.hasTarget=true}this.tx=d.x;this.ty=d.y;this.tz=d.z;this.tyaw=d.yaw;this.pitch=d.pitch||0;this.held=d.held||0;this.sneak=!!d.sneak;if(d.name)this.name=d.name;this.hidden=!!d.dead;this.armor=d.armor||[0,0,0,0];if(d.sw&&!this.swPrev)this.swingT=0.4;this.swPrev=!!d.sw}
-  update(dt){this.age+=dt;if(!this.hasTarget)return;const k=Math.min(1,dt*12);const ox=this.x,oz=this.z;this.x+=(this.tx-this.x)*k;this.y+=(this.ty-this.y)*k;this.z+=(this.tz-this.z)*k;let dy=this.tyaw-this.yaw;dy=Math.atan2(Math.sin(dy),Math.cos(dy));this.yaw+=dy*k;
+  interact(){return false}
+  get hittable(){return pvpOn()&&!this.hidden}
+  update(dt){this.age+=dt;if(this.hurtT>0)this.hurtT-=dt;if(this.invT>0)this.invT-=dt;if(!this.hasTarget)return;const k=Math.min(1,dt*12);const ox=this.x,oz=this.z;this.x+=(this.tx-this.x)*k;this.y+=(this.ty-this.y)*k;this.z+=(this.tz-this.z)*k;let dy=this.tyaw-this.yaw;dy=Math.atan2(Math.sin(dy),Math.cos(dy));this.yaw+=dy*k;
     const hs=Math.hypot(this.x-ox,this.z-oz)/Math.max(dt,1e-3);this.walkAmp+=(Math.min(1,hs/3)-this.walkAmp)*Math.min(1,dt*8);this.walkT+=hs*dt*1.6;if(this.swingT>0)this.swingT-=dt}
-  render(EB,EBI){if(this.hidden||!this.hasTarget)return;const l=lightAt(this.x,this.y+1,this.z);const s=1/16;const N=TEX.noise;const part=(b,px,py,pz,rx,ry,rz,tiles,col)=>{const tf=partTF(this.x,this.y,this.z,this.yaw,px,py,pz,rx,ry,rz,s,0);EB.box(tf,b[0],b[1],b[2],b[3],b[4],b[5],tiles,col,l,true)};
+  render(EB,EBI){if(this.hidden||!this.hasTarget)return;const l=lightAt(this.x,this.y+1,this.z);const s=1/16;const N=TEX.noise;const hurt=this.hurtT>0;const part=(b,px,py,pz,rx,ry,rz,tiles,col)=>{const tf=partTF(this.x,this.y,this.z,this.yaw,px,py,pz,rx,ry,rz,s,0);EB.box(tf,b[0],b[1],b[2],b[3],b[4],b[5],tiles,hurt?[Math.min(1,col[0]+0.5),col[1]*0.4,col[2]*0.4]:col,l,true)};
     const swing=Math.sin(this.walkT)*this.walkAmp*0.9;const skin=[0.85,0.66,0.52],shirt=[0.2,0.62,0.85],pants=[0.25,0.3,0.6];const t=2;
     part([-t,-12,-t,t,0,t],-2,12,0,swing,0,0,N,pants);part([-t,-12,-t,t,0,t],2,12,0,-swing,0,0,N,pants);
     part([-4,12,-2,4,24,2],0,0,0,this.sneak?0.35:0,0,0,N,shirt);
