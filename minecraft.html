@@ -350,8 +350,8 @@ label.lb{font-size:13px;color:#a0a0a0;align-self:flex-start;margin-left:calc(50%
   <h2 class="sh">Controls</h2>
   <div class="ctl">
     <span><b>W A S D</b> Move (<b>Up/Down arrows</b> also move)</span><span><b>Mouse</b> Look; <b>Left/Right arrows</b> turn, <b>PgUp/PgDn</b> look up/down</span>
-    <span><b>Space</b> Jump / swim up</span><span><b>Shift</b> Sneak (won't fall off edges) / get off a horse</span>
-    <span><b>Ctrl</b> or double-tap W: Sprint</span><span><b>Left click</b> Mine / attack</span>
+    <span><b>Space</b> or <b>Ctrl</b> Jump / swim up</span><span><b>Shift</b> Sneak (won't fall off edges) / get off a horse</span>
+    <span><b>Ctrl</b> (held) or double-tap W: Sprint</span><span><b>Left click</b> Mine / attack</span>
     <span><b>Right click</b> Place / use / eat</span><span><b>Scroll / 1-9</b> Select hotbar slot</span>
     <span><b>E</b> Inventory</span><span><b>Q</b> Drop item</span>
     <span><b>Middle click</b> Pick block (Creative)</span><span><b>F3</b> Debug info</span>
@@ -2407,7 +2407,7 @@ function updatePlayer(dt){
   const guiOpen=game.gui!==null||game.paused;
   let fwd=0,strafe=0;if(!guiOpen){if(keys.KeyW||keys.ArrowUp)fwd+=1;if(keys.KeyS||keys.ArrowDown)fwd-=1;if(keys.KeyA)strafe-=1;if(keys.KeyD)strafe+=1}
   const wantSneak=!guiOpen&&(keys.ShiftLeft||keys.ShiftRight);{const hs=heldStack();const hg=hs&&ITEMS[hs.id].gun;const sc=!!(hg&&hg.scope&&wantSneak&&!p.riding);if(sc!==!!p.scoped){p.scoped=sc;$('scopeov').style.display=sc?'block':'none';if(sc)playSound('pop',0.3,0.6)}}const inWater=entityInWater(p),inLava=entityInLava(p);p.inWater=inWater;
-  if(p.riding){const h=p.riding;if(h.dead||h.dying||wantSneak){h.dismount()}else{h.ride(dt,fwd,strafe,keys.Space&&!guiOpen,keys.ControlLeft||p.sprintReq);p.sprinting=false;spearCharge(dt,h)}}
+  if(p.riding){const h=p.riding;if(h.dead||h.dying||wantSneak){h.dismount()}else{h.ride(dt,fwd,strafe,jumpKey()&&!guiOpen,keys.ControlLeft||p.sprintReq);p.sprinting=false;spearCharge(dt,h)}}
   const headId=world.getBlock(floor(p.x),floor(p.y+p.eyeHeight),floor(p.z));const headWater=headId===8;
   const ladder=onLadder(p);
   if(p.flying&&!creative)p.flying=false;
@@ -2425,12 +2425,12 @@ function updatePlayer(dt){
   const tx=mx*speed,tz=mz*speed;
   // ---- flying ----
   if(p.riding){p.wasInWater=inWater}
-  else if(p.flying){p.vx+=(tx-p.vx)*Math.min(1,dt*8);p.vz+=(tz-p.vz)*Math.min(1,dt*8);let ty=0;if(keys.Space&&!guiOpen)ty=speed*0.8;if((keys.ShiftLeft||keys.ShiftRight)&&!guiOpen)ty=-speed*0.8;p.vy+=(ty-p.vy)*Math.min(1,dt*8);
-    moveEntity(p,p.vx*dt,p.vy*dt,p.vz*dt,0);if(p.onGround&&!keys.Space){p.flying=false}p.fallDist=0;p.gliding=false}
+  else if(p.flying){p.vx+=(tx-p.vx)*Math.min(1,dt*8);p.vz+=(tz-p.vz)*Math.min(1,dt*8);let ty=0;if(jumpKey()&&!guiOpen)ty=speed*0.8;if((keys.ShiftLeft||keys.ShiftRight)&&!guiOpen)ty=-speed*0.8;p.vy+=(ty-p.vy)*Math.min(1,dt*8);
+    moveEntity(p,p.vx*dt,p.vy*dt,p.vz*dt,0);if(p.onGround&&!jumpKey()){p.flying=false}p.fallDist=0;p.gliding=false}
   else{
     // horizontal
     const acc=p.onGround?(BLOCKS[world.getBlock(floor(p.x),floor(p.y-0.1),floor(p.z))].slippery?1.5:14):inFluid?4:2.5;if(!p.gliding){p.vx+=(tx-p.vx)*Math.min(1,acc*dt);p.vz+=(tz-p.vz)*Math.min(1,acc*dt)}
-    const jumpHeld=keys.Space&&!guiOpen;
+    const jumpHeld=jumpKey()&&!guiOpen;
     if(inFluid){p.vy-=(inLava?12:8)*dt;p.vy*=Math.pow(0.8,dt*20);if(jumpHeld){p.vy+=40*dt;if(p.vy>3.5)p.vy=3.5;
         // jump out of water at surface
         const above=world.getBlock(floor(p.x),floor(p.y+p.h*0.6)+1,floor(p.z));if(!headWater&&above===0&&p.collidedH)p.vy=6}
@@ -3890,6 +3890,8 @@ function setupMenus(){
   $('btnKeepInv').onclick=()=>{opts.keepInv=!opts.keepInv;$('btnKeepInv').textContent='Keep Inventory on Death: '+(opts.keepInv?'ON':'OFF');saveOpts()};$('btnKeepInv').textContent='Keep Inventory on Death: '+(opts.keepInv?'ON':'OFF');
   $('btnClouds').onclick=()=>{opts.clouds=!opts.clouds;$('btnClouds').textContent='Clouds: '+(opts.clouds?'ON':'OFF')};$('btnClouds').textContent='Clouds: '+(opts.clouds?'ON':'OFF');
 }
+// Space or either Ctrl jumps (Ctrl also sprints, so holding it while running sprint-jumps)
+function jumpKey(){return !!(keys.Space||keys.ControlLeft||keys.ControlRight)}
 function pauseGame(){if(game.state!=='playing')return;game.paused=true;showMenu('pauseMenu');document.exitPointerLock&&document.exitPointerLock();mouseL=mouseR=false;saveWorld();syncMobileControls()}
 function resumeGame(){game.paused=false;hideMenus();syncMobileControls();lockPointer()}
 function lockPointer(){if(game.state!=='playing'||game.gui||game.paused||player.dead)return;const c=$('gl');if(game.noLock||document.pointerLockElement===c)return;
