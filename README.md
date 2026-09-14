@@ -5,6 +5,8 @@ Iron Games is a free browser arcade by Daniele Bros at [irongames.win](https://i
 | Entry point | Game |
 |---|---|
 | `minecraft.html` | **Ironcraft** — voxel building, exploration and survival |
+| `ironhook.html` | **Iron Hook** — relaxing fishing: cast, hook, reel, 24 species across five waters |
+| `ironjaws.html` | **Iron Jaws** — Hunt-the-Wumpus style shark hunt through twenty sea caves |
 | `ww2tanks.html` | **Iron Front** — top-down tank action |
 | `command.html` | **Iron Battle** — real-time tactical strategy |
 

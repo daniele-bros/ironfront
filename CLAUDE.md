@@ -25,6 +25,8 @@ dependencies — open the file in a browser to play.
 - `ww2tanks.html` — **Iron Front**, WW2 top-down tank combat.
 - `command.html` — **Iron Battle**, flat-map real-time strategy.
 - `minecraft.html` — **Ironcraft**, Minecraft-style voxel survival (WebGL2).
+- `ironhook.html` — **Iron Hook**, canvas fishing game (cast, sink, bite, reel minigame, species log, shop).
+- `ironjaws.html` — **Iron Jaws**, Hunt-the-Wumpus style shark hunt on the classic 20-cave dodecahedron.
 
 ## Verifying changes
 
