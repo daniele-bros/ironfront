@@ -8,7 +8,7 @@
 - [Iron Battle](https://irongames.win/command.html): real-time strategy on a flat tactical map. Recruit squads and tanks, secure objectives, manage supply, launch rockets and aircraft, and command your army across a 1,000-operation campaign.
 - [Ironcraft](https://irongames.win/minecraft.html): Minecraft-style voxel survival built with WebGL. Mine, craft, build, farm and fight through the Overworld, Nether and End. Villages, trial chambers, ancient cities and the Dreadwarden, Iron Men, enchanting, netherite, elytra, mace and tridents. Fun mods add EF1 to EF5 tornadoes and thunderstorms, horror monsters, zombie apocalypse waves and guns. Free public multiplayer servers connect players directly through the browser with shared blocks, items, chests, weather and chat.
 - [Iron Hook](https://irongames.win/ironhook.html): a relaxing fishing game. Cast from an iron boat, sink the hook, set it on the bite and win the reel-in. 24 species across a pond, river, lake, sea and abyss, day and night, rain, rods and bait to earn.
-- [Iron Jaws](https://irongames.win/ironjaws.html): a shark hunt in the Hunt the Wumpus tradition. Twenty linked sea caves, an armoured shark you can only smell one cave away, whirlpools, octopuses, five harpoons, limited air, three difficulties.
+- [Iron Jaws](https://irongames.win/ironjaws.html): a shark hunt in the Hunt the Wumpus tradition. Twenty linked sea caves, an armoured shark you can only smell one cave away, whirlpools, octopuses, sonar pings, map hints, limited air, three difficulties.
 
 ## Guides
 

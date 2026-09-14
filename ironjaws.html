@@ -69,13 +69,13 @@ h1{font-family:'Oswald',sans-serif;font-size:clamp(40px,9vw,80px);letter-spacing
   <canvas id="c"></canvas>
   <div id="side">
     <h2 class="t">IRON JAWS</h2>
-    <div class="stats"><span>CAVE <b id="sCave">1</b></span><span>HARPOONS <b id="sHarp">5</b></span><span>AIR <b id="sAir">40</b></span><span id="sDiff">HUNTER</span></div>
+    <div class="stats"><span>CAVE <b id="sCave">1</b></span><span>HARPOONS <b id="sHarp">5</b></span><span>AIR <b id="sAir">40</b></span><span>SONAR <b id="sSonar">3</b></span><span id="sDiff">HUNTER</span></div>
     <div id="log"></div>
     <div class="acts">
       <div class="hint" id="hint">Swim to a neighbouring cave:</div>
       <div class="row" id="moveRow"></div>
-      <div class="row"><button class="ab" id="bHarp">⚔ HARPOON</button><button class="ab" id="bFire" disabled>FIRE</button></div>
-      <div class="hint">Keys: <b>1 2 3</b> swim · <b>H</b> harpoon mode, then 1 2 3 to plot the path · <b>Enter</b> fire · <b>Esc</b> cancel</div>
+      <div class="row"><button class="ab" id="bHarp">⚔ HARPOON</button><button class="ab" id="bFire" disabled>FIRE</button><button class="ab" id="bSonar">◎ SONAR</button></div>
+      <div class="hint">Keys: <b>1 2 3</b> swim · <b>H</b> harpoon mode, then 1 2 3 to plot the path · <b>Enter</b> fire · <b>S</b> sonar, then 1 2 3 · <b>Esc</b> cancel</div>
     </div>
   </div>
 </div>
@@ -83,7 +83,7 @@ h1{font-family:'Oswald',sans-serif;font-size:clamp(40px,9vw,80px);letter-spacing
 <div id="title" class="screen">
   <h1>IRON JAWS</h1>
   <div class="sub">Hunt the shark before it hunts you</div>
-  <p style="max-width:560px;font-size:13px;line-height:1.8">Twenty sea caves, linked by dark tunnels. Somewhere in them sleeps Iron Jaws, an armoured shark the size of a boat. You are a diver with five harpoons and forty breaths of air. You cannot see it. You can only smell the blood in the water when it is one cave away.</p>
+  <p style="max-width:560px;font-size:13px;line-height:1.8">Twenty sea caves, linked by dark tunnels. Somewhere in them sleeps Iron Jaws, an armoured shark the size of a boat. You are a diver with a few harpoons, a few sonar pings and a limited supply of air. You cannot see it. You can only smell the blood in the water when it is one cave away.</p>
   <div class="diff"><button data-d="0">ROOKIE</button><button data-d="1" class="on">HUNTER</button><button data-d="2">NIGHTMARE</button></div>
   <div class="hint" id="diffHint" style="margin-top:6px">Hunter: the classic. The shark sleeps until a harpoon misses, then it wakes and moves.</div>
   <button class="bigbtn" id="bPlay">⚓ DIVE</button>
@@ -91,6 +91,8 @@ h1{font-family:'Oswald',sans-serif;font-size:clamp(40px,9vw,80px);letter-spacing
     <b>SENSES</b> · in every cave you learn what is next door. <b>Blood in the water</b>: the shark is in an adjacent cave. <b>A tugging current</b>: a whirlpool. <b>Slapping tentacles</b>: a giant octopus.<br>
     <b>SWIM</b> · click a neighbouring cave. Swim into the shark and you are eaten. Swim into a whirlpool and you are gone. An octopus grabs you and drops you somewhere random.<br>
     <b>HARPOON</b> · a harpoon flies through up to five caves along a path you plot. Hit the shark and you win. Miss, and the shark wakes: it usually moves, sometimes into your cave.<br>
+    <b>SONAR</b> · on Rookie and Hunter you carry a few sonar pings: pick a neighbouring cave and learn exactly what is in it. Spend them when the safe caves run out.<br>
+    <b>MAP HELP</b> · on Rookie and Hunter, caves you have proven safe get a green ring, caves that might hold something nasty get yellow dashes, and when the blood trail only fits one cave that cave turns red. Swim through the green, harpoon the red.<br>
     <b>AIR</b> · every swim costs a breath. Run out and you surface empty-handed. Fewer breaths and more harpoons left mean a better score.
   </div>
 </div>
@@ -101,9 +103,9 @@ h1{font-family:'Oswald',sans-serif;font-size:clamp(40px,9vw,80px);letter-spacing
 /* the classic twenty-cave dodecahedron: every cave has three tunnels */
 const ADJ=[[1,4,7],[0,2,9],[1,3,11],[2,4,13],[0,3,5],[4,6,14],[5,7,16],[0,6,8],[7,9,17],[1,8,10],[9,11,18],[2,10,12],[11,13,19],[3,12,14],[5,13,15],[14,16,19],[6,15,17],[8,16,18],[10,17,19],[12,15,18]];
 const POS=[];{const r=d=>d*Math.PI/180;for(let i=0;i<5;i++)POS[i]=[Math.cos(r(-90+72*i)),Math.sin(r(-90+72*i)),1];for(let k=0;k<10;k++)POS[5+k]=[Math.cos(r(-90+(k-2)*36)),Math.sin(r(-90+(k-2)*36)),0.64];const inner={16:-126,17:-54,18:18,19:90,15:162};for(const n in inner)POS[n]=[Math.cos(r(inner[n])),Math.sin(r(inner[n])),0.3]}
-const DIFFS=[{n:'ROOKIE',hint:'Rookie: the shark never moves, whirlpools and octopuses are marked once you have sensed them twice.',wake:0,roam:0,air:60,harp:6},
-  {n:'HUNTER',hint:'Hunter: the classic. The shark sleeps until a harpoon misses, then it wakes and moves.',wake:0.75,roam:0,air:40,harp:5},
-  {n:'NIGHTMARE',hint:'Nightmare: the shark prowls on its own every few turns and comes toward you when it smells you.',wake:1,roam:0.4,air:34,harp:4}];
+const DIFFS=[{n:'ROOKIE',hint:'Rookie: the shark never moves, one whirlpool, eight sonar pings. Safe caves are ringed green, and once your senses pin the shark down its cave turns red.',wake:0,roam:0,air:100,harp:7,deduce:true,safe:true,sonar:8,whirl:1},
+  {n:'HUNTER',hint:'Hunter: the shark sleeps until a harpoon misses, then wakes and moves (never straight into your cave). One whirlpool, five sonar pings. Safe caves are ringed green and the shark is marked once you have pinned it down.',wake:0.75,roam:0,air:80,harp:6,deduce:true,safe:true,sonar:5,whirl:1},
+  {n:'NIGHTMARE',hint:'Nightmare: the shark prowls on its own, comes toward you when it smells you, and can come into your cave. No help from the map.',wake:1,roam:0.4,air:50,harp:5,deduce:false,safe:false,sonar:0,whirl:2}];
 let diff=1;
 const cv=document.getElementById('c'),ctx=cv.getContext('2d');let W=0,H=0;
 function resize(){const r=cv.getBoundingClientRect();const d=Math.min(2,window.devicePixelRatio||1);W=r.width;H=r.height;cv.width=W*d;cv.height=H*d;ctx.setTransform(d,0,0,d,0,0)}
@@ -120,36 +122,47 @@ function sfx(n){if(!AU.ctx)return;const c=AU.ctx,t=c.currentTime;const tone=(typ
   switch(n){case 'swim':noise(0.5,500,0.25);tone('sine',180,120,0.4,0.08);break;case 'ping':tone('sine',1400,1000,0.5,0.12);break;case 'heart':tone('sine',60,40,0.25,0.5);setTimeout(()=>tone('sine',55,35,0.25,0.35),180);break;case 'harp':noise(0.3,2500,0.3);tone('triangle',900,300,0.3,0.15);break;case 'hit':noise(0.6,300,0.6);tone('sawtooth',120,40,0.8,0.5);break;case 'win':[523,659,784,1046,1318].forEach((f,i)=>setTimeout(()=>tone('triangle',f,f,0.35,0.25),i*110));break;case 'die':tone('sawtooth',300,30,1.2,0.5);noise(1,200,0.5);break;case 'octo':noise(0.7,700,0.4);tone('sine',400,900,0.6,0.15);break;case 'whirl':noise(1.2,400,0.5);tone('sine',500,60,1.2,0.3);break;case 'growl':tone('sawtooth',70,45,0.9,0.35);break}}
 
 /* ---------- game ---------- */
-function newGame(){const D=DIFFS[diff];const caves=[...Array(20).keys()].sort(()=>Math.random()-0.5);G.me=caves[0];G.shark=caves[1];G.whirl=[caves[2],caves[3]];G.octo=[caves[4],caves[5]];G.harp=D.harp;G.air=D.air;G.visited=new Set([G.me]);G.known={};G.senses={};G.mode='move';G.path=[];G.over=false;G.turn=0;G.awake=false;G.anim=[];G.state='play';
+function newGame(){const D=DIFFS[diff];const caves=[...Array(20).keys()].sort(()=>Math.random()-0.5);G.me=caves[0];G.shark=caves[1];G.whirl=D.whirl===1?[caves[2]]:[caves[2],caves[3]];G.octo=[caves[4],caves[5]];G.harp=D.harp;G.air=D.air;G.sonar=D.sonar;G.known={};G.visited=new Set([G.me]);G.senses={};G.mode='move';G.path=[];G.over=false;G.turn=0;G.awake=false;G.anim=[];G.state='play';
   $('log').innerHTML='';log('You drop into cave '+(G.me+1)+'. The water is black and cold. Iron Jaws is down here somewhere.','sys');sense();ui();if(window.trackEvent)trackEvent('game_start',{game:'Iron Jaws',difficulty:D.n})}
 function log(s,cls){const p=document.createElement('p');p.textContent=s;if(cls)p.className=cls;const l=$('log');l.appendChild(p);l.scrollTop=l.scrollHeight}
-function sense(){const n=ADJ[G.me];const s={shark:n.includes(G.shark),whirl:n.some(c=>G.whirl.includes(c)),octo:n.some(c=>G.octo.includes(c))};G.senses[G.me]=s;
+function sense(){const n=ADJ[G.me];const before=proven().shark;const s={shark:n.includes(G.shark),whirl:n.some(c=>G.whirl.includes(c)),octo:n.some(c=>G.octo.includes(c))};G.senses[G.me]=s;
   if(s.shark){log('You smell blood in the water. Something huge is breathing in the dark, one cave away.','sense');sfx('heart');G.heart=3}
   if(s.whirl)log('You feel a current tugging at your fins. A whirlpool is close.','sense');
   if(s.octo)log('Tentacles slap wet rock somewhere near.','sense');
-  if(!s.shark&&!s.whirl&&!s.octo)log('Quiet. Only your own bubbles.','sys');
+  if(!s.shark&&!s.whirl&&!s.octo)log('Quiet. Only your own bubbles. Every cave next to this one is safe.','sys');
+  const now=proven().shark;if(now!==null&&now!==before)log('The blood trail only fits one cave: '+(now+1)+'. Plot a harpoon there.','good');
   // rookie marks hazards it has sensed from two different caves
-  if(diff===0)for(const c of n){const cnt=Object.keys(G.senses).filter(k=>ADJ[+k].includes(c)&&(G.senses[k].whirl||G.senses[k].octo)).length;if(cnt>=2&&(G.whirl.includes(c)||G.octo.includes(c)))G.known[c]=G.whirl.includes(c)?'whirl':'octo'}}
+  if(diff===0)for(const c of n){const cnt=Object.keys(G.senses).filter(k=>ADJ[+k].includes(c)&&(G.senses[k].whirl||G.senses[k].octo)).length;if(cnt>=2&&(G.whirl.includes(c)||G.octo.includes(c))&&!G.known[c])G.known[c]=G.whirl.includes(c)?'whirl':'octo'}}
+function proven(){const D=DIFFS[diff];const safe=new Set(),shark=new Set();if(!D.safe)return {safe,risky:new Set(),shark:null};
+  for(const k in G.senses){const s=G.senses[k];if(!s.whirl&&!s.octo)for(const c of ADJ[+k])safe.add(c)}
+  for(const k in G.senses)safe.add(+k);for(const c in G.known){if(G.known[c]==='clear')safe.add(+c)}
+  const risky=new Set();if(D.safe)for(const k in G.senses){const s=G.senses[k];if(s.whirl||s.octo||s.shark)for(const c of ADJ[+k])if(!safe.has(c))risky.add(c)}
+  let cand=null;if(D.deduce){cand=new Set([...Array(20).keys()].filter(c=>!G.visited.has(c)));for(const k in G.senses){const s=G.senses[k];for(const c of [...cand]){const adj=ADJ[+k].includes(c);if(s.shark!==adj&&(adj||s.shark))cand.delete(c)}}}
+  const pinned=Object.keys(G.known).find(c=>G.known[c]==='shark');
+  return {safe,risky,shark:pinned!==undefined?+pinned:(cand&&cand.size===1?[...cand][0]:null)}}
 function move(to){if(G.over||G.mode!=='move')return;if(!ADJ[G.me].includes(to))return;G.air--;G.turn++;G.anim.push({t:'swim',from:G.me,to,age:0});G.me=to;G.visited.add(to);sfx('swim');log('You swim into cave '+(to+1)+'.','sys');
   if(to===G.shark){eaten('You swim straight into the open mouth of Iron Jaws.');return}
   if(G.whirl.includes(to)){sfx('whirl');end(false,'WHIRLPOOL','The floor of cave '+(to+1)+' is a spinning throat of water. It takes you down and does not give you back.');return}
-  if(G.octo.includes(to)){sfx('octo');let d;do{d=Math.floor(Math.random()*20)}while(d===to);log('A giant octopus wraps you in its arms, carries you through the dark and drops you in cave '+(d+1)+'.','bad');G.me=d;G.visited.add(d);G.anim.push({t:'swim',from:to,to:d,age:0});
+  if(G.octo.includes(to)){sfx('octo');let d;do{d=Math.floor(Math.random()*20)}while(d===to||(diff<2&&(d===G.shark||G.whirl.includes(d)||G.octo.includes(d))));log('A giant octopus wraps you in its arms, carries you through the dark and drops you in cave '+(d+1)+'.','bad');G.me=d;G.visited.add(d);G.anim.push({t:'swim',from:to,to:d,age:0});
     if(d===G.shark){eaten('It dropped you in the shark\'s den.');return}if(G.whirl.includes(d)){sfx('whirl');end(false,'WHIRLPOOL','The octopus dropped you into a whirlpool. Bad luck, diver.');return}if(G.octo.includes(d)){log('Another octopus is here. It flings you on again.','bad');move2(d);return}}
   afterTurn()}
 function move2(from){let d;do{d=Math.floor(Math.random()*20)}while(d===from||G.octo.includes(d));G.me=d;G.visited.add(d);G.anim.push({t:'swim',from,to:d,age:0});log('You land in cave '+(d+1)+'.','sys');if(d===G.shark){eaten('Straight into the shark.');return}if(G.whirl.includes(d)){end(false,'WHIRLPOOL','Dropped into a whirlpool.');return}afterTurn()}
 function afterTurn(){if(G.over)return;const D=DIFFS[diff];
-  if(D.roam>0&&Math.random()<D.roam){const n=ADJ[G.shark];const toward=n.includes(G.me)&&Math.random()<0.5?G.me:n[Math.floor(Math.random()*3)];G.shark=toward;if(Math.random()<0.5){log('Something big shifts in the tunnels. Rock grinds.','sense');sfx('growl')}if(G.shark===G.me){eaten('Iron Jaws comes through the tunnel behind you.');return}}
+  if(D.roam>0&&Math.random()<D.roam){for(const k in G.senses)G.senses[k].shark=false;for(const c in G.known)if(G.known[c]==='shark')delete G.known[c];const n=ADJ[G.shark];const toward=n.includes(G.me)&&Math.random()<0.5?G.me:n[Math.floor(Math.random()*3)];G.shark=toward;if(Math.random()<0.5){log('Something big shifts in the tunnels. Rock grinds.','sense');sfx('growl')}if(G.shark===G.me){eaten('Iron Jaws comes through the tunnel behind you.');return}}
   if(G.air<=0){end(false,'OUT OF AIR','Your lungs burn. You kick for the surface with nothing to show but the story. Iron Jaws is still down there.');return}
   if(G.air===8)log('Air is getting thin. Eight breaths left.','bad');
   sense();ui()}
-function toggleHarp(){if(G.over)return;if(G.mode==='harp'){G.mode='move';G.path=[];log('Harpoon lowered.','sys')}else{if(G.harp<=0){log('No harpoons left.','bad');return}G.mode='harp';G.path=[];log('Harpoon raised. Plot its path: click up to five caves, each joined to the last, then FIRE.','sys')}ui()}
+function toggleSonar(){if(G.over)return;if(G.mode==='sonar'){G.mode='move';log('Sonar off.','sys');ui();return}if(G.sonar<=0){log('No sonar pings left.','bad');return}G.mode='sonar';G.path=[];log('Sonar ready. Pick a neighbouring cave to scan.','sys');ui()}
+function ping(c){if(G.mode!=='sonar'||!ADJ[G.me].includes(c))return;G.sonar--;G.mode='move';sfx('ping');const what=c===G.shark?'shark':G.whirl.includes(c)?'whirl':G.octo.includes(c)?'octo':'clear';G.known[c]=what;
+  if(what==='clear')log('Sonar: cave '+(c+1)+' is clear. Nothing lives there.','good');else if(what==='shark')log('Sonar: a huge shape fills cave '+(c+1)+'. That is Iron Jaws.','sense');else if(what==='whirl')log('Sonar: cave '+(c+1)+' churns. A whirlpool.','sense');else log('Sonar: something with many arms is coiled in cave '+(c+1)+'.','sense');ui()}
+function toggleHarp(){if(G.over)return;if(G.mode==='harp'){G.mode='move';G.path=[];log('Harpoon lowered.','sys')}else{G.mode='move';if(G.harp<=0){log('No harpoons left.','bad');return}G.mode='harp';G.path=[];log('Harpoon raised. Plot its path: click up to five caves, each joined to the last, then FIRE.','sys')}ui()}
 function plot(c){if(G.mode!=='harp')return;const last=G.path.length?G.path[G.path.length-1]:G.me;if(!ADJ[last].includes(c)||G.path.length>=5)return;G.path.push(c);ui()}
 function fire(){if(G.mode!=='harp'||!G.path.length||G.over)return;G.harp--;G.turn++;sfx('harp');const path=G.path.slice();G.mode='move';G.path=[];G.anim.push({t:'harp',path:[G.me,...path],age:0});
   let hit=false,self=false;for(const c of path){if(c===G.shark){hit=true;break}if(c===G.me){self=true;break}}
   if(hit){setTimeout(()=>{sfx('hit');end(true,'IRON JAWS IS DEAD','The harpoon goes in behind the gill plate. The water goes red, then still. You surface with '+G.air+' breaths and '+G.harp+' harpoon'+(G.harp===1?'':'s')+' to spare.')},500);return}
   if(self){end(false,'HARPOONED YOURSELF','The harpoon curls back through the tunnels and finds the only soft thing in the caves: you.');return}
   log('The harpoon clatters off rock somewhere in the dark. '+G.harp+' left.','bad');
-  const D=DIFFS[diff];if(Math.random()<D.wake){G.awake=true;const n=ADJ[G.shark];G.shark=n[Math.floor(Math.random()*3)];log('The noise wakes it. You hear a tail the size of a door sweep through a tunnel.','sense');sfx('growl');if(G.shark===G.me){setTimeout(()=>eaten('It comes straight for the sound.'),600);return}}
+  const D=DIFFS[diff];if(Math.random()<D.wake){G.awake=true;const n=ADJ[G.shark].filter(c=>c!==G.me||diff===2);G.shark=n[Math.floor(Math.random()*n.length)];for(const k in G.senses)G.senses[k].shark=false;for(const c in G.known)if(G.known[c]==='shark')delete G.known[c];log('The noise wakes it. You hear a tail the size of a door sweep through a tunnel.','sense');sfx('growl');if(G.shark===G.me){setTimeout(()=>eaten('It comes straight for the sound.'),600);return}}
   if(G.harp<=0)log('That was your last harpoon. All you can do now is stay alive.','bad');
   sense();ui()}
 function eaten(why){sfx('die');end(false,'EATEN',why+' The last thing you see is a mouth full of iron.')}
@@ -159,15 +172,16 @@ function end(win,title,text){if(G.over)return;G.over=true;G.state='end';const D=
 
 /* ---------- ui ---------- */
 function ui(){$('sCave').textContent=G.me+1;$('sHarp').textContent=G.harp;$('sAir').textContent=G.air;$('sDiff').textContent=DIFFS[diff].n;const row=$('moveRow');row.innerHTML='';const last=G.mode==='harp'&&G.path.length?G.path[G.path.length-1]:G.me;
-  ADJ[last].forEach((c,i)=>{const b=document.createElement('button');b.className='ab';b.textContent=(G.mode==='harp'?'→ ':'')+'CAVE '+(c+1);b.disabled=G.over||(G.mode==='harp'&&G.path.length>=5);b.onclick=()=>{initAudio();G.mode==='harp'?plot(c):move(c)};row.appendChild(b)});
-  $('hint').textContent=G.mode==='harp'?('Harpoon path: '+(G.path.length?G.path.map(c=>c+1).join(' → '):'(none yet)')+' — pick the next cave or FIRE'):'Swim to a neighbouring cave:';
+  ADJ[last].forEach((c,i)=>{const b=document.createElement('button');b.className='ab';b.textContent=(G.mode==='harp'?'→ ':G.mode==='sonar'?'◎ ':'')+'CAVE '+(c+1);b.disabled=G.over||(G.mode==='harp'&&G.path.length>=5);b.onclick=()=>{initAudio();G.mode==='harp'?plot(c):G.mode==='sonar'?ping(c):move(c)};row.appendChild(b)});
+  $('sSonar').textContent=G.sonar;$('bSonar').classList.toggle('on',G.mode==='sonar');$('bSonar').disabled=G.over||G.sonar<=0;$('bSonar').textContent=G.mode==='sonar'?'✕ CANCEL':'◎ SONAR';
+  $('hint').textContent=G.mode==='sonar'?'Sonar: pick the cave to scan':G.mode==='harp'?('Harpoon path: '+(G.path.length?G.path.map(c=>c+1).join(' → '):'(none yet)')+' — pick the next cave or FIRE'):'Swim to a neighbouring cave:';
   $('bHarp').classList.toggle('on',G.mode==='harp');$('bHarp').textContent=G.mode==='harp'?'✕ CANCEL':'⚔ HARPOON';$('bHarp').disabled=G.over;$('bFire').disabled=!(G.mode==='harp'&&G.path.length&&!G.over)}
-$('bHarp').onclick=()=>{initAudio();toggleHarp()};$('bFire').onclick=()=>{initAudio();fire()};
+$('bHarp').onclick=()=>{initAudio();toggleHarp()};$('bSonar').onclick=()=>{initAudio();toggleSonar()};$('bFire').onclick=()=>{initAudio();fire()};
 document.querySelectorAll('.diff button').forEach(b=>b.onclick=()=>{diff=+b.dataset.d;document.querySelectorAll('.diff button').forEach(x=>x.classList.toggle('on',x===b));$('diffHint').textContent=DIFFS[diff].hint});
 $('bPlay').onclick=()=>{initAudio();$('title').classList.add('hidden');resize();newGame()};$('bAgain').onclick=()=>{$('end').classList.add('hidden');newGame()};
-window.addEventListener('keydown',e=>{if(G.state!=='play')return;const k=e.code;if(k==='Digit1'||k==='Digit2'||k==='Digit3'){const i=+k.slice(-1)-1;const last=G.mode==='harp'&&G.path.length?G.path[G.path.length-1]:G.me;const c=ADJ[last][i];initAudio();G.mode==='harp'?plot(c):move(c)}if(k==='KeyH'){initAudio();toggleHarp()}if(k==='Enter'){initAudio();fire()}if(k==='Escape'&&G.mode==='harp')toggleHarp()});
+window.addEventListener('keydown',e=>{if(G.state!=='play')return;const k=e.code;if(k==='Digit1'||k==='Digit2'||k==='Digit3'){const i=+k.slice(-1)-1;const last=G.mode==='harp'&&G.path.length?G.path[G.path.length-1]:G.me;const c=ADJ[last][i];initAudio();G.mode==='harp'?plot(c):G.mode==='sonar'?ping(c):move(c)}if(k==='KeyS'){initAudio();toggleSonar()}if(k==='KeyH'){initAudio();toggleHarp()}if(k==='Enter'){initAudio();fire()}if(k==='Escape'&&G.mode==='harp')toggleHarp();if(k==='Escape'&&G.mode==='sonar')toggleSonar()});
 // click caves on the map
-cv.addEventListener('pointerdown',e=>{if(G.state!=='play'||G.over)return;initAudio();const r=cv.getBoundingClientRect();const mx=e.clientX-r.left,my=e.clientY-r.top;const last=G.mode==='harp'&&G.path.length?G.path[G.path.length-1]:G.me;for(const c of ADJ[last]){const [x,y]=nodeXY(c);if(Math.hypot(mx-x,my-y)<26){G.mode==='harp'?plot(c):move(c);return}}});
+cv.addEventListener('pointerdown',e=>{if(G.state!=='play'||G.over)return;initAudio();const r=cv.getBoundingClientRect();const mx=e.clientX-r.left,my=e.clientY-r.top;const last=G.mode==='harp'&&G.path.length?G.path[G.path.length-1]:G.me;for(const c of ADJ[last]){const [x,y]=nodeXY(c);if(Math.hypot(mx-x,my-y)<26){G.mode==='harp'?plot(c):G.mode==='sonar'?ping(c):move(c);return}}});
 
 /* ---------- render ---------- */
 function nodeXY(i){const [x,y,rr]=POS[i];const R=Math.min(W,H)*0.42;return [W/2+x*rr*R,H/2+y*rr*R]}
@@ -187,13 +201,18 @@ function render(dt){ctx.clearRect(0,0,W,H);const g=ctx.createRadialGradient(W/2,
   // harpoon path preview
   if(G.mode==='harp'&&G.path.length){ctx.strokeStyle='rgba(232,48,48,.9)';ctx.lineWidth=3;ctx.setLineDash([6,5]);ctx.beginPath();let p=nodeXY(G.me);ctx.moveTo(p[0],p[1]);for(const c of G.path){p=nodeXY(c);ctx.lineTo(p[0],p[1])}ctx.stroke();ctx.setLineDash([])}
   // caves
+  const pv=G.over?{safe:new Set(),risky:new Set(),shark:null}:proven();
   for(let i=0;i<20;i++){const [x,y]=nodeXY(i);const vis=G.visited.has(i),adj=near.includes(i)&&!G.over,me=i===G.me;const s=G.senses[i];
+    if(pv.shark===i){ctx.fillStyle='rgba(232,48,48,.35)';ctx.beginPath();ctx.arc(x,y,30,0,7);ctx.fill()}
     ctx.beginPath();ctx.arc(x,y,me?22:18,0,7);ctx.fillStyle=me?'#e8c84a':vis?'#1a4a5a':'#0c2430';ctx.fill();ctx.lineWidth=adj?3:1.5;ctx.strokeStyle=adj?(G.mode==='harp'?'#e83030':'#3ec9c0'):vis?'#3ec9c0':'#1e4a5a';ctx.stroke();
+    if(pv.safe.has(i)&&!vis&&!me){ctx.strokeStyle='#8ff0a0';ctx.lineWidth=2;ctx.beginPath();ctx.arc(x,y,23,0,7);ctx.stroke()}
+    else if(pv.risky.has(i)&&!vis&&!me&&pv.shark!==i){ctx.strokeStyle='#e8c84a';ctx.lineWidth=2;ctx.setLineDash([4,4]);ctx.beginPath();ctx.arc(x,y,23,0,7);ctx.stroke();ctx.setLineDash([])}
+    if(pv.shark===i){ctx.fillStyle='#ff9a8a';ctx.font='700 11px Oswald';ctx.textAlign='center';ctx.fillText('SHARK',x,y-26)}
     if(G.over&&i===G.shark){ctx.fillStyle='#e83030';ctx.beginPath();ctx.arc(x,y,12,0,7);ctx.fill()}
     if(G.over&&G.whirl.includes(i)){ctx.strokeStyle='#8ad';ctx.lineWidth=2;ctx.beginPath();ctx.arc(x,y,9,0,5);ctx.stroke()}
     if(G.over&&G.octo.includes(i)){ctx.fillStyle='#b070d0';ctx.beginPath();ctx.arc(x,y,8,0,7);ctx.fill()}
-    if(!G.over&&G.known[i]){ctx.fillStyle=G.known[i]==='whirl'?'#8ad':'#b070d0';ctx.font='700 12px Oswald';ctx.textAlign='center';ctx.fillText(G.known[i]==='whirl'?'~':'✱',x,y+4)}
-    ctx.fillStyle=me?'#1a1a1a':vis?'#ddd5b0':'#4d6a78';ctx.font=(me?'700 13px':'11px')+' Share Tech Mono';ctx.textAlign='center';ctx.textBaseline='middle';ctx.fillText(i+1,x,y+(G.known[i]&&!G.over?-11:1));
+    if(!G.over&&G.known[i]&&G.known[i]!=='clear'&&G.known[i]!=='shark'){ctx.fillStyle=G.known[i]==='whirl'?'#8ad':'#b070d0';ctx.font='700 12px Oswald';ctx.textAlign='center';ctx.fillText(G.known[i]==='whirl'?'~':'✱',x,y+4)}
+    ctx.fillStyle=me?'#1a1a1a':vis?'#ddd5b0':'#4d6a78';ctx.font=(me?'700 13px':'11px')+' Share Tech Mono';ctx.textAlign='center';ctx.textBaseline='middle';ctx.fillText(i+1,x,y+(G.known[i]&&G.known[i]!=='clear'&&G.known[i]!=='shark'&&!G.over?-11:1));
     // sense markers on visited caves
     if(s&&!me&&vis){let mk='';if(s.shark)mk+='●';if(s.whirl)mk+='~';if(s.octo)mk+='✱';if(mk){ctx.fillStyle='#ffd77a';ctx.font='10px Share Tech Mono';ctx.fillText(mk,x,y+27)}}}
   // diver
@@ -202,7 +221,7 @@ function render(dt){ctx.clearRect(0,0,W,H);const g=ctx.createRadialGradient(W/2,
   for(const a of G.anim){a.age+=dt;if(a.t==='harp'){const seg=Math.min(a.path.length-1,Math.floor(a.age*4));const k=Math.min(1,a.age*4-seg);if(seg<a.path.length-1){const p=nodeXY(a.path[seg]),q=nodeXY(a.path[seg+1]);const x=p[0]+(q[0]-p[0])*k,y=p[1]+(q[1]-p[1])*k;ctx.strokeStyle='#fff';ctx.lineWidth=3;ctx.beginPath();ctx.moveTo(x-6,y);ctx.lineTo(x+6,y);ctx.stroke()}}}
   G.anim=G.anim.filter(a=>a.age<2);
   // legend
-  ctx.fillStyle='rgba(221,213,176,.7)';ctx.font='11px Share Tech Mono';ctx.textAlign='left';ctx.textBaseline='alphabetic';ctx.fillText('● blood nearby   ~ current   ✱ tentacles   (marks show what you sensed in each cave)',14,H-14)}
+  ctx.fillStyle='rgba(221,213,176,.7)';ctx.font='11px Share Tech Mono';ctx.textAlign='left';ctx.textBaseline='alphabetic';ctx.fillText('● blood nearby   ~ current   ✱ tentacles   green ring = proven safe   yellow dashes = something nasty may be there   red = the shark, pinned down',14,H-14)}
 resize();
 </script>
 </body>
