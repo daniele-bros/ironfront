@@ -1,0 +1,5 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" role="img" aria-label="Iron Games">
+  <rect width="64" height="64" rx="10" fill="#080a05"/>
+  <path d="M13 10h38v11H38v22h13v11H13V43h13V21H13z" fill="#e8c84a"/>
+  <path d="M18 15h28v3H35v30h11v3H18v-3h11V18H18z" fill="#fff" opacity=".22"/>
+</svg>
