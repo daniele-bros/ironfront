@@ -4,7 +4,7 @@ Iron Games is a free browser arcade by Daniele Bros at [irongames.win](https://i
 
 | Entry point | Game |
 |---|---|
-| `minecraft.html` | **Ironcraft** — voxel building, exploration and survival (gear tiers up to netherite and Sift; Sift temples guarded by acolytes, `/tp sift`) |
+| `minecraft.html` | **Ironcraft** — voxel building, exploration and survival (Overworld, Nether, End and the Sift: a pink-meadow dimension reached through Sift temple portals; gear tiers up to netherite and Sift) |
 | `ironhook.html` | **Iron Hook** — relaxing fishing: cast, hook, reel, 24 species across five waters |
 | `ironjaws.html` | **Iron Jaws** — Hunt-the-Wumpus style shark hunt through twenty sea caves |
 | `ww2tanks.html` | **Iron Front** — top-down tank action |
