@@ -615,6 +615,10 @@ defTex('netherrack',p=>{p.noise(110,40,40,14);p.speckle(24,140,60,60);p.speckle(
 defTex('pumpkin_side',p=>{p.noise(214,118,30,10);for(const x of [1,5,9,13]){p.rect(x,0,1,16,170,88,20);p.rect(x+3,0,1,16,235,140,40)}p.rect(0,15,16,1,160,80,18)});
 defTex('pumpkin_top',p=>{p.noise(214,118,30,10);for(const x of [1,5,9,13]){p.rect(x,0,1,16,170,88,20)}p.rect(6,6,4,4,90,110,40);p.rect(7,7,2,2,60,80,30)});
 defTex('carved_pumpkin_front',p=>{p.noise(214,118,30,10);for(const x of [1,5,9,13]){p.rect(x,0,1,16,170,88,20);p.rect(x+3,0,1,16,235,140,40)}p.rect(2,4,3,3,20,12,6);p.rect(11,4,3,3,20,12,6);p.rect(7,7,2,2,20,12,6);p.rect(3,11,10,2,20,12,6);p.rect(5,10,2,1,20,12,6);p.rect(9,10,2,1,20,12,6);p.px(4,13,20,12,6);p.px(11,13,20,12,6)});
+defTex('sift_ore',p=>{stoneBase(p);for(let i=0;i<5;i++){const x=floor(p.rng()*14),y=floor(p.rng()*14);p.rect(x,y,2,2,225,30,45);p.px(x,y,255,90,100);p.px(x+1,y+1,150,10,25)}});
+defTex('sift_stone',p=>{p.noise(52,46,60,6);p.speckle(14,78,66,90);p.rect(0,0,16,1,30,26,36);p.rect(0,8,16,1,30,26,36);p.rect(7,0,1,8,30,26,36);p.rect(3,8,1,8,30,26,36);p.rect(11,8,1,8,30,26,36);p.px(5,4,170,20,40);p.px(12,12,170,20,40)});
+defTex('sift_crystal_block',p=>{p.noise(70,30,44,8);for(let i=0;i<6;i++){const x=floor(p.rng()*13),y=floor(p.rng()*13);p.rect(x,y,3,3,200,25,45);p.rect(x+1,y+1,1,1,255,120,130)}});
+defTex('sift_face',p=>{p.noise(205,195,200,5);p.rect(0,0,16,4,22,18,26);p.rect(0,4,2,12,22,18,26);p.rect(14,4,2,12,22,18,26);p.rect(3,5,3,2,230,30,40);p.rect(10,5,3,2,230,30,40);p.px(4,5,255,200,200);p.px(11,5,255,200,200);p.rect(6,8,4,1,120,90,100);p.rect(5,11,6,1,60,20,30);p.rect(4,10,1,3,40,30,40);p.rect(11,10,1,3,40,30,40)});
 defTex('soul_sand',p=>{p.noise(82,62,50,8);p.speckle(14,60,45,35);p.rect(3,4,3,3,50,38,30);p.rect(10,9,3,3,50,38,30);p.px(4,5,30,22,18);p.px(11,10,30,22,18)});
 defTex('nether_quartz_ore',p=>{p.noise(110,40,40,14);for(let i=0;i<7;i++){const x=floor(p.rng()*15),y=floor(p.rng()*15);p.rect(x,y,2,2,235,225,215);p.shade(x+1,y+1,0.8)}});
 defTex('nether_portal',p=>{for(let y=0;y<16;y++)for(let x=0;x<16;x++){const w=Math.sin(x*0.9+y*0.5)*0.5+Math.sin(y*1.3-x*0.4)*0.5;const f=0.6+w*0.3;p.px(x,y,120*f,20*f,200*f,200)}});
@@ -819,6 +823,9 @@ defBlock(119,'sculk_shrieker',{label:'Gloom Shrieker',tex:'sculk_shrieker',hard:
 defBlock(120,'sculk_sensor',{label:'Gloom Sensor',tex:'sculk_sensor',hard:1.5,tool:'hoe',light:1,transparent:true,drop:()=>[],xp:[5,5]});
 defBlock(122,'pumpkin',{tex:{side:'pumpkin_side',top:'pumpkin_top'},hard:1,tool:'axe',sound:'wood'});
 defBlock(123,'carved_pumpkin',{tex:{side:'pumpkin_side',top:'pumpkin_top',front:'carved_pumpkin_front'},hard:1,tool:'axe',sound:'wood',facing:true});
+defBlock(124,'sift_ore',{tex:'sift_ore',hard:4,tool:'pickaxe',needsTool:true,tier:3,drop:()=>[[490,1]],xp:[5,9]});
+defBlock(125,'sift_stone',{tex:'sift_stone',hard:3,tool:'pickaxe',needsTool:true,resist:12,sound:'stone'});
+defBlock(126,'sift_crystal_block',{tex:'sift_crystal_block',hard:4,tool:'pickaxe',needsTool:true,tier:3,light:7,sound:'glass'});
 defBlock(121,'soul_lantern',{tex:'soul_lantern',hard:3.5,tool:'pickaxe',needsTool:true,light:9,transparent:true});
 defBlock(91,'prismarine',{tex:'prismarine',hard:1.5,tool:'pickaxe',needsTool:true,resist:6});
 defBlock(92,'dark_prismarine',{tex:'dark_prismarine',hard:1.5,tool:'pickaxe',needsTool:true,resist:6});
@@ -842,10 +849,10 @@ defBlock(109,'end_stone_bricks',{tex:'end_bricks',hard:3,tool:'pickaxe',needsToo
 defBlock(110,'purpur_pillar',{tex:{side:'purpur_pillar',top:'purpur'},hard:1.5,tool:'pickaxe',needsTool:true,resist:6});
 defBlock(80,'snow_block',{tex:'snow',hard:0.2,tool:'shovel',needsTool:true,sound:'snow',drop:()=>[[293,4]]});
 // ---- items ----
-const MAT={netherite:{tier:4,speed:9,dur:2031,color:[80,72,82],name:'Netherite'},wood:{tier:0,speed:2,dur:59,color:[150,120,70],name:'Wooden'},stone:{tier:1,speed:4,dur:131,color:[130,130,130],name:'Stone'},iron:{tier:2,speed:6,dur:250,color:[220,220,220],name:'Iron'},diamond:{tier:3,speed:8,dur:1561,color:[90,230,220],name:'Diamond'},gold:{tier:0,speed:12,dur:32,color:[250,220,60],name:'Golden'}};
-const TOOL_DMG={spear:{wood:3,stone:4,iron:5,diamond:6,gold:3,netherite:7},sword:{wood:4,stone:5,iron:6,diamond:7,gold:4,netherite:8},axe:{wood:7,stone:9,iron:9,diamond:9,gold:7,netherite:10},pickaxe:{wood:2,stone:3,iron:4,diamond:5,gold:2,netherite:6},shovel:{wood:2.5,stone:3.5,iron:4.5,diamond:5.5,gold:2.5,netherite:6.5},hoe:{wood:1,stone:1,iron:1,diamond:1,gold:1,netherite:1}};
-const TOOL_SPD={spear:{wood:1.4,stone:1.4,iron:1.4,diamond:1.4,gold:1.4,netherite:1.4},sword:{wood:1.6,stone:1.6,iron:1.6,diamond:1.6,gold:1.6,netherite:1.6},axe:{wood:0.8,stone:0.8,iron:0.9,diamond:1,gold:1,netherite:1},pickaxe:{wood:1.2,stone:1.2,iron:1.2,diamond:1.2,gold:1.2,netherite:1.2},shovel:{wood:1,stone:1,iron:1,diamond:1,gold:1,netherite:1},hoe:{wood:1,stone:2,iron:3,diamond:4,gold:1,netherite:4}};
-const ARMOR={leather:{helmet:1,chestplate:3,leggings:2,boots:1,dur:[55,80,75,65],color:[150,90,50],name:'Leather'},gold:{helmet:2,chestplate:5,leggings:3,boots:1,dur:[77,112,105,91],color:[250,220,60],name:'Golden'},iron:{helmet:2,chestplate:6,leggings:5,boots:2,dur:[165,240,225,195],color:[220,220,220],name:'Iron'},diamond:{helmet:3,chestplate:8,leggings:6,boots:3,dur:[363,528,495,429],color:[90,230,220],name:'Diamond'},netherite:{helmet:3,chestplate:8,leggings:6,boots:3,dur:[407,592,555,481],color:[80,72,82],name:'Netherite'}};
+const MAT={sift:{tier:4,speed:11,dur:2600,color:[40,36,46],name:'Sift'},netherite:{tier:4,speed:9,dur:2031,color:[80,72,82],name:'Netherite'},wood:{tier:0,speed:2,dur:59,color:[150,120,70],name:'Wooden'},stone:{tier:1,speed:4,dur:131,color:[130,130,130],name:'Stone'},iron:{tier:2,speed:6,dur:250,color:[220,220,220],name:'Iron'},diamond:{tier:3,speed:8,dur:1561,color:[90,230,220],name:'Diamond'},gold:{tier:0,speed:12,dur:32,color:[250,220,60],name:'Golden'}};
+const TOOL_DMG={spear:{wood:3,stone:4,iron:5,diamond:6,gold:3,netherite:7,sift:9},sword:{wood:4,stone:5,iron:6,diamond:7,gold:4,netherite:8,sift:11},axe:{wood:7,stone:9,iron:9,diamond:9,gold:7,netherite:10,sift:13},pickaxe:{wood:2,stone:3,iron:4,diamond:5,gold:2,netherite:6,sift:7},shovel:{wood:2.5,stone:3.5,iron:4.5,diamond:5.5,gold:2.5,netherite:6.5,sift:7.5},hoe:{wood:1,stone:1,iron:1,diamond:1,gold:1,netherite:1,sift:1}};
+const TOOL_SPD={spear:{wood:1.4,stone:1.4,iron:1.4,diamond:1.4,gold:1.4,netherite:1.4,sift:1.6},sword:{wood:1.6,stone:1.6,iron:1.6,diamond:1.6,gold:1.6,netherite:1.6,sift:2},axe:{wood:0.8,stone:0.8,iron:0.9,diamond:1,gold:1,netherite:1,sift:1.1},pickaxe:{wood:1.2,stone:1.2,iron:1.2,diamond:1.2,gold:1.2,netherite:1.2,sift:1.3},shovel:{wood:1,stone:1,iron:1,diamond:1,gold:1,netherite:1,sift:1},hoe:{wood:1,stone:2,iron:3,diamond:4,gold:1,netherite:4,sift:4}};
+const ARMOR={leather:{helmet:1,chestplate:3,leggings:2,boots:1,dur:[55,80,75,65],color:[150,90,50],name:'Leather'},gold:{helmet:2,chestplate:5,leggings:3,boots:1,dur:[77,112,105,91],color:[250,220,60],name:'Golden'},iron:{helmet:2,chestplate:6,leggings:5,boots:2,dur:[165,240,225,195],color:[220,220,220],name:'Iron'},diamond:{helmet:3,chestplate:8,leggings:6,boots:3,dur:[363,528,495,429],color:[90,230,220],name:'Diamond'},netherite:{helmet:3,chestplate:8,leggings:6,boots:3,dur:[407,592,555,481],color:[80,72,82],name:'Netherite'},sift:{helmet:4,chestplate:9,leggings:7,boots:4,dur:[480,700,650,560],color:[40,36,46],name:'Sift'}};
 defItem(256,'stick',{icon:'stick',fuel:5});
 defItem(257,'coal',{icon:'coal',fuel:80});
 defItem(258,'charcoal',{icon:'charcoal',fuel:80});
@@ -947,6 +954,10 @@ for(const m of ['wood','stone','iron','diamond','gold']){
 tid=380; // netherite gear (crafted by combining the diamond version with a netherite ingot)
 for(const tt of ['sword','pickaxe','axe','shovel','hoe','spear']){const m='netherite';defItem(tid++,'netherite_'+tt,{label:'Netherite '+label(tt),icon:tt,mat:m,stack:1,tool:tt,tier:MAT[m].tier,speed:tt==='spear'?1:MAT[m].speed,dur:MAT[m].dur,dmg:TOOL_DMG[tt][m],atkSpd:TOOL_SPD[tt][m],fuel:0})}
 ['helmet','chestplate','leggings','boots'].forEach((slot,i)=>{defItem(tid++,'netherite_'+slot,{label:'Netherite '+(slot==='chestplate'?'Chestplate':label(slot)),icon:slot,mat:'netherite',stack:1,armor:i,points:ARMOR.netherite[slot],dur:ARMOR.netherite.dur[i]})});
+defItem(490,'sift_crystal',{icon:'sift_crystal',iconPal:['sift_crystal',{m:[210,30,50],l:[255,120,130]}]});
+tid=491; // Sift gear: crafted from Sift crystals; blades burn what they hit
+for(const tt of ['sword','pickaxe','axe','shovel','hoe','spear']){const m='sift';defItem(tid++,'sift_'+tt,{label:'Sift '+(tt==='sword'?'Blade':tt==='spear'?'Lance':label(tt)),icon:tt,mat:m,stack:1,tool:tt,tier:MAT[m].tier,speed:tt==='spear'?1:MAT[m].speed,dur:MAT[m].dur,dmg:TOOL_DMG[tt][m],atkSpd:TOOL_SPD[tt][m],fuel:0,siftFire:tt==='sword'||tt==='spear'||tt==='axe'})}
+['helmet','chestplate','leggings','boots'].forEach((slot,i)=>{defItem(tid++,'sift_'+slot,{label:'Sift '+(slot==='chestplate'?'Chestplate':label(slot)),icon:slot,mat:'sift',stack:1,armor:i,points:ARMOR.sift[slot],dur:ARMOR.sift.dur[i]})});
 // Planks and everything built from them (fences, stairs, slabs, doors, ladders, tables, chests, beds) do not catch fire, so a wooden house is safe from lightning and lava splash. Logs, leaves, wool, plants, bookshelves and TNT still burn.
 const FLAMMABLE={15:5,44:5,46:5,16:60,45:60,47:60,20:30,75:30,76:30,77:30,23:100,21:100,22:100,63:100,29:30,28:15,6:60,48:60,49:60};
 const toolSpeedFor=(item)=>item&&item.speed?item.speed:1;
@@ -1001,6 +1012,7 @@ wind_charge:["................","................","......wwww......","....wwbbb
 ghillie:["................","...gdgggdggdg...","..ggdggdggdggg..","..dggdgdggdgdg..","..gdgggdggdggd..","..ggdgdgggdgdg..","..dgggdggdgggg..","..gdggdggdgdgg..","..ggdgggdggdgg..","..gdggdgdgggdg..","..dgggdggdggdg..","..ggdgdgggdggg..","..gdgggdggdgdg..","...gdggdgggdg...","................","................"],
 mace:["................",".....dddddd.....","....dddddddd....","....ddhhhhdd....","....ddhhhhdd....","....dddddddd....",".....dddddd.....",".......ss.......",".......ss.......",".......ss.......",".......ss.......",".......ss.......",".......ss.......",".......gg.......",".......gg.......","................"],
 trident:["................","...t..tt..t.....","...t..tt..t.....","...t..tt..t.....","...tttttttt.....","......tt........","......ss........","......ss........","......ss........","......ss........","......ss........","......ss........","......ss........","......ss........","................","................"],
+sift_crystal:["................","................",".......l........","......lm........",".....lmm........","....lmmm........","...lmmmm........","..lmmmmm.l......","..mmmmmmlm......","...mmmmmmm......","....mmmmmm......",".....mmmm.......","......mm........","................","................","................"],
 heavy_core:["................","................","................","...dddddddddd...","..dkkkkkkkkkkd..","..dkhhhhhhhhkd..","..dkhhhhhhhhkd..","..dkhhhhhhhhkd..","..dkhhhhhhhhkd..","..dkhhhhhhhhkd..","..dkhhhhhhhhkd..","..dkkkkkkkkkkd..","...dddddddddd...","................","................","................"],
 trial_key:["................","................","....gggg........","...gg..gg.......","...gg..gg.......","....gggg........",".....gg.........",".....gg.........",".....gg.........",".....gg.........",".....gggg.......",".....gg.........",".....gggg.......","................","................","................"],
 sniper:["................","..............dd",".....ss.....dd..",".....ss...ddd...","....ddddddddd...","..ddddhhhhhhhd..",".dwwwwwddddddd..","dwwwwwdd.ddd....","dwww..ddd.......",".ww...dgg.......","......dgg.......",".......gg.......","................","................","................","................"],
@@ -1055,6 +1067,7 @@ quartz:['gem',{l:[255,255,255],m:[235,228,220],d:[180,170,160]}],cookie:['cookie
 door:['door',{p:[140,100,55],d:[160,120,70],w:[170,210,240],k:[70,70,70]}],bed:['bed',{w:[240,240,240],r:[200,30,30],b:[140,100,60]}],
 };
 function toolIcon(def){
+  if(def.mat==='sift')return [TPL[def.tool],{b:[205,25,45],l:[255,110,120],h:[36,32,42],g:[22,20,26]}];
   const m=MAT[def.mat];const c=m.color;const light=[Math.min(255,c[0]*1.25),Math.min(255,c[1]*1.25),Math.min(255,c[2]*1.25)];
   return [TPL[def.tool],{b:c,l:light,h:[140,100,50],g:[100,80,60]}];
 }
@@ -1282,10 +1295,10 @@ class World{
       if(cold&&h>SEA+1&&bl[cidx(x,h,z)]===2)bl[cidx(x,h+1,z)]=40; else if(bi===BI.mountains&&h>104&&bl[cidx(x,h,z)]!==0)bl[cidx(x,h+1,z)]=40;
     }
     // stone variants & ores
-    const veins=[[66,5,0,80,22],[67,5,0,80,22],[68,5,0,80,22],[3,4,0,CH,20],[11,4,0,CH,20],[14,20,5,CH,10],[13,20,1,70,7],[70,8,35,95,8],[12,4,1,32,6],[69,6,1,16,6],[18,2,1,32,5],[33,2,1,16,4]];
+    const veins=[[66,5,0,80,22],[67,5,0,80,22],[68,5,0,80,22],[3,4,0,CH,20],[11,4,0,CH,20],[14,20,5,CH,10],[13,20,1,70,7],[70,8,35,95,8],[12,4,1,32,6],[69,6,1,16,6],[18,2,1,32,5],[33,2,1,16,4],[124,2,1,20,3]];
     const stoneLike=id=>id===1||id===66||id===67||id===68;
     for(const [id,tries,ymin,ymax,size] of veins)for(let t=0;t<tries;t++){
-      let x=floor(rng()*16),z=floor(rng()*16);let y=ymin+floor(rng()*(ymax-ymin));if(id===13||id===12||id===33){y=ymin+floor((rng()+rng())/2*(ymax-ymin))}
+      let x=floor(rng()*16),z=floor(rng()*16);let y=ymin+floor(rng()*(ymax-ymin));if(id===13||id===12||id===33||id===124){y=ymin+floor((rng()+rng())/2*(ymax-ymin))}
       for(let s=0;s<size;s++){if(x>=0&&x<16&&z>=0&&z<16&&y>0&&y<CH){const i=cidx(x,y,z);if(stoneLike(bl[i]))bl[i]=id}const a=floor(rng()*3);const dd=rng()<0.5?-1:1;if(a===0)x+=dd;else if(a===1)y+=dd;else z+=dd}}
     if(infos[0].biome===BI.mountains)for(let t=0;t<5;t++){const x=floor(rng()*16),z=floor(rng()*16),y=4+floor(rng()*28);const i=cidx(x,y,z);if(stoneLike(bl[i]))bl[i]=71}
     c.generated=true;
@@ -1326,7 +1339,7 @@ class World{
     this.applyPendingLoot(c);this.registerSpawners(c);this.lightChunk(c);this.relightDirty();return c;
   }
   setGen(x,y,z,id,meta=0,onlyAir=true){ // write during generation (may target ungenerated chunk)
-    if(y<0||y>=CH)return;const cx=x>>4,cz=z>>4;const c=this.getChunk(cx,cz);
+    if(y<0||y>=CH)return;if(this.keepClear&&(onlyAir||BLOCKS[id].log||BLOCKS[id].leaves)&&this.keepClear.some(b=>x>=b[0]&&x<=b[2]&&z>=b[1]&&z<=b[3]&&y>b[4]))return;const cx=x>>4,cz=z>>4;const c=this.getChunk(cx,cz);
     if(c&&c.generated){const i=cidx(x&15,y,z&15);if(onlyAir&&c.blocks[i]!==0&&!BLOCKS[c.blocks[i]].leaves)return;
       c.blocks[i]=id;c.meta[i]=meta;if(c.lit){c.relight=true;this.markDirtyAround(x,y,z)}return}
     const k=chunkKey(cx,cz);let p=this.pending.get(k);if(!p){p=[];this.pending.set(k,p)}p.push([x&15,y,z&15,id,meta,onlyAir]);
@@ -1837,7 +1850,7 @@ Entity.nextId=1;
 class ItemEntity extends Entity{
   constructor(x,y,z,stack,delay){super(x,y,z);this.w=0.25;this.h=0.25;this.stack=stack;this.pickupDelay=delay||0.5;this.rot=Math.random()*PI*2;this.bobOff=Math.random()*PI*2}
   update(dt){this.age+=dt;this.pickupDelay-=dt;this.physics(dt,{step:0,friction:0.6});this.rot+=dt*1.5;if(this.age>300){this.dead=true;return}
-    if(this.inLava&&!(ITEMS[this.stack.id].mat==='netherite'||this.stack.id===375||this.stack.id===376||this.stack.id===95||this.stack.id===98)){this.dead=true;if(this.nid&&MP.active)mpSend({t:'ir',nid:this.nid});return}
+    if(this.inLava&&!(ITEMS[this.stack.id].mat==='netherite'||ITEMS[this.stack.id].mat==='sift'||this.stack.id===490||this.stack.id===375||this.stack.id===376||this.stack.id===95||this.stack.id===98)){this.dead=true;if(this.nid&&MP.active)mpSend({t:'ir',nid:this.nid});return}
     // merge
     if(this.age%1<dt*2)for(const o of entities){if(o===this||!(o instanceof ItemEntity)||o.dead)continue;if(o.stack.id===this.stack.id&&!this.stack.dur&&!this.stack.ench&&!o.stack.ench&&abs(o.x-this.x)<0.8&&abs(o.y-this.y)<0.8&&abs(o.z-this.z)<0.8){const max=ITEMS[this.stack.id].stack;if(this.stack.count+o.stack.count<=max){this.stack.count+=o.stack.count;o.dead=true;if(MP.active){if(o.nid)mpSend({t:'ir',nid:o.nid});if(this.nid)mpSend({t:'ic',nid:this.nid,count:this.stack.count})}}}}
     // pickup
@@ -1988,6 +2001,7 @@ const MOBDEF={
   blaze:{hp:20,w:0.6,h:1.8,speed:2.5,dmg:6,ranged:'fireball',fireproof:true,flying:true,drops:r=>[[390,floor(r()*2)]],xp:[10,10],sound:'blaze',follow:32},
   evoker:{hp:24,w:0.6,h:1.95,speed:3.2,dmg:0,ranged:'spell',drops:r=>[[393,1],[266,floor(r()*2)]],xp:[10,10],sound:'villager_no',follow:16,noDespawn:true},
   vex:{hp:14,w:0.4,h:0.8,speed:5,dmg:5,flying:true,ghost:true,drops:()=>[],xp:[3,3],sound:'vex',follow:24},
+  sift_acolyte:{hp:44,w:0.6,h:1.95,speed:3.9,dmg:8,noBurn:true,drops:r=>[[490,1+floor(r()*2)],[r()<0.06?I.sift_sword:0,1]],xp:[8,12],sound:'villager_no',follow:30,noDespawn:true},
   vindicator:{hp:24,w:0.6,h:1.95,speed:3.6,dmg:7,drops:r=>[[266,floor(r()*2)],[r()<0.1?I.iron_axe:0,1]],xp:[5,5],sound:'villager_no',follow:24,noDespawn:true},
   guardian:{hp:30,w:0.85,h:0.85,speed:3.5,dmg:2,ranged:'laser',drops:r=>[[91,floor(r()*3)],[310,r()<0.4?1:0],[311,floor(r()*2)]],xp:[10,10],sound:'guardian',follow:16,noDespawn:true,aquatic:true},
   husk:{hp:20,w:0.6,h:1.95,speed:3.2,dmg:3,undead:true,noBurn:true,hungerHit:true,drops:r=>[[282,floor(r()*3)],[r()<0.025?[260,302,303][floor(r()*3)]:0,1]],xp:[5,5],sound:'zombie',follow:35},
@@ -2003,10 +2017,10 @@ const MOBDEF={
   witch:{hp:26,w:0.6,h:1.95,speed:2.6,dmg:0,ranged:'potion',drops:r=>{const pool=[265,314,285,307,286,283];return [[pool[floor(r()*6)],1+floor(r()*2)],[pool[floor(r()*6)],floor(r()*2)]]},xp:[5,5],sound:'witch',follow:16},
   shulker:{hp:30,w:1,h:1,speed:0,dmg:0,ranged:'bullet',static:true,drops:r=>[[396,r()<0.5?1:0]],xp:[5,5],sound:'shulker',follow:16,noDespawn:true},
 };
-const EGG_COLORS={pig:[[240,160,170],[220,100,120]],cow:[[110,70,50],[230,225,220]],sheep:[[235,235,235],[240,180,180]],villager:[[120,90,60],[80,140,80]],chicken:[[240,240,240],[220,60,40]],zombie:[[60,130,60],[110,150,110]],skeleton:[[190,190,190],[90,90,90]],creeper:[[70,170,60],[20,20,20]],spider:[[50,45,45],[200,30,30]],zombified_piglin:[[220,140,140],[80,110,60]],horse:[[150,110,70],[230,220,200]],wolf:[[200,200,195],[210,150,110]],husk:[[150,130,85],[210,190,150]],stray:[[110,130,150],[210,220,230]],cave_spider:[[20,45,75],[180,40,40]],enderman:[[20,20,25],[200,80,255]],slime:[[110,200,90],[170,240,150]],witch:[[60,30,80],[90,170,60]],vindicator:[[130,135,140],[60,60,65]],guardian:[[90,160,150],[240,150,60]],pillager:[[110,110,115],[50,60,55]],evoker:[[70,70,80],[220,180,60]],blaze:[[240,180,40],[255,240,150]],vex:[[200,210,230],[60,90,150]],shulker:[[150,80,160],[210,200,90]]};
+const EGG_COLORS={sift_acolyte:[[25,22,30],[215,30,50]],pig:[[240,160,170],[220,100,120]],cow:[[110,70,50],[230,225,220]],sheep:[[235,235,235],[240,180,180]],villager:[[120,90,60],[80,140,80]],chicken:[[240,240,240],[220,60,40]],zombie:[[60,130,60],[110,150,110]],skeleton:[[190,190,190],[90,90,90]],creeper:[[70,170,60],[20,20,20]],spider:[[50,45,45],[200,30,30]],zombified_piglin:[[220,140,140],[80,110,60]],horse:[[150,110,70],[230,220,200]],wolf:[[200,200,195],[210,150,110]],husk:[[150,130,85],[210,190,150]],stray:[[110,130,150],[210,220,230]],cave_spider:[[20,45,75],[180,40,40]],enderman:[[20,20,25],[200,80,255]],slime:[[110,200,90],[170,240,150]],witch:[[60,30,80],[90,170,60]],vindicator:[[130,135,140],[60,60,65]],guardian:[[90,160,150],[240,150,60]],pillager:[[110,110,115],[50,60,55]],evoker:[[70,70,80],[220,180,60]],blaze:[[240,180,40],[255,240,150]],vex:[[200,210,230],[60,90,150]],shulker:[[150,80,160],[210,200,90]]};
 const MOB_TYPES=Object.keys(MOBDEF);
 // Display names. Internal ids stay as they are; only what players read changes.
-const MOB_LABEL={zombie:'Rotter',skeleton:'Bonewalker',creeper:'Hisser',enderman:'Voidwalker',slime:'Ooze',witch:'Hexer',zombified_piglin:'Ashen Hog',pillager:'Raider',vindicator:'Axeman',evoker:'Fang Mage',vex:'Wisp',wither_skeleton:'Ashwalker',blaze:'Ember',guardian:'Deep Sentinel',husk:'Dune Rotter',stray:'Frost Bonewalker',shulker:'Shellguard',warden:'Dreadwarden',breeze:'Gale Sprite',iron_golem:'Iron Man',cave_spider:'Venom Spider',villager:'Villager',dragon:'Void Dragon',wither:'Skullbane'};
+const MOB_LABEL={sift_acolyte:'Sift Acolyte',zombie:'Rotter',skeleton:'Bonewalker',creeper:'Hisser',enderman:'Voidwalker',slime:'Ooze',witch:'Hexer',zombified_piglin:'Ashen Hog',pillager:'Raider',vindicator:'Axeman',evoker:'Fang Mage',vex:'Wisp',wither_skeleton:'Ashwalker',blaze:'Ember',guardian:'Deep Sentinel',husk:'Dune Rotter',stray:'Frost Bonewalker',shulker:'Shellguard',warden:'Dreadwarden',breeze:'Gale Sprite',iron_golem:'Iron Man',cave_spider:'Venom Spider',villager:'Villager',dragon:'Void Dragon',wither:'Skullbane'};
 function mobLabel(t){return MOB_LABEL[t]||label(t)}
 // typed names in commands: accept the display name, the old name, plurals and prefixes
 const MOB_BY_LABEL={};for(const k in MOB_LABEL)MOB_BY_LABEL[MOB_LABEL[k].toLowerCase().replace(/\s+/g,'_')]=k;MOB_BY_LABEL.void_dragon='dragon';MOB_BY_LABEL.skullbane='wither';
@@ -2265,12 +2279,13 @@ class Mob extends Entity{
         if(this.laserT>0){const p=player;const dx=p.x-this.x,dy=(p.y+1)-(this.y+0.4),dz=p.z-this.z;const l=sqrt(dx*dx+dy*dy+dz*dz);const yaw=Math.atan2(-dx,-dz),pitch=Math.atan2(dy,sqrt(dx*dx+dz*dz));const t=this.laserT/2;
           const tf=makeTF(this.x,this.y+0.4,this.z,yaw,pitch,0,0,0,0,1);EB.box(tf,-0.04,-0.04,-l,0.04,0.04,0,TEX.white,[0.6+t*0.4,0.3+t*0.7,0.9-t*0.7],[1,1],true)}
         break}
-      case 'villager':case 'vindicator':case 'pillager':case 'evoker':{const evo=this.type==='evoker';const vin=this.type==='vindicator'||this.type==='pillager'||evo;const pil=this.type==='pillager';const P=evo?{robe:[0.2,0.2,0.22],apron:[0.75,0.6,0.2]}:vin?{robe:[0.33,0.35,0.38],apron:[0.2,0.22,0.24]}:(PROFS[this.prof]||PROFS.nitwit);const robe=P.robe,skin=vin?[0.72,0.64,0.58]:[0.8,0.63,0.47];
+      case 'villager':case 'vindicator':case 'pillager':case 'evoker':case 'sift_acolyte':{const evo=this.type==='evoker';const sift=this.type==='sift_acolyte';const vin=this.type==='vindicator'||this.type==='pillager'||evo||sift;const pil=this.type==='pillager';const P=sift?{robe:[0.09,0.08,0.11],apron:[0.6,0.08,0.14]}:evo?{robe:[0.2,0.2,0.22],apron:[0.75,0.6,0.2]}:vin?{robe:[0.33,0.35,0.38],apron:[0.2,0.22,0.24]}:(PROFS[this.prof]||PROFS.nitwit);const robe=P.robe,skin=sift?[0.8,0.76,0.78]:vin?[0.72,0.64,0.58]:[0.8,0.63,0.47];
         if(evo){if(this.castT>0)this.castT-=1/60;const up=this.castT>0?-2.6:0;part([-1.5,-8,-1.5,1.5,2,1.5],5,20,0,up,0,0.15,N,robe);part([-1.5,-8,-1.5,1.5,2,1.5],-5,20,0,up,0,-0.15,N,robe);if(this.castT>0){part([-1,-9,-1,1,-8,1],5,20,0,up,0,0.15,W,[0.9,0.8,0.2]);part([-1,-9,-1,1,-8,1],-5,20,0,up,0,-0.15,W,[0.9,0.8,0.2])}}
         if(pil){part([-1.5,-8,-1.5,1.5,2,1.5],3,20,0,-1.5,0,0,N,robe);part([-1.5,-8,-1.5,1.5,2,1.5],-3,20,0,-1.5,0,0,N,robe);part([-4,-1,-9,4,0,-8],0,20,0,-1.5,0,0,W,[0.45,0.3,0.15]);part([-0.7,-1,-10,0.7,1,-3],0,20,0,-1.5,0,0,W,[0.35,0.25,0.15]);part([-4,-0.4,-8.5,4,0.4,-8.4],0,20,0,-1.5,0,0,W,[0.9,0.9,0.9])}
+        else if(sift&&this.angry){part([-1.5,-8,-1.5,1.5,2,1.5],5,20,0,-1.4,0,0,N,robe);part([-0.5,-1,-9,0.5,1,-1],5,20,0,-1.4,0,0,W,[0.15,0.14,0.18]);part([-0.7,-2,-16,0.7,-0.2,-9],5,20,0,-1.4,0,0,W,[1,0.25,0.3]);if(Math.random()<0.3)spawnParticles('crit',this.x,this.y+1.2,this.z,1)}
         else if(vin&&this.angry){part([-1.5,-8,-1.5,1.5,2,1.5],5,20,0,-1.4,0,0,N,robe);part([-0.5,-1,-9,0.5,1,-1],5,20,0,-1.4,0,0,W,[0.45,0.3,0.15]);part([-2.5,-3,-10,2.5,0,-7],5,20,0,-1.4,0,0,W,[0.75,0.75,0.78])}part([-4,6,-3.2,4,14,-3],0,0,0,0,0,0,W,P.apron);part([-2,-12,-2,2,0,2],-2,12,0,swing*0.5,0,0,N,[0.3,0.25,0.35]);part([-2,-12,-2,2,0,2],2,12,0,-swing*0.5,0,0,N,[0.3,0.25,0.35]);
         part([-4,12,-3,4,24,3],0,0,0,0,0,0,N,robe);part([-4,8,-3,4,12,3],0,0,0,0,0,0,N,robe);part([-4,-2,-3,4,2,3],0,20,0,0,0,0,N,skin);
-        part([-4,0,-4,4,10,4],0,24,0,hp,hy,0,face(evo?TEX.evoker_face:vin?TEX.vindicator_face:TEX.villager_face),skin);part([-1,2,-6,1,6,-4],0,24,0,hp,hy,0,N,skin);break}
+        part([-4,0,-4,4,10,4],0,24,0,hp,hy,0,face(sift?TEX.sift_face:evo?TEX.evoker_face:vin?TEX.vindicator_face:TEX.villager_face),skin);part([-1,2,-6,1,6,-4],0,24,0,hp,hy,0,N,skin);break}
       case 'cartoon_cat':{ // towering ink-black cat with white gloves, a huge grin and limbs that stretch as it runs
         const k=[0.03,0.03,0.04],gl=[0.95,0.95,0.95];const st=1+(this.stretch||0)*0.9;const sw=swing*1.3;
         part([-1.5,-30*st,-1.5,1.5,0,1.5],-4,30*st,0,sw,0,0.05,N,k);part([-1.5,-30*st,-1.5,1.5,0,1.5],4,30*st,0,-sw,0,-0.05,N,k);
@@ -2559,8 +2574,8 @@ function throwTrident(){const p=player;if(p.bowCharge<0.25)return;const st=heldS
   const ar=new Arrow(e[0]+d[0]*0.6,e[1]+d[1]*0.6-0.1,e[2]+d[2]*0.6,d[0]*sp,d[1]*sp,d[2]*sp,'player',8+(enchLevel(st,'sharpness')||0));ar.trident=true;ar.stack={id:st.id,count:1,dur:st.dur,ench:st.ench};ar.loyalty=enchLevel(st,'loyalty');ar.channeling=enchLevel(st,'channeling')>0;ar.kb=5;
   entities.push(ar);if(p.mode!=='creative'){p.inv[p.sel]=null;updateHotbar()}playSound('bow',0.8,0.7);p.swing=0;p.exh+=0.1}
 /* ---- breaking ---- */
-const SILK_OK=new Set([1,2,14,13,12,33,69,18,71,70,85,17,41,29,53,40,80,16,45,47,23,87,91,92,93,95]);
-const FORTUNE_ORES=new Set([14,33,69,18,71,70,85,12,13,95]);
+const SILK_OK=new Set([1,2,14,13,12,33,69,18,71,70,85,17,41,29,53,40,80,16,45,47,23,87,91,92,93,95,124]);
+const FORTUNE_ORES=new Set([14,33,69,18,71,70,85,12,13,95,124]);
 function blockDrops(id,meta,toolItem,st){const def=BLOCKS[id];const tool=toolItem?toolItem.tool:null;const rng=Math.random;
   if(def.needsTool&&!canHarvest(def,toolItem))return [];
   if(st&&enchLevel(st,'silk_touch')&&SILK_OK.has(id))return [[id,1]];
@@ -2592,6 +2607,7 @@ function attack(){const p=player;if(p.dead||game.gui||game.paused)return;p.swing
   if(it&&it.tool==='mace'&&p.fallDist>1.5&&!p.onGround){const f=p.fallDist;dmg+=Math.min(60,f*4+(f>3?(f-3)*2:0)+(f>8?(f-8)*1:0))*(1+el('density')*0.25);kb=2;smash=true}
   if(damageEntity(e,dmg,{x:p.x,y:p.y,z:p.z,type:'player',kb,loot:el('looting')})){if(smash)maceSmash(e,p.fallDist);if(crit)spawnParticles('crit',e.x,e.y+e.h*0.7,e.z,6);p.exh+=0.1;if(st&&it.dur&&it.tool)damageItem(st,it.tool==='sword'||it.tool==='spear'||it.tool==='mace'||it.tool==='trident'?1:2);
     if(el('fire_aspect')){e.fireT=Math.max(e.fireT||0,4*el('fire_aspect'));spawnParticles('fire',e.x,e.y+e.h*0.5,e.z,4)}
+    if(it&&it.siftFire&&e instanceof Mob){e.fireT=Math.max(e.fireT||0,3);spawnParticles('fire',e.x,e.y+e.h*0.5,e.z,5);if(Math.random()<0.5)spawnParticles('crit',e.x,e.y+e.h*0.7,e.z,3)}
     if(el('sweeping_edge')){const sw=1+dmg*(el('sweeping_edge')/(el('sweeping_edge')+1));for(const o of entities){if(o===e||!(o instanceof Mob)||o.dead||o.dying||(o.type==='wolf'&&o.tamed))continue;if(Math.hypot(o.x-e.x,o.z-e.z)<1.6&&abs(o.y-e.y)<1.5)damageEntity(o,sw,{x:p.x,y:p.y,z:p.z,type:'player',kb:3,loot:el('looting')})}}}
 }
 /* ---- right click ---- */
@@ -2734,6 +2750,7 @@ const LOOT={
   mansion:[[379,1,1,6],[263,1,3,8],[266,1,4,12],[260,1,4,12],[308,1,1,8],[272,1,5,15],[271,1,6,10],[301,1,1,8],[284,4,12,10],[289,1,3,8],[283,1,3,8],[257,2,6,10],[I.iron_axe,1,1,5],[I.diamond_axe,1,1,2],[24,1,1,5],[29,1,3,8]],
   monument:[[379,1,1,6],[24,1,1,10],[311,1,4,12],[313,1,3,8],[263,1,2,6],[314,1,4,10],[262,1,4,10],[310,2,5,15],[266,1,2,6]],
   jungle:[[379,1,1,6],[263,1,3,3],[266,1,3,2],[262,2,7,15],[260,1,5,10],[283,4,6,20],[282,3,7,16],[315,1,1,3],[308,1,1,2],[257,2,5,10],[289,1,3,6],[270,2,5,8]],
+  sift:[[490,2,6,30],[490,1,3,20],[I.sift_sword,1,1,6],[I.sift_helmet,1,1,4],[I.sift_boots,1,1,4],[375,1,3,10],[376,1,1,5],[263,1,3,10],[379,1,1,8],[31,2,6,10]],
   outpost:[[379,1,1,6],[301,1,1,10],[284,4,12,12],[271,3,5,10],[302,3,5,10],[303,2,5,10],[46,2,6,8],[260,1,3,6],[266,1,3,6],[257,2,6,8],[I.iron_sword,1,1,3],[I.iron_helmet,1,1,3],[308,1,1,2]],
   endcity:[[379,1,1,12],[264,1,1,8],[376,1,2,4],[375,1,2,5],[266,1,3,10],[262,2,7,10],[263,1,4,10],[312,1,3,6],[315,1,1,3],[308,1,1,3],[105,4,12,8],[I.diamond_sword,1,1,4],[I.diamond_pickaxe,1,1,4],[I.diamond_chestplate,1,1,3],[I.diamond_boots,1,1,3],[396,1,2,3]],
   stronghold:[[379,1,1,10],[378,1,3,10],[377,2,7,10],[260,1,5,10],[262,1,3,6],[263,1,3,4],[308,1,1,3],[272,1,3,10],[273,1,3,8],[264,2,5,6],[I.iron_sword,1,1,3],[312,1,2,4]],
@@ -2783,6 +2800,7 @@ Object.assign(World.prototype,{
     if((r=this.regionOrigin(cx,cz,40,115)))this.placeStronghold(wx+8,wz+8,r);
     if((r=this.regionOrigin(cx,cz,28,117))&&mid.height>SEA)this.placeTrialChamber(wx+8,wz+8,r);
     if((r=this.regionOrigin(cx,cz,36,118))&&mid.height>SEA+4)this.placeAncientCity(wx+8,wz+8,r);
+    if((r=this.regionOrigin(cx,cz,34,131))&&mid.height>SEA+2&&mid.biome!==BI.ocean&&mid.biome!==BI.deep_ocean)this.placeSiftTemple(wx+8,wz+8,r);
     if((r=this.regionOrigin(cx,cz,9,106))&&r()<0.55)this.placeMineshaft(wx+8,wz+8,r);
     if(rng()<0.12)this.placeDungeon(wx+2+floor(rng()*12),8+floor(rng()*42),wz+2+floor(rng()*12),rng);
   },
@@ -3017,6 +3035,20 @@ Object.assign(World.prototype,{
     for(let i=0;i<8;i++){const dx=floor(rng()*(hw*2+3))-hw-1,dz=floor(rng()*(hl*2+3))-hl-1;const t=this.surfaceY(x+dx,z+dz);if(this.getGen(x+dx,t+1,z+dz)===0)this.setGen(x+dx,t+1,z+dz,23,0,false)}
   },
   /* ---- pillager outpost: a tall watchtower with pillagers on every floor ---- */
+  placeSiftTemple(x,z,rng){const key='sift:'+(x>>4)+','+(z>>4);const spawnMobs=typeof Mob!=='undefined'&&!this.populated.has(key);this.populated.add(key);const y=this.surfaceY(x,z);const S=125,O=31,C=126;
+    (this.keepClear||(this.keepClear=[])).push([x-12,z-12,x+12,z+12,y]);this.fill(x-12,y+1,z-12,x+12,y+14,z+12,0); // clear trees and hillside above the footprint, and keep later trees out
+    this.fill(x-11,y-5,z-11,x+11,y,z+11,S); // foundation
+    for(let k=1;k<=4;k++){const s=11-k*2;this.fill(x-s,y+k,z-s,x+s,y+k,z+s,S)} // stepped tiers
+    this.fill(x-6,y+1,z-6,x+6,y+4,z+6,0); // the hall inside
+    for(const [px,pz] of [[-6,-6],[6,-6],[-6,6],[6,6]])this.fill(x+px,y+1,z+pz,x+px,y+6,z+pz,O);
+    for(const [px,pz] of [[-10,-10],[10,-10],[-10,10],[10,10]]){this.fill(x+px,y+1,z+pz,x+px,y+9,z+pz,O);this.setGen(x+px,y+10,z+pz,C,0,false)}
+    this.fill(x-1,y+1,z+6,x+1,y+3,z+11,0);this.fill(x-1,y+1,z-11,x+1,y+3,z-6,0); // doorways north and south
+    this.fill(x-2,y+1,z-2,x+2,y+1,z+2,O);this.setGen(x,y+2,z,C,0,false);this.setGen(x,y+3,z,124,0,false);this.setGen(x,y+4,z,C,0,false); // altar with the crystal
+    for(const [px,pz] of [[-5,0],[5,0],[0,-5],[0,5]])this.setGen(x+px,y+3,z+pz,C,0,false); // glowing crystal sconces
+    this.fill(x-9,y+5,z-9,x+9,y+5,z+9,S);this.fill(x-3,y+6,z-3,x+3,y+7,z+3,S);this.setGen(x,y+8,z,C,0,false); // roof and spire
+    this.setChest(x-4,y+1,z+4,1,'sift',rng,5);this.setChest(x+4,y+1,z-4,3,'sift',rng,4);
+    for(let i=0;i<6;i++){const ox=x+floor(rng()*9)-4,oz=z+floor(rng()*9)-4;if(this.getGen(ox,y-1,oz)===S)this.setGen(ox,y-1,oz,124,0,false)} // ore in the floor under the hall
+    if(spawnMobs){for(const [px,pz] of [[-4,-2],[4,2],[0,-4],[3,-4]])entities.push(new Mob('sift_acolyte',x+px+0.5,y+1.1,z+pz+0.5));entities.push(new Mob('sift_acolyte',x+0.5,y+5.1,z+8.5))}},
   placeOutpost(x,z,mid,rng){const key='p:'+(x>>4)+','+(z>>4);const spawnMobs=typeof Mob!=='undefined'&&!this.populated.has(key);this.populated.add(key);
     const y=this.surfaceY(x,z)+1;const hw=3;const F=51,L=46,C=4;const floors=4,fh=5;
     for(let dx=-hw-3;dx<=hw+3;dx++)for(let dz=-hw-3;dz<=hw+3;dz++){for(let dy=-4;dy<0;dy++){const b=this.getGen(x+dx,y+dy,z+dz);if(abs(dx)<=hw+1&&abs(dz)<=hw+1&&(b===0||b===8||dy>=-2))this.setGen(x+dx,y+dy,z+dz,C,0,false)}
@@ -3303,12 +3335,12 @@ shaped(['##','##'],{'#':PLANKS},[34,1]);
 shaped(['c','|'],{c:[257,258],'|':256},[32,4]);
 shaped(['###','# #','###'],{'#':4},[37,1]);
 shaped(['###','# #','###'],{'#':PLANKS},[39,1]);
-const TOOLMATS={wood:PLANKS,stone:4,iron:260,diamond:263,gold:262};
-for(const m of ['wood','stone','iron','diamond','gold']){const id=n=>I[(m==='wood'?'wooden':m==='gold'?'golden':m)+'_'+n];const mat=TOOLMATS[m];
+const TOOLMATS={wood:PLANKS,stone:4,iron:260,diamond:263,gold:262,sift:490};
+for(const m of ['wood','stone','iron','diamond','gold','sift']){const id=n=>I[(m==='wood'?'wooden':m==='gold'?'golden':m)+'_'+n];const mat=TOOLMATS[m];
   shaped(['###',' | ',' | '],{'#':mat,'|':256},[id('pickaxe'),1]);shaped(['##','#|',' |'],{'#':mat,'|':256},[id('axe'),1]);shaped(['#','|','|'],{'#':mat,'|':256},[id('shovel'),1]);shaped(['#','#','|'],{'#':mat,'|':256},[id('sword'),1]);shaped(['  #',' | ','|  '],{'#':mat,'|':256},[id('spear'),1]);shaped(['##',' |',' |'],{'#':mat,'|':256},[id('hoe'),1])}
-for(const m of ['leather','iron','gold','diamond']){const mat={leather:289,iron:260,gold:262,diamond:263}[m];const id=n=>I[(m==='gold'?'golden':m)+'_'+n];
+for(const m of ['leather','iron','gold','diamond','sift']){const mat={leather:289,iron:260,gold:262,diamond:263,sift:490}[m];const id=n=>I[(m==='gold'?'golden':m)+'_'+n];
   shaped(['###','# #'],{'#':mat},[id('helmet'),1]);shaped(['# #','###','###'],{'#':mat},[id('chestplate'),1]);shaped(['###','# #','# #'],{'#':mat},[id('leggings'),1]);shaped(['# #','# #'],{'#':mat},[id('boots'),1])}
-shaped(['WWW','###'],{W:WOOLS,'#':PLANKS},[62,1]);
+shaped(['WWW','###'],{W:WOOLS,'#':PLANKS},[62,1]);shaped(['###','###','###'],{'#':490},[126,1]);shapeless([126],[490,9]);shaped(['#O','O#'],{'#':490,O:31},[125,4]);
 shaped(['##','##','##'],{'#':PLANKS},[54,3]);
 shaped(['| |','|||','| |'],{'|':256},[38,3]);
 shaped(['##','##'],{'#':1},[52,4]);
@@ -4016,6 +4048,7 @@ function buildEnchantingRoom(){ // an enchanting table two blocks ahead of the p
   for(let dx=-1;dx<=1;dx++)for(let dz=-1;dz<=1;dz++){if(dx===0&&dz===0)continue;for(let dy=0;dy<=1;dy++){const b=world.getBlock(tx+dx,ty+dy,tz+dz);if(b!==0&&BLOCKS[b].opaque&&b!==29&&b!==96&&(BLOCKS[b].replaceable||BLOCKS[b].plant))world.setBlock(tx+dx,ty+dy,tz+dz,0,0)}}
   const n=shelvesAround(tx,ty,tz);playSound('enchant');showMessage('Enchanting table placed with '+placed+' bookshelves ('+n+' of 15 count: '+(n>=15?'max level 30 unlocked':'clear the blocks between the shelves and the table')+')');return true}
 const KITS={
+  sift:{label:'full Sift armor, Sift blade, lance, pickaxe and 16 crystals',items:[[I.sift_helmet,1],[I.sift_chestplate,1],[I.sift_leggings,1],[I.sift_boots,1],[I.sift_sword,1],[I.sift_spear,1],[I.sift_pickaxe,1],[490,16]]},
   trials:{label:'mace, trident, 4 trial keys, heavy core, 4 breeze rods, 8 wind charges',items:[[467,1],[468,1],[470,4],[469,1],[471,4],[472,8]]},
   guns:{label:'pistol, rifle, shotgun, sniper rifle, ghillie suit, 128 bullets, 32 shells',items:[[460,1],[461,1],[462,1],[466,1],[473,1],[463,128],[464,32]]},
   enchanting:{label:'enchanting table, 15 bookshelves, 100 lapis, 16 books',items:[[96,1],[29,15],[264,100],[378,16]]},
@@ -4030,6 +4063,7 @@ const KITS={
 const TP_STRUCT={
   village:{size:20,salt:101,ok:m=>[BI.plains,BI.forest,BI.taiga,BI.snowy_taiga,BI.desert].includes(m.biome)&&m.height>SEA+2},
   temple:{size:18,salt:102,ok:m=>m.biome===BI.desert,alias:['desert_temple','pyramid']},
+  sift:{size:34,salt:131,ok:m=>m.height>SEA+2&&m.biome!==BI.ocean&&m.biome!==BI.deep_ocean,alias:['sift_temple','sifttemple','temple_of_sift','dark_temple','sith','sith_temple'],note:'Acolytes with red blades guard the altar. The crystal on it is the prize'},
   igloo:{size:14,salt:103,ok:m=>m.biome===BI.snowy_taiga},
   hut:{size:12,salt:104,ok:m=>m.biome===BI.swamp,alias:['swamp_hut','witch','witch_hut']},
   portal:{size:14,salt:105,ok:(m,r)=>m.height>SEA+1&&r()<0.6,alias:['ruined_portal']},
