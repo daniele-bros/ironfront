@@ -129,6 +129,20 @@ label.lb{font-size:13px;color:#a0a0a0;align-self:flex-start;margin-left:calc(50%
 .rbook .r{display:inline-block;width:36px;height:36px;margin:1px;background:#8b8b8b;border:2px solid;border-color:#373737 #fff #fff #373737;position:relative;cursor:pointer;}
 .rbook .r.no{opacity:.35;}
 .rbook .r .icon{left:0;top:0;}
+.rbook .r.sel{border-color:#ffd54a #a07a00 #a07a00 #ffd54a;outline:1px solid #ffd54a;}
+.rdetail{background:#8b8b8b;border:2px solid;border-color:#373737 #fff #fff #373737;padding:6px;margin:0 0 6px;font-size:11px;color:#1e1e1e;font-weight:400;}
+.rdetail .rt{font-weight:700;font-size:12px;margin-bottom:4px;color:#1a1a1a;}
+.rdetail .rgrid{display:grid;grid-template-columns:repeat(3,26px);gap:2px;margin:4px 0;}
+.rdetail .rc{width:26px;height:26px;background:#6f6f6f;border:1px solid #373737;position:relative;}
+.rdetail .rc .icon{position:absolute;left:2px;top:2px;width:22px;height:22px;background-size:contain;background-repeat:no-repeat;image-rendering:pixelated;}
+.rdetail .rc.empty{background:#9a9a9a;}
+.rdetail ul{list-style:none;padding:0;margin:4px 0;}
+.rdetail li{display:flex;align-items:center;gap:5px;line-height:1.5;}
+.rdetail li .icon{width:16px;height:16px;background-size:contain;background-repeat:no-repeat;image-rendering:pixelated;flex-shrink:0;}
+.rdetail .ok{color:#1b6b1b;font-weight:700;}
+.rdetail .miss{color:#a11;font-weight:700;}
+.rdetail button{width:100%;margin-top:4px;height:26px;font:inherit;font-weight:700;font-size:11px;background:#6d6d6d;color:#fff;border:2px solid #000;cursor:pointer;}
+.rdetail button:disabled{opacity:.5;cursor:default;}
 .hint{font-size:12px;color:#606060;font-weight:400;margin-top:4px;}
 .trow{display:flex;align-items:center;gap:4px;background:#c6c6c6;border:2px solid;border-color:#fff #555 #555 #fff;padding:3px 4px;margin-bottom:4px;cursor:pointer;height:44px;}
 .trow:hover{background:#dcdcdc;}
@@ -3441,12 +3455,24 @@ function openGui(type,x,y,z){const g={type,x,y,z};if(type==='furnace'){g.be=furn
 function closeGui(){const g=game.gui;if(!g)return;returnGrid(craft2);returnGrid(craft3);returnGrid(enchSlots);anvilSlots[2]=null;returnGrid(anvilSlots);if(cursor){if(addToInventory(cursor))spawnItem(player.x,player.y+1,player.z,cursor);cursor=null}
   if(g.type==='chest')playSoundAt('chest',g.x,g.y,g.z);for(const el of document.querySelectorAll('.gui'))el.classList.remove('show');$('invGui').classList.remove('full');game.gui=null;hideTip();renderAllSlots();$('hud').style.display='block';syncMobileControls();if(!game.paused)lockPointer()}
 function updateFurnaceGui(){const g=game.gui;if(!g||g.type!=='furnace')return;const be=g.be;$('furnArrow').firstChild.style.width=(be.cook/10*26)+'px';$('furnFire').firstChild.style.height=(be.burnMax?be.burn/be.burnMax*22:0)+'px';renderAllSlots()}
-function renderRecipeBook(){const rb=$('rbook');rb.innerHTML='<div class="hint" style="margin:0 0 4px">Recipe book — click to fill</div>';const counts={};for(const s of player.inv)if(s)counts[s.id]=(counts[s.id]||0)+s.count;
+let rbSel=null;
+function renderRecipeBook(){const rb=$('rbook');rb.innerHTML='<div class="hint" style="margin:0 0 4px">Recipe book — click a recipe to see what it needs</div><div id="rdetail" class="rdetail" style="display:none"></div>';const counts={};for(const s of player.inv)if(s)counts[s.id]=(counts[s.id]||0)+s.count;const countsAll=Object.assign({},counts);for(const s of craft3)if(s)countsAll[s.id]=(countsAll[s.id]||0)+s.count;
   const seen=new Set();
   for(const r of RECIPES){if(r.guns&&!(game.mods&&game.mods.guns))continue;if(seen.has(r.out[0]+'_'+(r.shaped?r.p.join(''):r.s.join(''))))continue;seen.add(r.out[0]+'_'+(r.shaped?r.p.join(''):r.s.join('')));
     const need=recipeNeeds(r,counts);const el=document.createElement('div');el.className='r'+(need?'':' no');el.innerHTML='<div class="icon" style="background-image:url('+ICONS[r.out[0]]+')"></div>'+(r.out[1]>1?'<div class="cnt">'+r.out[1]+'</div>':'');el.title=ITEMS[r.out[0]].label;
-    el.addEventListener('click',()=>{if(need)fillRecipe(r,need)});rb.appendChild(el)}
+    const key=r.out[0]+'_'+(r.shaped?r.p.join(''):r.s.join(''));el.dataset.key=key;if(rbSel===key)el.classList.add('sel');
+    el.addEventListener('click',()=>{rbSel=key;for(const x of rb.querySelectorAll('.r'))x.classList.toggle('sel',x.dataset.key===key);showRecipeDetail(r,countsAll,need);if(need)fillRecipe(r,need)});rb.appendChild(el)}
+  if(rbSel){const r=RECIPES.find(r=>r.out[0]+'_'+(r.shaped?r.p.join(''):r.s.join(''))===rbSel);if(r)showRecipeDetail(r,countsAll,recipeNeeds(r,counts))}
 }
+// what a recipe takes: the 3x3 shape with icons, then each ingredient with how many you need and how many you have
+function ingredientInfo(k,counts){const opts=Array.isArray(k)?k:[k];const have=opts.find(id=>(counts[id]||0)>0);const id=have!==undefined?have:opts[0];let name=ITEMS[id].label;if(opts.length>1){if(opts.every(o=>PLANKS.includes(o)))name='Any planks';else if(opts.every(o=>LOGS.includes(o)))name='Any log';else if(opts.every(o=>WOOLS.includes(o)))name='Any wool';else name=ITEMS[opts[0]].label+' (or similar)'}return {id,name,opts}}
+function showRecipeDetail(r,counts,need){const d=$('rdetail');if(!d)return;const out=ITEMS[r.out[0]];let grid='';
+  if(r.shaped){for(let y=0;y<3;y++)for(let x=0;x<3;x++){const ch=(r.p[y]||'')[x]||' ';if(ch===' '||!r.k[ch]){grid+='<div class="rc empty"></div>';continue}const info=ingredientInfo(r.k[ch],counts);grid+='<div class="rc" title="'+info.name+'"><div class="icon" style="background-image:url('+ICONS[info.id]+')"></div></div>'}}
+  else{for(let i=0;i<9;i++){const k=r.s[i];if(k===undefined){grid+='<div class="rc empty"></div>';continue}const info=ingredientInfo(k,counts);grid+='<div class="rc" title="'+info.name+'"><div class="icon" style="background-image:url('+ICONS[info.id]+')"></div></div>'}}
+  const needs={};const keys=r.shaped?r.p.join('').split('').filter(ch=>ch!==' '&&r.k[ch]).map(ch=>r.k[ch]):r.s;for(const k of keys){const info=ingredientInfo(k,counts);const nm=info.name;if(!needs[nm])needs[nm]={n:0,id:info.id,opts:info.opts};needs[nm].n++}
+  let list='';for(const nm in needs){const e=needs[nm];const have=e.opts.reduce((a,id)=>a+(counts[id]||0),0);list+='<li><div class="icon" style="background-image:url('+ICONS[e.id]+')"></div><span>'+e.n+' × '+nm+'</span><span class="'+(have>=e.n?'ok':'miss')+'" style="margin-left:auto">'+(have>=e.n?'✓':'have '+have)+'</span></li>'}
+  d.style.display='block';d.innerHTML='<div class="rt">'+out.label+(r.out[1]>1?' × '+r.out[1]:'')+(r.shaped?'':' <span style="font-weight:400;color:#333">(any arrangement)</span>')+'</div><div class="rgrid">'+grid+'</div><ul>'+list+'</ul><button '+(need?'':'disabled')+'>'+(need?'PUT IT IN THE GRID':(Object.keys(needs).every(nm=>needs[nm].opts.reduce((a,id)=>a+(counts[id]||0),0)>=needs[nm].n)?'IN THE GRID':'YOU ARE MISSING SOMETHING'))+'</button>';
+  const b=d.querySelector('button');if(need)b.onclick=()=>fillRecipe(r,need)}
 function recipeNeeds(r,counts){ // returns array of chosen ids per grid cell (3x3) or null
   const cells=new Array(9).fill(0);const used={};const pickId=k=>{const opts=Array.isArray(k)?k:[k];for(const id of opts){if((counts[id]||0)-(used[id]||0)>0){used[id]=(used[id]||0)+1;return id}}return -1};
   if(r.shaped){for(let y=0;y<r.p.length;y++)for(let x=0;x<r.p[y].length;x++){const ch=r.p[y][x];if(ch===' ')continue;const id=pickId(r.k[ch]);if(id<0)return null;cells[y*3+x]=id}}
