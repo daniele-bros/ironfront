@@ -2683,13 +2683,14 @@ function useItem(){
     if(id===54){const m=world.getMeta(t.bx,t.by,t.bz);const open=!(m&4);const y0=(m&8)?t.by-1:t.by;const mb=world.getMeta(t.bx,y0,t.bz);world.setMeta(t.bx,y0,t.bz,open?mb|4:mb&~4);world.setMeta(t.bx,y0+1,t.bz,open?(mb|4|8):(mb&~4)|8);playSoundAt('door',t.bx,t.by,t.bz);return}
     if(id===62){trySleep(t.bx,t.by,t.bz);return}
     if(id===100&&hd&&hd.id===392&&!(world.getMeta(t.bx,t.by,t.bz)&4)){world.setMeta(t.bx,t.by,t.bz,world.getMeta(t.bx,t.by,t.bz)|4);consumeHeld();playSoundAt('click',t.bx,t.by,t.bz);p.swing=0;if(tryActivateEndPortal(t.bx,t.by,t.bz)){showMessage('The End portal opens!');playSound('portal')}return}
+    if(hd&&hd.id===490){ // a Sift crystal lights a Sift stone frame into a portal to the Sift
+      const n=FACE_DIR[t.face];const fx=t.bx+n[0],fy=t.by+n[1],fz=t.bz+n[2];const cur=world.getBlock(fx,fy,fz);
+      if((cur===0||BLOCKS[cur].replaceable)&&tryLightPortal(fx,fy,fz,125,134)){consumeHeld();playSoundAt('portal',fx,fy,fz);spawnParticles('portal',fx+0.5,fy+1,fz+0.5,20);p.swing=0;return}
+      if(id===125){showMessage('No portal here: the frame must be Sift stone, 4 wide and 5 tall with the inside empty, and you must click inside it');return}}
     if(hd&&hd.id===299){ // flint and steel: light a portal or start a fire
       const n=FACE_DIR[t.face];const fx=t.bx+n[0],fy=t.by+n[1],fz=t.bz+n[2];const cur=world.getBlock(fx,fy,fz);
       if(cur===0||BLOCKS[cur].replaceable){if(tryLightPortal(fx,fy,fz)){damageItem(st,1);playSoundAt('portal',fx,fy,fz);p.swing=0;return}
         if(BLOCKS[t.id].solid){world.setBlock(fx,fy,fz,81,0);damageItem(st,1);playSoundAt('ignite',fx,fy,fz);p.swing=0;return}}
-    if(hd&&hd.id===490){ // a Sift crystal lights a Sift stone frame into a portal to the Sift
-      const n=FACE_DIR[t.face];const fx=t.bx+n[0],fy=t.by+n[1],fz=t.bz+n[2];const cur=world.getBlock(fx,fy,fz);
-      if((cur===0||BLOCKS[cur].replaceable)&&tryLightPortal(fx,fy,fz,125,134)){consumeHeld();playSoundAt('portal',fx,fy,fz);spawnParticles('portal',fx+0.5,fy+1,fz+0.5,20);p.swing=0;return}}
     }
     if(id===28&&hd&&hd.id===299){world.setBlock(t.bx,t.by,t.bz,0,0,{silent:true});entities.push(new TNTEntity(t.bx+0.5,t.by,t.bz+0.5));playSoundAt('fuse',t.bx,t.by,t.bz);damageItem(st,1);p.swing=0;return}
     if(hd&&hd.tool==='hoe'&&(id===2||id===3)&&t.face===2&&world.getBlock(t.bx,t.by+1,t.bz)===0){world.setBlock(t.bx,t.by,t.bz,36,0);playSoundAt('hit_gravel',t.bx,t.by,t.bz);damageItem(st,1);p.swing=0;return}
