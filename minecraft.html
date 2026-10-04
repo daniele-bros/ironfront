@@ -917,7 +917,7 @@ defBlock(104,'beacon',{tex:{side:'beacon',top:'beacon',bottom:'obsidian'},hard:3
 defBlock(105,'purpur_block',{tex:'purpur',hard:1.5,tool:'pickaxe',needsTool:true,resist:6});
 defBlock(106,'end_rod',{tex:'end_rod',model:'rod',hard:0,light:14,transparent:true,sound:'glass'});
 defBlock(107,'shulker_box',{label:'Shellguard Box',tex:{side:'shulker_side',top:'shulker_top',bottom:'shulker_top'},hard:2,tool:'pickaxe',gui:'chest',transparent:true,stack:1,resist:6,drop:()=>[]});
-defBlock(108,'end_gateway',{tex:'gateway',hard:-1,light:15,resist:3600000,drop:()=>[],stack:0});
+defBlock(108,'end_gateway',{tex:'gateway',hard:-1,light:15,resist:3600000,drop:()=>[],stack:0,solid:false}); // you step into it, not onto it
 defBlock(109,'end_stone_bricks',{tex:'end_bricks',hard:3,tool:'pickaxe',needsTool:true,resist:9});
 defBlock(110,'purpur_pillar',{tex:{side:'purpur_pillar',top:'purpur'},hard:1.5,tool:'pickaxe',needsTool:true,resist:6});
 defBlock(80,'snow_block',{tex:'snow',hard:0.2,tool:'shovel',needsTool:true,sound:'snow',drop:()=>[[293,4]]});
@@ -2598,7 +2598,7 @@ function updatePlayer(dt){
   if(BLOCKS[feetId].web||BLOCKS[world.getBlock(floor(p.x),floor(p.y+1),floor(p.z))].web){p.vx*=0.25;p.vz*=0.25;p.vy=clamp(p.vy,-1,1)*0.5;p.fallDist=0}
   // ---- end portal / gateway ----
   {const feet=world.getBlock(floor(p.x),floor(p.y),floor(p.z));if(feet===101){if(!p.endLock){p.endLock=true;if(world.end)leaveEnd();else enterEnd()}}else p.endLock=false;
-    const head=world.getBlock(floor(p.x),floor(p.y+1),floor(p.z));if(feet===108||head===108){if(!p.gwLock){p.gwLock=true;gatewayTeleport()}}else p.gwLock=false}
+    const head=world.getBlock(floor(p.x),floor(p.y+1),floor(p.z));const under=p.onGround?world.getBlock(floor(p.x),floor(p.y)-1,floor(p.z)):0;if(feet===108||head===108||under===108){if(!p.gwLock){p.gwLock=true;gatewayTeleport()}}else p.gwLock=false}
   tickCustomArmor(dt);
   // ---- portal ----
   const fb=world.getBlock(floor(p.x),floor(p.y),floor(p.z)),hb=world.getBlock(floor(p.x),floor(p.y+1),floor(p.z));const inSiftPortal=fb===134||hb===134;const inPortal=fb===82||hb===82||inSiftPortal;
