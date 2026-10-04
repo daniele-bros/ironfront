@@ -300,9 +300,27 @@ label.lb{font-size:13px;color:#a0a0a0;align-self:flex-start;margin-left:calc(50%
   <button class="btn" id="btnMulti">Play Together</button>
   <button class="btn" id="btnOptionsT">Game Settings</button>
   <button class="btn" id="btnControls">How to Play</button>
+  <button class="btn" id="btnModMaker">Mod Maker</button>
   <p id="titleAbout" style="position:absolute;bottom:43px;left:0;right:0;text-align:center;font-size:12px;font-weight:400;color:#ddd;text-shadow:1px 1px 0 #000;margin:0;padding:0 14px;pointer-events:none;">A free voxel survival sandbox by Daniele Bros. Public rooms use random aliases and have chat disabled.</p>
   <p id="legalNote" style="position:absolute;bottom:22px;left:0;right:0;text-align:center;font-size:10px;font-weight:500;color:#e1b65f;margin:0;padding:0 14px;pointer-events:none;">NOT AN OFFICIAL MINECRAFT PRODUCT. NOT APPROVED BY OR ASSOCIATED WITH MOJANG OR MICROSOFT.</p>
   <div id="versionNote" style="position:absolute;bottom:6px;left:8px;font-size:12px;font-weight:400;color:#aaa">Ironcraft 1.0 &mdash; a browser voxel survival game</div>
+</div>
+
+<div id="modMenu" class="menu dirtbg">
+  <h2 class="sh">Mod Maker</h2>
+  <p id="modNote" class="sh" style="font-size:12px;max-width:560px;text-align:center;line-height:1.45;margin:0 0 6px"></p>
+  <div class="list" id="modList" style="max-height:30vh"></div>
+  <div id="modDrop" style="width:min(92vw,520px);border:2px dashed #d39a33;border-radius:8px;padding:10px;text-align:center;font-size:13px;color:#f4e6c4;background:rgba(0,0,0,.35);cursor:pointer">Drop a photo here or tap to choose one<input type="file" id="modFile" accept="image/*" style="display:none"></div>
+  <div id="modForm" style="display:none;width:min(92vw,520px);background:rgba(0,0,0,.5);border:1px solid #d39a33;border-radius:8px;padding:8px;color:#f4e6c4;font-size:13px;text-align:left">
+    <div style="display:flex;gap:10px;align-items:flex-start;flex-wrap:wrap"><canvas id="modPreview" width="64" height="64" style="image-rendering:pixelated;border:2px solid #fff;background:#000;flex:none"></canvas>
+      <div style="flex:1;min-width:200px"><input class="tx" id="modName" placeholder="Name it" maxlength="24" style="width:100%;margin:0">
+        <div style="margin-top:6px">Make it a <select id="modKind"><option value="block">Block</option><option value="item">Item</option><option value="creature">Creature face</option></select> <select id="modTarget" style="display:none"></select></div>
+        <div id="modBlockOpts" style="margin-top:6px"><label><input type="checkbox" id="modGlow"> Glows</label> &nbsp; Hardness <select id="modHard"><option value="0.6">Soft</option><option value="1.5" selected>Normal</option><option value="5">Tough</option></select></div>
+        <div id="modOkRow" style="margin-top:6px"><label><input type="checkbox" id="modOk"> This photo is family friendly</label></div></div></div>
+    <div class="btnrow" style="margin-top:8px;width:100%"><button class="btn half" id="btnModAdd">Add to my mod</button><button class="btn half" id="btnModCancel">Cancel</button></div>
+  </div>
+  <div id="modStatus" class="sh" style="font-size:12px;color:#ff6;min-height:16px"></div>
+  <div class="btnrow"><button class="btn half" id="btnModClear">Remove All</button><button class="btn half" id="btnModBack">Return</button></div>
 </div>
 
 <div id="worldMenu" class="menu dirtbg">
@@ -390,6 +408,8 @@ label.lb{font-size:13px;color:#a0a0a0;align-self:flex-start;margin-left:calc(50%
   <button class="btn" id="btnResume">Back to Game</button>
   <button class="btn" id="btnOptionsP">Options...</button>
   <button class="btn" id="btnModsP">Fun Mods...</button>
+  <button class="btn" id="btnModeP">Game Mode: Survival</button>
+  <button class="btn" id="btnModMakerP">Mod Maker...</button>
   <button class="btn" id="btnSaveQuit">Save and Quit to Title</button>
 </div>
 
@@ -727,6 +747,7 @@ defTex('player_face',p=>{p.noise(215,168,130,6);p.rect(3,5,2,2,255,255,255);p.re
 defTex('villager_face',p=>{p.noise(200,160,120,6);p.rect(2,3,12,1,104,66,38);p.rect(2,4,3,2,250,250,250);p.rect(11,4,3,2,250,250,250);p.rect(3,4,1,2,60,120,60);p.rect(12,4,1,2,60,120,60);p.rect(6,6,4,7,184,138,98);p.rect(6,6,1,7,168,124,88);p.rect(5,13,6,1,140,100,72);p.rect(0,0,16,2,120,78,46)});
 defTex('sheep_wool',p=>{for(let y=0;y<16;y+=2)for(let x=0;x<16;x+=2){const v=226+floor(p.rng()*28);p.rect(x,y,2,2,v,v,v);p.px(x+1,y+1,v-18,v-18,v-18)}p.speckle(8,250,250,250);shade(p,0.1)});
 
+for(let i=0;i<48;i++)defTex('custom'+i,p=>{p.noise(196,72,196,10);p.rect(0,0,16,1,120,20,120);p.rect(0,15,16,1,120,20,120)}); // Mod Maker slots: filled from photos at runtime
 const ATLAS_W=16; // tiles per row
 let atlasCanvas=null,atlasSize=256;
 function buildAtlas(){
@@ -1136,7 +1157,7 @@ function drawIsoCube(ctx,topIdx,leftIdx,rightIdx,size=32){
   ctx.restore();
 }
 function buildIcons(){
-  itemAtlas=document.createElement('canvas');itemAtlas.width=256;itemAtlas.height=256;const ia=itemAtlas.getContext('2d');let ti=0;
+  itemAtlas=document.createElement('canvas');itemAtlas.width=512;itemAtlas.height=512;const ia=itemAtlas.getContext('2d');let ti=0;
   for(const def of ITEMS){ if(!def)continue;
     const c=document.createElement('canvas');c.width=32;c.height=32;const ctx=c.getContext('2d');ctx.imageSmoothingEnabled=false;
     let flat=null; // [rows,pal] or tile index
@@ -1149,12 +1170,12 @@ function buildIcons(){
       else if(m==='bed'){flat=ICONDEF.bed}
       else {flat=def.faces[0]} // cross / torch / ladder / crop: flat sprite
     } else {
-      if(def.iconPal)flat=def.iconPal;else if(def.mat&&def.tool&&TPL[def.tool])flat=toolIcon(def);else if(def.armor!==undefined&&def.mat)flat=armorIcon(def);else flat=ICONDEF[def.icon]||['lump',{m:[200,0,200],l:[255,0,255]}];
+      if(def.iconTile!==undefined)flat=def.iconTile;else if(def.iconPal)flat=def.iconPal;else if(def.mat&&def.tool&&TPL[def.tool])flat=toolIcon(def);else if(def.armor!==undefined&&def.mat)flat=armorIcon(def);else flat=ICONDEF[def.icon]||['lump',{m:[200,0,200],l:[255,0,255]}];
     }
     if(Array.isArray(flat)&&typeof flat[0]==='string')flat=[TPL[flat[0]],flat[1]];
     if(flat!==null){
-      if(typeof flat==='number'){ctx.drawImage(tileCanvas(flat),0,0,32,32);ia.drawImage(tileCanvas(flat),(ti%16)*16,floor(ti/16)*16)}
-      else{drawTemplate(ctx,flat[0],flat[1],0,0,2);drawTemplate(ia,flat[0],flat[1],(ti%16)*16,floor(ti/16)*16,1)}
+      if(typeof flat==='number'){ctx.drawImage(tileCanvas(flat),0,0,32,32);ia.drawImage(tileCanvas(flat),(ti%32)*16,floor(ti/32)*16)}
+      else{drawTemplate(ctx,flat[0],flat[1],0,0,2);drawTemplate(ia,flat[0],flat[1],(ti%32)*16,floor(ti/32)*16,1)}
       ITEMTILE[def.id]=ti++;
     }
     ICONS[def.id]=c.toDataURL();
@@ -1210,7 +1231,7 @@ class World{
     if(y<0||y>=CH)return false;const c=this.chunks.get(chunkKey(x>>4,z>>4));if(!c||!c.generated)return false;
     const i=cidx(x&15,y,z&15);const old=c.blocks[i],oldMeta=c.meta[i];if(old===id&&oldMeta===meta)return true;
     c.blocks[i]=id;c.meta[i]=meta;
-    if(!opt.gen)c.mods.set(i,id|(meta<<8));if(!opt.gen&&!opt.remote&&MP.active)mpSend({t:'b',x,y,z,id,meta});
+    if(!opt.gen)c.mods.set(i,id|(meta<<8));if(!opt.gen&&!opt.remote&&MP.active&&!(BLOCKS[id]&&BLOCKS[id].custom))mpSend({t:'b',x,y,z,id,meta});
     if(old===86&&id!==86)this.spawners.delete(x+','+y+','+z);
     if(old!==id&&c.bents.has(i)&&BLOCKS[old].gui){if(!opt.keepEntity){const be=c.bents.get(i);c.bents.delete(i);if(!opt.noDrop&&be&&be.items&&typeof dropInventory==='function')dropInventory(be.items,x,y,z)}}
     if(c.lit){this.updateLightAt(x,y,z,old,id)}
@@ -1707,7 +1728,7 @@ function initGL(){
   const canvas=$('gl');R.canvas=canvas;const gl=canvas.getContext('webgl2',{antialias:false,alpha:false,powerPreference:'high-performance'});if(!gl)throw new Error('WebGL2 not supported');R.gl=gl;
   R.progC=mkProg(gl,VS_C,FS(false));R.progE=mkProg(gl,VS_E,FS(true));
   const atlas=buildAtlas();TILE_W=16/atlas.width;TILE_H=16/atlas.height;
-  R.atlasTex=mkTex(gl,atlas,true);buildIcons();R.itemTex=mkTex(gl,itemAtlas,false);
+  R.atlasTex=mkTex(gl,atlas,true);buildIcons();R.itemTex=mkTex(gl,itemAtlas,false);applyCustomMods();
   gl.enable(gl.DEPTH_TEST);gl.enable(gl.CULL_FACE);gl.cullFace(gl.BACK);gl.frontFace(gl.CCW);
   // stars
   const rng=mulberry32(99);const st=[];for(let i=0;i<600;i++){const u=rng()*2-1,th=rng()*PI*2;const r=sqrt(1-u*u);st.push([r*Math.cos(th),u,r*Math.sin(th),0.4+rng()*0.8])}R.stars=st;
@@ -1843,7 +1864,7 @@ function drawHand(dt){const gl=R.gl;const p=player;const st=p.inv[p.sel];const i
     EB.draw(R.progE,R.atlasTex,{vp:proj,fogStart:100,fogEnd:200});
   } else {
     EBI.clear();const tile=ITEMTILE[id];if(tile===undefined)return;const tf=makeTF(0.6+bob-useT,-0.5+swingY+bob-eat+useT*0.3,-0.9,-0.35+swingR*0.3+useT,swingR*0.5,0.4-useT*0.6,0,0,0,1);
-    const uv=[[(tile%16)/16,floor(tile/16)/16],[(tile%16+1)/16,floor(tile/16)/16],[(tile%16+1)/16,(floor(tile/16)+1)/16],[(tile%16)/16,(floor(tile/16)+1)/16]];const s=0.5;
+    const uv=[[(tile%32)/32,floor(tile/32)/32],[(tile%32+1)/32,floor(tile/32)/32],[(tile%32+1)/32,(floor(tile/32)+1)/32],[(tile%32)/32,(floor(tile/32)+1)/32]];const s=0.5;
     const P=[tf(-s/2,s/2,0),tf(s/2,s/2,0),tf(s/2,-s/2,0),tf(-s/2,-s/2,0)];EBI.quad(P,uv,[l[0],l[1],1],[1,1,1]);EBI.quad([P[3],P[2],P[1],P[0]],[uv[3],uv[2],uv[1],uv[0]],[l[0],l[1],1],[1,1,1]);
     gl.disable(gl.CULL_FACE);EBI.draw(R.progE,R.itemTex,{vp:proj,fogStart:100,fogEnd:200});gl.enable(gl.CULL_FACE);
   }
@@ -1909,13 +1930,13 @@ class ItemEntity extends Entity{
     const n=s.count>=48?4:s.count>=16?3:s.count>=2?2:1;
     for(let k=0;k<n;k++){const off=k*0.05;
     if(def.isBlock&&ITEMTILE[s.id]===undefined){const tf=makeTF(this.x+off*0.5,this.y+bob+off,this.z+off*0.5,this.rot,0,0,0,0,0,0.25);const rb=renderBoxes(s.id,0,0,0,0);for(const b of rb)EB.box(tf,b[0]-0.5,b[1],b[2]-0.5,b[3]-0.5,b[4],b[5]-0.5,b[6],b[8]?[b[8][0]/255,b[8][1]/255,b[8][2]/255]:[1,1,1],l,false)}
-    else{const tile=ITEMTILE[s.id];const tf=makeTF(this.x+off*0.5,this.y+bob+0.15,this.z+off*0.5,this.rot,0,0,0,0,0,1);const uv=[[(tile%16)/16,floor(tile/16)/16],[(tile%16+1)/16,floor(tile/16)/16],[(tile%16+1)/16,(floor(tile/16)+1)/16],[(tile%16)/16,(floor(tile/16)+1)/16]];const sz=0.35;
+    else{const tile=ITEMTILE[s.id];const tf=makeTF(this.x+off*0.5,this.y+bob+0.15,this.z+off*0.5,this.rot,0,0,0,0,0,1);const uv=[[(tile%32)/32,floor(tile/32)/32],[(tile%32+1)/32,floor(tile/32)/32],[(tile%32+1)/32,(floor(tile/32)+1)/32],[(tile%32)/32,(floor(tile/32)+1)/32]];const sz=0.35;
       const P=[tf(-sz/2,sz/2,0),tf(sz/2,sz/2,0),tf(sz/2,-sz/2,0),tf(-sz/2,-sz/2,0)];EBI.quad(P,uv,[l[0],l[1],1],[1,1,1]);EBI.quad([P[3],P[2],P[1],P[0]],[uv[3],uv[2],uv[1],uv[0]],[l[0],l[1],1],[1,1,1])}}
   }
 }
 function spawnItem(x,y,z,stack,vel,delay,opt){if(!stack||stack.count<=0)return;const e=new ItemEntity(x,y,z,{id:stack.id,count:stack.count,dur:stack.dur,ench:stack.ench,items:stack.items},delay);if(vel){e.vx=vel[0];e.vy=vel[1];e.vz=vel[2]}else{e.vx=(Math.random()-0.5)*2;e.vy=2+Math.random()*2;e.vz=(Math.random()-0.5)*2}entities.push(e);
   // multiplayer: everyone sees the same dropped items (mob loot stays local because mobs are)
-  if(opt&&opt.nid)e.nid=opt.nid;else if(MP.active&&!(opt&&opt.local)){e.nid=MP.myId+':'+(++MP.nidN);mpSend({t:'i',nid:e.nid,x:e.x,y:e.y,z:e.z,vx:e.vx,vy:e.vy,vz:e.vz,s:e.stack,d:e.pickupDelay,dim:world.dimKey})}
+  if(opt&&opt.nid)e.nid=opt.nid;else if(MP.active&&!(opt&&opt.local)&&!(ITEMS[e.stack.id]&&ITEMS[e.stack.id].custom)){e.nid=MP.myId+':'+(++MP.nidN);mpSend({t:'i',nid:e.nid,x:e.x,y:e.y,z:e.z,vx:e.vx,vy:e.vy,vz:e.vz,s:e.stack,d:e.pickupDelay,dim:world.dimKey})}
   return e}
 function dropInventory(items,x,y,z){for(let i=0;i<items.length;i++){if(items[i]){spawnItem(x+0.5,y+0.5,z+0.5,items[i]);items[i]=null}}}
 /* ===================== XP ORB ===================== */
@@ -3659,7 +3680,7 @@ let paletteFilter='';
 function renderPalette(){const pl=$('palette');const creative=player.mode==='creative';pl.style.display=creative?'block':'none';$('invGui').classList.toggle('full',creative);const ab=$('armorBox');if(creative){$('invBottom').prepend(ab)}else{$('invTop').prepend(ab)}if(!creative)return;
   pl.innerHTML='';const head=document.createElement('div');head.className='palhead';head.innerHTML='<input type="text" id="palSearch" placeholder="Search items..." value="'+paletteFilter.replace(/"/g,'')+'"><div class="hint">Click an item to grab a stack &middot; click any item while holding one to delete it &middot; scroll to see more</div>';pl.appendChild(head);
   const grid=document.createElement('div');grid.className='palgrid';pl.appendChild(grid);const f=paletteFilter.toLowerCase();
-  for(const def of ITEMS){if(!def||def.id===0||def.id===35||def.id===73||def.id===74||def.id===82)continue;if(f&&!def.label.toLowerCase().includes(f))continue;const el=document.createElement('div');el.className='r';el.innerHTML='<div class="icon" style="background-image:url('+ICONS[def.id]+')"></div>';el.title=def.label;
+  for(const def of ITEMS){if(!def||def.hidden||def.id===0||def.id===35||def.id===73||def.id===74||def.id===82)continue;if(f&&!def.label.toLowerCase().includes(f))continue;const el=document.createElement('div');el.className='r';el.innerHTML='<div class="icon" style="background-image:url('+ICONS[def.id]+')"></div>';el.title=def.label;
     el.addEventListener('mousedown',ev=>{ev.preventDefault();if(cursor){cursor=null}else cursor={id:def.id,count:def.stack};renderAllSlots();playSound('click',0.3)});el.addEventListener('mouseenter',()=>{const t=$('tooltip');t.innerHTML=def.label;t.style.display='block';const r=el.getBoundingClientRect();t.style.left=Math.min(innerWidth-160,r.right+6)+'px';t.style.top=r.top+'px'});el.addEventListener('mouseleave',hideTip);grid.appendChild(el)}
   const inp=$('palSearch');inp.addEventListener('input',()=>{paletteFilter=inp.value;const sc=pl.scrollTop;renderPalette();$('palSearch').focus();pl.scrollTop=sc});}
 /* ===================== ENCHANTING ===================== */
@@ -4082,6 +4103,8 @@ function setupMenus(){
   let optBack='titleMenu';$('btnOptionsT').onclick=()=>{optBack='titleMenu';showMenu('optionsMenu')};$('btnOptionsP').onclick=()=>{optBack='pauseMenu';showMenu('optionsMenu')};$('btnOptionsBack').onclick=()=>{saveOpts();showMenu(optBack)};
   $('btnControls').onclick=()=>showMenu('controlsMenu');$('btnControlsBack').onclick=()=>showMenu('titleMenu');
   $('btnResume').onclick=()=>resumeGame();$('btnSaveQuit').onclick=()=>quitToTitle();
+  $('btnModeP').onclick=()=>{if(MP.active&&!MP.host){showMessage('Only the host can change the game mode');return}const p=player;p.mode=p.mode==='creative'?'survival':'creative';if(p.mode==='survival')p.flying=false;refreshModeBtn();updateHUD();updateHotbar();showMessage('Game mode: '+p.mode)};
+  $('btnModMaker').onclick=()=>openModMaker('titleMenu');$('btnModMakerP').onclick=()=>openModMaker('pauseMenu');setupModMaker();
   $('btnRespawn').onclick=()=>{respawn();lockPointer()};$('btnDeathQuit').onclick=()=>{if(game.mods&&game.mods.hardcore){$('deathScreen').classList.remove('show');quitToTitle()}else{respawn();quitToTitle()}};
   const sl=(id,key,fmt,cb)=>{const inp=$(id);const box=inp.parentElement;const span=box.querySelector('span'),knob=box.querySelector('.knob');const upd=()=>{span.textContent=fmt(opts[key]);const f=(opts[key]-inp.min)/(inp.max-inp.min);knob.style.left='calc('+(f*100)+'% - '+(f*16)+'px)'};inp.value=opts[key];upd();inp.addEventListener('input',()=>{opts[key]=+inp.value;upd();if(cb)cb()})};
   sl('optRender','renderDist',v=>'Render Distance: '+v+' chunks');sl('optFov','fov',v=>'FOV: '+(v===70?'Normal':v));sl('optSens','sens',v=>'Sensitivity: '+v+'%');sl('optBright','brightness',v=>'Brightness: '+(v===0?'Moody':v===100?'Bright':v+'%'));
@@ -4092,7 +4115,7 @@ function setupMenus(){
 }
 // Space or either Ctrl jumps (Ctrl also sprints, so holding it while running sprint-jumps)
 function jumpKey(){return !!(keys.Space||keys.ControlLeft||keys.ControlRight)}
-function pauseGame(){if(game.state!=='playing')return;game.paused=true;showMenu('pauseMenu');document.exitPointerLock&&document.exitPointerLock();mouseL=mouseR=false;saveWorld();syncMobileControls()}
+function pauseGame(){if(game.state!=='playing')return;game.paused=true;showMenu('pauseMenu');refreshModeBtn();document.exitPointerLock&&document.exitPointerLock();mouseL=mouseR=false;saveWorld();syncMobileControls()}
 function resumeGame(){game.paused=false;hideMenus();syncMobileControls();lockPointer()}
 function lockPointer(){if(game.state!=='playing'||game.gui||game.paused||player.dead)return;const c=$('gl');if(game.noLock||document.pointerLockElement===c)return;
   const fail=()=>{if(document.pointerLockElement!==c&&!game.noLock){game.noLock=true;showMessage('Mouse lock unavailable: move the mouse to look around, keep it near a screen edge to keep turning')}};
@@ -4177,6 +4200,72 @@ function setupMobileControls(){
   $('guiClose').addEventListener('pointerdown',ev=>{ev.preventDefault();ev.stopPropagation();if(game.gui)closeGui()});
   window.addEventListener('blur',resetJoy);syncMobileControls();
 }
+/* ---- Mod Maker: drop a photo, it becomes a block, an item or a creature's face ---- */
+const MOD_AI_ENDPOINT=''; // optional photo check + naming server (see worker/mod-ai in the repo). Empty: photos stay on this device only.
+const CUSTOM_SLOTS=48,CUSTOM_BLOCK0=200,CUSTOM_ITEM0=700;
+const CUSTOM_TARGETS=['hopling','sprig','pig','cow','sheep','chicken','wolf','villager','zombie','skeleton','creeper','sift_acolyte','thornback','enderman','golem'];
+const CUSTOM_KEYS=['dirt','sand','gravel','oak_log','oak_planks','glass','torch','stick','coal','iron_ingot','gold_ingot','redstone','wheat','apple','bread','string','feather','leather','bone','sugar','egg','flint','brick','clay_ball','snowball','paper','book','wool','obsidian','diamond','emerald','gunpowder','slime_ball','bucket','compass','clock','melon','pumpkin','cactus','sugar_cane','carrot','potato','beef','porkchop','cod','iron_nugget','quartz','ladder'];
+const customOrig={faces:{}};
+function loadCustomMods(){try{const m=JSON.parse(localStorage.getItem('ic_custom_mods')||'{"pieces":[]}');if(!Array.isArray(m.pieces))m.pieces=[];return m}catch(e){return {pieces:[]}}}
+function saveCustomMods(m){try{localStorage.setItem('ic_custom_mods',JSON.stringify(m))}catch(e){showMessage('Could not save the mod: storage full')}}
+function b64ToBytes(str){const b=atob(str);const a=new Uint8ClampedArray(b.length);for(let i=0;i<b.length;i++)a[i]=b.charCodeAt(i);return a}
+function bytesToB64(a){let r='';for(let i=0;i<a.length;i++)r+=String.fromCharCode(a[i]);return btoa(r)}
+function setCustomTexture(k,rgba){const idx=TEX['custom'+k];if(idx===undefined)return;TEXDATA[idx]=rgba;if(typeof atlasCanvas!=='undefined'&&atlasCanvas)atlasCanvas.getContext('2d').putImageData(new ImageData(new Uint8ClampedArray(rgba),16,16),(idx%ATLAS_W)*16,floor(idx/ATLAS_W)*16)}
+function uploadAtlas(){if(!R.gl||!R.atlasTex)return;const gl=R.gl;gl.bindTexture(gl.TEXTURE_2D,R.atlasTex);gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL,false);gl.texImage2D(gl.TEXTURE_2D,0,gl.RGBA,gl.RGBA,gl.UNSIGNED_BYTE,atlasCanvas);gl.generateMipmap(gl.TEXTURE_2D)}
+function customKeyFor(k){return I[CUSTOM_KEYS[k%CUSTOM_KEYS.length]]}
+function applyCustomMods(){const m=loadCustomMods();const pieces=m.pieces.slice(0,CUSTOM_SLOTS);
+  for(const t in customOrig.faces)TEX[t+'_face']=customOrig.faces[t];
+  for(let i=RECIPES.length-1;i>=0;i--)if(RECIPES[i].custom)RECIPES.splice(i,1);
+  for(let k=0;k<CUSTOM_SLOTS;k++){const pc=pieces[k];const bid=CUSTOM_BLOCK0+k,iid=CUSTOM_ITEM0+k,tex='custom'+k;
+    if(pc&&pc.px){try{setCustomTexture(k,b64ToBytes(pc.px))}catch(e){}}
+    const blk=!!(pc&&pc.kind==='block'),it=!!(pc&&pc.kind==='item');
+    // every slot keeps a safe definition, so a world that still holds a removed piece never breaks
+    defBlock(bid,'custom_'+k,{tex,hard:blk?+(pc.hard||1.5):1.5,tool:'pickaxe',sound:'stone',light:blk&&pc.glow?9:0,label:blk?pc.name:'Removed mod block',custom:true,hidden:!blk});
+    defItem(iid,'custom_item_'+k,{label:it?pc.name:'Removed mod item',iconTile:TEX[tex],custom:true,hidden:!it});
+    if(pc&&pc.kind==='creature'&&CUSTOM_TARGETS.includes(pc.target)){const fk=pc.target+'_face';if(customOrig.faces[pc.target]===undefined)customOrig.faces[pc.target]=TEX[fk];TEX[fk]=TEX[tex]}
+    const key=customKeyFor(k);if((blk||it)&&key!==undefined){shapeless([4,key],[blk?bid:iid,blk?4:2]);RECIPES[RECIPES.length-1].custom=true}}
+  if(R.gl){uploadAtlas();buildIcons();R.itemTex=mkTex(R.gl,itemAtlas,false);if(game.state==='playing'){updateHotbar();if(game.gui)renderAllSlots()}}}
+function pixelateFile(file){return new Promise((res,rej)=>{const img=new Image();const url=URL.createObjectURL(file);img.onload=()=>{URL.revokeObjectURL(url);const sq=Math.min(img.width,img.height);const sx=(img.width-sq)/2,sy=(img.height-sq)/2;
+    const mid=document.createElement('canvas');mid.width=mid.height=64;const mc=mid.getContext('2d');mc.imageSmoothingEnabled=true;mc.drawImage(img,sx,sy,sq,sq,0,0,64,64);
+    const c=document.createElement('canvas');c.width=c.height=16;const cx=c.getContext('2d');cx.imageSmoothingEnabled=true;cx.drawImage(mid,0,0,16,16);const d=cx.getImageData(0,0,16,16).data;for(let i=3;i<d.length;i+=4)d[i]=255;
+    const rv=document.createElement('canvas');rv.width=rv.height=256;rv.getContext('2d').drawImage(img,sx,sy,sq,sq,0,0,256,256);
+    res({px:new Uint8ClampedArray(d),review:rv.toDataURL('image/jpeg',0.8)})};img.onerror=()=>rej(new Error('That file is not an image'));img.src=url})}
+async function moderateCustomImage(review,name,kind){if(!MOD_AI_ENDPOINT)return {allowed:true,offline:true};
+  try{const r=await fetch(MOD_AI_ENDPOINT,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({image:review,name,kind})});if(!r.ok)throw new Error('HTTP '+r.status);const j=await r.json();return {allowed:!!j.allowed,reason:j.reason||'',name:j.name||'',description:j.description||''}}
+  catch(e){return {allowed:false,reason:'The photo check is not available right now. Try again in a minute.'}}}
+let modReturnTo='titleMenu',modPending=null;
+function openModMaker(from){modReturnTo=from||'titleMenu';showMenu('modMenu');renderModList();$('modNote').textContent=MOD_AI_ENDPOINT?'Drop a photo and it becomes pixel art in your mod. Every photo is checked by Claude first: anything that is not family friendly is refused.':'Drop a photo and it becomes 16x16 pixel art in your mod: a block, an item or a creature face. Photos never leave this device and other players never see your pieces. Family-friendly photos only.';$('modStatus').textContent=''}
+function pieceIconURL(pc){const c=document.createElement('canvas');c.width=c.height=16;try{c.getContext('2d').putImageData(new ImageData(b64ToBytes(pc.px),16,16),0,0)}catch(e){}return c.toDataURL()}
+function renderModList(){const m=loadCustomMods();const l=$('modList');l.innerHTML='';if(!m.pieces.length){l.innerHTML='<div class="witem" style="opacity:.8">No pieces yet. Drop a photo below to make your first one.</div>';return}
+  m.pieces.forEach((pc,k)=>{const el=document.createElement('div');el.className='witem';el.style.display='flex';el.style.alignItems='center';el.style.gap='10px';const key=customKeyFor(k);const keyName=key!==undefined?ITEMS[key].label:'';
+    const how=pc.kind==='creature'?'face of every '+(MOB_LABEL[pc.target]||pc.target):pc.kind==='block'?'block, craft 4 from cobblestone + '+keyName+(pc.glow?', glows':''):'item, craft 2 from cobblestone + '+keyName;
+    el.innerHTML='<img src="'+pieceIconURL(pc)+'" width="32" height="32" style="image-rendering:pixelated;border:1px solid #888"><div style="flex:1"><b>'+escapeHtml(pc.name)+'</b><div style="font-size:11px;opacity:.85">'+escapeHtml(how)+'</div></div><button class="btn" style="width:auto;height:30px;font-size:11px;padding:0 10px">Remove</button>';
+    el.querySelector('button').onclick=()=>{const mm=loadCustomMods();mm.pieces.splice(k,1);saveCustomMods(mm);applyCustomMods();renderModList();$('modStatus').textContent='Removed '+pc.name};l.appendChild(el)})}
+function escapeHtml(t){return String(t).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]))}
+function setupModMaker(){const drop=$('modDrop'),file=$('modFile');if(!drop)return;
+  const sel=$('modTarget');sel.innerHTML=CUSTOM_TARGETS.map(t=>'<option value="'+t+'">'+(MOB_LABEL[t]||t)+'</option>').join('');
+  $('modKind').onchange=()=>{const k=$('modKind').value;sel.style.display=k==='creature'?'inline-block':'none';$('modBlockOpts').style.display=k==='block'?'block':'none'};
+  $('modOkRow').style.display=MOD_AI_ENDPOINT?'none':'block';
+  const take=async f=>{if(!f)return;$('modStatus').textContent='Reading photo...';try{modPending=await pixelateFile(f);const cv=$('modPreview');const cx=cv.getContext('2d');cx.imageSmoothingEnabled=false;const t=document.createElement('canvas');t.width=t.height=16;t.getContext('2d').putImageData(new ImageData(modPending.px,16,16),0,0);cx.clearRect(0,0,64,64);cx.drawImage(t,0,0,64,64);
+      $('modName').value=(f.name||'').replace(/\.[^.]+$/,'').replace(/[_-]+/g,' ').slice(0,24);$('modOk').checked=false;$('modForm').style.display='block';$('modStatus').textContent='';$('modKind').onchange()}catch(e){$('modStatus').textContent=e.message||'Could not read that photo'}};
+  drop.onclick=()=>file.click();file.onchange=()=>{take(file.files[0]);file.value=''};
+  for(const ev of ['dragenter','dragover'])drop.addEventListener(ev,e=>{e.preventDefault();drop.style.background='rgba(211,154,51,.25)'});
+  for(const ev of ['dragleave','drop'])drop.addEventListener(ev,e=>{e.preventDefault();drop.style.background='rgba(0,0,0,.35)'});
+  drop.addEventListener('drop',e=>{const f=e.dataTransfer&&e.dataTransfer.files&&e.dataTransfer.files[0];take(f)});
+  document.addEventListener('paste',e=>{if(!$('modMenu').classList.contains('show'))return;const it=[...(e.clipboardData&&e.clipboardData.items||[])].find(i=>i.type.startsWith('image/'));if(it)take(it.getAsFile())});
+  $('btnModCancel').onclick=()=>{modPending=null;$('modForm').style.display='none'};
+  $('btnModAdd').onclick=async()=>{if(!modPending)return;const name=($('modName').value||'').trim().slice(0,24);if(!name){$('modStatus').textContent='Give it a name first';return}
+    const m=loadCustomMods();if(m.pieces.length>=CUSTOM_SLOTS){$('modStatus').textContent='Your mod is full ('+CUSTOM_SLOTS+' pieces). Remove one to add another.';return}
+    if(!MOD_AI_ENDPOINT&&!$('modOk').checked){$('modStatus').textContent='Tick the box to confirm the photo is family friendly';return}
+    const kind=$('modKind').value;$('btnModAdd').disabled=true;$('modStatus').textContent=MOD_AI_ENDPOINT?'Checking the photo...':'Adding...';
+    const chk=await moderateCustomImage(modPending.review,name,kind);$('btnModAdd').disabled=false;
+    if(!chk.allowed){$('modStatus').textContent='Not allowed: '+(chk.reason||'that photo is not suitable for Ironcraft');return}
+    const pc={id:Date.now(),name:chk.name&&!$('modName').value?chk.name.slice(0,24):name,kind,target:$('modTarget').value,glow:$('modGlow').checked,hard:$('modHard').value,px:bytesToB64(modPending.px),desc:chk.description||''};
+    m.pieces.push(pc);saveCustomMods(m);applyCustomMods();renderModList();modPending=null;$('modForm').style.display='none';
+    $('modStatus').textContent='Added '+pc.name+(kind==='creature'?'. Every '+(MOB_LABEL[pc.target]||pc.target)+' now wears it.':'. Find it in the creative inventory, craft it, or type /give '+pc.name.toLowerCase())};
+  $('btnModClear').onclick=()=>{if(!loadCustomMods().pieces.length)return;if(!confirm('Remove every piece from your mod?'))return;saveCustomMods({pieces:[]});applyCustomMods();renderModList();$('modStatus').textContent='Your mod is empty'};
+  $('btnModBack').onclick=()=>{modPending=null;$('modForm').style.display='none';showMenu(modReturnTo)}}
+function refreshModeBtn(){const b=$('btnModeP');if(b&&player)b.textContent='Game Mode: '+(player.mode==='creative'?'Creative (switch to Survival)':'Survival (switch to Creative)')}
 /* ---- command console ---- */
 function openCmd(prefill){if(game.state!=='playing'||game.paused||game.gui)return;game.cmdOpen=true;for(const k in keys)keys[k]=false;mouseL=mouseR=false;const el=$('cmd');el.style.display='block';el.value=prefill||'';document.exitPointerLock&&document.exitPointerLock();el.focus();el.setSelectionRange(el.value.length,el.value.length)}
 function closeCmd(){if(!game.cmdOpen)return;game.cmdOpen=false;const el=$('cmd');el.style.display='none';el.value='';el.blur();lockPointer();syncMobileControls()}
@@ -4368,7 +4457,7 @@ function mpOnData(conn,d){if(!d||!d.t)return;
       MP.hostId=d.hostId;world.time=d.time;world.day=d.day;if(d.spawn)game.worldSpawn=d.spawn;mpApplyBlocks(d.blocks||{});if(d.bents)mpApplyBents(d.bents);if(d.items){for(const e of entities)if(e instanceof ItemEntity)e.dead=true;MP.pendingItems=[];for(const it of d.items)mpItemIn(it)}if(d.wx)mpApplyWeather(d.wx);if(d.wave&&game.ax){const A=game.ax;A.wave=d.wave.wave;A.next=d.wave.next;A.left=d.wave.left;if(d.wave.active){A.active=true;A.pendingRoster=d.wave.roster||waveRoster(d.wave.wave)}}
       mpRemote(d.hostId,d.hostName);for(const pl of d.players||[])if(pl.id!==MP.myId)mpRemote(pl.id,pl.name);mpStatus('');setTimeout(()=>showMessage(MP.public?'Joined a public world. Chat is disabled and names use random aliases.':'Joined '+(d.hostName||'the host')+"'s private world. Press T to chat."),1500);break}
     case 'p':{if(d.id===MP.myId)break;if(MP.host)conn.mpId=d.id;const r=mpRemote(d.id,d.name);r.setTarget(d);if(MP.host)mpRelay(conn,d);break}
-    case 'b':{if(!world)break;if(world.hasChunk(d.x,d.z))world.setBlock(d.x,d.y,d.z,d.id,d.meta,{remote:true,noDrop:true});else{const k=(d.x>>4)+','+(d.z>>4);world.savedMods=world.savedMods||{};(world.savedMods[k]||(world.savedMods[k]=[])).push([cidx(d.x&15,d.y,d.z&15),d.id|(d.meta<<8)])}if(MP.host)mpRelay(conn,d);break}
+    case 'b':{if(!world||!BLOCKS[d.id])break;if(world.hasChunk(d.x,d.z))world.setBlock(d.x,d.y,d.z,d.id,d.meta,{remote:true,noDrop:true});else{const k=(d.x>>4)+','+(d.z>>4);world.savedMods=world.savedMods||{};(world.savedMods[k]||(world.savedMods[k]=[])).push([cidx(d.x&15,d.y,d.z&15),d.id|(d.meta<<8)])}if(MP.host)mpRelay(conn,d);break}
     case 'c':{if(MP.public)break;showMessage('<'+String(d.name||'Player').slice(0,16)+'> '+String(d.text||'').slice(0,120));if(MP.host)mpRelay(conn,d);break}
     case 'time':{if(!MP.host&&world){world.time=d.time;world.day=d.day}break}
     case 'wx':{if(!MP.host)mpApplyWeather(d);break}
@@ -4385,12 +4474,12 @@ function mpOnData(conn,d){if(!d||!d.t)return;
     case 'killed':{if(MP.host)mpRelay(conn,d);if(d.to===MP.myId){showMessage('You killed '+d.name);playSound('levelup',0.8,1.2)}break}
     case 'leave':{mpRemove(d.id);if(MP.host)mpRelay(conn,d);break}}}
 // dropped items: spawn when the chunk (and dimension) is here, otherwise hold them until it is
-function mpItemIn(d){if(entities.some(e=>e.nid===d.nid)||MP.pendingItems.some(it=>it.nid===d.nid))return;if(world&&world.dimKey===(d.dim||'over')&&world.hasChunk(floor(d.x),floor(d.z)))spawnItem(d.x,d.y,d.z,d.s,[d.vx,d.vy,d.vz],d.d,{nid:d.nid});else MP.pendingItems.push(d)}
+function mpItemIn(d){if(!d.s||!ITEMS[d.s.id])return;if(entities.some(e=>e.nid===d.nid)||MP.pendingItems.some(it=>it.nid===d.nid))return;if(world&&world.dimKey===(d.dim||'over')&&world.hasChunk(floor(d.x),floor(d.z)))spawnItem(d.x,d.y,d.z,d.s,[d.vx,d.vy,d.vz],d.d,{nid:d.nid});else MP.pendingItems.push(d)}
 function mpFlushItems(){if(!MP.pendingItems.length||!world)return;MP.pendingItems=MP.pendingItems.filter(d=>{if(world.dimKey!==(d.dim||'over')||!world.hasChunk(floor(d.x),floor(d.z)))return true;if(!entities.some(e=>e.nid===d.nid))spawnItem(d.x,d.y,d.z,d.s,[d.vx,d.vy,d.vz],d.d,{nid:d.nid});return false})}
 function mpItemList(){const out=[];for(const e of entities){if(!(e instanceof ItemEntity)||e.dead)continue;if(!e.nid)e.nid=MP.myId+':'+(++MP.nidN);out.push({nid:e.nid,x:e.x,y:e.y,z:e.z,vx:e.vx,vy:e.vy,vz:e.vz,s:e.stack,d:Math.max(0,e.pickupDelay),dim:world.dimKey})}return out.concat(MP.pendingItems)}
 // chests and furnaces: whoever changes one sends its whole contents; the copy on every other screen is replaced in place
 function mpSendBE(x,y,z,be){if(!MP.active||!be)return;mpSend({t:'be',x,y,z,dim:world.dimKey,be:{items:be.items,burn:be.burn||0,burnMax:be.burnMax||0,cook:be.cook||0}})}
-function mpApplyBE(d){if(!world||world.dimKey!==(d.dim||'over'))return;const src=d.be||{};if(world.hasChunk(d.x,d.z)){const id=world.getBlock(d.x,d.y,d.z);if(!BLOCKS[id].gui)return;const be=BLOCKS[id].gui==='furnace'?furnaceEntity(d.x,d.y,d.z):world.getBlockEntity(d.x,d.y,d.z,()=>({items:new Array((src.items||[]).length||27).fill(null)}));if(src.items){be.items.length=0;for(const it of src.items)be.items.push(it?Object.assign({},it):null)}if(src.burn!==undefined&&be.burnMax!==undefined){be.burn=src.burn;be.burnMax=src.burnMax;be.cook=src.cook}
+function mpApplyBE(d){if(!world||world.dimKey!==(d.dim||'over'))return;const src=d.be||{};if(src.items)src.items=src.items.map(s=>s&&ITEMS[s.id]&&!ITEMS[s.id].custom?s:null);if(world.hasChunk(d.x,d.z)){const id=world.getBlock(d.x,d.y,d.z);if(!BLOCKS[id].gui)return;const be=BLOCKS[id].gui==='furnace'?furnaceEntity(d.x,d.y,d.z):world.getBlockEntity(d.x,d.y,d.z,()=>({items:new Array((src.items||[]).length||27).fill(null)}));if(src.items){be.items.length=0;for(const it of src.items)be.items.push(it?Object.assign({},it):null)}if(src.burn!==undefined&&be.burnMax!==undefined){be.burn=src.burn;be.burnMax=src.burnMax;be.cook=src.cook}
     const g=game.gui;if(g&&g.be===be)renderAllSlots()}
   else{world.savedBents=world.savedBents||{};const k=(d.x>>4)+','+(d.z>>4);const l=world.savedBents[k]||(world.savedBents[k]=[]);const i=cidx(d.x&15,d.y,d.z&15);const j=l.findIndex(e=>+e[0]===i);const be={items:src.items||[]};if(j>=0)l[j]=[i,be];else l.push([i,be])}}
 function mpBentList(){const out={};const src=world.savedBents||{};for(const k in src)out[k]=src[k];for(const c of world.chunks.values()){if(c.bents.size)out[c.cx+','+c.cz]=Array.from(c.bents)}return out}
@@ -4402,7 +4491,7 @@ function mpSend(d){for(const c of MP.conns)if(c.open)c.send(d)}
 function mpRemote(id,name){if(!id)return null;if(MP.public)name=publicAlias(id);else name=String(name||'Player').replace(/[^a-z0-9 _-]/gi,'').slice(0,16)||'Player';let r=MP.remote.get(id);if(!r){r=new RemotePlayer(id,name);MP.remote.set(id,r);entities.push(r);if(game.state==='playing')showMessage(name+' joined')}else if(name)r.name=name;return r}
 function mpRemove(id){const r=MP.remote.get(id);if(!r)return;r.dead=true;MP.remote.delete(id);showMessage(r.name+' left');const el=$('nametags').querySelector('[data-id="'+id+'"]');if(el)el.remove()}
 function mpDrop(conn){const i=MP.conns.indexOf(conn);if(i>=0)MP.conns.splice(i,1);if(conn.mpId){mpRemove(conn.mpId);mpSend({t:'leave',id:conn.mpId})}}
-function mpTick(dt){const p=player;MP.sendT-=dt;if(MP.sendT<=0){MP.sendT=0.1;const st=heldStack();mpSend({t:'p',id:MP.myId,name:MP.name,x:p.x,y:p.y,z:p.z,yaw:p.yaw,pitch:p.pitch,dim:world?world.dimKey:'over',held:st?st.id:0,sneak:!!p.sneaking,dead:!!p.dead,armor:p.armor.map(a=>a?a.id:0),sw:p.swing<0.9?1:0})}
+function mpTick(dt){const p=player;MP.sendT-=dt;if(MP.sendT<=0){MP.sendT=0.1;const st=heldStack();mpSend({t:'p',id:MP.myId,name:MP.name,x:p.x,y:p.y,z:p.z,yaw:p.yaw,pitch:p.pitch,dim:world?world.dimKey:'over',held:st&&!ITEMS[st.id].custom?st.id:0,sneak:!!p.sneaking,dead:!!p.dead,armor:p.armor.map(a=>a?a.id:0),sw:p.swing<0.9?1:0})}
   mpFlushItems();
   if(MP.host){MP.timeT-=dt;if(MP.timeT<=0){MP.timeT=5;mpSend({t:'time',time:world.time,day:world.day})}if(MP.public){MP.annT=(MP.annT||0)-dt;if(MP.annT<=0){MP.annT=8;lobbyAnnounce()}}}
   for(const r of MP.remote.values())if(r.dead){MP.remote.delete(r.pid)}
@@ -4438,7 +4527,7 @@ class RemotePlayer extends Entity{constructor(id,name){super(0,-100,0);this.pid=
     // held item in the right hand: blocks as a small cube, everything else as its icon
     if(this.held&&ITEMS[this.held]){const def=ITEMS[this.held];const atf=partTF(this.x,this.y,this.z,this.yaw,4,22,0,armR,0,-0.05,s,0);
       if(def.isBlock&&ITEMTILE[this.held]===undefined){const rb=renderBoxes(this.held,0,0,0,0);for(const b of rb)EB.box(atf,b[0]*6-3,b[1]*6-14,b[2]*6-9,b[3]*6-3,b[4]*6-14,b[5]*6-9,b[6],b[8]?[b[8][0]/255,b[8][1]/255,b[8][2]/255]:[1,1,1],l,false)}
-      else if(EBI&&ITEMTILE[this.held]!==undefined){const tile=ITEMTILE[this.held];const uv=[[(tile%16)/16,floor(tile/16)/16],[(tile%16+1)/16,floor(tile/16)/16],[(tile%16+1)/16,(floor(tile/16)+1)/16],[(tile%16)/16,(floor(tile/16)+1)/16]];
+      else if(EBI&&ITEMTILE[this.held]!==undefined){const tile=ITEMTILE[this.held];const uv=[[(tile%32)/32,floor(tile/32)/32],[(tile%32+1)/32,floor(tile/32)/32],[(tile%32+1)/32,(floor(tile/32)+1)/32],[(tile%32)/32,(floor(tile/32)+1)/32]];
         const rx=Math.sin(0.8)*10,rz=-Math.cos(0.8)*10;const P=[atf(0,-3,-1),atf(rx,-3,-1+rz),atf(rx,-13,-1+rz),atf(0,-13,-1)];EBI.quad(P,uv,[l[0],l[1],1],[1,1,1]);EBI.quad([P[3],P[2],P[1],P[0]],[uv[3],uv[2],uv[1],uv[0]],[l[0],l[1],1],[1,1,1])}}}}
 /* ===================== FUN MODS: weather, tornadoes, horror ===================== */
 function weatherLoop(freq){const c=AU.ctx;const s=c.createBufferSource();s.buffer=noiseBuf(2);s.loop=true;const f=c.createBiquadFilter();f.type='lowpass';f.frequency.value=freq;const g=c.createGain();g.gain.value=0;s.connect(f);f.connect(g);g.connect(AU.master);s.start();return {s,f,g}}

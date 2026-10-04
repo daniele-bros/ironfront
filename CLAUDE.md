@@ -26,6 +26,7 @@ dependencies — open the file in a browser to play.
 - `command.html` — **Iron Battle**, flat-map real-time strategy.
 - `minecraft.html` — **Ironcraft**, Minecraft-style voxel survival (WebGL2).
 - `ironhook.html` — **Iron Hook**, canvas fishing game (cast, sink, bite, reel minigame, species log, shop).
+- `worker/mod-ai/` — optional Cloudflare Worker (not served by Pages) that checks Mod Maker photos with Claude; the game calls it only when `MOD_AI_ENDPOINT` in `minecraft.html` is set.
 - `ironjaws.html` — **Iron Jaws**, Hunt-the-Wumpus style shark hunt on the classic 20-cave dodecahedron.
 
 ## Verifying changes
