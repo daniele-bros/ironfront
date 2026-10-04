@@ -378,6 +378,7 @@ label.lb{font-size:13px;color:#a0a0a0;align-self:flex-start;margin-left:calc(50%
 
 <div id="optionsMenu" class="menu dirtbg">
   <h2 class="sh">Options</h2>
+  <div id="optSeed" class="sh" style="display:none;font-size:13px;margin:-4px 0 6px;cursor:pointer" title="Tap to copy the seed"></div>
   <div class="slider"><input type="range" id="optRender" min="3" max="14" step="1"><span></span><div class="knob"></div></div>
   <div class="slider"><input type="range" id="optFov" min="30" max="110" step="1"><span></span><div class="knob"></div></div>
   <div class="slider"><input type="range" id="optSens" min="10" max="200" step="1"><span></span><div class="knob"></div></div>
@@ -4111,7 +4112,7 @@ function setupMenus(){
   $('btnCreateGo').onclick=()=>{initAudio();if(MP.createPublic){MP.createPublic=false;mpCreatePublic($('wName').value||'Public World',$('wSeed').value.trim(),mode,diff,Object.assign({},mods));return}newWorld($('wName').value||'New World',$('wSeed').value.trim(),mode,diff,Object.assign({},mods))};
   $('btnPlay').onclick=()=>{const w=worldList().find(w=>w.id===selWorld);if(w){initAudio();openWorld(w)}};
   $('btnDelete').onclick=()=>{if(!selWorld)return;if(!confirm('Delete this world? This cannot be undone.'))return;localStorage.removeItem('ic_world_'+selWorld);localStorage.setItem('ic_worlds',JSON.stringify(worldList().filter(w=>w.id!==selWorld)));selWorld=null;refreshWorldList()};
-  let optBack='titleMenu';$('btnOptionsT').onclick=()=>{optBack='titleMenu';showMenu('optionsMenu')};$('btnOptionsP').onclick=()=>{optBack='pauseMenu';showMenu('optionsMenu')};$('btnOptionsBack').onclick=()=>{saveOpts();showMenu(optBack)};
+  let optBack='titleMenu';$('btnOptionsT').onclick=()=>{optBack='titleMenu';showMenu('optionsMenu');showOptSeed()};$('btnOptionsP').onclick=()=>{optBack='pauseMenu';showMenu('optionsMenu');showOptSeed()};$('btnOptionsBack').onclick=()=>{saveOpts();showMenu(optBack)};
   $('btnControls').onclick=()=>showMenu('controlsMenu');$('btnControlsBack').onclick=()=>showMenu('titleMenu');
   $('btnResume').onclick=()=>resumeGame();$('btnSaveQuit').onclick=()=>quitToTitle();
   $('btnModeP').onclick=()=>{if(MP.active&&!MP.host){showMessage('Only the host can change the game mode');return}const p=player;p.mode=p.mode==='creative'?'survival':'creative';if(p.mode==='survival')p.flying=false;refreshModeBtn();updateHUD();updateHotbar();showMessage('Game mode: '+p.mode)};
@@ -4295,6 +4296,7 @@ function setupModMaker(){const drop=$('modDrop'),file=$('modFile');if(!drop)retu
     $('modStatus').textContent=(wasEdit?'Saved ':'Added ')+name+'. '+(piece.kind==='armor'||piece.kind==='weapon'?'Find it in the creative inventory, craft it, or /give it by name.':'Use its spawn egg in creative, or type /spawn '+name.toLowerCase())};
   $('btnModClear').onclick=()=>{if(!loadCustomMods().pieces.length)return;if(!confirm('Remove every piece from your mod?'))return;saveCustomMods({pieces:[]});applyCustomMods();renderModList();$('modStatus').textContent='Your mod is empty'};
   $('btnModBack').onclick=()=>{modPending=null;built=null;editing=null;setAddLabels();$('modForm').style.display='none';$('modBuilt').style.display='none';showMenu(modReturnTo)}}
+function showOptSeed(){const el=$('optSeed');if(!el)return;const on=game.state==='playing'&&world;el.style.display=on?'block':'none';if(on){el.textContent='World seed: '+game.seed+(game.worldName?'  ('+game.worldName+')':'')+'  -  tap to copy';el.onclick=()=>{const t=String(game.seed);if(navigator.clipboard&&navigator.clipboard.writeText)navigator.clipboard.writeText(t).then(()=>{el.textContent='Seed '+t+' copied'},()=>{});else{el.textContent='Seed: '+t}}}}
 function refreshModeBtn(){const b=$('btnModeP');if(b&&player)b.textContent='Game Mode: '+(player.mode==='creative'?'Creative (switch to Survival)':'Survival (switch to Creative)')}
 /* ---- Describe-it creator: words become creatures, vehicles, armor and weapons ---- */
 const CUSTOM_WILD={hostile:[],passive:[]};
