@@ -22,7 +22,9 @@
 :root{--btn:#172128;--btnh:#243945;--txt:#f4e6c4;--shadow:#05080a;--panel:#d8d0bd;--slot:#66747a;--iron:#d39a33;--ember:#c74632;}
 *{box-sizing:border-box;margin:0;padding:0;}
 html,body{width:100%;height:100%;overflow:hidden;background:#000;}
-body{font-family:'Segoe UI',Verdana,Arial,sans-serif;font-weight:700;color:var(--txt);user-select:none;-webkit-user-select:none;font-size:14px;}
+body{font-family:'Segoe UI',Verdana,Arial,sans-serif;font-weight:700;color:var(--txt);user-select:none;-webkit-user-select:none;-webkit-touch-callout:none;font-size:14px;}
+input,textarea{user-select:text;-webkit-user-select:text}
+#gl{touch-action:none}
 canvas#gl{position:absolute;inset:0;width:100%;height:100%;display:block;image-rendering:pixelated;}
 .pix{image-rendering:pixelated;image-rendering:crisp-edges;}
 .sh{text-shadow:2px 2px 0 var(--shadow);}
@@ -182,6 +184,11 @@ label.lb{font-size:13px;color:#a0a0a0;align-self:flex-start;margin-left:calc(50%
 #mobileJump{right:max(28px,calc(env(safe-area-inset-right) + 10px));bottom:max(160px,calc(env(safe-area-inset-bottom) + 144px))}
 #mobileInv{right:max(102px,calc(env(safe-area-inset-right) + 84px));bottom:max(150px,calc(env(safe-area-inset-bottom) + 134px));width:54px;height:54px}
 #mobileMenu{top:max(10px,env(safe-area-inset-top));right:max(10px,env(safe-area-inset-right));width:48px;height:48px}
+#mobileChat{top:max(10px,env(safe-area-inset-top));right:max(66px,calc(env(safe-area-inset-right) + 56px));width:48px;height:48px;font-size:10px}
+#mobileSneak{left:max(144px,calc(env(safe-area-inset-left) + 126px));bottom:max(88px,calc(env(safe-area-inset-bottom) + 72px));width:54px;height:54px;font-size:10px}
+#mobileSneak.on{background:rgba(50,110,200,.85);border-color:#9cf}
+#guiClose{display:none;position:absolute;top:max(10px,env(safe-area-inset-top));right:max(10px,env(safe-area-inset-right));width:48px;height:48px;border-radius:50%;border:2px solid rgba(255,255,255,.85);background:rgba(25,25,25,.88);color:#fff;font:700 20px/1 Arial,sans-serif;z-index:200;touch-action:none;pointer-events:auto}
+@media (pointer:coarse),(hover:none){#guiClose.show{display:block}#cmd{top:max(62px,env(safe-area-inset-top));bottom:auto;width:calc(100% - 150px);font-size:16px}}
 .mobile-orient{display:none;position:absolute;left:50%;top:68px;transform:translateX(-50%);padding:5px 10px;background:rgba(0,0,0,.7);border:1px solid #888;color:#fff;font-size:11px;white-space:nowrap}
 @media (pointer:coarse),(hover:none){#hotbar{pointer-events:auto;bottom:max(5px,env(safe-area-inset-bottom))}.hslot{width:min(44px,10.5vw);height:min(44px,10.5vw)}.hslot .icon{width:min(32px,8vw);height:min(32px,8vw)}}
 @media (max-width:700px){.btn,input.tx,.list,.slider{width:min(92vw,400px)}.btnrow{width:min(92vw,400px)}.btn.half{width:calc(50% - 4px);font-size:13px}.tx.half{width:calc(50% - 4px)}label.lb{margin-left:4vw}.ctl{width:92vw;grid-template-columns:1fr;font-size:12px}h1.title{font-size:clamp(38px,14vw,58px);letter-spacing:3px}.splash{font-size:13px!important;margin:-54px 0 0 210px!important}#mpMenu .hint,#mpList{width:92vw!important}.menu{overflow-y:auto;padding:48px 8px 30px;justify-content:flex-start}.menu#titleMenu{justify-content:center}.panel{max-width:100vw;max-height:100vh;overflow:auto}.grid{grid-template-columns:repeat(9,min(38px,10.5vw))}.slot{width:min(38px,10.5vw);height:min(38px,10.5vw)}}
@@ -212,10 +219,13 @@ label.lb{font-size:13px;color:#a0a0a0;align-self:flex-start;margin-left:calc(50%
     <button id="mobileJump" class="mobile-action" type="button">JUMP</button>
     <button id="mobileInv" class="mobile-action" type="button">PACK</button>
     <button id="mobileMenu" class="mobile-action" type="button">II</button>
+    <button id="mobileChat" class="mobile-action" type="button">CHAT</button>
+    <button id="mobileSneak" class="mobile-action" type="button">SNEAK</button>
     <div class="mobile-orient">Turn sideways for the best view</div>
   </div>
 </div>
 
+<button id="guiClose" type="button" aria-label="Close">✕</button>
 <div id="invGui" class="gui"><div class="panel">
   <div class="row" id="invTop" style="align-items:flex-start;gap:14px">
     <div class="row" id="armorBox" style="align-items:flex-start;gap:14px"><div><h3 id="armorLabel">Armor</h3><div class="grid" id="armorGrid" style="grid-template-columns:38px"></div></div>
@@ -3810,6 +3820,7 @@ function updateMusic(dt){if(!AU.ctx||opts.music===0)return;AU.musicT-=dt;if(AU.m
 /* ===================== GAME ===================== */
 const game={dims:{over:null,nether:null,end:null,sift:null},state:'title',paused:false,gui:null,time:0,tick:0,difficulty:2,worldId:null,worldName:'',worldSpawn:[0.5,70,0.5],seed:0,lastSave:0,fps:0,frames:0,fpsT:0,tickAcc:0,spawnT:0};
 const opts=Object.assign({renderDist:8,fov:70,sens:100,brightness:50,volume:100,music:50,smooth:true,clouds:true,keepInv:true},JSON.parse(localStorage.getItem('ic_opts')||'{}'));
+if(!localStorage.getItem('ic_opts')&&matchMedia('(pointer:coarse)').matches)opts.renderDist=5; // tablets and phones start lighter
 let world=null;
 function saveOpts(){localStorage.setItem('ic_opts',JSON.stringify(opts))}
 /* ---- chunk streaming ---- */
@@ -4065,7 +4076,7 @@ function setupInput(){
   document.addEventListener('mousemove',ev=>{game.mousePos={x:ev.clientX,y:ev.clientY};if((document.pointerLockElement!==c&&!game.noLock)||game.gui||game.paused)return;const s=opts.sens/100*0.0022;player.yaw-=ev.movementX*s;player.pitch-=ev.movementY*s;player.pitch=clamp(player.pitch,-PI/2+0.001,PI/2-0.001)});
   document.addEventListener('pointerlockerror',()=>{if(!game.noLock){game.noLock=true;showMessage('Mouse lock unavailable: move the mouse to look around, keep it near a screen edge to keep turning')}});
   document.addEventListener('pointerlockchange',()=>{if(document.pointerLockElement===c)clearTimeout(game.lockTimer);if(document.pointerLockElement!==c&&game.state==='playing'&&!game.gui&&!player.dead&&!game.paused&&!game.cmdOpen){pauseGame()}});
-  $('cmd').addEventListener('keydown',ev=>{if(ev.code==='Enter'||ev.code==='NumpadEnter'){const v=$('cmd').value;closeCmd();if(v.trim()){const s=v.trim();if(MP.active&&!s.startsWith('/'))mpChat(s);else runCommand(s)}}else if(ev.code==='Escape'){closeCmd()}ev.stopPropagation()});
+  $('cmd').addEventListener('keydown',ev=>{if(ev.code==='Enter'||ev.code==='NumpadEnter'||ev.key==='Enter'){const v=$('cmd').value;closeCmd();if(v.trim()){const s=v.trim();if(MP.active&&!s.startsWith('/'))mpChat(s);else runCommand(s)}}else if(ev.code==='Escape'){closeCmd()}ev.stopPropagation()});
   document.addEventListener('wheel',ev=>{if(game.state!=='playing'||game.gui||game.paused)return;player.sel=(player.sel+(ev.deltaY>0?1:-1)+9)%9;updateHotbar()},{passive:true});
   document.addEventListener('keydown',ev=>{
     if(ev.target&&ev.target.tagName==='INPUT'&&ev.code!=='Escape'){return}
@@ -4092,10 +4103,14 @@ function setupInput(){
   document.addEventListener('visibilitychange',()=>{if(document.hidden&&game.state==='playing')saveWorld()});
 }
 function isTouchDevice(){return matchMedia('(pointer:coarse)').matches||/Android|iPhone|iPad|Mobile/i.test(navigator.userAgent)}
-function syncMobileControls(){const el=$('mobileControls');if(!el)return;el.classList.toggle('active',isTouchDevice()&&game.state==='playing'&&!game.paused&&!game.gui&&!player.dead)}
+function syncMobileControls(){const el=$('mobileControls');if(!el)return;const touch=isTouchDevice();el.classList.toggle('active',touch&&game.state==='playing'&&!game.paused&&!game.gui&&!player.dead&&!game.cmdOpen);const gc=$('guiClose');if(gc)gc.classList.toggle('show',touch&&!!game.gui)}
 function setupMobileControls(){
   if(!isTouchDevice())return;
   game.noLock=true;
+  // iPad and phone browsers: no page scroll, rubber-banding or pinch zoom while playing (GUI lists still scroll)
+  document.addEventListener('touchmove',ev=>{if(ev.touches.length>1||(game.state==='playing'&&!game.gui&&!game.paused&&!game.cmdOpen))ev.preventDefault()},{passive:false});
+  document.addEventListener('gesturestart',ev=>ev.preventDefault());
+  document.addEventListener('dblclick',ev=>ev.preventDefault());
   const joy=$('mobileJoy'),knob=joy.querySelector('.mobile-stick-knob');let joyId=null;
   const resetJoy=()=>{keys.KeyW=keys.KeyA=keys.KeyS=keys.KeyD=false;player.sprintReq=false;knob.style.transform='translate(0,0)';joyId=null};
   const moveJoy=ev=>{const r=joy.getBoundingClientRect(),dx=ev.clientX-(r.left+r.width/2),dy=ev.clientY-(r.top+r.height/2),m=Math.hypot(dx,dy),lim=r.width*.34,k=m>lim?lim/m:1,x=dx*k,y=dy*k;knob.style.transform='translate('+x+'px,'+y+'px)';const dead=lim*.24;keys.KeyW=y<-dead;keys.KeyS=y>dead;keys.KeyA=x<-dead;keys.KeyD=x>dead;player.sprintReq=m>lim*.82};
@@ -4103,20 +4118,28 @@ function setupMobileControls(){
   joy.addEventListener('pointermove',ev=>{if(ev.pointerId===joyId){ev.preventDefault();moveJoy(ev)}});
   joy.addEventListener('pointerup',ev=>{if(ev.pointerId===joyId)resetJoy()});joy.addEventListener('pointercancel',resetJoy);
   const look=$('mobileLook');let lookId=null,lx=0,ly=0;
-  look.addEventListener('pointerdown',ev=>{ev.preventDefault();initAudio();lookId=ev.pointerId;lx=ev.clientX;ly=ev.clientY;look.setPointerCapture(ev.pointerId)});
-  look.addEventListener('pointermove',ev=>{if(ev.pointerId!==lookId||game.paused||game.gui)return;ev.preventDefault();const dx=ev.clientX-lx,dy=ev.clientY-ly;lx=ev.clientX;ly=ev.clientY;const s=opts.sens/100*.006;player.yaw-=dx*s;player.pitch=clamp(player.pitch-dy*s,-PI/2+.001,PI/2-.001)});
-  const endLook=ev=>{if(!ev||ev.pointerId===lookId)lookId=null};look.addEventListener('pointerup',endLook);look.addEventListener('pointercancel',endLook);
+  let lookT0=0,lookMoved=false,holdTimer=null,holdMine=false,sx0=0,sy0=0;
+  look.addEventListener('pointerdown',ev=>{ev.preventDefault();initAudio();lookId=ev.pointerId;lx=sx0=ev.clientX;ly=sy0=ev.clientY;lookT0=performance.now();lookMoved=false;holdMine=false;look.setPointerCapture(ev.pointerId);
+    clearTimeout(holdTimer);holdTimer=setTimeout(()=>{if(lookId===ev.pointerId&&!lookMoved&&!game.gui&&!game.paused){holdMine=true;mouseL=true;attack()}},380)});
+  look.addEventListener('pointermove',ev=>{if(ev.pointerId!==lookId||game.paused||game.gui)return;ev.preventDefault();const dx=ev.clientX-lx,dy=ev.clientY-ly;lx=ev.clientX;ly=ev.clientY;if(!lookMoved&&Math.hypot(ev.clientX-sx0,ev.clientY-sy0)>10){lookMoved=true;if(!holdMine)clearTimeout(holdTimer)}const s=opts.sens/100*.006;player.yaw-=dx*s;player.pitch=clamp(player.pitch-dy*s,-PI/2+.001,PI/2-.001)});
+  const endLook=ev=>{if(ev&&ev.pointerId!==lookId)return;clearTimeout(holdTimer);const tap=ev&&ev.type==='pointerup'&&!lookMoved&&!holdMine&&performance.now()-lookT0<300;lookId=null;
+    if(holdMine){holdMine=false;mouseL=false}else if(tap&&game.state==='playing'&&!game.gui&&!game.paused&&!player.dead){mouseR=true;mouseRHeld=0;useItem();setTimeout(()=>{mouseR=false},60)}};
+  look.addEventListener('pointerup',endLook);look.addEventListener('pointercancel',endLook);
   const hold=(id,down,up)=>{const el=$(id);el.addEventListener('pointerdown',ev=>{ev.preventDefault();ev.stopPropagation();el.setPointerCapture(ev.pointerId);initAudio();down()});el.addEventListener('pointerup',ev=>{ev.preventDefault();up()});el.addEventListener('pointercancel',up)};
   hold('mobileMine',()=>{mouseL=true;attack()},()=>{mouseL=false});
   hold('mobileUse',()=>{mouseR=true;mouseRHeld=0;useItem()},()=>{mouseR=false});
   hold('mobileJump',()=>{keys.Space=true},()=>{keys.Space=false});
   $('mobileInv').addEventListener('pointerdown',ev=>{ev.preventDefault();ev.stopPropagation();if(game.state==='playing'&&!game.paused&&!game.gui)openGui('inv')});
   $('mobileMenu').addEventListener('pointerdown',ev=>{ev.preventDefault();ev.stopPropagation();if(game.state==='playing'&&!game.gui)pauseGame()});
+  // chat opens on click so the on-screen keyboard is allowed to appear
+  $('mobileChat').addEventListener('pointerdown',ev=>{ev.stopPropagation()});$('mobileChat').addEventListener('click',ev=>{ev.preventDefault();ev.stopPropagation();if(game.cmdOpen)closeCmd();else if(game.state==='playing'&&!game.paused&&!game.gui){openCmd('/');syncMobileControls()}});
+  const sneak=$('mobileSneak');sneak.addEventListener('pointerdown',ev=>{ev.preventDefault();ev.stopPropagation();keys.ShiftLeft=!keys.ShiftLeft;sneak.classList.toggle('on',keys.ShiftLeft)});
+  $('guiClose').addEventListener('pointerdown',ev=>{ev.preventDefault();ev.stopPropagation();if(game.gui)closeGui()});
   window.addEventListener('blur',resetJoy);syncMobileControls();
 }
 /* ---- command console ---- */
 function openCmd(prefill){if(game.state!=='playing'||game.paused||game.gui)return;game.cmdOpen=true;for(const k in keys)keys[k]=false;mouseL=mouseR=false;const el=$('cmd');el.style.display='block';el.value=prefill||'';document.exitPointerLock&&document.exitPointerLock();el.focus();el.setSelectionRange(el.value.length,el.value.length)}
-function closeCmd(){if(!game.cmdOpen)return;game.cmdOpen=false;const el=$('cmd');el.style.display='none';el.value='';el.blur();lockPointer()}
+function closeCmd(){if(!game.cmdOpen)return;game.cmdOpen=false;const el=$('cmd');el.style.display='none';el.value='';el.blur();lockPointer();syncMobileControls()}
 function findItemId(name){if(!name)return null;if(/^\d+$/.test(name)){const id=+name;return ITEMS[id]?id:null}const n=name.toLowerCase().replace(/[\s-]+/g,'_');if(I[n]!==undefined)return I[n];const alias={netherite:376,netherite_ingot:376,scrap:375,diamonds:263,emeralds:266,lapis:264,gold:262,iron:I.iron_ingot,ench_table:96,enchanting:96,enchanting_table:96,table:96,shelf:29,shelves:29,bookshelves:29,wood:15,log:15,cobble:4,steak:277};if(alias[n]!==undefined)return alias[n];
   for(const id in ITEMS){const d=ITEMS[id];if(d&&d.label&&d.label.toLowerCase().replace(/[\s-]+/g,'_')===n)return +id}
   for(const id in ITEMS){const d=ITEMS[id];if(d&&d.name&&(d.name.startsWith(n)||d.name.includes(n)))return +id}
