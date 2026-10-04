@@ -593,21 +593,31 @@ const shade=(p,k)=>{for(let y=0;y<16;y++)for(let x=0;x<16;x++){const i=(y*16+x)*
 defTex('skin_hide',p=>{p.noise(232,232,232,10);for(let i=0;i<7;i++)p.blob(floor(p.rng()*16),floor(p.rng()*16),1.2+p.rng()*1.6,205,205,205);p.speckle(14,178,178,178);shade(p,0.22)});
 defTex('skin_fur',p=>{p.noise(228,228,228,8);for(let x=0;x<16;x++){const dk=p.rng()<0.5;for(let y=0;y<16;y++)if(p.rng()<0.85)p.px(x,y,dk?204:238,dk?204:238,dk?204:238)}p.speckle(18,170,170,170);shade(p,0.26)});
 defTex('skin_cloth',p=>{for(let y=0;y<16;y++)for(let x=0;x<16;x++){const w=((x>>1)+(y>>1))&1;const v=w?236:214;p.px(x,y,v,v,v)}p.speckle(10,196,196,196);shade(p,0.18)});
-defTex('skin_bone',p=>{p.noise(242,240,232,6);for(let y=3;y<16;y+=4)p.rect(0,y,16,1,196,192,184);p.speckle(8,205,200,190);for(let i=0;i<3;i++){const x=floor(p.rng()*16);p.rect(x,floor(p.rng()*12),1,3,180,176,168)}shade(p,0.2)});
-defTex('skin_scales',p=>{for(let y=0;y<16;y+=2)for(let x=0;x<16;x+=2){const v=200+floor(p.rng()*50);p.rect(x,y,2,2,v,v,v)}p.speckle(12,160,160,160);shade(p,0.2)});
+defTex('skin_bone',p=>{p.noise(240,238,230,5);p.rect(0,0,16,2,204,200,192);p.rect(0,14,16,2,204,200,192);p.rect(0,7,16,1,214,210,202);p.rect(5,0,2,16,250,250,246);p.rect(11,0,1,16,216,212,204);p.speckle(6,200,196,188);shade(p,0.22)});
+defTex('skin_zombie',p=>{p.noise(226,226,226,9);for(let i=0;i<6;i++){const x=floor(p.rng()*14),y=floor(p.rng()*15);p.rect(x,y,2+floor(p.rng()*2),1,188,188,188)}for(let i=0;i<4;i++){const x=floor(p.rng()*15),y=floor(p.rng()*15);p.rect(x,y,1,2,204,204,204)}p.speckle(10,168,168,168);p.speckle(8,246,246,246);shade(p,0.24)});
+defTex('skin_pig',p=>{p.noise(236,236,236,5);p.speckle(16,214,214,214);p.speckle(8,248,248,248);for(let y=12;y<16;y++)for(let x=0;x<16;x++)if(p.rng()<0.55)p.px(x,y,218,218,218);shade(p,0.2)});
+defTex('skin_cow',p=>{p.noise(222,222,222,8);for(let y=0;y<16;y++)for(let x=0;x<16;x++)if(((x*7+y*3)%11)===0)p.px(x,y,200,200,200);for(let i=0;i<3;i++)p.blob(floor(p.rng()*16),floor(p.rng()*16),1.6,250,250,250);shade(p,0.24)});
+defTex('skin_wolf',p=>{for(let y=0;y<16;y++)for(let x=0;x<16;x++){const v=((x+((y>>2)&1))&1)?236:214;const n=(p.rng()-0.5)*14;p.px(x,y,v+n,v+n,v+n)}for(let y=11;y<16;y++)for(let x=2;x<14;x++)if(p.rng()<0.85)p.px(x,y,248,248,248);p.speckle(12,196,196,196);shade(p,0.22)});
+defTex('skin_sheep',p=>{p.noise(236,236,236,5);p.speckle(10,220,220,220);p.speckle(6,250,250,250);shade(p,0.18)});
+defTex('skin_spider',p=>{p.noise(222,222,222,8);for(let i=0;i<16;i++){const x=floor(p.rng()*16),y=floor(p.rng()*14);p.rect(x,y,1,2,188,188,188)}p.speckle(6,248,248,248);shade(p,0.3)});
+defTex('skin_villager',p=>{p.noise(230,230,230,5);for(let x=2;x<16;x+=5)p.rect(x,0,1,16,206,206,206);p.rect(0,9,16,1,188,188,188);p.rect(0,10,16,1,216,216,216);p.speckle(8,245,245,245);shade(p,0.2)});
+defTex('skin_robe',p=>{p.noise(228,228,228,6);for(let x=1;x<16;x+=4)p.rect(x,0,1,16,200,200,200);p.rect(0,14,16,2,206,206,206);p.speckle(6,244,244,244);shade(p,0.26)});
+defTex('skin_hopling',p=>{p.noise(232,232,232,7);p.speckle(16,214,214,214);for(let y=10;y<16;y++)for(let x=2;x<14;x++)if(p.rng()<0.8)p.px(x,y,250,250,250);shade(p,0.2)});
+defTex('skin_enderman',p=>{p.noise(236,236,236,4);p.speckle(6,252,252,252);p.speckle(4,214,214,214);shade(p,0.32)});
+defTex('skin_scales',p=>{for(let y=0;y<16;y+=2)for(let x=0;x<16;x+=2){const v=204+floor(p.rng()*46);p.rect(x,y,2,2,v,v,v);p.px(x,y,Math.min(255,v+14),Math.min(255,v+14),Math.min(255,v+14))}p.speckle(10,164,164,164);shade(p,0.2)});
 defTex('skin_wool',p=>{p.noise(244,244,244,5);for(let i=0;i<9;i++){const cx=floor(p.rng()*16),cy=floor(p.rng()*16);p.blob(cx,cy,2,250,250,250);p.px(cx,cy,214,214,214)}p.speckle(10,220,220,220);shade(p,0.16)});
 defTex('skin_slime',p=>{p.noise(236,236,236,6);for(let i=0;i<6;i++)p.blob(floor(p.rng()*16),floor(p.rng()*16),1+p.rng(),252,252,252);p.speckle(6,210,210,210);shade(p,0.12)});
 defTex('skin_slick',p=>{p.noise(240,240,240,4);p.speckle(5,225,225,225);shade(p,0.3)});
-const MOB_SKIN_NAMES={warden:'skin_hide',zombie:'skin_hide',husk:'skin_hide',zombified_piglin:'skin_hide',skeleton:'skin_bone',stray:'skin_bone',wither_skeleton:'skin_bone',creeper:'skin_scales',spider:'skin_fur',cave_spider:'skin_fur',pig:'skin_hide',cow:'skin_fur',horse:'skin_fur',wolf:'skin_fur',sheep:'skin_wool',chicken:'skin_fur',villager:'skin_cloth',witch:'skin_cloth',pillager:'skin_cloth',vindicator:'skin_cloth',evoker:'skin_cloth',vex:'skin_cloth',enderman:'skin_slick',slime:'skin_slime',guardian:'skin_scales',shulker:'skin_scales',stalker:'skin_hide',cartoon_cat:'skin_fur',breeze:'skin_slime',iron_golem:'skin_scales'};
+const MOB_SKIN_NAMES={warden:'skin_hide',zombie:'skin_zombie',husk:'skin_zombie',zombified_piglin:'skin_zombie',skeleton:'skin_bone',stray:'skin_bone',wither_skeleton:'skin_bone',creeper:'skin_scales',spider:'skin_spider',cave_spider:'skin_spider',pig:'skin_pig',cow:'skin_cow',horse:'skin_cow',wolf:'skin_wolf',sheep:'skin_sheep',chicken:'skin_fur',villager:'skin_villager',witch:'skin_robe',pillager:'skin_villager',vindicator:'skin_villager',evoker:'skin_robe',vex:'skin_cloth',enderman:'skin_enderman',sift_acolyte:'skin_robe',hopling:'skin_hopling',slime:'skin_slime',guardian:'skin_scales',shulker:'skin_scales',stalker:'skin_hide',cartoon_cat:'skin_fur',breeze:'skin_slime',iron_golem:'skin_scales'};
 // mob faces
-defTex('pig_face',p=>{p.noise(240,170,170,6);p.rect(3,4,2,2,40,40,60);p.rect(11,4,2,2,40,40,60);p.rect(5,9,6,4,220,120,130);p.px(6,10,150,70,80);p.px(9,10,150,70,80)});
-defTex('cow_face',p=>{p.noise(120,80,55,6);p.rect(4,2,8,4,110,70,45);p.rect(3,5,2,2,40,40,60);p.rect(11,5,2,2,40,40,60);p.rect(4,10,8,5,230,225,220);p.px(6,12,170,140,140);p.px(9,12,170,140,140)});
-defTex('sheep_face',p=>{p.noise(225,225,225,6);p.rect(3,5,2,2,40,40,60);p.rect(11,5,2,2,40,40,60);p.rect(5,9,6,4,200,180,170)});
+defTex('pig_face',p=>{p.noise(240,170,170,6);p.rect(3,4,2,2,245,245,245);p.rect(11,4,2,2,245,245,245);p.px(4,4,30,30,50);p.px(4,5,30,30,50);p.px(11,4,30,30,50);p.px(11,5,30,30,50);p.rect(5,9,6,4,224,124,134);p.rect(5,9,6,1,236,150,158);p.rect(6,10,1,2,140,60,70);p.rect(9,10,1,2,140,60,70);p.rect(5,12,6,1,196,100,110)});
+defTex('cow_face',p=>{p.noise(120,80,55,6);p.rect(4,1,8,4,100,64,42);p.rect(3,5,2,2,245,245,245);p.rect(11,5,2,2,245,245,245);p.px(4,5,30,30,40);p.px(4,6,30,30,40);p.px(11,5,30,30,40);p.px(11,6,30,30,40);p.rect(4,10,8,5,232,226,220);p.rect(4,10,8,1,244,240,236);p.rect(6,12,1,2,190,150,150);p.rect(9,12,1,2,190,150,150);p.rect(2,8,12,1,96,62,40)});
+defTex('sheep_face',p=>{p.noise(228,224,220,6);p.rect(2,5,3,2,250,250,250);p.rect(11,5,3,2,250,250,250);p.px(3,5,30,30,40);p.px(3,6,30,30,40);p.px(12,5,30,30,40);p.px(12,6,30,30,40);p.rect(5,9,6,5,206,186,176);p.rect(6,11,1,1,150,120,120);p.rect(9,11,1,1,150,120,120);p.rect(6,13,4,1,170,140,135)});
 defTex('chicken_face',p=>{p.noise(240,240,240,6);p.rect(3,3,2,2,30,30,30);p.rect(11,3,2,2,30,30,30);p.rect(6,7,4,3,240,180,30);p.rect(6,10,4,3,200,40,40)});
-defTex('zombie_face',p=>{p.noise(70,120,60,8);p.rect(2,5,3,2,20,20,20);p.rect(11,5,3,2,20,20,20);p.rect(6,10,4,2,30,50,30)});
-defTex('skeleton_face',p=>{p.noise(200,200,200,6);p.rect(2,5,3,3,40,40,40);p.rect(11,5,3,3,40,40,40);p.rect(6,9,4,1,60,60,60);p.rect(4,12,8,2,120,120,120);for(let x=4;x<12;x+=2)p.px(x,13,60,60,60)});
-defTex('creeper_face',p=>{p.noise(70,160,60,20);p.rect(3,4,4,3,20,20,20);p.rect(9,4,4,3,20,20,20);p.rect(5,7,6,5,20,20,20);p.rect(6,8,4,2,20,20,20);p.rect(4,10,2,4,20,20,20);p.rect(10,10,2,4,20,20,20);p.rect(6,11,4,1,70,160,60)});
-defTex('creeper_skin',p=>{p.noise(70,160,60,20);p.speckle(20,110,200,90);p.speckle(16,50,110,45)});
+defTex('zombie_face',p=>{p.noise(70,120,60,8);p.rect(2,4,3,1,44,80,40);p.rect(11,4,3,1,44,80,40);p.rect(2,5,3,2,18,18,18);p.rect(11,5,3,2,18,18,18);p.rect(7,7,2,2,50,92,46);p.rect(5,10,6,1,26,40,26);p.rect(5,11,6,1,34,56,34);p.px(6,11,20,20,20);p.px(9,11,20,20,20);p.speckle(6,52,96,44)});
+defTex('skeleton_face',p=>{p.noise(204,204,204,6);p.rect(2,4,3,3,36,36,36);p.rect(11,4,3,3,36,36,36);p.px(3,5,80,80,80);p.px(12,5,80,80,80);p.rect(7,8,2,2,64,64,64);p.rect(4,11,8,3,150,150,150);for(let x=4;x<12;x++)p.rect(x,11,1,3,(x&1)?236:88,(x&1)?236:88,(x&1)?236:88);p.rect(0,0,16,1,170,170,170)});
+defTex('creeper_face',p=>{const T=[[62,142,56],[88,170,78],[118,198,108],[176,228,166],[42,100,40]];for(let y=0;y<16;y+=2)for(let x=0;x<16;x+=2){const c=T[floor(p.rng()*T.length)];p.rect(x,y,2,2,c[0],c[1],c[2])}p.rect(3,4,4,3,20,20,20);p.rect(9,4,4,3,20,20,20);p.rect(5,7,6,5,20,20,20);p.rect(6,8,4,2,20,20,20);p.rect(4,10,2,4,20,20,20);p.rect(10,10,2,4,20,20,20);p.rect(6,11,4,1,70,160,60)});
+defTex('creeper_skin',p=>{const T=[[62,142,56],[88,170,78],[118,198,108],[176,228,166],[42,100,40],[98,184,90]];for(let y=0;y<16;y+=2)for(let x=0;x<16;x+=2){const c=T[floor(p.rng()*T.length)];p.rect(x,y,2,2,c[0],c[1],c[2]);if(p.rng()<0.3)p.px(x,y,c[0]+20,c[1]+20,c[2]+20)}shade(p,0.12)});
 defTex('spider_face',p=>{p.noise(45,40,40,6);p.rect(2,5,3,3,200,30,30);p.rect(11,5,3,3,200,30,30);p.rect(5,6,2,2,140,20,20);p.rect(9,6,2,2,140,20,20);p.rect(6,11,4,2,20,20,20)});
 defTex('enderman_face',p=>{p.noise(14,14,16,3);p.rect(1,6,5,2,225,120,255);p.rect(10,6,5,2,225,120,255);p.rect(2,6,3,2,190,70,220);p.rect(11,6,3,2,190,70,220)});
 defTex('slime_face',p=>{p.noise(115,205,95,8);p.rect(3,5,3,3,30,40,30);p.rect(10,5,3,3,30,40,30);p.rect(7,10,2,2,30,40,30)});
@@ -616,7 +626,7 @@ defTex('husk_face',p=>{p.noise(150,130,85,8);p.rect(2,5,3,2,50,40,25);p.rect(11,
 defTex('stray_face',p=>{p.noise(175,185,195,6);p.rect(2,5,3,3,50,50,60);p.rect(11,5,3,3,50,50,60);p.rect(6,9,4,1,80,80,90);p.rect(4,12,8,2,120,130,140);for(let x=4;x<12;x+=2)p.px(x,13,70,70,80)});
 defTex('cave_spider_face',p=>{p.noise(20,45,75,6);p.rect(2,5,3,3,220,40,40);p.rect(11,5,3,3,220,40,40);p.rect(5,6,2,2,150,20,20);p.rect(9,6,2,2,150,20,20);p.rect(6,11,4,2,10,20,40)});
 defTex('horse_face',p=>{p.noise(200,200,200,6);p.rect(2,3,3,2,30,25,25);p.rect(11,3,3,2,30,25,25);p.rect(6,11,4,4,60,50,45);p.rect(4,0,2,3,120,120,120);p.rect(10,0,2,3,120,120,120)});
-defTex('wolf_face',p=>{p.noise(200,200,195,8);p.rect(2,4,3,2,40,40,50);p.rect(11,4,3,2,40,40,50);p.rect(5,9,6,6,150,150,145);p.rect(6,11,4,3,30,30,30)});
+defTex('wolf_face',p=>{p.noise(200,200,195,8);p.rect(2,4,3,2,236,236,232);p.rect(11,4,3,2,236,236,232);p.rect(3,4,1,2,30,30,40);p.rect(12,4,1,2,30,30,40);p.rect(5,8,6,7,156,156,150);p.rect(5,8,6,1,176,176,170);p.rect(6,11,4,3,34,34,34);p.rect(6,11,4,1,20,20,20);p.rect(1,0,3,2,160,160,156);p.rect(12,0,3,2,160,160,156)});
 defTex('steve_arm',p=>{p.noise(215,165,125,6);p.rect(0,0,16,3,90,160,160)});
 defTex('arrow_tex',p=>{p.fill(0,0,0,0);p.rect(0,7,16,2,180,150,110);p.rect(13,6,3,4,200,200,210);p.rect(0,5,4,6,220,220,220)});
 defTex('egg_tex',p=>{p.noise(230,215,180,6)});
@@ -669,9 +679,9 @@ defTex('blaze_face',p=>{p.noise(215,170,60,10);p.rect(2,5,3,2,20,15,10);p.rect(1
 defTex('blaze_skin',p=>{p.noise(215,170,60,12);p.speckle(10,255,230,120);p.speckle(8,120,80,30)});
 defTex('evoker_face',p=>{p.noise(170,165,160,6);p.rect(2,4,3,2,60,90,60);p.rect(11,4,3,2,60,90,60);p.rect(2,3,12,1,90,80,70);p.rect(6,6,4,7,150,140,130);p.rect(5,12,6,1,110,80,80)});
 defTex('vex_face',p=>{p.noise(210,215,235,8);p.rect(3,4,3,3,40,60,110);p.rect(10,4,3,3,40,60,110);p.rect(6,10,4,1,80,90,120)});
-defTex('cow_body',p=>{p.noise(120,80,55,8);for(let i=0;i<4;i++)p.blob(floor(p.rng()*16),floor(p.rng()*16),2.5,230,225,220)});
-defTex('zombie_shirt',p=>{p.noise(40,120,120,8);p.rect(0,0,16,2,30,100,100);p.speckle(6,70,90,60)});
-defTex('zombie_pants',p=>{p.noise(60,60,140,8);p.rect(0,13,16,3,50,50,120);p.speckle(5,70,90,60)});
+defTex('cow_body',p=>{p.noise(118,78,52,8);p.blob(3,4,2.8,232,228,222);p.blob(12,9,3.2,232,228,222);p.blob(7,14,2.2,232,228,222);p.rect(0,0,16,1,100,66,44);p.speckle(8,98,64,42);shade(p,0.12)});
+defTex('zombie_shirt',p=>{p.noise(44,122,122,8);p.rect(0,0,16,2,30,98,98);p.rect(6,0,4,2,70,120,60);p.rect(5,0,1,16,36,104,104);p.rect(10,0,1,16,36,104,104);for(let x=0;x<16;x++){if(p.rng()<0.35)p.px(x,15,62,62,140);if(p.rng()<0.15)p.px(x,14,62,62,140)}p.speckle(6,70,90,60);shade(p,0.15)});
+defTex('zombie_pants',p=>{p.noise(62,62,142,8);p.rect(0,13,16,3,48,48,116);p.rect(7,0,2,16,54,54,128);p.rect(2,5,4,3,74,74,158);p.rect(10,5,4,3,74,74,158);p.speckle(5,70,90,60);shade(p,0.18)});
 defTex('skeleton_ribs',p=>{p.noise(200,200,200,6);for(let y=3;y<13;y+=3)p.rect(2,y,12,1,130,130,130);p.rect(7,2,2,12,140,140,140)});
 defTex('end_stone',p=>{p.noise(222,222,170,10);p.speckle(16,200,200,150);p.speckle(8,235,235,190)});
 defTex('end_frame_side',p=>{p.noise(60,120,100,8);p.rect(0,0,16,3,200,190,150);p.speckle(8,90,150,130)});
@@ -711,8 +721,8 @@ defTex('soul_lantern',p=>{p.noise(40,42,48,5);p.rect(3,2,10,12,70,170,200);p.rec
 defTex('golem_face',p=>{p.noise(200,198,190,8);p.rect(3,5,3,2,40,40,46);p.rect(10,5,3,2,40,40,46);p.rect(6,7,4,6,120,118,110);p.rect(4,3,8,1,150,148,140)});
 defTex('warden_face',p=>{p.noise(24,44,48,6);p.rect(2,9,12,3,16,26,28);for(let i=0;i<5;i++)p.rect(2+i*3,4,1,3,60,220,230);p.rect(5,10,6,1,30,140,150)});
 defTex('player_face',p=>{p.noise(215,168,130,6);p.rect(3,5,2,2,255,255,255);p.rect(4,5,1,2,60,40,120);p.rect(10,5,2,2,255,255,255);p.rect(11,5,1,2,60,40,120);p.rect(6,11,4,1,150,80,70)});
-defTex('villager_face',p=>{p.noise(200,160,120,6);p.rect(2,4,3,2,60,120,60);p.rect(11,4,3,2,60,120,60);p.rect(2,3,12,1,110,70,40);p.rect(6,6,4,7,190,145,105);p.rect(5,13,6,1,150,110,80)});
-defTex('sheep_wool',p=>{p.noise(235,235,235,10);for(let i=0;i<10;i++)p.blob(floor(p.rng()*16),floor(p.rng()*16),1.5,215,215,215)});
+defTex('villager_face',p=>{p.noise(200,160,120,6);p.rect(2,3,12,1,104,66,38);p.rect(2,4,3,2,250,250,250);p.rect(11,4,3,2,250,250,250);p.rect(3,4,1,2,60,120,60);p.rect(12,4,1,2,60,120,60);p.rect(6,6,4,7,184,138,98);p.rect(6,6,1,7,168,124,88);p.rect(5,13,6,1,140,100,72);p.rect(0,0,16,2,120,78,46)});
+defTex('sheep_wool',p=>{for(let y=0;y<16;y+=2)for(let x=0;x<16;x+=2){const v=226+floor(p.rng()*28);p.rect(x,y,2,2,v,v,v);p.px(x+1,y+1,v-18,v-18,v-18)}p.speckle(8,250,250,250);shade(p,0.1)});
 
 const ATLAS_W=16; // tiles per row
 let atlasCanvas=null,atlasSize=256;
@@ -3081,18 +3091,27 @@ Object.assign(World.prototype,{
   siftInfo(x,z){const n=this.nH.fbm2(x/90,z/90,4);const r=this.nT.n2(x/170,z/170);const ridge=1-Math.abs(this.nM.n2(x/70,z/70));const carapace=r>0.42;
     let h=54+n*20+ridge*ridge*ridge*(carapace?6:14);if(n>0.25)h+=(n-0.25)*34;return {height:floor(h),carapace,forest:!carapace&&n>0.28}},
   generateSiftChunk(c){const cx=c.cx,cz=c.cz;const bl=c.blocks;const wx=cx*16,wz=cz*16;const rng=mulberry32(hashInt(cx,cz,9,this.seed));const ICHOR=48;const infos=new Array(256);
+    // cave noise on a coarse grid: chambers (A) and two winding tunnel fields (B, C)
+    const G=4,GX=5,GY=CH/G+1;const cvA=new Float32Array(GX*GY*GX),cvB=new Float32Array(GX*GY*GX),cvC=new Float32Array(GX*GY*GX);
+    for(let gx=0;gx<GX;gx++)for(let gz=0;gz<GX;gz++)for(let gy=0;gy<GY;gy++){const X=wx+gx*G,Y=gy*G,Z=wz+gz*G;const i=(gx*GX+gz)*GY+gy;cvA[i]=this.nC2.n3(X/46,Y/30,Z/46);cvB[i]=this.nC3.n3(X/28,Y/18,Z/28);cvC[i]=this.nC4.n3(X/28,Y/18,Z/28)}
+    const samp=(arr,x,y,z)=>{const fx=x/G,fy=y/G,fz=z/G;const x0=fx|0,y0=fy|0,z0=fz|0;const tx=fx-x0,ty=fy-y0,tz=fz-z0;const x1=Math.min(x0+1,GX-1),z1=Math.min(z0+1,GX-1),y1=Math.min(y0+1,GY-1);
+      const c00=arr[(x0*GX+z0)*GY+y0]*(1-tx)+arr[(x1*GX+z0)*GY+y0]*tx,c10=arr[(x0*GX+z1)*GY+y0]*(1-tx)+arr[(x1*GX+z1)*GY+y0]*tx;const c01=arr[(x0*GX+z0)*GY+y1]*(1-tx)+arr[(x1*GX+z0)*GY+y1]*tx,c11=arr[(x0*GX+z1)*GY+y1]*(1-tx)+arr[(x1*GX+z1)*GY+y1]*tx;return (c00*(1-tz)+c10*tz)*(1-ty)+(c01*(1-tz)+c11*tz)*ty};
     for(let x=0;x<16;x++)for(let z=0;z<16;z++){const X=wx+x,Z=wz+z;const inf=this.siftInfo(X,Z);infos[x*16+z]=inf;const h=inf.height;c.biomes[x*16+z]=BI.nether;c.heights[x*16+z]=Math.max(h,ICHOR);
       for(let y=0;y<CH;y++){const i=cidx(x,y,z);let id=0;
         if(y===0||(y<3&&rng()<0.4))id=7;else if(y<h-4)id=125;else if(y<h)id=inf.carapace?135:128;else if(y===h)id=inf.carapace?135:127;else if(y<=ICHOR)id=133;
         bl[i]=id}
-      // tunnels through the stone
-      for(let y=8;y<h-5;y+=2){if(this.nC1.n3(X/30,y/20,Z/30)>0.6){bl[cidx(x,y,z)]=0;bl[cidx(x,y+1,z)]=0}}}
+      // caves: big chambers deep down, winding tunnels higher up, pits that open onto the meadows; the deepest caves are flooded with ichor
+      const capY=h<=ICHOR?h-5:Math.min(CH-2,h+2);
+      for(let y=5;y<capY;y++){const a=samp(cvA,x,y,z);const th=y<28?0.34:y<44?0.42:0.5;let carve=a>th;if(!carve&&y<h-2){const b=samp(cvB,x,y,z),c2=samp(cvC,x,y,z);carve=Math.abs(b)<0.075&&Math.abs(c2)<0.075}
+        if(carve){const i=cidx(x,y,z);if(bl[i]===7)continue;bl[i]=y<=20?133:0}}
+      // glowing crystal clusters on cave floors and ceilings
+      for(let y=7;y<h-5;y++){const i=cidx(x,y,z);if(bl[i]!==0)continue;if(bl[cidx(x,y-1,z)]===125&&rng()<0.03)bl[i]=126;else if(bl[cidx(x,y+1,z)]===125&&rng()<0.012)bl[i]=126}}
     // sift ore is common here, with the odd crystal pocket
     for(let t=0;t<7;t++){let x=floor(rng()*16),z=floor(rng()*16),y=6+floor(rng()*42);const n=2+floor(rng()*4);for(let s=0;s<n;s++){if(x>=0&&x<16&&z>=0&&z<16&&y>3&&y<CH-1){const i=cidx(x,y,z);if(bl[i]===125)bl[i]=124}const a=floor(rng()*3),dd=rng()<0.5?-1:1;if(a===0)x+=dd;else if(a===1)y+=dd;else z+=dd}}
     for(let t=0;t<2;t++){if(rng()<0.5)continue;const i=cidx(floor(rng()*16),10+floor(rng()*30),floor(rng()*16));if(bl[i]===125)bl[i]=126}
     c.generated=true;
     // pink grass on the meadows
-    for(let x=0;x<16;x++)for(let z=0;z<16;z++){const inf=infos[x*16+z];const h=inf.height;if(h<=ICHOR||inf.carapace||h+2>=CH)continue;const r=rng();if(r<0.55){bl[cidx(x,h+1,z)]=129;if(r<0.22)bl[cidx(x,h+2,z)]=129}}
+    for(let x=0;x<16;x++)for(let z=0;z<16;z++){const inf=infos[x*16+z];const h=inf.height;if(h<=ICHOR||inf.carapace||h+2>=CH||bl[cidx(x,h,z)]!==127)continue;const r=rng();if(r<0.55){bl[cidx(x,h+1,z)]=129;if(r<0.22)bl[cidx(x,h+2,z)]=129}}
     const mid=infos[8*16+8];
     if(mid.forest&&rng()<0.7){const n=1+floor(rng()*2);for(let t=0;t<n;t++){const x=wx+2+floor(rng()*12),z=wz+2+floor(rng()*12);const inf=this.siftInfo(x,z);if(!inf.forest||inf.height<=ICHOR)continue;this.placePaleTree(x,inf.height+1,z,rng)}}
     if(mid.carapace&&mid.height>ICHOR){const r=this.regionOrigin(cx,cz,3,134);if(r)this.placeFossil(wx+8,mid.height+1,wz+8,r)}
