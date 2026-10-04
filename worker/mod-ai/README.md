@@ -30,6 +30,13 @@ whether it is suitable for a family game, and unsuitable photos are refused with
 friendly reason. Allowed photos get a suggested name when the player left the name
 blank.
 
+## Describe-it designs
+
+The same worker handles `{"mode":"design","description":"..."}` requests: Claude turns a
+player's description (a creature, vehicle, armor set or weapon) into the design spec the game
+renders, and refuses descriptions that are not suitable for a children's game. Without the
+worker the game uses its built-in keyword designer instead.
+
 ## Limits and cost
 
 - Requests are limited to 12 per minute per IP inside the worker, and only
