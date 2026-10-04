@@ -2028,7 +2028,7 @@ const MOBDEF={
   evoker:{hp:24,w:0.6,h:1.95,speed:3.2,dmg:0,ranged:'spell',drops:r=>[[393,1],[266,floor(r()*2)]],xp:[10,10],sound:'villager_no',follow:16,noDespawn:true},
   vex:{hp:14,w:0.4,h:0.8,speed:5,dmg:5,flying:true,ghost:true,drops:()=>[],xp:[3,3],sound:'vex',follow:24},
   sift_acolyte:{hp:44,w:0.6,h:1.95,speed:3.9,dmg:8,noBurn:true,drops:r=>[[490,1+floor(r()*2)],[r()<0.06?I.sift_sword:0,1]],xp:[8,12],sound:'villager_no',follow:30,noDespawn:true},
-  hopling:{hp:6,w:0.6,h:0.6,speed:2.4,passive:true,noBurn:true,drops:r=>r()<0.3?[[490,1]]:[],xp:[1,2],sound:'pig'},
+  hopling:{hp:6,w:0.6,h:0.6,speed:2.4,passive:true,noBurn:true,food:[],drops:r=>r()<0.3?[[490,1]]:[],xp:[1,2],sound:'pig'},
   vindicator:{hp:24,w:0.6,h:1.95,speed:3.6,dmg:7,drops:r=>[[266,floor(r()*2)],[r()<0.1?I.iron_axe:0,1]],xp:[5,5],sound:'villager_no',follow:24,noDespawn:true},
   guardian:{hp:30,w:0.85,h:0.85,speed:3.5,dmg:2,ranged:'laser',drops:r=>[[91,floor(r()*3)],[310,r()<0.4?1:0],[311,floor(r()*2)]],xp:[10,10],sound:'guardian',follow:16,noDespawn:true,aquatic:true},
   husk:{hp:20,w:0.6,h:1.95,speed:3.2,dmg:3,undead:true,noBurn:true,hungerHit:true,drops:r=>[[282,floor(r()*3)],[r()<0.025?[260,302,303][floor(r()*3)]:0,1]],xp:[5,5],sound:'zombie',follow:35},
@@ -2149,7 +2149,7 @@ class Mob extends Entity{
     const hostile=!d.passive&&diff>0&&(!d.neutral||this.angry||(d.lightNeutral&&Math.max(world.getSky(floor(this.x),floor(this.y),floor(this.z))*R.day,world.getLight(floor(this.x),floor(this.y),floor(this.z)))<9));
     if(hostile&&!p.dead&&!this.frozen&&dist3<d.follow*(p.sneaking?0.5:1)*stealth){target=[p.x,p.z];if(!this.angry&&!d.neutral){this.noticeT=0.35+Math.random()*0.3;if(dist3<20)playSoundAt(d.sound,this.x,this.y,this.z,1,0.75)}this.angry=true}
     if(d.passive&&!p.dead){ // follow player holding food
-      const held=p.inv[p.sel];if(held&&d.food.includes(held.id)&&dist<6&&!this.baby){target=[p.x,p.z];speed*=1.2}
+      const held=p.inv[p.sel];if(held&&d.food&&d.food.includes(held.id)&&dist<6&&!this.baby){target=[p.x,p.z];speed*=1.2}
       if(this.loveT>0){for(const o of entities){if(o!==this&&o instanceof Mob&&o.type===this.type&&o.loveT>0&&!o.baby){const ox=o.x-this.x,oz=o.z-this.z;const od=sqrt(ox*ox+oz*oz);if(od<8){target=[o.x,o.z];if(od<1.2&&this.loveT>0&&o.loveT>0&&this.age>o.age){this.loveT=0;o.loveT=0;const b=new Mob(this.type,this.x,this.y,this.z);b.baby=true;b.growT=120;if(this.type==='sheep')b.woolId=Math.random()<0.5?this.woolId:o.woolId;entities.push(b);spawnParticles('heart',this.x,this.y+this.h,this.z,6);spawnXP(this.x,this.y,this.z,1+floor(Math.random()*7))}break}}}}
       if(Math.random()<dt*0.3)spawnParticles(this.loveT>0?'heart':'happy',this.x,this.y+this.h+0.2,this.z,this.loveT>0?1:0);
     }
@@ -2239,15 +2239,15 @@ class Mob extends Entity{
     if(this.type==='villager'){if(this.baby)return false;if(this.prof==='nitwit'){playSoundAt('villager_no',this.x,this.y,this.z);return true}openTradeGui(this);return true}
     if(this.type==='horse'){if(this.baby)return false;
       if(stack&&stack.id===315&&this.tamed&&!this.saddled){this.saddled=true;consumeHeld();playSoundAt('leather',this.x,this.y,this.z);showMessage('Saddled! Right-click to ride, W A S D to steer, Space to jump, Shift to get off.');return true}
-      if(stack&&d.food.includes(stack.id)){const it=ITEMS[stack.id];if(stack.id===308&&this.tamed&&this.loveT<=0){consumeHeld();this.loveT=30;spawnParticles('heart',this.x,this.y+this.h+0.2,this.z,5);return true}
+      if(stack&&d.food&&d.food.includes(stack.id)){const it=ITEMS[stack.id];if(stack.id===308&&this.tamed&&this.loveT<=0){consumeHeld();this.loveT=30;spawnParticles('heart',this.x,this.y+this.h+0.2,this.z,5);return true}
         if(this.hp<this.maxHp||!this.tamed){consumeHeld();this.hp=Math.min(this.maxHp,this.hp+(it.food?it.food[0]:2));this.temper+=stack.id===308?10:3;spawnParticles(this.tamed?'heart':'happy',this.x,this.y+this.h,this.z,3);playSoundAt('eat',this.x,this.y,this.z);return true}return false}
       if(player.sneaking)return false;return this.mount()}
     if(this.type==='wolf'){if(!this.tamed){if(stack&&stack.id===283&&!this.angry){consumeHeld();if(Math.random()<0.34){this.tamed=true;this.maxHp=20;this.hp=20;this.sitting=true;this.angry=false;this.prey=null;spawnParticles('heart',this.x,this.y+this.h,this.z,7);playSoundAt('wolf_whine',this.x,this.y,this.z);showMessage('You tamed a wolf! Right-click it to make it sit or follow.')}else{spawnParticles('smoke',this.x,this.y+this.h,this.z,5);playSoundAt('wolf',this.x,this.y,this.z)}return true}return false}
-      if(stack&&d.food.includes(stack.id)&&this.hp<this.maxHp){consumeHeld();const it=ITEMS[stack.id];this.hp=Math.min(this.maxHp,this.hp+(it.food?it.food[0]:2));spawnParticles('heart',this.x,this.y+this.h,this.z,3);playSoundAt('eat',this.x,this.y,this.z);return true}
+      if(stack&&d.food&&d.food.includes(stack.id)&&this.hp<this.maxHp){consumeHeld();const it=ITEMS[stack.id];this.hp=Math.min(this.maxHp,this.hp+(it.food?it.food[0]:2));spawnParticles('heart',this.x,this.y+this.h,this.z,3);playSoundAt('eat',this.x,this.y,this.z);return true}
       this.sitting=!this.sitting;this.prey=null;playSoundAt(this.sitting?'wolf_whine':'wolf',this.x,this.y,this.z);return true}
     if(this.type==='sheep'&&stack&&stack.id===300&&!this.sheared&&!this.baby){this.sheared=true;const n=1+floor(Math.random()*3);spawnItem(this.x,this.y+0.5,this.z,{id:this.woolId,count:n});playSoundAt('shear',this.x,this.y,this.z);damageItem(stack,1);return true}
     if(this.type==='cow'&&stack&&stack.id===296&&!this.baby){stack.count--;const left=addToInventory({id:306,count:1});if(left)spawnItem(player.x,player.y,player.z,{id:306,count:1});return true}
-    if(d.passive&&stack&&d.food.includes(stack.id)){if(this.baby){this.growT-=12;consumeHeld();spawnParticles('happy',this.x,this.y+this.h,this.z,3);return true}if(this.loveT<=0){this.loveT=30;consumeHeld();spawnParticles('heart',this.x,this.y+this.h+0.2,this.z,5);playSoundAt('eat',this.x,this.y,this.z);return true}}
+    if(d.passive&&stack&&d.food&&d.food.includes(stack.id)){if(this.baby){this.growT-=12;consumeHeld();spawnParticles('happy',this.x,this.y+this.h,this.z,3);return true}if(this.loveT<=0){this.loveT=30;consumeHeld();spawnParticles('heart',this.x,this.y+this.h+0.2,this.z,5);playSoundAt('eat',this.x,this.y,this.z);return true}}
     return false;
   }
   render(EB){
@@ -3462,9 +3462,9 @@ function matchRecipe(grid,w,h){
   return null;
 }
 /* ===================== INVENTORY HELPERS ===================== */
-function addToInventory(stack){const p=player;const def=ITEMS[stack.id];let n=stack.count;if(!def)return n;
-  if(!stack.dur&&!stack.ench){for(let i=0;i<36&&n>0;i++){const s=p.inv[i];if(s&&s.id===stack.id&&!s.dur&&!s.ench&&s.count<def.stack){const k=Math.min(n,def.stack-s.count);s.count+=k;n-=k}}}
-  for(let i=0;i<36&&n>0;i++){if(!p.inv[i]){const k=Math.min(n,def.stack);p.inv[i]={id:stack.id,count:k,dur:stack.dur,ench:stack.ench,items:stack.items};n-=k}}
+function addToInventory(stack){const p=player;const def=ITEMS[stack.id];let n=stack.count;if(!def)return n;const MAXS=Math.max(1,def.stack||0);
+  if(!stack.dur&&!stack.ench){for(let i=0;i<36&&n>0;i++){const s=p.inv[i];if(s&&s.id===stack.id&&!s.dur&&!s.ench&&s.count<MAXS){const k=Math.min(n,MAXS-s.count);s.count+=k;n-=k}}}
+  for(let i=0;i<36&&n>0;i++){if(!p.inv[i]){const k=Math.min(n,MAXS);p.inv[i]={id:stack.id,count:k,dur:stack.dur,ench:stack.ench,items:stack.items};n-=k}}
   stack.count=n;return n}
 function countItem(id){let n=0;for(const s of player.inv)if(s&&s.id===id)n+=s.count;return n}
 /* ===================== FURNACE ===================== */
