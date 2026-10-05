@@ -112,6 +112,7 @@ canvas#gl{position:absolute;inset:0;width:100%;height:100%;display:block;image-r
 h1.title{font-family:'Arial Black',Impact,sans-serif;font-size:72px;letter-spacing:9px;color:#e2a943;text-shadow:0 5px 0 #4f2f17,0 0 34px rgba(211,154,51,.26);margin-bottom:20px;transform:none;}
 .splash{position:absolute;color:#ffe5aa;background:#8a3025;border:1px solid #e2a943;border-radius:3px;padding:5px 10px;font-size:13px;letter-spacing:1px;transform:none;animation:none;pointer-events:none;text-shadow:none;}
 @keyframes sp{from{transform:rotate(-18deg) scale(1)}to{transform:rotate(-18deg) scale(1.08)}}
+@keyframes heartshiver{from{transform:translateY(-1px)}to{transform:translateY(1px)}}
 .list{width:400px;height:220px;overflow:auto;background:rgba(3,8,10,.72);border:1px solid #d39a33;border-radius:5px;}
 .witem{padding:6px 8px;border:1px solid transparent;cursor:pointer;font-size:14px;}
 .witem small{display:block;color:#888;font-weight:400;font-size:12px;}
@@ -362,6 +363,8 @@ label.lb{font-size:13px;color:#a0a0a0;align-self:flex-start;margin-left:calc(50%
   <div class="hint" style="color:#aaa;width:440px;margin:0 0 4px">Start with a pistol and 32 bullets. Craft a rifle (full auto), a shotgun and a sniper rifle (hold Shift to look through the scope) from iron and planks, a ghillie suit from leather and leaves so mobs only notice you up close, make bullets from iron and leather, and pick ammo off the monsters you drop. Right-click to fire.</div>
   <button class="btn modbtn" data-mod="structures">Structure Chaos: OFF</button>
   <div class="hint" style="color:#aaa;width:440px;margin:0 0 4px">A random structure every hundred blocks: villages, temples, mansions, outposts, igloos, huts, portals and dungeons wherever you go.</div>
+  <button class="btn modbtn" data-mod="hearts">Hearts: OFF</button>
+  <div class="hint" style="color:#aaa;width:440px;margin:0 0 4px">Your health shows as a row of Minecraft-style hearts with every kind the game has: red hearts and half hearts, hardcore hearts with eyes, green poisoned hearts, black withered hearts, blue frozen hearts, gold absorption hearts from golden apples, a flash when you take damage, a shiver when you are nearly dead, and your horse's hearts while you ride.</div>
   <div class="btnrow" style="margin-top:12px"><button class="btn half" id="btnFunDone">Done</button><button class="btn half" id="btnFunClear">Clear All</button></div>
 </div>
 
@@ -2488,7 +2491,7 @@ function damageEntity(e,amount,src){if(e===player&&src&&src.type&&customArmorPer
     { // enchantment protection factor
       let epf=0,th=0;for(const s of player.armor){if(!s||!s.ench)continue;epf+=s.ench.protection||0;th+=s.ench.thorns||0;if(src.type==='fire'||src.type==='lava')epf+=2*(s.ench.fire_protection||0);if(src.type==='explosion')epf+=2*(s.ench.blast_protection||0);if(src.type==='arrow')epf+=2*(s.ench.projectile_protection||0);if(src.type==='fall')epf+=3*(s.ench.feather_falling||0)}
       if(epf)amount*=1-Math.min(20,epf)*0.04;if(th&&src.mob&&Math.random()<th*0.15){damageEntity(src.mob,1+floor(Math.random()*4),{type:'thorns'});damageArmor(2)}}
-    if(amount<=0)return false;if(src.mob){game.petTarget=src.mob;game.petTargetT=game.time}e.lastDmg=amount;e.invT=0.5;e.hp-=amount;e.exh+=0.1;e.hurtT=0.5;flashDamage();playSound('hurt');if(src.x!==undefined&&!player.riding){const kx=player.x-src.x,kz=player.z-src.z;const kd=sqrt(kx*kx+kz*kz)||1;const kb=(src.kb||4)*1.3;player.vx+=kx/kd*kb;player.vz+=kz/kd*kb;if(player.vy<4.2)player.vy=4.2;player.onGround=false}if(e.hp<=0){let ti=-1;for(let i=0;i<9;i++)if(player.inv[i]&&player.inv[i].id===393){ti=i;break}if(ti>=0&&player.mode!=='creative'){player.inv[ti]=null;player.hp=1;player.totemT=45;player.fireT=0;player.effects={};player.air=300;spawnParticles('happy',player.x,player.y+1,player.z,30);playSound('totem');showMessage('Your Totem of Undying saved you!');updateHotbar();return true}playerDie(src)}return true}
+    if(amount<=0)return false;if(src.mob){game.petTarget=src.mob;game.petTargetT=game.time}if(e.absorb>0){const a=Math.min(e.absorb,amount);e.absorb-=a;amount-=a;if(amount<=0){e.invT=0.5;e.hurtT=0.5;flashDamage();playSound('hurt');return true}}e.lastDmg=amount;e.invT=0.5;e.hp-=amount;e.exh+=0.1;e.hurtT=0.5;flashDamage();playSound('hurt');if(src.x!==undefined&&!player.riding){const kx=player.x-src.x,kz=player.z-src.z;const kd=sqrt(kx*kx+kz*kz)||1;const kb=(src.kb||4)*1.3;player.vx+=kx/kd*kb;player.vz+=kz/kd*kb;if(player.vy<4.2)player.vy=4.2;player.onGround=false}if(e.hp<=0){let ti=-1;for(let i=0;i<9;i++)if(player.inv[i]&&player.inv[i].id===393){ti=i;break}if(ti>=0&&player.mode!=='creative'){player.inv[ti]=null;player.hp=1;player.totemT=45;player.fireT=0;player.effects={};player.air=300;spawnParticles('happy',player.x,player.y+1,player.z,30);playSound('totem');showMessage('Your Totem of Undying saved you!');updateHotbar();return true}playerDie(src)}return true}
   if(e.invulnerable)return false;if(src.type==='arrow'&&e.arrowImmune&&e.arrowImmune()){playSoundAt('arrowhit',e.x,e.y,e.z);return false}
   e.lastDmg=amount;e.invT=0.5;e.hp-=amount;e.hurtT=0.5;if(src.type==='player'){e.lastHit=game.time;e.lootLvl=src.loot||0;if(e instanceof Mob&&!(e.type==='wolf'&&e.tamed)){game.petTarget=e;game.petTargetT=game.time}}
   if(src.x!==undefined){const dx=e.x-src.x,dz=e.z-src.z;const d=sqrt(dx*dx+dz*dz)||1;const kb=src.kb||4;e.vx+=dx/d*kb;e.vz+=dz/d*kb;e.vy+=kb*0.6;if(e.vy>6)e.vy=6}
@@ -2619,6 +2622,8 @@ function updatePlayer(dt){
     if(game.difficulty===0){p.hunger=Math.min(20,p.hunger+dt*0.5);p.regenT+=dt;if(p.regenT>=1){p.regenT=0;p.hp=Math.min(p.maxHp,p.hp+1)}}
     else{
       if(p.effects.hunger>0){p.effects.hunger-=dt;p.exh+=0.1*dt}if(p.effects.slow>0){p.effects.slow-=dt}
+      if(p.absorbT>0){p.absorbT-=dt;if(p.absorbT<=0)p.absorb=0}
+      {const feetB=world.getBlock(floor(p.x),floor(p.y),floor(p.z));const outSnow=game.wx&&game.wx.snow&&game.wx.I>0.5&&world.getSky(floor(p.x),floor(p.y+1),floor(p.z))>=14;const cold=(feetB===40||outSnow)&&p.fireT<=0&&!(p.armor[1]&&ITEMS[p.armor[1].id].mat==='leather');p.coldT=clamp((p.coldT||0)+(cold?dt/6:-dt/3),0,1);if(p.coldT>=1)p.frozen=true;else if(p.coldT<=0.35)p.frozen=false}
       if(p.effects.wither>0){p.effects.wither-=dt;p.witherT=(p.witherT||0)+dt;if(p.witherT>=2){p.witherT=0;damageEntity(p,1,{type:'wither'})}}
       if(p.effects.poison>0){p.effects.poison-=dt;p.poisonT=(p.poisonT||0)+dt;if(p.poisonT>=1.25){p.poisonT=0;if(p.hp>1)damageEntity(p,1,{type:'poison'})}}
       while(p.exh>=4){p.exh-=4;if(p.sat>0)p.sat=Math.max(0,p.sat-1);else p.hunger=Math.max(0,p.hunger-1)}
@@ -2653,7 +2658,7 @@ function updatePlayer(dt){
 }
 function blockSoundUnder(){const id=world.getBlock(floor(player.x),floor(player.y-0.2),floor(player.z));return id?BLOCKS[id].sound:'stone'}
 function eatFood(st,hd){const p=player;p.hunger=Math.min(20,p.hunger+hd.food[0]);p.sat=Math.min(p.hunger,p.sat+hd.food[1]);playSound('burp');
-  if(hd.hungerEffect&&Math.random()<hd.hungerEffect)p.effects.hunger=30;if(hd.poison)p.effects.poison=4;if(hd.golden){p.hp=Math.min(p.maxHp,p.hp+4)}
+  if(hd.hungerEffect&&Math.random()<hd.hungerEffect)p.effects.hunger=30;if(hd.poison)p.effects.poison=4;if(hd.golden){p.hp=Math.min(p.maxHp,p.hp+4);p.absorb=Math.max(p.absorb||0,4);p.absorbT=120}
   if(p.mode!=='creative'){st.count--;if(st.count<=0)p.inv[p.sel]=null;if(hd.container)addToInventory({id:hd.container,count:1})}updateHotbar()}
 function hasItem(id){return player.mode==='creative'||player.inv.some(s=>s&&s.id===id)}
 function removeItem(id,n){for(let i=0;i<36&&n>0;i++){const s=player.inv[i];if(s&&s.id===id){const k=Math.min(n,s.count);s.count-=k;n-=k;if(s.count<=0)player.inv[i]=null}}updateHotbar()}
@@ -2805,7 +2810,7 @@ function spearCharge(dt,h){const p=player;if(p.spearCd>0)p.spearCd-=dt;const st=
   const hs=sqrt(h.vx*h.vx+h.vz*h.vz);if(hs<4||p.spearCd>0)return;const fx=h.vx/hs,fz=h.vz/hs;
   for(const e of entities){if(!(e instanceof Mob)||e.dead||e.dying||e===h||(e.type==='wolf'&&e.tamed))continue;const dx=e.x-h.x,dz=e.z-h.z;const d=sqrt(dx*dx+dz*dz);if(d>2.6+e.w/2||abs(e.y-h.y)>2.5)continue;if((dx*fx+dz*fz)/(d||1)<0.6)continue;
     const dmg=it.dmg+hs*1.5;if(damageEntity(e,dmg,{x:h.x-fx*2,y:h.y,z:h.z-fz*2,type:'player',kb:9})){p.spearCd=0.8;p.swing=0;spawnParticles('crit',e.x,e.y+e.h*0.7,e.z,8);playSound('arrowhit');damageItem(st,1);showMessage('Charge! '+Math.round(dmg)+' damage');break}}}
-function respawn(){const p=player;if(world.dimKey!=='over')goHome();p.dead=false;p.hp=20;p.hunger=20;p.sat=5;p.exh=0;p.air=300;p.fireT=0;p.effects={};p.vx=p.vy=p.vz=0;p.fallDist=0;p.invT=0;
+function respawn(){const p=player;if(world.dimKey!=='over')goHome();p.dead=false;p.hp=20;p.absorb=0;p.absorbT=0;p.coldT=0;p.frozen=false;p.hunger=20;p.sat=5;p.exh=0;p.air=300;p.fireT=0;p.effects={};p.vx=p.vy=p.vz=0;p.fallDist=0;p.invT=0;
   let s=p.spawn||game.worldSpawn;let ok=false;if(p.spawn){ensureChunks(s[0],s[2],1);const b=world.getBlock(floor(s[0]),floor(s[1]),floor(s[2]));if(b===62||world.getBlock(floor(s[0]),floor(s[1])-1,floor(s[2]))===62)ok=true;else showMessage('Your home bed was missing or obstructed')}
   if(!ok){s=game.worldSpawn;ensureChunks(s[0],s[2],1)} // the world spawn never moves: you always come back to the same place
   const spot=safeSpotNear(s[0],s[2]);p.x=spot[0];p.z=spot[2];p.y=spot[1];$('deathScreen').classList.remove('show');updateHUD();updateHotbar();saveWorld()}
@@ -3686,12 +3691,31 @@ function buildHUD(){for(const k of ['heart','food','armor'])for(const s of ['ful
 let lastSel=-1,itemNameT=null;
 function updateHotbar(){const hb=$('hotbar').children;for(let i=0;i<9;i++){renderSlot(hb[i]);hb[i].classList.toggle('sel',i===player.sel)}
   if(player.sel!==lastSel){lastSel=player.sel;const st=player.inv[player.sel];const n=$('itemname');n.textContent=st?ITEMS[st.id].label:'';n.style.opacity=1;clearTimeout(itemNameT);itemNameT=setTimeout(()=>n.style.opacity=0,1500)}}
+/* ---- Hearts mod: Minecraft-style pixel hearts ---- */
+const HEART_ROWS=['.XX...XX.','XLLX.XLLX','XLFFXFFFX','XFFFFFFFX','.XFFFFFX.','..XFFFX..','...XFX...','....X....'];
+const HEART_HARD=['.XX...XX.','XLLX.XLLX','XEEFXFEEX','XFFFFFFFX','.XFEEEFX.','..XFFFX..','...XFX...','....X....']; // hardcore: eyes and a grin
+const HEART_COL={normal:{F:'#ff1313',L:'#ff7b7b'},hardcore:{F:'#ff1313',L:'#ff7b7b',E:'#5a0000'},poison:{F:'#4e9331',L:'#8bd56c'},wither:{F:'#101010',L:'#3a3a3a'},frozen:{F:'#3ab3da',L:'#a0e9ff'},absorb:{F:'#f1c232',L:'#ffe98a'},mount:{F:'#d94c2f',L:'#ff9d82'},container:{F:'#5c5c5c',L:'#7a7a7a'},flash:{F:'#fff',L:'#fff',E:'#aaa'}};
+const HEART_CACHE={};
+function heartSprite(kind,half){const key=kind+(half?'h':'');if(HEART_CACHE[key])return HEART_CACHE[key];const S=2,c=document.createElement('canvas');c.width=9*S;c.height=9*S;const x=c.getContext('2d');const rows=kind==='hardcore'?HEART_HARD:HEART_ROWS;const col=HEART_COL[kind];
+  for(let j=0;j<rows.length;j++)for(let i=0;i<9;i++){const ch=rows[j][i];if(ch==='.')continue;if(half&&i>=5&&ch!=='X')continue;x.fillStyle=ch==='X'?(kind==='flash'?'#eee':'#000'):ch==='L'?col.L:ch==='E'?(col.E||col.F):col.F;x.fillRect(i*S,j*S,S,S)}
+  HEART_CACHE[key]=c;return c}
+let heartLastHp=-1,heartFlashT=-9;
+function drawHeartRow(cv,n,maxN,kind,offY,flash){const x=cv.getContext('2d');const S=2,step=8*S;for(let i=0;i<Math.ceil(maxN/2);i++){const px=i*step;x.drawImage(heartSprite('container'),px,offY);const v=n-i*2;if(v>=2)x.drawImage(heartSprite(flash?'flash':kind),px,offY);else if(v>=1)x.drawImage(heartSprite(flash?'flash':kind,true),px,offY)}}
+function heartKind(p){if(game.mods.hardcore)return 'hardcore';if(p.effects.wither>0)return 'wither';if(p.effects.poison>0)return 'poison';if(p.frozen)return 'frozen';return 'normal'}
+function renderHearts(el,p){const S=2;let cv=el.firstChild;if(!cv||cv.tagName!=='CANVAS'){el.innerHTML='';cv=document.createElement('canvas');cv.width=10*8*S+S;cv.height=9*S*2+S;cv.style.cssText='width:'+cv.width+'px;height:'+cv.height+'px;image-rendering:pixelated;position:absolute;left:0;bottom:0';el.appendChild(cv)}
+  const x=cv.getContext('2d');x.clearRect(0,0,cv.width,cv.height);
+  if(p.hp<heartLastHp)heartFlashT=game.time;heartLastHp=p.hp;const flash=game.time-heartFlashT<0.35&&floor((game.time-heartFlashT)/0.12)%2===0;
+  const ab=Math.ceil(p.absorb||0);if(ab>0){const x2=cv.getContext('2d');const step=8*S;for(let i=0;i<Math.ceil(Math.min(ab,20)/2);i++){const v=ab-i*2;x2.drawImage(heartSprite('absorb',v<2),i*step,0)}}
+  drawHeartRow(cv,Math.ceil(p.hp),20,heartKind(p),9*S+S,flash)}
+function renderMountHearts(el,m){const S=2;let cv=el.firstChild;if(!cv||cv.tagName!=='CANVAS'){el.innerHTML='';cv=document.createElement('canvas');cv.width=10*8*S+S;cv.height=9*S*2+S;cv.style.cssText='width:'+cv.width+'px;height:'+cv.height+'px;image-rendering:pixelated;position:absolute;right:0;bottom:0';el.appendChild(cv)}
+  const x=cv.getContext('2d');x.clearRect(0,0,cv.width,cv.height);const hp=Math.ceil(m.hp),mx=Math.min(40,Math.ceil(m.maxHp||20));drawHeartRow(cv,Math.min(hp,20),Math.min(mx,20),'mount',9*S+S,false);if(mx>20)drawHeartRow(cv,Math.max(0,hp-20),mx-20,'mount',0,false)}
 function updateHUD(){syncMobileControls();const p=player;const creative=p.mode==='creative';{const dr=entities.find(e=>(e instanceof Dragon||e instanceof Wither)&&!e.dead);$('bossbar').style.display=dr?'block':'none';if(dr){$('bossfill').style.width=Math.max(0,dr.hp/dr.maxHp*100)+'%';$('bossname').textContent=dr instanceof Wither?'Wither':'Ender Dragon'}}$('status').style.display=creative?'none':'grid';if(creative)return;
   const meter=(el,label,val,max,color)=>{const pct=Math.max(0,Math.min(100,val/max*100));el.innerHTML='<div class="meter"><span>'+label+'</span><i><b style="width:'+pct+'%;background:'+color+'"></b></i><em>'+Math.ceil(val)+'</em></div>'};
-  meter($('hearts'),'HEALTH',p.hp,20,'linear-gradient(90deg,#9d2f2f,#ef6653)');meter($('food'),'ENERGY',p.hunger,20,'linear-gradient(90deg,#a76f27,#efbd51)');const ap=armorPoints();if(ap>0)meter($('armor'),'ARMOR',ap,20,'linear-gradient(90deg,#456473,#98b7c4)');else $('armor').innerHTML='';
+  if(game.mods.hearts)renderHearts($('hearts'),p);else meter($('hearts'),'HEALTH'+((p.absorb||0)>0?' +'+Math.ceil(p.absorb):''),p.hp,20,'linear-gradient(90deg,#9d2f2f,#ef6653)');
+  if(game.mods.hearts&&p.riding&&p.riding instanceof Mob&&p.riding.hp!==undefined)renderMountHearts($('food'),p.riding);else meter($('food'),'ENERGY',p.hunger,20,'linear-gradient(90deg,#a76f27,#efbd51)');const ap=armorPoints();if(ap>0)meter($('armor'),'ARMOR',ap,20,'linear-gradient(90deg,#456473,#98b7c4)');else $('armor').innerHTML='';
   const headWater=world.getBlock(floor(p.x),floor(p.y+p.eyeHeight),floor(p.z))===8;if(headWater)meter($('air'),'AIR',p.air,300,'linear-gradient(90deg,#2776a7,#67d7ef)');else $('air').innerHTML='';
   $('xpfill').style.width=(p.xp/xpToNext(p.level)*100)+'%';$('xplvl').textContent=p.level>0?p.level:'';
-  $('hearts').style.animation=p.hp<=4?'sp .3s infinite alternate':'';$('hearts').style.transform='';
+  $('hearts').style.animation=p.hp<=4?(game.mods.hearts?'heartshiver .12s infinite alternate':'sp .3s infinite alternate'):'';$('hearts').style.transform='';
   $('fireov').style.display=p.fireT>0?'block':'none';$('waterov').style.display=headWater?'block':'none'}
 function showMessage(t){const c=$('chat');const el=document.createElement('div');el.className='msg';el.textContent=t;c.appendChild(el);while(c.children.length>6)c.removeChild(c.firstChild);setTimeout(()=>el.remove(),8000)}
 
@@ -4035,8 +4059,8 @@ function randomDrops(){if(Math.random()<0.03){const set=RANDOM_SETS[floor(Math.r
 /* ---- initial spawn ---- */
 function findSpawn(){for(let r=0;r<400;r+=8){for(let a=0;a<PI*2;a+=0.7){const x=floor(Math.cos(a)*r),z=floor(Math.sin(a)*r);const info=world.columnInfo(x,z);if(info.height>SEA+1&&info.biome!==BI.mountains&&info.biome!==BI.ocean)return [x+0.5,info.height+1,z+0.5]}}return [0.5,80,0.5]}
 /* ---- world lifecycle ---- */
-const MODN={weather:'Weather',horror:'Horror',random:'Random Blocks',hardcore:'Hardcore',structures:'Structure Chaos',apocalypse:'Zombie Apocalypse',guns:'Guns'};
-function applyModsLive(m,fromHost){if(!world||game.state!=='playing')return;const old=game.mods||{};game.mods=Object.assign({weather:false,horror:false,random:false,hardcore:false,structures:false,apocalypse:false,guns:false},m);const g=game.mods;
+const MODN={weather:'Weather',horror:'Horror',random:'Random Blocks',hardcore:'Hardcore',structures:'Structure Chaos',apocalypse:'Zombie Apocalypse',guns:'Guns',hearts:'Hearts'};
+function applyModsLive(m,fromHost){if(!world||game.state!=='playing')return;const old=game.mods||{};game.mods=Object.assign({weather:false,horror:false,random:false,hardcore:false,structures:false,apocalypse:false,guns:false,hearts:false},m);const g=game.mods;
   if(g.weather&&!game.wx)game.wx={storm:false,I:0,t:20+Math.random()*40,lt:4,flash:0,tornado:null};else if(!g.weather&&game.wx){stopWeatherLoops();game.wx=null}
   game.hx=g.horror?(game.hx||{amb:15,beat:0}):null;
   if(g.apocalypse&&!game.ax)game.ax={wave:0,next:60,active:false,mobs:[],warned:{},left:0};else if(!g.apocalypse&&game.ax){for(const mb of game.ax.mobs)mb.dead=true;game.ax=null;$('waveHud').style.display='none'}
@@ -4044,7 +4068,7 @@ function applyModsLive(m,fromHost){if(!world||game.state!=='playing')return;cons
   const list=worldList();const meta=list.find(w=>w.id===game.worldId);if(meta){meta.mods=Object.assign({},g);meta.drops=g.random?'random':'normal';localStorage.setItem('ic_worlds',JSON.stringify(list))}
   if(MP.active&&MP.host&&!fromHost)mpSend({t:'mods',mods:g});
   const on=Object.keys(g).filter(k=>g[k]).map(k=>MODN[k]);showMessage('Fun mods: '+(on.length?on.join(', '):'none')+(g.weather&&!old.weather?'. Clouds are gathering...':''));if(game.gui)renderAllSlots()}
-function modsOf(meta){const m=Object.assign({weather:false,horror:false,random:false,hardcore:false,structures:false,apocalypse:false,guns:false},meta.mods||{});if(!meta.mods&&meta.drops==='random')m.random=true;return m}
+function modsOf(meta){const m=Object.assign({weather:false,horror:false,random:false,hardcore:false,structures:false,apocalypse:false,guns:false,hearts:false},meta.mods||{});if(!meta.mods&&meta.drops==='random')m.random=true;return m}
 function newWorld(name,seedStr,mode,diff,mods){const drops=mods&&mods.random?'random':'normal';
   const seed=seedStr?(isNaN(+seedStr)?hashStr(seedStr):(+seedStr|0)):(Math.random()*2147483647|0);
   const id='w'+Date.now().toString(36);const list=worldList();list.push({id,name,seed,mode,diff,drops,mods:mods||{},created:Date.now(),played:Date.now()});localStorage.setItem('ic_worlds',JSON.stringify(list));
@@ -4069,7 +4093,7 @@ async function migrateOldSaves(){const db=await SaveDB.open();if(!db)return;let 
 function startWorld(meta,save){if(window.trackEvent)trackEvent('game_start',{game:'Ironcraft',multiplayer:!!(MP&&MP.active),mods:Object.keys(modsOf(meta)).filter(k=>modsOf(meta)[k]).join(',')||'none'});
   game.mods=modsOf(meta);game.baseDiff=meta.diff;game.noSave=false;game.wx=game.mods.weather?{storm:false,I:0,t:30+Math.random()*60,lt:4,flash:0,tornado:null}:null;game.hx=game.mods.horror?{amb:15,beat:0}:null;game.ax=game.mods.apocalypse?{wave:0,next:75,active:false,mobs:[],warned:{},left:0}:null;
   game.dims={over:null,nether:null,end:null,sift:null};world=new World(meta.seed);game.seed=meta.seed;game.worldId=meta.id;game.worldName=meta.name;game.difficulty=game.mods.hardcore?3:(game.mods.apocalypse?Math.max(1,meta.diff):meta.diff);game.randomDrops=game.mods.random;entities.length=0;particles.length=0;activeFurnaces.clear();
-  const p=player;p.mode=meta.mode;p.inv.fill(null);p.armor.fill(null);p.sel=0;p.hp=20;p.hunger=20;p.sat=5;p.exh=0;p.xp=0;p.level=0;p.dead=false;p.flying=false;p.effects={};p.spawn=null;p.fireT=0;p.air=300;p.vx=p.vy=p.vz=0;p.riding=null;
+  const p=player;p.mode=meta.mode;p.inv.fill(null);p.armor.fill(null);p.sel=0;p.hp=20;p.absorb=0;p.absorbT=0;p.coldT=0;p.frozen=false;p.hunger=20;p.sat=5;p.exh=0;p.xp=0;p.level=0;p.dead=false;p.flying=false;p.effects={};p.spawn=null;p.fireT=0;p.air=300;p.vx=p.vy=p.vz=0;p.riding=null;
   if(save){if(game.ax&&save.apoc)game.ax.wave=save.apoc.wave||0;world.time=save.time;world.day=save.day||0;game.worldSpawn=save.spawn;world.savedMods={};for(const k in save.mods)world.savedMods[k]=save.mods[k];world.savedBents=save.bents||{};world.populated=new Set(save.pop||[]);
     const sp=save.player;if(sp.hp<=0)game.respawnOnLoad=true;Object.assign(p,{x:sp.x,y:sp.y,z:sp.z,yaw:sp.yaw,pitch:sp.pitch,hp:sp.hp,hunger:sp.hunger,sat:sp.sat,xp:sp.xp,level:sp.level,sel:sp.sel,spawn:sp.spawn,flying:sp.flying||false});for(let i=0;i<36;i++)p.inv[i]=sp.inv[i]||null;for(let i=0;i<4;i++)p.armor[i]=sp.armor[i]||null;
     game.pendingMobs=save.mobs||[];game.pendingItems=save.items||[];
@@ -4929,7 +4953,7 @@ function runCommand(line){const p=player;const raw=line.trim().replace(/^\/+/,''
     case 'spawn':case 'summon':{if(/portal/i.test(args.join('_'))){spawnNetherPortal(say,/sift/i.test(args.join('_'))?'sift':'nether');return}{const dn=(args[0]||'').toLowerCase().replace(/[\s-]+/g,'_');const dd=DISASTER_ALIAS[dn]||(DISASTER_NAMES.includes(dn)?dn:null);if(dd){startDisaster(dd,args[1],say);return}}const words=args.filter(a=>!/^\d+$/.test(a)),num=args.find(a=>/^\d+$/.test(a));const t=words.join('_');const type=mobTypeFromName(t);if(!type){say('Mobs: '+MOB_TYPES.map(k=>mobLabel(k)).join(', '));return}const n=clamp(parseInt(num)||1,1,20);const d=eyeDir();for(let i=0;i<n;i++)entities.push(new Mob(type,p.x+d[0]*3+(Math.random()-0.5)*2,p.y+0.5,p.z+d[2]*3+(Math.random()-0.5)*2));say('Spawned '+n+' '+mobLabel(type));return}
     case 'portal':spawnNetherPortal(say);return;
     case 'stop':case 'cancel':if(game.tpSearch)cancelBlockSearch();else say('Nothing to stop');return;
-    case 'mods':case 'mod':{if(MP.active&&!MP.host){say('Only the host can change fun mods');return}const keys=Object.keys(MODN);if(!args.length){say('Fun mods: '+keys.map(k=>MODN[k]+' '+(game.mods[k]?'ON':'OFF')).join(', '));say('Usage: /mods <weather|horror|random|hardcore|structures|apocalypse|guns> <on|off>');return}const k=keys.find(k=>k.startsWith(args[0].toLowerCase()))||(/^(storm|tornado)/i.test(args[0])?'weather':/^zombie|^wave/i.test(args[0])?'apocalypse':null);if(!k){say('Unknown mod. Mods: '+keys.join(', '));return}const on=args[1]?/^(on|1|true|yes)$/i.test(args[1]):!game.mods[k];const m=Object.assign({},game.mods);m[k]=on;applyModsLive(m);return}
+    case 'mods':case 'mod':{if(MP.active&&!MP.host){say('Only the host can change fun mods');return}const keys=Object.keys(MODN);if(!args.length){say('Fun mods: '+keys.map(k=>MODN[k]+' '+(game.mods[k]?'ON':'OFF')).join(', '));say('Usage: /mods <weather|horror|random|hardcore|structures|apocalypse|guns|hearts> <on|off>');return}const k=keys.find(k=>k.startsWith(args[0].toLowerCase()))||(/^(storm|tornado)/i.test(args[0])?'weather':/^zombie|^wave/i.test(args[0])?'apocalypse':null);if(!k){say('Unknown mod. Mods: '+keys.join(', '));return}const on=args[1]?/^(on|1|true|yes)$/i.test(args[1]):!game.mods[k];const m=Object.assign({},game.mods);m[k]=on;applyModsLive(m);return}
     case 'disaster':case 'disasters':{if(!args.length){say('Disasters: '+DISASTER_NAMES.join(', ')+'.  e.g. /disaster earthquake, /disaster meteor 20, /disaster flood 6, /disaster tornado 5, /disaster random');return}startDisaster(args[0],args[1],say);return}
     case 'tornado':{if(!game.wx){say('Tornadoes need the Weather fun mod on this world');return}if(MP.active&&!MP.host){say('Only the host can call a tornado');return}const ef=Math.min(5,Math.max(1,parseInt(args[0])||rollEF()));const W=game.wx;W.storm=true;W.I=Math.max(W.I,0.6);W.t=Math.max(W.t,60);const a=Math.random()*PI*2;W.tornado={x:p.x+Math.sin(a)*45,z:p.z+Math.cos(a)*45,y:p.y,dir:a+PI+(Math.random()-0.5)*0.4,life:(50+Math.random()*50)*EF[ef].life,spin:0,t:0,brk:0,ef};say(EF[ef].say);playSound('thunder',1,0.55-ef*0.05);return}
     case 'heal':p.hp=p.maxHp;p.hunger=20;p.sat=5;p.fireT=0;p.air=300;p.effects={};say('Healed');return;
