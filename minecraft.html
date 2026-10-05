@@ -256,7 +256,7 @@ label.lb{font-size:13px;color:#a0a0a0;align-self:flex-start;margin-left:calc(50%
     <div style="display:flex;flex-direction:column;align-items:center;gap:4px"><div class="grid" id="brewIngr" style="grid-template-columns:38px"></div><div class="arrow" id="brewArrow" style="transform:rotate(90deg);height:30px"><i></i></div><div class="grid" id="brewBottles" style="grid-template-columns:38px 38px 38px"></div></div>
     <div style="display:flex;flex-direction:column;align-items:center;gap:4px;font-size:11px;color:#f4e6c4;text-shadow:1px 1px #000"><div class="grid" id="brewPowder" style="grid-template-columns:38px"></div><div id="brewFuel"></div></div>
   </div>
-  <div class="hint" style="font-size:11px;margin-top:4px">Water bottles + Nether Wart = Awkward Potion. Then add Sugar, Ember Powder, Golden Apple, Magma Cream, Slime Ball, Glowstone Dust, Feather, Apple, Spider Eye or Fermented Spider Eye. Redstone makes a potion last longer, Glowstone makes it stronger, Gunpowder makes it a splash potion.</div>
+  <div class="hint" style="font-size:11px;margin-top:4px">Water bottles + Nether Wart = Awkward Potion. Then add Sugar, Ember Powder, Golden Apple, Magma Cream, Slime Ball, Glowstone Dust, Feather, Apple, Spider Eye or Fermented Spider Eye. Redstone makes a potion last longer, Glowstone makes it stronger, Gunpowder makes it a splash potion, and a Night Vision potion plus Fermented Spider Eye becomes Invisibility (mobs ignore you).</div>
   <div class="grid" id="brewMain" style="margin-top:8px"></div>
   <div class="grid" id="brewHot" style="margin-top:6px"></div>
 </div></div>
@@ -1013,8 +1013,8 @@ defItem(476,'awkward_potion',{icon:'awkward_potion',label:'Awkward Potion',stack
 defItem(477,'nether_wart',{icon:'nether_wart',label:'Nether Wart',plants:139,wart:true});
 defItem(480,'magma_cream',{icon:'magma_cream',label:'Magma Cream'});
 defItem(481,'fermented_spider_eye',{icon:'fermented_spider_eye',label:'Fermented Spider Eye'});
-const POTIONS={speed:{label:'Swiftness',col:[124,175,198],ingr:307,dur:180,strong:true},strength:{label:'Strength',col:[147,36,36],ingr:391,dur:180,strong:true},regen:{label:'Regeneration',col:[205,92,171],ingr:308,dur:45,strong:true},fire_res:{label:'Fire Resistance',col:[228,154,58],ingr:480,dur:180},water_breathing:{label:'Water Breathing',col:[46,82,146],ingr:313,dur:180},night_vision:{label:'Night Vision',col:[31,31,161],ingr:314,dur:180},jump:{label:'Leaping',col:[34,255,76],ingr:288,dur:180,strong:true},healing:{label:'Healing',col:[248,36,35],ingr:273,instant:true,strong:true},poison:{label:'Poison',col:[78,147,49],ingr:287,dur:45,strong:true},harming:{label:'Harming',col:[67,10,9],ingr:481,instant:true,strong:true}};
-const POTION_IDS={},SPLASH_IDS={};{let pid=478,sid=501;for(const k in POTIONS){if(pid===480)pid=482;const d=POTIONS[k];defItem(pid,'potion_'+k,{icon:'potion_'+k,label:'Potion of '+d.label,stack:1,potion:k});POTION_IDS[k]=pid;pid++;defItem(sid,'splash_'+k,{icon:'splash_'+k,label:'Splash Potion of '+d.label,stack:1,splash:k});SPLASH_IDS[k]=sid;sid++}}
+const POTIONS={speed:{label:'Swiftness',col:[124,175,198],ingr:307,dur:180,strong:true},strength:{label:'Strength',col:[147,36,36],ingr:391,dur:180,strong:true},regen:{label:'Regeneration',col:[205,92,171],ingr:308,dur:45,strong:true},fire_res:{label:'Fire Resistance',col:[228,154,58],ingr:480,dur:180},water_breathing:{label:'Water Breathing',col:[46,82,146],ingr:313,dur:180},night_vision:{label:'Night Vision',col:[31,31,161],ingr:314,dur:180},jump:{label:'Leaping',col:[34,255,76],ingr:288,dur:180,strong:true},healing:{label:'Healing',col:[248,36,35],ingr:273,instant:true,strong:true},poison:{label:'Poison',col:[78,147,49],ingr:287,dur:45,strong:true},harming:{label:'Harming',col:[67,10,9],ingr:481,instant:true,strong:true},invisibility:{label:'Invisibility',col:[127,131,146],ingr:null,dur:180}};
+const POTION_IDS={},SPLASH_IDS={};{let pid=478,sid=501;for(const k in POTIONS){if(pid===480)pid=482;if(pid===490)pid=512;const d=POTIONS[k];defItem(pid,'potion_'+k,{icon:'potion_'+k,label:'Potion of '+d.label,stack:1,potion:k});POTION_IDS[k]=pid;pid++;defItem(sid,'splash_'+k,{icon:'splash_'+k,label:'Splash Potion of '+d.label,stack:1,splash:k});SPLASH_IDS[k]=sid;sid++}}
 defItem(468,'trident',{icon:'trident',stack:1,dur:250,tool:'trident',dmg:9,atkSpd:1.1,mat:'diamond'});
 defItem(469,'heavy_core',{icon:'heavy_core',stack:64});
 defItem(470,'trial_key',{icon:'trial_key',stack:64});
@@ -2186,7 +2186,7 @@ class Mob extends Entity{
     p.x=this.x;p.z=this.z;p.y=this.y+this.h*0.72;p.vx=this.vx;p.vy=0;p.vz=this.vz;p.onGround=true;p.fallDist=0;p.inWater=this.inWater;p.walkAmp=0}
   updateGuardian(dt){const p=player;const d=this.def;if(this.hurtT>0)this.hurtT-=dt;if(this.invT>0)this.invT-=dt;if(this.atkCd>0)this.atkCd-=dt;
     const inW=entityInWater(this);this.inWater=inW;const dx=p.x-this.x,dy=(p.y+1)-(this.y+0.4),dz=p.z-this.z;const dist3=sqrt(dx*dx+dy*dy+dz*dz);const diff=game.difficulty;
-    const hostile=diff>0&&!p.dead&&dist3<d.follow;
+    const hostile=diff>0&&!p.dead&&!playerHidden()&&dist3<d.follow;
     if(inW){ // swim: wander or circle the player at range, keeping line of sight
       this.wanderT-=dt;if(!hostile){if(this.wanderT<=0){this.wanderT=1+Math.random()*3;const a=Math.random()*PI*2;this.moveDir=[Math.sin(a),(Math.random()-0.5)*0.4,Math.cos(a)]}}
       else{const l=dist3||1;const want=dist3<5?-1:dist3>10?1:0;const s=Math.sin(this.age*0.7);this.moveDir=[dx/l*want-dz/l*s*0.6,dy/l*(dist3>4?1:0.2),dz/l*want+dx/l*s*0.6]}
@@ -2247,9 +2247,9 @@ class Mob extends Entity{
     this.soundT-=dt;if(this.soundT<=0){const passive=this.def.passive;this.soundT=passive?20+Math.random()*40:8+Math.random()*20;
       if(dist3<16&&this.type!=='creeper'&&game.time-(game.lastAmbient||0)>(passive?5:2)){game.lastAmbient=game.time;playSoundAt(this.def.sound,this.x,this.y,this.z,this.baby?1.5:1,passive?0.5:0.8)}}
     const d=this.def;let target=null;let speed=d.speed*(this.baby?1.3:1);const diff=game.difficulty;
-    const stealth=(player.armor[1]&&ITEMS[player.armor[1].id].ghillie&&!(this.lastHit&&this.lastHit>game.time-15))?(p.sneaking?0.12:0.3):1;
+    const stealth=playerHidden()?0:(player.armor[1]&&ITEMS[player.armor[1].id].ghillie&&!(this.lastHit&&this.lastHit>game.time-15))?(p.sneaking?0.12:0.3):1;
     const hostile=!d.passive&&diff>0&&(!d.neutral||this.angry||(d.lightNeutral&&Math.max(world.getSky(floor(this.x),floor(this.y),floor(this.z))*R.day,world.getLight(floor(this.x),floor(this.y),floor(this.z)))<9));
-    if(d.guard&&!this.home)this.home=[this.x,this.z];const guarding=d.guard&&!(this.lastHit&&this.lastHit>game.time-20)&&(p.x-this.home[0])**2+(p.z-this.home[1])**2>d.guard*d.guard;if(guarding&&this.angry){this.angry=false}
+    if(d.guard&&!this.home)this.home=[this.x,this.z];const guarding=d.guard&&!(this.lastHit&&this.lastHit>game.time-20)&&(p.x-this.home[0])**2+(p.z-this.home[1])**2>d.guard*d.guard;if((guarding||playerHidden())&&this.angry){this.angry=false}
     if(hostile&&!p.dead&&!this.frozen&&!guarding&&dist3<d.follow*(p.sneaking?0.5:1)*stealth){target=[p.x,p.z];if(!this.angry&&!d.neutral){this.noticeT=0.35+Math.random()*0.3;if(dist3<20)playSoundAt(d.sound,this.x,this.y,this.z,1,0.75)}this.angry=true}
     if(guarding&&!target&&(this.x-this.home[0])**2+(this.z-this.home[1])**2>36&&Math.random()<dt*0.8){target=[this.home[0]+(Math.random()-0.5)*6,this.home[1]+(Math.random()-0.5)*6]}
     if(d.passive&&!p.dead){ // follow player holding food
@@ -2305,7 +2305,7 @@ class Mob extends Entity{
     }
     if(this.type==='wolf'&&this.prey&&this.atkCd<=0){const o=this.prey;const od=Math.hypot(o.x-this.x,o.z-this.z);if(od<this.w/2+o.w/2+0.7&&abs(o.y-this.y)<2){this.atkCd=1;damageEntity(o,this.tamed?4:3,{x:this.x,y:this.y,z:this.z,type:'mob',mob:this});playSoundAt('wolf_growl',this.x,this.y,this.z,1,1.3);if(o.type==='sheep'||o.type==='wolf')o.panicT=2}}
     // attacks
-    if(hostile&&!p.dead){
+    if(hostile&&!p.dead&&!playerHidden()){
       if(this.type==='creeper'){const los=dist3<3;if(los){this.swell+=dt;if(this.swell>=1.5){this.dying=true;this.dead=true;explode(this.x,this.y+0.5,this.z,3);return}if(this.swell<0.05)playSoundAt('fuse',this.x,this.y,this.z)}else if(dist3>7){this.swell=Math.max(0,this.swell-dt*2)}else{this.swell=Math.max(0,this.swell-dt)}}
       else if(d.ranged==='potion'){if(dist3<10*stealth&&this.atkCd<=0&&this.drinking<=0&&this.canSee(p)){this.atkCd=diff===3?2.5:3.5;throwPotion(this,p,diff)}}
       else if(d.ranged==='fireball'){if(dist3<24*stealth&&this.atkCd<=0&&this.canSee(p)){this.burst=(this.burst||0)+1;this.atkCd=this.burst>=3?(this.burst=0,4):0.35;if(this.type==='ichor_mage')this.castT=0.6;shootFireball(this,p,diff)}}
@@ -2673,7 +2673,7 @@ function updatePlayer(dt){
     if(game.difficulty===0){p.hunger=Math.min(20,p.hunger+dt*0.5);p.regenT+=dt;if(p.regenT>=1){p.regenT=0;p.hp=Math.min(p.maxHp,p.hp+1)}}
     else{
       if(p.effects.hunger>0){p.effects.hunger-=dt;p.exh+=0.1*dt}if(p.effects.slow>0){p.effects.slow-=dt}
-      for(const k of ['speed','strength','fire_res','water_breathing','night_vision','jump'])if(p.effects[k]>0)p.effects[k]-=dt;
+      for(const k of ['speed','strength','fire_res','water_breathing','night_vision','jump','invisibility'])if(p.effects[k]>0)p.effects[k]-=dt;
       if(p.effects.regen>0){p.effects.regen-=dt;p.regenT=(p.regenT||0)+dt;if(p.regenT>=2.5/effLvl('regen')){p.regenT=0;p.hp=Math.min(p.maxHp,p.hp+1)}}
       if(p.absorbT>0){p.absorbT-=dt;if(p.absorbT<=0)p.absorb=0}
       {const feetB=world.getBlock(floor(p.x),floor(p.y),floor(p.z));const outSnow=game.wx&&game.wx.snow&&game.wx.I>0.5&&world.getSky(floor(p.x),floor(p.y+1),floor(p.z))>=14;const cold=(feetB===40||outSnow)&&p.fireT<=0&&!(p.armor[1]&&ITEMS[p.armor[1].id].mat==='leather');p.coldT=clamp((p.coldT||0)+(cold?dt/6:-dt/3),0,1);if(p.coldT>=1)p.frozen=true;else if(p.coldT<=0.35)p.frozen=false}
@@ -2714,7 +2714,8 @@ function eatFood(st,hd){const p=player;if(hd.potion){applyPotion(hd.potion,st.lv
   if(hd.hungerEffect&&Math.random()<hd.hungerEffect)p.effects.hunger=30;if(hd.poison)p.effects.poison=4;if(hd.golden){p.hp=Math.min(p.maxHp,p.hp+4);p.absorb=Math.max(p.absorb||0,4);p.absorbT=120}
   if(p.mode!=='creative'){st.count--;if(st.count<=0)p.inv[p.sel]=null;if(hd.container)addToInventory({id:hd.container,count:1})}updateHotbar()}
 /* ---- potion effects ---- */
-const EFFECT_NAMES={speed:'Swiftness',strength:'Strength',regen:'Regeneration',fire_res:'Fire Resistance',water_breathing:'Water Breathing',night_vision:'Night Vision',jump:'Leaping',poison:'Poison',wither:'Wither',slow:'Slowness',hunger:'Hunger',levitation:'Levitation'};
+const EFFECT_NAMES={speed:'Swiftness',strength:'Strength',regen:'Regeneration',fire_res:'Fire Resistance',water_breathing:'Water Breathing',night_vision:'Night Vision',jump:'Leaping',invisibility:'Invisibility',poison:'Poison',wither:'Wither',slow:'Slowness',hunger:'Hunger',levitation:'Levitation'};
+function playerHidden(){const p=player;return !!(p&&(p.mode==='creative'||(p.effects&&p.effects.invisibility>0)))}
 function effLvl(k){const p=player;return p.effects&&p.effects[k]>0?((p.effLvl&&p.effLvl[k])||1):0}
 function potionDuration(kind,lvl,ext){const d=POTIONS[kind];if(d.instant)return 0;let t=d.dur;if(ext)t*=2.67;if(lvl>=2)t*=0.5;return Math.round(t)}
 function applyPotion(kind,lvl,ext,target){const d=POTIONS[kind];if(!d)return;const e=target||player;
@@ -2747,6 +2748,7 @@ function isBrewIngredient(id){if(id===477||id===265||id===314||id===285)return t
 function brewResult(bottle,ingr){if(!bottle||!ingr)return null;const b=ITEMS[bottle.id];const kind=b.potion||b.splash;
   if(bottle.id===475&&ingr.id===477)return {id:476,count:1};
   if(bottle.id===476){for(const k in POTIONS)if(POTIONS[k].ingr===ingr.id)return {id:POTION_IDS[k],count:1,lvl:1}}
+  if(kind==='night_vision'&&ingr.id===481)return {id:b.potion?POTION_IDS.invisibility:SPLASH_IDS.invisibility,count:1,lvl:1,ext:!!bottle.ext};
   if(kind){const d=POTIONS[kind];if(ingr.id===265&&!bottle.ext&&!d.instant&&(bottle.lvl||1)<2)return Object.assign({},bottle,{ext:true});
     if(ingr.id===314&&(bottle.lvl||1)<2&&d.strong)return Object.assign({},bottle,{lvl:2,ext:false});
     if(ingr.id===285&&b.potion)return Object.assign({},bottle,{id:SPLASH_IDS[kind]})}
@@ -4979,7 +4981,7 @@ Object.assign(Mob.prototype,{
   updateWarden(dt,p,dist,dist3){if(this.emergeT>0){this.emergeT-=dt;this.moveDir=null;this.vx=this.vz=0;if(Math.random()<dt*20)spawnParticles('block',this.x+(Math.random()-0.5)*2,this.y+0.2,this.z+(Math.random()-0.5)*2,1,118);return true}
     if(this.boomCd>0)this.boomCd-=dt;if(this.atkCd>0)this.atkCd-=dt;if(this.hurtT>0)this.hurtT-=dt;if(this.invT>0)this.invT-=dt;
     const moving=!p.dead&&((Math.hypot(p.vx,p.vz)>1.2&&!p.sneaking)||p.swing<0.4||p.breakProgress>0||(this.lastHit>game.time-2));
-    if(dist<20&&moving){this.lastVib=game.time;this.vib=[p.x,p.z]}
+    if(dist<20&&moving&&!playerHidden()){this.lastVib=game.time;this.vib=[p.x,p.z]}
     if(dist<2.6&&!p.dead){this.lastVib=game.time;this.vib=[p.x,p.z]}
     const hunting=this.vib&&game.time-this.lastVib<14;game.wardenNear=Math.max(game.wardenNear||0,Math.max(0,1-dist/26));
     if(hunting){const dx=this.vib[0]-this.x,dz=this.vib[1]-this.z;const dd=Math.hypot(dx,dz);this.yaw=Math.atan2(-dx,-dz);this.moveDir=dd>1.2?[dx/dd,dz/dd]:null;this.wanderT=1;
@@ -4990,12 +4992,12 @@ Object.assign(Mob.prototype,{
     return false},
   // Cartoon Cat: hunts from far away, limbs stretch as it runs, lashes out from four blocks with a roar and a shower of black-and-white sticks
   updateCartoonCat(dt,p,dist,dist3){const hs=sqrt(this.vx*this.vx+this.vz*this.vz);this.stretch+=(Math.min(1,hs/4)-this.stretch)*Math.min(1,dt*6);
-    if(dist<4.6&&abs((p.y+1)-(this.y+2))<4&&this.atkCd<=0&&!p.dead&&!blockedLOS(this.x,this.y+3,this.z,p.x,p.y+1,p.z)){this.atkCd=1.7;damageEntity(p,12,{type:'mob',mob:this,x:this.x,y:this.y,z:this.z,kb:13});playSound('roar',1,0.9+Math.random()*0.3);
+    if(dist<4.6&&abs((p.y+1)-(this.y+2))<4&&this.atkCd<=0&&!p.dead&&!playerHidden()&&!blockedLOS(this.x,this.y+3,this.z,p.x,p.y+1,p.z)){this.atkCd=1.7;damageEntity(p,12,{type:'mob',mob:this,x:this.x,y:this.y,z:this.z,kb:13});playSound('roar',1,0.9+Math.random()*0.3);
       for(let i=0;i<10;i++){const t=i/10;spawnParticles(i%2?'bolt':'smoke',this.x+(p.x-this.x)*t,this.y+3+((p.y+1)-(this.y+3))*t,this.z+(p.z-this.z)*t,1)}}
     if(dist<28&&game.time-this.lastRoar>9+Math.random()*10){this.lastRoar=game.time;playSoundAt('cattune',this.x,this.y,this.z,1,0.8+Math.random()*0.4)}},
   // The Stalker: stands still while you look at it, closes in when you look away, vanishes if stared at, strikes from behind then relocates
   updateStalker(dt,p,dist,dist3){const d=eyeDir();const vx=this.x-p.x,vy=(this.y+1.6)-(p.y+p.eyeHeight),vz=this.z-p.z;const L=sqrt(vx*vx+vy*vy+vz*vz)||1;const dot=(vx*d[0]+vy*d[1]+vz*d[2])/L;
-    const seen=dot>0.92&&dist<48&&!p.dead;this.watchT=seen?(this.watchT||0)+dt:0;this.frozen=seen;
+    const seen=dot>0.92&&dist<48&&!p.dead&&!playerHidden();this.watchT=seen?(this.watchT||0)+dt:0;this.frozen=seen;
     if(seen){this.moveDir=null;this.vx*=0.1;this.vz*=0.1;this.headYaw=0;this.yaw=Math.atan2(-vx,-vz)}
     if(seen&&this.watchT>1.7){this.watchT=0;this.vanishes=(this.vanishes||0)+1;spawnParticles('smoke',this.x,this.y+1.3,this.z,18);playSound('whisper',0.9,0.6);if(this.vanishes>=4){this.dead=true;return true}this.relocate(p,d);return true}
     if(!seen&&dist3<2.6&&this.atkCd<=0&&!blockedLOS(this.x,this.y+2,this.z,p.x,p.y+1,p.z)){this.atkCd=3;damageEntity(p,7,{type:'mob',mob:this,x:this.x,y:this.y,z:this.z,kb:8});playSound('scream',1,0.85+Math.random()*0.3);const f=$('dmgflash');f.style.background='rgba(0,0,0,.9)';setTimeout(()=>f.style.background='rgba(255,0,0,0)',300);spawnParticles('smoke',this.x,this.y+1.3,this.z,14);this.relocate(p,d);return true}
