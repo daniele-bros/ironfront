@@ -3992,15 +3992,19 @@ function pickHostile(c,x,y,z){ // biome / depth aware hostile mob choice (roughl
   if(w<0.91)return 'spider';
   if(w<0.98)return 'enderman';
   return 'witch'}
+// every spot in a column where a mob could stand: opaque floor, two air blocks above (bedrock never counts)
+function spawnSpotsIn(x,z){const out=[];let below=world.getBlock(x,1,z),here=world.getBlock(x,2,z);for(let y=2;y<CH-2;y++){const above=world.getBlock(x,y+1,z);if(here===0&&above===0&&below!==0&&below!==7&&BLOCKS[below].opaque)out.push(y);below=here;here=above}return out}
 function trySpawnMobs(){
   if(!player||player.dead)return;const p=player;let hostile=0,passive=0;for(const e of entities){if(!(e instanceof Mob)||e.dead)continue;const dx=e.x-p.x,dz=e.z-p.z;if(dx*dx+dz*dz>128*128)continue;if(e.def.passive||e.def.animal)passive++;else hostile++}
   const day=R.day;
   const night=day<0.35;const horror=!!(game.mods&&game.mods.horror);for(let attempt=0;attempt<(night?32:16)*(horror?2:1);attempt++){
     const cx=(floor(p.x)>>4)+floor(Math.random()*13)-6,cz=(floor(p.z)>>4)+floor(Math.random()*13)-6;const c=world.getChunk(cx,cz);if(!c||!c.generated)continue;
-    const x=cx*16+floor(Math.random()*16),z=cz*16+floor(Math.random()*16),y=1+floor(Math.random()*(CH-2));
-    const below=world.getBlock(x,y-1,z);if(!BLOCKS[below].opaque||below===7)continue;if(world.getBlock(x,y,z)!==0||world.getBlock(x,y+1,z)!==0)continue;
-    const dx=x-p.x,dz=z-p.z,dy=y-p.y;const d2=dx*dx+dy*dy+dz*dz;if(d2<20*20)continue;
-    const sk=world.getSky(x,y,z),bl=world.getLight(x,y,z);const effSky=sk*clamp((day-0.25)/0.5,0,1); // at night the sky gives no protection: any unlit spot can spawn
+    const x=cx*16+floor(Math.random()*16),z=cz*16+floor(Math.random()*16);const dayF=clamp((day-0.25)/0.5,0,1);
+    let spots=spawnSpotsIn(x,z);if(!spots.length)continue;
+    if(!world.sift&&!world.nether&&!world.end)spots=spots.filter(y=>world.getLight(x,y,z)<=3&&world.getSky(x,y,z)*dayF<1); // overworld hostiles want the dark: unlit caves and rooms by day, anywhere unlit at night
+    if(!spots.length)continue;const y=spots[floor(Math.random()*spots.length)];
+    const dx=x-p.x,dz=z-p.z,dy=y-p.y;const d2=dx*dx+dy*dy+dz*dz;if(d2<18*18)continue;
+    const sk=world.getSky(x,y,z),bl=world.getLight(x,y,z);const effSky=sk*dayF; // at night the sky gives no protection: any unlit spot can spawn
     if(world.sift){const g=world.getBlock(x,y-1,z);const inf=world.siftInfo(x,z);const cave=world.getSky(x,y,z)===0&&y<inf.height-4;
       const place=(type,n,tall)=>{for(let i=0;i<n;i++){const ox=x+floor(Math.random()*5)-2,oz=z+floor(Math.random()*5)-2;const b0=world.getBlock(ox,y,oz);if((b0!==0&&b0!==129)||world.getBlock(ox,y+1,oz)!==0||(tall&&world.getBlock(ox,y+2,oz)!==0)||!BLOCKS[world.getBlock(ox,y-1,oz)].opaque)continue;const m=new Mob(type,ox+0.5,y,oz+0.5);if(boxesOverlapEntity(m.x-m.w/2,m.y,m.z-m.w/2,m.x+m.w/2,m.y+m.h,m.z+m.w/2))continue;entities.push(m);if(MOBDEF[type].passive)passive++;else hostile++}};
       if(g===127&&!cave&&passive<12&&Math.random()<0.3)place(Math.random()<0.6?'hopling':'sprig',2+floor(Math.random()*3),false);
