@@ -2546,17 +2546,21 @@ function updatePlayer(dt){
   const ladder=onLadder(p);
   if(p.flying&&!creative)p.flying=false;
   // sneaking
-  if(wantSneak&&!p.flying&&!p.riding){if(!p.sneaking){p.sneaking=true;p.h=1.5;p.eyeHeight=1.27}}else if(p.sneaking){// stand up if room
+  {const altHeld=!guiOpen&&(keys.AltLeft||keys.AltRight);const wantSwim=altHeld&&inWater&&!p.flying&&!p.riding&&!p.dead;
+    if(wantSwim){if(!p.swimming){p.swimming=true;if(p.sneaking){p.sneaking=false}p.h=0.6;p.eyeHeight=0.42;playSound('splash',0.5,1.1)}}
+    else if(p.swimming){const w=p.w/2;const blocked=collectBoxes(p.x-w,p.y+0.6,p.z-w,p.x+w,p.y+1.8,p.z+w).some(b=>b[0]<p.x+w&&b[3]>p.x-w&&b[2]<p.z+w&&b[5]>p.z-w&&b[1]<p.y+1.8&&b[4]>p.y+0.6);
+      if(!blocked||p.flying||p.riding){p.swimming=false;p.h=1.8;p.eyeHeight=1.62}}}
+  if(wantSneak&&!p.flying&&!p.riding&&!p.swimming){if(!p.sneaking){p.sneaking=true;p.h=1.5;p.eyeHeight=1.27}}else if(p.sneaking){// stand up if room
     const w=p.w/2;if(collectBoxes(p.x-w,p.y+1.5,p.z-w,p.x+w,p.y+1.8,p.z+w).some(b=>b[0]<p.x+w&&b[3]>p.x-w&&b[2]<p.z+w&&b[5]>p.z-w&&b[1]<p.y+1.8&&b[4]>p.y+1.5)){}else{p.sneaking=false;p.h=1.8;p.eyeHeight=1.62}}
   // sprinting
   const canSprint=fwd>0&&(p.hunger>6||creative)&&!p.sneaking&&!guiOpen;
   if(canSprint&&(keys.ControlLeft||p.sprintReq))p.sprinting=true;if(!canSprint||(p.collidedH&&!p.flying&&fwd>0&&p.onGround&&false))p.sprinting=false;if(!canSprint)p.sprintReq=false;
   let speed=creative&&p.flying?10.8:p.sneaking?1.295*(1+0.5*enchLevel(p.armor[2],'swift_sneak')):p.sprinting?5.612:4.317;if(p.flying&&p.sprinting)speed*=2;
   if(p.effects.slow)speed*=0.7;if(p.beaconT>0)speed*=1.25;if(!p.flying&&BLOCKS[world.getBlock(floor(p.x),floor(p.y-0.05),floor(p.z))].slow){const ss=enchLevel(p.armor[3],'soul_speed');speed*=ss?1.3+0.15*ss:0.4}
-  const inFluid=(inWater||inLava)&&!p.flying;if(inFluid){speed*=inLava?0.35:0.55;if(inWater)speed*=1+enchLevel(p.armor[3],'depth_strider')/3}
+  const inFluid=(inWater||inLava)&&!p.flying;const fastSwim=p.swimming&&inWater&&(p.hunger>6||creative);if(inFluid){speed*=inLava?0.35:fastSwim?1.3:0.55;if(inWater)speed*=1+enchLevel(p.armor[3],'depth_strider')/3}else if(p.swimming)speed=Math.min(speed,1.3);
   if(!creative&&p.onGround&&!p.flying){const fw=enchLevel(p.armor[3],'frost_walker');if(fw){const r=fw+1;const by=floor(p.y)-1;for(let dx=-r;dx<=r;dx++)for(let dz=-r;dz<=r;dz++){const bx=floor(p.x)+dx,bz=floor(p.z)+dz;if(dx*dx+dz*dz>r*r)continue;if(world.getBlock(bx,by,bz)===8&&world.getMeta(bx,by,bz)===0&&world.getBlock(bx,by+1,bz)===0)world.setBlock(bx,by,bz,41,0,{silent:true})}}}
   const sy=Math.sin(p.yaw),cy=Math.cos(p.yaw);let mx=(-sy*fwd+cy*strafe),mz=(-cy*fwd-sy*strafe);const ml=sqrt(mx*mx+mz*mz);if(ml>1){mx/=ml;mz/=ml}
-  const tx=mx*speed,tz=mz*speed;
+  const swimC=p.swimming&&inWater&&fwd>0?Math.max(0.15,Math.cos(p.pitch)):1;const tx=mx*speed*swimC,tz=mz*speed*swimC;
   // ---- flying ----
   if(p.riding){p.wasInWater=inWater}
   else if(p.flying){p.vx+=(tx-p.vx)*Math.min(1,dt*8);p.vz+=(tz-p.vz)*Math.min(1,dt*8);let ty=0;if(jumpKey()&&!guiOpen)ty=speed*0.8;if((keys.ShiftLeft||keys.ShiftRight)&&!guiOpen)ty=-speed*0.8;p.vy+=(ty-p.vy)*Math.min(1,dt*8);
@@ -2565,7 +2569,7 @@ function updatePlayer(dt){
     // horizontal
     const acc=p.onGround?(BLOCKS[world.getBlock(floor(p.x),floor(p.y-0.1),floor(p.z))].slippery?1.5:14):inFluid?4:2.5;if(!p.gliding){p.vx+=(tx-p.vx)*Math.min(1,acc*dt);p.vz+=(tz-p.vz)*Math.min(1,acc*dt)}
     const jumpHeld=jumpKey()&&!guiOpen;
-    if(inFluid){p.vy-=(inLava?12:8)*dt;p.vy*=Math.pow(0.8,dt*20);if(jumpHeld){p.vy+=40*dt;if(p.vy>3.5)p.vy=3.5;
+    if(inFluid){if(p.swimming&&inWater&&fwd>0&&!jumpHeld){const ty=Math.sin(p.pitch)*speed;p.vy+=(ty-p.vy)*Math.min(1,dt*7)}else{p.vy-=(inLava?12:8)*dt;p.vy*=Math.pow(0.8,dt*20)}if(jumpHeld){p.vy+=40*dt;if(p.vy>3.5)p.vy=3.5;
         // jump out of water at surface
         const above=world.getBlock(floor(p.x),floor(p.y+p.h*0.6)+1,floor(p.z));if(!headWater&&above===0&&p.collidedH)p.vy=6}
       p.fallDist=0;if(inWater)p.exh+=0.01*sqrt(p.vx*p.vx+p.vz*p.vz)*dt}
@@ -4213,7 +4217,7 @@ function setupInput(){
   document.addEventListener('wheel',ev=>{if(game.state!=='playing'||game.gui||game.paused)return;player.sel=(player.sel+(ev.deltaY>0?1:-1)+9)%9;updateHotbar()},{passive:true});
   document.addEventListener('keydown',ev=>{
     if(ev.target&&ev.target.tagName==='INPUT'&&ev.code!=='Escape'){return}
-    if((ev.code.startsWith('Arrow')||ev.code==='PageUp'||ev.code==='PageDown')&&game.state==='playing')ev.preventDefault();if(ev.repeat)return;keys[ev.code]=true;
+    if((ev.code.startsWith('Arrow')||ev.code==='PageUp'||ev.code==='PageDown'||ev.code==='AltLeft'||ev.code==='AltRight')&&game.state==='playing')ev.preventDefault();if(ev.repeat)return;keys[ev.code]=true;
     if(game.state!=='playing'){return}
     if(ev.code==='Escape'){if(game.gui)closeGui();else if(game.paused)resumeGame();else pauseGame();ev.preventDefault();return}
     if(game.paused)return;
