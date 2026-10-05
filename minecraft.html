@@ -391,6 +391,8 @@ label.lb{font-size:13px;color:#a0a0a0;align-self:flex-start;margin-left:calc(50%
   <button class="btn" id="btnSmooth">Smooth Lighting: ON</button>
   <button class="btn" id="btnClouds">Clouds: ON</button>
   <button class="btn" id="btnKeepInv">Keep Inventory on Death: ON</button>
+  <button class="btn" id="btnHearts">Health Display: Bar</button>
+  <div class="hint" style="color:#aaa;width:440px;margin:0 0 4px">Minecraft Hearts shows your health as pixel hearts: red, hardcore, poisoned, withered, frozen and gold absorption hearts, with a flash when you are hit and your horse's hearts while riding. It is your own setting and works in every world, even ones you join.</div>
   <button class="btn" id="btnOptionsBack" style="margin-top:14px">Done</button>
 </div>
 
@@ -3711,11 +3713,11 @@ function renderMountHearts(el,m){const S=2;let cv=el.firstChild;if(!cv||cv.tagNa
   const x=cv.getContext('2d');x.clearRect(0,0,cv.width,cv.height);const hp=Math.ceil(m.hp),mx=Math.min(40,Math.ceil(m.maxHp||20));drawHeartRow(cv,Math.min(hp,20),Math.min(mx,20),'mount',9*S+S,false);if(mx>20)drawHeartRow(cv,Math.max(0,hp-20),mx-20,'mount',0,false)}
 function updateHUD(){syncMobileControls();const p=player;const creative=p.mode==='creative';{const dr=entities.find(e=>(e instanceof Dragon||e instanceof Wither)&&!e.dead);$('bossbar').style.display=dr?'block':'none';if(dr){$('bossfill').style.width=Math.max(0,dr.hp/dr.maxHp*100)+'%';$('bossname').textContent=dr instanceof Wither?'Wither':'Ender Dragon'}}$('status').style.display=creative?'none':'grid';if(creative)return;
   const meter=(el,label,val,max,color)=>{const pct=Math.max(0,Math.min(100,val/max*100));el.innerHTML='<div class="meter"><span>'+label+'</span><i><b style="width:'+pct+'%;background:'+color+'"></b></i><em>'+Math.ceil(val)+'</em></div>'};
-  if(game.mods.hearts)renderHearts($('hearts'),p);else meter($('hearts'),'HEALTH'+((p.absorb||0)>0?' +'+Math.ceil(p.absorb):''),p.hp,20,'linear-gradient(90deg,#9d2f2f,#ef6653)');
-  if(game.mods.hearts&&p.riding&&p.riding instanceof Mob&&p.riding.hp!==undefined)renderMountHearts($('food'),p.riding);else meter($('food'),'ENERGY',p.hunger,20,'linear-gradient(90deg,#a76f27,#efbd51)');const ap=armorPoints();if(ap>0)meter($('armor'),'ARMOR',ap,20,'linear-gradient(90deg,#456473,#98b7c4)');else $('armor').innerHTML='';
+  const heartsOn=game.mods.hearts||opts.hearts;if(heartsOn)renderHearts($('hearts'),p);else meter($('hearts'),'HEALTH'+((p.absorb||0)>0?' +'+Math.ceil(p.absorb):''),p.hp,20,'linear-gradient(90deg,#9d2f2f,#ef6653)');
+  if(heartsOn&&p.riding&&p.riding instanceof Mob&&p.riding.hp!==undefined)renderMountHearts($('food'),p.riding);else meter($('food'),'ENERGY',p.hunger,20,'linear-gradient(90deg,#a76f27,#efbd51)');const ap=armorPoints();if(ap>0)meter($('armor'),'ARMOR',ap,20,'linear-gradient(90deg,#456473,#98b7c4)');else $('armor').innerHTML='';
   const headWater=world.getBlock(floor(p.x),floor(p.y+p.eyeHeight),floor(p.z))===8;if(headWater)meter($('air'),'AIR',p.air,300,'linear-gradient(90deg,#2776a7,#67d7ef)');else $('air').innerHTML='';
   $('xpfill').style.width=(p.xp/xpToNext(p.level)*100)+'%';$('xplvl').textContent=p.level>0?p.level:'';
-  $('hearts').style.animation=p.hp<=4?(game.mods.hearts?'heartshiver .12s infinite alternate':'sp .3s infinite alternate'):'';$('hearts').style.transform='';
+  $('hearts').style.animation=p.hp<=4?(heartsOn?'heartshiver .12s infinite alternate':'sp .3s infinite alternate'):'';$('hearts').style.transform='';
   $('fireov').style.display=p.fireT>0?'block':'none';$('waterov').style.display=headWater?'block':'none'}
 function showMessage(t){const c=$('chat');const el=document.createElement('div');el.className='msg';el.textContent=t;c.appendChild(el);while(c.children.length>6)c.removeChild(c.firstChild);setTimeout(()=>el.remove(),8000)}
 
@@ -3917,7 +3919,7 @@ function updateMusic(dt){if(!AU.ctx||opts.music===0)return;AU.musicT-=dt;if(AU.m
   const n=1+floor(Math.random()*3);for(let i=0;i<n;i++){const o=c.createOscillator();o.type='sine';o.frequency.value=scale[floor(Math.random()*scale.length)]*(Math.random()<0.3?0.5:1);const g=c.createGain();g.gain.setValueAtTime(0,t+i*0.6);g.gain.linearRampToValueAtTime(0.6,t+i*0.6+0.4);g.gain.exponentialRampToValueAtTime(0.001,t+i*0.6+4);o.connect(g);g.connect(AU.music);o.start(t+i*0.6);o.stop(t+i*0.6+4.2)}}
 /* ===================== GAME ===================== */
 const game={dims:{over:null,nether:null,end:null,sift:null},state:'title',paused:false,gui:null,time:0,tick:0,difficulty:2,worldId:null,worldName:'',worldSpawn:[0.5,70,0.5],seed:0,lastSave:0,fps:0,frames:0,fpsT:0,tickAcc:0,spawnT:0};
-const opts=Object.assign({renderDist:8,fov:70,sens:100,brightness:50,volume:100,music:50,smooth:true,clouds:true,keepInv:true},JSON.parse(localStorage.getItem('ic_opts')||'{}'));
+const opts=Object.assign({renderDist:8,fov:70,sens:100,brightness:50,volume:100,music:50,smooth:true,clouds:true,keepInv:true,hearts:false},JSON.parse(localStorage.getItem('ic_opts')||'{}'));
 if(!localStorage.getItem('ic_opts')&&matchMedia('(pointer:coarse)').matches)opts.renderDist=5; // tablets and phones start lighter
 let world=null;
 function saveOpts(){localStorage.setItem('ic_opts',JSON.stringify(opts))}
@@ -4177,6 +4179,7 @@ function setupMenus(){
   sl('optVol','volume',v=>'Master Volume: '+(v===0?'OFF':v+'%'),setVolume);sl('optMusic','music',v=>'Music: '+(v===0?'OFF':v+'%'),setVolume);
   $('btnSmooth').onclick=()=>{opts.smooth=!opts.smooth;$('btnSmooth').textContent='Smooth Lighting: '+(opts.smooth?'ON':'OFF');if(world)for(const c of world.chunks.values())c.dirty=true};$('btnSmooth').textContent='Smooth Lighting: '+(opts.smooth?'ON':'OFF');
   $('btnKeepInv').onclick=()=>{opts.keepInv=!opts.keepInv;$('btnKeepInv').textContent='Keep Inventory on Death: '+(opts.keepInv?'ON':'OFF');saveOpts()};$('btnKeepInv').textContent='Keep Inventory on Death: '+(opts.keepInv?'ON':'OFF');
+  const heartsLabel=()=>$('btnHearts').textContent='Health Display: '+(opts.hearts?'Minecraft Hearts':'Bar');$('btnHearts').onclick=()=>{opts.hearts=!opts.hearts;heartsLabel();saveOpts();if(game.state==='playing')updateHUD()};heartsLabel();
   $('btnClouds').onclick=()=>{opts.clouds=!opts.clouds;$('btnClouds').textContent='Clouds: '+(opts.clouds?'ON':'OFF')};$('btnClouds').textContent='Clouds: '+(opts.clouds?'ON':'OFF');
 }
 // Space or either Ctrl jumps (Ctrl also sprints, so holding it while running sprint-jumps)
