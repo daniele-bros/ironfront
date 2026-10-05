@@ -2240,6 +2240,7 @@ class Mob extends Entity{
     // burning
     if(this.fireT>0){this.fireT-=dt;if(Math.random()<dt*8)spawnParticles('fire',this.x+(Math.random()-0.5)*this.w,this.y+Math.random()*this.h,this.z+(Math.random()-0.5)*this.w,1);this.fireDmgT=(this.fireDmgT||0)+dt;if(this.fireDmgT>=1){this.fireDmgT=0;damageEntity(this,this.sunBurnT&&game.time-this.sunBurnT<1?2:1,{type:'fire'})}if(this.inWater)this.fireT=0}
     if(!this.def.fireproof&&entityInBlock(this,id=>id===81)){this.fireT=Math.max(this.fireT,8)}
+    if(this.inLava&&!this.def.fireproof){this.fireT=Math.max(this.fireT,15);this.lavaDmgT=(this.lavaDmgT||0)-dt;if(this.lavaDmgT<=0){this.lavaDmgT=0.5;damageEntity(this,4,{type:'lava'});if(Math.random()<0.5)spawnParticles('smoke',this.x,this.y+this.h,this.z,2)}}else this.lavaDmgT=0; // lava burns every mob that is not fireproof: 4 damage twice a second, like Minecraft
     if(this.def.undead&&!this.def.noBurn&&!this.inWater&&!(game.mods&&game.mods.horror)){const sk=world.getSky(floor(this.x),floor(this.y+this.h),floor(this.z));if(sk>=15&&R.day>0.75&&skyColors(world.time/24000).sunH>0.25){if(this.fireT<2)this.fireT=8;this.sunBurnT=game.time}}
     // ambient sound
     this.soundT-=dt;if(this.soundT<=0){const passive=this.def.passive;this.soundT=passive?20+Math.random()*40:8+Math.random()*20;
