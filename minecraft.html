@@ -35,6 +35,7 @@ canvas#gl{position:absolute;inset:0;width:100%;height:100%;display:block;image-r
 #crosshair:before,#crosshair:after{content:"";position:absolute;background:#ddd;}
 #crosshair:before{left:8px;top:0;width:2px;height:18px;}
 #crosshair:after{top:8px;left:0;width:18px;height:2px;}
+#offhandBox{position:absolute;bottom:6px;left:calc(50% - 292px);background:rgba(5,10,13,.76);border:1px solid #d39a33;border-radius:7px;padding:4px;pointer-events:auto}
 #hotbar{position:absolute;bottom:6px;left:50%;transform:translateX(-50%);display:flex;gap:3px;background:rgba(5,10,13,.76);border:1px solid #d39a33;border-radius:7px;padding:4px;box-shadow:0 4px 20px rgba(0,0,0,.45);}
 .hslot{width:44px;height:44px;border:1px solid #66747a;border-radius:4px;position:relative;background:rgba(38,53,61,.68);}
 .hslot.sel{border:2px solid #f0b94e;outline:1px solid #8a3025;z-index:2;background:rgba(98,70,28,.68);}
@@ -214,6 +215,7 @@ label.lb{font-size:13px;color:#a0a0a0;align-self:flex-start;margin-left:calc(50%
   <input id="cmd" placeholder="/help" autocomplete="off" spellcheck="false">
   <div id="itemname" class="sh"></div>
   <div id="status"><div id="armor"></div><div id="hearts"></div><div id="food"></div><div id="air"></div><div id="xpbar"><div id="xpfill"></div></div><div id="xplvl"></div></div>
+  <div id="offhandBox" title="Off-hand (F swaps)"></div>
   <div id="hotbar"></div>
   <div id="mobileControls" aria-label="Touch game controls">
     <div id="mobileLook" aria-label="Drag to look"></div>
@@ -232,7 +234,7 @@ label.lb{font-size:13px;color:#a0a0a0;align-self:flex-start;margin-left:calc(50%
 <button id="guiClose" type="button" aria-label="Close">✕</button>
 <div id="invGui" class="gui"><div class="panel">
   <div class="row" id="invTop" style="align-items:flex-start;gap:14px">
-    <div class="row" id="armorBox" style="align-items:flex-start;gap:14px"><div><h3 id="armorLabel">Armor</h3><div class="grid" id="armorGrid" style="grid-template-columns:38px"></div></div>
+    <div class="row" id="armorBox" style="align-items:flex-start;gap:14px"><div><h3 id="armorLabel">Armor</h3><div class="grid" id="armorGrid" style="grid-template-columns:38px"></div><h3 style="margin-top:6px">Off-hand</h3><div class="grid" id="offGrid" style="grid-template-columns:38px" title="Press F to swap hands"></div></div>
     <div style="width:110px;height:154px;background:#000;border:2px solid #333;display:flex;align-items:flex-end;justify-content:center;" id="playerPreview"></div></div>
     <div><h3>Crafting</h3><div class="row"><div class="grid g2" id="craft2"></div><div class="arrow"></div><div class="grid" id="craft2out" style="grid-template-columns:52px"></div></div></div>
   </div>
@@ -1905,6 +1907,11 @@ function drawHand(dt){const gl=R.gl;const p=player;const st=p.inv[p.sel];const i
   const sw=p.swing;const swingY=-Math.sin(sw*PI)*0.35,swingR=-Math.sin(sw*PI)*0.9;const bob=Math.sin(p.walkT*2)*0.015*p.walkAmp;const eat=p.eating?Math.sin(game.time*25)*0.03:0;
   const useT=p.bowCharge>0?Math.min(1,p.bowCharge)*0.25:0;
   gl.clear(gl.DEPTH_BUFFER_BIT);gl.enable(gl.BLEND);
+  const flat=(iid,tf,size)=>{const tile=ITEMTILE[iid];if(tile===undefined)return;EBI.clear();const uv=[[(tile%32)/32,floor(tile/32)/32],[(tile%32+1)/32,floor(tile/32)/32],[(tile%32+1)/32,(floor(tile/32)+1)/32],[(tile%32)/32,(floor(tile/32)+1)/32]];const P=[tf(-size/2,size/2,0),tf(size/2,size/2,0),tf(size/2,-size/2,0),tf(-size/2,-size/2,0)];EBI.quad(P,uv,[l[0],l[1],1],[1,1,1]);EBI.quad([P[3],P[2],P[1],P[0]],[uv[3],uv[2],uv[1],uv[0]],[l[0],l[1],1],[1,1,1]);gl.disable(gl.CULL_FACE);EBI.draw(R.progE,R.itemTex,{vp:proj,fogStart:100,fogEnd:200});gl.enable(gl.CULL_FACE)};
+  const blk=p.blocking?1:0;p.blockAnim=(p.blockAnim||0)+(blk-(p.blockAnim||0))*Math.min(1,dt*10);const ba=p.blockAnim;
+  // off-hand item on the left; a shield is big, and swings up to cover the view while blocking
+  {const os=p.off[0];if(os){const od=ITEMS[os.id];if(od.shield){const tf=makeTF(-0.62+ba*0.32+bob,-0.55+ba*0.3+bob,-0.85+ba*0.1,-0.25-ba*0.1,0.55-ba*0.35,0.25-ba*0.2,0,0,0,1);flat(os.id,tf,1.1)}else{const tf=makeTF(-0.6+bob,-0.5+bob,-0.9,-0.35,-0.5,-0.4,0,0,0,1);flat(os.id,tf,0.5)}}}
+  if(st&&def.shield){const tf=makeTF(0.62-ba*0.32+bob,-0.55+ba*0.3+swingY*0.3+bob,-0.85+ba*0.1,-0.25-ba*0.1,-0.55+ba*0.35,-0.25+ba*0.2,0,0,0,1);flat(id,tf,1.1);return}
   if(!st){EB.clear();const tf=makeTF(0.75+bob,-0.7+swingY+bob,-0.85,-0.55+swingR*0.5,swingR*0.6+0.9,0.35,0,0,0,1);EB.box(tf,-0.11,-0.6,-0.11,0.11,0.2,0.11,TEX.steve_arm,[1,1,1],l,true);EB.draw(R.progE,R.atlasTex,{vp:proj,fogStart:100,fogEnd:200});return}
   if(def.isBlock&&(def.model==='cube'||def.model==='slab'||def.model==='stairs'||def.model==='chest'||def.model==='fence'||def.model==='cactus'||def.model==='snow'||def.model==='farmland'||def.model==='liquid')){
     EB.clear();const tf=makeTF(0.55+bob,-0.62+swingY+bob-eat,-0.9,-0.6+swingR*0.4,swingR*0.4,0,0.5,0.5,0.5,0.4);
@@ -2533,8 +2540,8 @@ function damageEntity(e,amount,src){if(e===player&&src&&src.type&&customArmorPer
   if(e.dead||e.dying)return false;if(e.invT>0&&amount<=e.lastDmg)return false;src=src||{};
   if(e instanceof RemotePlayer){if(!pvpOn()||e.hidden)return false;e.invT=0.5;e.lastDmg=amount;e.hurtT=0.5;mpSend({t:'hit',to:e.pid,by:MP.myId,from:MP.name,amount,type:src.type||'player',x:src.x,y:src.y,z:src.z,kb:src.kb||4});playSoundAt('hurt',e.x,e.y,e.z,0.8);return true}
   if(e===player){if(player.mode==='creative')return false;
-    if(player.blocking&&(src.type==='mob'||src.type==='arrow'||src.type==='bullet'||src.type==='explosion'||src.type==='pvp'||src.type==='sonic')){const sh=heldStack();let front=true;if(src.x!==undefined){const d=eyeDir();const dx=src.x-player.x,dz=src.z-player.z;const l=Math.hypot(dx,dz)||1;front=(dx/l*d[0]+dz/l*d[2])>-0.2}
-      if(front&&sh&&ITEMS[sh.id].shield){damageItem(sh,Math.max(1,Math.ceil(amount)));playSound('place_wood',1,1.6);spawnParticles('crit',player.x,player.y+1.2,player.z,4);if(src.x!==undefined&&!player.riding){const kx=player.x-src.x,kz=player.z-src.z;const kd=Math.hypot(kx,kz)||1;player.vx+=kx/kd*1.5;player.vz+=kz/kd*1.5}return false}}
+    if(player.blocking&&(src.type==='mob'||src.type==='arrow'||src.type==='bullet'||src.type==='explosion'||src.type==='pvp'||src.type==='sonic')){const sh=shieldInHands();let front=true;if(src.x!==undefined){const d=eyeDir();const dx=src.x-player.x,dz=src.z-player.z;const l=Math.hypot(dx,dz)||1;front=(dx/l*d[0]+dz/l*d[2])>-0.2}
+      if(front&&sh){damageItem(sh,Math.max(1,Math.ceil(amount)));playSound('place_wood',1,1.6);spawnParticles('crit',player.x,player.y+1.2,player.z,4);if(src.x!==undefined&&!player.riding){const kx=player.x-src.x,kz=player.z-src.z;const kd=Math.hypot(kx,kz)||1;player.vx+=kx/kd*1.5;player.vz+=kz/kd*1.5}return false}}
     if(src.type==='mob'||src.type==='arrow'||src.type==='explosion'||src.type==='pvp'){const ap=armorPoints();amount*=1-Math.min(20,ap)*0.04;damageArmor(Math.max(1,floor(amount/4)))}else if(src.type==='fire'||src.type==='lava'){const ap=armorPoints();amount*=1-Math.min(20,ap)*0.02}
     { // enchantment protection factor
       let epf=0,th=0;for(const s of player.armor){if(!s||!s.ench)continue;epf+=s.ench.protection||0;th+=s.ench.thorns||0;if(src.type==='fire'||src.type==='lava')epf+=2*(s.ench.fire_protection||0);if(src.type==='explosion')epf+=2*(s.ench.blast_protection||0);if(src.type==='arrow')epf+=2*(s.ench.projectile_protection||0);if(src.type==='fall')epf+=3*(s.ench.feather_falling||0)}
@@ -2547,7 +2554,7 @@ function damageEntity(e,amount,src){if(e===player&&src&&src.type&&customArmorPer
   if(e.hp<=0){e.dying=true;e.deathT=0;if(e.onDeath)e.onDeath();return true}return true;
 }
 /* ===================== PLAYER ===================== */
-const player={x:0.5,y:80,z:0.5,vx:0,vy:0,vz:0,yaw:0,pitch:0,w:0.6,h:1.8,eyeHeight:1.62,onGround:false,hp:20,maxHp:20,hunger:20,sat:5,exh:0,xp:0,level:0,xpFrac:0,air:300,inv:new Array(36).fill(null),armor:[null,null,null,null],sel:0,mode:'survival',flying:false,sneaking:false,sprinting:false,dead:false,invT:0,hurtT:0,fallDist:0,target:null,breakProgress:0,breakTarget:null,breakCooldown:0,eating:0,bowCharge:0,swing:1,walkT:0,walkAmp:0,atkCd:0,lastAtk:-10,spawn:null,fireT:0,sleeping:0,effects:{},regenT:0,starveT:0,lastSpaceT:-1,lastWT:-1,wasW:false,inWater:false,collidedH:false,lastDmg:0,solidBody:true};
+const player={x:0.5,y:80,z:0.5,vx:0,vy:0,vz:0,yaw:0,pitch:0,w:0.6,h:1.8,eyeHeight:1.62,onGround:false,hp:20,maxHp:20,hunger:20,sat:5,exh:0,xp:0,level:0,xpFrac:0,air:300,inv:new Array(36).fill(null),armor:[null,null,null,null],off:[null],sel:0,mode:'survival',flying:false,sneaking:false,sprinting:false,dead:false,invT:0,hurtT:0,fallDist:0,target:null,breakProgress:0,breakTarget:null,breakCooldown:0,eating:0,bowCharge:0,swing:1,walkT:0,walkAmp:0,atkCd:0,lastAtk:-10,spawn:null,fireT:0,sleeping:0,effects:{},regenT:0,starveT:0,lastSpaceT:-1,lastWT:-1,wasW:false,inWater:false,collidedH:false,lastDmg:0,solidBody:true};
 const keys={};let mouseL=false,mouseR=false,mouseRHeld=0;
 const FACE_TO_FACING={4:0,1:1,5:2,0:3};
 function lookFacing(){const dx=-Math.sin(player.yaw),dz=-Math.cos(player.yaw);if(abs(dx)>abs(dz))return dx>0?3:1;return dz>0?0:2}
@@ -2603,7 +2610,7 @@ function updatePlayer(dt){
   // sprinting
   const canSprint=fwd>0&&(p.hunger>6||creative)&&!p.sneaking&&!guiOpen;
   if(canSprint&&(keys.ControlLeft||p.sprintReq))p.sprinting=true;if(!canSprint||(p.collidedH&&!p.flying&&fwd>0&&p.onGround&&false))p.sprinting=false;if(!canSprint)p.sprintReq=false;
-  if(p.blocking&&!(heldStack()&&ITEMS[heldStack().id].shield))p.blocking=false;
+  if(p.blocking&&!shieldInHands())p.blocking=false;
   let speed=creative&&p.flying?10.8:p.sneaking?1.295*(1+0.5*enchLevel(p.armor[2],'swift_sneak')):p.blocking?1.6:p.sprinting?5.612:4.317;if(p.flying&&p.sprinting)speed*=2;
   if(p.effects.slow)speed*=0.7;if(p.effects.speed>0)speed*=1+0.2*effLvl('speed');if(p.beaconT>0)speed*=1.25;if(!p.flying&&BLOCKS[world.getBlock(floor(p.x),floor(p.y-0.05),floor(p.z))].slow){const ss=enchLevel(p.armor[3],'soul_speed');speed*=ss?1.3+0.15*ss:0.4}
   const inFluid=(inWater||inLava)&&!p.flying;const fastSwim=p.swimming&&inWater&&(p.hunger>6||creative);if(inFluid){speed*=inLava?0.35:fastSwim?1.3:0.55;if(inWater)speed*=1+enchLevel(p.armor[3],'depth_strider')/3}else if(p.swimming)speed=Math.min(speed,1.3);
@@ -2710,7 +2717,7 @@ function updatePlayer(dt){
     else if(hd&&hd.tool==='bow'){if(creative||hasItem(284)){p.bowCharge+=dt}}
     else if(hd&&hd.tool==='trident'){p.bowCharge+=dt}
     else if(hd&&hd.gun){fireGun(st,hd,dt)}
-    else if(hd&&hd.shield){p.blocking=true}
+    else if((hd&&hd.shield)||(shieldInHands()&&!(hd&&(hd.isBlock||hd.food||hd.potion||hd.splash||hd.plants||hd.placesLiquid||hd.spawnMob||hd.gun||hd.tool==='bow'||hd.tool==='trident')))){p.blocking=true}
     else{p.eating=0}
   } else {p.blocking=false;if(p.bowCharge>0){const hs0=heldStack();if(hs0&&ITEMS[hs0.id].tool==='trident')throwTrident();else shootBow();p.bowCharge=0}p.eating=0;p.gunHeld=false}
   if(p.gunCd>0)p.gunCd-=dt;
@@ -2956,7 +2963,7 @@ function addXP(n){const p=player;p.xp+=n;let need=xpToNext(p.level);while(p.xp>=
 function xpToNext(l){return l<16?2*l+7:l<31?5*l-38:9*l-158}
 function armorPoints(){let a=0;for(const s of player.armor)if(s)a+=ITEMS[s.id].points;return a}
 function damageArmor(n){for(const s of player.armor)if(s)damageItem(s,n)}
-function damageItem(st,n){if(player.mode==='creative')return;const ub=enchLevel(st,'unbreaking');if(ub&&Math.random()<ub/(ub+1))return;st.dur=(st.dur||0)+n;const max=ITEMS[st.id].dur;if(max&&st.dur>=max){for(let i=0;i<36;i++)if(player.inv[i]===st)player.inv[i]=null;for(let i=0;i<4;i++)if(player.armor[i]===st)player.armor[i]=null;playSound('itembreak');updateHotbar()}}
+function damageItem(st,n){if(player.mode==='creative')return;const ub=enchLevel(st,'unbreaking');if(ub&&Math.random()<ub/(ub+1))return;st.dur=(st.dur||0)+n;const max=ITEMS[st.id].dur;if(max&&st.dur>=max){for(let i=0;i<36;i++)if(player.inv[i]===st)player.inv[i]=null;for(let i=0;i<4;i++)if(player.armor[i]===st)player.armor[i]=null;if(player.off[0]===st)player.off[0]=null;playSound('itembreak');updateHotbar()}}
 function flashDamage(){const f=$('dmgflash');f.style.background='rgba(255,0,0,.35)';setTimeout(()=>f.style.background='rgba(255,0,0,0)',150)}
 /* ===================== STRUCTURES ===================== */
 const LOOT={
@@ -3733,7 +3740,7 @@ function craftTake(){const cg=currentGrid();if(!cg)return null;const r=matchReci
   updateCraftOutput();return {id:r.out[0],count:r.out[1]}}
 function returnGrid(grid){for(let i=0;i<grid.length;i++){if(grid[i]){if(addToInventory(grid[i]))spawnItem(player.x,player.y+1,player.z,grid[i]);grid[i]=null}}}
 function buildGuis(){
-  mkSlots($('armorGrid'),player.armor,0,4,'armor');mkSlots($('craft2'),craft2,0,4,'craft');mkSlots($('craft2out'),craftOut,0,1,'cout','out');mkSlots($('invMain'),player.inv,9,27);mkSlots($('invHot'),player.inv,0,9);
+  mkSlots($('armorGrid'),player.armor,0,4,'armor');mkSlots($('offGrid'),player.off,0,1,'offhand');mkSlots($('offhandBox'),player.off,0,1,'offhand');$('offhandBox').onclick=()=>{if(game.state==='playing'&&!game.gui)swapHands()};mkSlots($('craft2'),craft2,0,4,'craft');mkSlots($('craft2out'),craftOut,0,1,'cout','out');mkSlots($('invMain'),player.inv,9,27);mkSlots($('invHot'),player.inv,0,9);
   mkSlots($('craft3'),craft3,0,9,'craft');mkSlots($('craft3out'),craftOut,0,1,'cout','out');mkSlots($('tblMain'),player.inv,9,27);mkSlots($('tblHot'),player.inv,0,9);
   mkSlots($('furnMain'),player.inv,9,27);mkSlots($('furnHot'),player.inv,0,9);mkSlots($('brewMain'),player.inv,9,27);mkSlots($('brewHot'),player.inv,0,9);mkSlots($('chestMain'),player.inv,9,27);mkSlots($('chestHot'),player.inv,0,9);
   document.addEventListener('mousemove',ev=>{const c=$('cursorItem');c.style.left=(ev.clientX-16)+'px';c.style.top=(ev.clientY-16)+'px'});
@@ -3797,7 +3804,9 @@ const HUDI={};
 function buildHUD(){for(const k of ['heart','food','armor'])for(const s of ['full','half','empty'])HUDI[k+s]=hudIcon(k,s);HUDI.air=hudIcon('air');
   const hb=$('hotbar');hb.innerHTML='';for(let i=0;i<9;i++){const el=document.createElement('div');el.className='hslot';el.innerHTML='<div class="icon"></div><div class="cnt"></div><div class="dur" style="display:none"><i></i></div>';el._slot={arr:player.inv,idx:i};el.addEventListener('pointerdown',ev=>{if(game.state!=='playing'||game.gui||game.paused)return;ev.preventDefault();ev.stopPropagation();player.sel=i;updateHotbar()});hb.appendChild(el)}}
 let lastSel=-1,itemNameT=null;
-function updateHotbar(){const hb=$('hotbar').children;for(let i=0;i<9;i++){renderSlot(hb[i]);hb[i].classList.toggle('sel',i===player.sel)}
+function swapHands(){const p=player;const t=p.off[0];p.off[0]=p.inv[p.sel];p.inv[p.sel]=t;p.blocking=false;playSound('pop',0.3,1.2);updateHotbar();renderAllSlots()}
+function shieldInHands(){const p=player;const m=p.inv[p.sel];if(m&&ITEMS[m.id].shield)return m;const o=p.off[0];if(o&&ITEMS[o.id].shield)return o;return null}
+function updateHotbar(){const hb=$('hotbar').children;const ob=$('offhandBox').firstChild;if(ob)renderSlot(ob);for(let i=0;i<9;i++){renderSlot(hb[i]);hb[i].classList.toggle('sel',i===player.sel)}
   if(player.sel!==lastSel){lastSel=player.sel;const st=player.inv[player.sel];const n=$('itemname');n.textContent=st?ITEMS[st.id].label:'';n.style.opacity=1;clearTimeout(itemNameT);itemNameT=setTimeout(()=>n.style.opacity=0,1500)}}
 /* ---- Hearts mod: Minecraft-style pixel hearts ---- */
 const HEART_ROWS=['.XX...XX.','XLLX.XLLX','XLFFXFFFX','XFFFFFFFX','.XFFFFFX.','..XFFFX..','...XFX...','....X....'];
@@ -4202,9 +4211,9 @@ async function migrateOldSaves(){const db=await SaveDB.open();if(!db)return;let 
 function startWorld(meta,save){if(window.trackEvent)trackEvent('game_start',{game:'Ironcraft',multiplayer:!!(MP&&MP.active),mods:Object.keys(modsOf(meta)).filter(k=>modsOf(meta)[k]).join(',')||'none'});
   game.mods=modsOf(meta);game.baseDiff=meta.diff;game.noSave=false;game.wx=game.mods.weather?{storm:false,I:0,t:30+Math.random()*60,lt:4,flash:0,tornado:null}:null;game.hx=game.mods.horror?{amb:15,beat:0}:null;game.ax=game.mods.apocalypse?{wave:0,next:75,active:false,mobs:[],warned:{},left:0}:null;
   game.dims={over:null,nether:null,end:null,sift:null};world=new World(meta.seed);game.seed=meta.seed;game.worldId=meta.id;game.worldName=meta.name;game.difficulty=game.mods.hardcore?3:(game.mods.apocalypse?Math.max(1,meta.diff):meta.diff);game.randomDrops=game.mods.random;entities.length=0;particles.length=0;activeFurnaces.clear();
-  const p=player;p.mode=meta.mode;p.inv.fill(null);p.armor.fill(null);p.sel=0;p.hp=20;p.absorb=0;p.absorbT=0;p.coldT=0;p.frozen=false;p.koT=0;$('koov').style.opacity=0;p.effLvl={};p.swimming=false;p.hunger=20;p.sat=5;p.exh=0;p.xp=0;p.level=0;p.dead=false;p.flying=false;p.effects={};p.spawn=null;p.fireT=0;p.air=300;p.vx=p.vy=p.vz=0;p.riding=null;
+  const p=player;p.mode=meta.mode;p.inv.fill(null);p.armor.fill(null);p.off[0]=null;p.sel=0;p.hp=20;p.absorb=0;p.absorbT=0;p.coldT=0;p.frozen=false;p.koT=0;$('koov').style.opacity=0;p.effLvl={};p.swimming=false;p.hunger=20;p.sat=5;p.exh=0;p.xp=0;p.level=0;p.dead=false;p.flying=false;p.effects={};p.spawn=null;p.fireT=0;p.air=300;p.vx=p.vy=p.vz=0;p.riding=null;
   if(save){if(game.ax&&save.apoc)game.ax.wave=save.apoc.wave||0;world.time=save.time;world.day=save.day||0;game.worldSpawn=save.spawn;world.savedMods={};for(const k in save.mods)world.savedMods[k]=save.mods[k];world.savedBents=save.bents||{};world.populated=new Set(save.pop||[]);
-    const sp=save.player;if(sp.hp<=0)game.respawnOnLoad=true;Object.assign(p,{x:sp.x,y:sp.y,z:sp.z,yaw:sp.yaw,pitch:sp.pitch,hp:sp.hp,hunger:sp.hunger,sat:sp.sat,xp:sp.xp,level:sp.level,sel:sp.sel,spawn:sp.spawn,flying:sp.flying||false});for(let i=0;i<36;i++)p.inv[i]=sp.inv[i]||null;for(let i=0;i<4;i++)p.armor[i]=sp.armor[i]||null;
+    const sp=save.player;if(sp.hp<=0)game.respawnOnLoad=true;Object.assign(p,{x:sp.x,y:sp.y,z:sp.z,yaw:sp.yaw,pitch:sp.pitch,hp:sp.hp,hunger:sp.hunger,sat:sp.sat,xp:sp.xp,level:sp.level,sel:sp.sel,spawn:sp.spawn,flying:sp.flying||false});p.off[0]=sp.offhand||null;for(let i=0;i<36;i++)p.inv[i]=sp.inv[i]||null;for(let i=0;i<4;i++)p.armor[i]=sp.armor[i]||null;
     game.pendingMobs=save.mobs||[];game.pendingItems=save.items||[];
     if(save.nether){const nw=new World(meta.seed+1,true);nw.savedMods=save.nether.mods||{};nw.savedBents=save.nether.bents||{};nw.populated=new Set(save.nether.pop||[]);game.dims.nether={world:nw,ents:(save.nether.mobs||[]).filter(m=>m.type==='wither'||MOBDEF[m.type]).map(m=>{if(m.type==='wither'){const w=new Wither(m.x,m.y,m.z);w.hp=m.hp;w.state='hunt';return w}const e=new Mob(m.type,m.x,m.y,m.z);e.hp=m.hp;return e}),furn:new Map()}}
     if(save.end){const ew=new World(meta.seed+2,'end');ew.savedMods=save.end.mods||{};ew.savedBents=save.end.bents||{};ew.populated=new Set(save.end.pop||[]);ew.dragonDead=!!save.end.dragonDead;const ents=(save.end.mobs||[]).filter(m=>MOBDEF[m.type]).map(m=>{const e=new Mob(m.type,m.x,m.y,m.z);e.hp=m.hp;return e});
@@ -4239,7 +4248,7 @@ function saveWorld(){if(!world||game.state!=='playing'||game.noSave)return;const
   const overSaveWorld=world.dimKey==='over'?world:(game.dims.over?game.dims.over.world:null);
   if(overSaveWorld){for(const c of overSaveWorld.chunks.values()){const k=c.cx+','+c.cz;if(!overSaveWorld.savedMods)overSaveWorld.savedMods={};if(!overSaveWorld.savedBents)overSaveWorld.savedBents={};if(c.mods.size)overSaveWorld.savedMods[k]=Array.from(c.mods);if(c.bents.size)overSaveWorld.savedBents[k]=Array.from(c.bents)}Object.assign(mods,overSaveWorld.savedMods||{});Object.assign(bents,overSaveWorld.savedBents||{})}
   const mobs=[],items=[];const overEnts=world.dimKey==='over'?entities:(game.dims.over?game.dims.over.ents:[]);for(const e of overEnts){if(e.dead)continue;if(e instanceof Wither&&!e.dying)mobs.push({type:'wither',x:e.x,y:e.y,z:e.z,hp:e.hp});else if(e instanceof Mob&&!e.dying)mobs.push({type:e.type,x:e.x,y:e.y,z:e.z,hp:e.hp,baby:e.baby,growT:e.growT,sheared:e.sheared,woolId:e.woolId,prof:e.prof,vlevel:e.vlevel,vxp:e.vxp,uses:e.trades?e.trades.map(t=>t.uses):undefined,tamed:e.tamed||undefined,sitting:e.sitting||undefined,color:e.color,hspeed:e.hspeed,hjump:e.hjump,saddled:e.saddled||undefined,maxHp:e.type==='horse'?e.maxHp:undefined,size:e.size,demand:e.trades?e.trades.map(t=>t.demand||0):undefined,restocks:e.restocks});else if(e instanceof ItemEntity)items.push({x:e.x,y:e.y,z:e.z,id:e.stack.id,count:e.stack.count,dur:e.stack.dur,ench:e.stack.ench,items:e.stack.items})}
-  const save={v:1,apoc:game.ax?{wave:game.ax.wave}:undefined,dim:world.dimKey,nether:netherSave,end:endSave,sift:siftSave,time:world.time,day:world.day,spawn:game.worldSpawn,player:{x:p.x,y:p.y,z:p.z,yaw:p.yaw,pitch:p.pitch,hp:p.hp,hunger:p.hunger,sat:p.sat,xp:p.xp,level:p.level,sel:p.sel,inv:p.inv,armor:p.armor,spawn:p.spawn,flying:p.flying},mods,bents,mobs:mobs.slice(0,120),items:items.slice(0,100),pop:Array.from(overSaveWorld?overSaveWorld.populated:[])};
+  const save={v:1,apoc:game.ax?{wave:game.ax.wave}:undefined,dim:world.dimKey,nether:netherSave,end:endSave,sift:siftSave,time:world.time,day:world.day,spawn:game.worldSpawn,player:{x:p.x,y:p.y,z:p.z,yaw:p.yaw,pitch:p.pitch,hp:p.hp,hunger:p.hunger,sat:p.sat,xp:p.xp,level:p.level,sel:p.sel,inv:p.inv,armor:p.armor,spawn:p.spawn,flying:p.flying,offhand:p.off[0]||null},mods,bents,mobs:mobs.slice(0,120),items:items.slice(0,100),pop:Array.from(overSaveWorld?overSaveWorld.populated:[])};
   const wid=game.worldId;const packed=packSave(save);SaveDB.put('ic_world_'+wid,packed).then(ok=>{if(ok)return;let done=false;try{localStorage.setItem('ic_world_'+wid,JSON.stringify(save));done=true}catch(e){}if(!done&&game.time-saveFailT>60){saveFailT=game.time;showMessage('Save failed: the browser gave no room to save. Free space by removing old worlds from the world list.')}});
   try{const list=worldList();const m=list.find(w=>w.id===wid);if(m){m.played=Date.now();localStorage.setItem('ic_worlds',JSON.stringify(list))}}catch(e){}
   if(ridePos){p.y=ridePos[1]}game.lastSave=game.time;
@@ -4328,6 +4337,7 @@ function setupInput(){
     if((ev.code==='Slash'||ev.code==='KeyT')&&!player.dead){openCmd(ev.code==='Slash'?'/':'');ev.preventDefault();return}
     if(ev.code>='Digit1'&&ev.code<='Digit9'){player.sel=+ev.code[5]-1;updateHotbar()}
     if(ev.code==='KeyQ'){const st=player.inv[player.sel];if(st){const d=eyeDir();const drop={id:st.id,count:ev.shiftKey?st.count:1,dur:st.dur};st.count-=drop.count;if(st.count<=0)player.inv[player.sel]=null;spawnItem(player.x,player.y+player.eyeHeight-0.3,player.z,drop,[d[0]*6+player.vx,d[1]*6+1,d[2]*6+player.vz],2);player.swing=0;updateHotbar()}}
+    if(ev.code==='KeyF'&&!player.dead){swapHands();ev.preventDefault()}
     if(ev.code==='F3'){const d=$('debug');d.style.display=d.style.display==='block'?'none':'block';ev.preventDefault()}
     if(ev.code==='F5'){ev.preventDefault()}
     if(ev.code==='Space'){const t=game.time;if(player.mode==='creative'&&t-player.lastSpaceT<0.3){player.flying=!player.flying;player.vy=0;player.lastSpaceT=-1}else player.lastSpaceT=t;
