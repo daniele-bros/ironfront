@@ -29,6 +29,7 @@ canvas#gl{position:absolute;inset:0;width:100%;height:100%;display:block;image-r
 .pix{image-rendering:pixelated;image-rendering:crisp-edges;}
 .sh{text-shadow:2px 2px 0 var(--shadow);}
 #hud{position:absolute;inset:0;pointer-events:none;display:none;}
+#guideList .r{display:inline-block;width:36px;height:36px;margin:1px;background:#6f6f6f;border:2px solid;border-color:#373737 #fff #fff #373737;position:relative;cursor:pointer;line-height:normal}#guideList .r.ok{border-color:#5fd35f #1f6b1f #1f6b1f #5fd35f}#guideList .r.sel{outline:2px solid #ffd54a}#guideList .r .icon{position:absolute;left:4px;top:4px;width:28px;height:28px;background-size:contain;background-repeat:no-repeat;image-rendering:pixelated}#guideList .r .cnt{position:absolute;right:1px;bottom:0;font-size:10px;color:#fff;text-shadow:1px 1px #000;font-weight:700;line-height:1}#guideList .gsec{display:block;font-size:11px;font-weight:700;color:#222;margin:6px 2px 2px;line-height:1.2}
 #koov{position:absolute;inset:0;background:#000;opacity:0;transition:opacity 1.4s;pointer-events:none;display:flex;align-items:center;justify-content:center;color:#bbb;font:16px/1.5 'Segoe UI',Arial,sans-serif;text-align:center;text-shadow:1px 1px #000;white-space:pre}
 #effects{position:absolute;top:10px;right:12px;font:700 12px/1.5 'Segoe UI',Arial,sans-serif;color:#f4e6c4;text-shadow:1px 1px #000;text-align:right;pointer-events:none;white-space:pre}
 #crosshair{position:absolute;left:50%;top:50%;width:18px;height:18px;transform:translate(-50%,-50%);mix-blend-mode:difference;}
@@ -236,7 +237,7 @@ label.lb{font-size:13px;color:#a0a0a0;align-self:flex-start;margin-left:calc(50%
   <div class="row" id="invTop" style="align-items:flex-start;gap:14px">
     <div class="row" id="armorBox" style="align-items:flex-start;gap:14px"><div><h3 id="armorLabel">Armor</h3><div class="grid" id="armorGrid" style="grid-template-columns:38px"></div><h3 style="margin-top:6px">Off-hand</h3><div class="grid" id="offGrid" style="grid-template-columns:38px" title="Press F to swap hands"></div></div>
     <div style="width:110px;height:154px;background:#000;border:2px solid #333;display:flex;align-items:flex-end;justify-content:center;" id="playerPreview"></div></div>
-    <div><h3>Crafting</h3><div class="row"><div class="grid g2" id="craft2"></div><div class="arrow"></div><div class="grid" id="craft2out" style="grid-template-columns:52px"></div></div></div>
+    <div><h3>Crafting <button class="btn" id="btnGuideInv" style="width:auto;height:22px;font-size:10px;padding:0 8px;margin:0 0 0 8px;vertical-align:middle">Recipes</button></h3><div class="row"><div class="grid g2" id="craft2"></div><div class="arrow"></div><div class="grid" id="craft2out" style="grid-template-columns:52px"></div></div></div>
   </div>
   <div class="row" id="invBottom" style="align-items:flex-end;gap:14px;justify-content:center"><div><div class="grid" id="invMain" style="margin-top:8px"></div>
   <div class="grid" id="invHot" style="margin-top:6px"></div></div></div>
@@ -251,6 +252,13 @@ label.lb{font-size:13px;color:#a0a0a0;align-self:flex-start;margin-left:calc(50%
   <div class="rbook" id="rbook"></div>
 </div></div>
 
+<div id="guideGui" class="gui"><div class="panel" style="width:min(96vw,760px);max-height:92vh;display:flex;flex-direction:column">
+  <div class="row" style="align-items:center;gap:8px;flex-wrap:wrap"><h3 style="margin:0">Crafting Guide</h3><input class="tx" id="guideSearch" placeholder="Search recipes..." style="flex:1;min-width:140px;height:28px;font-size:13px;padding:0 8px"><select id="guideCat" style="height:28px;font-size:12px"><option value="all">Everything</option><option value="blocks">Blocks</option><option value="tools">Tools &amp; weapons</option><option value="armor">Armor</option><option value="food">Food</option><option value="other">Other items</option><option value="smelt">Smelting</option><option value="brew">Brewing</option></select><button class="btn" id="btnGuideClose" style="width:auto;height:28px;font-size:11px;padding:0 12px;margin:0">Close</button></div>
+  <div class="row" style="align-items:flex-start;gap:10px;margin-top:8px;flex:1;min-height:0">
+    <div id="guideList" style="flex:1;min-height:0;max-height:calc(92vh - 110px);overflow:auto;background:#8b8b8b;border:2px solid;border-color:#373737 #fff #fff #373737;padding:4px;line-height:0"></div>
+    <div id="guideDetail" class="rdetail" style="width:230px;flex:none;margin:0;max-height:calc(92vh - 110px);overflow:auto"><div class="hint" style="color:#333">Click a recipe to see how to make it. Green ones you can craft with what you carry right now.</div></div>
+  </div>
+</div></div>
 <div id="brewGui" class="gui"><div class="panel">
   <h3>Brewing Stand</h3>
   <div class="row" style="justify-content:center;gap:18px;align-items:center">
@@ -436,6 +444,7 @@ label.lb{font-size:13px;color:#a0a0a0;align-self:flex-start;margin-left:calc(50%
   <button class="btn" id="btnOptionsP">Options...</button>
   <button class="btn" id="btnModsP">Fun Mods...</button>
   <button class="btn" id="btnModeP">Game Mode: Survival</button>
+  <button class="btn" id="btnGuideP">Crafting Guide...</button>
   <button class="btn" id="btnModMakerP">Mod Maker...</button>
   <button class="btn" id="btnSaveQuit">Save and Quit to Title</button>
 </div>
@@ -2907,7 +2916,8 @@ function placeHeldBlock(hd,st,t){
     case 'slab':{meta=(face===3||(face!==2&&t.fy>0.5))?1:0;break}
     case 'stairs':{meta=lf|((face===3||(face!==2&&t.fy>0.5))?4:0);break}
     case 'crop':return;
-    case 'cross':{if(id===42){if(!(below===10||below===42))return;for(const dd of [[1,0],[-1,0],[0,1],[0,-1]])if(BLOCKS[world.getBlock(px+dd[0],py,pz+dd[1])].solid)return}
+    case 'cross':{if(!BLOCKS[id].plant&&!BLOCKS[id].crop)break; // cobwebs and the like are not plants: no soil needed
+      if(id===42){if(!(below===10||below===42))return;for(const dd of [[1,0],[-1,0],[0,1],[0,-1]])if(BLOCKS[world.getBlock(px+dd[0],py,pz+dd[1])].solid)return}
       else if(id===64||id===65){if(!BLOCKS[below].opaque)return}else if(id===94){if(!(below===94||below===10||below===2||below===3))return}else{if(!(below===2||below===3||below===36))return}break}
     case 'snow':{if(!BLOCKS[below].opaque)return;break}
     case 'cactus':{if(!(below===10||below===42))return;for(const dd of [[1,0],[-1,0],[0,1],[0,-1]])if(BLOCKS[world.getBlock(px+dd[0],py,pz+dd[1])].solid)return;break}
@@ -3791,16 +3801,44 @@ function drawPlayerPreview(){const c=document.createElement('canvas');c.width=48
   r(12,4,24,24,'#c89b78');r(14,12,4,4,'#fff');r(30,12,4,4,'#fff');r(16,12,2,4,'#3a4fbf');r(30,12,2,4,'#3a4fbf');r(18,20,12,3,'#8b5a3c');r(12,4,24,8,'#4a2f1b');r(12,28,24,36,'#2f8f8f');r(0,28,12,36,'#c89b78');r(36,28,12,36,'#c89b78');r(0,28,12,8,'#2f8f8f');r(36,28,12,8,'#2f8f8f');r(12,64,12,30,'#3b3f8c');r(24,64,12,30,'#3b3f8c');r(12,88,12,6,'#555');r(24,88,12,6,'#555');
   $('playerPreview').appendChild(c);c.style.imageRendering='pixelated';c.style.width='72px';c.style.height='144px'}
 function openGui(type,x,y,z){const g={type,x,y,z};if(type==='furnace'){g.be=furnaceEntity(x,y,z);const be=g.be;if(!$('furnIn')._done){mkSlots($('furnIn'),be.items,0,1,'in');mkSlots($('furnFuel'),be.items,1,1,'fuel');mkSlots($('furnOut'),be.items,2,1,'out','out');$('furnIn')._done=true}else{for(const id of ['furnIn','furnFuel','furnOut']){$(id).firstChild._slot.arr=be.items}}}
+  if(type==='guide')renderGuide();
   if(type==='brew'){g.be=brewEntity(x,y,z);const be=g.be;if(!$('brewBottles')._done){mkSlots($('brewBottles'),be.items,0,3,'bottle');mkSlots($('brewIngr'),be.items,3,1,'ingr');mkSlots($('brewPowder'),be.items,4,1,'bfuel');$('brewBottles')._done=true}else{for(const id of ['brewBottles','brewIngr','brewPowder'])for(const el of $(id).children)el._slot.arr=be.items}updateBrewGui()}
   if(type==='chest'){g.be=world.getBlockEntity(x,y,z,()=>({items:new Array(27).fill(null)}));if(!$('chestGrid')._done){mkSlots($('chestGrid'),g.be.items,0,27);$('chestGrid')._done=true}else{const els=$('chestGrid').children;for(let i=0;i<27;i++)els[i]._slot.arr=g.be.items}playSoundAt('chest',x,y,z)}
   if(type==='enchant'){if(!$('enchItem')._done){mkSlots($('enchItem'),enchSlots,0,1,'ench');mkSlots($('enchLapis'),enchSlots,1,1,'lapis');mkSlots($('enchMain'),player.inv,9,27);mkSlots($('enchHot'),player.inv,0,9);$('enchItem')._done=true}game.enchSeed=game.enchSeed||floor(Math.random()*1e9)}
   if(type==='anvil'){if(!$('anvilA')._done){mkSlots($('anvilA'),anvilSlots,0,1,'anvil');mkSlots($('anvilB'),anvilSlots,1,1,'anvil');mkSlots($('anvilOut'),anvilSlots,2,1,'aout','out');mkSlots($('anvilMain'),player.inv,9,27);mkSlots($('anvilHot'),player.inv,0,9);$('anvilA')._done=true}}
-  game.gui=g;$({inv:'invGui',table:'tableGui',furnace:'furnGui',chest:'chestGui',enchant:'enchantGui',anvil:'anvilGui',brew:'brewGui'}[type]).classList.add('show');document.exitPointerLock&&document.exitPointerLock();mouseL=false;mouseR=false;
+  game.gui=g;$({inv:'invGui',table:'tableGui',furnace:'furnGui',chest:'chestGui',enchant:'enchantGui',anvil:'anvilGui',brew:'brewGui',guide:'guideGui'}[type]).classList.add('show');document.exitPointerLock&&document.exitPointerLock();mouseL=false;mouseR=false;
   updateCraftOutput();renderAllSlots();if(type==='table')renderRecipeBook();if(type==='inv')renderPalette();if(type==='enchant')renderEnchant();if(type==='anvil')updateAnvil();$('hud').style.display='none';syncMobileControls()}
 function closeGui(){const g=game.gui;if(!g)return;returnGrid(craft2);returnGrid(craft3);returnGrid(enchSlots);anvilSlots[2]=null;returnGrid(anvilSlots);if(cursor){if(addToInventory(cursor))spawnItem(player.x,player.y+1,player.z,cursor);cursor=null}
   if(g.type==='chest')playSoundAt('chest',g.x,g.y,g.z);for(const el of document.querySelectorAll('.gui'))el.classList.remove('show');$('invGui').classList.remove('full');game.gui=null;hideTip();renderAllSlots();$('hud').style.display='block';syncMobileControls();if(!game.paused)lockPointer()}
 function updateFurnaceGui(){const g=game.gui;if(!g||g.type!=='furnace')return;const be=g.be;$('furnArrow').firstChild.style.width=(be.cook/10*26)+'px';$('furnFire').firstChild.style.height=(be.burnMax?be.burn/be.burnMax*22:0)+'px';renderAllSlots()}
 let rbSel=null;
+/* ---- Crafting Guide: every recipe, smelting and brewing, searchable ---- */
+let guideSel=null;
+function guideCategory(id){const d=ITEMS[id];if(!d)return 'other';if(d.isBlock)return 'blocks';if(d.armor!==undefined)return 'armor';if(d.tool||d.dmg||d.gun||d.shield||d.tool==='bow')return 'tools';if(d.food||d.potion)return 'food';return 'other'}
+function guideEntries(){const out=[];const seen=new Set();
+  for(const r of RECIPES){if(r.guns&&!(game.mods&&game.mods.guns))continue;if(!ITEMS[r.out[0]]||ITEMS[r.out[0]].hidden)continue;const key='c'+r.out[0]+'_'+(r.shaped?r.p.join(''):r.s.join(''));if(seen.has(key))continue;seen.add(key);out.push({key,kind:'craft',out:r.out[0],n:r.out[1],r,cat:guideCategory(r.out[0]),name:ITEMS[r.out[0]].label})}
+  for(const d of ITEMS){if(!d||d.smelt===undefined||!ITEMS[d.smelt])continue;out.push({key:'s'+d.id,kind:'smelt',out:d.smelt,n:1,inp:d.id,cat:'smelt',name:ITEMS[d.smelt].label})}
+  for(const k in POTIONS){const d=POTIONS[k];if(d.ingr===null)continue;out.push({key:'b'+k,kind:'brew',out:POTION_IDS[k],n:1,base:476,ingr:d.ingr,cat:'brew',name:ITEMS[POTION_IDS[k]].label})}
+  out.push({key:'bawk',kind:'brew',out:476,n:1,base:475,ingr:477,cat:'brew',name:'Awkward Potion'});out.push({key:'binv',kind:'brew',out:POTION_IDS.invisibility,n:1,base:POTION_IDS.night_vision,ingr:481,cat:'brew',name:ITEMS[POTION_IDS.invisibility].label});
+  return out}
+function renderGuide(){const list=$('guideList');if(!list)return;const q=($('guideSearch').value||'').trim().toLowerCase();const cat=$('guideCat').value;const counts={};for(const s of player.inv)if(s)counts[s.id]=(counts[s.id]||0)+s.count;
+  list.innerHTML='';let n=0;const groups={};for(const e of guideEntries()){if(cat!=='all'&&e.cat!==cat)continue;if(q&&!e.name.toLowerCase().includes(q))continue;(groups[e.cat]=groups[e.cat]||[]).push(e)}
+  const names={blocks:'Blocks',tools:'Tools & weapons',armor:'Armor',food:'Food & potions',other:'Other items',smelt:'Smelting (furnace)',brew:'Brewing (brewing stand)'};
+  for(const c of ['blocks','tools','armor','food','other','smelt','brew']){const g=groups[c];if(!g)continue;const h=document.createElement('span');h.className='gsec';h.textContent=names[c]+' ('+g.length+')';list.appendChild(h);
+    for(const e of g){const el=document.createElement('div');el.className='r'+(e.kind==='craft'&&recipeNeeds(e.r,counts)?' ok':'')+(guideSel===e.key?' sel':'');el.title=e.name;el.innerHTML='<div class="icon" style="background-image:url('+ICONS[e.out]+')"></div>'+(e.n>1?'<div class="cnt">'+e.n+'</div>':'');el.onclick=()=>{guideSel=e.key;for(const x of list.querySelectorAll('.r'))x.classList.remove('sel');el.classList.add('sel');showGuideDetail(e,counts)};list.appendChild(el);n++}}
+  if(!n)list.innerHTML='<span class="gsec">Nothing matches "'+q.replace(/</g,'')+'"</span>';
+  if(guideSel){const e=guideEntries().find(x=>x.key===guideSel);if(e)showGuideDetail(e,counts)}}
+function showGuideDetail(e,counts){const d=$('guideDetail');const cell=(id,title)=>id===undefined?'<div class="rc empty"></div>':'<div class="rc" title="'+(title||ITEMS[id].label)+'"><div class="icon" style="background-image:url('+ICONS[id]+')"></div></div>';
+  let html='<div class="rt">'+e.name+(e.n>1?' × '+e.n:'')+'</div>';
+  if(e.kind==='craft'){const r=e.r;let grid='';const needs={};
+    if(r.shaped){for(let y=0;y<3;y++)for(let x=0;x<3;x++){const ch=(r.p[y]||'')[x]||' ';if(ch===' '||!r.k[ch]){grid+=cell();continue}const info=ingredientInfo(r.k[ch],counts);grid+=cell(info.id,info.name);needs[info.name]=needs[info.name]||{n:0,id:info.id,opts:info.opts};needs[info.name].n++}}
+    else{for(let i=0;i<9;i++){const k=r.s[i];if(k===undefined){grid+=cell();continue}const info=ingredientInfo(k,counts);grid+=cell(info.id,info.name);needs[info.name]=needs[info.name]||{n:0,id:info.id,opts:info.opts};needs[info.name].n++}}
+    const big=r.shaped?(r.p.length>2||r.p.some(row=>row.length>2)):r.s.length>4;
+    html+='<div class="rgrid">'+grid+'</div><div style="margin:2px 0 4px">'+(r.shaped?'Place exactly like this':'Any arrangement')+(big?' on a <b>crafting table</b>':' (fits the 2×2 grid in your inventory)')+'</div><ul>';
+    for(const nm in needs){const x=needs[nm];const have=x.opts.reduce((a,id)=>a+(counts[id]||0),0);html+='<li><div class="icon" style="background-image:url('+ICONS[x.id]+')"></div><span>'+x.n+' × '+nm+'</span><span class="'+(have>=x.n?'ok':'miss')+'" style="margin-left:auto">'+(have>=x.n?'✓':'have '+have)+'</span></li>'}html+='</ul>'}
+  else if(e.kind==='smelt'){html+='<div class="rgrid" style="grid-template-columns:26px 26px 26px;align-items:center">'+cell(e.inp)+'<div style="text-align:center;font-size:14px">→</div>'+cell(e.out)+'</div><div>Put <b>'+ITEMS[e.inp].label+'</b> in a <b>furnace</b> with any fuel (coal, planks, logs...). Each one takes 10 seconds.</div>'}
+  else{html+='<div class="rgrid" style="grid-template-columns:26px 26px 26px;align-items:center">'+cell(e.base)+'<div style="text-align:center;font-size:14px">+</div>'+cell(e.ingr)+'</div><div>In a <b>brewing stand</b> with Ember Powder as fuel: put <b>'+ITEMS[e.base].label+(e.base===475?'s':'')+'</b> in the bottle slots and <b>'+ITEMS[e.ingr].label+'</b> in the top slot.'+(e.base===476?' Then: Redstone = longer, Glowstone Dust = stronger, Gunpowder = splash potion.':'')+'</div>'}
+  d.innerHTML=html}
 function renderRecipeBook(){const rb=$('rbook');rb.innerHTML='<div class="hint" style="margin:0 0 4px">Recipe book — click a recipe to see what it needs</div><div id="rdetail" class="rdetail" style="display:none"></div>';const counts={};for(const s of player.inv)if(s)counts[s.id]=(counts[s.id]||0)+s.count;const countsAll=Object.assign({},counts);for(const s of craft3)if(s)countsAll[s.id]=(countsAll[s.id]||0)+s.count;
   const seen=new Set();
   for(const r of RECIPES){if(r.guns&&!(game.mods&&game.mods.guns))continue;if(seen.has(r.out[0]+'_'+(r.shaped?r.p.join(''):r.s.join(''))))continue;seen.add(r.out[0]+'_'+(r.shaped?r.p.join(''):r.s.join('')));
@@ -4325,6 +4363,7 @@ function setupMenus(){
   let optBack='titleMenu';$('btnOptionsT').onclick=()=>{optBack='titleMenu';showMenu('optionsMenu');showOptSeed()};$('btnOptionsP').onclick=()=>{optBack='pauseMenu';showMenu('optionsMenu');showOptSeed()};$('btnOptionsBack').onclick=()=>{saveOpts();showMenu(optBack)};
   $('btnControls').onclick=()=>showMenu('controlsMenu');$('btnControlsBack').onclick=()=>showMenu('titleMenu');
   $('btnResume').onclick=()=>resumeGame();$('btnSaveQuit').onclick=()=>quitToTitle();
+  $('btnGuideP').onclick=()=>{resumeGame();openGui('guide')};$('btnGuideInv').onclick=ev=>{ev.stopPropagation();closeGui();openGui('guide')};$('btnGuideClose').onclick=()=>closeGui();$('guideSearch').addEventListener('input',renderGuide);$('guideSearch').addEventListener('keydown',ev=>{ev.stopPropagation();if(ev.key==='Escape')closeGui()});$('guideCat').addEventListener('change',renderGuide);
   $('btnModeP').onclick=()=>{if(onPublicServer()){showMessage('Game mode cannot be changed on a public server');return}if(MP.active&&!MP.host){showMessage('Only the host can change the game mode');return}const p=player;p.mode=p.mode==='creative'?'survival':'creative';if(p.mode==='survival')p.flying=false;refreshModeBtn();updateHUD();updateHotbar();showMessage('Game mode: '+p.mode)};
   migrateOldSaves();
   $('btnModMaker').onclick=()=>openModMaker('titleMenu');$('btnModMakerP').onclick=()=>openModMaker('pauseMenu');setupModMaker();
