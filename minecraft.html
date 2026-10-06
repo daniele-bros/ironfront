@@ -1014,6 +1014,7 @@ defItem(480,'magma_cream',{icon:'magma_cream',label:'Magma Cream'});
 defItem(481,'fermented_spider_eye',{icon:'fermented_spider_eye',label:'Fermented Spider Eye'});
 const POTIONS={speed:{label:'Swiftness',col:[124,175,198],ingr:307,dur:180,strong:true},strength:{label:'Strength',col:[147,36,36],ingr:391,dur:180,strong:true},regen:{label:'Regeneration',col:[205,92,171],ingr:308,dur:45,strong:true},fire_res:{label:'Fire Resistance',col:[228,154,58],ingr:480,dur:180},water_breathing:{label:'Water Breathing',col:[46,82,146],ingr:313,dur:180},night_vision:{label:'Night Vision',col:[31,31,161],ingr:314,dur:180},jump:{label:'Leaping',col:[34,255,76],ingr:288,dur:180,strong:true},healing:{label:'Healing',col:[248,36,35],ingr:273,instant:true,strong:true},poison:{label:'Poison',col:[78,147,49],ingr:287,dur:45,strong:true},harming:{label:'Harming',col:[67,10,9],ingr:481,instant:true,strong:true},invisibility:{label:'Invisibility',col:[127,131,146],ingr:null,dur:180}};
 const POTION_IDS={},SPLASH_IDS={};{let pid=478,sid=501;for(const k in POTIONS){if(pid===480)pid=482;if(pid===490)pid=512;const d=POTIONS[k];defItem(pid,'potion_'+k,{icon:'potion_'+k,label:'Potion of '+d.label,stack:1,potion:k});POTION_IDS[k]=pid;pid++;defItem(sid,'splash_'+k,{icon:'splash_'+k,label:'Splash Potion of '+d.label,stack:1,splash:k});SPLASH_IDS[k]=sid;sid++}}
+defItem(513,'shield',{icon:'shield',label:'Shield',stack:1,dur:336,shield:true});
 defItem(468,'trident',{icon:'trident',stack:1,dur:250,tool:'trident',dmg:9,atkSpd:1.1,mat:'diamond'});
 defItem(469,'heavy_core',{icon:'heavy_core',stack:64});
 defItem(470,'trial_key',{icon:'trial_key',stack:64});
@@ -1119,6 +1120,7 @@ breeze_rod:["................","..............ww",".............wbw","..........
 wind_charge:["................","................","......wwww......","....wwbbbbww....","...wbbwwwwbbw...","..wbbwwddwwbbw..","..wbwwddddwwbw..",".wbbwddwwddwbbw.",".wbbwddwwddwbbw.","..wbwwddddwwbw..","..wbbwwddwwbbw..","...wbbwwwwbbw...","....wwbbbbww....","......wwww......","................","................"],
 ghillie:["................","...gdgggdggdg...","..ggdggdggdggg..","..dggdgdggdgdg..","..gdgggdggdggd..","..ggdgdgggdgdg..","..dgggdggdgggg..","..gdggdggdgdgg..","..ggdgggdggdgg..","..gdggdgdgggdg..","..dgggdggdggdg..","..ggdgdgggdggg..","..gdgggdggdgdg..","...gdggdgggdg...","................","................"],
 mace:["................",".....dddddd.....","....dddddddd....","....ddhhhhdd....","....ddhhhhdd....","....dddddddd....",".....dddddd.....",".......ss.......",".......ss.......",".......ss.......",".......ss.......",".......ss.......",".......ss.......",".......gg.......",".......gg.......","................"],
+shield:["....oooooooo....","...oowwwwwwoo...","...owwiiiiwwo...","...owwiiiiwwo...","...owwwwwwwwo...","...oobbwwbboo...","...oobbwwbboo...","...oowwwwwwoo...","....owwwwwwo....","....owwwwwwo....",".....owwwwo.....",".....owwwwo.....","......owwo......","......owwo......",".......oo.......","................"],
 bottle:["................","......llll......","......l..l......","......l..l......",".....ll..ll.....","....l......l....","....l......l....","....lffffffl....","....lffffffl....","....lffffffl....","....lffffffl....","....lffffffl....",".....lffffl.....","......llll......","................","................"],
 splash:["................","......llll......","......l..l......",".....ll..ll.....","....l......l....","...l........l...","...lffffffffl...","...lffffffffl...","...lffffffffl...","...lffffffffl...","....lffffffl....",".....llllll.....","....l..ll..l....","................","................","................"],
 wart:["................","................","....rr..........","...rrrr..rr.....","...rrrr.rrrr....","....rr..rrrr....","......r..rr.....",".....rrr........","....rrrrr..rr...","....rrrrr.rrrr..",".....rrr..rrrr..","......ss...ss...","......ss...ss...",".....ssss.ssss..","................","................"],
@@ -1174,7 +1176,7 @@ bucket:['bucket',{g:[170,170,170],c:[120,120,120]}],water_bucket:['bucket',{g:[1
 flint_and_steel:['flint_and_steel',{g:[160,160,160],f:[60,60,60]}],shears:['shears',{s:[200,200,200],h:[140,90,50]}],
 bowl:['bowl',{w:[130,90,50],c:[100,70,40]}],mushroom_stew:['bowl',{w:[130,90,50],c:[200,150,110]}],
 carrot:['carrot',{o:[240,130,30],g:[70,150,50]}],potato:['potato',{m:[200,160,90],l:[225,190,120]}],baked_potato:['potato',{m:[190,140,70],l:[220,180,110]}],
-paper:['paper',{w:[240,240,235],l:[190,190,185]}],glass_bottle:['bottle',{l:[200,220,230]}],water_bottle:['bottle',{l:[200,220,230],f:[60,110,210]}],awkward_potion:['bottle',{l:[200,220,230],f:[90,110,150]}],nether_wart:['wart',{r:[170,30,40],s:[110,60,30]}],magma_cream:['blob',{b:[230,120,40],l:[255,220,120]}],fermented_spider_eye:['blob',{b:[110,40,60],l:[200,120,140]}],book:['book',{c:[130,80,40],w:[240,235,220]}],enchanted_book:['book',{c:[150,60,200],w:[240,225,255]}],netherite_scrap:['raw',{m:[95,75,70],l:[140,110,95]}],netherite_ingot:['ingot',{l:[110,100,112],m:[75,68,78],d:[45,40,48]}],blaze_rod:['rod',{y:[250,200,60]}],blaze_powder:['dust',{m:[250,170,40]}],eye_of_ender:['eye',{r:[40,120,90],k:[20,40,40]}],totem:['totem',{g:[90,200,90],k:[30,30,30],y:[240,210,80]}],elytra:['elytra',{g:[70,70,80],l:[120,120,135]}],shulker_shell:['shell',{m:[165,95,175],l:[215,160,225],d:[110,55,120]}],nether_star:['gem',{l:[255,255,255],m:[220,240,255],d:[150,200,230]}],saddle:['leather',{m:[95,60,32]}],ender_pearl:['ball',{m:[20,90,80],l:[90,210,170]}],slime_ball:['ball',{m:[110,200,90],l:[180,240,150]}],glowstone_dust:['dust',{m:[245,205,90]}],
+paper:['paper',{w:[240,240,235],l:[190,190,185]}],shield:['shield',{o:[70,50,30],w:[150,110,65],i:[200,200,205],b:[110,80,45]}],glass_bottle:['bottle',{l:[200,220,230]}],water_bottle:['bottle',{l:[200,220,230],f:[60,110,210]}],awkward_potion:['bottle',{l:[200,220,230],f:[90,110,150]}],nether_wart:['wart',{r:[170,30,40],s:[110,60,30]}],magma_cream:['blob',{b:[230,120,40],l:[255,220,120]}],fermented_spider_eye:['blob',{b:[110,40,60],l:[200,120,140]}],book:['book',{c:[130,80,40],w:[240,235,220]}],enchanted_book:['book',{c:[150,60,200],w:[240,225,255]}],netherite_scrap:['raw',{m:[95,75,70],l:[140,110,95]}],netherite_ingot:['ingot',{l:[110,100,112],m:[75,68,78],d:[45,40,48]}],blaze_rod:['rod',{y:[250,200,60]}],blaze_powder:['dust',{m:[250,170,40]}],eye_of_ender:['eye',{r:[40,120,90],k:[20,40,40]}],totem:['totem',{g:[90,200,90],k:[30,30,30],y:[240,210,80]}],elytra:['elytra',{g:[70,70,80],l:[120,120,135]}],shulker_shell:['shell',{m:[165,95,175],l:[215,160,225],d:[110,55,120]}],nether_star:['gem',{l:[255,255,255],m:[220,240,255],d:[150,200,230]}],saddle:['leather',{m:[95,60,32]}],ender_pearl:['ball',{m:[20,90,80],l:[90,210,170]}],slime_ball:['ball',{m:[110,200,90],l:[180,240,150]}],glowstone_dust:['dust',{m:[245,205,90]}],
 quartz:['gem',{l:[255,255,255],m:[235,228,220],d:[180,170,160]}],cookie:['cookie',{c:[190,130,70],k:[70,40,30]}],cooked_cod:['fish',{m:[200,160,110],l:[230,200,150]}],
 door:['door',{p:[140,100,55],d:[160,120,70],w:[170,210,240],k:[70,70,70]}],bed:['bed',{w:[240,240,240],r:[200,30,30],b:[140,100,60]}],
 };
@@ -2530,7 +2532,10 @@ class Fang extends Entity{constructor(x,y,z,delay){super(x,y,z);this.w=0.5;this.
 function damageEntity(e,amount,src){if(e===player&&src&&src.type&&customArmorPerks().has({fire:'fireproof',lava:'fireproof',fall:'feather'}[src.type]))return false;if(e===player&&src&&(src.type==='fire'||src.type==='lava')&&player.effects&&player.effects.fire_res>0)return false;if(e instanceof Mob&&e.def&&e.def.neutral&&src&&(src.type==='player'||src.type==='arrow'||src.type==='bullet')&&!e.tamed)e.angry=true;
   if(e.dead||e.dying)return false;if(e.invT>0&&amount<=e.lastDmg)return false;src=src||{};
   if(e instanceof RemotePlayer){if(!pvpOn()||e.hidden)return false;e.invT=0.5;e.lastDmg=amount;e.hurtT=0.5;mpSend({t:'hit',to:e.pid,by:MP.myId,from:MP.name,amount,type:src.type||'player',x:src.x,y:src.y,z:src.z,kb:src.kb||4});playSoundAt('hurt',e.x,e.y,e.z,0.8);return true}
-  if(e===player){if(player.mode==='creative')return false;if(src.type==='mob'||src.type==='arrow'||src.type==='explosion'||src.type==='pvp'){const ap=armorPoints();amount*=1-Math.min(20,ap)*0.04;damageArmor(Math.max(1,floor(amount/4)))}else if(src.type==='fire'||src.type==='lava'){const ap=armorPoints();amount*=1-Math.min(20,ap)*0.02}
+  if(e===player){if(player.mode==='creative')return false;
+    if(player.blocking&&(src.type==='mob'||src.type==='arrow'||src.type==='bullet'||src.type==='explosion'||src.type==='pvp'||src.type==='sonic')){const sh=heldStack();let front=true;if(src.x!==undefined){const d=eyeDir();const dx=src.x-player.x,dz=src.z-player.z;const l=Math.hypot(dx,dz)||1;front=(dx/l*d[0]+dz/l*d[2])>-0.2}
+      if(front&&sh&&ITEMS[sh.id].shield){damageItem(sh,Math.max(1,Math.ceil(amount)));playSound('place_wood',1,1.6);spawnParticles('crit',player.x,player.y+1.2,player.z,4);if(src.x!==undefined&&!player.riding){const kx=player.x-src.x,kz=player.z-src.z;const kd=Math.hypot(kx,kz)||1;player.vx+=kx/kd*1.5;player.vz+=kz/kd*1.5}return false}}
+    if(src.type==='mob'||src.type==='arrow'||src.type==='explosion'||src.type==='pvp'){const ap=armorPoints();amount*=1-Math.min(20,ap)*0.04;damageArmor(Math.max(1,floor(amount/4)))}else if(src.type==='fire'||src.type==='lava'){const ap=armorPoints();amount*=1-Math.min(20,ap)*0.02}
     { // enchantment protection factor
       let epf=0,th=0;for(const s of player.armor){if(!s||!s.ench)continue;epf+=s.ench.protection||0;th+=s.ench.thorns||0;if(src.type==='fire'||src.type==='lava')epf+=2*(s.ench.fire_protection||0);if(src.type==='explosion')epf+=2*(s.ench.blast_protection||0);if(src.type==='arrow')epf+=2*(s.ench.projectile_protection||0);if(src.type==='fall')epf+=3*(s.ench.feather_falling||0)}
       if(epf)amount*=1-Math.min(20,epf)*0.04;if(th&&src.mob&&Math.random()<th*0.15){damageEntity(src.mob,1+floor(Math.random()*4),{type:'thorns'});damageArmor(2)}}
@@ -2598,7 +2603,8 @@ function updatePlayer(dt){
   // sprinting
   const canSprint=fwd>0&&(p.hunger>6||creative)&&!p.sneaking&&!guiOpen;
   if(canSprint&&(keys.ControlLeft||p.sprintReq))p.sprinting=true;if(!canSprint||(p.collidedH&&!p.flying&&fwd>0&&p.onGround&&false))p.sprinting=false;if(!canSprint)p.sprintReq=false;
-  let speed=creative&&p.flying?10.8:p.sneaking?1.295*(1+0.5*enchLevel(p.armor[2],'swift_sneak')):p.sprinting?5.612:4.317;if(p.flying&&p.sprinting)speed*=2;
+  if(p.blocking&&!(heldStack()&&ITEMS[heldStack().id].shield))p.blocking=false;
+  let speed=creative&&p.flying?10.8:p.sneaking?1.295*(1+0.5*enchLevel(p.armor[2],'swift_sneak')):p.blocking?1.6:p.sprinting?5.612:4.317;if(p.flying&&p.sprinting)speed*=2;
   if(p.effects.slow)speed*=0.7;if(p.effects.speed>0)speed*=1+0.2*effLvl('speed');if(p.beaconT>0)speed*=1.25;if(!p.flying&&BLOCKS[world.getBlock(floor(p.x),floor(p.y-0.05),floor(p.z))].slow){const ss=enchLevel(p.armor[3],'soul_speed');speed*=ss?1.3+0.15*ss:0.4}
   const inFluid=(inWater||inLava)&&!p.flying;const fastSwim=p.swimming&&inWater&&(p.hunger>6||creative);if(inFluid){speed*=inLava?0.35:fastSwim?1.3:0.55;if(inWater)speed*=1+enchLevel(p.armor[3],'depth_strider')/3}else if(p.swimming)speed=Math.min(speed,1.3);
   if(!creative&&p.onGround&&!p.flying){const fw=enchLevel(p.armor[3],'frost_walker');if(fw){const r=fw+1;const by=floor(p.y)-1;for(let dx=-r;dx<=r;dx++)for(let dz=-r;dz<=r;dz++){const bx=floor(p.x)+dx,bz=floor(p.z)+dz;if(dx*dx+dz*dz>r*r)continue;if(world.getBlock(bx,by,bz)===8&&world.getMeta(bx,by,bz)===0&&world.getBlock(bx,by+1,bz)===0)world.setBlock(bx,by,bz,41,0,{silent:true})}}}
@@ -2704,8 +2710,9 @@ function updatePlayer(dt){
     else if(hd&&hd.tool==='bow'){if(creative||hasItem(284)){p.bowCharge+=dt}}
     else if(hd&&hd.tool==='trident'){p.bowCharge+=dt}
     else if(hd&&hd.gun){fireGun(st,hd,dt)}
+    else if(hd&&hd.shield){p.blocking=true}
     else{p.eating=0}
-  } else {if(p.bowCharge>0){const hs0=heldStack();if(hs0&&ITEMS[hs0.id].tool==='trident')throwTrident();else shootBow();p.bowCharge=0}p.eating=0;p.gunHeld=false}
+  } else {p.blocking=false;if(p.bowCharge>0){const hs0=heldStack();if(hs0&&ITEMS[hs0.id].tool==='trident')throwTrident();else shootBow();p.bowCharge=0}p.eating=0;p.gunHeld=false}
   if(p.gunCd>0)p.gunCd-=dt;
 }
 function blockSoundUnder(){const id=world.getBlock(floor(player.x),floor(player.y-0.2),floor(player.z));return id?BLOCKS[id].sound:'stone'}
@@ -3589,7 +3596,7 @@ function shaped(p,k,out){RECIPES.push({p,k,out,shaped:true})}
 function shapeless(s,out){RECIPES.push({s,out,shaped:false})}
 shapeless([15],[5,4]);shapeless([44],[50,4]);shapeless([46],[51,4]);
 shaped(['#','#'],{'#':PLANKS},[256,4]);
-shaped(['#.#','.#.'],{'#':17},[474,3]);shaped(['.R.','SSS'],{'R':390,'S':4},[138,1]);shapeless([313,391],[480,1]);shapeless([287,307,65],[481,1]);
+shaped(['#.#','.#.'],{'#':17},[474,3]);shaped(['#I#','###','.#.'],{'#':PLANKS,'I':260},[513,1]);shaped(['.R.','SSS'],{'R':390,'S':4},[138,1]);shapeless([313,391],[480,1]);shapeless([287,307,65],[481,1]);
 shaped(['##','##'],{'#':PLANKS},[34,1]);
 shaped(['c','|'],{c:[257,258],'|':256},[32,4]);
 shaped(['###','# #','###'],{'#':4},[37,1]);
