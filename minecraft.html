@@ -2,6 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
+<meta name="ironcraft-build" content="20261006-235534">
 <meta name="viewport" content="width=device-width,initial-scale=1.0,viewport-fit=cover">
 <title>Ironcraft – Free Voxel Survival Sandbox in Your Browser | Iron Games</title>
 <meta name="description" content="Ironcraft is a free browser-based voxel survival sandbox with building, exploration, private or safety-limited public multiplayer, and optional weather, horror and survival challenges. By Daniele Bros.">
@@ -317,6 +318,7 @@ label.lb{font-size:13px;color:#a0a0a0;align-self:flex-start;margin-left:calc(50%
 <div id="tooltip"></div>
 
 <div id="titleMenu" class="menu dirtbg show">
+  <div id="updateBanner" style="display:none;background:#2f6b2f;border:2px solid #8f8;color:#fff;padding:8px 12px;margin-bottom:8px;font-size:13px;cursor:pointer;max-width:440px">A new Ironcraft update is ready. Tap here to reload and get the latest recipes, mobs and fixes.</div>
   <a id="icHome" href="/" title="Back to Iron Games" style="position:absolute;top:12px;left:12px;z-index:2;background:#172128;color:#f4e6c4;font-weight:700;font-size:14px;padding:6px 14px;border:1px solid #d39a33;border-radius:4px;text-decoration:none;">&#9664; Iron Games</a>
   <h1 class="title">IRONCRAFT</h1>
   <div class="splash" id="splash" style="margin:-70px 0 0 330px">BUILD YOUR OWN LEGEND</div>
@@ -875,7 +877,7 @@ defBlock(49,'spruce_sapling',{tex:'spruce_sapling',model:'cross',solid:false,har
 defBlock(50,'birch_planks',{tex:'birch_planks',hard:2,tool:'axe',sound:'wood',fuel:15});
 defBlock(51,'spruce_planks',{tex:'spruce_planks',hard:2,tool:'axe',sound:'wood',fuel:15});
 defBlock(52,'stone_bricks',{tex:'stone_bricks',hard:1.5,tool:'pickaxe',needsTool:true,resist:6});
-defBlock(53,'glowstone',{tex:'glowstone',hard:0.3,light:15,sound:'glass'});
+defBlock(53,'glowstone',{tex:'glowstone',hard:0.3,light:15,sound:'glass',drop:r=>[[314,2+floor(r()*3)]]}); // breaks into 2-4 glowstone dust; four dust make it again
 defBlock(54,'oak_door',{tex:{side:'door_bottom',top:'door_top'},model:'door',solid:true,hard:3,tool:'axe',sound:'wood',transparent:true,door:true,stack:64});
 defBlock(55,'oak_slab',{tex:'oak_planks',model:'slab',hard:2,tool:'axe',sound:'wood',transparent:true,fuel:7.5});
 defBlock(56,'cobblestone_slab',{tex:'cobblestone',model:'slab',hard:2,tool:'pickaxe',needsTool:true,transparent:true});
@@ -3063,7 +3065,7 @@ Object.assign(World.prototype,{
     if((r=this.regionOrigin(cx,cz,9,106))&&r()<0.55)this.placeMineshaft(wx+8,wz+8,r);
     if(rng()<0.12)this.placeDungeon(wx+2+floor(rng()*12),8+floor(rng()*42),wz+2+floor(rng()*12),rng);
   },
-  placeNetherStructures(c,rng){const r=this.regionOrigin(c.cx,c.cz,14,107);if(r)this.placeFortress(c.cx*16+8,c.cz*16+8,r);const rb=this.regionOrigin(c.cx,c.cz,24,140);if(rb)this.placeBastion(c.cx*16+8,c.cz*16+8,rb)},
+  placeNetherStructures(c,rng){const r=this.regionOrigin(c.cx,c.cz,14,107);if(r)this.placeFortress(c.cx*16+8,c.cz*16+8,r);const rb=this.regionOrigin(c.cx,c.cz,16,140);if(rb)this.placeBastion(c.cx*16+8,c.cz*16+8,rb)},
   // Bastion remnant: a blackstone keep three floors high around a treasure pit full of gold, held by piglins and their brutes
   placeBastion(x,z,rng,yAt){const y=yAt!==undefined?yAt:40+floor(rng()*20);const B=140,P=141,G=142,HW=10,FH=5,FL=3;const key='bs:'+(x>>4)+','+(z>>4);const spawnMobs=typeof Mob!=='undefined'&&(!this.populated.has(key)||this.forceMobs);this.populated.add(key);
     const top=y+FL*FH;const wall=()=>rng()<0.12?G:rng()<0.3?B:P;
@@ -3659,7 +3661,7 @@ function shaped(p,k,out){RECIPES.push({p,k,out,shaped:true})}
 function shapeless(s,out){RECIPES.push({s,out,shaped:false})}
 shapeless([15],[5,4]);shapeless([44],[50,4]);shapeless([46],[51,4]);
 shaped(['#','#'],{'#':PLANKS},[256,4]);
-shaped(['#.#','.#.'],{'#':17},[474,3]);shapeless([94],[307,1]);shaped(['###'],{'#':94},[I.paper||315,3]);shaped(['##','##'],{'#':140},[141,4]);shaped(['#I#','###','.#.'],{'#':PLANKS,'I':260},[513,1]);shaped(['.R.','SSS'],{'R':390,'S':4},[138,1]);shapeless([313,391],[480,1]);shapeless([287,307,65],[481,1]);
+shaped(['#.#','.#.'],{'#':17},[474,3]);shapeless([94],[307,1]);shaped(['##','##'],{'#':314},[53,1]);shaped(['###'],{'#':94},[I.paper||315,3]);shaped(['##','##'],{'#':140},[141,4]);shaped(['#I#','###','.#.'],{'#':PLANKS,'I':260},[513,1]);shaped(['.R.','SSS'],{'R':390,'S':4},[138,1]);shapeless([313,391],[480,1]);shapeless([287,307,65],[481,1]);
 shaped(['##','##'],{'#':PLANKS},[34,1]);
 shaped(['c','|'],{c:[257,258],'|':256},[32,4]);
 shaped(['###','# #','###'],{'#':4},[37,1]);
@@ -4342,6 +4344,9 @@ function openWorld(meta){if(meta.room){MP.name=mpName();mpStatus('');showMenu('m
 async function loadWorld(meta){let save=null;try{save=await readWorldSave(meta.id)}catch(e){save=null}startWorld(meta,save)}
 function quitToTitle(){if(player.riding)player.riding.dismount();if(MP.active)mpLeave(false);if(game.wx)stopWeatherLoops();$('waveHud').style.display='none';saveWorld();game.state='title';document.exitPointerLock&&document.exitPointerLock();for(const c of world.chunks.values())deleteChunkMesh(c);for(const k in game.dims){const d=game.dims[k];if(d)for(const c of d.world.chunks.values())deleteChunkMesh(c)}game.dims={over:null,nether:null};world=null;entities.length=0;$('hud').style.display='none';$('overlay').style.display='none';for(const el of document.querySelectorAll('.gui'))el.classList.remove('show');game.gui=null;game.paused=false;showMenu('titleMenu')}
 /* ---- menus ---- */
+// the browser may keep an old copy of the game for a while; peek at the live page's build stamp and offer a reload when it changed
+const GAME_BUILD=(document.querySelector('meta[name="ironcraft-build"]')||{}).content||'';
+async function checkForUpdate(){if(!GAME_BUILD||GAME_BUILD==='dev'||location.protocol==='file:')return;try{const r=await fetch(location.pathname,{cache:'no-store',headers:{Range:'bytes=0-4095'}});const t=await r.text();const m=/ironcraft-build" content="([^"]+)"/.exec(t);if(m&&m[1]!==GAME_BUILD&&!game.updateReady){game.updateReady=m[1];$('updateBanner').style.display='block';if(game.state==='playing')showMessage('A new Ironcraft update is ready: save, then reload the page to get it')}}catch(e){}}
 function showMenu(id){for(const m of document.querySelectorAll('.menu'))m.classList.remove('show');if(id)$(id).classList.add('show')}
 function hideMenus(){showMenu(null)}
 let selWorld=null;
@@ -4372,7 +4377,7 @@ function setupMenus(){
   $('btnResume').onclick=()=>resumeGame();$('btnSaveQuit').onclick=()=>quitToTitle();
   $('btnGuideP').onclick=()=>{resumeGame();openGui('guide')};$('btnGuideInv').onclick=ev=>{ev.stopPropagation();closeGui();openGui('guide')};$('btnGuideClose').onclick=()=>closeGui();$('guideSearch').addEventListener('input',renderGuide);$('guideSearch').addEventListener('keydown',ev=>{ev.stopPropagation();if(ev.key==='Escape')closeGui()});$('guideCat').addEventListener('change',renderGuide);
   $('btnModeP').onclick=()=>{if(onPublicServer()){showMessage('Game mode cannot be changed on a public server');return}if(MP.active&&!MP.host){showMessage('Only the host can change the game mode');return}const p=player;p.mode=p.mode==='creative'?'survival':'creative';if(p.mode==='survival')p.flying=false;refreshModeBtn();updateHUD();updateHotbar();showMessage('Game mode: '+p.mode)};
-  migrateOldSaves();
+  migrateOldSaves();checkForUpdate();setInterval(checkForUpdate,5*60*1000);$('updateBanner').onclick=()=>{location.href=location.pathname+'?v='+Date.now()};
   $('btnModMaker').onclick=()=>openModMaker('titleMenu');$('btnModMakerP').onclick=()=>openModMaker('pauseMenu');setupModMaker();
   $('btnRespawn').onclick=()=>{respawn();lockPointer()};$('btnDeathQuit').onclick=()=>{if(game.mods&&game.mods.hardcore){$('deathScreen').classList.remove('show');quitToTitle()}else{respawn();quitToTitle()}};
   const sl=(id,key,fmt,cb)=>{const inp=$(id);const box=inp.parentElement;const span=box.querySelector('span'),knob=box.querySelector('.knob');const upd=()=>{span.textContent=fmt(opts[key]);const f=(opts[key]-inp.min)/(inp.max-inp.min);knob.style.left='calc('+(f*100)+'% - '+(f*16)+'px)'};inp.value=opts[key];upd();inp.addEventListener('input',()=>{opts[key]=+inp.value;upd();if(cb)cb()})};
@@ -4709,7 +4714,7 @@ const TP_STRUCT={
   end_portal:{size:40,salt:115,ok:()=>true,inside:r=>({dx:28,dz:2,y:20+floor(r()*8),yaw:-PI/2}),alias:['endportal','end','portal_room'],note:'The End portal frame is on the platform ahead: fill it with eyes of ender to open it'},
   mineshaft:{size:9,salt:106,ok:(m,r)=>r()<0.55,inside:r=>({dx:0,y:18+floor(r()*24)}),alias:['mine','mine_shaft']},
   fortress:{size:14,salt:107,ok:()=>true,nether:true,inside:r=>({dx:3,y:53+floor(r()*20)}),alias:['nether_fortress'],note:'Ember spawner is just west of you'},
-  bastion:{size:24,salt:140,ok:()=>true,nether:true,inside:r=>({dx:0,dz:7,y:40+floor(r()*20)+15+1}),alias:['bastion_remnant','piglin_bastion','brute'],note:'You are on the roof of the keep; the treasure pit is in the middle, guarded by Piglin Brutes'},
+  bastion:{size:16,salt:140,ok:()=>true,nether:true,inside:r=>({dx:0,dz:7,y:40+floor(r()*20)+15+1}),alias:['bastion_remnant','piglin_bastion','brute'],note:'You are on the roof of the keep; the treasure pit is in the middle, guarded by Piglin Brutes'},
   ancient_city:{size:36,salt:118,ok:m=>m.height>SEA+4,inside:r=>({dx:0,y:12+floor(r()*6)}),alias:['ancient','ancientcity','deep_dark','deepdark'],note:'Sneak. Shriekers hear footsteps, and four shrieks wake the Dreadwarden'},
   trial_chamber:{size:28,salt:117,ok:m=>m.height>SEA,inside:r=>({dx:-5,y:22+floor(r()*10)}),alias:['trial','trials','trial_chambers','chamber','chambers'],note:'Trial spawners wake when you get close; beat one for a Trial Key and open the vault'},
   end_city:{size:3,salt:116,end:true,radius:60,alias:['endcity','city','end_ship'],note:'You are on top of the city tower; the End ship with the elytra is moored beside it',
