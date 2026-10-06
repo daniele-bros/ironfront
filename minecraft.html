@@ -803,7 +803,7 @@ function defBlock(id,name,o){
   const t=o.tex;const side=t.side||t.all,top=t.top||side,bottom=t.bottom||t.top||side;
   o.faces=[TEX[side],TEX[side],TEX[top],TEX[bottom],TEX[side],TEX[side]];
   if(t.front)o.front=TEX[t.front];if(t.frontLit)o.frontLit=TEX[t.frontLit];
-  if(o.model!=='cube')o.opaque=false;
+  if(o.model!=='cube'||o.transparent)o.opaque=false; // see-through cubes (glass, ice, leaves) never hide the faces behind them
   BLOCKS[id]=o;B[name]=id;ITEMS[id]=o;I[name]=id;
 }
 function defItem(id,name,o){o=Object.assign({stack:64},o);o.id=id;o.name=name;o.label=o.label||label(name);o.isBlock=false;ITEMS[id]=o;I[name]=id}
@@ -1707,7 +1707,7 @@ function buildChunkMesh(W,c,smooth){
     const ownS=c.sky[i],ownL=c.light[i];
     if(model==='cube'){
       for(let d=0;d<6;d++){const dir=FACE_DIR[d];const nx=x+dir[0],ny=y+dir[1],nz=z+dir[2];const nid=gb(nx,ny,nz);const nd=BLOCKS[nid];
-        if(nd.opaque)continue;if(nid===id&&(id===17||id===41))continue;
+        if(nd.opaque)continue;if(nid===id&&def.transparent)continue; // a sheet of glass or a bush of leaves has no inner faces
         let tile=def.texFn?def.texFn(meta,d):null;if(tile===null||tile===undefined){tile=def.faces[d];if(def.front!==undefined&&d===FACING_TO_FACE[meta&3])tile=(def.frontLit!==undefined&&(meta&4))?def.frontLit:def.front}
         const logAx=def.log?meta&3:0;let logRot=false;if(logAx){const end=logAx===1?d<2:d>3;tile=end?def.faces[2]:def.faces[0];logRot=!end&&(logAx===1?d>=2:d<2)}
         const U=FACE_U[d],V=FACE_V[d],Bs=FACE_BASE[d];const P=[],L=[];
