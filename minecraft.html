@@ -1924,13 +1924,13 @@ function sweepAxis(box,boxes,axis,d){const e=1e-4;for(const b of boxes){
   if(axis!==0&&(box[3]<=b[0]||box[0]>=b[3]))continue;if(axis!==1&&(box[4]<=b[1]||box[1]>=b[4]))continue;if(axis!==2&&(box[5]<=b[2]||box[2]>=b[5]))continue;
   const lo=box[axis],hi=box[axis+3],blo=b[axis],bhi=b[axis+3];
   if(d>0&&hi<=blo){const m=blo-hi-e;if(m<d)d=m}else if(d<0&&lo>=bhi){const m=bhi-lo+e;if(m>d)d=m}}return d}
-function moveEntity(e,dx,dy,dz,stepH){
+function moveEntity(e,dx,dy,dz,stepH,airStep){
   const w=e.w/2;let box=[e.x-w,e.y,e.z-w,e.x+w,e.y+e.h,e.z+w];const wasGround=e.onGround;
   const boxes=collectBoxes(Math.min(box[0],box[0]+dx)-0.6,Math.min(box[1],box[1]+dy)-0.6,Math.min(box[2],box[2]+dz)-0.6,Math.max(box[3],box[3]+dx)+0.6,Math.max(box[4],box[4]+dy)+1.2,Math.max(box[5],box[5]+dz)+0.6);
   const ody=dy,odx=dx,odz=dz;
   const run=(b,dx,dy,dz)=>{b=b.slice();const ry=sweepAxis(b,boxes,1,dy);b[1]+=ry;b[4]+=ry;const rx=sweepAxis(b,boxes,0,dx);b[0]+=rx;b[3]+=rx;const rz=sweepAxis(b,boxes,2,dz);b[2]+=rz;b[5]+=rz;return {b,rx,ry,rz}};
   let r=run(box,dx,dy,dz);
-  if(stepH>0&&(wasGround||r.ry!==ody&&ody<0)&&(r.rx!==dx||r.rz!==dz)){
+  if(stepH>0&&(wasGround||r.ry!==ody&&ody<0||(airStep&&ody<0))&&(r.rx!==dx||r.rz!==dz)){
     const up=sweepAxis(box,boxes,1,stepH);let b2=box.slice();b2[1]+=up;b2[4]+=up;const rx=sweepAxis(b2,boxes,0,dx);b2[0]+=rx;b2[3]+=rx;const rz=sweepAxis(b2,boxes,2,dz);b2[2]+=rz;b2[5]+=rz;const down=sweepAxis(b2,boxes,1,-up-0.001);b2[1]+=down;b2[4]+=down;
     if(rx*rx+rz*rz>r.rx*r.rx+r.rz*r.rz&&down<0){r={b:b2,rx,ry:up+down,rz}}
   }
@@ -1954,7 +1954,7 @@ class Entity{
     else{this.vy-=g*dt;this.vy*=Math.pow(drag,dt*20);const f=this.onGround?Math.pow(opt.friction||0.6,dt*20):Math.pow(0.91,dt*20);this.vx*=f;this.vz*=f}
     if(this.vy<0&&!this.onGround)this.fallDist-=this.vy*dt;
     const wasGround=this.onGround;
-    moveEntity(this,this.vx*dt,this.vy*dt,this.vz*dt,opt.step||0);
+    moveEntity(this,this.vx*dt,this.vy*dt,this.vz*dt,opt.step||0,opt.airStep);
     if(this.onGround){if(this.fallDist>0&&opt.fall!==false){this.land(this.fallDist)}this.fallDist=0}
     if(this.y<-10){this.dead=true}
   }
@@ -2290,17 +2290,17 @@ class Mob extends Entity{
     } else {
     // movement
     const inW=this.inWater;let mx=0,mz=0;if(this.moveDir){mx=this.moveDir[0]*speed;mz=this.moveDir[1]*speed}if(this.noticeT>0){this.noticeT-=dt;mx=mz=0} // a beat of surprise before the charge
-    const acc=this.onGround?12:3;this.vx+=(mx-this.vx)*Math.min(1,acc*dt);this.vz+=(mz-this.vz)*Math.min(1,acc*dt);
+    const acc=this.onGround?12:6;this.vx+=(mx-this.vx)*Math.min(1,acc*dt);this.vz+=(mz-this.vz)*Math.min(1,acc*dt);
     if(this.type==='slime'){if(this.onGround){if(this.hopT<=0&&(this.moveDir||target)){this.vy=5+this.size*1.2;this.hopT=(target?0.4:1.5)+Math.random()*1.5;playSoundAt('slime',this.x,this.y,this.z,1,1.4-this.size*0.2)}else{this.vx*=0.6;this.vz*=0.6}}}
-    else if(this.moveDir&&this.collidedH&&this.onGround){this.vy=this.type==='spider'?4:8.5}
+    else if(this.moveDir&&this.collidedH&&this.onGround){this.vy=this.type==='spider'?4.5:9.4}
     else if(this.moveDir&&this.onGround&&!inW){ // look ahead: hop up a one-block step before bumping into it
       const ax=this.x+this.moveDir[0]*(this.w/2+0.2),az=this.z+this.moveDir[1]*(this.w/2+0.2);const fy=floor(this.y+0.05);const ahead=world.getBlock(floor(ax),fy,floor(az));
-      if(ahead!==0&&BLOCKS[ahead].solid&&world.getBlock(floor(ax),fy+1,floor(az))===0&&(this.h<=1||world.getBlock(floor(ax),fy+2,floor(az))===0))this.vy=this.type==='spider'?4:8.5}
+      if(ahead!==0&&BLOCKS[ahead].solid&&world.getBlock(floor(ax),fy+1,floor(az))===0&&(this.h<=1||world.getBlock(floor(ax),fy+2,floor(az))===0))this.vy=this.type==='spider'?4.5:9.4}
     if((this.type==='spider'||this.type==='cave_spider')&&this.collidedH&&this.moveDir){this.vy=Math.max(this.vy,3);this.fallDist=0}
     if(inW){if(this.moveDir||Math.random()<0.1)this.vy+=20*dt;if(this.vy>3)this.vy=3}
     if(this.type==='chicken'&&this.vy<-1.2&&!inW){this.vy=-1.2;this.fallDist=0}
     if((this.type==='spider'||this.type==='cave_spider'||this.type==='slime')&&this.fallDist>0)this.fallDist=Math.min(this.fallDist,2);
-    this.physics(dt,{step:this.type==='spider'||this.type==='horse'?1.05:0.6,friction:0.6,gravity:this.inWater?8:32});
+    this.physics(dt,{step:this.type==='spider'||this.type==='horse'?1.05:0.6,friction:0.6,gravity:this.inWater?8:32,airStep:!!this.moveDir});
     const hs=sqrt(this.vx*this.vx+this.vz*this.vz);this.walkAmp+=(Math.min(1,hs/2)-this.walkAmp)*Math.min(1,dt*8);this.walkT+=hs*dt*2.2;
     }
     if(this.type==='wolf'&&this.prey&&this.atkCd<=0){const o=this.prey;const od=Math.hypot(o.x-this.x,o.z-this.z);if(od<this.w/2+o.w/2+0.7&&abs(o.y-this.y)<2){this.atkCd=1;damageEntity(o,this.tamed?4:3,{x:this.x,y:this.y,z:this.z,type:'mob',mob:this});playSoundAt('wolf_growl',this.x,this.y,this.z,1,1.3);if(o.type==='sheep'||o.type==='wolf')o.panicT=2}}
