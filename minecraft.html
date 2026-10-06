@@ -2720,6 +2720,7 @@ function updatePlayer(dt){
     else if((hd&&hd.shield)||(shieldInHands()&&!(hd&&(hd.isBlock||hd.food||hd.potion||hd.splash||hd.plants||hd.placesLiquid||hd.spawnMob||hd.gun||hd.tool==='bow'||hd.tool==='trident')))){p.blocking=true}
     else{p.eating=0}
   } else {p.blocking=false;if(p.bowCharge>0){const hs0=heldStack();if(hs0&&ITEMS[hs0.id].tool==='trident')throwTrident();else shootBow();p.bowCharge=0}p.eating=0;p.gunHeld=false}
+  if(p.sneaking&&!p.riding&&shieldInHands()&&!p.eating&&!(p.bowCharge>0))p.blocking=true; // sneaking brings the shield up in front of you
   if(p.gunCd>0)p.gunCd-=dt;
 }
 function blockSoundUnder(){const id=world.getBlock(floor(player.x),floor(player.y-0.2),floor(player.z));return id?BLOCKS[id].sound:'stone'}
