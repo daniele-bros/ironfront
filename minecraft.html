@@ -655,7 +655,7 @@ defTex('skin_scales',p=>{for(let y=0;y<16;y+=2)for(let x=0;x<16;x+=2){const v=20
 defTex('skin_wool',p=>{p.noise(244,244,244,5);for(let i=0;i<9;i++){const cx=floor(p.rng()*16),cy=floor(p.rng()*16);p.blob(cx,cy,2,250,250,250);p.px(cx,cy,214,214,214)}p.speckle(10,220,220,220);shade(p,0.16)});
 defTex('skin_slime',p=>{p.noise(236,236,236,6);for(let i=0;i<6;i++)p.blob(floor(p.rng()*16),floor(p.rng()*16),1+p.rng(),252,252,252);p.speckle(6,210,210,210);shade(p,0.12)});
 defTex('skin_slick',p=>{p.noise(240,240,240,4);p.speckle(5,225,225,225);shade(p,0.3)});
-const MOB_SKIN_NAMES={piglin:'skin_pig',warden:'skin_hide',zombie:'skin_zombie',husk:'skin_zombie',zombified_piglin:'skin_zombie',skeleton:'skin_bone',stray:'skin_bone',wither_skeleton:'skin_bone',creeper:'skin_scales',spider:'skin_spider',cave_spider:'skin_spider',pig:'skin_pig',cow:'skin_cow',horse:'skin_cow',wolf:'skin_wolf',sheep:'skin_sheep',chicken:'skin_fur',villager:'skin_villager',witch:'skin_robe',pillager:'skin_villager',vindicator:'skin_villager',evoker:'skin_robe',vex:'skin_cloth',enderman:'skin_enderman',sift_acolyte:'skin_robe',hopling:'skin_hopling',sprig:'skin_hopling',thornback:'skin_wolf',ichor_mage:'skin_robe',crystal_golem:'skin_bone',slime:'skin_slime',guardian:'skin_scales',shulker:'skin_scales',stalker:'skin_hide',cartoon_cat:'skin_fur',breeze:'skin_slime',iron_golem:'skin_scales'};
+const MOB_SKIN_NAMES={piglin:'skin_pig',piglin_brute:'skin_pig',warden:'skin_hide',zombie:'skin_zombie',husk:'skin_zombie',zombified_piglin:'skin_zombie',skeleton:'skin_bone',stray:'skin_bone',wither_skeleton:'skin_bone',creeper:'skin_scales',spider:'skin_spider',cave_spider:'skin_spider',pig:'skin_pig',cow:'skin_cow',horse:'skin_cow',wolf:'skin_wolf',sheep:'skin_sheep',chicken:'skin_fur',villager:'skin_villager',witch:'skin_robe',pillager:'skin_villager',vindicator:'skin_villager',evoker:'skin_robe',vex:'skin_cloth',enderman:'skin_enderman',sift_acolyte:'skin_robe',hopling:'skin_hopling',sprig:'skin_hopling',thornback:'skin_wolf',ichor_mage:'skin_robe',crystal_golem:'skin_bone',slime:'skin_slime',guardian:'skin_scales',shulker:'skin_scales',stalker:'skin_hide',cartoon_cat:'skin_fur',breeze:'skin_slime',iron_golem:'skin_scales'};
 // mob faces
 defTex('pig_face',p=>{p.noise(240,170,170,6);p.rect(3,4,2,2,245,245,245);p.rect(11,4,2,2,245,245,245);p.px(4,4,30,30,50);p.px(4,5,30,30,50);p.px(11,4,30,30,50);p.px(11,5,30,30,50);p.rect(5,9,6,4,224,124,134);p.rect(5,9,6,1,236,150,158);p.rect(6,10,1,2,140,60,70);p.rect(9,10,1,2,140,60,70);p.rect(5,12,6,1,196,100,110)});
 defTex('cow_face',p=>{p.noise(120,80,55,6);p.rect(4,1,8,4,100,64,42);p.rect(3,5,2,2,245,245,245);p.rect(11,5,2,2,245,245,245);p.px(4,5,30,30,40);p.px(4,6,30,30,40);p.px(11,5,30,30,40);p.px(11,6,30,30,40);p.rect(4,10,8,5,232,226,220);p.rect(4,10,8,1,244,240,236);p.rect(6,12,1,2,190,150,150);p.rect(9,12,1,2,190,150,150);p.rect(2,8,12,1,96,62,40)});
@@ -755,6 +755,9 @@ defTex('end_bricks',p=>{p.noise(215,215,160,8);for(const y of [0,8])p.rect(0,y,1
 defTex('brew_side',p=>{p.noise(70,66,72,6);p.rect(7,2,2,12,40,38,44);p.rect(2,11,12,3,96,92,100);p.rect(3,4,2,6,120,40,40);p.rect(11,4,2,6,60,110,170);p.px(7,1,250,200,80);p.px(8,1,250,200,80)});
 defTex('brew_top',p=>{p.noise(96,92,100,6);p.rect(6,6,4,4,40,38,44);p.rect(2,2,3,3,120,40,40);p.rect(11,2,3,3,60,110,170);p.rect(2,11,3,3,110,60,150)});
 for(let st=0;st<4;st++)defTex('wart'+st,p=>{p.fill(0,0,0,0);const n=3+st*4;for(let k=0;k<n;k++){const x=2+((k*7+st*3)%12),y=12-((k*5)%(3+st*3));p.px(x,y,150+st*25,30,40);p.px(x,y+1,110+st*20,24,30);if(st>=2)p.px(x+1,y,200,60,70)}p.rect(0,15,16,1,60,30,30)});
+defTex('blackstone',p=>{p.noise(38,34,40,7);p.speckle(22,18,16,20);p.speckle(10,62,56,66);shade(p,0.15)});
+defTex('blackstone_bricks',p=>{p.noise(44,40,46,5);for(let y=0;y<16;y+=4){p.rect(0,y,16,1,22,20,24);const off=(y/4)%2?4:0;for(let x=off;x<16;x+=8)p.rect(x,y,1,4,22,20,24)}p.speckle(8,70,64,74)});
+defTex('gilded_blackstone',p=>{p.noise(40,36,42,7);p.speckle(20,20,18,18);for(let k=0;k<7;k++){const x=1+((k*5+3)%14),y=1+((k*7+2)%14);p.px(x,y,232,190,60);p.px(x+1,y,210,160,40);if(k%2)p.px(x,y+1,250,220,90)}});
 defTex('gateway',p=>{p.noise(8,4,14,6);p.speckle(24,120,60,200);p.speckle(12,40,220,180);p.rect(6,6,4,4,20,10,40)});
 defTex('beacon',p=>{p.noise(40,60,80,6);p.rect(2,2,12,12,170,240,255);p.rect(5,5,6,6,255,255,255);p.rect(0,13,16,3,60,60,70)});
 defTex('stalker_face',p=>{p.noise(225,222,210,5);p.rect(2,3,5,4,0,0,0);p.rect(9,3,5,4,0,0,0);p.rect(4,5,2,2,255,30,30);p.rect(11,5,2,2,255,30,30);p.rect(3,11,10,3,0,0,0);for(let i=0;i<10;i+=2)p.rect(3+i,11,1,1,225,222,210)});
@@ -946,6 +949,9 @@ defBlock(106,'end_rod',{tex:'end_rod',model:'rod',hard:0,light:14,transparent:tr
 defBlock(107,'shulker_box',{label:'Shellguard Box',tex:{side:'shulker_side',top:'shulker_top',bottom:'shulker_top'},hard:2,tool:'pickaxe',gui:'chest',transparent:true,stack:1,resist:6,drop:()=>[]});
 defBlock(138,'brewing_stand',{label:'Brewing Stand',tex:{side:'brew_side',top:'brew_top'},model:'table',hard:0.5,tool:'pickaxe',sound:'stone',transparent:true,gui:'brew'});
 defBlock(139,'nether_wart',{label:'Nether Wart',tex:'wart0',model:'crop',solid:false,opaque:false,transparent:true,hard:0,sound:'grass',crop:true,stages:4,wart:true,texFn:(m)=>TEX['wart'+Math.min(3,m&3)],drop:(r,t,m)=>[[477,(m&3)>=3?2+floor(r()*3):1]]});
+defBlock(140,'blackstone',{tex:'blackstone',hard:1.5,tool:'pickaxe',needsTool:true,resist:6,sound:'stone'});
+defBlock(141,'polished_blackstone_bricks',{label:'Polished Blackstone Bricks',tex:'blackstone_bricks',hard:1.5,tool:'pickaxe',needsTool:true,resist:6,sound:'stone'});
+defBlock(142,'gilded_blackstone',{label:'Gilded Blackstone',tex:'gilded_blackstone',hard:1.5,tool:'pickaxe',needsTool:true,resist:6,sound:'stone',drop:r=>r()<0.1?[[262,2+floor(r()*4)]]:[[142,1]]});
 defBlock(108,'end_gateway',{tex:'gateway',hard:-1,light:15,resist:3600000,drop:()=>[],stack:0,solid:false}); // you step into it, not onto it
 defBlock(109,'end_stone_bricks',{tex:'end_bricks',hard:3,tool:'pickaxe',needsTool:true,resist:9});
 defBlock(110,'purpur_pillar',{tex:{side:'purpur_pillar',top:'purpur'},hard:1.5,tool:'pickaxe',needsTool:true,resist:6});
@@ -2122,6 +2128,7 @@ const MOBDEF={
   skeleton:{hp:20,w:0.6,h:1.99,speed:3.4,dmg:3,undead:true,ranged:true,drops:r=>[[283,floor(r()*3)],[284,floor(r()*3)]],xp:[5,5],sound:'skeleton',follow:16},
   creeper:{hp:20,w:0.6,h:1.7,speed:3.5,dmg:0,drops:r=>[[285,floor(r()*3)]],xp:[5,5],sound:'creeper',follow:16},
   spider:{hp:16,w:1.4,h:0.9,speed:4.3,dmg:2,drops:r=>[[286,floor(r()*3)],[r()<0.33?287:0,1]],xp:[5,5],sound:'spider',follow:16,neutral:true,lightNeutral:true},
+  piglin_brute:{hp:50,w:0.6,h:2.0,speed:3.1,dmg:7,drops:r=>[[r()<0.3?262:0,1+floor(r()*2)]],xp:[20,20],sound:'pig',follow:26,fireproof:true,noBurn:true,noDespawn:true},
   piglin:{hp:16,w:0.6,h:1.95,speed:3.4,dmg:5,drops:r=>[[r()<0.1?262:0,1],[r()<0.3?284:0,1+floor(r()*2)]],xp:[5,5],sound:'pig',follow:20,neutral:true,goldNeutral:true,fireproof:true,noBurn:true},
   zombified_piglin:{hp:20,w:0.6,h:1.95,speed:3.6,dmg:5,drops:r=>[[282,floor(r()*2)],[r()<0.025?262:0,1]],xp:[5,5],sound:'zombie',follow:20,neutral:true,fireproof:true},
   horse:{hp:22,w:1.4,h:1.6,speed:1.7,passive:true,animal:true,food:[271,273,307,308],drops:r=>[[289,floor(r()*3)]],xp:[1,3],sound:'horse',noDespawn:true},
@@ -2152,10 +2159,10 @@ const MOBDEF={
   witch:{hp:26,w:0.6,h:1.95,speed:2.6,dmg:0,ranged:'potion',drops:r=>{const pool=[265,314,285,307,286,283];return [[pool[floor(r()*6)],1+floor(r()*2)],[pool[floor(r()*6)],floor(r()*2)]]},xp:[5,5],sound:'witch',follow:16},
   shulker:{hp:30,w:1,h:1,speed:0,dmg:0,ranged:'bullet',static:true,drops:r=>[[396,r()<0.5?1:0]],xp:[5,5],sound:'shulker',follow:16,noDespawn:true},
 };
-const EGG_COLORS={piglin:[[240,170,170],[250,210,70]],sift_acolyte:[[25,22,30],[215,30,50]],hopling:[[92,172,236],[40,70,160]],sprig:[[140,200,120],[244,150,170]],thornback:[[120,44,80],[250,220,60]],ichor_mage:[[30,120,112],[250,110,170]],crystal_golem:[[230,224,210],[220,80,120]],pig:[[240,160,170],[220,100,120]],cow:[[110,70,50],[230,225,220]],sheep:[[235,235,235],[240,180,180]],villager:[[120,90,60],[80,140,80]],chicken:[[240,240,240],[220,60,40]],zombie:[[60,130,60],[110,150,110]],skeleton:[[190,190,190],[90,90,90]],creeper:[[70,170,60],[20,20,20]],spider:[[50,45,45],[200,30,30]],zombified_piglin:[[220,140,140],[80,110,60]],horse:[[150,110,70],[230,220,200]],wolf:[[200,200,195],[210,150,110]],husk:[[150,130,85],[210,190,150]],stray:[[110,130,150],[210,220,230]],cave_spider:[[20,45,75],[180,40,40]],enderman:[[20,20,25],[200,80,255]],slime:[[110,200,90],[170,240,150]],witch:[[60,30,80],[90,170,60]],vindicator:[[130,135,140],[60,60,65]],guardian:[[90,160,150],[240,150,60]],pillager:[[110,110,115],[50,60,55]],evoker:[[70,70,80],[220,180,60]],blaze:[[240,180,40],[255,240,150]],vex:[[200,210,230],[60,90,150]],shulker:[[150,80,160],[210,200,90]]};
+const EGG_COLORS={piglin:[[240,170,170],[250,210,70]],piglin_brute:[[200,130,130],[60,40,40]],sift_acolyte:[[25,22,30],[215,30,50]],hopling:[[92,172,236],[40,70,160]],sprig:[[140,200,120],[244,150,170]],thornback:[[120,44,80],[250,220,60]],ichor_mage:[[30,120,112],[250,110,170]],crystal_golem:[[230,224,210],[220,80,120]],pig:[[240,160,170],[220,100,120]],cow:[[110,70,50],[230,225,220]],sheep:[[235,235,235],[240,180,180]],villager:[[120,90,60],[80,140,80]],chicken:[[240,240,240],[220,60,40]],zombie:[[60,130,60],[110,150,110]],skeleton:[[190,190,190],[90,90,90]],creeper:[[70,170,60],[20,20,20]],spider:[[50,45,45],[200,30,30]],zombified_piglin:[[220,140,140],[80,110,60]],horse:[[150,110,70],[230,220,200]],wolf:[[200,200,195],[210,150,110]],husk:[[150,130,85],[210,190,150]],stray:[[110,130,150],[210,220,230]],cave_spider:[[20,45,75],[180,40,40]],enderman:[[20,20,25],[200,80,255]],slime:[[110,200,90],[170,240,150]],witch:[[60,30,80],[90,170,60]],vindicator:[[130,135,140],[60,60,65]],guardian:[[90,160,150],[240,150,60]],pillager:[[110,110,115],[50,60,55]],evoker:[[70,70,80],[220,180,60]],blaze:[[240,180,40],[255,240,150]],vex:[[200,210,230],[60,90,150]],shulker:[[150,80,160],[210,200,90]]};
 const MOB_TYPES=Object.keys(MOBDEF);
 // Display names. Internal ids stay as they are; only what players read changes.
-const MOB_LABEL={piglin:'Piglin',sift_acolyte:'Sift Acolyte',hopling:'Hopling',sprig:'Sprig',thornback:'Thornback',ichor_mage:'Ichor Mage',crystal_golem:'Crystal Golem',zombie:'Rotter',skeleton:'Bonewalker',creeper:'Hisser',enderman:'Voidwalker',slime:'Ooze',witch:'Hexer',zombified_piglin:'Ashen Hog',pillager:'Raider',vindicator:'Axeman',evoker:'Fang Mage',vex:'Wisp',wither_skeleton:'Ashwalker',blaze:'Ember',guardian:'Deep Sentinel',husk:'Dune Rotter',stray:'Frost Bonewalker',shulker:'Shellguard',warden:'Dreadwarden',breeze:'Gale Sprite',iron_golem:'Iron Man',cave_spider:'Venom Spider',villager:'Villager',dragon:'Void Dragon',wither:'Skullbane'};
+const MOB_LABEL={piglin:'Piglin',piglin_brute:'Piglin Brute',sift_acolyte:'Sift Acolyte',hopling:'Hopling',sprig:'Sprig',thornback:'Thornback',ichor_mage:'Ichor Mage',crystal_golem:'Crystal Golem',zombie:'Rotter',skeleton:'Bonewalker',creeper:'Hisser',enderman:'Voidwalker',slime:'Ooze',witch:'Hexer',zombified_piglin:'Ashen Hog',pillager:'Raider',vindicator:'Axeman',evoker:'Fang Mage',vex:'Wisp',wither_skeleton:'Ashwalker',blaze:'Ember',guardian:'Deep Sentinel',husk:'Dune Rotter',stray:'Frost Bonewalker',shulker:'Shellguard',warden:'Dreadwarden',breeze:'Gale Sprite',iron_golem:'Iron Man',cave_spider:'Venom Spider',villager:'Villager',dragon:'Void Dragon',wither:'Skullbane'};
 function mobLabel(t){return MOB_LABEL[t]||label(t)}
 // typed names in commands: accept the display name, the old name, plurals and prefixes
 const MOB_BY_LABEL={};for(const k in MOB_LABEL)MOB_BY_LABEL[MOB_LABEL[k].toLowerCase().replace(/\s+/g,'_')]=k;MOB_BY_LABEL.void_dragon='dragon';MOB_BY_LABEL.skullbane='wither';
@@ -2402,15 +2409,15 @@ class Mob extends Entity{
       case 'chicken':{const c=[0.95,0.95,0.95];for(const [lx,sg] of [[-2,1],[2,-1]])part([lx-0.5,-5,-1.5,lx+0.5,0,1.5],0,5,0,swing*sg,0,0,W,[0.9,0.7,0.2]);
         part([-3,5,-4,3,11,4],0,0,0,0,0,0,N,c);part([-2,-2,-3,2,4,0],0,11,-3,hp,hy,0,face(TEX.chicken_face),c);part([-2,0,-5,2,2,-3],0,11,-3,hp,hy,0,W,[0.95,0.7,0.15]);part([-1,-2,-4,1,0,-3],0,11,-3,hp,hy,0,W,[0.8,0.15,0.15]);
         const fl=this.onGround?0:Math.sin(game.time*30)*0.8;part([-1,-4,-3,0,0,3],-3,11,0,0,0,fl,N,c);part([0,-4,-3,1,0,3],3,11,0,0,0,-fl,N,c);break}
-      case 'zombie':case 'skeleton':case 'zombified_piglin':case 'piglin':case 'husk':case 'stray':case 'wither_skeleton':{const ws=this.type==='wither_skeleton';const sk=this.type==="skeleton"||this.type==='stray'||ws;const st=this.type==='stray';const hu=this.type==='husk';const pig=this.type==='piglin';const pg=this.type==='zombified_piglin'||pig;
-        const skin=ws?[0.16,0.16,0.18]:st?[0.7,0.75,0.8]:sk?[0.8,0.8,0.8]:pig?[0.96,0.7,0.7]:pg?[0.9,0.6,0.6]:hu?[0.6,0.52,0.35]:[0.35,0.55,0.3];const shirt=st?[0.35,0.4,0.5]:sk?[0.75,0.75,0.75]:pig?[0.86,0.7,0.22]:pg?[0.55,0.35,0.4]:hu?[0.5,0.42,0.3]:[0.18,0.5,0.5];const pants=st?[0.4,0.45,0.55]:sk?[0.8,0.8,0.8]:pig?[0.36,0.26,0.3]:pg?[0.45,0.3,0.3]:hu?[0.42,0.35,0.28]:[0.25,0.28,0.55];const t=sk?1:2;
+      case 'zombie':case 'skeleton':case 'zombified_piglin':case 'piglin':case 'piglin_brute':case 'husk':case 'stray':case 'wither_skeleton':{const ws=this.type==='wither_skeleton';const sk=this.type==="skeleton"||this.type==='stray'||ws;const st=this.type==='stray';const hu=this.type==='husk';const brute=this.type==='piglin_brute';const pig=this.type==='piglin'||brute;const pg=this.type==='zombified_piglin'||pig;
+        const skin=ws?[0.16,0.16,0.18]:st?[0.7,0.75,0.8]:sk?[0.8,0.8,0.8]:pig?[0.96,0.7,0.7]:pg?[0.9,0.6,0.6]:hu?[0.6,0.52,0.35]:[0.35,0.55,0.3];const shirt=st?[0.35,0.4,0.5]:sk?[0.75,0.75,0.75]:brute?[0.3,0.2,0.22]:pig?[0.86,0.7,0.22]:pg?[0.55,0.35,0.4]:hu?[0.5,0.42,0.3]:[0.18,0.5,0.5];const pants=st?[0.4,0.45,0.55]:sk?[0.8,0.8,0.8]:brute?[0.22,0.16,0.18]:pig?[0.36,0.26,0.3]:pg?[0.45,0.3,0.3]:hu?[0.42,0.35,0.28]:[0.25,0.28,0.55];const t=sk?1:2;
         const faceTex=ws?TEX.wither_skeleton_face:st?TEX.stray_face:sk?TEX.skeleton_face:pg?TEX.pig_face:hu?TEX.husk_face:TEX.zombie_face;
         const zb=this.type==='zombie';const ptex=zb?TEX.zombie_pants:N,stex=zb?TEX.zombie_shirt:sk?TEX.skeleton_ribs:N;const pc=zb?[1,1,1]:pants,sc=ws?[0.2,0.2,0.22]:zb||sk?[1,1,1]:shirt;
         part([-t,-12,-t,t,0,t],-2,12,0,swing,0,0,ptex,pc);part([-t,-12,-t,t,0,t],2,12,0,-swing,0,0,ptex,pc);
         part([-4,12,-2,4,24,2],0,0,0,0,0,0,stex,sc);
         const armR=sk?PI/2-0.2:(this.barterT>0?PI/2+0.9:PI/2+Math.sin(game.time*2)*0.1);part([-t,-10,-t,t,2,t],-4-t+2,22,0,armR,sk?-0.4:0,0.1,N,sk?skin:shirt);part([-t,-10,-t,t,2,t],4+t-2,22,0,armR,sk?0.4:0,-0.1,N,sk?skin:shirt);
         part([-4,0,-4,4,8,4],0,24,0,hp,hy,0,face(faceTex),skin);
-        if(ws){part([-0.6,-9,-0.6,0.6,-2,0.6],4,22,-1.5,-0.5,0,0,W,[0.55,0.55,0.55]);part([-1.6,-2.5,-0.4,1.6,-1.5,0.4],4,22,-1.5,-0.5,0,0,W,[0.4,0.3,0.2])}else if(pig){if(this.barterT>0)part([-1.5,-11,-1.5,1.5,-8,1.5],4,22,0,armR,0,0,W,[0.95,0.8,0.25]);else part([-0.6,-9,-0.6,0.6,-2,0.6],4,22,-1.5,-0.5,0,0,W,[0.92,0.76,0.22])}else if(sk){part([-1,-2,-8,1,2,6],4,22,0,0,0,0,W,[0.5,0.35,0.2])}if(st){part([-4.5,4,-4.5,4.5,8.5,4.5],0,24,0,hp,hy,0,N,[0.3,0.35,0.45])}
+        if(ws){part([-0.6,-9,-0.6,0.6,-2,0.6],4,22,-1.5,-0.5,0,0,W,[0.55,0.55,0.55]);part([-1.6,-2.5,-0.4,1.6,-1.5,0.4],4,22,-1.5,-0.5,0,0,W,[0.4,0.3,0.2])}else if(brute){part([-0.6,-10,-0.6,0.6,0,0.6],4,22,-1.5,-0.5,0,0,W,[0.35,0.25,0.15]);part([-1,-11,-3,1,-7,0.5],4,22,-1.5,-0.5,0,0,W,[0.95,0.8,0.25])}else if(pig){if(this.barterT>0)part([-1.5,-11,-1.5,1.5,-8,1.5],4,22,0,armR,0,0,W,[0.95,0.8,0.25]);else part([-0.6,-9,-0.6,0.6,-2,0.6],4,22,-1.5,-0.5,0,0,W,[0.92,0.76,0.22])}else if(sk){part([-1,-2,-8,1,2,6],4,22,0,0,0,0,W,[0.5,0.35,0.2])}if(st){part([-4.5,4,-4.5,4.5,8.5,4.5],0,24,0,hp,hy,0,N,[0.3,0.35,0.45])}
         break}
       case 'creeper':{const f=this.swell>0?1+Math.sin(this.swell*25)*0.4+this.swell*0.3:1;const c=[f,f,f];const sc=TEX.creeper_skin;
         for(const [lx,lz,sg] of [[-2,-4,1],[2,-4,-1],[-2,4,-1],[2,4,1]])part([lx-2,-6,lz-2,lx+2,0,lz+2],0,6,0,swing*sg*0.7,0,0,sc,c);
@@ -2993,6 +3000,7 @@ const LOOT={
   ancient_city:[[379,1,1,22],[263,1,4,10],[308,1,2,7],[312,1,3,8],[266,2,6,8],[260,2,5,8],[264,2,6,6],[315,1,1,3],[I.diamond_leggings,1,1,2],[I.diamond_boots,1,1,2],[469,1,1,1]],
   vault:[[379,1,1,8],[263,1,4,10],[266,2,8,12],[260,2,6,10],[262,2,5,8],[308,1,2,6],[312,1,3,5],[315,1,1,3],[I.diamond_pickaxe,1,1,3],[I.diamond_sword,1,1,3],[I.diamond_chestplate,1,1,2],[284,8,20,10],[267,4,12,8]],
   vault_ominous:[[469,1,1,40],[379,1,2,12],[263,3,8,12],[266,5,12,10],[308,2,4,8],[376,1,2,4],[I.diamond_helmet,1,1,4],[I.diamond_leggings,1,1,4],[I.diamond_boots,1,1,4],[395,1,1,1]],
+  bastion:[[262,3,8,40],[24,1,2,10],[142,2,6,25],[375,1,2,8],[95,1,1,4],[263,1,2,6],[I.golden_helmet,1,1,8],[I.golden_chestplate,1,1,6],[I.golden_boots,1,1,8],[I.golden_sword,1,1,8],[I.golden_axe,1,1,8],[379,1,1,8],[31,2,5,15],[311,4,10,15],[480,1,3,10],[284,6,14,20],[286,2,6,15],[477,2,5,15]],
   fortress:[[477,2,6,25],[379,1,1,6],[263,1,3,5],[260,1,5,5],[262,1,3,15],[299,1,1,5],[31,2,4,5],[308,1,1,3],[311,2,6,10],[283,2,5,8]],
   hut:[[477,1,4,14],[283,2,5,10],[287,1,3,10],[286,1,4,10],[265,1,4,8],[285,1,3,8],[64,1,3,8],[65,1,3,8],[34,1,1,2]],
 };
@@ -3038,7 +3046,29 @@ Object.assign(World.prototype,{
     if((r=this.regionOrigin(cx,cz,9,106))&&r()<0.55)this.placeMineshaft(wx+8,wz+8,r);
     if(rng()<0.12)this.placeDungeon(wx+2+floor(rng()*12),8+floor(rng()*42),wz+2+floor(rng()*12),rng);
   },
-  placeNetherStructures(c,rng){const r=this.regionOrigin(c.cx,c.cz,14,107);if(r)this.placeFortress(c.cx*16+8,c.cz*16+8,r)},
+  placeNetherStructures(c,rng){const r=this.regionOrigin(c.cx,c.cz,14,107);if(r)this.placeFortress(c.cx*16+8,c.cz*16+8,r);const rb=this.regionOrigin(c.cx,c.cz,24,140);if(rb)this.placeBastion(c.cx*16+8,c.cz*16+8,rb)},
+  // Bastion remnant: a blackstone keep three floors high around a treasure pit full of gold, held by piglins and their brutes
+  placeBastion(x,z,rng,yAt){const y=yAt!==undefined?yAt:40+floor(rng()*20);const B=140,P=141,G=142,HW=10,FH=5,FL=3;const key='bs:'+(x>>4)+','+(z>>4);const spawnMobs=typeof Mob!=='undefined'&&(!this.populated.has(key)||this.forceMobs);this.populated.add(key);
+    const top=y+FL*FH;const wall=()=>rng()<0.12?G:rng()<0.3?B:P;
+    for(let dx=-HW;dx<=HW;dx++)for(let dz=-HW;dz<=HW;dz++){const edge=abs(dx)===HW||abs(dz)===HW;const pit=abs(dx)<=2&&abs(dz)<=2;
+      for(let dy=-1;dy<=FL*FH;dy++){const yy=y+dy;const floorLvl=dy%FH===0;let id=0;
+        if(dy===-1)id=P;else if(edge){const window=dy%FH>=2&&dy%FH<=3&&((dx+dz)&3)===0&&abs(dx)!==HW||false;id=(dy===FL*FH&&((dx+dz)&1))?0:(window?0:wall())}
+        else if(floorLvl&&dy>0&&!pit)id=(abs(dx)>=HW-1||abs(dz)>=HW-1||(abs(dx)<=3&&abs(dz)<=3)||((dx*7+dz*3)&7)!==0)?P:0; // floors with the odd hole to drop through
+        else if(dy===FL*FH&&!pit)id=P;
+        if(id||dy>=0)this.setGen(x+dx,yy,z+dz,id,0,false)}}
+    // treasure pit: gold and gilded blocks at the bottom, chests around the hoard
+    for(let dx=-2;dx<=2;dx++)for(let dz=-2;dz<=2;dz++){this.setGen(x+dx,y-1,z+dz,rng()<0.3?G:P,0,false);if(abs(dx)<=1&&abs(dz)<=1)this.setGen(x+dx,y,z+dz,rng()<0.6?24:G,0,false)}
+    this.setGen(x,y+1,z,24,0,false);
+    for(const [cx,cz,f] of [[-2,0,3],[2,0,1],[0,-2,2],[0,2,0]])this.setChest(x+cx,y+1,z+cz,f,'bastion',rng,4+floor(rng()*4));
+    for(let f=1;f<FL;f++)for(const [cx,cz,fc] of [[-HW+2,-HW+2,0],[HW-2,HW-2,2]])if(rng()<0.7)this.setChest(x+cx,y+f*FH+1,z+cz,fc,'bastion',rng,3+floor(rng()*3));
+    // gates on each side of the ground floor, pillars of gilded blackstone at the corners, lanterns
+    for(const [dx,dz] of [[HW,0],[-HW,0],[0,HW],[0,-HW]])for(let w=-1;w<=1;w++)for(let dy=0;dy<4;dy++)this.setGen(x+dx+(dz?w:0),y+dy,z+dz+(dx?w:0),0,0,false);
+    for(const [dx,dz] of [[-HW+1,-HW+1],[HW-1,-HW+1],[-HW+1,HW-1],[HW-1,HW-1]])for(let dy=0;dy<=FL*FH;dy++)this.setGen(x+dx,y+dy,z+dz,dy%FH===FH-1?G:B,0,false);
+    for(let f=0;f<FL;f++)for(const [dx,dz] of [[-4,-4],[4,4],[-4,4],[4,-4]])this.setGen(x+dx,y+f*FH+3,z+dz,53,0,false);
+    if(spawnMobs){const spots=[];for(let f=0;f<FL;f++)for(let k=0;k<3;k++)spots.push([x+(floor(rng()*(HW*2-6))-HW+3),y+f*FH+1,z+(floor(rng()*(HW*2-6))-HW+3)]);
+      for(const [mx,my,mz] of spots)entities.push(new Mob('piglin',mx+0.5,my+0.1,mz+0.5));
+      for(const [mx,mz] of [[-3,-3],[3,3],[3,-3]])entities.push(new Mob('piglin_brute',x+mx+0.5,y+1.1,z+mz+0.5));
+      entities.push(new Mob('piglin_brute',x+0.5,top+0.1,z+HW-3+0.5))}},
   /* ---- ancient city: a vast deepslate ruin in the deep dark, crawling with sculk, shriekers and one very light sleeper ---- */
   placeAncientCity(x,z,rng,yAt){const y=yAt!==undefined?yAt:12+floor(rng()*6);const D=116,B=117,S=118,K=119,E=120,L=121;const key='ac:'+(x>>4)+','+(z>>4);this.populated.add(key);const HW=30,HL=24,H=10;
     for(let dx=-HW;dx<=HW;dx++)for(let dz=-HL;dz<=HL;dz++){for(let dy=0;dy<H;dy++)this.setGen(x+dx,y+dy,z+dz,0,0,false);this.setGen(x+dx,y-1,z+dz,rng()<0.85?D:B,0,false);this.setGen(x+dx,y+H,z+dz,D,0,false);if(abs(dx)===HW||abs(dz)===HL)for(let dy=0;dy<H;dy++)this.setGen(x+dx,y+dy,z+dz,rng()<0.7?D:B,0,false)}
@@ -3612,7 +3642,7 @@ function shaped(p,k,out){RECIPES.push({p,k,out,shaped:true})}
 function shapeless(s,out){RECIPES.push({s,out,shaped:false})}
 shapeless([15],[5,4]);shapeless([44],[50,4]);shapeless([46],[51,4]);
 shaped(['#','#'],{'#':PLANKS},[256,4]);
-shaped(['#.#','.#.'],{'#':17},[474,3]);shaped(['#I#','###','.#.'],{'#':PLANKS,'I':260},[513,1]);shaped(['.R.','SSS'],{'R':390,'S':4},[138,1]);shapeless([313,391],[480,1]);shapeless([287,307,65],[481,1]);
+shaped(['#.#','.#.'],{'#':17},[474,3]);shaped(['##','##'],{'#':140},[141,4]);shaped(['#I#','###','.#.'],{'#':PLANKS,'I':260},[513,1]);shaped(['.R.','SSS'],{'R':390,'S':4},[138,1]);shapeless([313,391],[480,1]);shapeless([287,307,65],[481,1]);
 shaped(['##','##'],{'#':PLANKS},[34,1]);
 shaped(['c','|'],{c:[257,258],'|':256},[32,4]);
 shaped(['###','# #','###'],{'#':4},[37,1]);
@@ -4633,6 +4663,7 @@ const TP_STRUCT={
   end_portal:{size:40,salt:115,ok:()=>true,inside:r=>({dx:28,dz:2,y:20+floor(r()*8),yaw:-PI/2}),alias:['endportal','end','portal_room'],note:'The End portal frame is on the platform ahead: fill it with eyes of ender to open it'},
   mineshaft:{size:9,salt:106,ok:(m,r)=>r()<0.55,inside:r=>({dx:0,y:18+floor(r()*24)}),alias:['mine','mine_shaft']},
   fortress:{size:14,salt:107,ok:()=>true,nether:true,inside:r=>({dx:3,y:53+floor(r()*20)}),alias:['nether_fortress'],note:'Ember spawner is just west of you'},
+  bastion:{size:24,salt:140,ok:()=>true,nether:true,inside:r=>({dx:0,dz:7,y:40+floor(r()*20)+15+1}),alias:['bastion_remnant','piglin_bastion','brute'],note:'You are on the roof of the keep; the treasure pit is in the middle, guarded by Piglin Brutes'},
   ancient_city:{size:36,salt:118,ok:m=>m.height>SEA+4,inside:r=>({dx:0,y:12+floor(r()*6)}),alias:['ancient','ancientcity','deep_dark','deepdark'],note:'Sneak. Shriekers hear footsteps, and four shrieks wake the Dreadwarden'},
   trial_chamber:{size:28,salt:117,ok:m=>m.height>SEA,inside:r=>({dx:-5,y:22+floor(r()*10)}),alias:['trial','trials','trial_chambers','chamber','chambers'],note:'Trial spawners wake when you get close; beat one for a Trial Key and open the vault'},
   end_city:{size:3,salt:116,end:true,radius:60,alias:['endcity','city','end_ship'],note:'You are on top of the city tower; the End ship with the elytra is moored beside it',
@@ -4644,7 +4675,7 @@ const DIM_NAME={over:'Overworld',nether:'Nether',end:'End',sift:'Sift'};
 function goDim(key){if(key===world.dimKey)return;if(key==='over'){if(world.end)leaveEnd();else if(world.nether)switchDimension(false);else if(world.sift)travelSift(false);return}
   if(world.dimKey!=='over')goDim('over');
   if(key==='nether')switchDimension(false);else if(key==='end')enterEnd();else if(key==='sift')travelSift(false)}
-const TP_NETHER_RE=/^(nether|soul_|glowstone|quartz|ancient_debris|debris|magma|blaze|zombified_piglin|piglin|wither_skeleton|fortress)/;
+const TP_NETHER_RE=/^(nether|soul_|glowstone|quartz|ancient_debris|debris|magma|blaze|zombified_piglin|piglin|wither_skeleton|fortress|blackstone|polished_blackstone|gilded|bastion)/;
 const TP_SIFT_RE=/^(sift_ore|sift_grass|sift_soil|pale_log|white_leaves|weeping_foliage|ichor|carapace)/;
 const TP_END_RE=/^(end_stone|end_rod|purpur|chorus|shulker|dragon|ender_dragon|end_city|crystal|end_gateway|end_ship)/;
 function tpStructDef(name){if(TP_STRUCT[name])return TP_STRUCT[name];for(const k in TP_STRUCT){const d=TP_STRUCT[k];if((d.alias||[]).includes(name)||k.startsWith(name))return d}return null}
@@ -5031,7 +5062,7 @@ function tpMobType(n){if(n==='dragon'||n==='ender_dragon'||n==='enderdragon'||n=
 function tpBiomeId(n){if(n==='nether')return undefined;if(BI[n]!==undefined)return BI[n];const k=BIOMES.find(b=>b!==('nether')&&(b.startsWith(n)||n.startsWith(b)));return k===undefined?undefined:BI[k]}
 function findBiomeNear(bi,px,pz,maxR){const step=32;const hit=(x,z)=>world.columnInfo(x,z).biome===bi?{x,z}:null;let h=hit(floor(px),floor(pz));if(h)return h;
   for(let R=step;R<=maxR;R+=step){for(let t=-R;t<=R;t+=step){if((h=hit(floor(px)+t,floor(pz)-R))||(h=hit(floor(px)+t,floor(pz)+R))||(h=hit(floor(px)-R,floor(pz)+t))||(h=hit(floor(px)+R,floor(pz)+t)))return h}}return null}
-function tpToMob(t,say){const p=player;const need=t==='dragon'||t==='shulker'?'end':(t==='blaze'||t==='wither_skeleton'||t==='zombified_piglin'||t==='piglin')?'nether':(t==='hopling'||t==='sprig'||t==='thornback'||t==='ichor_mage'||t==='crystal_golem')?'sift':null;if(need)goDim(need);
+function tpToMob(t,say){const p=player;const need=t==='dragon'||t==='shulker'?'end':(t==='blaze'||t==='wither_skeleton'||t==='zombified_piglin'||t==='piglin'||t==='piglin_brute')?'nether':(t==='hopling'||t==='sprig'||t==='thornback'||t==='ichor_mage'||t==='crystal_golem')?'sift':null;if(need)goDim(need);
   const match=e=>!e.dead&&(t==='dragon'?e instanceof Dragon:t==='wither'?e instanceof Wither:(e instanceof Mob&&e.type===t));
   let best=null;const pick=()=>{for(const e of entities){if(!match(e))continue;const d=Math.hypot(e.x-p.x,e.z-p.z);if(!best||d<best.d)best={e,d}}};pick();
   if(!best){say('Looking further for a '+mobLabel(t)+'...');ensureChunks(p.x,p.z,4);pick()}
@@ -5081,6 +5112,7 @@ const SPAWN_STRUCT={ // name -> [label, build(x,y,z,rng)] with (x,y,z) the aimed
   stronghold:['Stronghold',(x,y,z,r)=>world.placeStronghold(x,z,r,y+1)],
   mineshaft:['Mineshaft',(x,y,z,r)=>world.placeMineshaft(x,z,r,y+1)],
   fortress:['Nether Fortress',(x,y,z,r)=>world.placeFortress(x,z,r,y+1)],
+  bastion:['Bastion Remnant',(x,y,z,r)=>world.placeBastion(x,z,r,y+1)],
   ancient_city:['Ancient City',(x,y,z,r)=>world.placeAncientCity(x,z,r,y+1)],
   trial_chamber:['Trial Chamber',(x,y,z,r)=>world.placeTrialChamber(x,z,r,y+1)],
   end_city:['End City',(x,y,z,r)=>world.placeEndCity(x,y+1,z,r)],
