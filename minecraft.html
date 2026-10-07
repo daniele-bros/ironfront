@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="ironcraft-build" content="20261007-004801">
+<meta name="ironcraft-build" content="20261007-005255">
 <meta name="viewport" content="width=device-width,initial-scale=1.0,viewport-fit=cover">
 <title>Ironcraft – Free Voxel Survival Sandbox in Your Browser | Iron Games</title>
 <meta name="description" content="Ironcraft is a free browser-based voxel survival sandbox with building, exploration, private or safety-limited public multiplayer, and optional weather, horror and survival challenges. By Daniele Bros.">
@@ -1038,6 +1038,7 @@ const BARTER=[[312,2,4,16],[390,1,2,12],[375,1,1,8],[376,1,1,2],[286,3,9,20],[31
 function pickBarter(){let tot=0;for(const b of BARTER)tot+=b[3];let r=Math.random()*tot;for(const b of BARTER){r-=b[3];if(r<=0){const id=b[0]==='fire_res'?POTION_IDS.fire_res:b[0]==='splash_fire_res'?SPLASH_IDS.fire_res:b[0];return {id,n:b[1]+floor(Math.random()*(b[2]-b[1]+1))}}}return {id:11,n:8}}
 function playerWearsGold(){return player.armor.some(s=>s&&ITEMS[s.id].mat==='gold')}{let pid=478,sid=501;for(const k in POTIONS){if(pid===480)pid=482;if(pid===490)pid=512;const d=POTIONS[k];defItem(pid,'potion_'+k,{icon:'potion_'+k,label:'Potion of '+d.label,stack:1,potion:k});POTION_IDS[k]=pid;pid++;defItem(sid,'splash_'+k,{icon:'splash_'+k,label:'Splash Potion of '+d.label,stack:1,splash:k});SPLASH_IDS[k]=sid;sid++}}
 defItem(513,'shield',{icon:'shield',label:'Shield',stack:1,dur:336,shield:true});
+const TIPPED_IDS={};{const kinds=['harming','poison','healing'];let tid=514;for(const k of kinds){defItem(tid,'tipped_arrow_'+k,{icon:'tipped_'+k,label:'Arrow of '+POTIONS[k].label,tipped:k});TIPPED_IDS[k]=tid++}}
 defItem(468,'trident',{icon:'trident',stack:1,dur:250,tool:'trident',dmg:9,atkSpd:1.1,mat:'diamond'});
 defItem(469,'heavy_core',{icon:'heavy_core',stack:64});
 defItem(470,'trial_key',{icon:'trial_key',stack:64});
@@ -1209,7 +1210,7 @@ function toolIcon(def){
   return [TPL[def.tool],{b:c,l:light,h:[140,100,50],g:[100,80,60]}];
 }
 function armorIcon(def){const c=ARMOR[def.mat].color;return [['helmet','chestplate','leggings','boots'][def.armor]?TPL[['helmet','chestplate','leggings','boots'][def.armor]]:TPL.helmet,{m:c}]}
-for(const k in POTIONS){ICONDEF['potion_'+k]=['bottle',{l:[200,220,230],f:POTIONS[k].col}];ICONDEF['splash_'+k]=['splash',{l:[200,220,230],f:POTIONS[k].col}]}
+for(const k in POTIONS){ICONDEF['potion_'+k]=['bottle',{l:[200,220,230],f:POTIONS[k].col}];ICONDEF['splash_'+k]=['splash',{l:[200,220,230],f:POTIONS[k].col}];if(TIPPED_IDS[k]){const c=POTIONS[k].col;ICONDEF['tipped_'+k]=['arrow',{w:c,l:[Math.min(255,c[0]+70),Math.min(255,c[1]+70),Math.min(255,c[2]+70)],s:[140,110,70],f:[230,230,230]}]}}
 const ICONS={};        // id -> dataURL (32x32 canvas)
 const ITEMTILE={};     // id -> index into item atlas (for 3d flat rendering)
 let itemAtlas=null;
@@ -2035,7 +2036,7 @@ class Arrow extends Entity{constructor(x,y,z,vx,vy,vz,owner,dmg){super(x,y,z);th
     const nx=this.x+this.vx*dt,ny=this.y+this.vy*dt,nz=this.z+this.vz*dt;
     // entity hit
     const targets=this.owner==='player'?entities.filter(e=>(e instanceof Mob||e.hittable)&&!e.dead):[player];
-    for(const t of targets){if(t.dead)continue;const w=t.w/2+0.1;const hit=segAABB(ox,oy,oz,nx,ny,nz,t.x-w,t.y-0.1,t.z-w,t.x+w,t.y+t.h+0.1,t.z+w);if(hit){if(this.onImpact){this.x=nx;this.y=ny;this.z=nz;this.onImpact(t);this.dead=true;return}if(this.bullet&&this.volley&&t.lastVolley===this.volley)t.invT=0;if(this.bullet)t.lastVolley=this.volley;if(damageEntity(t,this.dmg,{x:ox,y:oy,z:oz,type:'arrow',crit:this.crit,kb:this.kb||4})){if(this.trident){if(this.channeling&&game.wx&&game.wx.storm)lightningStrike(t.x,t.z);if(this.loyalty){this.returning=true;this.x=nx;this.y=ny;this.z=nz;playSound('arrowhit');return}else{this.x=nx;this.y=ny;this.z=nz;this.stuck=true;this.vx=this.vy=this.vz=0;playSound('arrowhit');return}}if(this.effect&&t===player)player.effects[this.effect]=Math.max(player.effects[this.effect]||0,this.effectT);if(this.flame&&t!==player)t.fireT=Math.max(t.fireT||0,5)}this.dead=true;playSound('arrowhit');return}}
+    for(const t of targets){if(t.dead)continue;const w=t.w/2+0.1;const hit=segAABB(ox,oy,oz,nx,ny,nz,t.x-w,t.y-0.1,t.z-w,t.x+w,t.y+t.h+0.1,t.z+w);if(hit){if(this.onImpact){this.x=nx;this.y=ny;this.z=nz;this.onImpact(t);this.dead=true;return}if(this.bullet&&this.volley&&t.lastVolley===this.volley)t.invT=0;if(this.bullet)t.lastVolley=this.volley;if(damageEntity(t,this.dmg,{x:ox,y:oy,z:oz,type:'arrow',crit:this.crit,kb:this.kb||4})){if(this.trident){if(this.channeling&&game.wx&&game.wx.storm)lightningStrike(t.x,t.z);if(this.loyalty){this.returning=true;this.x=nx;this.y=ny;this.z=nz;playSound('arrowhit');return}else{this.x=nx;this.y=ny;this.z=nz;this.stuck=true;this.vx=this.vy=this.vz=0;playSound('arrowhit');return}}if(this.effect&&t===player)player.effects[this.effect]=Math.max(player.effects[this.effect]||0,this.effectT);if(this.tipped&&t!==player)applyPotion(this.tipped,1,false,t);if(this.flame&&t!==player)t.fireT=Math.max(t.fireT||0,5)}this.dead=true;playSound('arrowhit');return}}
     // block hit
     const segLen=sqrt((nx-ox)**2+(ny-oy)**2+(nz-oz)**2);const bh=raycast(ox,oy,oz,nx-ox,ny-oy,nz-oz,segLen,false);
     if(bh&&bh.block&&this.onImpact){this.x=bh.x;this.y=bh.y;this.z=bh.z;this.onImpact(null);this.dead=true;return}
@@ -2742,7 +2743,7 @@ function updatePlayer(dt){
   // ---- using (hold) ----
   if(mouseR&&!guiOpen){const st=heldStack();const hd=st?ITEMS[st.id]:null;
     if(hd&&(hd.food||hd.potion)&&(p.hunger<20||creative||hd.golden||hd.potion)){p.eating+=dt;if(Math.random()<dt*8)playSound('eat',0.4);if(p.eating>=1.6){eatFood(st,hd);p.eating=0}}
-    else if(hd&&hd.tool==='bow'){if(creative||hasItem(284)){p.bowCharge+=dt}}
+    else if(hd&&hd.tool==='bow'){if(hasArrow()){p.bowCharge+=dt}}
     else if(hd&&hd.tool==='trident'){p.bowCharge+=dt}
     else if(hd&&hd.gun){fireGun(st,hd,dt)}
     else if((hd&&hd.shield)||(shieldInHands()&&!(hd&&(hd.isBlock||hd.food||hd.potion||hd.splash||hd.plants||hd.placesLiquid||hd.spawnMob||hd.gun||hd.tool==='bow'||hd.tool==='trident')))){p.blocking=true}
@@ -2802,10 +2803,12 @@ function tickBrew(be,x,y,z,dt){
 function updateBrewGui(){const g=game.gui;if(!g||g.type!=='brew')return;const be=g.be;$('brewArrow').firstChild.style.width=(be.brew/BREW_TIME*26)+'px';$('brewFuel').textContent=be.fuel>0?'Fuel: '+be.fuel+' brews':'Add Ember Powder for fuel'}
 function hasItem(id){return player.mode==='creative'||player.inv.some(s=>s&&s.id===id)}
 function removeItem(id,n){for(let i=0;i<36&&n>0;i++){const s=player.inv[i];if(s&&s.id===id){const k=Math.min(n,s.count);s.count-=k;n-=k;if(s.count<=0)player.inv[i]=null}}updateHotbar()}
+function findArrow(){const p=player;const isA=st=>st&&(st.id===284||ITEMS[st.id].tipped);if(isA(p.off[0]))return {stack:p.off[0],off:true};for(let i=0;i<36;i++)if(isA(p.inv[i]))return {stack:p.inv[i],i};return null}
+function hasArrow(){return player.mode==='creative'||!!findArrow()}
 function shootBow(){const p=player;const c=Math.min(1,p.bowCharge/1);if(p.bowCharge<0.15)return;const f=(c*c+c*2)/3;const sp=f*55;const e=[p.x,p.y+p.eyeHeight,p.z];const d=eyeDir();
   const st=heldStack();let dmg=Math.ceil(f*f*7+(f>=1&&Math.random()<0.25?3:0))+1;const pw=enchLevel(st,'power');if(pw)dmg=Math.ceil(dmg*(1+0.25*(pw+1)));
-  if(p.mode!=='creative'&&!enchLevel(st,'infinity'))removeItem(284,1);if(st&&st.id===301)damageItem(st,1);
-  const ar=new Arrow(e[0]+d[0]*0.5,e[1]+d[1]*0.5-0.1,e[2]+d[2]*0.5,d[0]*sp,d[1]*sp,d[2]*sp,'player',dmg);ar.kb=4+enchLevel(st,'punch')*4;if(enchLevel(st,'flame'))ar.flame=true;entities.push(ar);playSound('bow');p.exh+=0.1}
+  const am=findArrow();const tipped=am?ITEMS[am.stack.id].tipped||null:null;if(p.mode!=='creative'&&am&&(tipped||!enchLevel(st,'infinity'))){am.stack.count--;if(am.stack.count<=0){if(am.off)p.off[0]=null;else p.inv[am.i]=null}updateHotbar()}if(st&&st.id===301)damageItem(st,1);
+  const ar=new Arrow(e[0]+d[0]*0.5,e[1]+d[1]*0.5-0.1,e[2]+d[2]*0.5,d[0]*sp,d[1]*sp,d[2]*sp,'player',dmg);ar.tipped=tipped;ar.kb=4+enchLevel(st,'punch')*4;if(enchLevel(st,'flame'))ar.flame=true;entities.push(ar);playSound('bow');p.exh+=0.1}
 function fireGun(st,hd){const p=player;const g=hd.gun;if(p.gunCd>0)return;if(!g.auto&&p.gunHeld)return;
   if(p.mode!=='creative'&&!hasItem(g.ammo)){if(!p.gunHeld){showMessage('Out of '+ITEMS[g.ammo].label+'s');playSound('pop',0.4,0.5)}p.gunHeld=true;return}
   p.gunHeld=true;p.gunCd=g.rate;if(p.mode!=='creative')removeItem(g.ammo,1);damageItem(st,1);const volley=(game.volley=(game.volley||0)+1);
@@ -3661,7 +3664,7 @@ function shaped(p,k,out){RECIPES.push({p,k,out,shaped:true})}
 function shapeless(s,out){RECIPES.push({s,out,shaped:false})}
 shapeless([15],[5,4]);shapeless([44],[50,4]);shapeless([46],[51,4]);
 shaped(['#','#'],{'#':PLANKS},[256,4]);
-shaped(['#.#','.#.'],{'#':17},[474,3]);shapeless([94],[307,1]);shaped(['##','##'],{'#':314},[53,1]);shaped(['###'],{'#':94},[I.paper||315,3]);shaped(['##','##'],{'#':140},[141,4]);shaped(['#I#','###','.#.'],{'#':PLANKS,'I':260},[513,1]);shaped(['.R.','SSS'],{'R':390,'S':4},[138,1]);shapeless([313,391],[480,1]);shapeless([287,307,65],[481,1]);
+shaped(['#.#','.#.'],{'#':17},[474,3]);shapeless([94],[307,1]);for(const k in TIPPED_IDS)shaped(['AAA','ASA','AAA'],{A:284,S:SPLASH_IDS[k]},[TIPPED_IDS[k],8]);shaped(['##','##'],{'#':314},[53,1]);shaped(['###'],{'#':94},[I.paper||315,3]);shaped(['##','##'],{'#':140},[141,4]);shaped(['#I#','###','.#.'],{'#':PLANKS,'I':260},[513,1]);shaped(['.R.','SSS'],{'R':390,'S':4},[138,1]);shapeless([313,391],[480,1]);shapeless([287,307,65],[481,1]);
 shaped(['##','##'],{'#':PLANKS},[34,1]);
 shaped(['c','|'],{c:[257,258],'|':256},[32,4]);
 shaped(['###','# #','###'],{'#':4},[37,1]);
