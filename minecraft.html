@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="ironcraft-build" content="20261007-130652">
+<meta name="ironcraft-build" content="20261007-160205">
 <meta name="viewport" content="width=device-width,initial-scale=1.0,viewport-fit=cover">
 <title>Ironcraft – Free Voxel Survival Sandbox in Your Browser | Iron Games</title>
 <meta name="description" content="Ironcraft is a free browser-based voxel survival sandbox with building, exploration, private or safety-limited public multiplayer, and optional weather, horror and survival challenges. By Daniele Bros.">
@@ -5152,6 +5152,62 @@ function tpNamed(name,say){const p=player;const n=name.toLowerCase().replace(/[\
     const lab=BLOCKS[id].label;startBlockSearch(id,lab,hit=>{landBeside(hit.x,hit.y,hit.z);finishTp(showMessage,lab+' is right in front of you')});return true}
   return false}
 /* ---- spawn any structure at the crosshair: /spawn village, /build mansion, /place stronghold ... ---- */
+/* ---- player bases: /build base house, /build base bunker ---- */
+// Empty furnished homes for the player: no loot, no residents. Chests start empty (an empty chest needs no block entity).
+function baseFill(x0,y0,z0,x1,y1,z1,id,meta){world.fill(x0,y0,z0,x1,y1,z1,id,meta||0)}
+function baseSet(x,y,z,id,meta){world.setGen(x,y,z,id,meta||0,false)}
+function baseFoundation(x0,z0,x1,z1,fy,id){ // fill the gap between the floor and whatever ground is under it so the build never floats
+  for(let x=x0;x<=x1;x++)for(let z=z0;z<=z1;z++)for(let yy=fy-1;yy>=fy-8;yy--){const b=world.getBlock(x,yy,z);if(b!==0&&BLOCKS[b].solid&&!BLOCKS[b].plant&&!BLOCKS[b].leaves&&!BLOCKS[b].log&&b!==8&&b!==9)break;baseSet(x,yy,z,id)}}
+function buildBaseHouse(x,y,z){ // two-storey oak house, 9x9, door on the south side
+  const fy=y+1;const H=8;
+  baseFoundation(x-4,z-4,x+4,z+4,fy,4);
+  baseFill(x-5,fy,z-5,x+5,fy+H+1,z+5,0); // clear the site (plus a one block margin)
+  baseFill(x-4,fy,z-4,x+4,fy,z+4,4); // cobblestone ground floor
+  baseFill(x-4,fy+1,z-4,x+4,fy+H,z+4,5); // solid plank box
+  baseFill(x-3,fy+1,z-3,x+3,fy+3,z+3,0); // ground floor room
+  baseFill(x-4,fy+4,z-4,x+4,fy+4,z+4,5); // upper floor
+  baseFill(x-3,fy+5,z-3,x+3,fy+7,z+3,0); // upstairs room
+  for(const [cx,cz] of [[-4,-4],[4,-4],[-4,4],[4,4]])baseFill(x+cx,fy+1,z+cz,x+cx,fy+H,z+cz,15); // log corner posts
+  for(const yy of [fy+2,fy+6])for(const o of [-2,2]){baseSet(x+o,yy,z-4,17);baseSet(x+o,yy,z+4,17);baseSet(x-4,yy,z+o,17);baseSet(x+4,yy,z+o,17)} // windows
+  baseSet(x,fy+6,z+4,17);baseSet(x,fy+2,z-4,17);baseSet(x,fy+6,z-4,17);
+  baseFill(x-5,fy+H,z-5,x+5,fy+H,z+5,55); // slab eaves
+  baseFill(x-4,fy+H,z-4,x+4,fy+H,z+4,5); // roof
+  baseSet(x,fy+1,z+4,54,2);baseSet(x,fy+2,z+4,54,2|8);baseSet(x,fy,z+5,55); // door and a half step up to it
+  for(let dx=-2;dx<=2;dx++)for(let dz=5;dz<=8;dz++)for(let yy=fy;yy<=fy+7;yy++){const b=world.getBlock(x+dx,yy,z+dz);if(b!==0&&(BLOCKS[b].plant||BLOCKS[b].log||BLOCKS[b].leaves))baseSet(x+dx,yy,z+dz,0)} // no tree in front of the door
+  // ground floor: crafting table, furnace, two empty chests, torches
+  baseSet(x-3,fy+1,z-3,34);baseSet(x-2,fy+1,z-3,37,0);baseSet(x+1,fy+1,z-3,39,0);baseSet(x+2,fy+1,z-3,39,0);
+  baseSet(x-3,fy+1,z+3,32);baseSet(x+3,fy+1,z+3,32);baseSet(x+3,fy+1,z-3,32);baseSet(x-3,fy+2,z-3,32);
+  // staircase along the east wall climbing north to south, with the floor above opened up
+  baseFill(x+3,fy+4,z-1,x+3,fy+4,z+1,0);
+  for(let i=0;i<4;i++){baseSet(x+3,fy+1+i,z-1+i,58,0);for(let yy=fy+1;yy<fy+1+i;yy++)baseSet(x+3,yy,z-1+i,5)}
+  baseFill(x+2,fy+5,z-1,x+2,fy+5,z+2,61);baseSet(x+3,fy+5,z-2,61); // railing round the stair hole
+  // upstairs: bed, two more empty chests, bookshelf, torches
+  baseSet(x-3,fy+5,z-3,62,0);baseSet(x-3,fy+5,z-2,62,4);
+  baseSet(x-1,fy+5,z-3,39,0);baseSet(x,fy+5,z-3,39,0);baseSet(x+1,fy+5,z-3,29);
+  baseSet(x-3,fy+5,z+3,32);baseSet(x+3,fy+5,z+3,32);baseSet(x-3,fy+6,z-3,32)}
+function buildBaseBunker(x,y,z){ // two floors of stone brick buried under the aimed block, reached by a ladder from a small pillbox
+  const lx=x,lz=z-4; // ladder column, against the north wall
+  baseFill(x-5,y-8,z-5,x+5,y,z+5,52); // shell
+  baseFill(x-4,y-7,z-4,x+4,y-5,z+4,0); // lower room
+  baseFill(x-4,y-3,z-4,x+4,y-1,z+4,0); // upper room (floor between them stays at y-4)
+  baseFill(x-5,y-8,z-5,x+5,y-8,z+5,31); // obsidian base plate
+  for(const [cx,cz] of [[-5,-5],[5,-5],[-5,5],[5,5]])baseFill(x+cx,y-8,z+cz,x+cx,y,z+cz,25); // iron corner pillars
+  for(const yy of [y,y-4])for(const [gx,gz] of [[-2,-2],[2,-2],[-2,2],[2,2],[0,0]])baseSet(x+gx,yy,z+gz,53); // glowstone set into both ceilings
+  // pillbox on the surface over the ladder, door facing south
+  baseFoundation(lx-1,lz-1,lx+1,lz+1,y+1,4);
+  baseFill(lx-2,y+1,lz-2,lx+2,y+5,lz+2,0);baseFill(lx-1,y+1,lz-1,lx+1,y+4,lz+1,4);baseFill(lx-1,y+4,lz-1,lx+1,y+4,lz+1,56);baseSet(lx,y+1,lz,0);baseSet(lx,y+2,lz,0);baseSet(lx,y+3,lz,0);
+  baseSet(lx,y+1,lz+1,54,2);baseSet(lx,y+2,lz+1,54,2|8);baseSet(lx-1,y+2,lz,17);baseSet(lx+1,y+2,lz,17);baseSet(lx,y+2,lz-1,17);
+  // ladder shaft from the pillbox down through both floors
+  for(let yy=y-7;yy<=y+3;yy++)baseSet(lx,yy,lz,38,0);
+  baseSet(lx,y+4,lz,4);
+  // upper floor: crafting table, furnace, two empty chests, torches
+  baseSet(x-3,y-3,z-4,34);baseSet(x-4,y-3,z-4,37,0);baseSet(x+3,y-3,z-4,39,0);baseSet(x+4,y-3,z-4,39,0);
+  baseSet(x-4,y-3,z+4,32);baseSet(x+4,y-3,z+4,32);
+  // lower floor: bed, two more empty chests, bookshelves, torches
+  baseSet(x-3,y-7,z+2,62,0);baseSet(x-3,y-7,z+3,62,4);
+  baseSet(x+3,y-7,z+4,39,2);baseSet(x+4,y-7,z+4,39,2);baseSet(x+4,y-7,z-4,34);
+  baseFill(x-4,y-7,z-4,x-4,y-6,z-2,29);
+  baseSet(x-4,y-7,z+4,32);baseSet(x+4,y-7,z-2,32)}
 const SPAWN_STRUCT={ // name -> [label, build(x,y,z,rng)] with (x,y,z) the aimed block; structures stand on y+1 (underground ones are carved around y)
   village:['Village',(x,y,z,r)=>world.placeVillage(x,z,midAt(x,z,y),r)],
   temple:['Desert Temple',(x,y,z,r)=>world.placeDesertTemple(x,z,r)],
@@ -5171,8 +5227,10 @@ const SPAWN_STRUCT={ // name -> [label, build(x,y,z,rng)] with (x,y,z) the aimed
   ancient_city:['Ancient City',(x,y,z,r)=>world.placeAncientCity(x,z,r,y+1)],
   trial_chamber:['Trial Chamber',(x,y,z,r)=>world.placeTrialChamber(x,z,r,y+1)],
   end_city:['End City',(x,y,z,r)=>world.placeEndCity(x,y+1,z,r)],
-  dungeon:['Dungeon',(x,y,z,r)=>world.placeDungeon(x,y+1,z,r)]};
-const SPAWN_STRUCT_ALIAS={desert_temple:'temple',pyramid:'temple',sifttemple:'sift_temple',sift_portal:'sift_temple',swamp_hut:'hut',witch_hut:'hut',witch:'hut',ruined_portal:'portal',woodland_mansion:'mansion',pillager_outpost:'outpost',raider_outpost:'outpost',tower:'outpost',ocean_monument:'monument',ship:'shipwreck',wreck:'shipwreck',jungletemple:'jungle_temple',end_portal:'stronghold',mine:'mineshaft',nether_fortress:'fortress',city:'ancient_city',chamber:'trial_chamber',trial:'trial_chamber',endcity:'end_city',end_ship:'end_city',spawner:'dungeon',monster_room:'dungeon'};
+  dungeon:['Dungeon',(x,y,z,r)=>world.placeDungeon(x,y+1,z,r)],
+  base_house:['Base House',(x,y,z,r)=>buildBaseHouse(x,y,z)],
+  base_bunker:['Base Bunker',(x,y,z,r)=>buildBaseBunker(x,y,z)]};
+const SPAWN_STRUCT_ALIAS={desert_temple:'temple',pyramid:'temple',sifttemple:'sift_temple',sift_portal:'sift_temple',swamp_hut:'hut',witch_hut:'hut',witch:'hut',ruined_portal:'portal',woodland_mansion:'mansion',pillager_outpost:'outpost',raider_outpost:'outpost',tower:'outpost',ocean_monument:'monument',ship:'shipwreck',wreck:'shipwreck',jungletemple:'jungle_temple',end_portal:'stronghold',mine:'mineshaft',nether_fortress:'fortress',city:'ancient_city',chamber:'trial_chamber',trial:'trial_chamber',endcity:'end_city',end_ship:'end_city',spawner:'dungeon',monster_room:'dungeon',house:'base_house',home:'base_house',base:'base_house',bace:'base_house',bace_house:'base_house',base_home:'base_house',bunker:'base_bunker',bace_bunker:'base_bunker',base_bunkr:'base_bunker'};
 function midAt(x,z,y){const m=Object.assign({},world.sift?world.siftInfo(x,z):world.columnInfo(x,z));m.height=y;return m}
 function structKeyFromName(n){n=String(n||'').toLowerCase().replace(/[\s-]+/g,'_');if(SPAWN_STRUCT[n])return n;if(SPAWN_STRUCT_ALIAS[n])return SPAWN_STRUCT_ALIAS[n];for(const k in SPAWN_STRUCT)if(n.length>=3&&k.startsWith(n))return k;return null}
 function spawnStructureAt(name,say){const key=structKeyFromName(name);if(!key)return false;const p=player;
