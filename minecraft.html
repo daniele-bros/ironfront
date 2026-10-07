@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="ironcraft-build" content="20261006-235534">
+<meta name="ironcraft-build" content="20261007-004801">
 <meta name="viewport" content="width=device-width,initial-scale=1.0,viewport-fit=cover">
 <title>Ironcraft – Free Voxel Survival Sandbox in Your Browser | Iron Games</title>
 <meta name="description" content="Ironcraft is a free browser-based voxel survival sandbox with building, exploration, private or safety-limited public multiplayer, and optional weather, horror and survival challenges. By Daniele Bros.">
@@ -3828,6 +3828,7 @@ function guideEntries(){const out=[];const seen=new Set();
   for(const r of RECIPES){if(r.guns&&!(game.mods&&game.mods.guns))continue;if(!ITEMS[r.out[0]]||ITEMS[r.out[0]].hidden)continue;const key='c'+r.out[0]+'_'+(r.shaped?r.p.join(''):r.s.join(''));if(seen.has(key))continue;seen.add(key);out.push({key,kind:'craft',out:r.out[0],n:r.out[1],r,cat:guideCategory(r.out[0]),name:ITEMS[r.out[0]].label})}
   for(const d of ITEMS){if(!d||d.smelt===undefined||!ITEMS[d.smelt])continue;out.push({key:'s'+d.id,kind:'smelt',out:d.smelt,n:1,inp:d.id,cat:'smelt',name:ITEMS[d.smelt].label})}
   for(const k in POTIONS){const d=POTIONS[k];if(d.ingr===null)continue;out.push({key:'b'+k,kind:'brew',out:POTION_IDS[k],n:1,base:476,ingr:d.ingr,cat:'brew',name:ITEMS[POTION_IDS[k]].label})}
+  for(const k in POTIONS)out.push({key:'bs'+k,kind:'brew',out:SPLASH_IDS[k],n:1,base:POTION_IDS[k],ingr:285,cat:'brew',name:ITEMS[SPLASH_IDS[k]].label});
   out.push({key:'bawk',kind:'brew',out:476,n:1,base:475,ingr:477,cat:'brew',name:'Awkward Potion'});out.push({key:'binv',kind:'brew',out:POTION_IDS.invisibility,n:1,base:POTION_IDS.night_vision,ingr:481,cat:'brew',name:ITEMS[POTION_IDS.invisibility].label});
   return out}
 function renderGuide(){const list=$('guideList');if(!list)return;const q=($('guideSearch').value||'').trim().toLowerCase();const cat=$('guideCat').value;const counts={};for(const s of player.inv)if(s)counts[s.id]=(counts[s.id]||0)+s.count;
@@ -3846,7 +3847,7 @@ function showGuideDetail(e,counts){const d=$('guideDetail');const cell=(id,title
     html+='<div class="rgrid">'+grid+'</div><div style="margin:2px 0 4px">'+(r.shaped?'Place exactly like this':'Any arrangement')+(big?' on a <b>crafting table</b>':' (fits the 2×2 grid in your inventory)')+'</div><ul>';
     for(const nm in needs){const x=needs[nm];const have=x.opts.reduce((a,id)=>a+(counts[id]||0),0);html+='<li><div class="icon" style="background-image:url('+ICONS[x.id]+')"></div><span>'+x.n+' × '+nm+'</span><span class="'+(have>=x.n?'ok':'miss')+'" style="margin-left:auto">'+(have>=x.n?'✓':'have '+have)+'</span></li>'}html+='</ul>'}
   else if(e.kind==='smelt'){html+='<div class="rgrid" style="grid-template-columns:26px 26px 26px;align-items:center">'+cell(e.inp)+'<div style="text-align:center;font-size:14px">→</div>'+cell(e.out)+'</div><div>Put <b>'+ITEMS[e.inp].label+'</b> in a <b>furnace</b> with any fuel (coal, planks, logs...). Each one takes 10 seconds.</div>'}
-  else{html+='<div class="rgrid" style="grid-template-columns:26px 26px 26px;align-items:center">'+cell(e.base)+'<div style="text-align:center;font-size:14px">+</div>'+cell(e.ingr)+'</div><div>In a <b>brewing stand</b> with Ember Powder as fuel: put <b>'+ITEMS[e.base].label+(e.base===475?'s':'')+'</b> in the bottle slots and <b>'+ITEMS[e.ingr].label+'</b> in the top slot.'+(e.base===476?' Then: Redstone = longer, Glowstone Dust = stronger, Gunpowder = splash potion.':'')+'</div>'}
+  else{html+='<div class="rgrid" style="grid-template-columns:26px 26px 26px;align-items:center">'+cell(e.base)+'<div style="text-align:center;font-size:14px">+</div>'+cell(e.ingr)+'</div><div>In a <b>brewing stand</b> with Ember Powder as fuel: put <b>'+ITEMS[e.base].label+(e.base===475?'s':'')+'</b> in the bottle slots and <b>'+ITEMS[e.ingr].label+'</b> in the top slot.'+(e.base===476?' Then: Redstone = longer, Glowstone Dust = stronger, Gunpowder = splash potion.':e.ingr===285?' Throw the splash potion: everyone within 3.5 blocks gets the effect, mobs included.':'')+'</div>'}
   d.innerHTML=html}
 function renderRecipeBook(){const rb=$('rbook');rb.innerHTML='<div class="hint" style="margin:0 0 4px">Recipe book — click a recipe to see what it needs</div><div id="rdetail" class="rdetail" style="display:none"></div>';const counts={};for(const s of player.inv)if(s)counts[s.id]=(counts[s.id]||0)+s.count;const countsAll=Object.assign({},counts);for(const s of craft3)if(s)countsAll[s.id]=(countsAll[s.id]||0)+s.count;
   const seen=new Set();
