@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="ironcraft-build" content="20261008-140632">
+<meta name="ironcraft-build" content="20261008-142142">
 <meta name="viewport" content="width=device-width,initial-scale=1.0,viewport-fit=cover">
 <title>Ironcraft – Free Voxel Survival Sandbox in Your Browser | Iron Games</title>
 <meta name="description" content="Ironcraft is a free browser-based voxel survival sandbox with building, exploration, private or safety-limited public multiplayer, and optional weather, horror and survival challenges. By Daniele Bros.">
@@ -3558,11 +3558,12 @@ class Crystal extends Entity{constructor(x,y,z){super(x,y,z);this.w=2;this.h=2;t
     EB.box(tf,-0.8,-0.8,-0.8,0.8,0.8,0.8,TEX.crystal,[1,1,1],l,true);EB.box(tf2,-0.55,-0.55,-0.55,0.55,0.55,0.55,TEX.crystal,[0.7,0.5,1],l,true);EB.box((x,y,z)=>[this.x+x,this.y+y,this.z+z],-1,0,-1,1,0.2,1,TEX.bedrock,[1,1,1],l,false)}}
 /* ---- the ender dragon ---- */
 /* dragon's breath: a lingering purple cloud that poisons whoever stands in it. The dragon never bites or rams, it only sprays. */
+function breathBlocked(x0,y0,z0,x1,y1,z1){const dx=x1-x0,dy=y1-y0,dz=z1-z0;const d=Math.hypot(dx,dy,dz);if(d<0.01)return false;const h=raycast(x0,y0,z0,dx,dy,dz,d,false);return !!h}
 function endPoison(p){if(p.dead||p.mode==='creative')return;p.effects.poison=Math.max(p.effects.poison||0,5);damageEntity(p,[1,1,2][Math.max(0,Math.min(2,game.difficulty-1))],{type:'breath'})}
 class BreathCloud extends Entity{constructor(x,y,z,r,t){super(x,y,z);this.r=r;this.t=t;this.w=0.1;this.h=0.1;this.noGravity=true;this.solidBody=false;this.tick=0.3}
   update(dt){this.age+=dt;this.t-=dt;if(this.t<=0){this.dead=true;return}
     const n=Math.min(8,Math.ceil(dt*40*this.r));for(let i=0;i<n;i++){const a=Math.random()*PI*2,d=sqrt(Math.random())*this.r;spawnParticles('breath',this.x+Math.cos(a)*d,this.y+0.1+Math.random()*0.9,this.z+Math.sin(a)*d,1)}
-    this.tick-=dt;if(this.tick<=0){this.tick=1.2;const p=player;if(Math.hypot(p.x-this.x,p.z-this.z)<this.r+0.4&&p.y>this.y-1.5&&p.y<this.y+2.5)endPoison(p)}}
+    this.tick-=dt;if(this.tick<=0){this.tick=1.2;const p=player;if(Math.hypot(p.x-this.x,p.z-this.z)<this.r+0.4&&p.y>this.y-1.5&&p.y<this.y+2.5&&!breathBlocked(this.x,this.y+0.5,this.z,p.x,p.y+0.9,p.z))endPoison(p)}}
   render(){}}
 function breathCloudAt(x,y,z,r,t){ // settle the cloud on the ground under (x,y,z); refresh one already there instead of stacking
   let gy=floor(y);for(let i=0;i<12&&gy>0;i++){const b=world.getBlock(floor(x),gy-1,floor(z));if(b!==0&&BLOCKS[b].solid)break;gy--}
@@ -3593,8 +3594,9 @@ class Dragon extends Entity{
     const p=player;if(this.dying||p.dead||range<=0||playerHidden()){this.spraying=0;return}
     const hx=this.x-Math.sin(this.yaw)*Math.cos(this.pitch)*8,hy=this.y+Math.sin(this.pitch)*8+0.8,hz=this.z-Math.cos(this.yaw)*Math.cos(this.pitch)*8;
     const dx=p.x-hx,dy=p.y+0.9-hy,dz=p.z-hz;const d=Math.hypot(dx,dy,dz);if(d>range||d<1){this.spraying=0;return}
+    {const mb=world.getBlock(floor(hx),floor(hy),floor(hz));if((mb!==0&&BLOCKS[mb].solid)||breathBlocked(hx,hy,hz,p.x,p.y+0.9,p.z)||breathBlocked(this.x,this.y,this.z,p.x,p.y+0.9,p.z)){this.spraying=0;return}} // walls stop the breath: the mouth and the body both need a clear line to the player
     const fdx=-Math.sin(this.yaw),fdz=-Math.cos(this.yaw);if((dx*fdx+dz*fdz)/Math.max(0.01,Math.hypot(dx,dz))<0.2){this.spraying=0;return} // only out of the front of the head
-    if(this.spraying===0)playSoundAt('dragon',this.x,this.y,this.z,0.9,1.4);this.spraying+=dt;
+    if(this.spraying===0){playSoundAt('dragon',this.x,this.y,this.z,0.9,1.4);this.breathT=0}this.spraying+=dt;
     const sp=22;const n=Math.ceil(dt*90);for(let i=0;i<n;i++){const f=Math.random()*0.6;spawnParticles('breath',hx+dx*f,hy+dy*f,hz+dz*f,1,{dir:[dx/d*sp,dy/d*sp,dz/d*sp]})}
     this.breathT-=dt;if(this.breathT<=0){this.breathT=0.8;breathCloudAt(p.x,p.y,p.z,2.5,5)}}
   onHurt(src){if(src&&src.type==='player'&&Math.random()<0.5)playSoundAt('dragon',this.x,this.y,this.z,1.2,0.8)}
@@ -5237,6 +5239,11 @@ function buildBaseBunker(x,y,z){ // three floors of solid obsidian buried under 
   for(let i=-3;i<=3;i++){if(i===0)continue;baseSet(x+i,y-9,z+IN,39,2)} // 6 along the south wall
   baseFill(x-IN,y-9,z-5,x-IN,y-7,z+5,29);baseFill(x+IN,y-9,z-5,x+IN,y-7,z+5,29);
   for(const [tx,tz] of [[-IN,-IN],[IN,-IN],[-IN,IN],[IN,IN]])baseSet(x+tx,y-9,z+tz,32);
+  // secret enchanting library behind the middle of the west bookshelf wall: break the two shelves at floor level to get in
+  baseFill(x-15,y-10,z-3,x-W-1,y-5,z+3,31);baseFill(x-14,y-9,z-2,x-10,y-6,z+2,0);
+  baseSet(x-W,y-9,z,0);baseSet(x-W,y-8,z,0);baseSet(x-W-1,y-9,z,0);baseSet(x-W-1,y-8,z,0); // passage through both shells, hidden by the shelves
+  baseSet(x-12,y-9,z,96);for(let dx=-14;dx<=-10;dx++)for(let dz=-2;dz<=2;dz++){if(abs(dx+12)!==2&&abs(dz)!==2)continue;if(dx===-10&&dz===0)continue;baseSet(x+dx,y-9,z+dz,29)}
+  baseSet(x-12,y-9,z+2,39,2);baseSet(x-11,y-9,z+2,39,2);baseSet(x-12,y-5,z,53);baseSet(x-10,y-8,z-2,32);baseSet(x-14,y-8,z+2,32);
   // bottom room: bedroom with two beds, four empty chests, a crafting table, bookshelves and torches
   baseSet(x-5,y-14,z+5,62,0);baseSet(x-5,y-14,z+6,62,4);baseSet(x+5,y-14,z+5,62,0);baseSet(x+5,y-14,z+6,62,4);
   baseSet(x-2,y-14,z+IN,39,2);baseSet(x-1,y-14,z+IN,39,2);baseSet(x+1,y-14,z+IN,39,2);baseSet(x+2,y-14,z+IN,39,2);
@@ -5275,7 +5282,7 @@ function spawnStructureAt(name,say){const key=structKeyFromName(name);if(!key)re
   try{SPAWN_STRUCT[key][1](x,y,z,rng)}catch(e){console.error('structure build failed',e)}finally{world.liveBuild=false;world.forceMobs=false;world.anywhere=false;world.flatY=undefined}
   // never leave the player buried inside the new build
   {const bx=floor(p.x),bz=floor(p.z);const bad=yy=>{const b=world.getBlock(bx,yy,bz);return b!==0&&(BLOCKS[b].solid||b===8||b===9)};let fy=floor(p.y),n=0;if(bad(fy)||bad(fy+1)){while(n<80&&(bad(fy)||bad(fy+1)))fy++,n++;p.y=fy+0.1;p.vy=0;p.fallDist=0}}
-  const mobs=entities.length-before;playSound('place_stone',1,0.6);say('Built a '+SPAWN_STRUCT[key][0]+' where you were looking'+(mobs>0?' ('+mobs+' residents)':''));return true}
+  const mobs=entities.length-before;playSound('place_stone',1,0.6);say('Built a '+SPAWN_STRUCT[key][0]+' where you were looking'+(mobs>0?' ('+mobs+' residents)':''));if(key==='base_bunker')say('Somewhere inside is a secret room. Not every bookshelf is what it seems...');return true}
 // cheats are off on public servers, for guests and the host alike: items, kits, structures, teleports, time, game mode, mob and disaster spawning, healing and xp
 const PUBLIC_BLOCKED=new Set(['give','kit','build','place','structure','tp','time','gamemode','gm','spawn','summon','portal','disaster','disasters','tornado','heal','xp','kill']);
 function onPublicServer(){return !!(MP.active&&MP.public)}
