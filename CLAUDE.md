@@ -28,6 +28,9 @@ dependencies — open the file in a browser to play.
 - `ironhook.html` — **Iron Hook**, canvas fishing game (cast, sink, bite, reel minigame, species log, shop).
 - `worker/mod-ai/` — optional Cloudflare Worker (not served by Pages) that checks Mod Maker photos with Claude; the game calls it only when `MOD_AI_ENDPOINT` in `minecraft.html` is set.
 - `ironjaws.html` — **Iron Jaws**, Hunt-the-Wumpus style shark hunt on the classic 20-cave dodecahedron.
+- `irontrail.html` — **Iron Trail**, Oregon Trail style wagon journey (canvas scene + side panel, hunting minigame, rivers, forts, events).
+- `ironrocks.html` — **Iron Rocks**, Asteroids style vector shooter (saucers, hyperspace, touch buttons).
+- `ironserpent.html` — **Iron Serpent**, snake with golden apples, mushrooms and iron walls (solid or wrap edges).
 
 ## Verifying changes
 

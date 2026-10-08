@@ -1,0 +1,317 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0,viewport-fit=cover">
+<title>Iron Trail – Free Oregon Trail Style Wagon Game in Your Browser | Iron Games</title>
+<meta name="description" content="Iron Trail is a free browser game in the Oregon Trail tradition: lead a wagon party 2,000 miles from Independence to the Willamette Valley. Buy supplies, ford rivers, hunt for food, survive disease and winter. No download.">
+<meta name="robots" content="index,follow,max-snippet:-1,max-image-preview:large">
+<link rel="canonical" href="https://irongames.win/irontrail.html">
+<link rel="icon" href="favicon.svg" type="image/svg+xml">
+<link rel="manifest" href="site.webmanifest">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="Iron Games">
+<meta property="og:title" content="Iron Trail – Free Oregon Trail Style Wagon Game | Iron Games">
+<meta property="og:description" content="Lead a wagon party 2,000 miles west. Buy supplies, ford rivers, hunt, trade and survive disease, storms and the mountains. Free in your browser, no download.">
+<meta property="og:url" content="https://irongames.win/irontrail.html">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="Iron Trail – Free Oregon Trail Style Wagon Game | Iron Games">
+<meta name="twitter:description" content="Lead a wagon party 2,000 miles west. Buy supplies, ford rivers, hunt, trade and survive. Free in your browser, no download.">
+<script type="application/ld+json">{"@context":"https://schema.org","@graph":[{"@type":"VideoGame","name":"Iron Trail","url":"https://irongames.win/irontrail.html","genre":["Simulation","Strategy","Educational","Adventure"],"gamePlatform":"Web browser","applicationCategory":"Game","operatingSystem":"Any","isAccessibleForFree":true,"offers":{"@type":"Offer","price":"0","priceCurrency":"USD"},"author":{"@type":"Organization","name":"Daniele Bros","url":"https://irongames.win/"},"description":"An Oregon Trail style wagon journey: outfit a party of five in Independence, Missouri and travel 2,000 miles to Oregon through forts, rivers, prairie and mountains, hunting for food and surviving disease and weather."},{"@type":"BreadcrumbList","itemListElement":[{"@type":"ListItem","position":1,"name":"Iron Games","item":"https://irongames.win/"},{"@type":"ListItem","position":2,"name":"Iron Trail","item":"https://irongames.win/irontrail.html"}]}]}</script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Oswald:wght@500;700&family=Share+Tech+Mono&display=swap" rel="stylesheet">
+<style>
+:root{--gold:#e8c84a;--cream:#e6dcc0;--dim:#9a8a60;--panel:rgba(16,10,4,.94);--border:#5a4420;--red:#e83030;--green:#8ff0a0;--sky:#8fb9d9;}
+*{box-sizing:border-box;margin:0;padding:0;}
+html,body{width:100%;height:100%;overflow:hidden;background:#0a0603;}
+body{font-family:'Share Tech Mono','Courier New',monospace;color:var(--cream);user-select:none;-webkit-user-select:none;}
+#wrap{position:absolute;inset:0;display:grid;grid-template-columns:1fr 330px;grid-template-rows:1fr;}
+#main{position:relative;overflow:hidden;background:#000;}
+canvas#c{width:100%;height:100%;display:block;}
+#side{background:var(--panel);border-left:1px solid var(--border);display:flex;flex-direction:column;padding:12px;gap:8px;overflow-y:auto;}
+.back{position:absolute;top:10px;left:10px;z-index:30;background:rgba(16,10,4,.85);color:var(--dim);font-family:'Oswald',sans-serif;font-size:12px;letter-spacing:3px;padding:7px 12px;border:1px solid var(--border);text-decoration:none;border-radius:2px;}
+.back:hover{color:var(--gold);border-color:var(--gold);}
+h2.t{font-family:'Oswald',sans-serif;font-size:22px;letter-spacing:6px;color:var(--gold);}
+.stat{display:flex;justify-content:space-between;font-size:12px;letter-spacing:1px;border-bottom:1px dashed #3a2c14;padding:3px 0;}
+.stat b{color:var(--gold);}
+.members{font-size:12px;line-height:1.5;}
+.members div{display:flex;justify-content:space-between;}
+.members .sick{color:#ffb070;}.members .dead{color:#777;text-decoration:line-through;}
+.hp{display:inline-block;width:70px;height:8px;background:#2a1c0a;border:1px solid #5a4420;vertical-align:middle;margin-left:6px;}
+.hp i{display:block;height:100%;background:var(--green);}
+.btn{display:block;width:100%;background:#2b1d0a;border:1px solid var(--border);color:var(--cream);font-family:'Oswald',sans-serif;font-size:14px;letter-spacing:3px;padding:9px 10px;cursor:pointer;text-align:center;border-radius:2px;}
+.btn:hover{border-color:var(--gold);color:var(--gold);}
+.btn.primary{background:#4a2f0c;border-color:#b08a2a;color:var(--gold);}
+.btn:disabled{opacity:.4;cursor:default;}
+.row{display:flex;gap:6px;}
+.row .btn{flex:1;}
+select{width:100%;background:#1a1208;color:var(--cream);border:1px solid var(--border);font-family:inherit;font-size:13px;padding:6px;}
+label.l{font-size:11px;letter-spacing:2px;color:var(--dim);display:block;margin-top:4px;}
+#log{flex:1;min-height:90px;overflow-y:auto;font-size:12px;line-height:1.55;border:1px solid var(--border);padding:8px;background:rgba(0,0,0,.35);}
+#log p{margin-bottom:5px;color:#c9bb98;}
+#log p.bad{color:#ff8a70;font-weight:700;}#log p.good{color:var(--green);font-weight:700;}#log p.sys{color:#8f8468;}
+#overlay{position:absolute;inset:0;display:none;align-items:center;justify-content:center;background:rgba(0,0,0,.55);z-index:20;padding:16px;overflow:auto;}
+#overlay.on{display:flex;}
+.modal{background:var(--panel);border:2px solid #7a5c22;border-radius:4px;padding:18px 20px;max-width:620px;width:100%;max-height:100%;overflow:auto;box-shadow:0 0 40px #000;}
+.modal h3{font-family:'Oswald',sans-serif;letter-spacing:5px;color:var(--gold);font-size:20px;margin-bottom:10px;}
+.modal p{font-size:13px;line-height:1.6;margin-bottom:10px;color:#d8ccaa;}
+.modal .btn{margin-top:6px;}
+.modal table{width:100%;border-collapse:collapse;font-size:12px;margin-bottom:10px;}
+.modal td,.modal th{padding:5px 4px;border-bottom:1px solid #3a2c14;text-align:left;}
+.modal th{color:var(--dim);font-weight:400;letter-spacing:1px;}
+.qty{display:inline-flex;align-items:center;gap:4px;}
+.qty button{background:#2b1d0a;border:1px solid var(--border);color:var(--gold);width:26px;height:24px;cursor:pointer;font-family:inherit;}
+.qty span{min-width:34px;text-align:center;color:var(--gold);}
+.opt{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:8px;}
+.opt .btn{flex:1;min-width:120px;}
+.hint{font-size:11px;color:var(--dim);letter-spacing:1px;}
+#huntUi{position:absolute;left:0;right:0;bottom:0;padding:8px 12px;background:rgba(0,0,0,.6);font-size:12px;letter-spacing:1px;display:none;z-index:10;}
+#huntUi b{color:var(--gold);}
+.title{text-align:center;}
+.title h1{font-family:'Oswald',sans-serif;font-size:44px;letter-spacing:12px;color:var(--gold);text-shadow:0 0 24px rgba(232,200,74,.35);}
+.title .tag{font-size:12px;letter-spacing:4px;color:var(--dim);margin:6px 0 16px;}
+.score{font-size:12px;line-height:1.7;}
+@media (max-width:760px){#wrap{grid-template-columns:1fr;grid-template-rows:46% 54%;}#side{border-left:none;border-top:1px solid var(--border);}.title h1{font-size:30px;letter-spacing:6px;}}
+</style>
+</head>
+<body>
+<a class="back" href="/" title="Back to Iron Games">◀ IRON GAMES</a>
+<div id="wrap">
+  <div id="main">
+    <canvas id="c"></canvas>
+    <div id="huntUi"><b>HUNT</b> — move the sight with the mouse or arrow keys, click or SPACE to fire. Time <b id="hT">45</b>s · Bullets <b id="hB">0</b> · Meat <b id="hM">0</b> lb · <button class="btn" id="hDone" style="display:inline-block;width:auto;padding:4px 10px;font-size:12px">DONE</button></div>
+    <div id="overlay"></div>
+  </div>
+  <div id="side">
+    <h2 class="t">IRON TRAIL</h2>
+    <div class="stat"><span id="sDate">—</span><b id="sWeather">—</b></div>
+    <div class="stat"><span>Miles travelled</span><b id="sMiles">0</b></div>
+    <div class="stat"><span>Next landmark</span><b id="sNext">—</b></div>
+    <div class="stat"><span>Food</span><b id="sFood">0 lb</b></div>
+    <div class="stat"><span>Money</span><b id="sMoney">$0</b></div>
+    <div class="stat"><span>Oxen · Bullets · Clothes</span><b id="sMisc">—</b></div>
+    <div class="stat"><span>Spare parts · Medicine</span><b id="sParts">—</b></div>
+    <div class="members" id="sMembers"></div>
+    <label class="l">PACE</label>
+    <select id="pace"><option value="steady">Steady (about 18 miles a day)</option><option value="strenuous">Strenuous (24 miles, tiring)</option><option value="grueling">Grueling (30 miles, exhausting)</option></select>
+    <label class="l">RATIONS</label>
+    <select id="rations"><option value="filling">Filling (3 lb per person a day)</option><option value="meager">Meager (2 lb, health slowly drops)</option><option value="bare">Bare bones (1 lb, dangerous)</option></select>
+    <div class="row"><button class="btn primary" id="bGo">▶ TRAVEL</button><button class="btn" id="bStop" style="display:none">■ STOP</button></div>
+    <div class="row"><button class="btn" id="bRest">REST</button><button class="btn" id="bHunt">HUNT</button></div>
+    <div class="row"><button class="btn" id="bTrade">TRADE</button><button class="btn" id="bMap">MAP</button><button class="btn" id="bSupplies">STOCK</button></div>
+    <div id="log"></div>
+  </div>
+</div>
+<script>
+'use strict';
+/* ===================== DATA ===================== */
+const MONTHS=['January','February','March','April','May','June','July','August','September','October','November','December'];
+const DAYS_IN=[31,28,31,30,31,30,31,31,30,31,30,31];
+const LANDMARKS=[
+  {name:'Independence, Missouri',miles:0,type:'fort',price:1},
+  {name:'Kansas River crossing',miles:102,type:'river',width:620,depth:[2,6]},
+  {name:'Big Blue River crossing',miles:185,type:'river',width:300,depth:[1,5]},
+  {name:'Fort Kearney',miles:304,type:'fort',price:1.25},
+  {name:'Chimney Rock',miles:554,type:'mark',text:'A spire of clay and sandstone rising 300 feet from the plain. Emigrants carve their names at its base.'},
+  {name:'Fort Laramie',miles:640,type:'fort',price:1.5},
+  {name:'Independence Rock',miles:830,type:'mark',text:'A great granite loaf covered in names. Wagon trains that reach it by the Fourth of July are on schedule to beat the snow.'},
+  {name:'South Pass',miles:932,type:'mark',text:'The gentle saddle over the Continental Divide. Every stream from here flows toward the Pacific.'},
+  {name:'Green River crossing',miles:989,type:'river',width:400,depth:[3,9],ferry:true},
+  {name:'Fort Bridger',miles:1151,type:'fort',price:1.75},
+  {name:'Soda Springs',miles:1295,type:'mark',text:'Springs of naturally fizzing water bubble out of the ground. The oxen drink deeply.'},
+  {name:'Fort Hall',miles:1395,type:'fort',price:2},
+  {name:'Snake River crossing',miles:1534,type:'river',width:1000,depth:[4,9],guide:true},
+  {name:'Fort Boise',miles:1648,type:'fort',price:2.25},
+  {name:'Blue Mountains',miles:1808,type:'mark',text:'Steep, forested and bitterly cold once autumn comes. The wagons must be lowered down the far side on ropes.'},
+  {name:'Fort Walla Walla',miles:1863,type:'fort',price:2.5},
+  {name:'The Dalles',miles:1983,type:'dalles'},
+  {name:'Willamette Valley, Oregon',miles:2040,type:'end'}];
+const END_MILES=2040;
+const PROFESSIONS={banker:{label:'Banker from Boston',money:1600,mult:1,desc:'Plenty of money, but a soft life: final score x1.'},carpenter:{label:'Carpenter from Ohio',money:800,mult:2,desc:'Less money, handy with repairs (broken parts are fixed faster): score x2.'},farmer:{label:'Farmer from Illinois',money:400,mult:3,desc:'Little money, but the oxen stay healthier and you know the land: score x3.'}};
+const NAME_POOL=['Mary','Eliza','Hannah','Sarah','Ruth','Abigail','John','Samuel','Thomas','Joseph','Henry','Daniel','Clara','Jacob','Emma','Caleb'];
+const DISEASES=[{n:'dysentery',d:10,sev:5},{n:'cholera',d:8,sev:8},{n:'typhoid fever',d:12,sev:6},{n:'measles',d:9,sev:4},{n:'a fever',d:6,sev:4},{n:'exhaustion',d:5,sev:4},{n:'a snakebite',d:7,sev:6},{n:'a broken arm',d:14,sev:3},{n:'a broken leg',d:20,sev:4}];
+const PRICES={ox:20,food:0.2,clothes:10,ammo:2,wheel:10,axle:10,tongue:10,meds:15};
+const ANIMALS=[{n:'rabbit',w:2,sp:3.2,r:9,col:'#b9a68b',freq:30},{n:'squirrel',w:1,sp:3.6,r:7,col:'#8a6a44',freq:22},{n:'deer',w:60,sp:2.4,r:14,col:'#a8784c',freq:22},{n:'elk',w:150,sp:2,r:17,col:'#7c5a3a',freq:10},{n:'bison',w:350,sp:1.3,r:22,col:'#4a3424',freq:9},{n:'bear',w:250,sp:1.6,r:19,col:'#2e2018',freq:5}];
+const $=id=>document.getElementById(id);
+const rnd=(a,b)=>a+Math.random()*(b-a);const ri=(a,b)=>Math.floor(rnd(a,b+1));const pick=a=>a[Math.floor(Math.random()*a.length)];
+const clamp=(v,a,b)=>v<a?a:v>b?b:v;
+/* ===================== STATE ===================== */
+let S=null;let timer=null;let hunt=null;
+function newState(){return {screen:'title',profession:null,leader:'',members:[],money:0,oxen:0,food:0,clothes:0,ammo:0,parts:{wheel:0,axle:0,tongue:0},meds:0,miles:0,month:3,day:1,year:1848,daysOnTrail:0,pace:'steady',rations:'filling',weather:'fair',temp:60,lm:0,travelling:false,river:null,stuckDays:0,noOxDays:0,hasGuideCredit:false,log:[],kills:0,restDays:0,ended:false}}
+function alive(){return S.members.filter(m=>m.hp>0)}
+function dateStr(){return MONTHS[S.month-1]+' '+S.day+', '+S.year}
+function nextLm(){for(const l of LANDMARKS)if(l.miles>S.miles)return l;return LANDMARKS[LANDMARKS.length-1]}
+function regionAt(m){if(m<560)return 'plains';if(m<830)return 'hills';if(m<1000)return 'mountains';if(m<1400)return 'desert';if(m<1810)return 'hills';if(m<1990)return 'mountains';return 'valley'}
+function log(t,cls){const el=document.createElement('p');if(cls)el.className=cls;el.textContent=t;$('log').appendChild(el);while($('log').children.length>60)$('log').removeChild($('log').firstChild);$('log').scrollTop=$('log').scrollHeight}
+/* ===================== UI ===================== */
+function show(html){$('overlay').innerHTML='<div class="modal">'+html+'</div>';$('overlay').classList.add('on')}
+function hide(){$('overlay').classList.remove('on');$('overlay').innerHTML=''}
+function refresh(){if(!S)return;$('sDate').textContent=dateStr();$('sWeather').textContent=S.weather+' '+Math.round(S.temp)+'°F';$('sMiles').textContent=Math.round(S.miles)+' / '+END_MILES;const n=nextLm();$('sNext').textContent=n.name.replace(/ crossing| River crossing/,' R.')+' ('+Math.max(0,Math.round(n.miles-S.miles))+' mi)';$('sFood').textContent=Math.round(S.food)+' lb';$('sMoney').textContent='$'+S.money.toFixed(2);$('sMisc').textContent=S.oxen+' · '+S.ammo+' · '+S.clothes;$('sParts').textContent='W'+S.parts.wheel+' A'+S.parts.axle+' T'+S.parts.tongue+' · '+S.meds;
+  $('sMembers').innerHTML=S.members.map(m=>'<div class="'+(m.hp<=0?'dead':m.sick?'sick':'')+'"><span>'+m.name+(m.sick?' ('+m.sick.n+')':'')+'</span><span>'+(m.hp<=0?'died':healthWord(m.hp)+'<i class="hp"><i style="width:'+m.hp+'%"></i></i>')+'</span></div>').join('');
+  $('pace').value=S.pace;$('rations').value=S.rations;const busy=S.travelling||S.ended;$('bGo').style.display=S.travelling?'none':'block';$('bStop').style.display=S.travelling?'block':'none';for(const id of ['bRest','bHunt','bTrade','bMap','bSupplies'])$(id).disabled=busy;$('bGo').disabled=S.ended}
+function healthWord(h){return h>75?'good':h>50?'fair':h>25?'poor':'very poor'}
+/* ===================== TITLE / SETUP ===================== */
+function titleScreen(){S=newState();for(const l of LANDMARKS)delete l.seen;$('log').innerHTML='';const hs=JSON.parse(localStorage.getItem('it_scores')||'[]');show('<div class="title"><h1>IRON TRAIL</h1><div class="tag">INDEPENDENCE, MISSOURI TO OREGON · 1848 · 2,040 MILES</div><p>Outfit a wagon, choose your party and set out for the Willamette Valley. Hunt, trade, ford rivers and ration your food. Reach Oregon before the snow with as many of your people alive as you can.</p><button class="btn primary" id="tStart">START A NEW JOURNEY</button><button class="btn" id="tHow">HOW TO PLAY</button>'+(hs.length?'<p class="score" style="margin-top:12px"><b>BEST JOURNEYS</b><br>'+hs.map(h=>h.score+' pts · '+h.who+' · '+h.alive+' survived · '+h.date).join('<br>')+'</p>':'')+'</div>');
+  $('tStart').onclick=setupScreen;$('tHow').onclick=()=>{show('<h3>HOW TO PLAY</h3><p>Pick a profession: bankers start rich, farmers start poor but score three times as much. Buy oxen, food, clothing, bullets, spare parts and medicine at the store. Then press TRAVEL and the days roll by. Five people eat about 15 lb a day, so the food you buy will not last the whole way: hunting with your bullets is how you feed the party.</p><p>Each day the party eats according to the rations you set, and health rises or falls with food, pace, weather and sickness. Rest to recover. Hunt to turn bullets into meat. Trade with passing emigrants. Forts sell supplies at rising prices the further west you go.</p><p>Rivers can be forded if shallow, floated across on a caulked wagon, or crossed by ferry for a fee. Every landmark you reach is saved in the log. Reach the Willamette Valley to finish; score depends on survivors, their health, your remaining goods and your profession.</p><button class="btn" id="tBack">BACK</button>');$('tBack').onclick=titleScreen};refresh()}
+function setupScreen(){show('<h3>WHO ARE YOU?</h3>'+Object.keys(PROFESSIONS).map(k=>'<button class="btn prof" data-k="'+k+'">'+PROFESSIONS[k].label.toUpperCase()+' — $'+PROFESSIONS[k].money+'<br><span class="hint">'+PROFESSIONS[k].desc+'</span></button>').join(''));
+  for(const b of document.querySelectorAll('.prof'))b.onclick=()=>{S.profession=b.dataset.k;S.money=PROFESSIONS[S.profession].money;namesScreen()}}
+function namesScreen(){const picks=[];while(picks.length<5){const n=pick(NAME_POOL);if(!picks.includes(n))picks.push(n)}
+  show('<h3>YOUR PARTY</h3><p>Name yourself and the four people travelling with you.</p>'+[0,1,2,3,4].map(i=>'<label class="l">'+(i===0?'WAGON LEADER':'MEMBER '+i)+'</label><input class="nm" style="width:100%;background:#1a1208;color:#e6dcc0;border:1px solid #5a4420;font-family:inherit;padding:6px" maxlength="14" value="'+(i===0?picks[4]:picks[i-1])+'">').join('')+'<label class="l">WHEN DO YOU LEAVE?</label><select id="mon"><option value="3">March — cold start, muddy rivers, plenty of time</option><option value="4" selected>April — the classic start</option><option value="5">May — warmer, good grass for the oxen</option><option value="6">June — late; the mountains may snow you in</option><option value="7">July — very late, a race against winter</option></select><button class="btn primary" id="nGo" style="margin-top:12px">GO TO THE STORE</button>');
+  $('nGo').onclick=()=>{const names=[...document.querySelectorAll('.nm')].map((e,i)=>e.value.trim()||(i===0?picks[4]:picks[i-1]));S.members=names.map(n=>({name:n,hp:100,sick:null,sickDays:0}));S.leader=names[0];S.month=parseInt($('mon').value);S.day=1;refresh();storeScreen(LANDMARKS[0],true)}}
+/* ===================== STORE / TRADE ===================== */
+function storeScreen(lm,first){const mult=lm.price||1;const cart={ox:first?4:0,food:first?400:0,clothes:first?5:0,ammo:first?60:0,wheel:first?1:0,axle:first?1:0,tongue:first?1:0,meds:first?1:0};
+  const items=[['ox','Oxen (each; you need at least 2, 6+ is best)',1],['food','Food (lb)',50],['clothes','Clothing (sets)',1],['ammo','Bullets (box of 20)',20],['wheel','Spare wagon wheel',1],['axle','Spare wagon axle',1],['tongue','Spare wagon tongue',1],['meds','Medicine kit',1]];
+  const price=k=>+(PRICES[k]*mult).toFixed(2);const total=()=>items.reduce((s,[k,,st])=>s+cart[k]/(k==='ammo'?20:1)*price(k)*(k==='food'?1:1),0);
+  const render=()=>{show('<h3>'+(first?'MATT’S GENERAL STORE':lm.name.toUpperCase()+' — STORE')+'</h3><p>'+(first?'Welcome. Here is what a family needs for the trail. Prices go up at every fort west of here, so buy what you can carry.':'Prices here are '+Math.round((mult-1)*100)+'% above Independence.')+' You have <b>$'+S.money.toFixed(2)+'</b>.</p><table><tr><th>Item</th><th>Price</th><th>Qty</th></tr>'+items.map(([k,l,st])=>'<tr><td>'+l+'</td><td>$'+(k==='ammo'?price(k):price(k)).toFixed(2)+(k==='food'?'/lb':k==='ammo'?'/box':'')+'</td><td><span class="qty"><button data-k="'+k+'" data-d="-'+st+'">−</button><span>'+cart[k]+'</span><button data-k="'+k+'" data-d="'+st+'">+</button></span></td></tr>').join('')+'</table><p>Total: <b>$'+total().toFixed(2)+'</b></p><div class="row"><button class="btn primary" id="stBuy">BUY</button><button class="btn" id="stLeave">'+(first?'LEAVE INDEPENDENCE':'LEAVE THE STORE')+'</button></div>');
+    for(const b of document.querySelectorAll('.qty button'))b.onclick=()=>{const k=b.dataset.k,d=parseInt(b.dataset.d);cart[k]=Math.max(0,cart[k]+d);if(k==='ox')cart[k]=Math.min(cart[k],20-S.oxen);render()};
+    $('stBuy').onclick=()=>{const t=total();if(t>S.money+1e-9){show('<h3>NOT ENOUGH MONEY</h3><p>That comes to $'+t.toFixed(2)+' and you have $'+S.money.toFixed(2)+'.</p><button class="btn" id="ok">BACK</button>');$('ok').onclick=render;return}
+      S.money=+(S.money-t).toFixed(2);S.oxen+=cart.ox;S.food+=cart.food;S.clothes+=cart.clothes;S.ammo+=cart.ammo;S.parts.wheel+=cart.wheel;S.parts.axle+=cart.axle;S.parts.tongue+=cart.tongue;S.meds+=cart.meds;for(const k in cart)cart[k]=0;log('Bought supplies for $'+t.toFixed(2)+'.','sys');refresh();render()};
+    $('stLeave').onclick=()=>{if(first){if(S.oxen<2){show('<h3>NO OXEN</h3><p>You cannot pull a wagon without at least two oxen.</p><button class="btn" id="ok">BACK</button>');$('ok').onclick=render;return}startJourney()}else hide()}};
+  render()}
+function tradeScreen(){const have=[['food',S.food,'lb of food'],['clothes',S.clothes,'sets of clothing'],['ammo',S.ammo,'bullets'],['oxen',S.oxen,'oxen'],['meds',S.meds,'medicine kits'],['wheel',S.parts.wheel,'spare wheel'],['axle',S.parts.axle,'spare axle'],['tongue',S.parts.tongue,'spare tongue']];
+  if(Math.random()<0.25){show('<h3>TRADE</h3><p>Nobody at the camp wants to trade today.</p><button class="btn" id="ok">OK</button>');$('ok').onclick=hide;return}
+  const want=pick(have.filter(h=>h[1]>0&&h[0]!=='oxen')||have);const give=pick(have.filter(h=>h[0]!==want[0]));
+  const qtyW=want[0]==='food'?ri(20,60):want[0]==='ammo'?ri(10,40):want[0]==='clothes'?ri(1,3):1;const qtyG=give[0]==='food'?ri(15,50):give[0]==='ammo'?ri(10,40):give[0]==='clothes'?ri(1,3):1;
+  const can=want[1]>=qtyW;show('<h3>TRADE</h3><p>An emigrant from another wagon offers <b>'+qtyG+' '+give[2]+'</b> for <b>'+qtyW+' '+want[2]+'</b>.</p>'+(can?'':'<p class="hint">You do not have enough '+want[2]+'.</p>')+'<div class="row"><button class="btn primary" id="yes" '+(can?'':'disabled')+'>ACCEPT</button><button class="btn" id="no">DECLINE</button></div>');
+  $('no').onclick=hide;$('yes').onclick=()=>{adjust(want[0],-qtyW);adjust(give[0],qtyG);log('Traded '+qtyW+' '+want[2]+' for '+qtyG+' '+give[2]+'.','good');refresh();hide()}}
+function adjust(k,n){if(k==='food')S.food=Math.max(0,S.food+n);else if(k==='clothes')S.clothes=Math.max(0,S.clothes+n);else if(k==='ammo')S.ammo=Math.max(0,S.ammo+n);else if(k==='oxen')S.oxen=Math.max(0,S.oxen+n);else if(k==='meds')S.meds=Math.max(0,S.meds+n);else if(k==='money')S.money=Math.max(0,+(S.money+n).toFixed(2));else S.parts[k]=Math.max(0,S.parts[k]+n)}
+function suppliesScreen(){show('<h3>SUPPLIES</h3><table>'+[['Oxen',S.oxen],['Food',Math.round(S.food)+' lb'],['Clothing',S.clothes+' sets'],['Bullets',S.ammo],['Spare wheels',S.parts.wheel],['Spare axles',S.parts.axle],['Spare tongues',S.parts.tongue],['Medicine kits',S.meds],['Money','$'+S.money.toFixed(2)],['Animals shot',S.kills]].map(r=>'<tr><td>'+r[0]+'</td><td>'+r[1]+'</td></tr>').join('')+'</table><p class="hint">Each person eats 3 lb a day on filling rations. '+alive().length+' people × '+({filling:3,meager:2,bare:1}[S.rations])+' lb = '+(alive().length*({filling:3,meager:2,bare:1}[S.rations]))+' lb a day, so your food lasts about '+Math.floor(S.food/Math.max(1,alive().length*({filling:3,meager:2,bare:1}[S.rations])))+' days.</p><button class="btn" id="ok">OK</button>');$('ok').onclick=hide}
+function mapScreen(){show('<h3>THE TRAIL</h3><canvas id="mapC" width="560" height="260" style="width:100%;background:#1a1208;border:1px solid #5a4420"></canvas><p class="hint">You are the gold wagon. Forts are squares, rivers are blue bars.</p><button class="btn" id="ok">OK</button>');$('ok').onclick=hide;
+  const c=$('mapC'),x=c.getContext('2d');const px=m=>20+(m/END_MILES)*520;const py=m=>{const r=regionAt(m);return 150-(r==='mountains'?60:r==='hills'?30:r==='desert'?40:r==='valley'?10:0)+Math.sin(m/90)*8};
+  x.strokeStyle='#8a6a3a';x.lineWidth=3;x.beginPath();for(let m=0;m<=END_MILES;m+=10){const X=px(m),Y=py(m);m?x.lineTo(X,Y):x.moveTo(X,Y)}x.stroke();
+  x.font='10px monospace';for(const l of LANDMARKS){const X=px(l.miles),Y=py(l.miles);x.fillStyle=l.type==='fort'?'#e8c84a':l.type==='river'?'#5aa0e0':'#c9bb98';if(l.type==='river'){x.fillRect(X-2,Y-16,4,32)}else x.fillRect(X-4,Y-4,8,8);x.save();x.translate(X,Y+(l.miles/10%2?22:-14));x.rotate(-0.5);x.fillStyle='#c9bb98';x.fillText(l.name.replace(/ crossing| River crossing/,'').slice(0,18),0,0);x.restore()}
+  const X=px(S.miles),Y=py(S.miles);x.fillStyle='#e8c84a';x.fillRect(X-7,Y-10,14,8);x.fillStyle='#fff';x.beginPath();x.arc(X-4,Y,3,0,7);x.arc(X+4,Y,3,0,7);x.fill()}
+/* ===================== JOURNEY ===================== */
+function startJourney(){hide();S.screen='trail';S.weather='fair';S.temp=seasonTemp();log('Set out from Independence on '+dateStr()+' with '+S.oxen+' oxen and '+S.food+' lb of food.','sys');log('Press TRAVEL to roll west. Watch the food and the health of your party.','sys');refresh()}
+function seasonTemp(){const base=[30,34,44,56,66,76,82,80,70,58,44,34][S.month-1];const r=regionAt(S.miles);return base-(r==='mountains'?16:r==='hills'?6:r==='desert'?-6:0)+rnd(-8,8)}
+function rollWeather(){S.temp=seasonTemp();const r=Math.random();const cold=S.temp<32;if(r<0.62)S.weather=S.temp>85?'hot':S.temp<20?'very cold':S.temp<40?'cold':S.temp<55?'cool':'fair';else if(r<0.78)S.weather=cold?'snow':'rain';else if(r<0.86)S.weather=cold?'blizzard':'heavy rain';else if(r<0.92)S.weather='fog';else if(r<0.96)S.weather=cold?'snow':'hail';else S.weather='fair'}
+function advanceDate(){S.day++;const dim=DAYS_IN[S.month-1]+(S.month===2&&S.year%4===0?1:0);if(S.day>dim){S.day=1;S.month++;if(S.month>12){S.month=1;S.year++}}S.daysOnTrail++}
+function setTravel(on){S.travelling=on;refresh();if(on){if(!timer)timer=setInterval(travelTick,900)}else{clearInterval(timer);timer=null}}
+function travelTick(){if(!S.travelling)return;dayPass(true)}
+function dayPass(moving){if(S.ended||S.screen!=='trail')return;advanceDate();rollWeather();const a=alive();
+  // food
+  const per={filling:3,meager:2,bare:1}[S.rations];let need=a.length*per;let starving=false;if(S.food>=need)S.food-=need;else{S.food=0;starving=true}
+  // movement
+  let miles=0;if(moving){if(S.oxen<2){S.noOxDays++;if(S.noOxDays%3===0&&Math.random()<0.5){S.oxen+=2;log('A passing wagon train takes pity on you and lends you two oxen.','good')}else if(S.noOxDays===1)log('You have fewer than two oxen. The wagon cannot move. Trade, or hope another party helps.','bad')}
+    else{const base={steady:18,strenuous:24,grueling:30}[S.pace];const oxF=clamp(0.55+S.oxen*0.09,0.6,1.15)*(S.profession==='farmer'?1.05:1);const r=regionAt(S.miles);const tF=r==='mountains'?0.65:r==='hills'?0.85:r==='desert'?0.9:1;const wF={fair:1,hot:0.9,cool:1,cold:0.95,'very cold':0.8,rain:0.85,'heavy rain':0.6,snow:0.5,blizzard:0.15,fog:0.7,hail:0.5}[S.weather]||1;miles=base*oxF*tF*wF*rnd(0.85,1.1);S.miles+=miles}}
+  // health
+  const coldNoClothes=S.temp<40&&S.clothes<a.length;
+  for(const m of a){let d=0;if(starving)d-=4;else d+={filling:1.5,meager:-0.5,bare:-3}[S.rations];d+=moving?{steady:0,strenuous:-1,grueling:-2.5}[S.pace]:3;if(coldNoClothes)d-=3;if(S.weather==='blizzard')d-=3;if(S.weather==='heavy rain'||S.weather==='hail')d-=1;
+    if(m.sick){m.sickDays--;d-=m.sick.sev*(S.rations==='filling'&&!moving?0.5:1);if(m.sickDays<=0){log(m.name+' has recovered from '+m.sick.n+'.','good');m.sick=null}}
+    m.hp=clamp(m.hp+d,0,100);if(m.hp<=0){m.hp=0;log(m.name+' has died'+(m.sick?' of '+m.sick.n:'')+'.','bad');S.clothes=Math.max(0,S.clothes);}}
+  if(starving&&S.daysOnTrail%3===0)log('You have no food. The party is starving.','bad');
+  if(alive().length===0){endGame(false,'Everyone in your party has died on the trail.');return}
+  // landmark?
+  const lm=LANDMARKS.find(l=>l.miles>0&&S.miles>=l.miles&&!l.seen);if(lm){lm.seen=true;S.miles=lm.miles;setTravel(false);arrive(lm);refresh();return}
+  // random event
+  if(moving&&Math.random()<0.22){setTravel(false);randomEvent();refresh();return}
+  if(!moving)refresh();else refresh()}
+function arrive(lm){log('Reached '+lm.name+' on '+dateStr()+'.','good');if(lm.type==='fort')fortScreen(lm);else if(lm.type==='river')riverScreen(lm);else if(lm.type==='mark'){show('<h3>'+lm.name.toUpperCase()+'</h3><p>'+lm.text+'</p><button class="btn" id="ok">CONTINUE</button>');$('ok').onclick=hide}else if(lm.type==='dalles')dallesScreen();else if(lm.type==='end')endGame(true)}
+function fortScreen(lm){show('<h3>'+lm.name.toUpperCase()+'</h3><p>A trading post with a store, water and other emigrants. You can buy supplies here, though prices are higher than back east.</p><div class="row"><button class="btn primary" id="st">STORE</button><button class="btn" id="tr">TRADE</button><button class="btn" id="go">MOVE ON</button></div>');$('st').onclick=()=>storeScreen(lm,false);$('tr').onclick=tradeScreen;$('go').onclick=hide}
+function riverScreen(lm){const depth=S.river&&S.river.lm===lm?S.river.depth:+rnd(lm.depth[0],lm.depth[1]).toFixed(1);S.river={lm,depth};
+  show('<h3>'+lm.name.toUpperCase()+'</h3><p>The river is about '+lm.width+' feet wide and '+depth+' feet deep at the crossing. Weather: '+S.weather+'.</p><div class="opt"><button class="btn" id="ford">FORD THE RIVER</button><button class="btn" id="float">CAULK THE WAGON AND FLOAT</button>'+(lm.ferry?'<button class="btn" id="ferry">TAKE THE FERRY ($5, 1–3 days)</button>':'')+(lm.guide?'<button class="btn" id="guide">HIRE A SHOSHONE GUIDE (3 sets of clothing)</button>':'')+'<button class="btn" id="wait">WAIT A DAY</button></div><p class="hint">Under 2½ ft: ford safely. 2½–4 ft: risky to ford, floating is better. Over 4 ft: only a ferry or a guide is safe.</p>');
+  const done=(msg,cls)=>{log(msg,cls);S.river=null;hide();refresh()};
+  $('ford').onclick=()=>{if(depth<2.5)done('Forded the river without trouble.','good');else{const r=Math.random();const risk=depth<4?0.35:0.7;if(r>risk)done('The wagon lurches but you make it across.','good');else riverDisaster(depth>5)}};
+  $('float').onclick=()=>{const r=Math.random();if(r<(depth>6?0.35:0.18))riverDisaster(depth>6);else done('The caulked wagon floats across like a boat.','good')};
+  if(lm.ferry)$('ferry').onclick=()=>{if(S.money<5){log('You cannot afford the ferry.','bad');return}S.money-=5;const d=ri(1,3);for(let i=0;i<d;i++)dayPass(false);done('Waited '+d+' days for the ferry and crossed safely.','good')};
+  if(lm.guide)$('guide').onclick=()=>{if(S.clothes<3){log('You need 3 sets of clothing to pay the guide.','bad');return}S.clothes-=3;done('The guide leads you to a shallow ford. Safe across.','good')};
+  $('wait').onclick=()=>{dayPass(false);if(S.ended)return;S.river.depth=+clamp(depth+rnd(-1,0.5),lm.depth[0],lm.depth[1]).toFixed(1);riverScreen(lm)}}
+function riverDisaster(bad){const lost=[];const f=Math.round(S.food*rnd(0.1,0.4));if(f){S.food-=f;lost.push(f+' lb of food')}const am=Math.round(S.ammo*rnd(0.1,0.5));if(am){S.ammo-=am;lost.push(am+' bullets')}const cl=ri(0,2);if(cl&&S.clothes){S.clothes=Math.max(0,S.clothes-cl);lost.push(cl+' sets of clothing')}
+  let drowned=null;if(bad&&Math.random()<0.4){const a=alive();drowned=pick(a);drowned.hp=0}if(bad&&Math.random()<0.4&&S.oxen>0){S.oxen--;lost.push('an ox')}
+  log('The wagon tipped over in the river! Lost '+(lost.join(', ')||'nothing')+'.'+(drowned?' '+drowned.name+' drowned.':''),'bad');S.river=null;hide();if(alive().length===0)endGame(false,'Everyone drowned in the river.');refresh()}
+function dallesScreen(){show('<h3>THE DALLES</h3><p>The Columbia River roars through a gorge too steep for wagons. You can raft the river with everything you own, or pay the toll on the Barlow Road over Mount Hood.</p><div class="opt"><button class="btn" id="raft">RAFT THE COLUMBIA (free, dangerous)</button><button class="btn" id="toll">BARLOW TOLL ROAD ($30, 6 days)</button></div>');
+  $('raft').onclick=()=>{hide();if(Math.random()<0.4){riverDisaster(true);if(alive().length)log('Battered and soaked, you reach the lower river.','sys')}else log('The raft shoots the rapids and holds together. Oregon is close.','good');S.miles=END_MILES-10;refresh()};
+  $('toll').onclick=()=>{if(S.money<30){log('You cannot afford the toll.','bad');return}S.money-=30;hide();for(let i=0;i<6;i++)dayPass(false);log('Slow going over the mountain road, but everyone is safe.','good');S.miles=END_MILES-10;refresh()}}
+/* ===================== EVENTS ===================== */
+function randomEvent(){const a=alive();const r=regionAt(S.miles);const ev=[];
+  ev.push([18,()=>{const m=pick(a);if(m.sick)return false;const pool=DISEASES.filter(d=>!(d.n==='exhaustion'&&S.pace==='steady')&&!(d.n==='cholera'&&r!=='plains'));const d=pick(pool);m.sick={n:d.n,sev:d.sev};m.sickDays=d.d;
+    show('<h3>'+m.name.toUpperCase()+' HAS '+d.n.toUpperCase()+'</h3><p>'+m.name+' is too ill to walk. You can use a medicine kit to speed the recovery, or let it run its course. Resting with filling rations also helps.</p><div class="row"><button class="btn primary" id="med" '+(S.meds?'':'disabled')+'>USE A MEDICINE KIT ('+S.meds+' left)</button><button class="btn" id="no">CARRY ON</button></div>');
+    $('med').onclick=()=>{S.meds--;m.sickDays=Math.max(2,Math.round(m.sickDays/3));log('Gave '+m.name+' medicine for '+d.n+'.','good');hide();refresh()};$('no').onclick=()=>{log(m.name+' has '+d.n+'.','bad');hide()};return true}]);
+  ev.push([10,()=>{const part=pick(['wheel','axle','tongue']);if(S.parts[part]>0){S.parts[part]--;const d=S.profession==='carpenter'?0:1;for(let i=0;i<d;i++)dayPass(false);log('A wagon '+part+' broke. Replaced it with the spare'+(d?' in a day':' by nightfall')+'.','sys')}else{const d=S.profession==='carpenter'?2:ri(3,6);for(let i=0;i<d;i++)dayPass(false);log('A wagon '+part+' broke and you have no spare. Lost '+d+' days patching it together.','bad')}return true}]);
+  ev.push([7,()=>{if(S.oxen<1)return false;if(Math.random()<0.5){S.oxen--;log('An ox has died.','bad')}else{dayPass(false);dayPass(false);log('An ox wandered off. Spent two days finding it.','sys')}return true}]);
+  ev.push([6,()=>{const what=pick(['food','ammo','clothes','money']);const q=what==='food'?Math.round(S.food*0.25):what==='ammo'?Math.round(S.ammo*0.4):what==='clothes'?ri(1,2):Math.round(S.money*0.2);if(q<=0)return false;adjust(what,-q);log('A thief crept into camp at night and stole '+(what==='money'?'$'+q:q+' '+what)+'.','bad');return true}]);
+  ev.push([6,()=>{const d=ri(1,4);for(let i=0;i<d;i++)dayPass(false);log('Lost the trail. Wandered '+d+' days before finding it again.','bad');return true}]);
+  ev.push([5,()=>{if(S.weather==='fair'||S.weather==='hot')return false;dayPass(false);log('Impassable trail after the weather. Lost a day.','sys');return true}]);
+  ev.push([5,()=>{const m=pick(a);if(m.sick)return false;m.sick={n:'bad water sickness',sev:4};m.sickDays=5;log('Bad water. '+m.name+' is sick.','bad');return true}]);
+  ev.push([7,()=>{const f=ri(15,40);S.food+=f;log('Found wild berries and fruit: +'+f+' lb of food.','good');return true}]);
+  ev.push([5,()=>{const got=[];if(Math.random()<0.5){const f=ri(20,80);S.food+=f;got.push(f+' lb of food')}if(Math.random()<0.5){const p=pick(['wheel','axle','tongue']);S.parts[p]++;got.push('a spare '+p)}if(Math.random()<0.4){S.ammo+=20;got.push('20 bullets')}if(Math.random()<0.3){S.clothes+=1;got.push('a set of clothing')}if(!got.length)got.push('nothing useful');log('Found an abandoned wagon with '+got.join(', ')+'.','good');return true}]);
+  ev.push([4,()=>{const f=Math.round(S.food*rnd(0.1,0.3)),c=Math.min(S.clothes,ri(0,2));S.food-=f;S.clothes-=c;log('Fire in the wagon! Lost '+f+' lb of food and '+c+' sets of clothing.','bad');return true}]);
+  ev.push([4,()=>{if(r!=='mountains'&&r!=='hills')return false;const d=ri(1,2);for(let i=0;i<d;i++)dayPass(false);log('Rough trail through the rocks. Lost '+d+' day'+(d>1?'s':'')+'.','sys');return true}]);
+  ev.push([4,()=>{if(S.temp>40)return false;const d=ri(2,4);for(let i=0;i<d;i++)dayPass(false);for(const m of alive())m.hp=clamp(m.hp-6,0,100);log('Snowed in for '+d+' days. Everyone is cold and weaker.','bad');if(alive().length===0)endGame(false,'The party froze in the snow.');return true}]);
+  ev.push([5,()=>{const f=ri(20,40);S.food+=f;log('Local Shoshone traders show you a spring and sell you '+f+' lb of dried fish for a shirt.','good');S.clothes=Math.max(0,S.clothes-1);return true}]);
+  ev.push([4,()=>{if(S.oxen<1)return false;S.miles+=ri(8,15);log('Good grass and a tailwind. The oxen make extra miles.','good');return true}]);
+  ev.push([4,()=>{const m=pick(a);if(m.sick)return false;m.sick={n:'a broken arm',sev:3};m.sickDays=12;log(m.name+' fell from the wagon and broke an arm.','bad');return true}]);
+  ev.push([4,()=>{if(S.weather!=='heavy rain'&&S.weather!=='hail')return false;dayPass(false);log('A storm pinned you down for a day.','sys');return true}]);
+  const tot=ev.reduce((s,e)=>s+e[0],0);for(let tries=0;tries<6;tries++){let x=Math.random()*tot;for(const [w,f] of ev){x-=w;if(x<=0){if(f())return;break}}}}
+/* ===================== REST ===================== */
+function rest(){show('<h3>REST</h3><p>How many days will you rest? Health recovers about 3 points a day on filling rations, and the sick heal faster, but the food keeps going down.</p><div class="opt">'+[1,2,3,5,7].map(d=>'<button class="btn rd" data-d="'+d+'">'+d+' DAY'+(d>1?'S':'')+'</button>').join('')+'<button class="btn" id="no">CANCEL</button></div>');
+  $('no').onclick=hide;for(const b of document.querySelectorAll('.rd'))b.onclick=()=>{const d=parseInt(b.dataset.d);hide();for(let i=0;i<d;i++){if(S.ended)break;dayPass(false)}log('Rested '+d+' day'+(d>1?'s':'')+'.','sys');refresh()}}
+/* ===================== END ===================== */
+function endGame(win,why){if(S.ended)return;S.ended=true;setTravel(false);const a=alive();let score=0;for(const m of a)score+=Math.round(400+m.hp*6);score+=Math.round(S.money)+Math.round(S.food/4)+S.oxen*30+S.clothes*10+Math.round(S.ammo/5)+(S.parts.wheel+S.parts.axle+S.parts.tongue)*20+S.meds*15;score*=(PROFESSIONS[S.profession]||{mult:1}).mult;if(!win)score=Math.round(score*0.15);
+  const hs=JSON.parse(localStorage.getItem('it_scores')||'[]');hs.push({score,who:S.leader+' the '+S.profession,alive:a.length,date:dateStr()});hs.sort((p,q)=>q.score-p.score);localStorage.setItem('it_scores',JSON.stringify(hs.slice(0,5)));
+  show('<div class="title"><h1 style="font-size:30px">'+(win?'OREGON!':'THE TRAIL ENDS')+'</h1><p>'+(win?'On '+dateStr()+', after '+S.daysOnTrail+' days and '+END_MILES+' miles, '+a.length+' of your party of '+S.members.length+' walked into the Willamette Valley.':why+' It is '+dateStr()+', after '+S.daysOnTrail+' days and '+Math.round(S.miles)+' miles.')+'</p><table>'+S.members.map(m=>'<tr><td>'+m.name+'</td><td>'+(m.hp>0?'alive, '+healthWord(m.hp)+' health':'died on the trail')+'</td></tr>').join('')+'</table><p class="score">Survivors and health, remaining money and goods, times '+(PROFESSIONS[S.profession]||{mult:1}).mult+' for a '+S.profession+'.<br><b style="color:#e8c84a;font-size:20px">'+score+' POINTS</b></p><button class="btn primary" id="again">PLAY AGAIN</button></div>');$('again').onclick=titleScreen;refresh()}
+/* ===================== HUNTING ===================== */
+function startHunt(){if(S.ammo<=0){show('<h3>NO BULLETS</h3><p>You have no bullets to hunt with. Buy some at a fort or trade for them.</p><button class="btn" id="ok">OK</button>');$('ok').onclick=hide;return}
+  hunt={t:45,shots:0,meat:0,animals:[],sx:W/2,sy:H/2,spawnT:0,flash:0,shotsLog:[],bullets:Math.min(S.ammo,30)};$('huntUi').style.display='block';$('hDone').onclick=endHunt;refresh();for(const id of ['bGo','bRest','bHunt','bTrade','bMap','bSupplies'])$(id).disabled=true}
+function endHunt(){if(!hunt)return;const h=hunt;hunt=null;$('huntUi').style.display='none';const carry=Math.min(h.meat,100);S.ammo-=h.shots;S.food+=carry;dayPass(false);
+  show('<h3>HUNT OVER</h3><p>You fired '+h.shots+' shots and shot '+(h.shotsLog.length?h.shotsLog.join(', '):'nothing')+'.</p><p>'+(h.meat?h.meat+' lb of meat, of which you could carry <b>'+carry+' lb</b> back to the wagon.':'The party goes hungry tonight.')+'</p><button class="btn" id="ok">OK</button>');$('ok').onclick=hide;log('Hunted: '+carry+' lb of food from '+h.shots+' bullets.',carry?'good':'sys');refresh()}
+function huntTick(dt){const h=hunt;h.t-=dt;if(h.t<=0){endHunt();return}h.spawnT-=dt;if(h.spawnT<=0){h.spawnT=rnd(0.5,1.4);const tot=ANIMALS.reduce((s,a)=>s+a.freq,0);let x=Math.random()*tot;let def=ANIMALS[0];for(const a of ANIMALS){x-=a.freq;if(x<=0){def=a;break}}const side=Math.random()<0.5?-1:1;h.animals.push({def,x:side<0?-40:W+40,y:rnd(60,H-60),vx:-side*def.sp*rnd(40,70),vy:rnd(-20,20),alive:true,t:0})}
+  for(const a of h.animals){a.t+=dt;if(!a.alive)continue;a.x+=a.vx*dt;a.y+=a.vy*dt;if(a.y<40||a.y>H-40)a.vy*=-1}h.animals=h.animals.filter(a=>(a.alive&&a.x>-80&&a.x<W+80)||(!a.alive&&a.t<1.2));if(h.flash>0)h.flash-=dt;
+  $('hT').textContent=Math.ceil(h.t);$('hB').textContent=h.bullets-h.shots;$('hM').textContent=h.meat}
+function huntShoot(){const h=hunt;if(!h||h.shots>=h.bullets)return;h.shots++;h.flash=0.1;let hit=null;for(const a of h.animals){if(!a.alive)continue;const d=Math.hypot(a.x-h.sx,a.y-h.sy);if(d<a.def.r+6){hit=a;break}}
+  if(hit){hit.alive=false;hit.t=0;h.meat+=hit.def.w;h.shotsLog.push(hit.def.n);S.kills++}if(h.shots>=h.bullets)setTimeout(()=>{if(hunt)endHunt()},600)}
+/* ===================== CANVAS ===================== */
+const cv=$('c'),ctx=cv.getContext('2d');let W=800,H=450,scroll=0,wheelA=0,lastT=0;
+function resize(){const r=cv.getBoundingClientRect();W=Math.max(300,Math.floor(r.width));H=Math.max(200,Math.floor(r.height));cv.width=W;cv.height=H}
+window.addEventListener('resize',resize);resize();
+function skyColors(){const w=S?S.weather:'fair';const t=S?S.temp:60;if(w==='rain'||w==='heavy rain'||w==='hail')return ['#5b6977','#8a949c'];if(w==='snow'||w==='blizzard')return ['#9aa3ad','#d7dde3'];if(w==='fog')return ['#a7adb2','#c9cdd1'];if(t>85)return ['#e9c37a','#f6e2b3'];return ['#6fa3d6','#c6def0']}
+function draw(dt){ctx.clearRect(0,0,W,H);const [s1,s2]=skyColors();const g=ctx.createLinearGradient(0,0,0,H);g.addColorStop(0,s1);g.addColorStop(1,s2);ctx.fillStyle=g;ctx.fillRect(0,0,W,H);
+  if(hunt){drawHunt();return}
+  const r=S?regionAt(S.miles):'plains';const horizon=H*0.62;
+  // sun
+  ctx.fillStyle='rgba(255,240,180,0.9)';ctx.beginPath();ctx.arc(W*0.8,H*0.18,H*0.06,0,7);ctx.fill();
+  // far layer
+  if(r==='mountains'||r==='hills'){ctx.fillStyle=r==='mountains'?'#6e7a86':'#7a8a5a';ctx.beginPath();ctx.moveTo(0,horizon);for(let x=0;x<=W;x+=20){const k=(x+scroll*0.15)/90;const hgt=(r==='mountains'?H*0.3:H*0.14)*(0.5+0.5*Math.sin(k)*Math.sin(k*0.37+1));ctx.lineTo(x,horizon-hgt)}ctx.lineTo(W,horizon);ctx.fill();
+    if(r==='mountains'){ctx.fillStyle='rgba(255,255,255,0.75)';ctx.beginPath();ctx.moveTo(0,horizon);for(let x=0;x<=W;x+=20){const k=(x+scroll*0.15)/90;const hgt=H*0.3*(0.5+0.5*Math.sin(k)*Math.sin(k*0.37+1));ctx.lineTo(x,horizon-hgt+(hgt>H*0.22?0:hgt))}ctx.lineTo(W,horizon);ctx.fill()}}
+  else if(r==='desert'){ctx.fillStyle='#b89a6a';ctx.beginPath();ctx.moveTo(0,horizon);for(let x=0;x<=W;x+=24){const k=(x+scroll*0.1)/140;ctx.lineTo(x,horizon-H*0.08*(0.5+0.5*Math.sin(k)))}ctx.lineTo(W,horizon);ctx.fill()}
+  else{ctx.fillStyle=r==='valley'?'#5f8a46':'#7f9a4e';ctx.beginPath();ctx.moveTo(0,horizon);for(let x=0;x<=W;x+=24){const k=(x+scroll*0.1)/160;ctx.lineTo(x,horizon-H*0.05*(0.5+0.5*Math.sin(k)))}ctx.lineTo(W,horizon);ctx.fill()}
+  // ground
+  const ground=r==='desert'?'#c8a86c':r==='mountains'?'#8a8a6a':r==='valley'?'#4f8a3c':'#6f9a3c';const gg=ctx.createLinearGradient(0,horizon,0,H);gg.addColorStop(0,ground);gg.addColorStop(1,'#3d4a22');ctx.fillStyle=gg;ctx.fillRect(0,horizon,W,H-horizon);
+  if(S&&(S.weather==='snow'||S.weather==='blizzard')){ctx.fillStyle='rgba(240,245,250,0.85)';ctx.fillRect(0,horizon,W,H-horizon)}
+  // trail ruts
+  ctx.strokeStyle='rgba(80,60,30,0.45)';ctx.lineWidth=3;for(const off of [-10,10]){ctx.beginPath();ctx.moveTo(0,H*0.86+off);ctx.lineTo(W,H*0.86+off);ctx.stroke()}
+  // tufts and rocks scrolling
+  ctx.fillStyle=r==='desert'?'#8a7040':'#3f6a22';for(let i=0;i<30;i++){const x=((i*173+scroll*0.9)%(W+60))-30;const y=horizon+12+((i*97)%(H-horizon-30));const s=4+(i%3)*2;ctx.fillRect(x,y,s,s/2)}
+  // oxen + wagon
+  const bx=W*0.42,by=H*0.86;const pairs=Math.min(4,Math.max(1,Math.floor((S?S.oxen:4)/2)));
+  for(let i=0;i<pairs;i++)drawOx(bx+70+i*48,by,wheelA+i);drawWagon(bx,by);
+  // weather overlay
+  if(S&&(S.weather==='rain'||S.weather==='heavy rain')){ctx.strokeStyle='rgba(200,220,255,0.5)';ctx.lineWidth=1;const n=S.weather==='rain'?60:140;for(let i=0;i<n;i++){const x=(i*61+scroll*3)%W,y=(i*37+scroll*9)%H;ctx.beginPath();ctx.moveTo(x,y);ctx.lineTo(x-3,y+12);ctx.stroke()}}
+  if(S&&(S.weather==='snow'||S.weather==='blizzard')){ctx.fillStyle='rgba(255,255,255,0.9)';const n=S.weather==='snow'?60:200;for(let i=0;i<n;i++){const x=(i*61+scroll*(S.weather==='blizzard'?6:1))%W,y=(i*37+scroll*2)%H;ctx.fillRect(x,y,2,2)}}
+  if(S&&S.weather==='fog'){ctx.fillStyle='rgba(220,225,230,0.55)';ctx.fillRect(0,0,W,H)}
+  // caption
+  ctx.fillStyle='rgba(0,0,0,0.45)';ctx.fillRect(0,0,W,26);ctx.fillStyle='#e8c84a';ctx.font='bold 13px Oswald, sans-serif';ctx.textAlign='left';ctx.fillText(S?(S.travelling?'ON THE TRAIL — '+dateStr().toUpperCase():S.screen==='trail'?'CAMPED — '+dateStr().toUpperCase():'INDEPENDENCE, MISSOURI'):'',150,18);ctx.textAlign='right';ctx.fillText(S?r.toUpperCase():'',W-12,18)}
+function drawWagon(x,y){const t=wheelA;ctx.save();ctx.translate(x,y);
+  ctx.fillStyle='#6b4a22';ctx.fillRect(-46,-26,92,16); // bed
+  ctx.fillStyle='#e9e2cf';ctx.beginPath();ctx.moveTo(-50,-26);ctx.quadraticCurveTo(-46,-66,0,-66);ctx.quadraticCurveTo(46,-66,50,-26);ctx.closePath();ctx.fill(); // canvas cover
+  ctx.strokeStyle='#b8ae95';ctx.lineWidth=2;for(const k of [-30,-10,10,30]){ctx.beginPath();ctx.moveTo(k,-26);ctx.lineTo(k*0.9,-62);ctx.stroke()}
+  ctx.fillStyle='#4a3014';ctx.fillRect(46,-22,34,4); // tongue
+  for(const wx of [-28,28]){ctx.save();ctx.translate(wx,0);ctx.rotate(t);ctx.strokeStyle='#2f1e0a';ctx.lineWidth=3;ctx.beginPath();ctx.arc(0,0,wx<0?12:14,0,7);ctx.stroke();for(let i=0;i<4;i++){ctx.beginPath();ctx.moveTo(-(wx<0?12:14)*Math.cos(i*Math.PI/4),-(wx<0?12:14)*Math.sin(i*Math.PI/4));ctx.lineTo((wx<0?12:14)*Math.cos(i*Math.PI/4),(wx<0?12:14)*Math.sin(i*Math.PI/4));ctx.stroke()}ctx.restore()}
+  ctx.restore()}
+function drawOx(x,y,t){ctx.save();ctx.translate(x,y);const step=Math.sin(t*2)*4;ctx.fillStyle='#7a4a2a';ctx.fillRect(-18,-24,36,16);ctx.fillRect(14,-32,12,12);ctx.fillStyle='#e8dcc0';ctx.fillRect(20,-36,3,4);ctx.fillRect(26,-36,3,4);ctx.fillStyle='#5a3418';ctx.fillRect(-15,-8,4,8+step);ctx.fillRect(-6,-8,4,8-step);ctx.fillRect(6,-8,4,8+step);ctx.fillRect(13,-8,4,8-step);ctx.restore()}
+function drawHunt(){const h=hunt;ctx.fillStyle='#5f8a3c';ctx.fillRect(0,0,W,H);ctx.fillStyle='#4a7230';for(let i=0;i<60;i++){const x=(i*127)%W,y=(i*83)%H;ctx.fillRect(x,y,8,3)}ctx.fillStyle='#2f5a22';for(let i=0;i<10;i++){const x=(i*211+40)%W,y=(i*149+30)%H;ctx.beginPath();ctx.arc(x,y,18,0,7);ctx.fill()}
+  for(const a of h.animals){ctx.save();ctx.translate(a.x,a.y);if(!a.alive){ctx.globalAlpha=Math.max(0,1-a.t);ctx.rotate(Math.PI/2)}if(a.vx<0)ctx.scale(-1,1);const r=a.def.r;ctx.fillStyle=a.def.col;ctx.fillRect(-r,-r*0.55,r*2,r*1.1);ctx.fillRect(r*0.7,-r*0.95,r*0.7,r*0.6);ctx.fillStyle='#1a1008';ctx.fillRect(r*1.2,-r*0.85,2,2);const leg=Math.sin(a.t*12)*r*0.3;ctx.fillStyle=a.def.col;ctx.fillRect(-r*0.8,r*0.5,r*0.25,r*0.5+leg);ctx.fillRect(r*0.5,r*0.5,r*0.25,r*0.5-leg);ctx.restore()}
+  ctx.strokeStyle=h.flash>0?'#ff4040':'#ffffff';ctx.lineWidth=2;ctx.beginPath();ctx.arc(h.sx,h.sy,14,0,7);ctx.moveTo(h.sx-22,h.sy);ctx.lineTo(h.sx-6,h.sy);ctx.moveTo(h.sx+6,h.sy);ctx.lineTo(h.sx+22,h.sy);ctx.moveTo(h.sx,h.sy-22);ctx.lineTo(h.sx,h.sy-6);ctx.moveTo(h.sx,h.sy+6);ctx.lineTo(h.sx,h.sy+22);ctx.stroke()}
+function frame(now){requestAnimationFrame(frame);const dt=Math.min(0.1,(now-lastT)/1000||0);lastT=now;if(S&&S.travelling){scroll+=dt*120;wheelA+=dt*6}if(hunt){huntTick(dt);if(keys.ArrowLeft)hunt.sx-=260*dt;if(keys.ArrowRight)hunt.sx+=260*dt;if(keys.ArrowUp)hunt.sy-=260*dt;if(keys.ArrowDown)hunt.sy+=260*dt;hunt.sx=clamp(hunt.sx,0,W);hunt.sy=clamp(hunt.sy,0,H)}draw(dt)}
+/* ===================== INPUT ===================== */
+const keys={};window.addEventListener('keydown',e=>{keys[e.code]=true;if(hunt&&(e.code==='Space'||e.code==='Enter')){huntShoot();e.preventDefault()}if(hunt&&e.code.startsWith('Arrow'))e.preventDefault()});window.addEventListener('keyup',e=>{keys[e.code]=false});
+cv.addEventListener('mousemove',e=>{if(!hunt)return;const r=cv.getBoundingClientRect();hunt.sx=(e.clientX-r.left)*W/r.width;hunt.sy=(e.clientY-r.top)*H/r.height});
+cv.addEventListener('mousedown',e=>{if(!hunt)return;const r=cv.getBoundingClientRect();hunt.sx=(e.clientX-r.left)*W/r.width;hunt.sy=(e.clientY-r.top)*H/r.height;huntShoot()});
+cv.addEventListener('touchstart',e=>{if(!hunt)return;const t=e.touches[0];const r=cv.getBoundingClientRect();hunt.sx=(t.clientX-r.left)*W/r.width;hunt.sy=(t.clientY-r.top)*H/r.height;huntShoot();e.preventDefault()},{passive:false});
+$('bGo').onclick=()=>{if(!S||S.screen!=='trail'||S.ended)return;setTravel(true)};$('bStop').onclick=()=>setTravel(false);$('bRest').onclick=rest;$('bHunt').onclick=startHunt;$('bTrade').onclick=tradeScreen;$('bMap').onclick=mapScreen;$('bSupplies').onclick=suppliesScreen;
+$('pace').onchange=e=>{if(S)S.pace=e.target.value};$('rations').onchange=e=>{if(S)S.rations=e.target.value};
+titleScreen();requestAnimationFrame(frame);
+</script>
+</body>
+</html>
