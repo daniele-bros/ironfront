@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="ironcraft-build" content="20261008-131246">
+<meta name="ironcraft-build" content="20261008-132007">
 <meta name="viewport" content="width=device-width,initial-scale=1.0,viewport-fit=cover">
 <title>Ironcraft – Free Voxel Survival Sandbox in Your Browser | Iron Games</title>
 <meta name="description" content="Ironcraft is a free browser-based voxel survival sandbox with building, exploration, private or safety-limited public multiplayer, and optional weather, horror and survival challenges. By Daniele Bros.">
@@ -5194,21 +5194,19 @@ function buildBaseHouse(x,y,z){ // two-storey oak house, 9x9, door on the south 
   baseSet(x-3,fy+5,z-3,62,0);baseSet(x-3,fy+5,z-2,62,4);
   baseSet(x-1,fy+5,z-3,39,0);baseSet(x,fy+5,z-3,39,0);baseSet(x+1,fy+5,z-3,29);
   baseSet(x-3,fy+5,z+3,32);baseSet(x+3,fy+5,z+3,32);baseSet(x-3,fy+6,z-3,32)}
-function buildBaseBunker(x,y,z){ // two floors of stone brick buried under the aimed block, reached by a ladder from a small pillbox
+function buildBaseBunker(x,y,z){ // two floors of solid obsidian buried under the aimed block, reached by a ladder from a small obsidian pillbox
   const lx=x,lz=z-4; // ladder column, against the north wall
-  baseFill(x-5,y-8,z-5,x+5,y,z+5,52); // shell
+  baseFill(x-5,y-8,z-5,x+5,y,z+5,31); // obsidian shell
   baseFill(x-4,y-7,z-4,x+4,y-5,z+4,0); // lower room
   baseFill(x-4,y-3,z-4,x+4,y-1,z+4,0); // upper room (floor between them stays at y-4)
-  baseFill(x-5,y-8,z-5,x+5,y-8,z+5,31); // obsidian base plate
-  for(const [cx,cz] of [[-5,-5],[5,-5],[-5,5],[5,5]])baseFill(x+cx,y-8,z+cz,x+cx,y,z+cz,25); // iron corner pillars
   for(const yy of [y,y-4])for(const [gx,gz] of [[-2,-2],[2,-2],[-2,2],[2,2],[0,0]])baseSet(x+gx,yy,z+gz,53); // glowstone set into both ceilings
   // pillbox on the surface over the ladder, door facing south
-  baseFoundation(lx-1,lz-1,lx+1,lz+1,y+1,4);
-  baseFill(lx-2,y+1,lz-2,lx+2,y+5,lz+2,0);baseFill(lx-1,y+1,lz-1,lx+1,y+4,lz+1,4);baseFill(lx-1,y+4,lz-1,lx+1,y+4,lz+1,56);baseSet(lx,y+1,lz,0);baseSet(lx,y+2,lz,0);baseSet(lx,y+3,lz,0);
+  baseFoundation(lx-1,lz-1,lx+1,lz+1,y+1,31);
+  baseFill(lx-2,y+1,lz-2,lx+2,y+5,lz+2,0);baseFill(lx-1,y+1,lz-1,lx+1,y+4,lz+1,31);baseSet(lx,y+1,lz,0);baseSet(lx,y+2,lz,0);baseSet(lx,y+3,lz,0);
   baseSet(lx,y+1,lz+1,54,2);baseSet(lx,y+2,lz+1,54,2|8);baseSet(lx-1,y+2,lz,17);baseSet(lx+1,y+2,lz,17);baseSet(lx,y+2,lz-1,17);
   // ladder shaft from the pillbox down through both floors
   for(let yy=y-7;yy<=y+3;yy++)baseSet(lx,yy,lz,38,0);
-  baseSet(lx,y+4,lz,4);
+  baseSet(lx,y+4,lz,31);
   // upper floor: crafting table, furnace, two empty chests, torches
   baseSet(x-3,y-3,z-4,34);baseSet(x-4,y-3,z-4,37,0);baseSet(x+3,y-3,z-4,39,0);baseSet(x+4,y-3,z-4,39,0);
   baseSet(x-4,y-3,z+4,32);baseSet(x+4,y-3,z+4,32);
