@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="ironcraft-build" content="20261008-132007">
+<meta name="ironcraft-build" content="20261008-140044">
 <meta name="viewport" content="width=device-width,initial-scale=1.0,viewport-fit=cover">
 <title>Ironcraft – Free Voxel Survival Sandbox in Your Browser | Iron Games</title>
 <meta name="description" content="Ironcraft is a free browser-based voxel survival sandbox with building, exploration, private or safety-limited public multiplayer, and optional weather, horror and survival challenges. By Daniele Bros.">
@@ -2097,6 +2097,7 @@ function spawnParticles(type,x,y,z,n,extra){
       case 'crit':p.col=[1,1,0.6];p.grav=2;p.life=0.4;p.size=0.06;p.vx*=1;p.vz*=1;p.vy=Math.random()*1.5;p.bright=1;break;
       case 'splash':p.col=[0.5,0.7,1];p.grav=20;p.life=0.5;p.size=0.07;p.vx*=2;p.vz*=2;p.vy=2+Math.random()*3;p.bright=0;break;
       case 'bubble':p.col=[0.7,0.85,1];p.grav=-8;p.life=0.8;p.size=0.06;p.vx*=0.2;p.vz*=0.2;p.vy=0.5;p.bright=0.5;break;
+      case 'breath':p.tile=TEX.smoke;p.col=[0.72,0.28,0.95];p.grav=0;p.life=0.7+Math.random()*0.6;p.size=0.22+Math.random()*0.2;p.fade=true;p.bright=1;if(extra&&extra.dir){p.vx=extra.dir[0]+(Math.random()-0.5)*2.5;p.vy=extra.dir[1]+(Math.random()-0.5)*2.5;p.vz=extra.dir[2]+(Math.random()-0.5)*2.5}else{p.vx*=0.35;p.vz*=0.35;p.vy=0.15+Math.random()*0.45}break;
       case 'portal':p.col=[0.7,0.3,1];p.grav=-1;p.life=1;p.size=0.08;p.vx*=0.5;p.vz*=0.5;p.vy=(Math.random()-0.5)*2;p.bright=1;p.fade=true;break;
       case 'happy':p.col=[0.6,1,0.4];p.grav=-1;p.life=1;p.size=0.1;p.vy=0.5;p.bright=1;break;
       case 'rain':{const g=extra?extra.gust:0;p.weather=true;p.col=[0.55,0.65,0.85];p.grav=0;p.vx=1.6+g*6;p.vz=0.4+g*3;p.vy=-19;p.life=0.7;p.size=0.035;p.bright=0.4;if(extra&&extra.snow){p.col=[1,1,1];p.vy=-4-Math.random()*2;p.vx=0.5+g*3;p.size=0.09;p.life=2.6;p.bright=0.9}break}
@@ -2946,7 +2947,7 @@ function trySleep(bx,by,bz){const p=player;const t=world.time;
   for(const e of entities){if(e instanceof Mob&&!e.def.passive&&!e.dead){const dx=e.x-bx,dz=e.z-bz;if(dx*dx+dz*dz<64){showMessage('You may not rest now, there are monsters nearby');return}}}
   p.spawn=[bx+0.5,by+0.6,bz+0.5];p.sleeping=0.01;$('sleepfade').style.opacity=1;showMessage('Respawn point set')}
 function playerDie(src){const p=player;p.dead=true;p.hp=0;playSound('death');let msg='Player died';const t=src&&src.type;
-  if(t==='fall')msg='Player fell from a high place';else if(t==='pvp')msg='Player was slain by '+(src.name||'another player');else if(t==='mob')msg='Player was slain by a monster';else if(t==='arrow')msg='Player was shot by a Bonewalker';else if(t==='explosion')msg='Player was blown up';else if(t==='lava')msg='Player tried to swim in lava';else if(t==='fire')msg='Player burned to death';else if(t==='drown')msg='Player drowned';else if(t==='starve')msg='Player starved to death';else if(t==='cactus')msg='Player was pricked to death';else if(t==='lightning')msg='Player was struck by lightning';else if(t==='tornado')msg='Player was swept away by a tornado';else if(t==='sonic')msg='Player was obliterated by a sonically-charged shriek';
+  if(t==='fall')msg='Player fell from a high place';else if(t==='pvp')msg='Player was slain by '+(src.name||'another player');else if(t==='mob')msg='Player was slain by a monster';else if(t==='arrow')msg='Player was shot by a Bonewalker';else if(t==='explosion')msg='Player was blown up';else if(t==='lava')msg='Player tried to swim in lava';else if(t==='fire')msg='Player burned to death';else if(t==='drown')msg='Player drowned';else if(t==='starve')msg='Player starved to death';else if(t==='cactus')msg='Player was pricked to death';else if(t==='lightning')msg='Player was struck by lightning';else if(t==='tornado')msg='Player was swept away by a tornado';else if(t==='sonic')msg='Player was obliterated by a sonically-charged shriek';else if(t==='breath')msg='Player was dissolved by dragon breath';
   if(p.riding)p.riding.dismount();
   for(let i=0;i<36;i++)if(p.inv[i]&&enchLevel(p.inv[i],'vanishing_curse'))p.inv[i]=null;for(let i=0;i<4;i++)if(p.armor[i]&&enchLevel(p.armor[i],'vanishing_curse'))p.armor[i]=null;
   if(pvpOn()){for(let i=0;i<36;i++)p.inv[i]=null;for(let i=0;i<4;i++)p.armor[i]=null;showMessage('You died at X '+floor(p.x)+' Y '+floor(p.y)+' Z '+floor(p.z)+'. On public servers everything you carried is lost.')}
@@ -3556,8 +3557,19 @@ class Crystal extends Entity{constructor(x,y,z){super(x,y,z);this.w=2;this.h=2;t
   render(EB){const l=[1,1];const r=this.age*1.2;const bob=Math.sin(this.age*2)*0.15;const tf=makeTF(this.x,this.y+1+bob,this.z,r,0.6,0.6,0,0,0,1);const tf2=makeTF(this.x,this.y+1+bob,this.z,-r,0.6,-0.6,0,0,0,1);
     EB.box(tf,-0.8,-0.8,-0.8,0.8,0.8,0.8,TEX.crystal,[1,1,1],l,true);EB.box(tf2,-0.55,-0.55,-0.55,0.55,0.55,0.55,TEX.crystal,[0.7,0.5,1],l,true);EB.box((x,y,z)=>[this.x+x,this.y+y,this.z+z],-1,0,-1,1,0.2,1,TEX.bedrock,[1,1,1],l,false)}}
 /* ---- the ender dragon ---- */
+/* dragon's breath: a lingering purple cloud that poisons whoever stands in it. The dragon never bites or rams, it only sprays. */
+function endPoison(p){if(p.dead||p.mode==='creative')return;p.effects.poison=Math.max(p.effects.poison||0,8);damageEntity(p,[1,2,3][Math.max(0,Math.min(2,game.difficulty-1))],{type:'breath'})}
+class BreathCloud extends Entity{constructor(x,y,z,r,t){super(x,y,z);this.r=r;this.t=t;this.w=0.1;this.h=0.1;this.noGravity=true;this.solidBody=false;this.tick=0.3}
+  update(dt){this.age+=dt;this.t-=dt;if(this.t<=0){this.dead=true;return}
+    const n=Math.min(8,Math.ceil(dt*40*this.r));for(let i=0;i<n;i++){const a=Math.random()*PI*2,d=sqrt(Math.random())*this.r;spawnParticles('breath',this.x+Math.cos(a)*d,this.y+0.1+Math.random()*0.9,this.z+Math.sin(a)*d,1)}
+    this.tick-=dt;if(this.tick<=0){this.tick=0.5;const p=player;if(Math.hypot(p.x-this.x,p.z-this.z)<this.r+0.4&&p.y>this.y-1.5&&p.y<this.y+2.5)endPoison(p)}}
+  render(){}}
+function breathCloudAt(x,y,z,r,t){ // settle the cloud on the ground under (x,y,z); refresh one already there instead of stacking
+  let gy=floor(y);for(let i=0;i<12&&gy>0;i++){const b=world.getBlock(floor(x),gy-1,floor(z));if(b!==0&&BLOCKS[b].solid)break;gy--}
+  for(const e of entities){if(e instanceof BreathCloud&&!e.dead&&Math.hypot(e.x-x,e.z-z)<r*0.8&&abs(e.y-gy)<2){e.t=Math.max(e.t,t);return e}}
+  const c=new BreathCloud(x,gy,z,r,t);entities.push(c);return c}
 class Dragon extends Entity{
-  constructor(x,y,z){super(x,y,z);this.w=4;this.h=3;this.hp=200;this.maxHp=200;this.hittable=true;this.def={sound:'dragon',undead:false,dmg:10};this.state='circle';this.stateT=8;this.ang=0;this.speed=9;this.wing=0;this.yaw=0;this.pitch=0;this.deathT=0;this.hitCd=0;this.healT=0;this.solidBody=false;this.invT=0;this.lastDmg=0}
+  constructor(x,y,z){super(x,y,z);this.w=4;this.h=3;this.hp=200;this.maxHp=200;this.hittable=true;this.def={sound:'dragon',undead:false,dmg:10};this.state='circle';this.stateT=8;this.ang=0;this.speed=9;this.wing=0;this.yaw=0;this.pitch=0;this.deathT=0;this.hitCd=0;this.healT=0;this.solidBody=false;this.invT=0;this.lastDmg=0;this.breathT=0;this.spraying=0}
   update(dt){this.age+=dt;this.wing+=dt*(this.state==='perch'?1.5:4);const p=player;if(this.hitCd>0)this.hitCd-=dt;if(this.invT>0)this.invT-=dt;if(this.hurtT>0)this.hurtT-=dt;
     if(this.dying){this.deathT+=dt;this.y+=dt*1.5;this.yaw+=dt*0.3;if(Math.random()<dt*25)spawnParticles('explosion',this.x+(Math.random()-0.5)*8,this.y+(Math.random()-0.5)*4,this.z+(Math.random()-0.5)*8,2);if(this.deathT>7){this.dead=true;dragonDefeated(this)}return}
     // crystals heal
@@ -3565,19 +3577,26 @@ class Dragon extends Entity{
     // state machine
     this.stateT-=dt;if(this.stateT<=0){const r=Math.random();if(this.state==='perch'){this.state='circle';this.stateT=10+Math.random()*8}else if(r<0.45&&!p.dead&&Math.hypot(p.x,p.z)<90){this.state='charge';this.stateT=6;playSoundAt('dragon',this.x,this.y,this.z,0.8,1)}else if(r<0.6&&Math.hypot(p.x,p.z)<40){this.state='perch';this.stateT=9}else{this.state='circle';this.stateT=8+Math.random()*10;this.dir=Math.random()<0.5?1:-1}}
     let tx,ty,tz,sp=this.speed;
-    if(this.state==='charge'){tx=p.x+p.vx*0.5;ty=p.y+1;tz=p.z+p.vz*0.5;sp=15;if(Math.hypot(tx-this.x,ty-this.y,tz-this.z)<4)this.stateT=Math.min(this.stateT,1)}
-    else if(this.state==='perch'){tx=0.5;ty=66.5;tz=0.5;sp=8;if(Math.hypot(tx-this.x,tz-this.z)<2&&abs(ty-this.y)<2){this.x=tx;this.y=ty;this.z=tz;this.yaw=Math.atan2(-(p.x-this.x),-(p.z-this.z));this.pitch=0;return}}
+    if(this.state==='charge'){tx=p.x+p.vx*0.5;ty=p.y+9;tz=p.z+p.vz*0.5;sp=15;if(Math.hypot(tx-this.x,tz-this.z)<5)this.stateT=Math.min(this.stateT,1.5)}
+    else if(this.state==='perch'){tx=0.5;ty=66.5;tz=0.5;sp=8;if(Math.hypot(tx-this.x,tz-this.z)<2&&abs(ty-this.y)<2){this.x=tx;this.y=ty;this.z=tz;this.yaw=Math.atan2(-(p.x-this.x),-(p.z-this.z));this.pitch=0;this.breathe(dt,14);return}}
     else{this.ang+=dt*(this.dir||1)*sp/34;const R=34+Math.sin(this.age*0.3)*8;tx=Math.cos(this.ang)*R;tz=Math.sin(this.ang)*R;ty=72+Math.sin(this.age*0.5)*8}
     const dx=tx-this.x,dy=ty-this.y,dz=tz-this.z;const d=sqrt(dx*dx+dy*dy+dz*dz)||1;const wantYaw=Math.atan2(-dx,-dz);let dyaw=wantYaw-this.yaw;while(dyaw>PI)dyaw-=PI*2;while(dyaw<-PI)dyaw+=PI*2;this.yaw+=clamp(dyaw,-1.6*dt,1.6*dt);
     const wantPitch=Math.atan2(dy,sqrt(dx*dx+dz*dz));this.pitch+=(clamp(wantPitch,-0.8,0.8)-this.pitch)*Math.min(1,dt*2);
     const cp=Math.cos(this.pitch);this.x+=-Math.sin(this.yaw)*cp*sp*dt;this.z+=-Math.cos(this.yaw)*cp*sp*dt;this.y+=Math.sin(this.pitch)*sp*dt;if(this.y<45)this.y=45;
     // smash through blocks (not obsidian, end stone, bedrock or the portal)
     if(game.tick%3===0){const hx=this.x-Math.sin(this.yaw)*5,hz=this.z-Math.cos(this.yaw)*5;for(const [px,py,pz,r] of [[this.x,this.y,this.z,2.5],[hx,this.y+Math.sin(this.pitch)*3,hz,1.5]]){for(let x=floor(px-r);x<=floor(px+r);x++)for(let y=floor(py-r);y<=floor(py+r);y++)for(let z=floor(pz-r);z<=floor(pz+r);z++){const b=world.getBlock(x,y,z);if(b===0||b===31||b===99||b===7||b===100||b===101||b===102)continue;world.setBlock(x,y,z,0,0,{noDrop:true,silent:true});spawnParticles('block',x+0.5,y+0.5,z+0.5,2,b)}}}
-    // hurt the player on contact
-    if(!p.dead&&this.hitCd<=0){const hx=this.x-Math.sin(this.yaw)*5,hz=this.z-Math.cos(this.yaw)*5;const db=Math.hypot(p.x-this.x,p.y+0.9-this.y,p.z-this.z),dh=Math.hypot(p.x-hx,p.y+0.9-this.y,p.z-hz);
-      if(db<3.8||dh<2.6){this.hitCd=1;damageEntity(p,[6,10,15][Math.max(0,game.difficulty-1)],{x:this.x,y:this.y,z:this.z,type:'mob',kb:16,mob:this})}}
+    // no biting or ramming: the dragon sprays end poison at anyone close enough while it is hunting
+    this.breathe(dt,this.state==='charge'?26:0);
     if(Math.random()<dt*0.08)playSoundAt('dragon',this.x,this.y,this.z,1,0.6);
   }
+  breathe(dt,range){ // spray purple breath from the mouth toward the player and leave poison clouds where it lands
+    const p=player;if(this.dying||p.dead||range<=0||playerHidden()){this.spraying=0;return}
+    const hx=this.x-Math.sin(this.yaw)*Math.cos(this.pitch)*8,hy=this.y+Math.sin(this.pitch)*8+0.8,hz=this.z-Math.cos(this.yaw)*Math.cos(this.pitch)*8;
+    const dx=p.x-hx,dy=p.y+0.9-hy,dz=p.z-hz;const d=Math.hypot(dx,dy,dz);if(d>range||d<1){this.spraying=0;return}
+    const fdx=-Math.sin(this.yaw),fdz=-Math.cos(this.yaw);if((dx*fdx+dz*fdz)/Math.max(0.01,Math.hypot(dx,dz))<0.2){this.spraying=0;return} // only out of the front of the head
+    if(this.spraying===0)playSoundAt('dragon',this.x,this.y,this.z,0.9,1.4);this.spraying+=dt;
+    const sp=22;const n=Math.ceil(dt*90);for(let i=0;i<n;i++){const f=Math.random()*0.6;spawnParticles('breath',hx+dx*f,hy+dy*f,hz+dz*f,1,{dir:[dx/d*sp,dy/d*sp,dz/d*sp]})}
+    this.breathT-=dt;if(this.breathT<=0){this.breathT=0.5;breathCloudAt(p.x,p.y,p.z,3,7)}}
   onHurt(src){if(src&&src.type==='player'&&Math.random()<0.5)playSoundAt('dragon',this.x,this.y,this.z,1.2,0.8)}
   onDeath(){this.dying=true;this.deathT=0;playSound('dragon',1,0.5)}
   render(EB){const l=[Math.max(lightAt(this.x,this.y,this.z)[0],0.35),0.2];const c=[0.11,0.09,0.14],mem=[0.36,0.12,0.42],hurt=this.hurtT>0?[1,0.5,0.5]:[1,1,1];const col=[c[0]*hurt[0],c[1]*hurt[1],c[2]*hurt[2]];const N=TEX.noise;
@@ -5194,27 +5213,35 @@ function buildBaseHouse(x,y,z){ // two-storey oak house, 9x9, door on the south 
   baseSet(x-3,fy+5,z-3,62,0);baseSet(x-3,fy+5,z-2,62,4);
   baseSet(x-1,fy+5,z-3,39,0);baseSet(x,fy+5,z-3,39,0);baseSet(x+1,fy+5,z-3,29);
   baseSet(x-3,fy+5,z+3,32);baseSet(x+3,fy+5,z+3,32);baseSet(x-3,fy+6,z-3,32)}
-function buildBaseBunker(x,y,z){ // two floors of solid obsidian buried under the aimed block, reached by a ladder from a small obsidian pillbox
-  const lx=x,lz=z-4; // ladder column, against the north wall
-  baseFill(x-5,y-8,z-5,x+5,y,z+5,31); // obsidian shell
-  baseFill(x-4,y-7,z-4,x+4,y-5,z+4,0); // lower room
-  baseFill(x-4,y-3,z-4,x+4,y-1,z+4,0); // upper room (floor between them stays at y-4)
-  for(const yy of [y,y-4])for(const [gx,gz] of [[-2,-2],[2,-2],[-2,2],[2,2],[0,0]])baseSet(x+gx,yy,z+gz,53); // glowstone set into both ceilings
+function buildBaseBunker(x,y,z){ // three floors of solid obsidian buried under the aimed block, 17x17, reached by a ladder from a small obsidian pillbox
+  const W=8,IN=7;const lx=x,lz=z-IN; // ladder column, against the north wall
+  baseFill(x-W,y-15,z-W,x+W,y,z+W,31); // obsidian shell
+  baseFill(x-IN,y-14,z-IN,x+IN,y-11,z+IN,0); // bottom room (bedroom)
+  baseFill(x-IN,y-9,z-IN,x+IN,y-6,z+IN,0); // middle room (storage)
+  baseFill(x-IN,y-4,z-IN,x+IN,y-1,z+IN,0); // top room (workshop)
+  for(const yy of [y,y-5,y-10])for(const gx of [-6,-3,0,3,6])for(const gz of [-6,-3,0,3,6])baseSet(x+gx,yy,z+gz,53); // glowstone set into every ceiling
   // pillbox on the surface over the ladder, door facing south
   baseFoundation(lx-1,lz-1,lx+1,lz+1,y+1,31);
   baseFill(lx-2,y+1,lz-2,lx+2,y+5,lz+2,0);baseFill(lx-1,y+1,lz-1,lx+1,y+4,lz+1,31);baseSet(lx,y+1,lz,0);baseSet(lx,y+2,lz,0);baseSet(lx,y+3,lz,0);
   baseSet(lx,y+1,lz+1,54,2);baseSet(lx,y+2,lz+1,54,2|8);baseSet(lx-1,y+2,lz,17);baseSet(lx+1,y+2,lz,17);baseSet(lx,y+2,lz-1,17);
-  // ladder shaft from the pillbox down through both floors
-  for(let yy=y-7;yy<=y+3;yy++)baseSet(lx,yy,lz,38,0);
+  // ladder shaft from the pillbox down through all three floors
+  for(let yy=y-14;yy<=y+3;yy++)baseSet(lx,yy,lz,38,0);
   baseSet(lx,y+4,lz,31);
-  // upper floor: crafting table, furnace, two empty chests, torches
-  baseSet(x-3,y-3,z-4,34);baseSet(x-4,y-3,z-4,37,0);baseSet(x+3,y-3,z-4,39,0);baseSet(x+4,y-3,z-4,39,0);
-  baseSet(x-4,y-3,z+4,32);baseSet(x+4,y-3,z+4,32);
-  // lower floor: bed, two more empty chests, bookshelves, torches
-  baseSet(x-3,y-7,z+2,62,0);baseSet(x-3,y-7,z+3,62,4);
-  baseSet(x+3,y-7,z+4,39,2);baseSet(x+4,y-7,z+4,39,2);baseSet(x+4,y-7,z-4,34);
-  baseFill(x-4,y-7,z-4,x-4,y-6,z-2,29);
-  baseSet(x-4,y-7,z+4,32);baseSet(x+4,y-7,z-2,32)}
+  // top room: workshop with two crafting tables, two furnaces, a brewing stand, an anvil, four empty chests and torches
+  baseSet(x-6,y-4,z-IN,34);baseSet(x-5,y-4,z-IN,37,0);baseSet(x-4,y-4,z-IN,37,0);baseSet(x-3,y-4,z-IN,34);
+  baseSet(x+3,y-4,z-IN,39,0);baseSet(x+4,y-4,z-IN,39,0);baseSet(x+5,y-4,z-IN,39,0);baseSet(x+6,y-4,z-IN,39,0);
+  baseSet(x-IN,y-4,z,138);baseSet(x+IN,y-4,z,97);
+  for(const [tx,tz] of [[-IN,-IN],[IN,-IN],[-IN,IN],[IN,IN],[0,IN]])baseSet(x+tx,y-4,z+tz,32);
+  // middle room: storage with sixteen empty chests and a wall of bookshelves
+  for(let i=-6;i<=6;i++){if(abs(i)<=1)continue;baseSet(x+i,y-9,z-IN,39,0)} // 10 along the north wall, leaving the ladder clear
+  for(let i=-3;i<=3;i++){if(i===0)continue;baseSet(x+i,y-9,z+IN,39,2)} // 6 along the south wall
+  baseFill(x-IN,y-9,z-5,x-IN,y-7,z+5,29);baseFill(x+IN,y-9,z-5,x+IN,y-7,z+5,29);
+  for(const [tx,tz] of [[-IN,-IN],[IN,-IN],[-IN,IN],[IN,IN]])baseSet(x+tx,y-9,z+tz,32);
+  // bottom room: bedroom with two beds, four empty chests, a crafting table, bookshelves and torches
+  baseSet(x-5,y-14,z+5,62,0);baseSet(x-5,y-14,z+6,62,4);baseSet(x+5,y-14,z+5,62,0);baseSet(x+5,y-14,z+6,62,4);
+  baseSet(x-2,y-14,z+IN,39,2);baseSet(x-1,y-14,z+IN,39,2);baseSet(x+1,y-14,z+IN,39,2);baseSet(x+2,y-14,z+IN,39,2);
+  baseSet(x+IN,y-14,z-5,34);baseFill(x-IN,y-14,z-6,x-IN,y-12,z-3,29);
+  for(const [tx,tz] of [[-IN,-IN],[IN,-IN],[-IN,IN],[IN,IN],[0,0]])baseSet(x+tx,y-14,z+tz,32)}
 const SPAWN_STRUCT={ // name -> [label, build(x,y,z,rng)] with (x,y,z) the aimed block; structures stand on y+1 (underground ones are carved around y)
   village:['Village',(x,y,z,r)=>world.placeVillage(x,z,midAt(x,z,y),r)],
   temple:['Desert Temple',(x,y,z,r)=>world.placeDesertTemple(x,z,r)],
