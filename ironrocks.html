@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0,viewport-fit=cover,user-scalable=no">
+<title>Iron Rocks – Free Asteroids Style Space Shooter in Your Browser | Iron Games</title>
+<meta name="description" content="Iron Rocks is a free browser space shooter in the Asteroids tradition: spin, thrust and blast drifting rocks into smaller pieces, dodge the hunter saucers, survive wave after wave. Keyboard or touch, no download.">
+<meta name="robots" content="index,follow,max-snippet:-1,max-image-preview:large">
+<link rel="canonical" href="https://irongames.win/ironrocks.html">
+<link rel="icon" href="favicon.svg" type="image/svg+xml">
+<link rel="manifest" href="site.webmanifest">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="Iron Games">
+<meta property="og:title" content="Iron Rocks – Free Asteroids Style Space Shooter | Iron Games">
+<meta property="og:description" content="Blast drifting rocks into pieces, dodge the hunter saucers and survive wave after wave. Keyboard or touch. Free in your browser, no download.">
+<meta property="og:url" content="https://irongames.win/ironrocks.html">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="Iron Rocks – Free Asteroids Style Space Shooter | Iron Games">
+<meta name="twitter:description" content="Blast drifting rocks, dodge saucers, survive the waves. Free in your browser, no download.">
+<script type="application/ld+json">{"@context":"https://schema.org","@graph":[{"@type":"VideoGame","name":"Iron Rocks","url":"https://irongames.win/ironrocks.html","genre":["Arcade","Shooter","Action"],"gamePlatform":"Web browser","applicationCategory":"Game","operatingSystem":"Any","isAccessibleForFree":true,"offers":{"@type":"Offer","price":"0","priceCurrency":"USD"},"author":{"@type":"Organization","name":"Daniele Bros","url":"https://irongames.win/"},"description":"An Asteroids style arcade shooter: rotate and thrust a ship through a field of drifting rocks, shoot them into smaller pieces, dodge saucers and survive escalating waves."},{"@type":"BreadcrumbList","itemListElement":[{"@type":"ListItem","position":1,"name":"Iron Games","item":"https://irongames.win/"},{"@type":"ListItem","position":2,"name":"Iron Rocks","item":"https://irongames.win/ironrocks.html"}]}]}</script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Oswald:wght@500;700&family=Share+Tech+Mono&display=swap" rel="stylesheet">
+<style>
+:root{--gold:#e8c84a;--cream:#ddd5b0;--dim:#7f8a9a;--border:#2a3a5a;}
+*{box-sizing:border-box;margin:0;padding:0;}
+html,body{width:100%;height:100%;overflow:hidden;background:#02040a;}
+body{font-family:'Share Tech Mono','Courier New',monospace;color:var(--cream);user-select:none;-webkit-user-select:none;touch-action:none;}
+canvas{position:absolute;inset:0;width:100%;height:100%;display:block;}
+.back{position:absolute;top:10px;left:10px;z-index:30;background:rgba(2,4,10,.8);color:var(--dim);font-family:'Oswald',sans-serif;font-size:12px;letter-spacing:3px;padding:7px 12px;border:1px solid var(--border);text-decoration:none;border-radius:2px;}
+.back:hover{color:var(--gold);border-color:var(--gold);}
+#hud{position:absolute;top:12px;right:14px;z-index:10;text-align:right;font-size:14px;letter-spacing:2px;pointer-events:none;text-shadow:0 0 8px #000;}
+#hud b{color:var(--gold);font-size:22px;font-family:'Oswald',sans-serif;}
+#msg{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;z-index:20;pointer-events:none;}
+#msg .box{text-align:center;pointer-events:auto;background:rgba(2,4,10,.82);border:2px solid #3a4e7a;padding:24px 30px;border-radius:4px;max-width:520px;}
+#msg h1{font-family:'Oswald',sans-serif;font-size:44px;letter-spacing:12px;color:var(--gold);text-shadow:0 0 24px rgba(232,200,74,.4);}
+#msg p{font-size:13px;line-height:1.7;margin:10px 0;color:#b7c3d9;}
+.btn{display:inline-block;background:#122040;border:1px solid #3a4e7a;color:var(--gold);font-family:'Oswald',sans-serif;font-size:15px;letter-spacing:4px;padding:10px 22px;cursor:pointer;border-radius:2px;margin:4px;}
+.btn:hover{border-color:var(--gold);}
+#touch{position:absolute;left:0;right:0;bottom:0;height:120px;display:none;z-index:15;justify-content:space-between;padding:0 14px 14px;pointer-events:none;}
+#touch div{display:flex;gap:10px;align-items:flex-end;}
+.tb{width:64px;height:64px;border-radius:50%;border:2px solid rgba(232,200,74,.6);background:rgba(18,32,64,.55);color:var(--gold);font-size:24px;display:flex;align-items:center;justify-content:center;pointer-events:auto;}
+.tb.big{width:80px;height:80px;}
+@media (pointer:coarse){#touch{display:flex;}}
+</style>
+</head>
+<body>
+<a class="back" href="/" title="Back to Iron Games">◀ IRON GAMES</a>
+<canvas id="c"></canvas>
+<div id="hud">SCORE <b id="hScore">0</b><br>WAVE <span id="hWave">1</span> · SHIPS <span id="hLives">3</span><br><span id="hBest" style="color:#7f8a9a;font-size:11px"></span></div>
+<div id="msg"><div class="box" id="box"></div></div>
+<div id="touch"><div><div class="tb" data-k="left">◀</div><div class="tb" data-k="right">▶</div></div><div><div class="tb" data-k="hyper">H</div><div class="tb big" data-k="thrust">▲</div><div class="tb big" data-k="fire">●</div></div></div>
+<script>
+'use strict';
+const $=id=>document.getElementById(id);const cv=$('c'),ctx=cv.getContext('2d');let W=800,H=600;
+function resize(){W=cv.width=innerWidth;H=cv.height=innerHeight}addEventListener('resize',resize);resize();
+const TAU=Math.PI*2;const rnd=(a,b)=>a+Math.random()*(b-a);
+let G=null;const keys={};const touch={};
+function newGame(){return {ship:null,rocks:[],shots:[],parts:[],saucers:[],sshots:[],score:0,lives:3,wave:0,respawnT:0,saucerT:20,over:false,started:true,shake:0,hyperCd:0,waveClearT:0,extraAt:10000}}
+function makeShip(){return {x:W/2,y:H/2,vx:0,vy:0,a:-Math.PI/2,inv:3,thrust:false,fireCd:0,alive:true}}
+function makeRock(x,y,size,vx,vy){const n=8+Math.floor(Math.random()*5);const pts=[];for(let i=0;i<n;i++){const ang=i/n*TAU;const r=size*rnd(0.72,1.15);pts.push([Math.cos(ang)*r,Math.sin(ang)*r])}return {x,y,size,vx:vx!==undefined?vx:rnd(-1,1)*60/Math.sqrt(size/20),vy:vy!==undefined?vy:rnd(-1,1)*60/Math.sqrt(size/20),a:rnd(0,TAU),spin:rnd(-1,1),pts,hp:size>=50?2:1}}
+function spawnWave(){G.wave++;const n=3+G.wave;for(let i=0;i<n;i++){let x,y;do{x=Math.random()*W;y=Math.random()*H}while(Math.hypot(x-W/2,y-H/2)<220);G.rocks.push(makeRock(x,y,56))}$('hWave').textContent=G.wave}
+function burst(x,y,n,col,sp){for(let i=0;i<n;i++){const a=Math.random()*TAU,s=rnd(20,sp||140);G.parts.push({x,y,vx:Math.cos(a)*s,vy:Math.sin(a)*s,t:rnd(0.3,0.9),col})}}
+function wrap(o){if(o.x<-40)o.x+=W+80;if(o.x>W+40)o.x-=W+80;if(o.y<-40)o.y+=H+80;if(o.y>H+40)o.y-=H+80}
+function fire(){const s=G.ship;if(!s||!s.alive||s.fireCd>0||G.shots.length>=6)return;s.fireCd=0.18;G.shots.push({x:s.x+Math.cos(s.a)*16,y:s.y+Math.sin(s.a)*16,vx:s.vx+Math.cos(s.a)*480,vy:s.vy+Math.sin(s.a)*480,t:1.1});beep(900,0.05,'square',0.04)}
+function hyper(){const s=G.ship;if(!s||!s.alive||G.hyperCd>0)return;G.hyperCd=3;burst(s.x,s.y,20,'#7fd0ff',120);s.x=rnd(40,W-40);s.y=rnd(40,H-40);s.vx=s.vy=0;s.inv=Math.max(s.inv,0.6);if(Math.random()<0.08){killShip();return}burst(s.x,s.y,20,'#7fd0ff',120);beep(300,0.2,'sawtooth',0.05)}
+function killShip(){const s=G.ship;if(!s||!s.alive)return;s.alive=false;burst(s.x,s.y,40,'#ffd27a',220);G.shake=0.5;G.lives--;$('hLives').textContent=G.lives;boom(0.5);if(G.lives<=0){G.over=true;endScreen()}else G.respawnT=2.2}
+function addScore(n){G.score+=n;$('hScore').textContent=G.score;if(G.score>=G.extraAt){G.extraAt+=10000;G.lives++;$('hLives').textContent=G.lives;beep(1200,0.3,'triangle',0.06)}}
+function hitRock(r,idx,byPlayer){r.hp--;if(r.hp>0){burst(r.x,r.y,4,'#9aa3b0',60);return}G.rocks.splice(idx,1);burst(r.x,r.y,r.size>40?16:10,'#9aa3b0',110);boom(r.size>40?0.25:0.15);if(byPlayer)addScore(r.size>=50?20:r.size>=28?50:100);
+  if(r.size>=28){const ns=r.size>=50?30:16;for(let k=0;k<2;k++){const a=Math.random()*TAU,sp=rnd(50,110)+(r.size>=50?0:30);G.rocks.push(makeRock(r.x,r.y,ns,r.vx*0.4+Math.cos(a)*sp,r.vy*0.4+Math.sin(a)*sp))}}}
+function spawnSaucer(){const big=Math.random()<0.6||G.wave<3;const y=rnd(60,H-60);const dir=Math.random()<0.5?1:-1;G.saucers.push({x:dir>0?-30:W+30,y,vx:dir*(big?70:110),vy:0,big,t:0,fireT:rnd(0.8,1.6),turnT:rnd(1,2.5),hp:1})}
+function update(dt){if(G.over)return;const s=G.ship;G.hyperCd=Math.max(0,G.hyperCd-dt);G.shake=Math.max(0,G.shake-dt);
+  if(!s.alive){G.respawnT-=dt;if(G.respawnT<=0){const safe=G.rocks.every(r=>Math.hypot(r.x-W/2,r.y-H/2)>120);if(safe){G.ship=makeShip()}}}
+  else{const left=keys.ArrowLeft||keys.KeyA||touch.left,right=keys.ArrowRight||keys.KeyD||touch.right,th=keys.ArrowUp||keys.KeyW||touch.thrust;if(left)s.a-=4.2*dt;if(right)s.a+=4.2*dt;s.thrust=!!th;if(th){s.vx+=Math.cos(s.a)*300*dt;s.vy+=Math.sin(s.a)*300*dt;if(Math.random()<0.6)G.parts.push({x:s.x-Math.cos(s.a)*14,y:s.y-Math.sin(s.a)*14,vx:-Math.cos(s.a)*120+rnd(-30,30),vy:-Math.sin(s.a)*120+rnd(-30,30),t:0.25,col:'#ff9a3a'})}
+    const sp=Math.hypot(s.vx,s.vy);if(sp>420){s.vx*=420/sp;s.vy*=420/sp}s.vx*=Math.pow(0.55,dt);s.vy*=Math.pow(0.55,dt);s.x+=s.vx*dt;s.y+=s.vy*dt;wrap(s);s.fireCd-=dt;s.inv=Math.max(0,s.inv-dt);if(keys.Space||touch.fire)fire()}
+  for(const r of G.rocks){r.x+=r.vx*dt;r.y+=r.vy*dt;r.a+=r.spin*dt;wrap(r)}
+  for(const b of G.shots){b.x+=b.vx*dt;b.y+=b.vy*dt;b.t-=dt;wrap(b)}G.shots=G.shots.filter(b=>b.t>0);
+  for(const b of G.sshots){b.x+=b.vx*dt;b.y+=b.vy*dt;b.t-=dt;wrap(b)}G.sshots=G.sshots.filter(b=>b.t>0);
+  for(const p of G.parts){p.x+=p.vx*dt;p.y+=p.vy*dt;p.t-=dt}G.parts=G.parts.filter(p=>p.t>0);
+  // saucers
+  G.saucerT-=dt;if(G.saucerT<=0&&G.saucers.length<2){G.saucerT=rnd(14,26)-Math.min(8,G.wave);spawnSaucer()}
+  for(const u of G.saucers){u.t+=dt;u.x+=u.vx*dt;u.y+=u.vy*dt;u.turnT-=dt;if(u.turnT<=0){u.turnT=rnd(1,2.5);u.vy=rnd(-60,60)}if(u.y<30||u.y>H-30)u.vy*=-1;u.fireT-=dt;
+    if(u.fireT<=0&&s.alive){u.fireT=u.big?rnd(1.2,2):rnd(0.7,1.2);let a=u.big?Math.random()*TAU:Math.atan2(s.y-u.y,s.x-u.x)+rnd(-0.25,0.25)*(G.wave<6?1:0.4);G.sshots.push({x:u.x,y:u.y,vx:Math.cos(a)*260,vy:Math.sin(a)*260,t:1.6});beep(500,0.06,'square',0.03)}}
+  G.saucers=G.saucers.filter(u=>u.x>-60&&u.x<W+60);
+  // collisions: shots vs rocks
+  for(let i=G.shots.length-1;i>=0;i--){const b=G.shots[i];let hit=false;for(let j=G.rocks.length-1;j>=0;j--){const r=G.rocks[j];if(Math.hypot(b.x-r.x,b.y-r.y)<r.size*0.95){hitRock(r,j,true);hit=true;break}}
+    if(!hit)for(let j=G.saucers.length-1;j>=0;j--){const u=G.saucers[j];if(Math.hypot(b.x-u.x,b.y-u.y)<(u.big?22:14)){G.saucers.splice(j,1);burst(u.x,u.y,22,'#7fffb0',160);addScore(u.big?200:1000);boom(0.3);hit=true;break}}
+    if(hit)G.shots.splice(i,1)}
+  // saucer shots and rocks vs ship
+  if(s.alive&&s.inv<=0){for(const r of G.rocks)if(Math.hypot(s.x-r.x,s.y-r.y)<r.size*0.8+10){killShip();break}
+    if(s.alive)for(const b of G.sshots)if(Math.hypot(s.x-b.x,s.y-b.y)<12){killShip();break}
+    if(s.alive)for(const u of G.saucers)if(Math.hypot(s.x-u.x,s.y-u.y)<(u.big?26:18)){killShip();break}}
+  // saucer shots vs rocks
+  for(let i=G.sshots.length-1;i>=0;i--){const b=G.sshots[i];for(let j=G.rocks.length-1;j>=0;j--){const r=G.rocks[j];if(Math.hypot(b.x-r.x,b.y-r.y)<r.size*0.95){hitRock(r,j,false);G.sshots.splice(i,1);break}}}
+  if(G.rocks.length===0){G.waveClearT+=dt;if(G.waveClearT>2){G.waveClearT=0;spawnWave()}}}
+function draw(){ctx.fillStyle='#02040a';ctx.fillRect(0,0,W,H);ctx.save();if(G&&G.shake>0)ctx.translate(rnd(-6,6)*G.shake,rnd(-6,6)*G.shake);
+  // stars
+  ctx.fillStyle='#8893a8';for(let i=0;i<90;i++){const x=(i*197)%W,y=(i*131)%H;ctx.fillRect(x,y,i%7===0?2:1,i%7===0?2:1)}
+  if(!G){ctx.restore();return}
+  ctx.lineWidth=2;ctx.lineJoin='round';
+  for(const r of G.rocks){ctx.save();ctx.translate(r.x,r.y);ctx.rotate(r.a);ctx.strokeStyle=r.hp>1?'#c9c2b0':'#9aa3b0';ctx.beginPath();r.pts.forEach((p,i)=>i?ctx.lineTo(p[0],p[1]):ctx.moveTo(p[0],p[1]));ctx.closePath();ctx.stroke();ctx.restore()}
+  for(const u of G.saucers){ctx.save();ctx.translate(u.x,u.y);const k=u.big?1:0.65;ctx.strokeStyle='#7fffb0';ctx.beginPath();ctx.moveTo(-24*k,0);ctx.lineTo(-10*k,-8*k);ctx.lineTo(10*k,-8*k);ctx.lineTo(24*k,0);ctx.lineTo(10*k,8*k);ctx.lineTo(-10*k,8*k);ctx.closePath();ctx.moveTo(-24*k,0);ctx.lineTo(24*k,0);ctx.moveTo(-6*k,-8*k);ctx.lineTo(-4*k,-15*k);ctx.lineTo(4*k,-15*k);ctx.lineTo(6*k,-8*k);ctx.stroke();ctx.restore()}
+  const s=G.ship;if(s&&s.alive&&(s.inv<=0||Math.floor(s.inv*10)%2===0)){ctx.save();ctx.translate(s.x,s.y);ctx.rotate(s.a);ctx.strokeStyle='#e8c84a';ctx.beginPath();ctx.moveTo(18,0);ctx.lineTo(-12,-11);ctx.lineTo(-7,0);ctx.lineTo(-12,11);ctx.closePath();ctx.stroke();if(s.thrust&&Math.random()<0.8){ctx.strokeStyle='#ff9a3a';ctx.beginPath();ctx.moveTo(-8,-5);ctx.lineTo(-20-Math.random()*8,0);ctx.lineTo(-8,5);ctx.stroke()}ctx.restore()}
+  ctx.fillStyle='#fff8d0';for(const b of G.shots)ctx.fillRect(b.x-2,b.y-2,4,4);ctx.fillStyle='#7fffb0';for(const b of G.sshots)ctx.fillRect(b.x-2,b.y-2,4,4);
+  for(const p of G.parts){ctx.globalAlpha=Math.min(1,p.t*2);ctx.fillStyle=p.col;ctx.fillRect(p.x-1.5,p.y-1.5,3,3)}ctx.globalAlpha=1;
+  // lives
+  for(let i=0;i<G.lives;i++){ctx.save();ctx.translate(24+i*22,H-24);ctx.rotate(-Math.PI/2);ctx.strokeStyle='#e8c84a';ctx.beginPath();ctx.moveTo(10,0);ctx.lineTo(-7,-6);ctx.lineTo(-4,0);ctx.lineTo(-7,6);ctx.closePath();ctx.stroke();ctx.restore()}
+  ctx.restore()}
+/* ---- sound ---- */
+let AC=null;function ac(){if(!AC){try{AC=new (window.AudioContext||window.webkitAudioContext)()}catch(e){}}if(AC&&AC.state==='suspended')AC.resume();return AC}
+function beep(f,d,type,vol){const a=ac();if(!a)return;const o=a.createOscillator(),g=a.createGain();o.type=type||'square';o.frequency.value=f;g.gain.value=vol||0.05;g.gain.exponentialRampToValueAtTime(0.0001,a.currentTime+d);o.connect(g);g.connect(a.destination);o.start();o.stop(a.currentTime+d)}
+function boom(d){const a=ac();if(!a)return;const n=a.sampleRate*d;const buf=a.createBuffer(1,n,a.sampleRate);const ch=buf.getChannelData(0);for(let i=0;i<n;i++)ch[i]=(Math.random()*2-1)*(1-i/n);const src=a.createBufferSource();src.buffer=buf;const g=a.createGain();g.gain.value=0.12;src.connect(g);g.connect(a.destination);src.start()}
+/* ---- screens ---- */
+const best=()=>parseInt(localStorage.getItem('ir_best')||'0');
+function titleScreen(){G=null;$('box').style.display='block';$('box').innerHTML='<h1>IRON ROCKS</h1><p>Spin, thrust and blast the drifting rocks into dust. Big rocks split into smaller, faster ones. Hunter saucers show up to pick you off: the small ones aim well. Hyperspace jumps you somewhere random, at your own risk.</p><p>← → or A D turn · ↑ or W thrust · SPACE fire · H hyperspace · P pause<br>On touch screens use the buttons at the bottom.</p><p style="color:#e8c84a">BEST: '+best()+'</p><div class="btn" id="start">PLAY</div>';$('start').onclick=startGame;$('hBest').textContent='BEST '+best()}
+function startGame(){ac();G=newGame();G.ship=makeShip();spawnWave();$('hScore').textContent='0';$('hLives').textContent='3';$('box').style.display='none'}
+function endScreen(){const b=best();if(G.score>b)localStorage.setItem('ir_best',String(G.score));$('box').style.display='block';$('box').innerHTML='<h1 style="font-size:32px">GAME OVER</h1><p>You reached wave '+G.wave+' with <b style="color:#e8c84a">'+G.score+'</b> points.'+(G.score>b?' A new best!':' Best: '+Math.max(b,G.score))+'</p><div class="btn" id="again">PLAY AGAIN</div><div class="btn" id="menu">MENU</div>';$('again').onclick=startGame;$('menu').onclick=titleScreen;$('hBest').textContent='BEST '+Math.max(b,G.score)}
+let paused=false;
+addEventListener('keydown',e=>{keys[e.code]=true;if(['Space','ArrowUp','ArrowDown','ArrowLeft','ArrowRight'].includes(e.code))e.preventDefault();if(!G){if(e.code==='Enter'||e.code==='Space')startGame();return}if(G.over){if(e.code==='Enter'||e.code==='Space')startGame();return}if(e.code==='KeyH')hyper();if(e.code==='KeyP'){paused=!paused;$('box').style.display=paused?'block':'none';if(paused)$('box').innerHTML='<h1 style="font-size:28px">PAUSED</h1><p>Press P to continue</p>'}});
+addEventListener('keyup',e=>{keys[e.code]=false});
+for(const b of document.querySelectorAll('.tb')){const k=b.dataset.k;const on=e=>{e.preventDefault();touch[k]=true;if(k==='hyper'&&G)hyper();if(!G||G.over){if(k==='fire')startGame()}};const off=e=>{e.preventDefault();touch[k]=false};b.addEventListener('touchstart',on,{passive:false});b.addEventListener('touchend',off);b.addEventListener('touchcancel',off);b.addEventListener('mousedown',on);b.addEventListener('mouseup',off)}
+let last=0;function frame(now){requestAnimationFrame(frame);const dt=Math.min(0.05,(now-last)/1000||0);last=now;if(G&&!paused)update(dt);draw()}
+titleScreen();requestAnimationFrame(frame);
+</script>
+</body>
+</html>

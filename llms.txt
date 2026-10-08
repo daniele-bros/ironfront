@@ -1,0 +1,61 @@
+# Iron Games
+
+> Iron Games (https://irongames.win/) is a free online arcade of browser games made by Daniele Bros. No download, no account: open the page and play. Works on desktop browsers with keyboard and mouse.
+
+## Games
+
+- [Iron Front](https://irongames.win/ww2tanks.html): WW2 top-down tank combat. Drive tanks like the Sherman, Tiger and T-34 across a battlefield, fight waves of enemy armour, unlock tanks in the garage and tech tree, and survive Ratte boss waves.
+- [Iron Battle](https://irongames.win/command.html): real-time strategy on a flat tactical map. Recruit squads and tanks, secure objectives, manage supply, launch rockets and aircraft, and command your army across a 1,000-operation campaign.
+- [Ironcraft](https://irongames.win/minecraft.html): Minecraft-style voxel survival built with WebGL. Mine, craft, build, farm and fight through the Overworld, Nether and End. Villages, trial chambers, ancient cities and the Dreadwarden, Iron Men, enchanting, netherite, elytra, mace and tridents. A fourth dimension, the Sift, has a teal sky, pink meadows with Hoplings and Sprigs, pale weeping forests with Thornbacks, Ichor Mages by the ichor pools, Crystal Golems guarding the fossils, the Carapace bone desert, burning ichor, Sift Acolytes and the Sift ore that makes the top gear tier above netherite; it is reached through the portal inside any Sift temple. Fun mods add EF1 to EF5 tornadoes and thunderstorms, horror monsters, zombie apocalypse waves and guns. A Mod Maker turns dropped photos into custom blocks, items and creature faces, and turns written descriptions (a fire-breathing dragon, god armor, military armor, a helicopter, a flaming sword) into creatures, rideable vehicles, armor sets and weapons (family-friendly photos only; an optional Claude photo check refuses unsuitable images). Free public multiplayer servers connect players directly through the browser with shared blocks, items, chests, weather and chat.
+- [Iron Hook](https://irongames.win/ironhook.html): a relaxing fishing game. Cast from an iron boat, sink the hook, set it on the bite and win the reel-in. 24 species across a pond, river, lake, sea and abyss, day and night, rain, rods and bait to earn.
+- [Iron Jaws](https://irongames.win/ironjaws.html): a shark hunt in the Hunt the Wumpus tradition. Twenty linked sea caves, an armoured shark you can only smell one cave away, whirlpools, octopuses, sonar pings, map hints, limited air, three difficulties.
+- [Iron Trail](https://irongames.win/irontrail.html): an Oregon Trail style wagon journey. Choose banker, carpenter or farmer, outfit a party of five at the store in Independence and travel 2,040 miles to the Willamette Valley through forts, rivers, prairie, desert and mountains. Set pace and rations, hunt with a crosshair minigame, trade, ford, float or ferry rivers, and survive disease, breakdowns, thieves and snow. Score depends on survivors, goods and profession.
+- [Iron Rocks](https://irongames.win/ironrocks.html): an Asteroids style space shooter. Rotate, thrust and shoot drifting rocks that split into smaller faster pieces, dodge hunter saucers, use hyperspace at your own risk, extra ship every 10,000 points. Keyboard or touch buttons.
+- [Iron Serpent](https://irongames.win/ironserpent.html): snake. Red apples grow you, golden apples are worth 50 and vanish fast, purple mushrooms shorten you, speed rises every 50 points and iron walls appear every 60. Solid walls or wrap-around edges, keyboard or swipe.
+
+## Guides
+
+- [Ironcraft guide](https://irongames.win/ironcraft-guide.html): controls, chat commands, multiplayer, fun mods, structures and bosses.
+- [Iron Front guide](https://irongames.win/iron-front-guide.html): controls, all game modes, tanks and tech tree, maps.
+- [Iron Battle guide](https://irongames.win/iron-battle-guide.html): controls, units and costs, fire support, target missions.
+
+## Activities for kids and homeschool families
+
+- [Iron Games Activity Hub](https://irongames.win/activities.html): 36 free, substantial play-and-learn missions for kids, parents and homeschoolers.
+- Topics include creative building, math, writing, science questions, map reading, history research, resource management, family tournaments and short brain breaks.
+- Every activity includes setup instructions, challenge steps, discussion prompts, an extension and a parent note.
+
+## Facts
+
+- Free to play, no download, no sign-up, no ads required to play.
+- Runs in Chrome, Edge, Firefox and Safari on desktop.
+- Site: https://irongames.win/
+
+## Quick answers
+
+- Is Iron Games free? Yes. All three games are completely free to play, with no account, no download and nothing to buy. Coins and unlocks inside the games are earned by playing.
+- Do I need to download or install anything? No. Each game is a single web page. Open it in your browser and it loads in seconds.
+- What games can I play on Iron Games? Iron Front is top-down WW2 tank combat. Iron Battle is real-time strategy on a tactical map. Ironcraft is a Minecraft-style voxel survival sandbox.
+- Can I play Ironcraft with friends? Yes. Click Multiplayer on the Ironcraft title screen to see a live list of public worlds you can join without a code, create your own public world, or open a private room and share its code. Players connect directly to each other through the browser.
+- Which browsers and devices work? Desktop Chrome, Edge, Firefox and Safari with a keyboard and mouse. Ironcraft needs WebGL2, which every current desktop browser has. The games are made for desktop and laptop screens.
+- Is Ironcraft the same as Minecraft? No. Ironcraft is an original browser game by Daniele Bros inspired by Minecraft. It is not affiliated with Mojang or Microsoft.
+- Does my progress save? Yes. Worlds, unlocks and coins are saved in your browser on the device you play on, so come back to the same browser to continue.
+- What are the Ironcraft fun mods? Optional modes you pick when creating a world: Weather with thunderstorms, snowfall over cold biomes (rain and snow stop at roofs and walls) and EF1 to EF5 tornadoes, Horror, Random Blocks, Hardcore, Structure Chaos, Zombie Apocalypse waves, Guns, Hearts (Minecraft-style pixel hearts in every kind), Night Vision (see in the dark all the time) and Real Life (big falls and totem pops knock you unconscious). They can be mixed.
+- Where are all the Ironcraft crafting recipes? In the game: open the inventory and press Recipes, or choose Crafting Guide in the pause menu. It lists every crafting, smelting and brewing recipe with a search box and shows the exact grid for each.
+- Are there bastions in Ironcraft? Yes: blackstone bastion remnants in the Nether (/tp bastion) with a gold treasure pit, loot chests, piglins and Piglin Brutes that attack no matter what you wear.
+- How do I trade with piglins in Ironcraft? Piglins live in the Nether. Wear a piece of golden armor so they stay calm, then right-click one with a gold ingot or drop gold near it: it picks the gold up and tosses back ender pearls, ember (blaze) rods, netherite scrap, string, obsidian, Fire Resistance potions, iron, quartz, gravel, leather, soul sand, nether bricks or arrows.
+- How do I make potions in Ironcraft? Craft a Brewing Stand (ember rod over three cobblestone), fill glass bottles with water, brew them with Nether Wart into Awkward Potions, then add sugar (Swiftness), ember powder (Strength), golden apple (Regeneration), magma cream (Fire Resistance), slime ball (Water Breathing), glowstone dust (Night Vision), feather (Leaping), apple (Healing), spider eye (Poison) or fermented spider eye (Harming); a Night Vision potion plus fermented spider eye makes Invisibility, and mobs ignore invisible or Creative-mode players. Redstone extends, glowstone strengthens, gunpowder makes splash potions.
+- Can you cheat on Ironcraft public servers? No. Cheat commands (/give, /kit, /spawn, /build, /tp to places, /time, /gamemode, /disaster, /tornado, /heal, /xp) are off for everyone on public worlds; they work in solo worlds and private rooms.
+- Can I build a village or mansion where I want in Ironcraft? Yes: look at the spot and type /build village, /build mansion, /build stronghold or any structure name in chat. It is built where the crosshair points, residents included, and saved with the world.
+- How do I see my coordinates and days played in Ironcraft? Open Options from the pause menu: the line under the seed shows the day, days played, time, X Y Z position and facing. Turn on Show Day & Coordinates there to keep the day, time and position in the top-left corner while playing.
+- Can Ironcraft build me a house? Yes: /build base house puts up a two-storey oak house with a crafting table, furnace, bed and four empty chests; /build base bunker digs a three-floor bunker made entirely of obsidian (workshop, store room with sixteen chests, bedroom, plus a secret enchanting library behind the store room's west bookshelves) under the spot you aim at, entered by a ladder from a small hut.
+- How do I find diamonds or a village in Ironcraft? Press T to open chat and type a teleport command such as /tp diamonds, /tp village, /tp trial chamber, /tp ancient city or /tp sift (the Sift dimension). It finds the closest one and takes you there.
+- Who makes Iron Games? Daniele Bros. The games are updated regularly with new features, and the site lives at irongames.win.
+
+## How to play Ironcraft with friends
+
+1. Open Ironcraft and click Multiplayer on the title screen.
+2. Type a player name.
+3. Pick a public world from the live list to join it instantly, or click Create New Public World to host one for everyone.
+4. For a private game, host a room and give friends its code. They enter the code to join.
+5. Press T in the game to chat. Blocks, dropped items, chests, weather and zombie waves are shared.
