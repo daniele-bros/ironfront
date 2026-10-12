@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="ironcraft-build" content="20261008-142142">
+<meta name="ironcraft-build" content="20261012-165206">
 <meta name="viewport" content="width=device-width,initial-scale=1.0,viewport-fit=cover">
 <title>Ironcraft – Free Voxel Survival Sandbox in Your Browser | Iron Games</title>
 <meta name="description" content="Ironcraft is a free browser-based voxel survival sandbox with building, exploration, private or safety-limited public multiplayer, and optional weather, horror and survival challenges. By Daniele Bros.">
@@ -272,6 +272,18 @@ label.lb{font-size:13px;color:#a0a0a0;align-self:flex-start;margin-left:calc(50%
   <div class="grid" id="brewMain" style="margin-top:8px"></div>
   <div class="grid" id="brewHot" style="margin-top:6px"></div>
 </div></div>
+<div id="uncraftGui" class="gui"><div class="panel">
+  <h3>Uncrafting Table</h3>
+  <div class="row" style="justify-content:center;gap:18px;align-items:center">
+    <div class="grid" id="uncraftIn" style="grid-template-columns:38px"></div>
+    <div class="arrow"><i></i></div>
+    <div class="grid" id="uncraftOut" style="grid-template-columns:38px 38px 38px"></div>
+  </div>
+  <div class="hint" id="uncraftHint" style="font-size:11px;margin-top:4px">Put a crafted item in the left slot to see what it was made from. Click the parts, or the button, to take them apart.</div>
+  <button class="btn" id="btnUncraft" style="margin:6px auto 0;display:block;width:auto;padding:6px 18px;font-size:13px">UNCRAFT</button>
+  <div class="grid" id="uncraftMain" style="margin-top:8px"></div>
+  <div class="grid" id="uncraftHot" style="margin-top:6px"></div>
+</div></div>
 <div id="furnGui" class="gui"><div class="panel">
   <h3>Furnace</h3>
   <div class="row" style="justify-content:center;gap:18px">
@@ -394,6 +406,8 @@ label.lb{font-size:13px;color:#a0a0a0;align-self:flex-start;margin-left:calc(50%
   <div class="hint" style="color:#aaa;width:440px;margin:0 0 4px">See in the dark all the time: caves, the night and the deep sea are lit up as if it were day, like a never-ending Potion of Night Vision.</div>
   <button class="btn modbtn" data-mod="reallife">Real Life: OFF</button>
   <div class="hint" style="color:#aaa;width:440px;margin:0 0 4px">Falls hurt for real. A fall that costs three hearts knocks you out and a whole game day passes while you lie there, in five real seconds; six hearts means two days pass in ten seconds; a fall that pops your Totem of Undying costs four days in twenty seconds. The screen goes dark, the sun and moon race overhead, you cannot move or fight, and whatever is nearby can find you. Popping a totem any other way leaves you out for fifteen seconds with no lost days.</div>
+  <button class="btn modbtn" data-mod="uncrafting">Uncrafting: OFF</button>
+  <div class="hint" style="color:#aaa;width:440px;margin:0 0 4px">Adds the Uncrafting Table (crafting table + book). Put any crafted item in it and get its recipe ingredients back. Worn tools give back fewer materials and enchantments come off as an enchanted book.</div>
   <button class="btn modbtn" data-mod="hearts">Hearts: OFF</button>
   <div class="hint" style="color:#aaa;width:440px;margin:0 0 4px">Your health shows as a row of Minecraft-style hearts with every kind the game has: red hearts and half hearts, hardcore hearts with eyes, green poisoned hearts, black withered hearts, blue frozen hearts, gold absorption hearts from golden apples, a flash when you take damage, a shiver when you are nearly dead, and your horse's hearts while you ride.</div>
   <div class="btnrow" style="margin-top:12px"><button class="btn half" id="btnFunDone">Done</button><button class="btn half" id="btnFunClear">Clear All</button></div>
@@ -603,6 +617,8 @@ defTex('diamond_block',p=>{p.noise(100,235,225,10);p.rect(1,1,14,14,120,245,235)
 defTex('lapis_block',p=>{p.noise(30,70,200,14);p.speckle(12,60,100,230)});
 defTex('glass',p=>{p.fill(0,0,0,0);p.rect(0,0,16,1,235,245,255);p.rect(0,15,16,1,190,200,210);p.rect(0,0,1,16,235,245,255);p.rect(15,0,1,16,190,200,210);p.px(3,3,255,255,255,180);p.px(4,2,255,255,255,180);p.px(2,4,255,255,255,180);p.rect(11,10,1,3,255,255,255,120)});
 defTex('crafting_table_top',p=>{planks(p,[162,130,78]);p.rect(1,1,14,14,150,120,70);for(let i=1;i<15;i+=1)for(let j=1;j<15;j++)if(i%5===0||j%5===0)p.px(i,j,90,70,40)});
+defTex('uncraft_top',p=>{planks(p,[120,100,140]);p.rect(1,1,14,14,80,60,120);for(let i=1;i<15;i++)for(let j=1;j<15;j++)if(i%5===0||j%5===0)p.px(i,j,40,25,70);for(let k=0;k<6;k++){p.px(4+k,8,230,200,255);p.px(11-k,7,230,200,255)}p.px(4,7,230,200,255);p.px(4,9,230,200,255);p.px(11,6,230,200,255);p.px(11,8,230,200,255)});
+defTex('uncraft_side',p=>{planks(p,[120,100,140]);p.rect(0,0,16,3,70,50,100);p.rect(2,4,3,5,200,180,230);p.rect(3,9,1,4,70,50,100);p.rect(10,4,3,5,200,180,230);p.rect(11,9,1,4,70,50,100)});
 defTex('crafting_table_side',p=>{planks(p,[162,130,78]);p.rect(0,0,16,3,110,85,50);p.rect(2,4,3,5,190,190,190);p.rect(3,9,1,4,110,85,50);p.rect(10,4,3,5,190,190,190);p.rect(11,9,1,4,110,85,50)});
 defTex('furnace_side',p=>{cobble(p,[100,100,100])});
 defTex('furnace_top',p=>{cobble(p,[105,105,105])});
@@ -967,6 +983,7 @@ defBlock(138,'brewing_stand',{label:'Brewing Stand',tex:{side:'brew_side',top:'b
 defBlock(139,'nether_wart',{label:'Nether Wart',tex:'wart0',model:'crop',solid:false,opaque:false,transparent:true,hard:0,sound:'grass',crop:true,stages:4,wart:true,texFn:(m)=>TEX['wart'+Math.min(3,m&3)],drop:(r,t,m)=>[[477,(m&3)>=3?2+floor(r()*3):1]]});
 defBlock(140,'blackstone',{tex:'blackstone',hard:1.5,tool:'pickaxe',needsTool:true,resist:6,sound:'stone'});
 defBlock(141,'polished_blackstone_bricks',{label:'Polished Blackstone Bricks',tex:'blackstone_bricks',hard:1.5,tool:'pickaxe',needsTool:true,resist:6,sound:'stone'});
+defBlock(143,'uncrafting_table',{label:'Uncrafting Table',tex:{side:'uncraft_side',top:'uncraft_top',bottom:'oak_planks'},hard:2.5,tool:'axe',sound:'wood',fuel:15,gui:'uncraft'});
 defBlock(142,'gilded_blackstone',{label:'Gilded Blackstone',tex:'gilded_blackstone',hard:1.5,tool:'pickaxe',needsTool:true,resist:6,sound:'stone',drop:r=>r()<0.1?[[262,2+floor(r()*4)]]:[[142,1]]});
 defBlock(108,'end_gateway',{tex:'gateway',hard:-1,light:15,resist:3600000,drop:()=>[],stack:0,solid:false}); // you step into it, not onto it
 defBlock(109,'end_stone_bricks',{tex:'end_bricks',hard:3,tool:'pickaxe',needsTool:true,resist:9});
@@ -1748,7 +1765,7 @@ function buildChunkMesh(W,c,smooth){
         (def.transparent&&!def.leaves&&id!==17?T:O).quad(P,uvs,L,flip);
       }
     } else if(model==='cross'||model==='crop'||model==='fire'||model==='portal'){
-      const tile=def.texFn?def.texFn(meta,0):def.faces[0];const l=[ownS/15,ownL/15,1];const L=[l,l,l,l];const uvs=tileUVs(tile,0,0,1,1);
+      const tile=def.texFn?def.texFn(meta,0):def.faces[0];const l=[ownS/15,ownL/15,1];const L=[l,l,l,l];const uvs=tileUVs(tile,0,1,1,0); // corners run bottom-left, bottom-right, top-right, top-left, so the bottom of the tile (v=1) goes on the bottom corners
       const uvs2=[uvs[1],uvs[0],uvs[3],uvs[2]];const buf=model==='portal'?T:O;
       const planes=model==='cross'?[[[0,0,0],[1,0,1],[1,1,1],[0,1,0]],[[1,0,0],[0,0,1],[0,1,1],[1,1,0]]]:
         model==='fire'?[[[0,0,0],[1,0,1],[1,1,1],[0,1,0]],[[1,0,0],[0,0,1],[0,1,1],[1,1,0]],[[0.05,0,0.05],[0.95,0,0.05],[0.95,1,0.05],[0.05,1,0.05]],[[0.05,0,0.95],[0.95,0,0.95],[0.95,1,0.95],[0.05,1,0.95]],[[0.05,0,0.05],[0.05,0,0.95],[0.05,1,0.95],[0.05,1,0.05]],[[0.95,0,0.05],[0.95,0,0.95],[0.95,1,0.95],[0.95,1,0.05]]]:
@@ -3713,6 +3730,7 @@ RECIPES.push({p:['ii.','iii','p..'],k:{i:260,p:PLANKS},out:[462,1],shaped:true,g
 RECIPES.push({p:['gii','iii','p.i'],k:{i:260,p:PLANKS,g:17},out:[466,1],shaped:true,guns:true});
 RECIPES.push({s:[260,289],out:[463,8],shaped:false,guns:true});
 RECIPES.push({s:[260,289,289],out:[464,4],shaped:false,guns:true});
+RECIPES.push({s:[34,378],out:[143,1],shaped:false,uncraft:true});
 RECIPES.push({p:['l.l','lgl','lgl'],k:{l:289,g:16},out:[473,1],shaped:true,guns:true});
 shaped(['h','b'],{h:469,b:471},[467,1]);
 shapeless([471],[472,4]);
@@ -3744,7 +3762,7 @@ function matchRecipe(grid,w,h){
   // bounding box of items
   let minx=w,miny=h,maxx=-1,maxy=-1;const ids=[];for(let y=0;y<h;y++)for(let x=0;x<w;x++){const s=grid[y*w+x];if(s){ids.push(s.id);if(x<minx)minx=x;if(x>maxx)maxx=x;if(y<miny)miny=y;if(y>maxy)maxy=y}}
   if(maxx<0)return null;const bw=maxx-minx+1,bh=maxy-miny+1;
-  for(const r of RECIPES){if(r.guns&&!(game.mods&&game.mods.guns))continue;
+  for(const r of RECIPES){if(r.guns&&!(game.mods&&game.mods.guns))continue;if(r.uncraft&&!(game.mods&&game.mods.uncrafting))continue;
     if(r.shaped){const ph=r.p.length,pw=r.p[0].length;if(pw!==bw||ph!==bh)continue;
       for(const mirror of [false,true]){let ok=true;for(let y=0;y<bh&&ok;y++)for(let x=0;x<bw;x++){const ch=r.p[y][mirror?bw-1-x:x];const s=grid[(miny+y)*w+(minx+x)];const id=s?s.id:0;const k=ch===' '?undefined:r.k[ch];if(!keyMatch(k,id)){ok=false;break}}if(ok)return r}}
     else{if(r.s.length!==ids.length)continue;const need=r.s.slice();let ok=true;for(const id of ids){let f=-1;for(let i=0;i<need.length;i++)if(keyMatch(need[i],id)){f=i;break}if(f<0){ok=false;break}need.splice(f,1)}if(ok)return r}
@@ -3786,11 +3804,12 @@ function renderAllSlots(){for(const el of slotEls)if(el.offsetParent!==null||tru
 function showTip(el){const s=el._slot;const st=s.arr[s.idx];if(!st||cursor)return hideTip();const def=ITEMS[st.id];const t=$('tooltip');let extra='';if(def.dur)extra='<small>Durability: '+(def.dur-(st.dur||0))+' / '+def.dur+'</small>';if(def.food)extra+='<small>Hunger: +'+def.food[0]+'</small>';if(def.potion||def.splash){const k=def.potion||def.splash,lv=st.lvl||1;extra+='<small>'+POTIONS[k].label+(lv>1?' II':'')+(POTIONS[k].instant?'':' ('+potionDuration(k,lv,!!st.ext)+'s)')+(def.splash?' - throw it':' - hold right-click to drink')+'</small>'};if(def.armor!==undefined)extra+='<small>+'+def.points+' Armor</small>';if(def.dmg)extra+='<small>'+def.dmg+' Attack Damage</small>';if(st.items)extra+='<small>Contains '+st.items.filter(Boolean).length+' stacks</small>';if(def.elytra)extra+='<small>Jump while falling to glide</small>';if(st.ench){for(const k in st.ench)extra+='<small style="color:'+(ENCH[k].curse?'#f66':'#d9a6ff')+'">'+enchName(k,st.ench[k])+'</small>'}
   t.innerHTML='<span style="color:'+(st.ench?'#e0b0ff':'#fff')+'">'+def.label+'</span>'+extra;t.style.display='block';const r=el.getBoundingClientRect();t.style.left=(r.right+6)+'px';t.style.top=(r.top)+'px'}
 function hideTip(){$('tooltip').style.display='none'}
-function canPlaceIn(slot,st){if(slot.kind==='out'||slot.kind==='cout'||slot.kind==='aout')return false;if(slot.kind==='bottle')return isBottle(st);if(slot.kind==='ingr')return isBrewIngredient(st.id);if(slot.kind==='bfuel')return st.id===391;if(slot.kind==='armor'){const d=ITEMS[st.id];return d.armor===slot.idx}if(slot.kind==='fuel')return !!ITEMS[st.id].fuel;if(slot.kind==='lapis')return st.id===264;if(slot.kind==='ench')return !!(ITEMS[st.id].dur||st.id===378);return true}
+function canPlaceIn(slot,st){if(slot.kind==='out'||slot.kind==='cout'||slot.kind==='aout'||slot.kind==='uout')return false;if(slot.kind==='bottle')return isBottle(st);if(slot.kind==='ingr')return isBrewIngredient(st.id);if(slot.kind==='bfuel')return st.id===391;if(slot.kind==='armor'){const d=ITEMS[st.id];return d.armor===slot.idx}if(slot.kind==='fuel')return !!ITEMS[st.id].fuel;if(slot.kind==='lapis')return st.id===264;if(slot.kind==='ench')return !!(ITEMS[st.id].dur||st.id===378);return true}
 function slotClick(slot,button,shift){
   const arr=slot.arr,i=slot.idx;const st=arr[i];
   if(slot.kind==='armor'&&st&&enchLevel(st,'binding_curse')&&player.mode!=='creative'){showMessage('Curse of Binding: you cannot take that off');playSound('villager_no');return}
   if(slot.kind==='aout'){if(!st)return;if(cursor)return;if(!anvilTake())return;playSound('anvil');afterSlotChange();return}
+  if(slot.kind==='uout'){if(!st||cursor)return;doUncraft();return}
   if(slot.kind==='cout'){ // crafting output
     if(!st)return;if(shift){let n=0;while(n<64){const r=craftTake();if(!r)break;if(addToInventory(r)){spawnItem(player.x,player.y,player.z,r);}n++}}
     else{if(cursor&&(cursor.id!==st.id||cursor.count+st.count>ITEMS[st.id].stack))return;const r=craftTake();if(!r)return;if(cursor)cursor.count+=r.count;else cursor=r}
@@ -3818,8 +3837,22 @@ function slotClick(slot,button,shift){
 function moveInto(st,arr,off,n){const def=ITEMS[st.id];let c=st.count;if(!st.dur&&!st.ench)for(let i=off;i<off+n&&c>0;i++){const s=arr[i];if(s&&s.id===st.id&&!s.dur&&!s.ench&&s.count<def.stack){const k=Math.min(c,def.stack-s.count);s.count+=k;c-=k}}
   for(let i=off;i<off+n&&c>0;i++){if(!arr[i]){arr[i]={id:st.id,count:c,dur:st.dur,ench:st.ench};c=0}}return c}
 function takeFurnaceXP(){const g=game.gui;if(g&&g.type==='furnace'&&g.be.xp>=1){const n=floor(g.be.xp);g.be.xp-=n;addXP(n);playSound('orb')}}
-function afterSlotChange(){updateCraftOutput();const g=game.gui;if(g&&g.type==='furnace'){activateFurnace(g.x,g.y,g.z)}if(g&&g.type==='brew'){activateBrew(g.x,g.y,g.z);updateBrewGui()}if(g&&g.be&&(g.type==='chest'||g.type==='furnace'||g.type==='brew'))mpSendBE(g.x,g.y,g.z,g.be);if(g&&g.type==='enchant')renderEnchant();if(g&&g.type==='anvil')updateAnvil();renderAllSlots();if(g&&g.type==='table')renderRecipeBook();if(g&&g.type==='trade')renderTrades()}
+function afterSlotChange(){updateCraftOutput();const g=game.gui;if(g&&g.type==='furnace'){activateFurnace(g.x,g.y,g.z)}if(g&&g.type==='brew'){activateBrew(g.x,g.y,g.z);updateBrewGui()}if(g&&g.be&&(g.type==='chest'||g.type==='furnace'||g.type==='brew'))mpSendBE(g.x,g.y,g.z,g.be);if(g&&g.type==='enchant')renderEnchant();if(g&&g.type==='anvil')updateAnvil();if(g&&g.type==='uncraft')updateUncraft();renderAllSlots();if(g&&g.type==='table')renderRecipeBook();if(g&&g.type==='trade')renderTrades()}
 const craft2=[null,null,null,null],craft3=new Array(9).fill(null),craftOut=[null];
+/* ---- Uncrafting Table (Uncrafting fun mod): an item goes back to the ingredients of its recipe ---- */
+const uncraftSlots=[null],uncraftOut=new Array(9).fill(null);
+function uncraftRecipe(id){let best=null;for(const r of RECIPES){if(r.out[0]!==id)continue;if(r.guns&&!(game.mods&&game.mods.guns))continue;if(r.uncraft)continue;const n=r.shaped?r.p.join('').replace(/\./g,'').length:r.s.length;if(!best||n>best.n)best={r,n}}return best?best.r:null}
+function uncraftParts(st){ // the 3x3 of ingredients one craft of this item came from, or null
+  const r=uncraftRecipe(st.id);if(!r||st.count<r.out[1])return null;const out=new Array(9).fill(null);
+  if(r.shaped){for(let y=0;y<r.p.length;y++)for(let x=0;x<r.p[y].length;x++){const ch=r.p[y][x];if(ch==='.'||ch===' ')continue;let k=r.k[ch];if(Array.isArray(k))k=k[0];if(!ITEMS[k])continue;out[y*3+x]={id:k,count:1}}}
+  else{let i=0;for(let k of r.s){if(Array.isArray(k))k=k[0];if(!ITEMS[k]||i>=9)continue;out[i++]={id:k,count:1}}}
+  const def=ITEMS[st.id];if(def.dur&&st.dur>0){let keep=Math.max(1,Math.round(out.filter(Boolean).length*(1-st.dur/def.dur)));for(let i=8;i>=0&&out.filter(Boolean).length>keep;i--)if(out[i])out[i]=null}
+  if(st.ench&&Object.keys(st.ench).length){const free=out.indexOf(null);if(free>=0)out[free]={id:379,count:1,ench:Object.assign({},st.ench)}}
+  return out}
+function updateUncraft(){const st=uncraftSlots[0];const parts=st?uncraftParts(st):null;for(let i=0;i<9;i++)uncraftOut[i]=parts?parts[i]:null;const h=$('uncraftHint');if(h){if(!st)h.textContent='Put a crafted item in the left slot to see what it was made from. Click the parts, or the button, to take them apart.';else if(!parts){const r=uncraftRecipe(st.id);h.textContent=r?'You need at least '+r.out[1]+' of those to take apart one craft.':ITEMS[st.id].label+' was never crafted from anything, so it cannot be taken apart.'}else{const r=uncraftRecipe(st.id);h.textContent='Taking apart '+r.out[1]+' '+ITEMS[st.id].label+(r.out[1]>1?' at a time':'')+(ITEMS[st.id].dur&&st.dur>0?' (worn: some material is lost)':'')+(st.ench?' - the enchantments go onto a book':'')+'.'}}}
+function doUncraft(){const st=uncraftSlots[0];if(!st)return;const parts=uncraftParts(st);if(!parts)return;const r=uncraftRecipe(st.id);st.count-=r.out[1];if(st.count<=0)uncraftSlots[0]=null;
+  for(const q of parts){if(!q)continue;const it={id:q.id,count:q.count};if(q.ench)it.ench=q.ench;if(addToInventory(it))spawnItem(player.x,player.y+1,player.z,it)}
+  playSound('place_wood',1,0.8);afterSlotChange()}
 function currentGrid(){const g=game.gui;if(!g)return null;if(g.type==='inv')return [craft2,2,2];if(g.type==='table')return [craft3,3,3];return null}
 function updateCraftOutput(){const cg=currentGrid();if(!cg){craftOut[0]=null;return}const r=matchRecipe(cg[0],cg[1],cg[2]);craftOut[0]=r?{id:r.out[0],count:r.out[1]}:null}
 function craftTake(){const cg=currentGrid();if(!cg)return null;const r=matchRecipe(cg[0],cg[1],cg[2]);if(!r)return null;const grid=cg[0];
@@ -3840,13 +3873,14 @@ function drawPlayerPreview(){const c=document.createElement('canvas');c.width=48
   $('playerPreview').appendChild(c);c.style.imageRendering='pixelated';c.style.width='72px';c.style.height='144px'}
 function openGui(type,x,y,z){const g={type,x,y,z};if(type==='furnace'){g.be=furnaceEntity(x,y,z);const be=g.be;if(!$('furnIn')._done){mkSlots($('furnIn'),be.items,0,1,'in');mkSlots($('furnFuel'),be.items,1,1,'fuel');mkSlots($('furnOut'),be.items,2,1,'out','out');$('furnIn')._done=true}else{for(const id of ['furnIn','furnFuel','furnOut']){$(id).firstChild._slot.arr=be.items}}}
   if(type==='guide')renderGuide();
+  if(type==='uncraft'){if(!$('uncraftIn')._done){mkSlots($('uncraftIn'),uncraftSlots,0,1,'uin');mkSlots($('uncraftOut'),uncraftOut,0,9,'uout','out');mkSlots($('uncraftMain'),player.inv,9,27);mkSlots($('uncraftHot'),player.inv,0,9);$('btnUncraft').onclick=doUncraft;$('uncraftIn')._done=true}updateUncraft()}
   if(type==='brew'){g.be=brewEntity(x,y,z);const be=g.be;if(!$('brewBottles')._done){mkSlots($('brewBottles'),be.items,0,3,'bottle');mkSlots($('brewIngr'),be.items,3,1,'ingr');mkSlots($('brewPowder'),be.items,4,1,'bfuel');$('brewBottles')._done=true}else{for(const id of ['brewBottles','brewIngr','brewPowder'])for(const el of $(id).children)el._slot.arr=be.items}updateBrewGui()}
   if(type==='chest'){g.be=world.getBlockEntity(x,y,z,()=>({items:new Array(27).fill(null)}));if(!$('chestGrid')._done){mkSlots($('chestGrid'),g.be.items,0,27);$('chestGrid')._done=true}else{const els=$('chestGrid').children;for(let i=0;i<27;i++)els[i]._slot.arr=g.be.items}playSoundAt('chest',x,y,z)}
   if(type==='enchant'){if(!$('enchItem')._done){mkSlots($('enchItem'),enchSlots,0,1,'ench');mkSlots($('enchLapis'),enchSlots,1,1,'lapis');mkSlots($('enchMain'),player.inv,9,27);mkSlots($('enchHot'),player.inv,0,9);$('enchItem')._done=true}game.enchSeed=game.enchSeed||floor(Math.random()*1e9)}
   if(type==='anvil'){if(!$('anvilA')._done){mkSlots($('anvilA'),anvilSlots,0,1,'anvil');mkSlots($('anvilB'),anvilSlots,1,1,'anvil');mkSlots($('anvilOut'),anvilSlots,2,1,'aout','out');mkSlots($('anvilMain'),player.inv,9,27);mkSlots($('anvilHot'),player.inv,0,9);$('anvilA')._done=true}}
-  game.gui=g;$({inv:'invGui',table:'tableGui',furnace:'furnGui',chest:'chestGui',enchant:'enchantGui',anvil:'anvilGui',brew:'brewGui',guide:'guideGui'}[type]).classList.add('show');document.exitPointerLock&&document.exitPointerLock();mouseL=false;mouseR=false;
+  game.gui=g;$({inv:'invGui',table:'tableGui',furnace:'furnGui',chest:'chestGui',enchant:'enchantGui',anvil:'anvilGui',brew:'brewGui',guide:'guideGui',uncraft:'uncraftGui'}[type]).classList.add('show');document.exitPointerLock&&document.exitPointerLock();mouseL=false;mouseR=false;
   updateCraftOutput();renderAllSlots();if(type==='table')renderRecipeBook();if(type==='inv')renderPalette();if(type==='enchant')renderEnchant();if(type==='anvil')updateAnvil();$('hud').style.display='none';syncMobileControls()}
-function closeGui(){const g=game.gui;if(!g)return;returnGrid(craft2);returnGrid(craft3);returnGrid(enchSlots);anvilSlots[2]=null;returnGrid(anvilSlots);if(cursor){if(addToInventory(cursor))spawnItem(player.x,player.y+1,player.z,cursor);cursor=null}
+function closeGui(){const g=game.gui;if(!g)return;returnGrid(craft2);returnGrid(craft3);returnGrid(enchSlots);returnGrid(uncraftSlots);uncraftOut.fill(null);anvilSlots[2]=null;returnGrid(anvilSlots);if(cursor){if(addToInventory(cursor))spawnItem(player.x,player.y+1,player.z,cursor);cursor=null}
   if(g.type==='chest')playSoundAt('chest',g.x,g.y,g.z);for(const el of document.querySelectorAll('.gui'))el.classList.remove('show');$('invGui').classList.remove('full');game.gui=null;hideTip();renderAllSlots();$('hud').style.display='block';syncMobileControls();if(!game.paused)lockPointer()}
 function updateFurnaceGui(){const g=game.gui;if(!g||g.type!=='furnace')return;const be=g.be;$('furnArrow').firstChild.style.width=(be.cook/10*26)+'px';$('furnFire').firstChild.style.height=(be.burnMax?be.burn/be.burnMax*22:0)+'px';renderAllSlots()}
 let rbSel=null;
@@ -3854,7 +3888,7 @@ let rbSel=null;
 let guideSel=null;
 function guideCategory(id){const d=ITEMS[id];if(!d)return 'other';if(d.isBlock)return 'blocks';if(d.armor!==undefined)return 'armor';if(d.tool||d.dmg||d.gun||d.shield||d.tool==='bow')return 'tools';if(d.food||d.potion)return 'food';return 'other'}
 function guideEntries(){const out=[];const seen=new Set();
-  for(const r of RECIPES){if(r.guns&&!(game.mods&&game.mods.guns))continue;if(!ITEMS[r.out[0]]||ITEMS[r.out[0]].hidden)continue;const key='c'+r.out[0]+'_'+(r.shaped?r.p.join(''):r.s.join(''));if(seen.has(key))continue;seen.add(key);out.push({key,kind:'craft',out:r.out[0],n:r.out[1],r,cat:guideCategory(r.out[0]),name:ITEMS[r.out[0]].label})}
+  for(const r of RECIPES){if(r.guns&&!(game.mods&&game.mods.guns))continue;if(r.uncraft&&!(game.mods&&game.mods.uncrafting))continue;if(!ITEMS[r.out[0]]||ITEMS[r.out[0]].hidden)continue;const key='c'+r.out[0]+'_'+(r.shaped?r.p.join(''):r.s.join(''));if(seen.has(key))continue;seen.add(key);out.push({key,kind:'craft',out:r.out[0],n:r.out[1],r,cat:guideCategory(r.out[0]),name:ITEMS[r.out[0]].label})}
   for(const d of ITEMS){if(!d||d.smelt===undefined||!ITEMS[d.smelt])continue;out.push({key:'s'+d.id,kind:'smelt',out:d.smelt,n:1,inp:d.id,cat:'smelt',name:ITEMS[d.smelt].label})}
   for(const k in POTIONS){const d=POTIONS[k];if(d.ingr===null)continue;out.push({key:'b'+k,kind:'brew',out:POTION_IDS[k],n:1,base:476,ingr:d.ingr,cat:'brew',name:ITEMS[POTION_IDS[k]].label})}
   for(const k in POTIONS)out.push({key:'bs'+k,kind:'brew',out:SPLASH_IDS[k],n:1,base:POTION_IDS[k],ingr:285,cat:'brew',name:ITEMS[SPLASH_IDS[k]].label});
@@ -3880,7 +3914,7 @@ function showGuideDetail(e,counts){const d=$('guideDetail');const cell=(id,title
   d.innerHTML=html}
 function renderRecipeBook(){const rb=$('rbook');rb.innerHTML='<div class="hint" style="margin:0 0 4px">Recipe book — click a recipe to see what it needs</div><div id="rdetail" class="rdetail" style="display:none"></div>';const counts={};for(const s of player.inv)if(s)counts[s.id]=(counts[s.id]||0)+s.count;const countsAll=Object.assign({},counts);for(const s of craft3)if(s)countsAll[s.id]=(countsAll[s.id]||0)+s.count;
   const seen=new Set();
-  for(const r of RECIPES){if(r.guns&&!(game.mods&&game.mods.guns))continue;if(seen.has(r.out[0]+'_'+(r.shaped?r.p.join(''):r.s.join(''))))continue;seen.add(r.out[0]+'_'+(r.shaped?r.p.join(''):r.s.join('')));
+  for(const r of RECIPES){if(r.guns&&!(game.mods&&game.mods.guns))continue;if(r.uncraft&&!(game.mods&&game.mods.uncrafting))continue;if(seen.has(r.out[0]+'_'+(r.shaped?r.p.join(''):r.s.join(''))))continue;seen.add(r.out[0]+'_'+(r.shaped?r.p.join(''):r.s.join('')));
     const need=recipeNeeds(r,counts);const el=document.createElement('div');el.className='r'+(need?'':' no');el.innerHTML='<div class="icon" style="background-image:url('+ICONS[r.out[0]]+')"></div>'+(r.out[1]>1?'<div class="cnt">'+r.out[1]+'</div>':'');el.title=ITEMS[r.out[0]].label;
     const key=r.out[0]+'_'+(r.shaped?r.p.join(''):r.s.join(''));el.dataset.key=key;if(rbSel===key)el.classList.add('sel');
     el.addEventListener('click',()=>{rbSel=key;for(const x of rb.querySelectorAll('.r'))x.classList.toggle('sel',x.dataset.key===key);showRecipeDetail(r,countsAll,need);if(need)fillRecipe(r,need)});rb.appendChild(el)}
@@ -4293,8 +4327,8 @@ function randomDrops(){if(Math.random()<0.03){const set=RANDOM_SETS[floor(Math.r
 /* ---- initial spawn ---- */
 function findSpawn(){for(let r=0;r<400;r+=8){for(let a=0;a<PI*2;a+=0.7){const x=floor(Math.cos(a)*r),z=floor(Math.sin(a)*r);const info=world.columnInfo(x,z);if(info.height>SEA+1&&info.biome!==BI.mountains&&info.biome!==BI.ocean)return [x+0.5,info.height+1,z+0.5]}}return [0.5,80,0.5]}
 /* ---- world lifecycle ---- */
-const MODN={weather:'Weather',horror:'Horror',random:'Random Blocks',hardcore:'Hardcore',structures:'Structure Chaos',apocalypse:'Zombie Apocalypse',guns:'Guns',hearts:'Hearts',nightvision:'Night Vision',reallife:'Real Life'};
-function applyModsLive(m,fromHost){if(!world||game.state!=='playing')return;const old=game.mods||{};game.mods=Object.assign({weather:false,horror:false,random:false,hardcore:false,structures:false,apocalypse:false,guns:false,hearts:false,nightvision:false,reallife:false},m);const g=game.mods;
+const MODN={weather:'Weather',horror:'Horror',random:'Random Blocks',hardcore:'Hardcore',structures:'Structure Chaos',apocalypse:'Zombie Apocalypse',guns:'Guns',hearts:'Hearts',nightvision:'Night Vision',reallife:'Real Life',uncrafting:'Uncrafting'};
+function applyModsLive(m,fromHost){if(!world||game.state!=='playing')return;const old=game.mods||{};game.mods=Object.assign({weather:false,horror:false,random:false,hardcore:false,structures:false,apocalypse:false,guns:false,hearts:false,nightvision:false,reallife:false,uncrafting:false},m);const g=game.mods;
   if(g.weather&&!game.wx)game.wx={storm:false,I:0,t:20+Math.random()*40,lt:4,flash:0,tornado:null};else if(!g.weather&&game.wx){stopWeatherLoops();game.wx=null}
   game.hx=g.horror?(game.hx||{amb:15,beat:0}):null;
   if(g.apocalypse&&!game.ax)game.ax={wave:0,next:60,active:false,mobs:[],warned:{},left:0};else if(!g.apocalypse&&game.ax){for(const mb of game.ax.mobs)mb.dead=true;game.ax=null;$('waveHud').style.display='none'}
@@ -4302,7 +4336,7 @@ function applyModsLive(m,fromHost){if(!world||game.state!=='playing')return;cons
   const list=worldList();const meta=list.find(w=>w.id===game.worldId);if(meta){meta.mods=Object.assign({},g);meta.drops=g.random?'random':'normal';localStorage.setItem('ic_worlds',JSON.stringify(list))}
   if(MP.active&&MP.host&&!fromHost)mpSend({t:'mods',mods:g});
   const on=Object.keys(g).filter(k=>g[k]).map(k=>MODN[k]);showMessage('Fun mods: '+(on.length?on.join(', '):'none')+(g.weather&&!old.weather?'. Clouds are gathering...':''));if(game.gui)renderAllSlots()}
-function modsOf(meta){const m=Object.assign({weather:false,horror:false,random:false,hardcore:false,structures:false,apocalypse:false,guns:false,hearts:false,nightvision:false,reallife:false},meta.mods||{});if(!meta.mods&&meta.drops==='random')m.random=true;return m}
+function modsOf(meta){const m=Object.assign({weather:false,horror:false,random:false,hardcore:false,structures:false,apocalypse:false,guns:false,hearts:false,nightvision:false,reallife:false,uncrafting:false},meta.mods||{});if(!meta.mods&&meta.drops==='random')m.random=true;return m}
 function newWorld(name,seedStr,mode,diff,mods){const drops=mods&&mods.random?'random':'normal';
   const seed=seedStr?(isNaN(+seedStr)?hashStr(seedStr):(+seedStr|0)):(Math.random()*2147483647|0);
   const id='w'+Date.now().toString(36);const list=worldList();list.push({id,name,seed,mode,diff,drops,mods:mods||{},created:Date.now(),played:Date.now()});localStorage.setItem('ic_worlds',JSON.stringify(list));
@@ -5305,7 +5339,7 @@ function runCommand(line){const p=player;const raw=line.trim().replace(/^\/+/,''
     case 'spawn':case 'summon':{if(/portal/i.test(args.join('_'))){spawnNetherPortal(say,/sift/i.test(args.join('_'))?'sift':'nether');return}{const dn=(args[0]||'').toLowerCase().replace(/[\s-]+/g,'_');const dd=DISASTER_ALIAS[dn]||(DISASTER_NAMES.includes(dn)?dn:null);if(dd){startDisaster(dd,args[1],say);return}}const words=args.filter(a=>!/^\d+$/.test(a)),num=args.find(a=>/^\d+$/.test(a));const t=words.join('_');const type=mobTypeFromName(t);if(!type&&spawnStructureAt(t,say))return;if(!type){say('Mobs: '+MOB_TYPES.map(k=>mobLabel(k)).join(', '));say('Structures: '+Object.keys(SPAWN_STRUCT).map(k=>k.replace(/_/g,' ')).join(', ')+' (built where you are looking)');return}const n=clamp(parseInt(num)||1,1,20);const d=eyeDir();for(let i=0;i<n;i++)entities.push(new Mob(type,p.x+d[0]*3+(Math.random()-0.5)*2,p.y+0.5,p.z+d[2]*3+(Math.random()-0.5)*2));say('Spawned '+n+' '+mobLabel(type));return}
     case 'portal':spawnNetherPortal(say);return;
     case 'stop':case 'cancel':if(game.tpSearch)cancelBlockSearch();else say('Nothing to stop');return;
-    case 'mods':case 'mod':{if(MP.active&&!MP.host){say('Only the host can change fun mods');return}const keys=Object.keys(MODN);if(!args.length){say('Fun mods: '+keys.map(k=>MODN[k]+' '+(game.mods[k]?'ON':'OFF')).join(', '));say('Usage: /mods <weather|horror|random|hardcore|structures|apocalypse|guns|hearts|nightvision|reallife> <on|off>');return}const k=keys.find(k=>k.startsWith(args[0].toLowerCase()))||(/^(storm|tornado)/i.test(args[0])?'weather':/^zombie|^wave/i.test(args[0])?'apocalypse':null);if(!k){say('Unknown mod. Mods: '+keys.join(', '));return}const on=args[1]?/^(on|1|true|yes)$/i.test(args[1]):!game.mods[k];const m=Object.assign({},game.mods);m[k]=on;applyModsLive(m);return}
+    case 'mods':case 'mod':{if(MP.active&&!MP.host){say('Only the host can change fun mods');return}const keys=Object.keys(MODN);if(!args.length){say('Fun mods: '+keys.map(k=>MODN[k]+' '+(game.mods[k]?'ON':'OFF')).join(', '));say('Usage: /mods <weather|horror|random|hardcore|structures|apocalypse|guns|hearts|nightvision|reallife|uncrafting> <on|off>');return}const k=keys.find(k=>k.startsWith(args[0].toLowerCase()))||(/^(storm|tornado)/i.test(args[0])?'weather':/^zombie|^wave/i.test(args[0])?'apocalypse':null);if(!k){say('Unknown mod. Mods: '+keys.join(', '));return}const on=args[1]?/^(on|1|true|yes)$/i.test(args[1]):!game.mods[k];const m=Object.assign({},game.mods);m[k]=on;applyModsLive(m);return}
     case 'disaster':case 'disasters':{if(!args.length){say('Disasters: '+DISASTER_NAMES.join(', ')+'.  e.g. /disaster earthquake, /disaster meteor 20, /disaster flood 6, /disaster tornado 5, /disaster random');return}startDisaster(args[0],args[1],say);return}
     case 'tornado':{if(!game.wx){say('Tornadoes need the Weather fun mod on this world');return}if(MP.active&&!MP.host){say('Only the host can call a tornado');return}const ef=Math.min(5,Math.max(1,parseInt(args[0])||rollEF()));const W=game.wx;W.storm=true;W.I=Math.max(W.I,0.6);W.t=Math.max(W.t,60);const a=Math.random()*PI*2;W.tornado={x:p.x+Math.sin(a)*45,z:p.z+Math.cos(a)*45,y:p.y,dir:a+PI+(Math.random()-0.5)*0.4,life:(50+Math.random()*50)*EF[ef].life,spin:0,t:0,brk:0,ef};say(EF[ef].say);playSound('thunder',1,0.55-ef*0.05);return}
     case 'heal':p.hp=p.maxHp;p.hunger=20;p.sat=5;p.fireT=0;p.air=300;p.effects={};say('Healed');return;
