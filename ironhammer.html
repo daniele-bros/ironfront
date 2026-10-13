@@ -88,6 +88,7 @@ h2.t{font-family:'Oswald',sans-serif;font-size:22px;letter-spacing:6px;color:var
     <div class="tabs"><button class="btn on" id="tMine">MINE</button><button class="btn" id="tForge">FORGE</button><button class="btn" id="tArmy">ARMY</button></div>
     <div id="panel"></div>
     <div id="log"></div>
+    <input id="cmd" placeholder="/ commands (type /help)" autocomplete="off" spellcheck="false" style="width:100%;background:#1a1208;color:#e6dcc0;border:1px solid #5a4420;font-family:inherit;font-size:12px;padding:6px">
   </div>
 </div>
 <script>
@@ -116,16 +117,17 @@ const QUAL={crude:{m:0.8,l:'Crude'},fine:{m:1,l:'Fine'},master:{m:1.3,l:'Masterw
 const UPGRADES=[{k:'pick',n:'Pickaxe',max:4,price:l=>60*l*l,desc:l=>'Digs faster; tier '+(l+1)+' breaks '+(l>=1?'gold':'iron')+(l>=2?' and gems':'')},{k:'lamp',n:'Lamp',max:3,price:l=>40*l*l,desc:l=>'See further in the dark'},{k:'bag',n:'Ore bag',max:4,price:l=>50*l*l,desc:l=>'Carry '+(12+(l+1)*8)+' ore'},{k:'boots',n:'Miner\'s stamina',max:4,price:l=>45*l*l,desc:l=>'Stamina '+(100+(l+1)*40)}];
 const ENEMIES={peasant:{n:'Rebel Peasant',hp:18,atk:4,sp:50,w:16,col:'#8a6a4a',xp:8,coin:3},bandit:{n:'Bandit',hp:30,atk:7,sp:70,w:16,col:'#4a3a3a',xp:14,coin:6},footman:{n:'Footman',hp:55,atk:10,sp:55,w:18,col:'#5a6a7a',xp:22,coin:9},archer:{n:'Archer',hp:28,atk:9,sp:40,w:14,col:'#4a6a3a',xp:20,coin:8,ranged:true},knight:{n:'Black Knight',hp:100,atk:15,sp:45,w:20,col:'#2a2a30',xp:45,coin:20},lord:{n:'Rebel Lord',hp:240,atk:22,sp:40,w:26,col:'#6a1a1a',xp:150,coin:90,boss:true}};
 const BATTLES=[
-  {n:'Skirmish at the mill',w:[['peasant',5]]},
-  {n:'Bandits on the king\'s road',w:[['peasant',3],['bandit',4]]},
-  {n:'The bridge at Ashford',w:[['bandit',4],['footman',3],['archer',2]]},
-  {n:'Siege of Greywall',w:[['footman',5],['archer',3],['bandit',3]]},
-  {n:'The Black Knight\'s company',w:[['footman',4],['archer',3],['knight',2]]},
-  {n:'Battle of Redmoor',w:[['footman',6],['archer',4],['knight',3]]},
-  {n:'The Rebel Lord\'s stand',w:[['knight',4],['archer',4],['footman',4],['lord',1]]}];
+  {n:'Skirmish at the mill',w:[['peasant',10]]},
+  {n:'Bandits on the king\'s road',w:[['peasant',6],['bandit',7]]},
+  {n:'The bridge at Ashford',w:[['bandit',7],['footman',6],['archer',4]]},
+  {n:'Siege of Greywall',w:[['footman',9],['archer',5],['bandit',6],['knight',1]]},
+  {n:'The Black Knight\'s company',w:[['footman',8],['archer',6],['knight',4]]},
+  {n:'Battle of Redmoor',w:[['footman',10],['archer',7],['knight',5]]},
+  {n:'The Rebel Lord\'s stand',w:[['knight',7],['archer',7],['footman',8],['lord',1]]}];
+const HORSE_PRICE=300;
 /* ===================== STATE ===================== */
 let S=null,mine=null,battle=null,forge=null,scene='mine';const keys={},touch={};
-function newState(){return {lvl:1,xp:0,coins:20,ore:{coal:0,iron:0,gold:0,gem:0},ing:{iron:0,steel:0,gold:0},items:[],equip:{weapon:null,shield:null,armor:null},up:{pick:0,lamp:0,bag:0,boots:0},stam:100,won:0,battleIdx:0,hp:100,seed:ri(1,1e9)}}
+function newState(){return {lvl:1,xp:0,coins:20,ore:{coal:0,iron:0,gold:0,gem:0},ing:{iron:0,steel:0,gold:0},items:[],equip:{weapon:null,shield:null,armor:null},up:{pick:0,lamp:0,bag:0,boots:0},horse:false,stam:100,won:0,battleIdx:0,hp:100,seed:ri(1,1e9)}}
 function save(){try{localStorage.setItem('ih_save',JSON.stringify(S))}catch(e){}}
 function load(){try{const s=JSON.parse(localStorage.getItem('ih_save'));if(s&&s.ore)return Object.assign(newState(),s)}catch(e){}return null}
 const stamMax=()=>100+S.up.boots*40;const bagMax=()=>12+S.up.bag*8;const oreCount=()=>S.ore.coal+S.ore.iron+S.ore.gold+S.ore.gem;
@@ -146,7 +148,7 @@ function genMine(){const r=mulberry(S.seed);const g=new Array(MH);for(let y=0;y<
   for(let y=1;y<4;y++)g[y][MW>>1]=0; // shaft
   for(let i=0;i<18;i++){const cx=ri(2,MW-3),cy=ri(12,MH-6),rr=ri(1,3);for(let y=cy-rr;y<=cy+rr;y++)for(let x=cx-rr;x<=cx+rr;x++)if(y>3&&y<MH-1&&(x-cx)**2+(y-cy)**2<=rr*rr)g[y][x]=0} // caves
   return g}
-function startMine(){if(!mine)mine={g:genMine(),x:MW>>1,y:0,px:MW>>1,py:0,dig:null,t:0,face:1,hauled:0};scene='mine';refresh();renderPanel()}
+function startMine(){if(!mine)mine={g:genMine(),x:(MW>>1)-1,y:0,px:(MW>>1)-1,py:0,dig:null,t:0,face:1,hauled:0};scene='mine';refresh();renderPanel()}
 function cellOk(x,y){return x>=0&&x<MW&&y>=0&&y<MH}
 function mineInput(dt){const m=mine;if(m.dig){m.dig.t-=dt;if(m.dig.t<=0){const {x,y}=m.dig;const b=m.g[y][x];const def=BLOCK[b];if(def.ore){S.ore[def.ore]++;if(def.ore==='gem')log('A gem! Worth a fortune at the forge.','good')}m.g[y][x]=0;m.dig=null;S.stam=Math.max(0,S.stam-def.h*1.2);if(S.stam<=0)haul();refresh()}return}
   if(Math.abs(m.px-m.x)>0.01||Math.abs(m.py-m.y)>0.01){const sp=7*dt;m.px+=clamp(m.x-m.px,-sp,sp);m.py+=clamp(m.y-m.py,-sp,sp);return}
@@ -159,7 +161,7 @@ function mineInput(dt){const m=mine;if(m.dig){m.dig.t-=dt;if(m.dig.t<=0){const {
   if(def.ore&&oreCount()>=bagMax()){flash('Your ore bag is full. Climb up and go to the forge.');return}
   m.dig={x:nx,y:ny,t:def.h*0.45/(1+tier*0.35),tot:def.h*0.45/(1+tier*0.35)}}
 let flashT=0,flashMsg='';function flash(t){if(flashMsg===t&&flashT>0)return;flashMsg=t;flashT=2.5}
-function haul(){const m=mine;const lost={};for(const k in S.ore){const l=Math.floor(S.ore[k]/2);S.ore[k]-=l;if(l)lost[k]=l}m.x=MW>>1;m.y=0;m.px=m.x;m.py=0;m.dig=null;S.stam=stamMax()*0.5;log('You collapsed from exhaustion. The other miners hauled you up, but half your ore was lost on the way.','bad');refresh()}
+function haul(){const m=mine;const lost={};for(const k in S.ore){const l=Math.floor(S.ore[k]/2);S.ore[k]-=l;if(l)lost[k]=l}m.x=(MW>>1)-1;m.y=0;m.px=m.x;m.py=0;m.dig=null;S.stam=stamMax()*0.5;log('You collapsed from exhaustion. The other miners hauled you up, but half your ore was lost on the way.','bad');refresh()}
 function surfaceReturn(){if(mine.y!==0){flash('Climb back up to the surface first.');return}S.stam=stamMax();log('Rested at the mine head: stamina restored.','good');refresh()}
 function drawMine(){const m=mine;const g=m.g;const camX=m.px*CELL-W/2+CELL/2,camY=Math.max(-H*0.35,m.py*CELL-H/2+CELL/2);
   // sky and ground
@@ -191,6 +193,8 @@ function hammer(){const a=forge&&forge.anvil;if(!a||a.done)return;const d=Math.a
 let sparks=[];function spark(n){for(let i=0;i<8+n*6;i++)sparks.push({x:W/2+rnd(-10,10),y:H*0.55,vx:rnd(-140,140),vy:rnd(-260,-60),t:rnd(0.3,0.7)})}
 function equip(i){const it=S.items[i];S.equip[it.slot]=it;log('Equipped the '+it.n+'.');refresh();renderPanel()}
 function sell(i){const it=S.items[i];S.coins+=it.price;for(const k in S.equip)if(S.equip[k]===it)S.equip[k]=null;S.items.splice(i,1);log('Sold the '+it.n+' for '+it.price+' coins.');refresh();renderPanel()}
+function buyHorse(){if(S.horse||S.coins<HORSE_PRICE)return;S.coins-=HORSE_PRICE;S.horse=true;log('You bought a warhorse. Ride it into battle with H.','good');refresh();renderPanel()}
+function toggleMount(){const b=battle;if(!b||b.over||!S.horse)return;if(!b.mounted&&b.horseHp<=0){flash('Your horse is down for this battle.');return}b.mounted=!b.mounted;log(b.mounted?'You swing into the saddle.':'You dismount.')}
 function buyUp(k){const u=UPGRADES.find(u=>u.k===k);const l=S.up[k];if(l>=u.max)return;const p=u.price(l+1);if(S.coins<p)return;S.coins-=p;S.up[k]++;if(k==='boots')S.stam=stamMax();log(u.n+' upgraded to level '+(l+1)+'.','good');refresh();renderPanel()}
 function drawForge(){ctx.fillStyle='#1a120a';ctx.fillRect(0,0,W,H);ctx.fillStyle='#2a1c10';for(let i=0;i<40;i++)ctx.fillRect((i*97)%W,(i*53)%H,30,3);
   // hearth
@@ -208,14 +212,16 @@ function drawForge(){ctx.fillStyle='#1a120a';ctx.fillRect(0,0,W,H);ctx.fillStyle
 /* ===================== BATTLE ===================== */
 function startBattle(){if(S.lvl<ARMY_LEVEL)return;scene='battle';const b=BATTLES[Math.min(S.battleIdx,BATTLES.length-1)];const idx=S.battleIdx;const scale=1+Math.max(0,idx-BATTLES.length+1)*0.35;
   battle={name:b.n,idx,enemies:[],arrows:[],allies:[],t:0,spawnQ:[],px:120,py:0,vx:0,hp:100+S.lvl*12,hpMax:100+S.lvl*12,atkCd:0,block:false,swing:0,face:1,over:false,won:false,kills:0,shake:0,msgT:3};
-  for(const [k,n] of b.w)for(let i=0;i<n;i++)battle.spawnQ.push({k,delay:rnd(0.5,2)+i*rnd(1.2,2.6)+(ENEMIES[k].boss?12:0),scale});
-  for(let i=0;i<2+Math.floor(S.lvl/3);i++)battle.allies.push({x:60-i*34,hp:40+S.lvl*5,atk:5+S.lvl,cd:rnd(0,1),alive:true});
+  for(const [k,n] of b.w)for(let i=0;i<n;i++)battle.spawnQ.push({k,delay:rnd(0.5,2)+i*rnd(0.7,1.6)+(ENEMIES[k].boss?14:0),scale});
+  battle.mounted=!!S.horse;battle.horseHp=S.horse?120+S.lvl*8:0;battle.horseMax=battle.horseHp;battle.trampleCd=0;
+  for(let i=0;i<3+Math.floor(S.lvl/2);i++)battle.allies.push({x:60-i*34,hp:40+S.lvl*5,atk:5+S.lvl,cd:rnd(0,1),alive:true});
   S.hp=battle.hp;refresh();renderPanel();log(b.n+' begins. '+battle.spawnQ.length+' enemies are coming.')}
 function spawnEnemy(k,scale){const d=ENEMIES[k];battle.enemies.push({k,d,x:W+rnd(20,120),hp:Math.round(d.hp*scale),hpMax:Math.round(d.hp*scale),atk:Math.round(d.atk*scale),cd:rnd(0.5,1.5),alive:true,hit:0,face:-1})}
 function battleTick(dt){const b=battle;if(b.over)return;b.t+=dt;b.msgT=Math.max(0,b.msgT-dt);b.shake=Math.max(0,b.shake-dt);for(const q of b.spawnQ)q.delay-=dt;b.spawnQ=b.spawnQ.filter(q=>{if(q.delay<=0){spawnEnemy(q.k,q.scale);return false}return true});
   // player
-  const left=keys.ArrowLeft||keys.KeyA||touch.left,right=keys.ArrowRight||keys.KeyD||touch.right;b.block=!!(keys.ShiftLeft||keys.ShiftRight||keys.ArrowDown||keys.KeyS||touch.down);const sp=b.block?60:150;if(left){b.px-=sp*dt;b.face=-1}if(right){b.px+=sp*dt;b.face=1}b.px=clamp(b.px,20,W-20);b.atkCd-=dt;b.swing=Math.max(0,b.swing-dt);
-  if((keys.Space||touch.action||keys.KeyJ)&&b.atkCd<=0&&!b.block){b.atkCd=0.5;b.swing=0.22;const reach=48+(S.equip.weapon&&/great|gem/.test(S.equip.weapon.k)?18:0);let hitAny=false;for(const e of b.enemies){if(!e.alive)continue;const dx=e.x-b.px;if(Math.sign(dx)===b.face&&Math.abs(dx)<reach+e.d.w/2){e.hp-=atk()+ri(0,3);e.hit=0.2;e.x+=b.face*10;hitAny=true;if(e.hp<=0){e.alive=false;b.kills++;S.coins+=e.d.coin;addXp(e.d.xp)}}}beep(hitAny?500:260,0.08,hitAny?'square':'triangle')}
+  const left=keys.ArrowLeft||keys.KeyA||touch.left,right=keys.ArrowRight||keys.KeyD||touch.right;b.block=!!(keys.ShiftLeft||keys.ShiftRight||keys.ArrowDown||keys.KeyS||touch.down);const sp=b.block?60:b.mounted?270:150;
+  b.trampleCd-=dt;if(b.mounted&&(left||right)&&!b.block&&b.trampleCd<=0){for(const e of b.enemies){if(!e.alive)continue;const dx=e.x-b.px;if(Math.sign(dx)===b.face&&Math.abs(dx)<34){e.hp-=Math.round(atk()*0.6);e.hit=0.2;e.x+=b.face*26;b.trampleCd=0.35;if(e.hp<=0){e.alive=false;b.kills++;S.coins+=e.d.coin;addXp(e.d.xp)}}}}if(left){b.px-=sp*dt;b.face=-1}if(right){b.px+=sp*dt;b.face=1}b.px=clamp(b.px,20,W-20);b.atkCd-=dt;b.swing=Math.max(0,b.swing-dt);
+  if((keys.Space||touch.action||keys.KeyJ)&&b.atkCd<=0&&!b.block){b.atkCd=0.5;b.swing=0.22;const reach=48+(S.equip.weapon&&/great|gem/.test(S.equip.weapon.k)?18:0)+(b.mounted?22:0);let hitAny=false;for(const e of b.enemies){if(!e.alive)continue;const dx=e.x-b.px;if(Math.sign(dx)===b.face&&Math.abs(dx)<reach+e.d.w/2){e.hp-=atk()+ri(0,3);e.hit=0.2;e.x+=b.face*10;hitAny=true;if(e.hp<=0){e.alive=false;b.kills++;S.coins+=e.d.coin;addXp(e.d.xp)}}}beep(hitAny?500:260,0.08,hitAny?'square':'triangle')}
   // enemies
   for(const e of b.enemies){if(!e.alive)continue;e.hit=Math.max(0,e.hit-dt);const targets=[{x:b.px,isP:true}].concat(b.allies.filter(a=>a.alive).map(a=>({x:a.x,a})));let tg=targets[0],bd=1e9;for(const t of targets){const d=Math.abs(t.x-e.x);if(d<bd){bd=d;tg=t}}
     const want=e.d.ranged?160:e.d.w/2+14;const dx=tg.x-e.x;e.face=Math.sign(dx)||-1;if(Math.abs(dx)>want)e.x+=Math.sign(dx)*e.d.sp*dt;else if(e.d.ranged&&Math.abs(dx)<90)e.x-=Math.sign(dx)*e.d.sp*0.6*dt;
@@ -225,7 +231,7 @@ function battleTick(dt){const b=battle;if(b.over)return;b.t+=dt;b.msgT=Math.max(
   for(const a of b.allies){if(!a.alive)continue;a.cd-=dt;let near=null,bd=1e9;for(const e of b.enemies){if(!e.alive)continue;const d=Math.abs(e.x-a.x);if(d<bd){bd=d;near=e}}if(!near){a.x+=clamp(b.px-40-a.x,-60*dt,60*dt);continue}if(bd>30)a.x+=Math.sign(near.x-a.x)*70*dt;else if(a.cd<=0){a.cd=1.1;near.hp-=a.atk;near.hit=0.15;if(near.hp<=0){near.alive=false;b.kills++;S.coins+=near.d.coin;addXp(Math.round(near.d.xp/2))}}}
   if(b.spawnQ.length===0&&b.enemies.every(e=>!e.alive)){b.over=true;b.won=true;S.won++;const reward=40+b.idx*30;S.coins+=reward;const oreGift={coal:ri(2,5),iron:ri(2,4),gold:b.idx>=2?ri(0,2):0,gem:b.idx>=4?ri(0,1):0};for(const k in oreGift)S.ore[k]+=oreGift[k];S.battleIdx++;const promoted=rank();
     show('<h3>VICTORY</h3><p>'+b.name+' is won. You struck down '+b.kills+' of the enemy and the quartermaster pays '+reward+' coins. Loot from the field: '+Object.entries(oreGift).filter(e=>e[1]).map(e=>e[1]+' '+e[0]).join(', ')+'.</p><p>Your rank: <b>'+promoted+'</b>.</p><button class="btn" id="ok">BACK TO THE FORGE</button>').then(()=>{scene='forge';forge={anvil:null};refresh();renderPanel()});refresh()}}
-function hurtPlayer(n,fromX){const b=battle;const facing=Math.sign(fromX-b.px)===b.face;let dmg=Math.max(1,n-Math.floor(def()*0.6));if(b.block&&facing)dmg=Math.max(0,Math.round(dmg*0.2));b.hp-=dmg;b.shake=0.25;beep(160,0.1,'sawtooth');if(b.hp<=0){b.over=true;b.hp=0;const lost=Math.min(S.coins,Math.round(S.coins*0.15));S.coins-=lost;show('<h3>CARRIED FROM THE FIELD</h3><p>You fell at '+b.name+'. Your comrades dragged you back to the baggage train'+(lost?' and the surgeon charged '+lost+' coins':'')+'. Forge better armour, upgrade your sword and try again.</p><button class="btn" id="ok">BACK TO THE FORGE</button>').then(()=>{scene='forge';forge={anvil:null};refresh();renderPanel()})}}
+function hurtPlayer(n,fromX){const b=battle;const facing=Math.sign(fromX-b.px)===b.face;let dmg=Math.max(1,n-Math.floor(def()*0.6));if(b.block&&facing)dmg=Math.max(0,Math.round(dmg*0.2));if(b.mounted&&dmg>0){const toHorse=Math.round(dmg*0.5);b.horseHp-=toHorse;dmg-=toHorse;if(b.horseHp<=0){b.horseHp=0;b.mounted=false;log('Your horse is down! You fight on foot.','bad')}}b.hp-=dmg;b.shake=0.25;beep(160,0.1,'sawtooth');if(b.hp<=0){b.over=true;b.hp=0;const lost=Math.min(S.coins,Math.round(S.coins*0.15));S.coins-=lost;show('<h3>CARRIED FROM THE FIELD</h3><p>You fell at '+b.name+'. Your comrades dragged you back to the baggage train'+(lost?' and the surgeon charged '+lost+' coins':'')+'. Forge better armour, upgrade your sword and try again.</p><button class="btn" id="ok">BACK TO THE FORGE</button>').then(()=>{scene='forge';forge={anvil:null};refresh();renderPanel()})}}
 function drawBattle(){const b=battle;ctx.save();if(b.shake>0)ctx.translate(rnd(-5,5)*b.shake,rnd(-5,5)*b.shake);const sky=ctx.createLinearGradient(0,0,0,H);sky.addColorStop(0,'#5a6a8a');sky.addColorStop(1,'#c8b090');ctx.fillStyle=sky;ctx.fillRect(-10,-10,W+20,H+20);
   const gy=H*0.72;ctx.fillStyle='#6a7a4a';for(let i=0;i<8;i++){ctx.beginPath();ctx.ellipse((i*W/4-b.t*8)%(W+200)-100,gy-10,140,50,0,Math.PI,0);ctx.fill()}
   // castle silhouette
@@ -235,20 +241,22 @@ function drawBattle(){const b=battle;ctx.save();if(b.shake>0)ctx.translate(rnd(-
   for(const a of b.allies)if(a.alive)man(a.x,'#6a5a9a',1,16,Math.sin(b.t*6+a.x)*0.2-0.5,false,true);
   for(const e of b.enemies){if(!e.alive)continue;man(e.x,e.hit>0?'#ff8080':e.d.col,e.face,e.d.w,e.cd<0.2?-1.1:-0.4,e.d.k==='knight'||e.d.boss,e.k!=='peasant');ctx.fillStyle='#300';ctx.fillRect(e.x-14,gy-58,28,4);ctx.fillStyle='#e33';ctx.fillRect(e.x-14,gy-58,28*e.hp/e.hpMax,4);if(e.d.boss){ctx.fillStyle='#e8c84a';ctx.font='bold 11px Oswald, sans-serif';ctx.textAlign='center';ctx.fillText(e.d.n.toUpperCase(),e.x,gy-64)}}
   ctx.fillStyle='#3a2a1a';for(const ar of b.arrows)ctx.fillRect(ar.x-8,gy-30,16,2);
-  const w=S.equip.weapon,sw=b.swing>0?-1.3+((0.22-b.swing)/0.22)*1.6:b.block?0.6:-0.4;man(b.px,S.equip.armor?(S.equip.armor.k==='plate'||S.equip.armor.k==='gemplate'?'#b0b0c0':'#7a7a8a'):'#4a3020',b.face,18,sw,!!S.equip.shield&&b.block,true);
+  if(b.mounted){ctx.save();ctx.translate(b.px,gy);ctx.scale(b.face,1);const gait=Math.sin(b.t*14)*((keys.ArrowLeft||keys.ArrowRight||keys.KeyA||keys.KeyD||touch.left||touch.right)?6:1);ctx.fillStyle='#6a3a1a';ctx.fillRect(-26,-30,52,18);ctx.fillRect(18,-44,16,22);ctx.fillRect(28,-50,12,10);ctx.fillStyle='#3a2010';ctx.fillRect(-28,-36,14,10);ctx.fillRect(-24,-12,6,12+gait);ctx.fillRect(-12,-12,6,12-gait);ctx.fillRect(8,-12,6,12-gait);ctx.fillRect(18,-12,6,12+gait);ctx.fillStyle='#e8c84a';ctx.fillRect(-8,-32,30,4);ctx.restore()}
+  const w=S.equip.weapon,sw=b.swing>0?-1.3+((0.22-b.swing)/0.22)*1.6:b.block?0.6:-0.4;if(b.mounted){ctx.save();ctx.translate(0,-26)}man(b.px,S.equip.armor?(S.equip.armor.k==='plate'||S.equip.armor.k==='gemplate'?'#b0b0c0':'#7a7a8a'):'#4a3020',b.face,18,sw,!!S.equip.shield&&b.block,true);if(b.mounted)ctx.restore();
   // hud
   ctx.fillStyle='rgba(0,0,0,0.45)';ctx.fillRect(0,0,W,26);ctx.fillStyle='#e8c84a';ctx.font='bold 13px Oswald, sans-serif';ctx.textAlign='left';ctx.fillText(b.name.toUpperCase(),150,17);ctx.textAlign='right';ctx.fillText('ENEMIES '+(b.enemies.filter(e=>e.alive).length+b.spawnQ.length)+' · KILLS '+b.kills,W-12,17);
-  ctx.fillStyle='#300';ctx.fillRect(12,H-26,220,12);ctx.fillStyle='#e33';ctx.fillRect(12,H-26,220*b.hp/b.hpMax,12);ctx.fillStyle='#fff';ctx.font='11px Share Tech Mono, monospace';ctx.textAlign='left';ctx.fillText('HP '+Math.round(b.hp)+' / '+b.hpMax+(b.block?'  · BLOCKING':''),14,H-30);
-  if(b.msgT>0){ctx.fillStyle='rgba(0,0,0,0.55)';ctx.fillRect(W/2-260,H*0.35,520,44);ctx.fillStyle='#ffd27a';ctx.font='bold 13px Oswald, sans-serif';ctx.textAlign='center';ctx.fillText('← → MOVE · SPACE / ● SWING · SHIFT, ↓ OR HOLD ▼ TO BLOCK (FACE THE ENEMY)',W/2,H*0.35+18);ctx.fillText('YOUR ATTACK '+atk()+' · DEFENCE '+def()+' · '+b.allies.length+' MEN-AT-ARMS AT YOUR SIDE',W/2,H*0.35+36)}
+  ctx.fillStyle='#300';ctx.fillRect(12,H-26,220,12);ctx.fillStyle='#e33';ctx.fillRect(12,H-26,220*b.hp/b.hpMax,12);ctx.fillStyle='#fff';ctx.font='11px Share Tech Mono, monospace';ctx.textAlign='left';ctx.fillText('HP '+Math.round(b.hp)+' / '+b.hpMax+(b.block?'  · BLOCKING':'')+(S.horse?'  · HORSE '+Math.round(b.horseHp)+(b.mounted?' (RIDING)':''):''),14,H-30);
+  if(b.msgT>0){ctx.fillStyle='rgba(0,0,0,0.55)';ctx.fillRect(W/2-260,H*0.35,520,44);ctx.fillStyle='#ffd27a';ctx.font='bold 13px Oswald, sans-serif';ctx.textAlign='center';ctx.fillText('← → MOVE · SPACE / ● SWING · SHIFT, ↓ OR HOLD ▼ TO BLOCK'+(S.horse?' · H TO MOUNT':''),W/2,H*0.35+18);ctx.fillText('YOUR ATTACK '+atk()+' · DEFENCE '+def()+' · '+b.allies.length+' MEN-AT-ARMS AT YOUR SIDE',W/2,H*0.35+36)}
   ctx.restore()}
 /* ===================== PANEL ===================== */
 function renderPanel(){const p=$('panel');if(scene==='mine'){p.innerHTML='<h4>THE MINE</h4><p>Walk with the arrow keys or WASD and push into rock to dig it. Coal and iron are near the top; gold, gems and hard rock lie deeper. Every swing costs stamina, and if it runs out the other miners haul you up and half your ore is lost. Climb back through your tunnels to the surface.</p><div class="it"><span>Mine head<small>Rest here to refill stamina (E or ●)</small></span><button id="pRest">REST</button></div><div class="it"><span>Dig a fresh mine<small>Keeps your ore, new tunnels and ore seams</small></span><button id="pNew">NEW SHAFT</button></div>';$('pRest').onclick=surfaceReturn;$('pNew').onclick=()=>{if(mine&&mine.y!==0){flash('Climb back up first.');return}S.seed=ri(1,1e9);mine=null;startMine();log('A new shaft is sunk beside the old one.')}}
   else if(scene==='forge'){let h='<h4>SMELTER</h4>';h+=row('Iron ingot','1 iron ore + 1 coal',S.ore.iron>=1&&S.ore.coal>=1,'SMELT','smelt:iron');h+=row('Steel ingot','2 iron ingots + 2 coal',S.ing.iron>=2&&S.ore.coal>=2,'SMELT','smelt:steel');h+=row('Gold ingot','1 gold ore + 1 coal',S.ore.gold>=1&&S.ore.coal>=1,'SMELT','smelt:gold');
     h+='<h4>ANVIL</h4>';for(const it of ITEMS){const cost=Object.entries(it.cost).map(e=>e[1]+' '+e[0]).join(' + ');h+=row(it.n+(it.atk?' · ATK '+it.atk:' · DEF '+it.def),(S.lvl<it.lvl?'Level '+it.lvl+' · ':'')+cost,canCraft(it)&&!forge.anvil,'FORGE','craft:'+it.k)}
     h+='<h4>ARMOURY</h4>';if(!S.items.length)h+='<p>Nothing forged yet.</p>';S.items.forEach((it,i)=>{const eq=Object.values(S.equip).includes(it);h+='<div class="it"><span>'+it.n+(eq?' ✔':'')+'<small>'+(it.atk?'ATK '+Math.round(it.atk*QUAL[it.q].m):'DEF '+Math.round(it.def*QUAL[it.q].m))+' · sells for '+it.price+'</small></span><span><button data-a="equip:'+i+'" '+(eq?'disabled':'')+'>EQUIP</button> <button data-a="sell:'+i+'">SELL</button></span></div>'});
+    h+='<h4>STABLE</h4>'+(S.horse?'<div class="it"><span>Warhorse<small>Yours. Press H in battle to ride.</small></span><button disabled>OWNED</button></div>':row('Warhorse','Ride into battle: faster, longer reach, tramples enemies, soaks half your hits · '+HORSE_PRICE+' coins',S.coins>=HORSE_PRICE,'BUY','horse:1'));
     h+='<h4>MINING UPGRADES</h4>';for(const u of UPGRADES){const l=S.up[u.k];h+=row(u.n+' '+(l>=u.max?'(max)':'lvl '+l+' → '+(l+1)),l>=u.max?'':u.desc(l)+' · '+u.price(l+1)+' coins',l<u.max&&S.coins>=u.price(l+1),'BUY','up:'+u.k)}
-    p.innerHTML=h;for(const b of p.querySelectorAll('button[data-a]'))b.onclick=()=>{const [a,v]=b.dataset.a.split(':');if(a==='smelt')smelt(v);else if(a==='craft')startCraft(ITEMS.find(i=>i.k===v));else if(a==='equip')equip(+v);else if(a==='sell')sell(+v);else if(a==='up')buyUp(v)}}
-  else{const b=battle;p.innerHTML='<h4>'+b.name.toUpperCase()+'</h4><p>Battle '+(b.idx+1)+'. Move with ← →, swing with SPACE, block with SHIFT or ↓. Blocking only works facing the enemy, and a shield makes it far better. Allies fight beside you. Rise in rank with every two victories.</p><p>ATK '+atk()+' · DEF '+def()+' · HP '+b.hpMax+'</p><div class="it"><span>Retreat<small>Leave the field now</small></span><button id="pRetreat">RETREAT</button></div>';$('pRetreat').onclick=()=>{if(battle&&!battle.over){battle.over=true;scene='forge';forge={anvil:null};log('You withdrew from '+battle.name+'.');refresh();renderPanel()}}}}
+    p.innerHTML=h;for(const b of p.querySelectorAll('button[data-a]'))b.onclick=()=>{const [a,v]=b.dataset.a.split(':');if(a==='smelt')smelt(v);else if(a==='craft')startCraft(ITEMS.find(i=>i.k===v));else if(a==='equip')equip(+v);else if(a==='sell')sell(+v);else if(a==='up')buyUp(v);else if(a==='horse')buyHorse()}}
+  else{const b=battle;p.innerHTML='<h4>'+b.name.toUpperCase()+'</h4><p>Battle '+(b.idx+1)+'. Move with ← →, swing with SPACE, block with SHIFT or ↓. Blocking only works facing the enemy, and a shield makes it far better. Allies fight beside you. Rise in rank with every two victories.</p><p>ATK '+atk()+' · DEF '+def()+' · HP '+b.hpMax+(S.horse?' · HORSE '+Math.round(b.horseHp)+'/'+b.horseMax:'')+'</p>'+(S.horse?'<div class="it"><span>Warhorse<small>H to mount or dismount. Riding is faster, reaches further and tramples; the horse takes half your hits.</small></span><button id="pMount">'+(b.mounted?'DISMOUNT':'MOUNT')+'</button></div>':'')+'<div class="it"><span>Retreat<small>Leave the field now</small></span><button id="pRetreat">RETREAT</button></div>';if(S.horse)$('pMount').onclick=()=>{toggleMount();renderPanel()};$('pRetreat').onclick=()=>{if(battle&&!battle.over){battle.over=true;scene='forge';forge={anvil:null};log('You withdrew from '+battle.name+'.');refresh();renderPanel()}}}}
 function row(name,sub,ok,label,action){return '<div class="it"><span>'+name+'<small>'+sub+'</small></span><button data-a="'+action+'" '+(ok?'':'disabled')+'>'+label+'</button></div>'}
 /* ===================== CANVAS / LOOP ===================== */
 const cv=$('c'),ctx=cv.getContext('2d');let W=800,H=450,last=0;
@@ -258,9 +266,21 @@ function frame(now){requestAnimationFrame(frame);const dt=Math.min(0.05,(now-las
 /* ===================== SOUND ===================== */
 let AC=null;function ac(){if(!AC){try{AC=new (window.AudioContext||window.webkitAudioContext)()}catch(e){}}if(AC&&AC.state==='suspended')AC.resume();return AC}
 function beep(f,d,type){const a=ac();if(!a)return;const o=a.createOscillator(),g=a.createGain();o.type=type||'square';o.frequency.value=f;g.gain.value=0.05;g.gain.exponentialRampToValueAtTime(0.0001,a.currentTime+d);o.connect(g);g.connect(a.destination);o.start();o.stop(a.currentTime+d)}
+/* ===================== CONSOLE ===================== */
+const CHEAT_PW='9991999';let cheatsOn=false;try{cheatsOn=sessionStorage.getItem('ih_cheats')==='1'}catch(e){}
+function runCmd(line){line=line.trim();if(!line)return;const [c,...a]=line.replace(/^\//,'').toLowerCase().split(/\s+/);
+  if(c==='help'){log('/password <code> unlocks the cheats. /give <coal|iron|gold|gem|ironingot|steel|goldingot|coins|xp> [amount]. /level <n>.');return}
+  if(c==='password'||c==='pw'){if(a[0]===CHEAT_PW){cheatsOn=true;try{sessionStorage.setItem('ih_cheats','1')}catch(e){}log('Password accepted: /give and /level are unlocked.','good')}else log('Wrong password.','bad');return}
+  if(c==='give'||c==='level'||c==='lvl'){if(!cheatsOn){log('Locked. Enter the password first: /password <code>','bad');return}
+    if(c!=='give'){const n=clamp(parseInt(a[0])||1,1,50);S.lvl=n;S.xp=0;log('Level set to '+n+'.','good');refresh();renderPanel();return}
+    const what=(a[0]||'').replace(/[^a-z]/g,''),n=Math.max(1,parseInt(a[1])||10);const map={coal:['ore','coal'],iron:['ore','iron'],ironore:['ore','iron'],gold:['ore','gold'],goldore:['ore','gold'],gem:['ore','gem'],gems:['ore','gem'],ironingot:['ing','iron'],ingot:['ing','iron'],steel:['ing','steel'],steelingot:['ing','steel'],goldingot:['ing','gold']};
+    if(map[what]){const [g,k]=map[what];S[g][k]+=n;log('Gave '+n+' '+(g==='ing'?k+' ingots':k+' ore')+'.','good')}else if(what==='coins'||what==='coin'||what==='gold'){S.coins+=n;log('Gave '+n+' coins.','good')}else if(what==='xp'){addXp(n);log('Gave '+n+' xp.','good')}else{log('Unknown item. Try coal, iron, gold, gem, ironingot, steel, goldingot, coins or xp.','bad');return}
+    refresh();renderPanel();return}
+  log('Unknown command. Type /help.','bad')}
+$('cmd').addEventListener('keydown',e=>{e.stopPropagation();if(e.code==='Enter'){runCmd($('cmd').value);$('cmd').value=''}});$('cmd').addEventListener('keyup',e=>e.stopPropagation());
 /* ===================== INPUT / START ===================== */
 function action(){if(scene==='mine'){if(mine.y===0&&Math.abs(mine.x-(MW>>1))<=2)surfaceReturn()}else if(scene==='forge')hammer()}
-addEventListener('keydown',e=>{keys[e.code]=true;if(['Space','ArrowUp','ArrowDown','ArrowLeft','ArrowRight'].includes(e.code))e.preventDefault();if(!S)return;if(e.code==='KeyE'&&scene==='mine')action();if(e.code==='Space'&&scene==='forge'&&!e.repeat)hammer();if(e.code==='Digit1')startMine();if(e.code==='Digit2')startForge();if(e.code==='Digit3')startBattle()});
+addEventListener('keydown',e=>{keys[e.code]=true;if(['Space','ArrowUp','ArrowDown','ArrowLeft','ArrowRight'].includes(e.code))e.preventDefault();if(!S)return;if(e.code==='KeyE'&&scene==='mine')action();if(e.code==='Space'&&scene==='forge'&&!e.repeat)hammer();if(e.code==='KeyH'&&scene==='battle')toggleMount();if(e.code==='Digit1')startMine();if(e.code==='Digit2')startForge();if(e.code==='Digit3')startBattle()});
 addEventListener('keyup',e=>{keys[e.code]=false});
 cv.addEventListener('mousedown',()=>{ac();if(scene==='forge')hammer()});
 for(const b of document.querySelectorAll('.tb')){const k=b.dataset.k;const on=e=>{e.preventDefault();ac();touch[k]=true;if(k==='action')action()};const off=e=>{e.preventDefault();touch[k]=false};b.addEventListener('touchstart',on,{passive:false});b.addEventListener('touchend',off);b.addEventListener('touchcancel',off);b.addEventListener('mousedown',on);b.addEventListener('mouseup',off)}
