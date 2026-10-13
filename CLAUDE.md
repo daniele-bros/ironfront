@@ -31,6 +31,7 @@ dependencies — open the file in a browser to play.
 - `irontrail.html` — **Iron Trail**, Oregon Trail style wagon journey (canvas scene + side panel, hunting minigame, rivers, forts, events).
 - `ironrocks.html` — **Iron Rocks**, Asteroids style vector shooter (saucers, hyperspace, touch buttons).
 - `ironserpent.html` — **Iron Serpent**, snake with golden apples, mushrooms and iron walls (solid or wrap edges).
+- `ironhammer.html` — **Iron Hammer**, mine (side-view digging) → forge (smelt + hammer timing minigame) → army (side-scrolling medieval battles); localStorage save `ih_save`.
 
 ## Verifying changes
 

@@ -59,7 +59,7 @@ let G=null;const keys={};const touch={};
 function newGame(){return {ship:null,rocks:[],shots:[],parts:[],saucers:[],sshots:[],score:0,lives:3,wave:0,respawnT:0,saucerT:20,over:false,started:true,shake:0,hyperCd:0,waveClearT:0,extraAt:10000}}
 function makeShip(){return {x:W/2,y:H/2,vx:0,vy:0,a:-Math.PI/2,inv:3,thrust:false,fireCd:0,alive:true}}
 function makeRock(x,y,size,vx,vy){const n=8+Math.floor(Math.random()*5);const pts=[];for(let i=0;i<n;i++){const ang=i/n*TAU;const r=size*rnd(0.72,1.15);pts.push([Math.cos(ang)*r,Math.sin(ang)*r])}return {x,y,size,vx:vx!==undefined?vx:rnd(-1,1)*60/Math.sqrt(size/20),vy:vy!==undefined?vy:rnd(-1,1)*60/Math.sqrt(size/20),a:rnd(0,TAU),spin:rnd(-1,1),pts,hp:size>=50?2:1}}
-function spawnWave(){G.wave++;const n=3+G.wave;for(let i=0;i<n;i++){let x,y;do{x=Math.random()*W;y=Math.random()*H}while(Math.hypot(x-W/2,y-H/2)<220);G.rocks.push(makeRock(x,y,56))}$('hWave').textContent=G.wave}
+function spawnWave(){G.wave++;if(G.wave>1&&G.wave%4===0){for(let i=0;i<3;i++)spawnSaucer('hunter');G.saucerT=4}const n=3+G.wave;for(let i=0;i<n;i++){let x,y;do{x=Math.random()*W;y=Math.random()*H}while(Math.hypot(x-W/2,y-H/2)<220);G.rocks.push(makeRock(x,y,56))}$('hWave').textContent=G.wave}
 function burst(x,y,n,col,sp){for(let i=0;i<n;i++){const a=Math.random()*TAU,s=rnd(20,sp||140);G.parts.push({x,y,vx:Math.cos(a)*s,vy:Math.sin(a)*s,t:rnd(0.3,0.9),col})}}
 function wrap(o){if(o.x<-40)o.x+=W+80;if(o.x>W+40)o.x-=W+80;if(o.y<-40)o.y+=H+80;if(o.y>H+40)o.y-=H+80}
 function fire(){const s=G.ship;if(!s||!s.alive||s.fireCd>0||G.shots.length>=6)return;s.fireCd=0.18;G.shots.push({x:s.x+Math.cos(s.a)*16,y:s.y+Math.sin(s.a)*16,vx:s.vx+Math.cos(s.a)*480,vy:s.vy+Math.sin(s.a)*480,t:1.1});beep(900,0.05,'square',0.04)}
@@ -68,7 +68,9 @@ function killShip(){const s=G.ship;if(!s||!s.alive)return;s.alive=false;burst(s.
 function addScore(n){G.score+=n;$('hScore').textContent=G.score;if(G.score>=G.extraAt){G.extraAt+=10000;G.lives++;$('hLives').textContent=G.lives;beep(1200,0.3,'triangle',0.06)}}
 function hitRock(r,idx,byPlayer){r.hp--;if(r.hp>0){burst(r.x,r.y,4,'#9aa3b0',60);return}G.rocks.splice(idx,1);burst(r.x,r.y,r.size>40?16:10,'#9aa3b0',110);boom(r.size>40?0.25:0.15);if(byPlayer)addScore(r.size>=50?20:r.size>=28?50:100);
   if(r.size>=28){const ns=r.size>=50?30:16;for(let k=0;k<2;k++){const a=Math.random()*TAU,sp=rnd(50,110)+(r.size>=50?0:30);G.rocks.push(makeRock(r.x,r.y,ns,r.vx*0.4+Math.cos(a)*sp,r.vy*0.4+Math.sin(a)*sp))}}}
-function spawnSaucer(){const big=Math.random()<0.6||G.wave<3;const y=rnd(60,H-60);const dir=Math.random()<0.5?1:-1;G.saucers.push({x:dir>0?-30:W+30,y,vx:dir*(big?70:110),vy:0,big,t:0,fireT:rnd(0.8,1.6),turnT:rnd(1,2.5),hp:1})}
+function spawnSaucer(kind){const r=Math.random();const type=kind||(G.wave<2?'big':G.wave<4?(r<0.55?'big':'small'):r<0.4?'big':r<0.75?'small':'hunter');const big=type==='big';const y=rnd(60,H-60);const dir=Math.random()<0.5?1:-1;
+  G.saucers.push({type,x:dir>0?-30:W+30,y,vx:dir*(big?70:type==='small'?110:0),vy:0,big,t:0,fireT:rnd(0.8,1.6),turnT:rnd(1,2.5),hp:type==='hunter'?2:1,burst:0})}
+function maxSaucers(){return 1+Math.min(3,Math.ceil(G.wave/2))}
 function update(dt){if(G.over)return;const s=G.ship;G.hyperCd=Math.max(0,G.hyperCd-dt);G.shake=Math.max(0,G.shake-dt);
   if(!s.alive){G.respawnT-=dt;if(G.respawnT<=0){const safe=G.rocks.every(r=>Math.hypot(r.x-W/2,r.y-H/2)>120);if(safe){G.ship=makeShip()}}}
   else{const left=keys.ArrowLeft||keys.KeyA||touch.left,right=keys.ArrowRight||keys.KeyD||touch.right,th=keys.ArrowUp||keys.KeyW||touch.thrust;if(left)s.a-=4.2*dt;if(right)s.a+=4.2*dt;s.thrust=!!th;if(th){s.vx+=Math.cos(s.a)*300*dt;s.vy+=Math.sin(s.a)*300*dt;if(Math.random()<0.6)G.parts.push({x:s.x-Math.cos(s.a)*14,y:s.y-Math.sin(s.a)*14,vx:-Math.cos(s.a)*120+rnd(-30,30),vy:-Math.sin(s.a)*120+rnd(-30,30),t:0.25,col:'#ff9a3a'})}
@@ -78,13 +80,22 @@ function update(dt){if(G.over)return;const s=G.ship;G.hyperCd=Math.max(0,G.hyper
   for(const b of G.sshots){b.x+=b.vx*dt;b.y+=b.vy*dt;b.t-=dt;wrap(b)}G.sshots=G.sshots.filter(b=>b.t>0);
   for(const p of G.parts){p.x+=p.vx*dt;p.y+=p.vy*dt;p.t-=dt}G.parts=G.parts.filter(p=>p.t>0);
   // saucers
-  G.saucerT-=dt;if(G.saucerT<=0&&G.saucers.length<2){G.saucerT=rnd(14,26)-Math.min(8,G.wave);spawnSaucer()}
-  for(const u of G.saucers){u.t+=dt;u.x+=u.vx*dt;u.y+=u.vy*dt;u.turnT-=dt;if(u.turnT<=0){u.turnT=rnd(1,2.5);u.vy=rnd(-60,60)}if(u.y<30||u.y>H-30)u.vy*=-1;u.fireT-=dt;
-    if(u.fireT<=0&&s.alive){u.fireT=u.big?rnd(1.2,2):rnd(0.7,1.2);let a=u.big?Math.random()*TAU:Math.atan2(s.y-u.y,s.x-u.x)+rnd(-0.25,0.25)*(G.wave<6?1:0.4);G.sshots.push({x:u.x,y:u.y,vx:Math.cos(a)*260,vy:Math.sin(a)*260,t:1.6});beep(500,0.06,'square',0.03)}}
-  G.saucers=G.saucers.filter(u=>u.x>-60&&u.x<W+60);
+  G.saucerT-=dt;if(G.saucerT<=0&&G.saucers.length<maxSaucers()){G.saucerT=rnd(7,13)-Math.min(4,G.wave*0.5);spawnSaucer()}
+  for(const u of G.saucers){u.t+=dt;
+    if(u.type==='hunter'){ // the hunter dart chases the ship, keeps a little distance and fires aimed bursts
+      if(s.alive){const dx=s.x-u.x,dy=s.y-u.y;const d=Math.hypot(dx,dy)||1;const want=d>220?1:d<140?-0.6:0;u.vx+=(dx/d*want*180+Math.cos(u.t*2)*60-u.vx)*dt*1.5;u.vy+=(dy/d*want*180+Math.sin(u.t*2)*60-u.vy)*dt*1.5}
+      u.x+=u.vx*dt;u.y+=u.vy*dt;wrap(u)}
+    else{u.x+=u.vx*dt;u.y+=u.vy*dt;u.turnT-=dt;if(u.turnT<=0){u.turnT=rnd(1,2.5);u.vy=rnd(-60,60)}if(u.y<30||u.y>H-30)u.vy*=-1}
+    u.fireT-=dt;
+    if(u.fireT<=0&&s.alive){const aim=Math.atan2(s.y-u.y,s.x-u.x);let a,sp=260;
+      if(u.type==='hunter'){u.burst=(u.burst||0)+1;u.fireT=u.burst%3===0?rnd(1.6,2.4):0.16;a=aim+rnd(-0.08,0.08);sp=320}
+      else if(u.big){u.fireT=rnd(1,1.6);a=aim+rnd(-0.5,0.5)}
+      else{u.fireT=rnd(0.6,1);a=aim+rnd(-0.12,0.12)}
+      G.sshots.push({x:u.x,y:u.y,vx:Math.cos(a)*sp,vy:Math.sin(a)*sp,t:1.8});beep(u.type==='hunter'?800:500,0.06,'square',0.03)}}
+  G.saucers=G.saucers.filter(u=>u.type==='hunter'||(u.x>-60&&u.x<W+60));
   // collisions: shots vs rocks
   for(let i=G.shots.length-1;i>=0;i--){const b=G.shots[i];let hit=false;for(let j=G.rocks.length-1;j>=0;j--){const r=G.rocks[j];if(Math.hypot(b.x-r.x,b.y-r.y)<r.size*0.95){hitRock(r,j,true);hit=true;break}}
-    if(!hit)for(let j=G.saucers.length-1;j>=0;j--){const u=G.saucers[j];if(Math.hypot(b.x-u.x,b.y-u.y)<(u.big?22:14)){G.saucers.splice(j,1);burst(u.x,u.y,22,'#7fffb0',160);addScore(u.big?200:1000);boom(0.3);hit=true;break}}
+    if(!hit)for(let j=G.saucers.length-1;j>=0;j--){const u=G.saucers[j];if(Math.hypot(b.x-u.x,b.y-u.y)<(u.big?22:u.type==='hunter'?16:14)){u.hp--;hit=true;if(u.hp>0){burst(u.x,u.y,6,'#ff7fd0',80);break}G.saucers.splice(j,1);burst(u.x,u.y,22,u.type==='hunter'?'#ff7fd0':'#7fffb0',160);addScore(u.big?200:u.type==='hunter'?500:1000);boom(0.3);break}}
     if(hit)G.shots.splice(i,1)}
   // saucer shots and rocks vs ship
   if(s.alive&&s.inv<=0){for(const r of G.rocks)if(Math.hypot(s.x-r.x,s.y-r.y)<r.size*0.8+10){killShip();break}
@@ -99,7 +110,7 @@ function draw(){ctx.fillStyle='#02040a';ctx.fillRect(0,0,W,H);ctx.save();if(G&&G
   if(!G){ctx.restore();return}
   ctx.lineWidth=2;ctx.lineJoin='round';
   for(const r of G.rocks){ctx.save();ctx.translate(r.x,r.y);ctx.rotate(r.a);ctx.strokeStyle=r.hp>1?'#c9c2b0':'#9aa3b0';ctx.beginPath();r.pts.forEach((p,i)=>i?ctx.lineTo(p[0],p[1]):ctx.moveTo(p[0],p[1]));ctx.closePath();ctx.stroke();ctx.restore()}
-  for(const u of G.saucers){ctx.save();ctx.translate(u.x,u.y);const k=u.big?1:0.65;ctx.strokeStyle='#7fffb0';ctx.beginPath();ctx.moveTo(-24*k,0);ctx.lineTo(-10*k,-8*k);ctx.lineTo(10*k,-8*k);ctx.lineTo(24*k,0);ctx.lineTo(10*k,8*k);ctx.lineTo(-10*k,8*k);ctx.closePath();ctx.moveTo(-24*k,0);ctx.lineTo(24*k,0);ctx.moveTo(-6*k,-8*k);ctx.lineTo(-4*k,-15*k);ctx.lineTo(4*k,-15*k);ctx.lineTo(6*k,-8*k);ctx.stroke();ctx.restore()}
+  for(const u of G.saucers){ctx.save();ctx.translate(u.x,u.y);if(u.type==='hunter'){ctx.rotate(Math.atan2(u.vy,u.vx));ctx.strokeStyle='#ff7fd0';ctx.beginPath();ctx.moveTo(18,0);ctx.lineTo(-12,-12);ctx.lineTo(-6,0);ctx.lineTo(-12,12);ctx.closePath();ctx.moveTo(-6,0);ctx.lineTo(6,0);ctx.stroke();ctx.restore();continue}const k=u.big?1:0.65;ctx.strokeStyle='#7fffb0';ctx.beginPath();ctx.moveTo(-24*k,0);ctx.lineTo(-10*k,-8*k);ctx.lineTo(10*k,-8*k);ctx.lineTo(24*k,0);ctx.lineTo(10*k,8*k);ctx.lineTo(-10*k,8*k);ctx.closePath();ctx.moveTo(-24*k,0);ctx.lineTo(24*k,0);ctx.moveTo(-6*k,-8*k);ctx.lineTo(-4*k,-15*k);ctx.lineTo(4*k,-15*k);ctx.lineTo(6*k,-8*k);ctx.stroke();ctx.restore()}
   const s=G.ship;if(s&&s.alive&&(s.inv<=0||Math.floor(s.inv*10)%2===0)){ctx.save();ctx.translate(s.x,s.y);ctx.rotate(s.a);ctx.strokeStyle='#e8c84a';ctx.beginPath();ctx.moveTo(18,0);ctx.lineTo(-12,-11);ctx.lineTo(-7,0);ctx.lineTo(-12,11);ctx.closePath();ctx.stroke();if(s.thrust&&Math.random()<0.8){ctx.strokeStyle='#ff9a3a';ctx.beginPath();ctx.moveTo(-8,-5);ctx.lineTo(-20-Math.random()*8,0);ctx.lineTo(-8,5);ctx.stroke()}ctx.restore()}
   ctx.fillStyle='#fff8d0';for(const b of G.shots)ctx.fillRect(b.x-2,b.y-2,4,4);ctx.fillStyle='#7fffb0';for(const b of G.sshots)ctx.fillRect(b.x-2,b.y-2,4,4);
   for(const p of G.parts){ctx.globalAlpha=Math.min(1,p.t*2);ctx.fillStyle=p.col;ctx.fillRect(p.x-1.5,p.y-1.5,3,3)}ctx.globalAlpha=1;
@@ -112,7 +123,7 @@ function beep(f,d,type,vol){const a=ac();if(!a)return;const o=a.createOscillator
 function boom(d){const a=ac();if(!a)return;const n=a.sampleRate*d;const buf=a.createBuffer(1,n,a.sampleRate);const ch=buf.getChannelData(0);for(let i=0;i<n;i++)ch[i]=(Math.random()*2-1)*(1-i/n);const src=a.createBufferSource();src.buffer=buf;const g=a.createGain();g.gain.value=0.12;src.connect(g);g.connect(a.destination);src.start()}
 /* ---- screens ---- */
 const best=()=>parseInt(localStorage.getItem('ir_best')||'0');
-function titleScreen(){G=null;$('box').style.display='block';$('box').innerHTML='<h1>IRON ROCKS</h1><p>Spin, thrust and blast the drifting rocks into dust. Big rocks split into smaller, faster ones. Hunter saucers show up to pick you off: the small ones aim well. Hyperspace jumps you somewhere random, at your own risk.</p><p>← → or A D turn · ↑ or W thrust · SPACE fire · H hyperspace · P pause<br>On touch screens use the buttons at the bottom.</p><p style="color:#e8c84a">BEST: '+best()+'</p><div class="btn" id="start">PLAY</div>';$('start').onclick=startGame;$('hBest').textContent='BEST '+best()}
+function titleScreen(){G=null;$('box').style.display='block';$('box').innerHTML='<h1>IRON ROCKS</h1><p>Spin, thrust and blast the drifting rocks into dust. Big rocks split into smaller, faster ones. Alien saucers come for you in growing numbers and every one of them shoots at you: big saucers spray, small ones aim, and the pink hunter darts chase you down with three-shot bursts. Every fourth wave a swarm of hunters arrives. Hyperspace jumps you somewhere random, at your own risk.</p><p>← → or A D turn · ↑ or W thrust · SPACE fire · H hyperspace · P pause<br>On touch screens use the buttons at the bottom.</p><p style="color:#e8c84a">BEST: '+best()+'</p><div class="btn" id="start">PLAY</div>';$('start').onclick=startGame;$('hBest').textContent='BEST '+best()}
 function startGame(){ac();G=newGame();G.ship=makeShip();spawnWave();$('hScore').textContent='0';$('hLives').textContent='3';$('box').style.display='none'}
 function endScreen(){const b=best();if(G.score>b)localStorage.setItem('ir_best',String(G.score));$('box').style.display='block';$('box').innerHTML='<h1 style="font-size:32px">GAME OVER</h1><p>You reached wave '+G.wave+' with <b style="color:#e8c84a">'+G.score+'</b> points.'+(G.score>b?' A new best!':' Best: '+Math.max(b,G.score))+'</p><div class="btn" id="again">PLAY AGAIN</div><div class="btn" id="menu">MENU</div>';$('again').onclick=startGame;$('menu').onclick=titleScreen;$('hBest').textContent='BEST '+Math.max(b,G.score)}
 let paused=false;
