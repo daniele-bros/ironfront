@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="ironcraft-build" content="20261014-171831">
+<meta name="ironcraft-build" content="20261014-234511">
 <meta name="viewport" content="width=device-width,initial-scale=1.0,viewport-fit=cover">
 <title>Ironcraft – Free Voxel Survival Sandbox in Your Browser | Iron Games</title>
 <meta name="description" content="Ironcraft is a free browser-based voxel survival sandbox with building, exploration, private or safety-limited public multiplayer, and optional weather, horror and survival challenges. By Daniele Bros.">
@@ -2983,13 +2983,13 @@ function playerDie(src){const p=player;p.dead=true;p.hp=0;playSound('death');let
   if(t==='fall')msg='Player fell from a high place';else if(t==='pvp')msg='Player was slain by '+(src.name||'another player');else if(t==='mob')msg='Player was slain by a monster';else if(t==='arrow')msg='Player was shot by a Bonewalker';else if(t==='explosion')msg='Player was blown up';else if(t==='lava')msg='Player tried to swim in lava';else if(t==='fire')msg='Player burned to death';else if(t==='drown')msg='Player drowned';else if(t==='starve')msg='Player starved to death';else if(t==='cactus')msg='Player was pricked to death';else if(t==='lightning')msg='Player was struck by lightning';else if(t==='tornado')msg='Player was swept away by a tornado';else if(t==='sonic')msg='Player was obliterated by a sonically-charged shriek';else if(t==='breath')msg='Player was dissolved by dragon breath';
   if(p.riding)p.riding.dismount();
   for(let i=0;i<36;i++)if(p.inv[i]&&enchLevel(p.inv[i],'vanishing_curse'))p.inv[i]=null;for(let i=0;i<4;i++)if(p.armor[i]&&enchLevel(p.armor[i],'vanishing_curse'))p.armor[i]=null;
-  if(pvpOn()){for(let i=0;i<36;i++)p.inv[i]=null;for(let i=0;i<4;i++)p.armor[i]=null;showMessage('You died at X '+floor(p.x)+' Y '+floor(p.y)+' Z '+floor(p.z)+'. On public servers everything you carried is lost.')}
-  else if(!opts.keepInv){for(let i=0;i<36;i++){if(p.inv[i]){spawnItem(p.x,p.y+1,p.z,p.inv[i]);p.inv[i]=null}}for(let i=0;i<4;i++){if(p.armor[i]){spawnItem(p.x,p.y+1,p.z,p.armor[i]);p.armor[i]=null}}
-    spawnXP(p.x,p.y+1,p.z,Math.min(100,p.level*7));showMessage('Your items dropped at X '+floor(p.x)+' Y '+floor(p.y)+' Z '+floor(p.z)+' (they vanish after 5 minutes)')}
+  const dropAll=pvpOn()||!opts.keepInv; // public servers always drop: whoever gets there first can take the loot
+  if(dropAll){if(p.off[0]){spawnItem(p.x,p.y+1,p.z,p.off[0]);p.off[0]=null}for(let i=0;i<36;i++){if(p.inv[i]){spawnItem(p.x,p.y+1,p.z,p.inv[i]);p.inv[i]=null}}for(let i=0;i<4;i++){if(p.armor[i]){spawnItem(p.x,p.y+1,p.z,p.armor[i]);p.armor[i]=null}}
+    spawnXP(p.x,p.y+1,p.z,Math.min(100,p.level*7));showMessage('Your items dropped at X '+floor(p.x)+' Y '+floor(p.y)+' Z '+floor(p.z)+(pvpOn()?' and anyone can pick them up':'')+' (they vanish after 5 minutes)')}
   else showMessage('You died at X '+floor(p.x)+' Y '+floor(p.y)+' Z '+floor(p.z));
   if(game.mods&&game.mods.hardcore){msg+=' \u2014 HARDCORE: this world is gone';$('btnRespawn').style.display='none';$('btnDeathQuit').textContent='Game Over';deleteWorldSave(game.worldId);localStorage.setItem('ic_worlds',JSON.stringify(worldList().filter(w=>w.id!==game.worldId)));game.noSave=true}else{$('btnRespawn').style.display='';$('btnDeathQuit').textContent='Title Screen'}
   $('deathMsg').textContent=msg;$('deathScore').textContent='Score: '+(p.level*7+floor(p.xp));$('deathScreen').classList.add('show');document.exitPointerLock&&document.exitPointerLock();updateHotbar();
-  if(!opts.keepInv){p.level=0;p.xp=0;p.xpFrac=0}saveWorld()}
+  if(dropAll){p.level=0;p.xp=0;p.xpFrac=0}saveWorld()}
 // spear charge: riding fast with a spear in hand runs mobs through
 function spearCharge(dt,h){const p=player;if(p.spearCd>0)p.spearCd-=dt;const st=heldStack();const it=st?ITEMS[st.id]:null;if(!it||it.tool!=='spear')return;
   const hs=sqrt(h.vx*h.vx+h.vz*h.vz);if(hs<4||p.spearCd>0)return;const fx=h.vx/hs,fz=h.vz/hs;
@@ -4469,7 +4469,7 @@ function setupMenus(){
   sl('optRender','renderDist',v=>'Render Distance: '+v+' chunks');sl('optFov','fov',v=>'FOV: '+(v===70?'Normal':v));sl('optSens','sens',v=>'Sensitivity: '+v+'%');sl('optBright','brightness',v=>'Brightness: '+(v===0?'Moody':v===100?'Bright':v+'%'));
   sl('optVol','volume',v=>'Master Volume: '+(v===0?'OFF':v+'%'),setVolume);sl('optMusic','music',v=>'Music: '+(v===0?'OFF':v+'%'),setVolume);
   $('btnSmooth').onclick=()=>{opts.smooth=!opts.smooth;$('btnSmooth').textContent='Smooth Lighting: '+(opts.smooth?'ON':'OFF');if(world)for(const c of world.chunks.values())c.dirty=true};$('btnSmooth').textContent='Smooth Lighting: '+(opts.smooth?'ON':'OFF');
-  $('btnKeepInv').onclick=()=>{opts.keepInv=!opts.keepInv;$('btnKeepInv').textContent='Keep Inventory on Death: '+(opts.keepInv?'ON':'OFF');saveOpts()};$('btnKeepInv').textContent='Keep Inventory on Death: '+(opts.keepInv?'ON':'OFF');
+  $('btnKeepInv').onclick=()=>{opts.keepInv=!opts.keepInv;$('btnKeepInv').textContent='Keep Inventory on Death: '+(opts.keepInv?'ON':'OFF');saveOpts();if(opts.keepInv)showMessage('On public servers your items always drop when you die')};$('btnKeepInv').textContent='Keep Inventory on Death: '+(opts.keepInv?'ON':'OFF');
   const heartsLabel=()=>$('btnHearts').textContent='Health Display: '+(opts.hearts?'Minecraft Hearts':'Bar');$('btnHearts').onclick=()=>{opts.hearts=!opts.hearts;heartsLabel();saveOpts();if(game.state==='playing')updateHUD()};heartsLabel();
   const infoLabel=()=>$('btnInfo').textContent='Show Day & Coordinates: '+(opts.info?'ON':'OFF');$('btnInfo').onclick=()=>{opts.info=!opts.info;infoLabel();saveOpts();updateInfoHud()};infoLabel();
   $('btnClouds').onclick=()=>{opts.clouds=!opts.clouds;$('btnClouds').textContent='Clouds: '+(opts.clouds?'ON':'OFF')};$('btnClouds').textContent='Clouds: '+(opts.clouds?'ON':'OFF');
