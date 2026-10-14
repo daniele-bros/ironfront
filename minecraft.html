@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="ironcraft-build" content="20261014-170956">
+<meta name="ironcraft-build" content="20261014-171831">
 <meta name="viewport" content="width=device-width,initial-scale=1.0,viewport-fit=cover">
 <title>Ironcraft – Free Voxel Survival Sandbox in Your Browser | Iron Games</title>
 <meta name="description" content="Ironcraft is a free browser-based voxel survival sandbox with building, exploration, private or safety-limited public multiplayer, and optional weather, horror and survival challenges. By Daniele Bros.">
@@ -105,9 +105,10 @@ canvas#gl{position:absolute;inset:0;width:100%;height:100%;display:block;image-r
 #cursorItem .icon{left:0;top:0;}
 #tooltip{position:absolute;background:rgba(16,0,16,.94);border:2px solid #4a1a8a;padding:3px 6px;color:#fff;font-size:13px;pointer-events:none;display:none;z-index:100;white-space:nowrap;}
 #tooltip small{display:block;color:#aaa;font-weight:400;}
-.menu{position:absolute;inset:0;display:none;flex-direction:column;align-items:center;justify-content:flex-start;gap:6px;overflow-y:auto;overflow-x:hidden;padding:10px 0;box-sizing:border-box;}
+.menu{position:absolute;inset:0;display:none;flex-direction:column;align-items:center;justify-content:center;gap:6px;overflow-y:auto;overflow-x:hidden;padding:10px 0;box-sizing:border-box;}
+.menu.tall{justify-content:flex-start}
 .menu>*{flex-shrink:0} /* a menu taller than the screen scrolls from its top instead of losing its title above the fold */
-.menu>:first-child{margin-top:auto}.menu>:last-child{margin-bottom:auto} /* auto margins centre a short menu and collapse to zero when it overflows */
+
 .menu.show{display:flex;}
 .dirtbg{background:radial-gradient(circle at 22% 18%,rgba(35,82,93,.45),transparent 34%),radial-gradient(circle at 82% 76%,rgba(147,54,36,.3),transparent 38%),linear-gradient(145deg,#071014,#121b20 58%,#090d10);}
 .dirtbg:before{content:"";position:absolute;inset:0;background-image:linear-gradient(rgba(211,154,51,.07) 1px,transparent 1px),linear-gradient(90deg,rgba(211,154,51,.07) 1px,transparent 1px);background-size:32px 32px;opacity:.5;}
@@ -117,7 +118,8 @@ canvas#gl{position:absolute;inset:0;width:100%;height:100%;display:block;image-r
 .btn:disabled{background:#3a3a3a;color:#a0a0a0;cursor:default;box-shadow:none;}
 .btn.half{width:196px;}
 .btnrow{display:flex;gap:8px;}
-h1.title{font-family:'Arial Black',Impact,sans-serif;font-size:72px;letter-spacing:9px;color:#e2a943;text-shadow:0 5px 0 #4f2f17,0 0 34px rgba(211,154,51,.26);margin-bottom:20px;transform:none;}
+h1.title{position:relative;font-family:'Arial Black',Impact,sans-serif;font-size:72px;letter-spacing:9px;color:#e2a943;text-shadow:0 5px 0 #4f2f17,0 0 34px rgba(211,154,51,.26);margin-bottom:20px;transform:none;}
+h1.title .splash{right:-24px;top:-14px;transform:rotate(-8deg);font-family:system-ui,sans-serif;font-weight:700;letter-spacing:1px;white-space:nowrap;}
 .splash{position:absolute;color:#ffe5aa;background:#8a3025;border:1px solid #e2a943;border-radius:3px;padding:5px 10px;font-size:13px;letter-spacing:1px;transform:none;animation:none;pointer-events:none;text-shadow:none;}
 @keyframes sp{from{transform:rotate(-18deg) scale(1)}to{transform:rotate(-18deg) scale(1.08)}}
 @keyframes heartshiver{from{transform:translateY(-1px)}to{transform:translateY(1px)}}
@@ -336,8 +338,7 @@ label.lb{font-size:13px;color:#a0a0a0;align-self:flex-start;margin-left:calc(50%
 <div id="titleMenu" class="menu dirtbg show">
   <div id="updateBanner" style="display:none;background:#2f6b2f;border:2px solid #8f8;color:#fff;padding:8px 12px;margin-bottom:8px;font-size:13px;cursor:pointer;max-width:440px">A new Ironcraft update is ready. Tap here to reload and get the latest recipes, mobs and fixes.</div>
   <a id="icHome" href="/" title="Back to Iron Games" style="position:absolute;top:12px;left:12px;z-index:2;background:#172128;color:#f4e6c4;font-weight:700;font-size:14px;padding:6px 14px;border:1px solid #d39a33;border-radius:4px;text-decoration:none;">&#9664; Iron Games</a>
-  <h1 class="title">IRONCRAFT</h1>
-  <div class="splash" id="splash" style="margin:-70px 0 0 330px">BUILD YOUR OWN LEGEND</div>
+  <h1 class="title">IRONCRAFT<span class="splash" id="splash">BUILD YOUR OWN LEGEND</span></h1>
   <button class="btn" id="btnSingle">Solo Worlds</button>
   <button class="btn" id="btnMulti">Play Together</button>
   <button class="btn" id="btnOptionsT">Game Settings</button>
@@ -4428,7 +4429,10 @@ function quitToTitle(){if(player.riding)player.riding.dismount();if(MP.active)mp
 // the browser may keep an old copy of the game for a while; peek at the live page's build stamp and offer a reload when it changed
 const GAME_BUILD=(document.querySelector('meta[name="ironcraft-build"]')||{}).content||'';
 async function checkForUpdate(){if(!GAME_BUILD||GAME_BUILD==='dev'||location.protocol==='file:')return;try{const r=await fetch(location.pathname,{cache:'no-store',headers:{Range:'bytes=0-4095'}});const t=await r.text();const m=/ironcraft-build" content="([^"]+)"/.exec(t);if(m&&m[1]!==GAME_BUILD&&!game.updateReady){game.updateReady=m[1];$('updateBanner').style.display='block';if(game.state==='playing')showMessage('A new Ironcraft update is ready: save, then reload the page to get it')}}catch(e){}}
-function showMenu(id){for(const m of document.querySelectorAll('.menu'))m.classList.remove('show');if(id)$(id).classList.add('show')}
+function showMenu(id){for(const m of document.querySelectorAll('.menu'))m.classList.remove('show');if(id){$(id).classList.add('show');fitMenu()}}
+// a menu taller than the screen aligns to the top and scrolls; a short one stays centred
+function fitMenu(){const m=document.querySelector('.menu.show');if(!m)return;m.classList.remove('tall');if(m.scrollHeight>m.clientHeight+1)m.classList.add('tall')}
+addEventListener('resize',fitMenu);
 function hideMenus(){showMenu(null)}
 let selWorld=null;
 function refreshWorldList(){const l=$('worldList');l.innerHTML='';const list=worldList().sort((a,b)=>b.played-a.played);for(const w of list){const el=document.createElement('div');el.className='witem'+(selWorld===w.id?' sel':'');el.innerHTML=w.name+'<small>'+new Date(w.played).toLocaleString()+' &middot; '+(w.mode==='creative'?'Creative':'Survival')+' &middot; '+['Peaceful','Easy','Normal','Hard'][w.diff]+(()=>{const m=modsOf(w);const on=Object.keys(m).filter(k=>m[k]);return (w.room?' &middot; Public':'')+(on.length?' &middot; '+on.map(k=>MODN[k]).join(', '):'')})()+'</small>';el.addEventListener('click',()=>{selWorld=w.id;refreshWorldList()});el.addEventListener('dblclick',()=>{selWorld=w.id;initAudio();openWorld(w)});l.appendChild(el)}
