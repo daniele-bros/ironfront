@@ -35,6 +35,16 @@ dependencies — open the file in a browser to play.
 - `ironpaws.html` — **Iron Paws**, cozy pet shelter (needs bars, bubble/ball minigames, tricks, pet shows, decor); save `ip_save`.
 - `ironbakery.html` — **Iron Bakery**, cake shop time management (orders, ovens, icing/topping, upgrades by day); save `ib_save`.
 - `ironstyle.html` — **Iron Style**, fashion studio dress-up (parts + colours, backdrops, runway challenge scoring, PNG download); save `is_style`.
+- `irongarden.html` — **Iron Garden**, cozy garden (plots, seeds by level, water/plant/harvest/dig tools, snails, weather, day cycle, shop); save `ig_save`.
+- `ironaquarium.html` — **Iron Aquarium**, fish tank (FISH/DECOR tables, tap-to-feed flakes, algae overlay + wipe tool, happiness → coins); save `ia_save`.
+- `ironbouquet.html` — **Iron Bouquet**, flower shop (FLOWERS with hue/mood/lvl, WRAPS/RIBBONS, random orders, `score()` → stars/pay/xp); save `ibq_save`.
+- `ironroom.html` — **Iron Room**, room designer (WALLS/FLOORS, ITEMS incl. wall-only items, drag/select/flip/recolour/front/remove, saved rooms, PNG); save `iroom`.
+- `ironjigsaw.html` — **Iron Jigsaw**, jigsaw (6 `paintScene` scenes, sizes 3-6, drag-and-snap, peek, timer); best times `ij_best`.
+- `ironmemory.html` — **Iron Memory**, memory pairs (DOM cards, emoji themes, 4 sizes, CSS flip, moves/time); best `im_best`.
+- `ironcolors.html` — **Iron Colors**, colour-by-number (16x16 PICS + blank, PAL palette, hints, fill-all, progress, PNG); save `ic_colors`.
+- `irontunes.html` — **Iron Tunes**, music grid (16 steps x 9 rows, INST bells/harp/organ/synth, SONGS presets, tempo, random); save `it_tunes`.
+- `irongems.html` — **Iron Gems**, match-3 (8x8, `matches()`, `findMove()`, async `trySwap` cascades/chains, level targets); best `igm_best`.
+- `ironmeadow.html` — **Iron Meadow**, butterfly catching (12 SPECIES by rarity/time, TIMES cycle, net swing radius, scare radius, book, shop); save `imd_save`.
 
 ## Verifying changes
 

@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0,viewport-fit=cover,user-scalable=no">
+<title>Iron Memory – Free Memory Match Card Game in Your Browser | Iron Games</title>
+<meta name="description" content="Iron Memory is a free browser memory matching game: flip cards to find pairs of animals, fruit, flowers, sweets, sea creatures or space things, from an easy 3x4 board to a 6x6 challenge, with move counts, timers and best scores. No download.">
+<meta name="robots" content="index,follow,max-snippet:-1,max-image-preview:large">
+<link rel="canonical" href="https://irongames.win/ironmemory.html">
+<link rel="icon" href="favicon.svg" type="image/svg+xml"><link rel="manifest" href="site.webmanifest">
+<meta property="og:type" content="website"><meta property="og:site_name" content="Iron Games"><meta property="og:title" content="Iron Memory – Memory Match | Iron Games"><meta property="og:description" content="Flip cards and find the pairs: six themes, four board sizes, best scores saved. Free in your browser, no download."><meta property="og:url" content="https://irongames.win/ironmemory.html"><meta name="twitter:card" content="summary">
+<script type="application/ld+json">{"@context":"https://schema.org","@graph":[{"@type":"VideoGame","name":"Iron Memory","url":"https://irongames.win/ironmemory.html","genre":["Puzzle","Casual","Family","Educational"],"gamePlatform":"Web browser","applicationCategory":"Game","operatingSystem":"Any","isAccessibleForFree":true,"offers":{"@type":"Offer","price":"0","priceCurrency":"USD"},"author":{"@type":"Organization","name":"Daniele Bros","url":"https://irongames.win/"},"description":"A memory matching card game with six picture themes and boards from 12 to 36 cards, counting moves and time and saving best scores."},{"@type":"BreadcrumbList","itemListElement":[{"@type":"ListItem","position":1,"name":"Iron Games","item":"https://irongames.win/"},{"@type":"ListItem","position":2,"name":"Iron Memory","item":"https://irongames.win/ironmemory.html"}]}]}</script>
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link href="https://fonts.googleapis.com/css2?family=Oswald:wght@500;700&family=Share+Tech+Mono&display=swap" rel="stylesheet">
+<style>
+:root{--gold:#e8c84a;--cream:#fffaf0;--dim:#a898c0;--panel:rgba(34,26,52,.94);--border:#6a5a8a;--accent:#c8a0ff;}
+*{box-sizing:border-box;margin:0;padding:0;}html,body{width:100%;height:100%;overflow:hidden;background:#1e1830;}
+body{font-family:'Share Tech Mono','Courier New',monospace;color:var(--cream);user-select:none;-webkit-user-select:none;}
+#wrap{position:absolute;inset:0;display:grid;grid-template-columns:1fr 280px;}#main{position:relative;overflow:hidden;display:flex;align-items:center;justify-content:center;background:radial-gradient(circle at 50% 30%,#3a2a5a,#1e1830);}
+#board{display:grid;gap:8px;padding:16px;perspective:900px;}
+.card{position:relative;width:var(--cs);height:var(--cs);cursor:pointer;transform-style:preserve-3d;transition:transform .35s;}
+.card.flip{transform:rotateY(180deg);}
+.card .f{position:absolute;inset:0;border-radius:10px;backface-visibility:hidden;display:flex;align-items:center;justify-content:center;font-size:calc(var(--cs) * .52);border:2px solid rgba(255,255,255,.15);}
+.card .front{background:linear-gradient(135deg,#6a4aa8,#9a6ad8);}
+.card .front::after{content:'✦';color:rgba(255,255,255,.35);font-size:calc(var(--cs) * .4);}
+.card .backf{background:#fff6ff;transform:rotateY(180deg);color:#333;}
+.card.done .backf{background:#d8ffe0;border-color:#8ff0a0;}
+#side{background:var(--panel);border-left:1px solid var(--border);display:flex;flex-direction:column;padding:12px;gap:7px;overflow-y:auto;}
+.back{position:absolute;top:10px;left:10px;z-index:30;background:rgba(34,26,52,.85);color:var(--dim);font-family:'Oswald',sans-serif;font-size:12px;letter-spacing:3px;padding:7px 12px;border:1px solid var(--border);text-decoration:none;border-radius:2px;}.back:hover{color:var(--gold);border-color:var(--gold);}
+h2.t{font-family:'Oswald',sans-serif;font-size:22px;letter-spacing:6px;color:var(--accent);}
+.stat{display:flex;justify-content:space-between;font-size:12px;letter-spacing:1px;padding:2px 0;border-bottom:1px dashed #4a3a6a;}.stat b{color:var(--gold);}
+.btn{display:block;width:100%;background:#3e2e5e;border:1px solid var(--border);color:var(--cream);font-family:'Oswald',sans-serif;font-size:12px;letter-spacing:2px;padding:7px 6px;cursor:pointer;text-align:center;border-radius:6px;}.btn:hover{border-color:var(--accent);color:var(--accent);}.btn.on{background:#7a4ab8;border-color:var(--accent);color:#fff;}
+.row{display:flex;gap:5px;flex-wrap:wrap;}.row .btn{flex:1;min-width:58px;}
+.lbl{font-size:10px;letter-spacing:2px;color:var(--dim);margin-top:4px;}
+#panel{flex:1;min-height:70px;overflow-y:auto;font-size:12px;line-height:1.5;border:1px solid var(--border);padding:8px;background:rgba(0,0,0,.3);border-radius:6px;}
+#panel h4{font-family:'Oswald',sans-serif;letter-spacing:3px;color:var(--accent);font-size:13px;margin:4px 0 6px;}
+#overlay{position:absolute;inset:0;display:none;align-items:center;justify-content:center;background:rgba(0,0,0,.55);z-index:20;padding:16px;}#overlay.on{display:flex;}
+.modal{background:var(--panel);border:2px solid var(--accent);border-radius:10px;padding:18px 20px;max-width:520px;width:100%;max-height:100%;overflow:auto;}.modal h3{font-family:'Oswald',sans-serif;letter-spacing:5px;color:var(--accent);font-size:20px;margin-bottom:10px;}.modal p{font-size:13px;line-height:1.6;margin-bottom:10px;}
+.title h1{font-family:'Oswald',sans-serif;font-size:44px;letter-spacing:12px;color:var(--accent);text-align:center;text-shadow:0 0 24px rgba(200,160,255,.35);}.title .tag{font-size:12px;letter-spacing:4px;color:var(--dim);margin:6px 0 16px;text-align:center;}
+@media (max-width:760px){#wrap{grid-template-columns:1fr;grid-template-rows:62% 38%;}#side{border-left:none;border-top:1px solid var(--border);}.title h1{font-size:30px;letter-spacing:6px;}}
+</style></head>
+<body>
+<a class="back" href="/" title="Back to Iron Games">◀ IRON GAMES</a>
+<div id="wrap">
+  <div id="main"><div id="board"></div><div id="overlay"></div></div>
+  <div id="side">
+    <h2 class="t">IRON MEMORY</h2>
+    <div class="stat"><span id="sTheme">—</span><b id="sTime">0:00</b></div>
+    <div class="stat"><span>Moves · pairs</span><b id="sMoves">0 · 0/0</b></div>
+    <div class="lbl">THEME</div><div class="row" id="themes"></div>
+    <div class="lbl">BOARD</div><div class="row" id="sizes"></div>
+    <div class="row"><button class="btn on" id="bNew">NEW GAME</button></div>
+    <div id="panel"></div>
+  </div>
+</div>
+<script>
+'use strict';
+const $=id=>document.getElementById(id);
+const THEMES={animals:['🐱','🐶','🐰','🐹','🦊','🐼','🐨','🦁','🐸','🐧','🦋','🐢','🦄','🐙','🐝','🦉','🐬','🦜'],fruit:['🍎','🍌','🍇','🍓','🍒','🍑','🍍','🥝','🍉','🍋','🥭','🫐','🍐','🍈','🥥','🍊','🍅','🥑'],flowers:['🌸','🌹','🌻','🌷','🌼','💐','🌺','🥀','🍀','🌿','🌵','🌴','🍄','🌾','🌱','🪻','🪷','🌳'],sweets:['🍰','🧁','🍩','🍪','🍫','🍬','🍭','🍦','🍨','🍧','🥧','🍮','🎂','🍡','🍯','🧃','🍿','🥨'],sea:['🐠','🐟','🐡','🦈','🐳','🐋','🐬','🦀','🦞','🦐','🦑','🐚','⭐','🪸','🦭','🐢','🌊','⛵'],space:['🚀','🛸','🌍','🌙','⭐','☄️','🪐','🌞','👽','🤖','🛰️','🔭','🌌','🌠','🧑‍🚀','🌑','💫','🛶']};
+const SIZES=[[3,4],[4,4],[5,4],[6,6]];let theme='animals',size=0,cards=[],open=[],lock=false,moves=0,pairs=0,start=0,timer=null,best={};
+try{best=JSON.parse(localStorage.getItem('im_best')||'{}')}catch(e){}
+function newGame(){const [cols,rows]=SIZES[size];const n=cols*rows/2;const icons=THEMES[theme].slice(0,n);const deck=icons.concat(icons).sort(()=>Math.random()-0.5);cards=deck;open=[];lock=false;moves=0;pairs=0;start=performance.now();
+  const b=$('board');const main=$('main').getBoundingClientRect();const cs=Math.floor(Math.min((main.width-40-cols*8)/cols,(main.height-40-rows*8)/rows,110));b.style.setProperty('--cs',cs+'px');b.style.gridTemplateColumns='repeat('+cols+',var(--cs))';
+  b.innerHTML=deck.map((ic,i)=>'<div class="card" data-i="'+i+'"><div class="f front"></div><div class="f backf">'+ic+'</div></div>').join('');for(const c of b.children)c.onclick=()=>flip(+c.dataset.i);refresh();if(timer)clearInterval(timer);timer=setInterval(()=>{if(pairs<cards.length/2)$('sTime').textContent=fmt((performance.now()-start)/1000)},500)}
+function flip(i){const el=$('board').children[i];if(lock||el.classList.contains('flip'))return;ac();beep(500+i*5,0.05);el.classList.add('flip');open.push(i);if(open.length===2){moves++;lock=true;const [a,b]=open;if(cards[a]===cards[b]){setTimeout(()=>{$('board').children[a].classList.add('done');$('board').children[b].classList.add('done');open=[];lock=false;pairs++;beep(900,0.12,'triangle');refresh();if(pairs===cards.length/2)win()},350)}else setTimeout(()=>{$('board').children[a].classList.remove('flip');$('board').children[b].classList.remove('flip');open=[];lock=false},800)}refresh()}
+function win(){const t=(performance.now()-start)/1000;const key=theme+size;const prev=best[key];const better=!prev||moves<prev.moves||(moves===prev.moves&&t<prev.t);if(better){best[key]={moves,t};try{localStorage.setItem('im_best',JSON.stringify(best))}catch(e){}}
+  $('overlay').innerHTML='<div class="modal"><h3>ALL PAIRS FOUND</h3><p>'+moves+' moves in '+fmt(t)+'.'+(better?' A new best for this board!':' Best: '+prev.moves+' moves in '+fmt(prev.t)+'.')+'</p><div class="row"><button class="btn on" id="again">PLAY AGAIN</button><button class="btn" id="harder">BIGGER BOARD</button></div></div>';$('overlay').classList.add('on');$('again').onclick=()=>{$('overlay').classList.remove('on');newGame()};$('harder').onclick=()=>{$('overlay').classList.remove('on');size=Math.min(SIZES.length-1,size+1);newGame()}}
+function fmt(s){return Math.floor(s/60)+':'+String(Math.floor(s%60)).padStart(2,'0')}
+function refresh(){$('sTheme').textContent=theme.charAt(0).toUpperCase()+theme.slice(1)+' · '+SIZES[size][0]+'×'+SIZES[size][1];$('sMoves').textContent=moves+' · '+pairs+'/'+(cards.length/2);$('themes').innerHTML=Object.keys(THEMES).map(k=>'<button class="btn'+(theme===k?' on':'')+'" data-t="'+k+'">'+THEMES[k][0]+' '+k.toUpperCase()+'</button>').join('');for(const b of $('themes').children)b.onclick=()=>{theme=b.dataset.t;newGame()};$('sizes').innerHTML=SIZES.map((s,i)=>'<button class="btn'+(size===i?' on':'')+'" data-s="'+i+'">'+s[0]+'×'+s[1]+'</button>').join('');for(const b of $('sizes').children)b.onclick=()=>{size=+b.dataset.s;newGame()};
+  const bk=best[theme+size];$('panel').innerHTML='<h4>HOW TO PLAY</h4><p>Tap two cards to turn them over. If the pictures match they stay face up; if not they turn back, so remember where they were. Find every pair in as few moves as you can.</p><p>Best for this board: <b>'+(bk?bk.moves+' moves · '+fmt(bk.t):'none yet')+'</b></p>'}
+$('bNew').onclick=newGame;addEventListener('resize',()=>{if(cards.length){const [cols,rows]=SIZES[size];const main=$('main').getBoundingClientRect();const cs=Math.floor(Math.min((main.width-40-cols*8)/cols,(main.height-40-rows*8)/rows,110));$('board').style.setProperty('--cs',cs+'px')}});
+let AC=null;function ac(){if(!AC){try{AC=new (window.AudioContext||window.webkitAudioContext)()}catch(e){}}if(AC&&AC.state==='suspended')AC.resume();return AC}
+function beep(f,d,type){const a=ac();if(!a)return;const o=a.createOscillator(),g=a.createGain();o.type=type||'sine';o.frequency.value=f;g.gain.value=0.05;g.gain.exponentialRampToValueAtTime(0.0001,a.currentTime+d);o.connect(g);g.connect(a.destination);o.start();o.stop(a.currentTime+d)}
+$('overlay').innerHTML='<div class="modal title"><h1>IRON MEMORY</h1><div class="tag">FIND THE PAIRS</div><p>Turn over two cards at a time and find the matching pictures. Six themes to choose from, boards from twelve cards up to thirty-six, and your best moves and times are saved.</p><button class="btn on" id="go">PLAY</button></div>';$('overlay').classList.add('on');$('go').onclick=()=>{$('overlay').classList.remove('on');newGame()};
+</script></body></html>
