@@ -32,6 +32,9 @@ dependencies — open the file in a browser to play.
 - `ironrocks.html` — **Iron Rocks**, Asteroids style vector shooter (saucers, hyperspace, touch buttons).
 - `ironserpent.html` — **Iron Serpent**, snake with golden apples, mushrooms and iron walls (solid or wrap edges).
 - `ironhammer.html` — **Iron Hammer**, mine (side-view digging) → forge (smelt + hammer timing minigame) → army (side-scrolling medieval battles); localStorage save `ih_save`.
+- `ironpaws.html` — **Iron Paws**, cozy pet shelter (needs bars, bubble/ball minigames, tricks, pet shows, decor); save `ip_save`.
+- `ironbakery.html` — **Iron Bakery**, cake shop time management (orders, ovens, icing/topping, upgrades by day); save `ib_save`.
+- `ironstyle.html` — **Iron Style**, fashion studio dress-up (parts + colours, backdrops, runway challenge scoring, PNG download); save `is_style`.
 
 ## Verifying changes
 
