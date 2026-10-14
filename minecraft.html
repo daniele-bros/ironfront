@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="ironcraft-build" content="20261014-153822">
+<meta name="ironcraft-build" content="20261014-154129">
 <meta name="viewport" content="width=device-width,initial-scale=1.0,viewport-fit=cover">
 <title>Ironcraft – Free Voxel Survival Sandbox in Your Browser | Iron Games</title>
 <meta name="description" content="Ironcraft is a free browser-based voxel survival sandbox with building, exploration, private or safety-limited public multiplayer, and optional weather, horror and survival challenges. By Daniele Bros.">
@@ -408,6 +408,8 @@ label.lb{font-size:13px;color:#a0a0a0;align-self:flex-start;margin-left:calc(50%
   <div class="hint" style="color:#aaa;width:440px;margin:0 0 4px">Falls hurt for real. A fall that costs three hearts knocks you out and a whole game day passes while you lie there, in five real seconds; six hearts means two days pass in ten seconds; a fall that pops your Totem of Undying costs four days in twenty seconds. The screen goes dark, the sun and moon race overhead, you cannot move or fight, and whatever is nearby can find you. Popping a totem any other way leaves you out for fifteen seconds with no lost days.</div>
   <button class="btn modbtn" data-mod="uncrafting">Uncrafting: OFF</button>
   <div class="hint" style="color:#aaa;width:440px;margin:0 0 4px">Adds the Uncrafting Table (crafting table + book). Put any crafted item in it and get its recipe ingredients back. Worn tools give back fewer materials and enchantments come off as an enchanted book.</div>
+  <button class="btn modbtn" data-mod="leafdoors">Leaf Doors: OFF</button>
+  <div class="hint" style="color:#aaa;width:440px;margin:0 0 4px">Adds the Leaf Door: six leaves of any kind make three. Opens and closes like a wooden door, rustles instead of creaks, and hides a doorway in a hedge or tree house. Leaves burn, so keep it away from fire.</div>
   <button class="btn modbtn" data-mod="hearts">Hearts: OFF</button>
   <div class="hint" style="color:#aaa;width:440px;margin:0 0 4px">Your health shows as a row of Minecraft-style hearts with every kind the game has: red hearts and half hearts, hardcore hearts with eyes, green poisoned hearts, black withered hearts, blue frozen hearts, gold absorption hearts from golden apples, a flash when you take damage, a shiver when you are nearly dead, and your horse's hearts while you ride.</div>
   <div class="btnrow" style="margin-top:12px"><button class="btn half" id="btnFunDone">Done</button><button class="btn half" id="btnFunClear">Clear All</button></div>
@@ -643,6 +645,8 @@ defTex('farmland_dry',p=>{dirt(p);p.tint(200,200,200);for(let y=1;y<16;y+=4)p.re
 defTex('farmland_wet',p=>{dirt(p);p.tint(120,110,110);for(let y=1;y<16;y+=4)p.rect(0,y,16,1,50,35,25)});
 defTex('ladder',p=>{p.fill(0,0,0,0);p.rect(2,0,2,16,150,120,70);p.rect(12,0,2,16,150,120,70);for(let y=1;y<16;y+=4)p.rect(2,y,12,2,170,140,85)});
 defTex('door_top',p=>{planks(p,[150,120,70]);p.rect(2,2,12,12,120,95,55);p.rect(3,3,4,4,170,210,240);p.rect(9,3,4,4,170,210,240);p.rect(3,9,10,4,150,120,70)});
+defTex('leaf_door_top',p=>{leaves(p,[58,118,32]);for(let i=0;i<16;i++){p.px(0,i,30,60,20);p.px(15,i,30,60,20);p.px(i,0,30,60,20);p.px(i,15,30,60,20)}p.rect(3,3,4,4,150,210,110);p.rect(9,3,4,4,150,210,110);p.rect(2,9,12,1,30,60,20)});
+defTex('leaf_door_bottom',p=>{leaves(p,[52,108,28]);for(let i=0;i<16;i++){p.px(0,i,30,60,20);p.px(15,i,30,60,20);p.px(i,15,30,60,20)}p.rect(2,2,12,1,30,60,20);p.rect(2,8,12,1,30,60,20);p.rect(12,4,2,2,90,70,40)});
 defTex('door_bottom',p=>{planks(p,[150,120,70]);p.rect(2,1,12,13,120,95,55);p.rect(3,2,10,5,150,120,70);p.rect(3,8,10,5,150,120,70);p.rect(12,4,2,2,60,60,60)});
 defTex('chest_top',p=>{planks(p,[150,110,60]);p.rect(1,1,14,14,160,120,65);p.rect(7,6,2,4,60,60,60)});
 defTex('chest_front',p=>{planks(p,[150,110,60]);p.rect(1,1,14,14,160,120,65);p.rect(0,7,16,1,100,75,40);p.rect(6,5,4,5,80,80,80);p.rect(7,6,2,3,60,60,60)});
@@ -985,6 +989,7 @@ defBlock(138,'brewing_stand',{label:'Brewing Stand',tex:{side:'brew_side',top:'b
 defBlock(139,'nether_wart',{label:'Nether Wart',tex:'wart0',model:'crop',solid:false,opaque:false,transparent:true,hard:0,sound:'grass',crop:true,stages:4,wart:true,texFn:(m)=>TEX['wart'+Math.min(3,m&3)],drop:(r,t,m)=>[[477,(m&3)>=3?2+floor(r()*3):1]]});
 defBlock(140,'blackstone',{tex:'blackstone',hard:1.5,tool:'pickaxe',needsTool:true,resist:6,sound:'stone'});
 defBlock(141,'polished_blackstone_bricks',{label:'Polished Blackstone Bricks',tex:'blackstone_bricks',hard:1.5,tool:'pickaxe',needsTool:true,resist:6,sound:'stone'});
+defBlock(145,'leaf_door',{label:'Leaf Door',tex:{side:'leaf_door_bottom',top:'leaf_door_top'},model:'door',solid:true,hard:0.4,sound:'grass',transparent:true,door:true,leaves:true,stack:64,iconPal:['door',{p:[30,60,20],d:[58,118,32],w:[150,210,110],k:[90,70,40]}]});
 defBlock(144,'hay_bale',{label:'Hay Bale',tex:{side:'hay_side',top:'hay_top'},hard:0.5,sound:'grass',fuel:5});
 defBlock(143,'uncrafting_table',{label:'Uncrafting Table',tex:{side:'uncraft_side',top:'uncraft_top',bottom:'oak_planks'},hard:2.5,tool:'axe',sound:'wood',fuel:15,gui:'uncraft'});
 defBlock(142,'gilded_blackstone',{label:'Gilded Blackstone',tex:'gilded_blackstone',hard:1.5,tool:'pickaxe',needsTool:true,resist:6,sound:'stone',drop:r=>r()<0.1?[[262,2+floor(r()*4)]]:[[142,1]]});
@@ -1117,7 +1122,7 @@ tid=491; // Sift gear: crafted from Sift crystals; blades burn what they hit
 for(const tt of ['sword','pickaxe','axe','shovel','hoe','spear']){const m='sift';defItem(tid++,'sift_'+tt,{label:'Sift '+(tt==='sword'?'Blade':tt==='spear'?'Lance':label(tt)),icon:tt,mat:m,stack:1,tool:tt,tier:MAT[m].tier,speed:tt==='spear'?1:MAT[m].speed,dur:MAT[m].dur,dmg:TOOL_DMG[tt][m],atkSpd:TOOL_SPD[tt][m],fuel:0,siftFire:tt==='sword'||tt==='spear'||tt==='axe'})}
 ['helmet','chestplate','leggings','boots'].forEach((slot,i)=>{defItem(tid++,'sift_'+slot,{label:'Sift '+(slot==='chestplate'?'Chestplate':label(slot)),icon:slot,mat:'sift',stack:1,armor:i,points:ARMOR.sift[slot],dur:ARMOR.sift.dur[i]})});
 // Planks and everything built from them (fences, stairs, slabs, doors, ladders, tables, chests, beds) do not catch fire, so a wooden house is safe from lightning and lava splash. Logs, leaves, wool, plants, bookshelves and TNT still burn.
-const FLAMMABLE={15:5,44:5,46:5,16:60,45:60,47:60,20:30,75:30,76:30,77:30,23:100,21:100,22:100,63:100,29:30,28:15,6:60,48:60,49:60};
+const FLAMMABLE={15:5,44:5,46:5,16:60,45:60,47:60,145:60,20:30,75:30,76:30,77:30,23:100,21:100,22:100,63:100,29:30,28:15,6:60,48:60,49:60};
 const toolSpeedFor=(item)=>item&&item.speed?item.speed:1;
 function canHarvest(def,item){ if(def.hard<0)return false; if(!def.needsTool)return true; if(!item||!item.tool||item.tool!==def.tool)return false; return item.tier>=def.tier }
 function breakDamagePerTick(def,item,onGround,inWater){ // Minecraft formula: fraction of block broken per tick
@@ -1260,7 +1265,7 @@ function buildIcons(){
       if(m==='cube'||m==='chest'||m==='cactus'||m==='farmland'||m==='liquid'||m==='table'||m==='anvil'||m==='egg'||m==='endportal'||m==='skull'||m==='rod'){drawIsoCube(ctx,def.faces[2],def.faces[5],def.front!==undefined?def.front:def.faces[0])}
       else if(m==='slab'){ctx.save();ctx.setTransform(14/16,-7/16,14/16,7/16,2,16);ctx.drawImage(tileCanvas(def.faces[2]),0,0);ctx.setTransform(14/16,7/16,0,7.5/16,2,16);ctx.drawImage(shadedTile(def.faces[0],0.72),0,0);ctx.setTransform(14/16,-7/16,0,7.5/16,16,23);ctx.drawImage(shadedTile(def.faces[0],0.55),0,0);ctx.restore()}
       else if(m==='stairs'||m==='fence'||m==='snow'){drawIsoCube(ctx,def.faces[2],def.faces[5],def.faces[0]);if(m==='stairs'){ctx.fillStyle='rgba(0,0,0,.35)';ctx.beginPath();ctx.moveTo(16,2);ctx.lineTo(30,9);ctx.lineTo(23,12.5);ctx.lineTo(9,5.5);ctx.fill()}}
-      else if(m==='door'){flat=ICONDEF.door}
+      else if(m==='door'){flat=def.iconPal||ICONDEF.door}
       else if(m==='bed'){flat=ICONDEF.bed}
       else {flat=def.faces[0]} // cross / torch / ladder / crop: flat sprite
     } else {
@@ -1564,7 +1569,7 @@ class World{
     if(id===81){if(this.getBlock(x,y-1,z)===0&&!FACE_DIR.some(d=>FLAMMABLE[this.getBlock(x+d[0],y+d[1],z+d[2])]))this.setBlock(x,y,z,0,0,{silent:true});return}
     if(id===32){const m=this.getMeta(x,y,z);let sup;if(m===0)sup=this.getBlock(x,y-1,z);else{const f=FACING_TO_FACE[(m-1)];const dd=FACE_DIR[f];sup=this.getBlock(x-dd[0],y,z-dd[2])}if(!BLOCKS[sup].opaque&&!(m===0&&(BLOCKS[sup].model==='fence'||BLOCKS[sup].model==='slab'))){breakBlock(x,y,z,null,true)}return}
     if(id===38){const f=FACING_TO_FACE[this.getMeta(x,y,z)&3];const dd=FACE_DIR[f];if(!BLOCKS[this.getBlock(x-dd[0],y,z-dd[2])].opaque)breakBlock(x,y,z,null,true);return}
-    if(id===54){const m=this.getMeta(x,y,z);if(m&8){if(this.getBlock(x,y-1,z)!==54)this.setBlock(x,y,z,0,0,{silent:true})}else{if(!BLOCKS[below].solid){breakBlock(x,y,z,null,true)}else if(this.getBlock(x,y+1,z)!==54)this.setBlock(x,y,z,0,0,{silent:true})}return}
+    if(BLOCKS[id].door){const m=this.getMeta(x,y,z);if(m&8){if(this.getBlock(x,y-1,z)!==id)this.setBlock(x,y,z,0,0,{silent:true})}else{if(!BLOCKS[below].solid){breakBlock(x,y,z,null,true)}else if(this.getBlock(x,y+1,z)!==id)this.setBlock(x,y,z,0,0,{silent:true})}return}
     if(id===62){const m=this.getMeta(x,y,z);const f=FACING_TO_FACE[m&3];const dd=FACE_DIR[f];const ox=(m&4)?x-dd[0]:x+dd[0],oz=(m&4)?z-dd[2]:z+dd[2];if(this.getBlock(ox,y,oz)!==62){if(m&4)breakBlock(x,y,z,null,true);else this.setBlock(x,y,z,0,0,{silent:true})}return}
   }
   scheduleTick(x,y,z,delay){const k=x+','+y+','+z;if(!this.tickQueue.has(k))this.tickQueue.set(k,game.tick+delay)}
@@ -2895,7 +2900,7 @@ function useItem(){
   if(t&&t.block&&!p.sneaking){const id=t.id;const d=BLOCKS[id];
     if(id===112){openVault(t.bx,t.by,t.bz);p.swing=0;return}if(id===113){showMessage('This vault has already been emptied');return}
     if(d.gui){openGui(d.gui,t.bx,t.by,t.bz);return}
-    if(id===54){const m=world.getMeta(t.bx,t.by,t.bz);const open=!(m&4);const y0=(m&8)?t.by-1:t.by;const mb=world.getMeta(t.bx,y0,t.bz);world.setMeta(t.bx,y0,t.bz,open?mb|4:mb&~4);world.setMeta(t.bx,y0+1,t.bz,open?(mb|4|8):(mb&~4)|8);playSoundAt('door',t.bx,t.by,t.bz);return}
+    if(BLOCKS[id]&&BLOCKS[id].door){const m=world.getMeta(t.bx,t.by,t.bz);const open=!(m&4);const y0=(m&8)?t.by-1:t.by;const mb=world.getMeta(t.bx,y0,t.bz);world.setMeta(t.bx,y0,t.bz,open?mb|4:mb&~4);world.setMeta(t.bx,y0+1,t.bz,open?(mb|4|8):(mb&~4)|8);playSoundAt(BLOCKS[id].leaves?'grass':'door',t.bx,t.by,t.bz);return}
     if(id===62){trySleep(t.bx,t.by,t.bz);return}
     if(id===100&&hd&&hd.id===392&&!(world.getMeta(t.bx,t.by,t.bz)&4)){world.setMeta(t.bx,t.by,t.bz,world.getMeta(t.bx,t.by,t.bz)|4);consumeHeld();playSoundAt('click',t.bx,t.by,t.bz);p.swing=0;if(tryActivateEndPortal(t.bx,t.by,t.bz)){showMessage('The End portal opens!');playSound('portal')}return}
     if(hd&&hd.id===490){ // a Sift crystal lights a Sift stone frame into a portal to the Sift
@@ -2948,7 +2953,7 @@ function placeHeldBlock(hd,st,t){
     case 'torch':{if(face===2||(tdef.replaceable&&BLOCKS[below].opaque)){const s=BLOCKS[world.getBlock(px,py-1,pz)];if(!(s.opaque||s.model==='fence'||s.model==='slab'))return;meta=0}else if(face===3)return;else{const wall=BLOCKS[t.id];if(!wall.opaque)return;meta=FACE_TO_FACING[face]+1}break}
     case 'ladder':{if(face===2||face===3)return;if(!tdef.opaque)return;meta=FACE_TO_FACING[face];break}
     case 'door':{if(!BLOCKS[below].solid)return;const up=world.getBlock(px,py+1,pz);if(up!==0&&!BLOCKS[up].replaceable)return;if(boxesOverlapEntity(px,py,pz,px+1,py+2,pz+1))return;
-      world.setBlock(px,py,pz,54,lf,{silent:true});world.setBlock(px,py+1,pz,54,lf|8);consumeHeld();playSoundAt('place_wood',px,py,pz);p.swing=0;return}
+      world.setBlock(px,py,pz,id,lf,{silent:true});world.setBlock(px,py+1,pz,id,lf|8);consumeHeld();playSoundAt(hd.leaves?'grass':'place_wood',px,py,pz);p.swing=0;return}
     case 'bed':{const d=FACE_DIR[FACING_TO_FACE[lf]];const hx=px+d[0],hz=pz+d[2];const hb=world.getBlock(hx,py,hz);if(!(hb===0||BLOCKS[hb].replaceable))return;if(!BLOCKS[below].solid||!BLOCKS[world.getBlock(hx,py-1,hz)].solid)return;
       world.setBlock(px,py,pz,62,lf,{silent:true});world.setBlock(hx,py,hz,62,lf|4);consumeHeld();playSoundAt('place_wool',px,py,pz);p.swing=0;return}
     case 'slab':{meta=(face===3||(face!==2&&t.fy>0.5))?1:0;break}
@@ -3739,6 +3744,7 @@ RECIPES.push({p:['gii','iii','p.i'],k:{i:260,p:PLANKS,g:17},out:[466,1],shaped:t
 RECIPES.push({s:[260,289],out:[463,8],shaped:false,guns:true});
 RECIPES.push({s:[260,289,289],out:[464,4],shaped:false,guns:true});
 RECIPES.push({s:[34,378],out:[143,1],shaped:false,uncraft:true});
+RECIPES.push({p:['##','##','##'],k:{'#':[16,45,47,131]},out:[145,3],shaped:true,mod:'leafdoors'});
 shaped(['###','###','###'],{'#':271},[144,1]);shapeless([144],[271,9]);
 RECIPES.push({p:['l.l','lgl','lgl'],k:{l:289,g:16},out:[473,1],shaped:true,guns:true});
 shaped(['h','b'],{h:469,b:471},[467,1]);
@@ -3771,7 +3777,7 @@ function matchRecipe(grid,w,h){
   // bounding box of items
   let minx=w,miny=h,maxx=-1,maxy=-1;const ids=[];for(let y=0;y<h;y++)for(let x=0;x<w;x++){const s=grid[y*w+x];if(s){ids.push(s.id);if(x<minx)minx=x;if(x>maxx)maxx=x;if(y<miny)miny=y;if(y>maxy)maxy=y}}
   if(maxx<0)return null;const bw=maxx-minx+1,bh=maxy-miny+1;
-  for(const r of RECIPES){if(r.guns&&!(game.mods&&game.mods.guns))continue;if(r.uncraft&&!(game.mods&&game.mods.uncrafting))continue;
+  for(const r of RECIPES){if(r.guns&&!(game.mods&&game.mods.guns))continue;if(r.uncraft&&!(game.mods&&game.mods.uncrafting))continue;if(r.mod&&!(game.mods&&game.mods[r.mod]))continue;
     if(r.shaped){const ph=r.p.length,pw=r.p[0].length;if(pw!==bw||ph!==bh)continue;
       for(const mirror of [false,true]){let ok=true;for(let y=0;y<bh&&ok;y++)for(let x=0;x<bw;x++){const ch=r.p[y][mirror?bw-1-x:x];const s=grid[(miny+y)*w+(minx+x)];const id=s?s.id:0;const k=ch===' '?undefined:r.k[ch];if(!keyMatch(k,id)){ok=false;break}}if(ok)return r}}
     else{if(r.s.length!==ids.length)continue;const need=r.s.slice();let ok=true;for(const id of ids){let f=-1;for(let i=0;i<need.length;i++)if(keyMatch(need[i],id)){f=i;break}if(f<0){ok=false;break}need.splice(f,1)}if(ok)return r}
@@ -3897,7 +3903,7 @@ let rbSel=null;
 let guideSel=null;
 function guideCategory(id){const d=ITEMS[id];if(!d)return 'other';if(d.isBlock)return 'blocks';if(d.armor!==undefined)return 'armor';if(d.tool||d.dmg||d.gun||d.shield||d.tool==='bow')return 'tools';if(d.food||d.potion)return 'food';return 'other'}
 function guideEntries(){const out=[];const seen=new Set();
-  for(const r of RECIPES){if(r.guns&&!(game.mods&&game.mods.guns))continue;if(r.uncraft&&!(game.mods&&game.mods.uncrafting))continue;if(!ITEMS[r.out[0]]||ITEMS[r.out[0]].hidden)continue;const key='c'+r.out[0]+'_'+(r.shaped?r.p.join(''):r.s.join(''));if(seen.has(key))continue;seen.add(key);out.push({key,kind:'craft',out:r.out[0],n:r.out[1],r,cat:guideCategory(r.out[0]),name:ITEMS[r.out[0]].label})}
+  for(const r of RECIPES){if(r.guns&&!(game.mods&&game.mods.guns))continue;if(r.uncraft&&!(game.mods&&game.mods.uncrafting))continue;if(r.mod&&!(game.mods&&game.mods[r.mod]))continue;if(!ITEMS[r.out[0]]||ITEMS[r.out[0]].hidden)continue;const key='c'+r.out[0]+'_'+(r.shaped?r.p.join(''):r.s.join(''));if(seen.has(key))continue;seen.add(key);out.push({key,kind:'craft',out:r.out[0],n:r.out[1],r,cat:guideCategory(r.out[0]),name:ITEMS[r.out[0]].label})}
   for(const d of ITEMS){if(!d||d.smelt===undefined||!ITEMS[d.smelt])continue;out.push({key:'s'+d.id,kind:'smelt',out:d.smelt,n:1,inp:d.id,cat:'smelt',name:ITEMS[d.smelt].label})}
   for(const k in POTIONS){const d=POTIONS[k];if(d.ingr===null)continue;out.push({key:'b'+k,kind:'brew',out:POTION_IDS[k],n:1,base:476,ingr:d.ingr,cat:'brew',name:ITEMS[POTION_IDS[k]].label})}
   for(const k in POTIONS)out.push({key:'bs'+k,kind:'brew',out:SPLASH_IDS[k],n:1,base:POTION_IDS[k],ingr:285,cat:'brew',name:ITEMS[SPLASH_IDS[k]].label});
@@ -3923,7 +3929,7 @@ function showGuideDetail(e,counts){const d=$('guideDetail');const cell=(id,title
   d.innerHTML=html}
 function renderRecipeBook(){const rb=$('rbook');rb.innerHTML='<div class="hint" style="margin:0 0 4px">Recipe book — click a recipe to see what it needs</div><div id="rdetail" class="rdetail" style="display:none"></div>';const counts={};for(const s of player.inv)if(s)counts[s.id]=(counts[s.id]||0)+s.count;const countsAll=Object.assign({},counts);for(const s of craft3)if(s)countsAll[s.id]=(countsAll[s.id]||0)+s.count;
   const seen=new Set();
-  for(const r of RECIPES){if(r.guns&&!(game.mods&&game.mods.guns))continue;if(r.uncraft&&!(game.mods&&game.mods.uncrafting))continue;if(seen.has(r.out[0]+'_'+(r.shaped?r.p.join(''):r.s.join(''))))continue;seen.add(r.out[0]+'_'+(r.shaped?r.p.join(''):r.s.join('')));
+  for(const r of RECIPES){if(r.guns&&!(game.mods&&game.mods.guns))continue;if(r.uncraft&&!(game.mods&&game.mods.uncrafting))continue;if(r.mod&&!(game.mods&&game.mods[r.mod]))continue;if(seen.has(r.out[0]+'_'+(r.shaped?r.p.join(''):r.s.join(''))))continue;seen.add(r.out[0]+'_'+(r.shaped?r.p.join(''):r.s.join('')));
     const need=recipeNeeds(r,counts);const el=document.createElement('div');el.className='r'+(need?'':' no');el.innerHTML='<div class="icon" style="background-image:url('+ICONS[r.out[0]]+')"></div>'+(r.out[1]>1?'<div class="cnt">'+r.out[1]+'</div>':'');el.title=ITEMS[r.out[0]].label;
     const key=r.out[0]+'_'+(r.shaped?r.p.join(''):r.s.join(''));el.dataset.key=key;if(rbSel===key)el.classList.add('sel');
     el.addEventListener('click',()=>{rbSel=key;for(const x of rb.querySelectorAll('.r'))x.classList.toggle('sel',x.dataset.key===key);showRecipeDetail(r,countsAll,need);if(need)fillRecipe(r,need)});rb.appendChild(el)}
@@ -4336,8 +4342,8 @@ function randomDrops(){if(Math.random()<0.03){const set=RANDOM_SETS[floor(Math.r
 /* ---- initial spawn ---- */
 function findSpawn(){for(let r=0;r<400;r+=8){for(let a=0;a<PI*2;a+=0.7){const x=floor(Math.cos(a)*r),z=floor(Math.sin(a)*r);const info=world.columnInfo(x,z);if(info.height>SEA+1&&info.biome!==BI.mountains&&info.biome!==BI.ocean)return [x+0.5,info.height+1,z+0.5]}}return [0.5,80,0.5]}
 /* ---- world lifecycle ---- */
-const MODN={weather:'Weather',horror:'Horror',random:'Random Blocks',hardcore:'Hardcore',structures:'Structure Chaos',apocalypse:'Zombie Apocalypse',guns:'Guns',hearts:'Hearts',nightvision:'Night Vision',reallife:'Real Life',uncrafting:'Uncrafting'};
-function applyModsLive(m,fromHost){if(!world||game.state!=='playing')return;const old=game.mods||{};game.mods=Object.assign({weather:false,horror:false,random:false,hardcore:false,structures:false,apocalypse:false,guns:false,hearts:false,nightvision:false,reallife:false,uncrafting:false},m);const g=game.mods;
+const MODN={weather:'Weather',horror:'Horror',random:'Random Blocks',hardcore:'Hardcore',structures:'Structure Chaos',apocalypse:'Zombie Apocalypse',guns:'Guns',hearts:'Hearts',nightvision:'Night Vision',reallife:'Real Life',uncrafting:'Uncrafting',leafdoors:'Leaf Doors'};
+function applyModsLive(m,fromHost){if(!world||game.state!=='playing')return;const old=game.mods||{};game.mods=Object.assign({weather:false,horror:false,random:false,hardcore:false,structures:false,apocalypse:false,guns:false,hearts:false,nightvision:false,reallife:false,uncrafting:false,leafdoors:false},m);const g=game.mods;
   if(g.weather&&!game.wx)game.wx={storm:false,I:0,t:20+Math.random()*40,lt:4,flash:0,tornado:null};else if(!g.weather&&game.wx){stopWeatherLoops();game.wx=null}
   game.hx=g.horror?(game.hx||{amb:15,beat:0}):null;
   if(g.apocalypse&&!game.ax)game.ax={wave:0,next:60,active:false,mobs:[],warned:{},left:0};else if(!g.apocalypse&&game.ax){for(const mb of game.ax.mobs)mb.dead=true;game.ax=null;$('waveHud').style.display='none'}
@@ -4345,7 +4351,7 @@ function applyModsLive(m,fromHost){if(!world||game.state!=='playing')return;cons
   const list=worldList();const meta=list.find(w=>w.id===game.worldId);if(meta){meta.mods=Object.assign({},g);meta.drops=g.random?'random':'normal';localStorage.setItem('ic_worlds',JSON.stringify(list))}
   if(MP.active&&MP.host&&!fromHost)mpSend({t:'mods',mods:g});
   const on=Object.keys(g).filter(k=>g[k]).map(k=>MODN[k]);showMessage('Fun mods: '+(on.length?on.join(', '):'none')+(g.weather&&!old.weather?'. Clouds are gathering...':''));if(game.gui)renderAllSlots()}
-function modsOf(meta){const m=Object.assign({weather:false,horror:false,random:false,hardcore:false,structures:false,apocalypse:false,guns:false,hearts:false,nightvision:false,reallife:false,uncrafting:false},meta.mods||{});if(!meta.mods&&meta.drops==='random')m.random=true;return m}
+function modsOf(meta){const m=Object.assign({weather:false,horror:false,random:false,hardcore:false,structures:false,apocalypse:false,guns:false,hearts:false,nightvision:false,reallife:false,uncrafting:false,leafdoors:false},meta.mods||{});if(!meta.mods&&meta.drops==='random')m.random=true;return m}
 function newWorld(name,seedStr,mode,diff,mods){const drops=mods&&mods.random?'random':'normal';
   const seed=seedStr?(isNaN(+seedStr)?hashStr(seedStr):(+seedStr|0)):(Math.random()*2147483647|0);
   const id='w'+Date.now().toString(36);const list=worldList();list.push({id,name,seed,mode,diff,drops,mods:mods||{},created:Date.now(),played:Date.now()});localStorage.setItem('ic_worlds',JSON.stringify(list));
