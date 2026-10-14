@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="ironcraft-build" content="20261014-234511">
+<meta name="ironcraft-build" content="20261014-235231">
 <meta name="viewport" content="width=device-width,initial-scale=1.0,viewport-fit=cover">
 <title>Ironcraft – Free Voxel Survival Sandbox in Your Browser | Iron Games</title>
 <meta name="description" content="Ironcraft is a free browser-based voxel survival sandbox with building, exploration, private or safety-limited public multiplayer, and optional weather, horror and survival challenges. By Daniele Bros.">
@@ -4874,7 +4874,7 @@ const PUBLIC_SERVERS=[
   {room:'ironcraft-pub-gun-range',name:'Gun Range',seed:'iron-gun-range',mods:{guns:true,apocalypse:true}},
   {room:'ironcraft-pub-river-town',name:'River Town',seed:'iron-river-town',mods:{}},
   {room:'ironcraft-pub-snow-peaks',name:'Snow Peaks',seed:'iron-snow-peaks',mods:{}}];
-const MP={active:false,peer:null,conns:[],host:false,room:null,name:'',publicName:'',remote:new Map(),sendT:0,timeT:0,myId:null,public:false,lobbyPeer:null,lobbyConn:null,lobbyList:new Map(),createPublic:false,nidN:0,pendingItems:[]};
+const MP={active:false,peer:null,conns:[],host:false,room:null,name:'',publicName:'',remote:new Map(),sendT:0,timeT:0,myId:null,public:false,createPublic:false,nidN:0,pendingItems:[]};
 function mpStatus(t){const el=$('mpStatus');if(el)el.textContent=t}
 function loadPeerJS(){return new Promise((res,rej)=>{if(window.Peer)return res();const sc=document.createElement('script');sc.src='https://cdn.jsdelivr.net/npm/peerjs@1.5.4/dist/peerjs.min.js';sc.onload=()=>res();sc.onerror=()=>rej(new Error('Could not load the networking library. Are you online?'));document.head.appendChild(sc)})}
 function publicAlias(id){let h=17;for(const ch of String(id||'safe'))h=(h*31+ch.charCodeAt(0))>>>0;return 'Player'+(100+h%900)}
@@ -4894,38 +4894,49 @@ async function mpJoin(room,seedStr,mods,worldId,isPublic,listed){
   if(!isPublic){mpStatus('No world with that code is online right now.');return}
   if(listed){mpStatus('That world just closed. Refresh the list.');mpRefreshList();return}
   mpStatus('Nobody is on this server yet: opening it up...');mpHost(room,mpSeed(seedStr),mods,worldId,isPublic)}
-const LOBBY_ID='ironcraft-lobby';
 function mpModsLabel(m){const on=Object.keys(m||{}).filter(k=>m[k]&&MODN[k]);return on.length?on.map(k=>MODN[k]).join(', '):'no mods'}
 function mpRenderList(list){const box=$('mpList');box.innerHTML='';if(list===null){box.innerHTML='<div class="hint" style="color:#f88">Could not reach the server list. Are you online?</div>';return}
   if(!list.length){box.innerHTML='<div class="hint" style="color:#aaa">Nobody has a public world open right now. Create one and it shows up here for everyone.</div>';return}
-  for(const e of list){const b=document.createElement('button');b.className='btn';b.style.fontSize='13px';b.textContent=publicWorldLabel(e.room)+' — '+e.players+' player'+(e.players===1?'':'s')+' — '+mpModsLabel(e.mods);b.onclick=()=>mpJoin(e.room,'0',{},'pub-'+e.room.replace(/[^a-z0-9]/gi,''),true,true);box.appendChild(b)}}
+  for(const e of list){if(e.unreachable){const d=document.createElement('div');d.className='hint';d.style.color='#fc6';d.textContent=(e.room?publicWorldLabel(e.room):'A public world')+' is open but did not answer from this network (the host may be behind a strict router). '+(e.room?'You can still try to join it.':'');if(e.room){const b=document.createElement('button');b.className='btn';b.style.fontSize='13px';b.textContent='Try '+publicWorldLabel(e.room);b.onclick=()=>mpJoin(e.room,'0',{},'pub-'+e.room.replace(/[^a-z0-9]/gi,''),true,true);box.appendChild(b)}box.appendChild(d);continue}
+    const b=document.createElement('button');b.className='btn';b.style.fontSize='13px';b.textContent=(e.name&&!PUBLIC_SERVERS.some(sv=>sv.room===e.room)?e.name:publicWorldLabel(e.room))+' — '+e.players+' player'+(e.players===1?'':'s')+' — '+mpModsLabel(e.mods)+(e.mine?' (yours)':'');if(e.mine)b.disabled=true;else b.onclick=()=>mpJoin(e.room,'0',{},'pub-'+e.room.replace(/[^a-z0-9]/gi,''),true,true);box.appendChild(b)}}
 function mpRefreshList(){$('mpList').innerHTML='<div class="hint" style="color:#aaa">Looking for open servers...</div>';
-  loadPeerJS().then(()=>{if(MP.lobbyPeer){mpRenderList(lobbyEntries());return}const peer=new Peer();let done=false;const finish=list=>{if(done)return;done=true;mpRenderList(list);setTimeout(()=>{try{peer.destroy()}catch(e){}},300)};const to=setTimeout(()=>finish([]),6000);
-    peer.on('open',()=>{const c=peer.connect(LOBBY_ID,{reliable:true});c.on('open',()=>c.send({t:'list'}));c.on('data',d=>{if(d&&d.t==='servers'){clearTimeout(to);finish(d.list||[])}});c.on('error',()=>{clearTimeout(to);finish([])})});
-    peer.on('error',err=>{clearTimeout(to);finish(err&&err.type==='peer-unavailable'?[]:null)})}).catch(()=>mpRenderList(null))}
-function lobbyEntries(){const now=Date.now();return [...MP.lobbyList.values()].filter(e=>now-e.ts<30000).map(e=>({room:e.room,name:e.name,mods:e.mods,players:e.players,hostName:e.hostName}))}
-function lobbyServe(){if(MP.lobbyPeer||MP.lobbyTrying)return;MP.lobbyTrying=true;const lp=new Peer(LOBBY_ID);
-  lp.on('open',()=>{MP.lobbyPeer=lp;MP.lobbyTrying=false;lobbyAnnounce()});
-  lp.on('error',()=>{MP.lobbyTrying=false;try{lp.destroy()}catch(e){}});
-  lp.on('connection',c=>{c.on('data',d=>{if(!d||!d.t)return;if(d.t==='announce')MP.lobbyList.set(d.room,Object.assign({},d,{ts:Date.now()}));else if(d.t==='unannounce')MP.lobbyList.delete(d.room);else if(d.t==='list'){try{c.send({t:'servers',list:lobbyEntries()})}catch(e){}}})})}
-function lobbyStop(){if(MP.lobbyConn){try{MP.lobbyConn.send({t:'unannounce',room:MP.room});MP.lobbyConn.close()}catch(e){}MP.lobbyConn=null}if(MP.lobbyPeer){try{MP.lobbyPeer.destroy()}catch(e){}MP.lobbyPeer=null}MP.lobbyList.clear()}
-function lobbyAnnounce(){if(!MP.active||!MP.host||!MP.public||!world)return;const msg={t:'announce',room:MP.room,name:game.worldName,mods:game.mods,players:MP.conns.length+1,hostName:MP.name};
-  if(MP.lobbyPeer){MP.lobbyList.set(MP.room,Object.assign({},msg,{ts:Date.now()}));return}
-  if(MP.lobbyConn&&MP.lobbyConn.open){MP.lobbyConn.send(msg);return}
-  if(MP.lobbyConnecting)return;MP.lobbyConnecting=true;const c=MP.peer.connect(LOBBY_ID,{reliable:true});const to=setTimeout(()=>{MP.lobbyConnecting=false;try{c.close()}catch(e){}lobbyServe()},5000);
-  c.on('open',()=>{clearTimeout(to);MP.lobbyConnecting=false;MP.lobbyConn=c;c.send(msg)});c.on('close',()=>{if(MP.lobbyConn===c)MP.lobbyConn=null});c.on('error',()=>{clearTimeout(to);MP.lobbyConnecting=false;lobbyServe()})}
+  loadPeerJS().then(()=>{const ids=PUBLIC_SERVERS.map(sv=>sv.room);for(let n=0;n<BEACONS;n++)ids.push('ironcraft-beacon-'+n);
+    const found=new Map();const gone=new Set();const peer=new Peer();let done=false;
+    const conns=new Map();const answered=id=>{const c=conns.get(id);return !!(c&&c.peerConnection&&c.peerConnection.remoteDescription)}; // the host replied through the signalling server: it exists even if no direct path opens
+    const finish=()=>{if(done)return;done=true;const list=[];for(const id of ids){if(gone.has(id))continue;const info=found.get(id);if(info)list.push(info);else if(answered(id))list.push({room:/beacon/.test(id)?null:id,unreachable:true})}
+      if(MP.active&&MP.host&&MP.public&&!list.some(e=>e.room===MP.room))list.unshift(Object.assign(mpInfo(),{mine:true}));mpRenderList(list);setTimeout(()=>{try{peer.destroy()}catch(e){}},300)};
+    const to=setTimeout(finish,9000);
+    peer.on('open',()=>{for(const id of ids){if(MP.active&&MP.host&&(id===MP.room||(MP.beacon&&id===MP.beacon.id)))continue;const c=peer.connect(id,{reliable:true,metadata:{probe:true}});conns.set(id,c);
+      c.on('data',d=>{if(d&&d.t==='info'){found.set(id,d);try{c.close()}catch(e){}if(found.size+gone.size>=ids.length){clearTimeout(to);finish()}}})}});
+    peer.on('error',err=>{if(err.type==='peer-unavailable'){const m=/peer (\S+)/.exec(err.message||'');if(m)gone.add(m[1]);if(found.size+gone.size>=ids.length){clearTimeout(to);finish()}}else{clearTimeout(to);done=true;mpRenderList(null)}})}).catch(()=>mpRenderList(null))}
+// Server discovery without a middleman: every public host also holds a "beacon" id (ironcraft-beacon-0..15) on the
+// signalling server. Players looking for a game ask the signalling server about each beacon and each named room; an id
+// that exists means a world is open even before any direct connection is made, and a short probe connection fetches
+// the name, player count and mods.
+const BEACONS=16;
+function mpInfo(){return {t:'info',room:MP.room,name:game.worldName,mods:game.mods,players:MP.conns.length+1,hostName:MP.name}}
+function beaconStart(){if(!MP.active||!MP.host||!MP.public||MP.beacon||MP.beaconTrying)return;if(PUBLIC_SERVERS.some(sv=>sv.room===MP.room))return; // named rooms are probed by their own id
+  const room=MP.room;let n=MP.beaconSlot||0;MP.beaconTrying=true;
+  const claim=()=>{if(!MP.active||MP.room!==room||n>=BEACONS){MP.beaconTrying=false;return}const bp=new Peer('ironcraft-beacon-'+n);
+    bp.on('open',()=>{if(!MP.active||MP.room!==room){try{bp.destroy()}catch(e){}MP.beaconTrying=false;return}MP.beacon=bp;MP.beaconSlot=n;MP.beaconTrying=false});
+    bp.on('error',err=>{if(err.type==='unavailable-id'){n++;try{bp.destroy()}catch(e){}claim()}else{MP.beaconTrying=false;if(MP.beacon===bp)MP.beacon=null;try{bp.destroy()}catch(e){}}});
+    bp.on('disconnected',()=>{if(MP.beacon===bp){MP.beacon=null;try{bp.destroy()}catch(e){}}});
+    bp.on('connection',c=>{c.on('open',()=>{try{c.send(mpInfo())}catch(e){}setTimeout(()=>{try{c.close()}catch(e){}},1500)})})};
+  claim()}
+function beaconStop(){if(MP.beacon){try{MP.beacon.destroy()}catch(e){}MP.beacon=null}MP.beaconTrying=false}
+function beaconKeep(){if(MP.active&&MP.host&&MP.public&&!MP.beacon)beaconStart()}
 function mpCreatePublic(name,seedStr,mode,diff,mods){loadPeerJS().then(()=>{mpLeave(true);MP.public=true;MP.name=mpName(true);name=publicWorldLabel('community-'+Date.now()+Math.random());const seed=seedStr?(isNaN(+seedStr)?hashStr(seedStr):(+seedStr|0)):(Math.random()*2147483647|0);
   const room='ironcraft-pub-'+name.toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/^-|-$/g,'').slice(0,20)+'-'+Math.random().toString(36).slice(2,6);const worldId='pub-'+room.replace(/[^a-z0-9]/gi,'');
   const meta={id:worldId,name,seed,mode,diff,drops:mods.random?'random':'normal',mods,room,created:Date.now(),played:Date.now()};const list=worldList();list.push(meta);localStorage.setItem('ic_worlds',JSON.stringify(list));
   mpStatus('Opening your public world...');showMenu('mpMenu');mpHost(room,seed,mods,worldId,true)}).catch(e=>mpStatus(e.message))}
 function mpHostPrivate(code){loadPeerJS().then(()=>{mpLeave(true);MP.name=mpName(false);mpStatus('Starting your world...');mpHost('ironcraft-room-'+code,(Math.random()*2147483647)|0,{},'room-'+code,false,code)}).catch(e=>mpStatus(e.message))}
-function mpHost(room,seed,mods,worldId,isPublic,code,keepWorld){const peer=new Peer(room);MP.peer=peer;MP.room=room;MP.public=!!isPublic;MP.lobbyList=MP.lobbyList||new Map();MP.annT=1;MP.worldId=worldId;
+function mpHost(room,seed,mods,worldId,isPublic,code,keepWorld){const peer=new Peer(room);MP.peer=peer;MP.room=room;MP.public=!!isPublic;MP.annT=1;MP.worldId=worldId;
   peer.on('open',id=>{MP.active=true;MP.host=true;MP.myId=id;MP.hostId=id;mpStatus('');if(keepWorld){game.noSave=!isPublic;for(const e of entities)if(e instanceof Mob){e.remote=false;e.ownerConn=null;e.owned=false}return}const list=worldList();let meta=list.find(w=>w.id===worldId);
     if(!meta){const pub=PUBLIC_SERVERS.find(s=>s.room===room);meta={id:worldId,name:pub?'Public: '+pub.name:'Room '+code.toUpperCase(),seed,mode:'survival',diff:2,drops:mods.random?'random':'normal',mods,room:isPublic?room:undefined,created:Date.now(),played:Date.now()};list.push(meta);localStorage.setItem('ic_worlds',JSON.stringify(list))}else if(isPublic&&!meta.room){meta.room=room;localStorage.setItem('ic_worlds',JSON.stringify(list))}
     initAudio();loadWorld(meta);setTimeout(()=>showMessage(isPublic?'You are hosting a public world. Chat is disabled and a random alias is used.':'Hosting. Room code: '+code.toUpperCase()+' (friends type it under Join by Code). Press T to chat.'),1500)});
-  peer.on('connection',conn=>{conn.on('open',()=>{if(MP.peer!==peer){try{conn.close()}catch(e){}return}MP.conns.push(conn);conn.on('data',d=>{if(MP.conns.includes(conn))mpOnData(conn,d)});conn.on('close',()=>mpDrop(conn));conn.on('error',()=>mpDrop(conn));
+  peer.on('connection',conn=>{conn.on('open',()=>{if(MP.peer!==peer){try{conn.close()}catch(e){}return}if(conn.metadata&&conn.metadata.probe){try{conn.send(mpInfo())}catch(e){}setTimeout(()=>{try{conn.close()}catch(e){}},1500);return}MP.conns.push(conn);conn.on('data',d=>{if(MP.conns.includes(conn))mpOnData(conn,d)});conn.on('close',()=>mpDrop(conn));conn.on('error',()=>mpDrop(conn));
     if(!world)return;conn.send({t:'hello',seed:game.seed,mods:game.mods,worldName:game.worldName,time:world.time,day:world.day,spawn:game.worldSpawn,blocks:mpCollectBlocks(),wx:mpWeatherState(),wave:game.ax?{wave:game.ax.wave,active:game.ax.active,next:game.ax.next,left:game.ax.left||0,roster:game.ax.roster}:null,hostId:MP.myId,hostName:MP.name,players:[...MP.remote.values()].map(r=>({id:r.pid,name:r.name})),items:mpItemList(),bents:mpBentList()})})});
-  peer.on('error',err=>{if(err.type==='peer-unavailable'){MP.lobbyConnecting=false;if(MP.public)lobbyServe();return}if(err.type==='unavailable-id'){mpStatus('Someone just opened this server: joining them...');setTimeout(()=>{if(!MP.active&&MP.room===room)mpJoin(room,String(seed),mods,worldId,isPublic)},800)}else mpStatus('Network error: '+err.type)})}
+  peer.on('error',err=>{if(err.type==='peer-unavailable')return;if(err.type==='unavailable-id'){mpStatus('Someone just opened this server: joining them...');setTimeout(()=>{if(!MP.active&&MP.room===room)mpJoin(room,String(seed),mods,worldId,isPublic)},800)}else mpStatus('Network error: '+err.type)})}
 function mpBecomeGuest(peer,conn,worldId){MP.peer=peer;MP.conns=[conn];MP.worldId=worldId;MP.public=!!worldId;MP.host=false;MP.myId=peer.id;MP.active=true;mpStatus('Connected! Receiving the world...');
   conn.on('data',d=>{if(MP.conns.includes(conn))mpOnData(conn,d)});conn.on('close',()=>{if(MP.active&&!MP.host&&MP.conns.includes(conn))mpHostLost()});conn.on('error',()=>{})}
 function mpHostLost(){const room=MP.room,worldId=MP.worldId,seed=game.seed,mods=game.mods;const ids=[MP.myId,...[...MP.remote.keys()].filter(id=>id!==MP.hostId)].sort();saveWorld();
@@ -5022,7 +5033,7 @@ function mpRemove(id){const r=MP.remote.get(id);if(!r)return;r.dead=true;MP.remo
 function mpDrop(conn){const i=MP.conns.indexOf(conn);if(i>=0)MP.conns.splice(i,1);for(const e of entities)if(e instanceof Mob&&e.ownerConn===conn){e.remote=false;e.ownerConn=null;e.rider=null}if(conn.mpId){mpRemove(conn.mpId);mpSend({t:'leave',id:conn.mpId})}}
 function mpTick(dt){const p=player;MP.sendT-=dt;if(MP.sendT<=0){MP.sendT=0.1;const st=heldStack();mpSend({t:'p',id:MP.myId,name:MP.name,x:p.x,y:p.y,z:p.z,yaw:p.yaw,pitch:p.pitch,dim:world?world.dimKey:'over',held:st&&!ITEMS[st.id].custom?st.id:0,sneak:!!p.sneaking,dead:!!p.dead,armor:p.armor.map(a=>a?a.id:0),sw:p.swing<0.9?1:0})}
   mpFlushItems();mpMobTick(dt);
-  if(MP.host){MP.timeT-=dt;if(MP.timeT<=0){MP.timeT=5;mpSend({t:'time',time:world.time,day:world.day})}if(MP.public){MP.annT=(MP.annT||0)-dt;if(MP.annT<=0){MP.annT=8;lobbyAnnounce()}}}
+  if(MP.host){MP.timeT-=dt;if(MP.timeT<=0){MP.timeT=5;mpSend({t:'time',time:world.time,day:world.day})}if(MP.public){MP.annT=(MP.annT||0)-dt;if(MP.annT<=0){MP.annT=8;beaconKeep()}}}
   for(const r of MP.remote.values())if(r.dead){MP.remote.delete(r.pid)}
   mpNameTags()}
 function mpNameTags(){const box=$('nametags');const W=R.canvas.clientWidth,H=R.canvas.clientHeight;const m=R.vp;if(!m)return;
@@ -5031,7 +5042,7 @@ function mpNameTags(){const box=$('nametags');const W=R.canvas.clientWidth,H=R.c
     const cx=(m[0]*x+m[4]*y+m[8]*z+m[12])/cw,cy=(m[1]*x+m[5]*y+m[9]*z+m[13])/cw;const d=Math.hypot(x-player.x,z-player.z);if(d>48||abs(cx)>1.1||abs(cy)>1.1){el.style.display='none';continue}
     el.style.display='block';el.textContent=r.name;el.style.left=((cx+1)/2*W)+'px';el.style.top=((1-cy)/2*H)+'px';el.style.fontSize=Math.max(9,16-d/4)+'px'}}
 function mpChat(text){if(MP.public){showMessage('Public chat is disabled. Use a private room with people you know.');return}text=String(text||'').replace(/[\u0000-\u001f\u007f]/g,'').slice(0,120);if(!text)return;showMessage('<'+MP.name+'> '+text);mpSend({t:'c',name:MP.name,text})}
-function mpLeave(quiet){lobbyStop();MP.public=false;MP.pendingItems=[];const peer=MP.peer;if(peer){try{for(const e of entities)if(e instanceof Mob&&e.owned)mpMobRelease(e)}catch(e){}try{mpSend({t:'leave',id:MP.myId})}catch(e){}}
+function mpLeave(quiet){beaconStop();MP.public=false;MP.pendingItems=[];const peer=MP.peer;if(peer){try{for(const e of entities)if(e instanceof Mob&&e.owned)mpMobRelease(e)}catch(e){}try{mpSend({t:'leave',id:MP.myId})}catch(e){}}
   // clear our state before destroying the peer: destroy() fires the close handlers synchronously, and they must not mistake our own exit for the host leaving
   for(const r of MP.remote.values())r.dead=true;MP.remote.clear();MP.conns=[];MP.peer=null;MP.active=false;MP.host=false;MP.room=null;if(peer){try{peer.destroy()}catch(e){}}MP.mobSyncT=-99;for(const e of entities)if(e instanceof Mob){e.remote=false;e.ownerConn=null;e.owned=false}const nt=$('nametags');if(nt)nt.innerHTML='';if(!quiet)mpStatus('')}
 class RemotePlayer extends Entity{constructor(id,name){super(0,-100,0);this.pid=id;this.name=name;this.w=0.6;this.h=1.8;this.hurtT=0;this.invT=0;this.lastDmg=0;this.tx=0;this.ty=-100;this.tz=0;this.tyaw=0;this.walkT=0;this.walkAmp=0;this.held=0;this.sneak=false;this.remote=true;this.hasTarget=false;this.hidden=false;this.eyeHeight=1.62;this.onGround=true;this.sneaking=false;this.mode='survival';this.effects={};this.riding=null;this.inv=[];this.sel=0;this.dead=false}
