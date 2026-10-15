@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="ironcraft-build" content="20261015-182745">
+<meta name="ironcraft-build" content="20261015-192642">
 <meta name="viewport" content="width=device-width,initial-scale=1.0,viewport-fit=cover">
 <title>Ironcraft – Free Voxel Survival Sandbox in Your Browser | Iron Games</title>
 <meta name="description" content="Ironcraft is a free browser-based voxel survival sandbox with building, exploration, private or safety-limited public multiplayer, and optional weather, horror and survival challenges. By Daniele Bros.">
@@ -458,6 +458,7 @@ label.lb{font-size:13px;color:#a0a0a0;align-self:flex-start;margin-left:calc(50%
     <span><b>W A S D</b> Move (<b>Up/Down arrows</b> also move)</span><span><b>Mouse</b> Look; <b>Left/Right arrows</b> turn, <b>PgUp/PgDn</b> look up/down</span>
     <span><b>Space</b> or <b>Ctrl</b> Jump / swim up</span><span><b>Shift</b> Sneak (won't fall off edges) / get off a horse</span>
     <span><b>Ctrl</b> (held) or double-tap W: Sprint</span><span><b>Left click</b> Mine / attack</span>
+    <span><b>P</b> Camera: once for the back of your head, twice for your face, three times back to first person</span>
     <span><b>Right click</b> Place / use / eat</span><span><b>Scroll / 1-9</b> Select hotbar slot</span>
     <span><b>E</b> Inventory</span><span><b>Q</b> Drop item</span>
     <span><b>Middle click</b> Pick block (Creative)</span><span><b>F3</b> Debug info</span>
@@ -1890,7 +1891,10 @@ function renderFrame(dt){
   const gl=R.gl,canvas=R.canvas;const W=canvas.clientWidth,H=canvas.clientHeight;if(canvas.width!==W||canvas.height!==H){canvas.width=W;canvas.height=H}gl.viewport(0,0,W,H);
   const p=player;let eyeY=p.y+p.eyeHeight,ex=p.x,ez=p.z;if(game.shake>0){const k=game.shake*0.3;ex+=(Math.random()-0.5)*k;eyeY+=(Math.random()-0.5)*k;ez+=(Math.random()-0.5)*k;game.shake=Math.max(0,game.shake-0.03)}R.eye=[ex,eyeY,ez];R.aspect=W/H;
   let fov=opts.fov*PI/180;if(p.sprinting)fov*=1.1;if(p.scoped)fov*=0.2;if(p.bowCharge>0)fov*=1-Math.min(p.bowCharge,1)*0.15;
-  R.proj=m4perspective(fov,R.aspect,0.05,1000);R.view=m4mul(m4rotX(-p.pitch),m4mul(m4rotY(-p.yaw),m4trans(-ex,-eyeY,-ez)));R.vp=m4mul(R.proj,R.view);R.planes=frustumPlanes(R.vp);
+  let cyaw=p.yaw,cpitch=p.pitch;const cam=game.cam||0;
+  if(cam){const d=eyeDir();const back=cam===1;const dx=back?-d[0]:d[0],dy=back?-d[1]:d[1],dz=back?-d[2]:d[2];let dist=4;const bh=raycast(ex,eyeY,ez,dx,dy,dz,dist,false);if(bh&&bh.block&&bh.dist!==undefined)dist=Math.max(0.6,bh.dist-0.35);else if(bh&&bh.block){const hd=Math.hypot(bh.x-ex,bh.y-eyeY,bh.z-ez);dist=Math.max(0.6,hd-0.35)}
+    ex+=dx*dist;eyeY+=dy*dist;ez+=dz*dist;if(!back){cyaw=p.yaw+PI;cpitch=-p.pitch}R.eye=[ex,eyeY,ez]}
+  R.proj=m4perspective(fov,R.aspect,0.05,1000);R.view=m4mul(m4rotX(-cpitch),m4mul(m4rotY(-cyaw),m4trans(-ex,-eyeY,-ez)));R.vp=m4mul(R.proj,R.view);R.planes=frustumPlanes(R.vp);
   const sc=skyColors(world.time/24000);if(world.sift){sc.day=1;sc.sky=[0.33,0.86,0.80]}R.day=(world.nether||world.end)?0:sc.day;R.gamma=opts.brightness/100;R.ambient=world.sift?0.10+0.06*R.gamma:world.end?0.32+0.08*R.gamma:world.nether?0.10+0.06*R.gamma:0.015+0.06*R.gamma;if((game.mods&&game.mods.nightvision)||(player&&player.effects&&player.effects.night_vision>0))R.ambient=Math.max(R.ambient,0.82);
   const headBlock=world.getBlock(floor(p.x),floor(eyeY),floor(p.z));const underwater=headBlock===8,inLava=headBlock===9||headBlock===133;
   const rd=opts.renderDist*16;
@@ -1917,6 +1921,7 @@ function renderFrame(dt){
   // ---- entities ----
   EB.clear();EBI.clear();
   for(const e of entities)e.render(EB,EBI,dt);
+  if(game.cam)renderAvatar(EB,EBI,dt);
   renderParticles(EB);
   gl.enable(gl.BLEND);gl.blendFunc(gl.SRC_ALPHA,gl.ONE_MINUS_SRC_ALPHA);
   EB.draw(R.progE,R.atlasTex,{});gl.disable(gl.CULL_FACE);EBI.draw(R.progE,R.itemTex,{});gl.enable(gl.CULL_FACE);
@@ -1928,7 +1933,7 @@ function renderFrame(dt){
   // ---- selection & cracks ----
   drawSelection();
   // ---- hand ----
-  drawHand(dt);
+  if(!game.cam)drawHand(dt);
   gl.disable(gl.BLEND);
 }
 function drawSky(sc){const gl=R.gl;gl.disable(gl.DEPTH_TEST);gl.disable(gl.CULL_FACE);gl.enable(gl.BLEND);gl.blendFunc(gl.SRC_ALPHA,gl.ONE_MINUS_SRC_ALPHA);EBS.clear();
@@ -1961,6 +1966,11 @@ function drawSelection(){const gl=R.gl;const h=player.target;if(!h||!h.block)ret
     for(const b of rb){const g=0.004;EBS.box((x,y,z)=>[x,y,z],h.bx+b[0]-g,h.by+b[1]-g,h.bz+b[2]-g,h.bx+b[3]+g,h.by+b[4]+g,h.bz+b[5]+g,tile,[1,1,1],[1,1],true)}
     gl.blendFunc(gl.DST_COLOR,gl.SRC_COLOR);EBS.draw(R.progE,R.atlasTex,{noLight:1});gl.blendFunc(gl.SRC_ALPHA,gl.ONE_MINUS_SRC_ALPHA)}
 }
+// your own body, drawn with the other-player model when the camera is behind or in front of you
+function renderAvatar(EB,EBI,dt){const p=player;let a=game.avatar;if(!a){a=game.avatar=new RemotePlayer('me','You')}const st=heldStack();
+  a.setTarget({x:p.x,y:p.y,z:p.z,yaw:p.yaw,pitch:p.pitch,held:st&&!ITEMS[st.id].custom?st.id:0,sneak:!!p.sneaking,crawl:!!p.crawling,dead:!!p.dead,armor:p.armor.map(x=>x?x.id:0),sw:p.swing<0.9?1:0,dim:world.dimKey});
+  a.hidden=!!p.dead;a.hurtT=p.hurtT;a.update(dt);a.render(EB,EBI)}
+function cycleCamera(){game.cam=((game.cam||0)+1)%3;showMessage(game.cam===1?'Camera: behind you (press P again to see your face)':game.cam===2?'Camera: in front of you (press P again for first person)':'Camera: first person')}
 function drawHand(dt){const gl=R.gl;const p=player;const st=p.inv[p.sel];const id=st?st.id:0;const def=ITEMS[id];
   // view-space rendering: identity view, custom projection
   const proj=m4perspective(70*PI/180,R.aspect,0.05,10);const l=lightAt(p.x,p.y+p.eyeHeight,p.z);
@@ -4539,6 +4549,7 @@ function setupInput(){
     if(ev.code==='Escape'){if(game.gui)closeGui();else if(game.paused)resumeGame();else pauseGame();ev.preventDefault();return}
     if(game.paused)return;
     if(ev.code==='KeyE'){if(game.gui)closeGui();else if(!player.dead)openGui('inv');ev.preventDefault();return}
+    if(ev.code==='KeyP'&&!game.gui){cycleCamera();ev.preventDefault();return}
     if(game.gui)return;
     if((ev.code==='Slash'||ev.code==='KeyT')&&!player.dead){openCmd(ev.code==='Slash'?'/':'');ev.preventDefault();return}
     if(ev.code>='Digit1'&&ev.code<='Digit9'){player.sel=+ev.code[5]-1;updateHotbar()}
