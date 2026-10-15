@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="ironcraft-build" content="20261015-175042">
+<meta name="ironcraft-build" content="20261015-182745">
 <meta name="viewport" content="width=device-width,initial-scale=1.0,viewport-fit=cover">
 <title>Ironcraft – Free Voxel Survival Sandbox in Your Browser | Iron Games</title>
 <meta name="description" content="Ironcraft is a free browser-based voxel survival sandbox with building, exploration, private or safety-limited public multiplayer, and optional weather, horror and survival challenges. By Daniele Bros.">
@@ -4907,24 +4907,34 @@ const PUBLIC_SERVERS=[
 const MP={active:false,peer:null,conns:[],host:false,room:null,name:'',publicName:'',remote:new Map(),sendT:0,timeT:0,myId:null,public:false,createPublic:false,nidN:0,pendingItems:[]};
 function mpStatus(t){const el=$('mpStatus');if(el)el.textContent=t}
 const PEER_CFG={config:{iceServers:[{urls:'stun:stun.l.google.com:19302'},{urls:'stun:stun1.l.google.com:19302'},{urls:'turn:openrelay.metered.ca:80',username:'openrelayproject',credential:'openrelayproject'},{urls:'turn:openrelay.metered.ca:443',username:'openrelayproject',credential:'openrelayproject'},{urls:'turns:openrelay.metered.ca:443?transport=tcp',username:'openrelayproject',credential:'openrelayproject'}]}};
+const TURN_API_URL=''; // e.g. https://<app>.metered.live/api/v1/turn/credentials?apiKey=... from a free metered.ca account; fetched once and used for every connection
+let turnLoaded=null;function loadTurn(){if(turnLoaded||!TURN_API_URL)return turnLoaded||Promise.resolve();turnLoaded=fetch(TURN_API_URL).then(r=>r.json()).then(list=>{if(Array.isArray(list)&&list.length)PEER_CFG.config.iceServers=list}).catch(()=>{});return turnLoaded}
 function newPeer(id){return id?new Peer(id,PEER_CFG):new Peer(PEER_CFG)}
-function loadPeerJS(){return new Promise((res,rej)=>{if(window.Peer)return res();const sc=document.createElement('script');sc.src='https://cdn.jsdelivr.net/npm/peerjs@1.5.4/dist/peerjs.min.js';sc.onload=()=>res();sc.onerror=()=>rej(new Error('Could not load the networking library. Are you online?'));document.head.appendChild(sc)})}
+function loadPeerJS(){return loadPeerJSLib().then(()=>loadTurn())}
+function loadPeerJSLib(){return new Promise((res,rej)=>{if(window.Peer)return res();const sc=document.createElement('script');sc.src='https://cdn.jsdelivr.net/npm/peerjs@1.5.4/dist/peerjs.min.js';sc.onload=()=>res();sc.onerror=()=>rej(new Error('Could not load the networking library. Are you online?'));document.head.appendChild(sc)})}
 function publicAlias(id){let h=17;for(const ch of String(id||'safe'))h=(h*31+ch.charCodeAt(0))>>>0;return 'Player'+(100+h%900)}
 function publicWorldLabel(room){const fixed=PUBLIC_SERVERS.find(s=>s.room===room);return fixed?fixed.name:'Community World '+publicAlias(room).slice(6)}
 function mpName(isPublic){if(isPublic){if(!MP.publicName)MP.publicName=publicAlias(Date.now()+':'+Math.random());return MP.publicName}const n=(($('mpName')&&$('mpName').value)||'').trim().replace(/[^a-z0-9 _-]/gi,'').slice(0,16)||publicAlias(Math.random());opts.mpName=n;saveOpts();return n}
 function mpSeed(str){return isNaN(+str)?hashStr(str):(+str|0)}
+// turn a failed join into a plain explanation (and a short code worth reporting)
+function mpJoinWhy(d){const c=[...d.cands].join('+')||'none';const code=' [answered='+(d.answered?'yes':'no')+' candidates='+c+' ice='+(d.ice||'?')+']';
+  if(!d.answered)return 'The host did not answer. They may have just closed the world, or their game is still loading: wait a moment and refresh the list.'+code;
+  if(!d.cands.has('relay'))return 'The host answered but no connection could be made. No relay was available, so it needed a direct link and one of the two routers blocked it.'+code;
+  return 'The host answered but the connection failed even through the relay. Try again; if it keeps happening the host\'s network is blocking the game.'+code}
 async function mpJoin(room,seedStr,mods,worldId,isPublic,listed){
   try{mpStatus('Loading network...');await loadPeerJS()}catch(e){mpStatus(e.message);return}
   mpLeave(true);MP.public=!!isPublic;MP.name=mpName(isPublic);MP.room=room;mpStatus('Looking for a host...');
+  const diag={answered:false,cands:new Set(),ice:'',gather:''};
   const r=await new Promise(res=>{let done=false;const finish=v=>{if(!done){done=true;res(v)}};let peer;try{peer=newPeer()}catch(e){return finish({err:e})}
     const to=setTimeout(()=>finish({peer,conn:null,timeout:true}),15000);
-    peer.on('open',()=>{const conn=peer.connect(room,{reliable:true});conn.on('open',()=>{clearTimeout(to);finish({peer,conn})});conn.on('error',()=>{clearTimeout(to);finish({peer,conn:null})})});
+    peer.on('open',()=>{const conn=peer.connect(room,{reliable:true});conn.on('open',()=>{clearTimeout(to);finish({peer,conn})});conn.on('error',()=>{clearTimeout(to);finish({peer,conn:null})});
+      const watch=setInterval(()=>{const pc=conn.peerConnection;if(!pc)return;if(pc.remoteDescription)diag.answered=true;diag.ice=pc.iceConnectionState;diag.gather=pc.iceGatheringState;if(!pc._diag){pc._diag=true;pc.addEventListener('icecandidate',e=>{if(e.candidate){const m=/ typ (\w+)/.exec(e.candidate.candidate);if(m)diag.cands.add(m[1])}})}if(done)clearInterval(watch)},200)});
     peer.on('error',err=>{clearTimeout(to);finish({peer,conn:null,err})})});
   if(r.conn){mpBecomeGuest(r.peer,r.conn,isPublic?worldId:null);return}
   if(r.peer)try{r.peer.destroy()}catch(e){}
   if(r.err&&r.err.type&&r.err.type!=='peer-unavailable'){mpStatus('Network error: '+r.err.type+'. Try again in a moment.');return}
   if(!isPublic){mpStatus('No world with that code is online right now.');return}
-  if(listed){mpStatus('That world just closed. Refresh the list.');mpRefreshList();return}
+  if(listed){mpStatus(mpJoinWhy(diag));return}
   mpStatus('Nobody is on this server yet: opening it up...');mpHost(room,mpSeed(seedStr),mods,worldId,isPublic)}
 function mpModsLabel(m){const on=Object.keys(m||{}).filter(k=>m[k]&&MODN[k]);return on.length?on.map(k=>MODN[k]).join(', '):'no mods'}
 function mpRenderList(list){const box=$('mpList');box.innerHTML='';if(list===null){box.innerHTML='<div class="hint" style="color:#f88">Could not reach the server list. Are you online?</div>';return}
