@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="ironcraft-build" content="20261015-144536">
+<meta name="ironcraft-build" content="20261015-150922">
 <meta name="viewport" content="width=device-width,initial-scale=1.0,viewport-fit=cover">
 <title>Ironcraft – Free Voxel Survival Sandbox in Your Browser | Iron Games</title>
 <meta name="description" content="Ironcraft is a free browser-based voxel survival sandbox with building, exploration, private or safety-limited public multiplayer, and optional weather, horror and survival challenges. By Daniele Bros.">
@@ -5048,7 +5048,7 @@ function mpDrop(conn){const i=MP.conns.indexOf(conn);if(i>=0)MP.conns.splice(i,1
 function mpTick(dt){const p=player;MP.sendT-=dt;if(MP.sendT<=0){MP.sendT=0.1;const st=heldStack();mpSend({t:'p',id:MP.myId,name:MP.name,x:p.x,y:p.y,z:p.z,yaw:p.yaw,pitch:p.pitch,dim:world?world.dimKey:'over',held:st&&!ITEMS[st.id].custom?st.id:0,sneak:!!p.sneaking,crawl:!!p.crawling,dead:!!p.dead,armor:p.armor.map(a=>a?a.id:0),sw:p.swing<0.9?1:0})}
   mpFlushItems();mpMobTick(dt);
   if(MP.host){MP.timeT-=dt;if(MP.timeT<=0){MP.timeT=5;mpSend({t:'time',time:world.time,day:world.day})}if(MP.public){MP.annT=(MP.annT||0)-dt;if(MP.annT<=0){MP.annT=8;beaconKeep()}}}
-  for(const r of MP.remote.values())if(r.dead){MP.remote.delete(r.pid)}
+  for(const r of MP.remote.values()){if(r.dead)r.dead=false;if(!entities.includes(r))entities.push(r)}
   mpNameTags()}
 function mpNameTags(){const box=$('nametags');const W=R.canvas.clientWidth,H=R.canvas.clientHeight;const m=R.vp;if(!m)return;if(game.mods&&game.mods.notags){if(box.firstChild)box.innerHTML='';return} // No Name Tags mod: nobody wears a label
   for(const r of MP.remote.values()){let el=box.querySelector('[data-id="'+r.pid+'"]');if(!el){el=document.createElement('div');el.dataset.id=r.pid;el.className='nametag';box.appendChild(el)}
@@ -5060,7 +5060,7 @@ function mpLeave(quiet){beaconStop();MP.public=false;MP.pendingItems=[];const pe
   // clear our state before destroying the peer: destroy() fires the close handlers synchronously, and they must not mistake our own exit for the host leaving
   for(const r of MP.remote.values())r.dead=true;MP.remote.clear();MP.conns=[];MP.peer=null;MP.active=false;MP.host=false;MP.room=null;if(peer){try{peer.destroy()}catch(e){}}MP.mobSyncT=-99;for(const e of entities)if(e instanceof Mob){e.remote=false;e.ownerConn=null;e.owned=false}const nt=$('nametags');if(nt)nt.innerHTML='';if(!quiet)mpStatus('')}
 class RemotePlayer extends Entity{constructor(id,name){super(0,-100,0);this.pid=id;this.name=name;this.w=0.6;this.h=1.8;this.hurtT=0;this.invT=0;this.lastDmg=0;this.tx=0;this.ty=-100;this.tz=0;this.tyaw=0;this.walkT=0;this.walkAmp=0;this.held=0;this.sneak=false;this.remote=true;this.hasTarget=false;this.hidden=false;this.eyeHeight=1.62;this.onGround=true;this.sneaking=false;this.mode='survival';this.effects={};this.riding=null;this.inv=[];this.sel=0;this.dead=false}
-  setTarget(d){if(!this.hasTarget){this.x=d.x;this.y=d.y;this.z=d.z;this.yaw=d.yaw;this.hasTarget=true}this.tx=d.x;this.ty=d.y;this.tz=d.z;this.tyaw=d.yaw;this.pitch=d.pitch||0;this.held=d.held||0;this.sneak=!!d.sneak;this.sneaking=!!d.sneak;this.crawling=this.crawl=!!d.crawl;this.h=this.crawl?0.6:1.8;if(d.name)this.name=d.name;this.hidden=!!d.dead||(!!d.dim&&!!world&&d.dim!==world.dimKey);this.armor=d.armor||[0,0,0,0];if(d.sw&&!this.swPrev)this.swingT=0.4;this.swPrev=!!d.sw}
+  setTarget(d){if(!this.hasTarget||Math.hypot(d.x-this.x,d.y-this.y,d.z-this.z)>8){this.x=d.x;this.y=d.y;this.z=d.z;this.yaw=d.yaw;this.hasTarget=true}this.tx=d.x;this.ty=d.y;this.tz=d.z;this.tyaw=d.yaw;this.pitch=d.pitch||0;this.held=d.held||0;this.sneak=!!d.sneak;this.sneaking=!!d.sneak;this.crawling=this.crawl=!!d.crawl;this.h=this.crawl?0.6:1.8;if(d.name)this.name=d.name;this.hidden=!!d.dead||(!!d.dim&&!!world&&d.dim!==world.dimKey);this.armor=d.armor||[0,0,0,0];if(d.sw&&!this.swPrev)this.swingT=0.4;this.swPrev=!!d.sw}
   interact(){return false}
   get hittable(){return pvpOn()&&!this.hidden}
   update(dt){this.age+=dt;if(this.hurtT>0)this.hurtT-=dt;if(this.invT>0)this.invT-=dt;if(!this.hasTarget)return;const k=Math.min(1,dt*12);const ox=this.x,oz=this.z;this.x+=(this.tx-this.x)*k;this.y+=(this.ty-this.y)*k;this.z+=(this.tz-this.z)*k;let dy=this.tyaw-this.yaw;dy=Math.atan2(Math.sin(dy),Math.cos(dy));this.yaw+=dy*k;
@@ -5502,7 +5502,7 @@ function loop(now){
     game.time+=dt;if(game.state==='playing'&&game.time-game.lastSave>45)saveWorld();
     updateChunks(6);
     edgeLook(dt);keyLook(dt);updatePlayer(dt);
-    for(let i=entities.length-1;i>=0;i--){const e=entities[i];const dx=e.x-player.x,dz=e.z-player.z;if(dx*dx+dz*dz<96*96||(MP.active&&MP.host&&e instanceof Mob&&mpNearRemote(e.x,e.z,96))||e instanceof FallingBlock||((e instanceof Mob||e instanceof ItemEntity)&&!e.onGround&&!e.inWater&&world.hasChunk(floor(e.x),floor(e.z))))e.update(dt);if(e.dead){entities[i]=entities[entities.length-1];entities.pop()}}
+    for(let i=entities.length-1;i>=0;i--){const e=entities[i];const dx=e.x-player.x,dz=e.z-player.z;if(dx*dx+dz*dz<96*96||e instanceof RemotePlayer||(MP.active&&MP.host&&e instanceof Mob&&mpNearRemote(e.x,e.z,96))||e instanceof FallingBlock||((e instanceof Mob||e instanceof ItemEntity)&&!e.onGround&&!e.inWater&&world.hasChunk(floor(e.x),floor(e.z))))e.update(dt);if(e.dead){entities[i]=entities[entities.length-1];entities.pop()}}
     updateParticles(dt);if(game.wx)tickWeather(dt);if(game.hx)tickHorror(dt);if(game.ax)tickApocalypse(dt);if(game.disasters&&game.disasters.length)tickDisasters(dt);
     // fixed 20 tps
     game.tickAcc+=dt;let n=0;while(game.tickAcc>=0.05&&n<4){game.tickAcc-=0.05;n++;game.tick++;world.time=(world.time+1)%24000;if(world.time===0)world.day++;
