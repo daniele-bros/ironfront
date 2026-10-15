@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="ironcraft-build" content="20261015-140553">
+<meta name="ironcraft-build" content="20261015-141359">
 <meta name="viewport" content="width=device-width,initial-scale=1.0,viewport-fit=cover">
 <title>Ironcraft – Free Voxel Survival Sandbox in Your Browser | Iron Games</title>
 <meta name="description" content="Ironcraft is a free browser-based voxel survival sandbox with building, exploration, private or safety-limited public multiplayer, and optional weather, horror and survival challenges. By Daniele Bros.">
@@ -2947,21 +2947,23 @@ function useItem(){
   if(hd.isBlock&&t&&t.block){placeHeldBlock(hd,st,t)}
 }
 function consumeHeld(){if(player.mode==='creative')return;const st=heldStack();if(!st)return;st.count--;if(st.count<=0)player.inv[player.sel]=null;updateHotbar()}
+// leaves and plants give way to a bed or a door, so you can sleep in a tree house
+function softBlock(id){return id===0||!!(BLOCKS[id]&&(BLOCKS[id].replaceable||BLOCKS[id].leaves||BLOCKS[id].plant))}
 function placeHeldBlock(hd,st,t){
   const p=player;const id=hd.id;let px=t.bx,py=t.by,pz=t.bz;let face=t.face;
   const tdef=BLOCKS[t.id];
   if(tdef.replaceable&&!(t.id===40&&id===40)){/* replace target */}else{const n=FACE_DIR[face];px+=n[0];py+=n[1];pz+=n[2]}
   // slab merging
   if(hd.model==='slab'&&t.id===id){const m=world.getMeta(t.bx,t.by,t.bz)&1;if((m===0&&face===2)||(m===1&&face===3)){world.setBlock(t.bx,t.by,t.bz,id===55?5:id===56?4:52,0);consumeHeld();playSoundAt('place_'+hd.sound,t.bx,t.by,t.bz);p.swing=0;return}}
-  if(py<0||py>=CH)return;const cur=world.getBlock(px,py,pz);if(cur!==0&&!BLOCKS[cur].replaceable)return;
+  if(py<0||py>=CH)return;const cur=world.getBlock(px,py,pz);if(cur!==0&&!BLOCKS[cur].replaceable&&!((hd.model==='bed'||hd.model==='door')&&softBlock(cur)))return;
   if(hd.model==='slab'&&cur===id){const m=world.getMeta(px,py,pz)&1;const hitTop=t.fy>0.5;if((m===0&&(face===3||hitTop))||(m===1&&(face===2||!hitTop))){world.setBlock(px,py,pz,id===55?5:id===56?4:52,0);consumeHeld();playSoundAt('place_'+hd.sound,px,py,pz);p.swing=0;return}}
   let meta=0;const below=world.getBlock(px,py-1,pz);const lf=lookFacing();
   switch(hd.model){
     case 'torch':{if(face===2||(tdef.replaceable&&BLOCKS[below].opaque)){const s=BLOCKS[world.getBlock(px,py-1,pz)];if(!(s.opaque||s.model==='fence'||s.model==='slab'))return;meta=0}else if(face===3)return;else{const wall=BLOCKS[t.id];if(!wall.opaque)return;meta=FACE_TO_FACING[face]+1}break}
     case 'ladder':{if(face===2||face===3)return;if(!tdef.opaque)return;meta=FACE_TO_FACING[face];break}
-    case 'door':{if(!BLOCKS[below].solid)return;const up=world.getBlock(px,py+1,pz);if(up!==0&&!BLOCKS[up].replaceable)return;if(boxesOverlapEntity(px,py,pz,px+1,py+2,pz+1))return;
+    case 'door':{if(!BLOCKS[below].solid){showMessage('A door needs a solid block under it');return}const up=world.getBlock(px,py+1,pz);if(!softBlock(up)){showMessage('No room for the door: the block above must be free');return}if(boxesOverlapEntity(px,py,pz,px+1,py+2,pz+1))return;
       world.setBlock(px,py,pz,id,lf,{silent:true});world.setBlock(px,py+1,pz,id,lf|8);consumeHeld();playSoundAt(hd.leaves?'grass':'place_wood',px,py,pz);p.swing=0;return}
-    case 'bed':{const d=FACE_DIR[FACING_TO_FACE[lf]];const hx=px+d[0],hz=pz+d[2];const hb=world.getBlock(hx,py,hz);if(!(hb===0||BLOCKS[hb].replaceable))return;if(!BLOCKS[below].solid||!BLOCKS[world.getBlock(hx,py-1,hz)].solid)return;
+    case 'bed':{const d=FACE_DIR[FACING_TO_FACE[lf]];const hx=px+d[0],hz=pz+d[2];const hb=world.getBlock(hx,py,hz);if(!softBlock(hb)){showMessage('No room for the bed: the block in front of you (where the head goes) must be free');return}if(!BLOCKS[below].solid||!BLOCKS[world.getBlock(hx,py-1,hz)].solid){showMessage('A bed needs solid ground under both halves');return}
       world.setBlock(px,py,pz,62,lf,{silent:true});world.setBlock(hx,py,hz,62,lf|4);consumeHeld();playSoundAt('place_wool',px,py,pz);p.swing=0;return}
     case 'slab':{meta=(face===3||(face!==2&&t.fy>0.5))?1:0;break}
     case 'stairs':{meta=lf|((face===3||(face!==2&&t.fy>0.5))?4:0);break}
