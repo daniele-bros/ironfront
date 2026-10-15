@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="ironcraft-build" content="20261015-150922">
+<meta name="ironcraft-build" content="20261015-160626">
 <meta name="viewport" content="width=device-width,initial-scale=1.0,viewport-fit=cover">
 <title>Ironcraft – Free Voxel Survival Sandbox in Your Browser | Iron Games</title>
 <meta name="description" content="Ironcraft is a free browser-based voxel survival sandbox with building, exploration, private or safety-limited public multiplayer, and optional weather, horror and survival challenges. By Daniele Bros.">
@@ -379,6 +379,7 @@ label.lb{font-size:13px;color:#a0a0a0;align-self:flex-start;margin-left:calc(50%
   <h2 class="sh">Multiplayer</h2>
   <div class="hint" style="color:#8f8;width:440px;margin:4px 0 2px;font-weight:700">PRIVATE PLAY RECOMMENDED &mdash; use a room code with people you know</div>
   <label class="lb">Name for private rooms</label><input class="tx" id="mpName" maxlength="16" placeholder="Use a nickname, not your real name">
+  <label class="lb">Seed for a new private world (blank = random)</label><input class="tx" id="mpSeed" maxlength="32" placeholder="Any word or number">
   <div class="btnrow" style="margin-top:6px"><button class="btn half" id="btnMpHost">Host Private World</button><input class="tx half" id="mpCode" maxlength="8" placeholder="Room code" style="text-transform:uppercase"></div>
   <div class="btnrow"><button class="btn half" id="btnMpJoin">Join by Code</button><button class="btn half" id="btnMpBack">Back</button></div>
   <div class="hint" style="color:#ffb45b;width:440px;margin:12px 0 2px;font-weight:700">PUBLIC WORLDS &mdash; ask a parent or guardian first</div>
@@ -412,7 +413,7 @@ label.lb{font-size:13px;color:#a0a0a0;align-self:flex-start;margin-left:calc(50%
   <button class="btn modbtn" data-mod="uncrafting">Uncrafting: OFF</button>
   <div class="hint" style="color:#aaa;width:440px;margin:0 0 4px">Adds the Uncrafting Table (crafting table + book). Put any crafted item in it and get its recipe ingredients back. Worn tools give back fewer materials and enchantments come off as an enchanted book.</div>
   <button class="btn modbtn" data-mod="leafdoors">Leaf Doors: OFF</button>
-  <div class="hint" style="color:#aaa;width:440px;margin:0 0 4px">Adds the Leaf Door: six leaves of any kind make three. Opens and closes like a wooden door, rustles instead of creaks, and hides a doorway in a hedge or tree house. Leaves burn, so keep it away from fire.</div>
+  <div class="hint" style="color:#aaa;width:440px;margin:0 0 4px">Adds the Leaf Door (six leaves of any kind make three) and the Grass Pressure Plate (two leaves): a plate that looks like grass and opens every door within three blocks when anyone steps on it, then shuts them when they step off. Leaf doors open and close like wooden doors, rustle instead of creak, and hide a doorway in a hedge or tree house. Leaves burn, so keep them away from fire.</div>
   <button class="btn modbtn" data-mod="notags">No Name Tags: OFF</button>
   <div class="hint" style="color:#aaa;width:440px;margin:0 0 4px">Nobody wears a name above their head in multiplayer. Great for hide and seek and sneaking up on friends. The host sets it for everyone in the world.</div>
   <button class="btn modbtn" data-mod="hearts">Hearts: OFF</button>
@@ -996,6 +997,7 @@ defBlock(139,'nether_wart',{label:'Nether Wart',tex:'wart0',model:'crop',solid:f
 defBlock(140,'blackstone',{tex:'blackstone',hard:1.5,tool:'pickaxe',needsTool:true,resist:6,sound:'stone'});
 defBlock(141,'polished_blackstone_bricks',{label:'Polished Blackstone Bricks',tex:'blackstone_bricks',hard:1.5,tool:'pickaxe',needsTool:true,resist:6,sound:'stone'});
 defBlock(145,'leaf_door',{label:'Leaf Door',tex:{side:'leaf_door_bottom',top:'leaf_door_top'},model:'door',solid:true,hard:0.4,sound:'grass',transparent:true,door:true,leaves:true,stack:64,iconPal:['door',{p:[30,60,20],d:[58,118,32],w:[150,210,110],k:[90,70,40]}]});
+defBlock(146,'grass_pressure_plate',{label:'Grass Pressure Plate',tex:'grass_top',model:'plate',solid:false,hard:0.3,sound:'grass',transparent:true,plate:true});
 defBlock(144,'hay_bale',{label:'Hay Bale',tex:{side:'hay_side',top:'hay_top'},hard:0.5,sound:'grass',fuel:5});
 defBlock(143,'uncrafting_table',{label:'Uncrafting Table',tex:{side:'uncraft_side',top:'uncraft_top',bottom:'oak_planks'},hard:2.5,tool:'axe',sound:'wood',fuel:15,gui:'uncraft'});
 defBlock(142,'gilded_blackstone',{label:'Gilded Blackstone',tex:'gilded_blackstone',hard:1.5,tool:'pickaxe',needsTool:true,resist:6,sound:'stone',drop:r=>r()<0.1?[[262,2+floor(r()*4)]]:[[142,1]]});
@@ -1706,7 +1708,7 @@ function renderBoxes(id,meta,x,y,z){
     case 'cactus':return [[0.0625,0,0.0625,0.9375,1,0.9375,F,0,null,true]];
     case 'snow':return [[0,0,0,1,0.125,1,F]];
     case 'rail':return [[0,0,0,1,0.0625,1,F]];
-    case 'plate':return [[0.0625,0,0.0625,0.9375,0.0625,0.9375,F]];
+    case 'plate':return [[0.0625,0,0.0625,0.9375,(meta&1)?0.03:0.0625,0.9375,F]]; // pressed plates sit lower
     case 'farmland':return [[0,0,0,1,0.9375,1,F]];
     case 'table':{const t=d.texFn?d.texFn(meta,2):null;const tiles=t!==null&&t!==undefined?[F[0],F[1],t,F[3],F[4],F[5]]:F;return [[0,0,0,1,0.75,1,tiles]]}
     case 'endportal':return [[0,0,0,1,0.75,1,F]];
@@ -2905,13 +2907,25 @@ function attack(){const p=player;if(p.dead||game.gui||game.paused||p.koT>0)retur
     if(el('sweeping_edge')){const sw=1+dmg*(el('sweeping_edge')/(el('sweeping_edge')+1));for(const o of entities){if(o===e||!(o instanceof Mob)||o.dead||o.dying||(o.type==='wolf'&&o.tamed))continue;if(Math.hypot(o.x-e.x,o.z-e.z)<1.6&&abs(o.y-e.y)<1.5)damageEntity(o,sw,{x:p.x,y:p.y,z:p.z,type:'player',kb:3,loot:el('looting')})}}}
 }
 /* ---- right click ---- */
+// open or close a door given either half; returns true when something changed. Other players get the new state.
+function setDoorOpen(x,y,z,open){const id=world.getBlock(x,y,z);if(!BLOCKS[id]||!BLOCKS[id].door)return false;const m=world.getMeta(x,y,z);const y0=(m&8)?y-1:y;const mb=world.getMeta(x,y0,z);if(!!(mb&4)===!!open)return false;
+  world.setMeta(x,y0,z,open?mb|4:mb&~4);world.setMeta(x,y0+1,z,open?(mb|4|8):(mb&~4)|8);mpSyncBlock(x,y0,z);mpSyncBlock(x,y0+1,z);playSoundAt(BLOCKS[id].leaves?'grass':'door',x,y0,z);return true}
+function mpSyncBlock(x,y,z){if(MP.active&&world)mpSend({t:'b',x,y,z,id:world.getBlock(x,y,z),meta:world.getMeta(x,y,z)})}
+// grass pressure plates (Leaf Doors mod): anything standing on one opens the doors around it; step off and they swing shut
+function tickPlates(dt){if(!world||(MP.active&&!MP.host))return;const P=game.plates||(game.plates=new Map());const pressed=new Set();
+  const feet=(x,y,z)=>{const bx=floor(x),by=floor(y+0.05),bz=floor(z);if(world.getBlock(bx,by,bz)===146)pressed.add(bx+','+by+','+bz)};
+  if(!player.dead)feet(player.x,player.y,player.z);for(const e of entities){if(e.dead)continue;if(e instanceof RemotePlayer){if(e.hidden||!e.hasTarget)continue;feet(e.x,e.y,e.z)}else if(e instanceof Mob||e instanceof ItemEntity)feet(e.x,e.y,e.z)}
+  for(const k of pressed){if(P.has(k))continue;const [x,y,z]=k.split(',').map(Number);const doors=[];
+    for(let dx=-3;dx<=3;dx++)for(let dy=-1;dy<=1;dy++)for(let dz=-3;dz<=3;dz++){const bx=x+dx,by=y+dy,bz=z+dz;const id=world.getBlock(bx,by,bz);if(BLOCKS[id]&&BLOCKS[id].door&&!(world.getMeta(bx,by,bz)&8)&&setDoorOpen(bx,by,bz,true))doors.push([bx,by,bz])}
+    world.setMeta(x,y,z,1);mpSyncBlock(x,y,z);playSoundAt('grass',x,y,z,0.6,1.3);P.set(k,{doors,t:0})}
+  for(const [k,st] of P){if(pressed.has(k)){st.t=0;continue}st.t+=dt;if(st.t<0.6)continue;const [x,y,z]=k.split(',').map(Number);for(const d of st.doors)setDoorOpen(d[0],d[1],d[2],false);if(world.getBlock(x,y,z)===146){world.setMeta(x,y,z,0);mpSyncBlock(x,y,z)}P.delete(k)}}
 function useItem(){
   const p=player;if(p.dead||game.gui||game.paused||p.koT>0)return;const st=heldStack();const hd=st?ITEMS[st.id]:null;const t=p.target;const creative=p.mode==='creative';
   if(p.targetEntity){const te=p.targetEntity;if((te instanceof Mob&&te.remote&&MP.active)?mpMobInteract(te,st):te.interact(st)){p.swing=0;updateHotbar();return}}
   if(t&&t.block&&!p.sneaking){const id=t.id;const d=BLOCKS[id];
     if(id===112){openVault(t.bx,t.by,t.bz);p.swing=0;return}if(id===113){showMessage('This vault has already been emptied');return}
     if(d.gui){openGui(d.gui,t.bx,t.by,t.bz);return}
-    if(BLOCKS[id]&&BLOCKS[id].door){const m=world.getMeta(t.bx,t.by,t.bz);const open=!(m&4);const y0=(m&8)?t.by-1:t.by;const mb=world.getMeta(t.bx,y0,t.bz);world.setMeta(t.bx,y0,t.bz,open?mb|4:mb&~4);world.setMeta(t.bx,y0+1,t.bz,open?(mb|4|8):(mb&~4)|8);playSoundAt(BLOCKS[id].leaves?'grass':'door',t.bx,t.by,t.bz);return}
+    if(BLOCKS[id]&&BLOCKS[id].door){setDoorOpen(t.bx,t.by,t.bz,!(world.getMeta(t.bx,t.by,t.bz)&4));return}
     if(id===62){trySleep(t.bx,t.by,t.bz);return}
     if(id===100&&hd&&hd.id===392&&!(world.getMeta(t.bx,t.by,t.bz)&4)){world.setMeta(t.bx,t.by,t.bz,world.getMeta(t.bx,t.by,t.bz)|4);consumeHeld();playSoundAt('click',t.bx,t.by,t.bz);p.swing=0;if(tryActivateEndPortal(t.bx,t.by,t.bz)){showMessage('The End portal opens!');playSound('portal')}return}
     if(hd&&hd.id===490){ // a Sift crystal lights a Sift stone frame into a portal to the Sift
@@ -3759,6 +3773,7 @@ RECIPES.push({s:[260,289],out:[463,8],shaped:false,guns:true});
 RECIPES.push({s:[260,289,289],out:[464,4],shaped:false,guns:true});
 RECIPES.push({s:[34,378],out:[143,1],shaped:false,uncraft:true});
 RECIPES.push({p:['##','##','##'],k:{'#':[16,45,47,131]},out:[145,3],shaped:true,mod:'leafdoors'});
+RECIPES.push({p:['##'],k:{'#':[16,45,47,131]},out:[146,1],shaped:true,mod:'leafdoors'});
 shaped(['###','###','###'],{'#':271},[144,1]);shapeless([144],[271,9]);
 RECIPES.push({p:['l.l','lgl','lgl'],k:{l:289,g:16},out:[473,1],shaped:true,guns:true});
 shaped(['h','b'],{h:469,b:471},[467,1]);
@@ -4389,7 +4404,7 @@ async function migrateOldSaves(){const db=await SaveDB.open();if(!db)return;let 
 
 function startWorld(meta,save){if(window.trackEvent)trackEvent('game_start',{game:'Ironcraft',multiplayer:!!(MP&&MP.active),mods:Object.keys(modsOf(meta)).filter(k=>modsOf(meta)[k]).join(',')||'none'});
   game.mods=modsOf(meta);game.baseDiff=meta.diff;game.noSave=false;game.wx=game.mods.weather?{storm:false,I:0,t:30+Math.random()*60,lt:4,flash:0,tornado:null}:null;game.hx=game.mods.horror?{amb:15,beat:0}:null;game.ax=game.mods.apocalypse?{wave:0,next:75,active:false,mobs:[],warned:{},left:0}:null;
-  game.dims={over:null,nether:null,end:null,sift:null};world=new World(meta.seed);game.seed=meta.seed;game.worldId=meta.id;game.worldName=meta.name;game.difficulty=game.mods.hardcore?3:(game.mods.apocalypse?Math.max(1,meta.diff):meta.diff);game.randomDrops=game.mods.random;entities.length=0;particles.length=0;activeFurnaces.clear();if(MP.active)for(const r of MP.remote.values()){r.dead=false;entities.push(r)}
+  game.dims={over:null,nether:null,end:null,sift:null};world=new World(meta.seed);game.seed=meta.seed;game.worldId=meta.id;game.worldName=meta.name;game.difficulty=game.mods.hardcore?3:(game.mods.apocalypse?Math.max(1,meta.diff):meta.diff);game.randomDrops=game.mods.random;entities.length=0;particles.length=0;activeFurnaces.clear();game.plates=new Map();if(MP.active)for(const r of MP.remote.values()){r.dead=false;entities.push(r)}
   const p=player;p.mode=meta.mode;p.inv.fill(null);p.armor.fill(null);p.off[0]=null;p.sel=0;p.hp=20;p.absorb=0;p.absorbT=0;p.coldT=0;p.frozen=false;p.koT=0;$('koov').style.opacity=0;p.effLvl={};p.swimming=false;p.hunger=20;p.sat=5;p.exh=0;p.xp=0;p.level=0;p.dead=false;p.flying=false;p.effects={};p.spawn=null;p.fireT=0;p.air=300;p.vx=p.vy=p.vz=0;p.riding=null;
   if(save){if(game.ax&&save.apoc)game.ax.wave=save.apoc.wave||0;world.time=save.time;world.day=save.day||0;game.worldSpawn=save.spawn;world.savedMods={};for(const k in save.mods)world.savedMods[k]=save.mods[k];world.savedBents=save.bents||{};world.populated=new Set(save.pop||[]);
     const sp=save.player;if(sp.hp<=0)game.respawnOnLoad=true;Object.assign(p,{x:sp.x,y:sp.y,z:sp.z,yaw:sp.yaw,pitch:sp.pitch,hp:sp.hp,hunger:sp.hunger,sat:sp.sat,xp:sp.xp,level:sp.level,sel:sp.sel,spawn:sp.spawn,flying:sp.flying||false});p.off[0]=sp.offhand||null;for(let i=0;i<36;i++)p.inv[i]=sp.inv[i]||null;for(let i=0;i<4;i++)p.armor[i]=sp.armor[i]||null;
@@ -4457,7 +4472,7 @@ function setupMenus(){
   $('btnSingle').onclick=()=>{refreshWorldList();showMenu('worldMenu')};
   $('btnMulti').onclick=()=>{$('mpName').value=opts.mpName||'';mpStatus('');showMenu('mpMenu');mpRefreshList()};$('btnMpRefresh').onclick=()=>mpRefreshList();
   $('btnMpCreate').onclick=()=>{MP.createPublic=true;$('createTitle').textContent='Create New Public World';$('wName').value='My Public World';$('wSeed').value='';showMenu('createMenu')};$('btnMpBack').onclick=()=>showMenu('titleMenu');
-  $('btnMpHost').onclick=()=>{const code=Array.from({length:5},()=>'abcdefghjkmnpqrstuvwxyz23456789'[floor(Math.random()*31)]).join('');mpHostPrivate(code)};
+  $('btnMpHost').onclick=()=>{const code=Array.from({length:5},()=>'abcdefghjkmnpqrstuvwxyz23456789'[floor(Math.random()*31)]).join('');mpHostPrivate(code,($('mpSeed').value||'').trim())};
   $('btnMpJoin').onclick=()=>{const code=($('mpCode').value||'').trim().toLowerCase();if(!code){mpStatus('Type the room code your friend gave you');return}mpJoin('ironcraft-room-'+code,'0',{},'mp-guest',false)};$('btnWorldBack').onclick=()=>showMenu('titleMenu');
   $('btnCreate').onclick=()=>{MP.createPublic=false;$('createTitle').textContent='Create New World';$('wName').value='New World';$('wSeed').value='';showMenu('createMenu')};$('btnCreateBack').onclick=()=>{if(MP.createPublic){MP.createPublic=false;showMenu('mpMenu')}else showMenu('worldMenu')};
   const mods={weather:false,horror:false,random:false,hardcore:false,structures:false,apocalypse:false,guns:false};
@@ -4943,7 +4958,7 @@ function mpCreatePublic(name,seedStr,mode,diff,mods){loadPeerJS().then(()=>{mpLe
   const room='ironcraft-pub-'+name.toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/^-|-$/g,'').slice(0,20)+'-'+Math.random().toString(36).slice(2,6);const worldId='pub-'+room.replace(/[^a-z0-9]/gi,'');
   const meta={id:worldId,name,seed,mode,diff,drops:mods.random?'random':'normal',mods,room,created:Date.now(),played:Date.now()};const list=worldList();list.push(meta);localStorage.setItem('ic_worlds',JSON.stringify(list));
   mpStatus('Opening your public world...');showMenu('mpMenu');mpHost(room,seed,mods,worldId,true)}).catch(e=>mpStatus(e.message))}
-function mpHostPrivate(code){loadPeerJS().then(()=>{mpLeave(true);MP.name=mpName(false);mpStatus('Starting your world...');mpHost('ironcraft-room-'+code,(Math.random()*2147483647)|0,{},'room-'+code,false,code)}).catch(e=>mpStatus(e.message))}
+function mpHostPrivate(code,seedStr){loadPeerJS().then(()=>{mpLeave(true);MP.name=mpName(false);mpStatus('Starting your world...');const seed=seedStr?mpSeed(seedStr):(Math.random()*2147483647)|0;mpHost('ironcraft-room-'+code,seed,{},'room-'+code,false,code)}).catch(e=>mpStatus(e.message))}
 function mpHost(room,seed,mods,worldId,isPublic,code,keepWorld){const peer=new Peer(room);MP.peer=peer;MP.room=room;MP.public=!!isPublic;MP.annT=1;MP.worldId=worldId;
   peer.on('open',id=>{MP.active=true;MP.host=true;MP.myId=id;MP.hostId=id;mpStatus('');if(keepWorld){game.noSave=!isPublic;for(const e of entities)if(e instanceof Mob){e.remote=false;e.ownerConn=null;e.owned=false}return}const list=worldList();let meta=list.find(w=>w.id===worldId);
     if(!meta){const pub=PUBLIC_SERVERS.find(s=>s.room===room);meta={id:worldId,name:pub?'Public: '+pub.name:'Room '+code.toUpperCase(),seed,mode:'survival',diff:2,drops:mods.random?'random':'normal',mods,room:isPublic?room:undefined,created:Date.now(),played:Date.now()};list.push(meta);localStorage.setItem('ic_worlds',JSON.stringify(list))}else if(isPublic&&!meta.room){meta.room=room;localStorage.setItem('ic_worlds',JSON.stringify(list))}
@@ -4976,7 +4991,8 @@ function mpOnData(conn,d){if(!d||!d.t)return;
     case 'mset':{const e=entities.find(e=>e.nid===d.nid);if(e&&e instanceof Mob)mpMobApplySet(e,d.set);if(MP.host)mpRelay(conn,d);break}
     case 'mrel':{if(!MP.host)break;const e=entities.find(e=>e.nid===d.nid);if(e&&e instanceof Mob){e.remote=false;e.ownerConn=null;e.x=d.x;e.y=d.y;e.z=d.z;e.vx=e.vy=e.vz=0;e.rider=null}break}
     case 'p':{if(d.id===MP.myId)break;if(MP.host)conn.mpId=d.id;const r=mpRemote(d.id,d.name);r.setTarget(d);if(MP.host)mpRelay(conn,d);break}
-    case 'b':{if(!world||!BLOCKS[d.id])break;if(world.hasChunk(d.x,d.z))world.setBlock(d.x,d.y,d.z,d.id,d.meta,{remote:true,noDrop:true});else{const k=(d.x>>4)+','+(d.z>>4);world.savedMods=world.savedMods||{};(world.savedMods[k]||(world.savedMods[k]=[])).push([cidx(d.x&15,d.y,d.z&15),d.id|(d.meta<<8)])}if(MP.host)mpRelay(conn,d);break}
+    // blocks from other players are applied silently: the sender runs the support checks and sends every knock-on change itself; running them here too deleted half-placed doors and echoed the deletion back
+    case 'b':{if(!world||!BLOCKS[d.id])break;if(world.hasChunk(d.x,d.z))world.setBlock(d.x,d.y,d.z,d.id,d.meta,{remote:true,noDrop:true,silent:true});else{const k=(d.x>>4)+','+(d.z>>4);world.savedMods=world.savedMods||{};(world.savedMods[k]||(world.savedMods[k]=[])).push([cidx(d.x&15,d.y,d.z&15),d.id|(d.meta<<8)])}if(MP.host)mpRelay(conn,d);break}
     case 'c':{if(MP.public)break;showMessage('<'+String(d.name||'Player').slice(0,16)+'> '+String(d.text||'').slice(0,120));if(MP.host)mpRelay(conn,d);break}
     case 'time':{if(!MP.host&&world){world.time=d.time;world.day=d.day}break}
     case 'wx':{if(!MP.host)mpApplyWeather(d);break}
@@ -5513,7 +5529,7 @@ function loop(now){
       if(game.tick%3===0)updateInfoHud();
       if(game.tick%200===0)saveWorld();
     }
-    tickFurnaces(dt);tickBrews(dt);tickSpawners(dt);tickTrials(dt);tickShriekers(dt);if(typeof beaconTick==='function')beaconTick();if(MP.active)mpTick(dt);
+    tickPlates(dt);tickFurnaces(dt);tickBrews(dt);tickSpawners(dt);tickTrials(dt);tickShriekers(dt);if(typeof beaconTick==='function')beaconTick();if(MP.active)mpTick(dt);
     updateMusic(dt);
     if(player.sleeping>0&&player.sleeping>2.2)$('sleepfade').style.opacity=1;
   }
