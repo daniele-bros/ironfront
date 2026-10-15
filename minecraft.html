@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="ironcraft-build" content="20261015-121505">
+<meta name="ironcraft-build" content="20261015-130232">
 <meta name="viewport" content="width=device-width,initial-scale=1.0,viewport-fit=cover">
 <title>Ironcraft – Free Voxel Survival Sandbox in Your Browser | Iron Games</title>
 <meta name="description" content="Ironcraft is a free browser-based voxel survival sandbox with building, exploration, private or safety-limited public multiplayer, and optional weather, horror and survival challenges. By Daniele Bros.">
@@ -4430,7 +4430,10 @@ function quitToTitle(){if(player.riding)player.riding.dismount();if(MP.active)mp
 /* ---- menus ---- */
 // the browser may keep an old copy of the game for a while; peek at the live page's build stamp and offer a reload when it changed
 const GAME_BUILD=(document.querySelector('meta[name="ironcraft-build"]')||{}).content||'';
-async function checkForUpdate(){if(!GAME_BUILD||GAME_BUILD==='dev'||location.protocol==='file:')return;try{const r=await fetch(location.pathname,{cache:'no-store',headers:{Range:'bytes=0-4095'}});const t=await r.text();const m=/ironcraft-build" content="([^"]+)"/.exec(t);if(m&&m[1]!==GAME_BUILD&&!game.updateReady){game.updateReady=m[1];$('updateBanner').style.display='block';if(game.state==='playing')showMessage('A new Ironcraft update is ready: save, then reload the page to get it')}}catch(e){}}
+async function checkForUpdate(){if(!GAME_BUILD||GAME_BUILD==='dev'||location.protocol==='file:')return;try{const r=await fetch(location.pathname,{cache:'no-store',headers:{Range:'bytes=0-4095'}});const t=await r.text();const m=/ironcraft-build" content="([^"]+)"/.exec(t);if(m&&m[1]!==GAME_BUILD&&!game.updateReady){game.updateReady=m[1];$('updateBanner').style.display='block';
+    // on the title screen just reload: the page cache keeps an old build for up to ten minutes, and everyone in a world should run the same build
+    if(game.state!=='playing'&&sessionStorage.getItem('ic_reloaded')!==m[1]){sessionStorage.setItem('ic_reloaded',m[1]);location.replace(location.pathname+'?v='+m[1]+location.hash);return}
+    if(game.state==='playing')showMessage('A new Ironcraft update is ready: save, then reload the page to get it')}}catch(e){}}
 function showMenu(id){for(const m of document.querySelectorAll('.menu'))m.classList.remove('show');if(id){$(id).classList.add('show');fitMenu()}}
 // a menu taller than the screen aligns to the top and scrolls; a short one stays centred
 function fitMenu(){const m=document.querySelector('.menu.show');if(!m)return;m.classList.remove('tall');if(m.scrollHeight>m.clientHeight+1)m.classList.add('tall')}
