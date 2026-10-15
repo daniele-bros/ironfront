@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="ironcraft-build" content="20261015-130232">
+<meta name="ironcraft-build" content="20261015-134932">
 <meta name="viewport" content="width=device-width,initial-scale=1.0,viewport-fit=cover">
 <title>Ironcraft – Free Voxel Survival Sandbox in Your Browser | Iron Games</title>
 <meta name="description" content="Ironcraft is a free browser-based voxel survival sandbox with building, exploration, private or safety-limited public multiplayer, and optional weather, horror and survival challenges. By Daniele Bros.">
@@ -2301,8 +2301,9 @@ class Mob extends Entity{
         else if(Math.random()<dt*0.5){let best=null,bd=10;for(const o of entities){if(!(o instanceof Mob)||o===this||o.dead||o.dying)continue;if(o.type!=='sheep'&&o.type!=='skeleton'&&o.type!=='stray')continue;const od=Math.hypot(o.x-this.x,o.z-this.z);if(od<bd){bd=od;best=o}}this.prey=best}}
       if(this.inWater)this.shakeT=1.5;else if(this.shakeT>0){this.shakeT-=dt}}
     if(this.type==='enderman'){ // provoked by staring at its head, hates water, teleports around
-      if(p===player&&!p.dead&&dist3<64&&!this.angry){const e=[p.x,p.y+p.eyeHeight,p.z];const dir=eyeDir();const hx=this.x-e[0],hy=(this.y+this.h-0.4)-e[1],hz=this.z-e[2];const l=sqrt(hx*hx+hy*hy+hz*hz)||1;const cos=(hx*dir[0]+hy*dir[1]+hz*dir[2])/l;
-        if(cos>1-0.35/l){const bh=raycast(e[0],e[1],e[2],hx,hy,hz,l-0.3,false);if(!bh||!bh.block){this.stareT+=dt;if(this.stareT>0.4){this.angry=true;playSoundAt('enderman',this.x,this.y,this.z,1,1.2);this.screamT=1.2}}}else this.stareT=Math.max(0,this.stareT-dt)}
+      // staring: only the eyes count (a narrow cone on the head, not the body), and it takes two full seconds of eye contact; glancing away resets quickly
+      if(p===player&&!p.dead&&dist3<64&&!this.angry){const e=[p.x,p.y+p.eyeHeight,p.z];const dir=eyeDir();const hx=this.x-e[0],hy=(this.y+this.h-0.25)-e[1],hz=this.z-e[2];const l=sqrt(hx*hx+hy*hy+hz*hz)||1;const cos=(hx*dir[0]+hy*dir[1]+hz*dir[2])/l;
+        if(cos>Math.cos(Math.atan2(0.45,l))){const bh=raycast(e[0],e[1],e[2],hx,hy,hz,l-0.3,false);if(!bh||!bh.block){this.stareT+=dt;if(this.stareT>2){this.angry=true;playSoundAt('enderman',this.x,this.y,this.z,1,1.2);this.screamT=1.2}}}else this.stareT=Math.max(0,this.stareT-dt*3)}
       if(this.screamT>0)this.screamT-=dt;
       if(this.inWater||(this.fireT>0)){this.teleport(false)}
       this.tpT-=dt;if(this.tpT<=0){this.tpT=2+Math.random()*5;if(this.angry&&!p.dead&&dist3>4&&(dist3>10||this.collidedH||Math.random()<0.3))this.teleport(true);else if(!this.angry&&Math.random()<0.3)this.teleport(false)}
