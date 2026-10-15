@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="ironcraft-build" content="20261015-141359">
+<meta name="ironcraft-build" content="20261015-142641">
 <meta name="viewport" content="width=device-width,initial-scale=1.0,viewport-fit=cover">
 <title>Ironcraft – Free Voxel Survival Sandbox in Your Browser | Iron Games</title>
 <meta name="description" content="Ironcraft is a free browser-based voxel survival sandbox with building, exploration, private or safety-limited public multiplayer, and optional weather, horror and survival challenges. By Daniele Bros.">
@@ -402,7 +402,7 @@ label.lb{font-size:13px;color:#a0a0a0;align-self:flex-start;margin-left:calc(50%
   <button class="btn modbtn" data-mod="apocalypse">Zombie Apocalypse: OFF</button>
   <div class="hint" style="color:#aaa;width:440px;margin:0 0 4px">The dead come in waves, day or night, and they never burn. Each wave is bigger and nastier than the last: Rotters, then Dune Rotters, Bonewalkers, spiders, Hissers and worse. Survive as many as you can.</div>
   <button class="btn modbtn" data-mod="guns">Guns: OFF</button>
-  <div class="hint" style="color:#aaa;width:440px;margin:0 0 4px">Start with a pistol and 32 bullets. Craft a rifle (full auto), a shotgun and a sniper rifle (hold Shift to look through the scope) from iron and planks, a ghillie suit from leather and leaves so mobs only notice you up close, make bullets from iron and leather, and pick ammo off the monsters you drop. Right-click to fire.</div>
+  <div class="hint" style="color:#aaa;width:440px;margin:0 0 4px">Start with a pistol and 32 bullets. Craft a rifle (full auto), a shotgun and a sniper rifle (hold Shift to look through the scope) from iron and planks, a ghillie suit from leather and leaves so mobs only notice you up close (hold Alt in it to crawl flat along the ground, almost invisible), make bullets from iron and leather, and pick ammo off the monsters you drop. Right-click to fire.</div>
   <button class="btn modbtn" data-mod="structures">Structure Chaos: OFF</button>
   <div class="hint" style="color:#aaa;width:440px;margin:0 0 4px">A random structure every hundred blocks: villages, temples, mansions, outposts, igloos, huts, portals and dungeons wherever you go.</div>
   <button class="btn modbtn" data-mod="nightvision">Night Vision: OFF</button>
@@ -2325,10 +2325,10 @@ class Mob extends Entity{
     this.soundT-=dt;if(this.soundT<=0){const passive=this.def.passive;this.soundT=passive?20+Math.random()*40:8+Math.random()*20;
       if(dist3<16&&this.type!=='creeper'&&game.time-(game.lastAmbient||0)>(passive?5:2)){game.lastAmbient=game.time;playSoundAt(this.def.sound,this.x,this.y,this.z,this.baby?1.5:1,passive?0.5:0.8)}}
     const d=this.def;let target=null;let speed=d.speed*(this.baby?1.3:1);const diff=game.difficulty;
-    const stealth=playerHidden()?0:(player.armor[1]&&ITEMS[player.armor[1].id].ghillie&&!(this.lastHit&&this.lastHit>game.time-15))?(p.sneaking?0.12:0.3):1;
+    const stealth=playerHidden()?0:(wearsGhillie(p)&&!(this.lastHit&&this.lastHit>game.time-15))?(p.crawling?0.04:p.sneaking?0.12:0.3):1;
     const hostile=!d.passive&&diff>0&&!(this.barterT>0)&&!this.goldLure&&(!d.neutral||this.angry||(d.goldNeutral&&!playerWearsGold())||(d.lightNeutral&&Math.max(world.getSky(floor(this.x),floor(this.y),floor(this.z))*R.day,world.getLight(floor(this.x),floor(this.y),floor(this.z)))<9));
     if(d.guard&&!this.home)this.home=[this.x,this.z];const guarding=d.guard&&!(this.lastHit&&this.lastHit>game.time-20)&&(p.x-this.home[0])**2+(p.z-this.home[1])**2>d.guard*d.guard;if((guarding||playerHidden())&&this.angry){this.angry=false}
-    if(hostile&&!p.dead&&!this.frozen&&!guarding&&dist3<d.follow*(p.sneaking?0.5:1)*stealth){target=[p.x,p.z];if(!this.angry&&!d.neutral){this.noticeT=0.35+Math.random()*0.3;if(dist3<20)playSoundAt(d.sound,this.x,this.y,this.z,1,0.75)}this.angry=true}
+    if(hostile&&!p.dead&&!this.frozen&&!guarding&&dist3<d.follow*(p.crawling?0.3:p.sneaking?0.5:1)*stealth){target=[p.x,p.z];if(!this.angry&&!d.neutral){this.noticeT=0.35+Math.random()*0.3;if(dist3<20)playSoundAt(d.sound,this.x,this.y,this.z,1,0.75)}this.angry=true}
     if(guarding&&!target&&(this.x-this.home[0])**2+(this.z-this.home[1])**2>36&&Math.random()<dt*0.8){target=[this.home[0]+(Math.random()-0.5)*6,this.home[1]+(Math.random()-0.5)*6]}
     if(d.passive&&!p.dead){ // follow player holding food
       const held=p.inv[p.sel];if(held&&d.food&&d.food.includes(held.id)&&dist<6&&!this.baby){target=[p.x,p.z];speed*=1.2}
@@ -2676,14 +2676,18 @@ function updatePlayer(dt){
   {const altHeld=!guiOpen&&(keys.AltLeft||keys.AltRight);const wantSwim=altHeld&&inWater&&!p.flying&&!p.riding&&!p.dead;
     if(wantSwim){if(!p.swimming){p.swimming=true;if(p.sneaking){p.sneaking=false}p.h=0.6;p.eyeHeight=0.42;playSound('splash',0.5,1.1)}}
     else if(p.swimming){const w=p.w/2;const blocked=collectBoxes(p.x-w,p.y+0.6,p.z-w,p.x+w,p.y+1.8,p.z+w).some(b=>b[0]<p.x+w&&b[3]>p.x-w&&b[2]<p.z+w&&b[5]>p.z-w&&b[1]<p.y+1.8&&b[4]>p.y+0.6);
-      if(!blocked||p.flying||p.riding){p.swimming=false;p.h=1.8;p.eyeHeight=1.62}}}
-  if(wantSneak&&!p.flying&&!p.riding&&!p.swimming){if(!p.sneaking){p.sneaking=true;p.h=1.5;p.eyeHeight=1.27}}else if(p.sneaking){// stand up if room
+      if(!blocked||p.flying||p.riding){p.swimming=false;p.h=1.8;p.eyeHeight=1.62}}
+    // crawling: hold Alt on land in a ghillie suit to go flat on your belly (slow, no jumping, nearly invisible to mobs)
+    const wantCrawl=altHeld&&!inWater&&!p.swimming&&wearsGhillie(p)&&!p.flying&&!p.riding&&!p.dead;
+    if(wantCrawl){if(!p.crawling){p.crawling=true;p.sneaking=false;p.h=0.6;p.eyeHeight=0.42}}
+    else if(p.crawling){if(p.swimming||p.flying||p.riding){p.crawling=false;if(!p.swimming){p.h=1.8;p.eyeHeight=1.62}}else{const w=p.w/2;const blocked=collectBoxes(p.x-w,p.y+0.6,p.z-w,p.x+w,p.y+1.8,p.z+w).some(b=>b[0]<p.x+w&&b[3]>p.x-w&&b[2]<p.z+w&&b[5]>p.z-w&&b[1]<p.y+1.8&&b[4]>p.y+0.6);if(!blocked){p.crawling=false;p.h=1.8;p.eyeHeight=1.62}}}}
+  if(wantSneak&&!p.flying&&!p.riding&&!p.swimming&&!p.crawling){if(!p.sneaking){p.sneaking=true;p.h=1.5;p.eyeHeight=1.27}}else if(p.sneaking){// stand up if room
     const w=p.w/2;if(collectBoxes(p.x-w,p.y+1.5,p.z-w,p.x+w,p.y+1.8,p.z+w).some(b=>b[0]<p.x+w&&b[3]>p.x-w&&b[2]<p.z+w&&b[5]>p.z-w&&b[1]<p.y+1.8&&b[4]>p.y+1.5)){}else{p.sneaking=false;p.h=1.8;p.eyeHeight=1.62}}
   // sprinting
-  const canSprint=fwd>0&&(p.hunger>6||creative)&&!p.sneaking&&!guiOpen;
+  const canSprint=fwd>0&&(p.hunger>6||creative)&&!p.sneaking&&!p.crawling&&!guiOpen;
   if(canSprint&&(keys.ControlLeft||p.sprintReq))p.sprinting=true;if(!canSprint||(p.collidedH&&!p.flying&&fwd>0&&p.onGround&&false))p.sprinting=false;if(!canSprint)p.sprintReq=false;
   if(p.blocking&&!shieldInHands())p.blocking=false;
-  let speed=creative&&p.flying?10.8:p.sneaking?1.295*(1+0.5*enchLevel(p.armor[2],'swift_sneak')):p.blocking?1.6:p.sprinting?5.612:4.317;if(p.flying&&p.sprinting)speed*=2;
+  let speed=creative&&p.flying?10.8:p.crawling?0.9:p.sneaking?1.295*(1+0.5*enchLevel(p.armor[2],'swift_sneak')):p.blocking?1.6:p.sprinting?5.612:4.317;if(p.flying&&p.sprinting)speed*=2;
   if(p.effects.slow)speed*=0.7;if(p.effects.speed>0)speed*=1+0.2*effLvl('speed');if(p.beaconT>0)speed*=1.25;if(!p.flying&&BLOCKS[world.getBlock(floor(p.x),floor(p.y-0.05),floor(p.z))].slow){const ss=enchLevel(p.armor[3],'soul_speed');speed*=ss?1.3+0.15*ss:0.4}
   const inFluid=(inWater||inLava)&&!p.flying;const fastSwim=p.swimming&&inWater&&(p.hunger>6||creative);if(inFluid){speed*=inLava?0.35:fastSwim?1.3:0.55;if(inWater)speed*=1+enchLevel(p.armor[3],'depth_strider')/3}else if(p.swimming)speed=Math.min(speed,1.3);
   if(!creative&&p.onGround&&!p.flying){const fw=enchLevel(p.armor[3],'frost_walker');if(fw){const r=fw+1;const by=floor(p.y)-1;for(let dx=-r;dx<=r;dx++)for(let dz=-r;dz<=r;dz++){const bx=floor(p.x)+dx,bz=floor(p.z)+dz;if(dx*dx+dz*dz>r*r)continue;if(world.getBlock(bx,by,bz)===8&&world.getMeta(bx,by,bz)===0&&world.getBlock(bx,by+1,bz)===0)world.setBlock(bx,by,bz,41,0,{silent:true})}}}
@@ -2696,7 +2700,7 @@ function updatePlayer(dt){
   else{
     // horizontal
     const acc=p.onGround?(BLOCKS[world.getBlock(floor(p.x),floor(p.y-0.1),floor(p.z))].slippery?1.5:14):inFluid?4:2.5;if(!p.gliding){p.vx+=(tx-p.vx)*Math.min(1,acc*dt);p.vz+=(tz-p.vz)*Math.min(1,acc*dt)}
-    const jumpHeld=jumpKey()&&!guiOpen&&!ko;
+    const jumpHeld=jumpKey()&&!guiOpen&&!ko&&!p.crawling;
     if(inFluid){if(p.swimming&&inWater&&fwd>0&&!jumpHeld){const ty=Math.sin(p.pitch)*speed;p.vy+=(ty-p.vy)*Math.min(1,dt*7)}else{p.vy-=(inLava?12:8)*dt;p.vy*=Math.pow(0.8,dt*20)}if(jumpHeld){p.vy+=40*dt;if(p.vy>3.5)p.vy=3.5;
         // jump out of water at surface
         const above=world.getBlock(floor(p.x),floor(p.y+p.h*0.6)+1,floor(p.z));if(!headWater&&above===0&&p.collidedH)p.vy=6}
@@ -3044,6 +3048,7 @@ function coldAt(x,z){if(!world||world.dimKey!=='over')return false;const bx=floo
 function findGround(x,z){for(let y=CH-1;y>0;y--){const id=world.getBlockPhys(floor(x),y,floor(z));if(id!==0&&BLOCKS[id].solid)return y+1}return 70}
 function addXP(n){const p=player;p.xp+=n;let need=xpToNext(p.level);while(p.xp>=need){p.xp-=need;p.level++;need=xpToNext(p.level);playSound('levelup')}updateHUD()}
 function xpToNext(l){return l<16?2*l+7:l<31?5*l-38:9*l-158}
+function wearsGhillie(p){const a=p&&p.armor&&p.armor[1];if(!a)return false;const d=p===player?ITEMS[a.id]:ITEMS[a];return !!(d&&d.ghillie)}
 function armorPoints(){let a=0;for(const s of player.armor)if(s)a+=ITEMS[s.id].points;return a}
 function damageArmor(n){for(const s of player.armor)if(s)damageItem(s,n)}
 function damageItem(st,n){if(player.mode==='creative')return;const ub=enchLevel(st,'unbreaking');if(ub&&Math.random()<ub/(ub+1))return;st.dur=(st.dur||0)+n;const max=ITEMS[st.id].dur;if(max&&st.dur>=max){for(let i=0;i<36;i++)if(player.inv[i]===st)player.inv[i]=null;for(let i=0;i<4;i++)if(player.armor[i]===st)player.armor[i]=null;if(player.off[0]===st)player.off[0]=null;playSound('itembreak');updateHotbar()}}
@@ -5040,14 +5045,14 @@ function mpSend(d){for(const c of MP.conns)if(c.open)c.send(d)}
 function mpRemote(id,name){if(!id)return null;if(MP.public)name=publicAlias(id);else name=String(name||'Player').replace(/[^a-z0-9 _-]/gi,'').slice(0,16)||'Player';let r=MP.remote.get(id);if(!r){r=new RemotePlayer(id,name);MP.remote.set(id,r);entities.push(r);if(game.state==='playing')showMessage(name+' joined')}else if(name)r.name=name;return r}
 function mpRemove(id){const r=MP.remote.get(id);if(!r)return;r.dead=true;MP.remote.delete(id);showMessage(r.name+' left');const el=$('nametags').querySelector('[data-id="'+id+'"]');if(el)el.remove()}
 function mpDrop(conn){const i=MP.conns.indexOf(conn);if(i>=0)MP.conns.splice(i,1);for(const e of entities)if(e instanceof Mob&&e.ownerConn===conn){e.remote=false;e.ownerConn=null;e.rider=null}if(conn.mpId){mpRemove(conn.mpId);mpSend({t:'leave',id:conn.mpId})}}
-function mpTick(dt){const p=player;MP.sendT-=dt;if(MP.sendT<=0){MP.sendT=0.1;const st=heldStack();mpSend({t:'p',id:MP.myId,name:MP.name,x:p.x,y:p.y,z:p.z,yaw:p.yaw,pitch:p.pitch,dim:world?world.dimKey:'over',held:st&&!ITEMS[st.id].custom?st.id:0,sneak:!!p.sneaking,dead:!!p.dead,armor:p.armor.map(a=>a?a.id:0),sw:p.swing<0.9?1:0})}
+function mpTick(dt){const p=player;MP.sendT-=dt;if(MP.sendT<=0){MP.sendT=0.1;const st=heldStack();mpSend({t:'p',id:MP.myId,name:MP.name,x:p.x,y:p.y,z:p.z,yaw:p.yaw,pitch:p.pitch,dim:world?world.dimKey:'over',held:st&&!ITEMS[st.id].custom?st.id:0,sneak:!!p.sneaking,crawl:!!p.crawling,dead:!!p.dead,armor:p.armor.map(a=>a?a.id:0),sw:p.swing<0.9?1:0})}
   mpFlushItems();mpMobTick(dt);
   if(MP.host){MP.timeT-=dt;if(MP.timeT<=0){MP.timeT=5;mpSend({t:'time',time:world.time,day:world.day})}if(MP.public){MP.annT=(MP.annT||0)-dt;if(MP.annT<=0){MP.annT=8;beaconKeep()}}}
   for(const r of MP.remote.values())if(r.dead){MP.remote.delete(r.pid)}
   mpNameTags()}
 function mpNameTags(){const box=$('nametags');const W=R.canvas.clientWidth,H=R.canvas.clientHeight;const m=R.vp;if(!m)return;if(game.mods&&game.mods.notags){if(box.firstChild)box.innerHTML='';return} // No Name Tags mod: nobody wears a label
   for(const r of MP.remote.values()){let el=box.querySelector('[data-id="'+r.pid+'"]');if(!el){el=document.createElement('div');el.dataset.id=r.pid;el.className='nametag';box.appendChild(el)}
-    if(r.hidden||!r.hasTarget){el.style.display='none';continue}const x=r.x,y=r.y+2.2,z=r.z;const cw=m[3]*x+m[7]*y+m[11]*z+m[15];if(cw<=0.1){el.style.display='none';continue}
+    if(r.hidden||!r.hasTarget){el.style.display='none';continue}const x=r.x,y=r.y+(r.crawl?1.0:2.2),z=r.z;const cw=m[3]*x+m[7]*y+m[11]*z+m[15];if(cw<=0.1){el.style.display='none';continue}
     const cx=(m[0]*x+m[4]*y+m[8]*z+m[12])/cw,cy=(m[1]*x+m[5]*y+m[9]*z+m[13])/cw;const d=Math.hypot(x-player.x,z-player.z);if(d>48||abs(cx)>1.1||abs(cy)>1.1){el.style.display='none';continue}
     el.style.display='block';el.textContent=r.name;el.style.left=((cx+1)/2*W)+'px';el.style.top=((1-cy)/2*H)+'px';el.style.fontSize=Math.max(9,16-d/4)+'px'}}
 function mpChat(text){if(MP.public){showMessage('Public chat is disabled. Use a private room with people you know.');return}text=String(text||'').replace(/[\u0000-\u001f\u007f]/g,'').slice(0,120);if(!text)return;showMessage('<'+MP.name+'> '+text);mpSend({t:'c',name:MP.name,text})}
@@ -5055,13 +5060,18 @@ function mpLeave(quiet){beaconStop();MP.public=false;MP.pendingItems=[];const pe
   // clear our state before destroying the peer: destroy() fires the close handlers synchronously, and they must not mistake our own exit for the host leaving
   for(const r of MP.remote.values())r.dead=true;MP.remote.clear();MP.conns=[];MP.peer=null;MP.active=false;MP.host=false;MP.room=null;if(peer){try{peer.destroy()}catch(e){}}MP.mobSyncT=-99;for(const e of entities)if(e instanceof Mob){e.remote=false;e.ownerConn=null;e.owned=false}const nt=$('nametags');if(nt)nt.innerHTML='';if(!quiet)mpStatus('')}
 class RemotePlayer extends Entity{constructor(id,name){super(0,-100,0);this.pid=id;this.name=name;this.w=0.6;this.h=1.8;this.hurtT=0;this.invT=0;this.lastDmg=0;this.tx=0;this.ty=-100;this.tz=0;this.tyaw=0;this.walkT=0;this.walkAmp=0;this.held=0;this.sneak=false;this.remote=true;this.hasTarget=false;this.hidden=false;this.eyeHeight=1.62;this.onGround=true;this.sneaking=false;this.mode='survival';this.effects={};this.riding=null;this.inv=[];this.sel=0;this.dead=false}
-  setTarget(d){if(!this.hasTarget){this.x=d.x;this.y=d.y;this.z=d.z;this.yaw=d.yaw;this.hasTarget=true}this.tx=d.x;this.ty=d.y;this.tz=d.z;this.tyaw=d.yaw;this.pitch=d.pitch||0;this.held=d.held||0;this.sneak=!!d.sneak;this.sneaking=!!d.sneak;if(d.name)this.name=d.name;this.hidden=!!d.dead||(!!d.dim&&!!world&&d.dim!==world.dimKey);this.armor=d.armor||[0,0,0,0];if(d.sw&&!this.swPrev)this.swingT=0.4;this.swPrev=!!d.sw}
+  setTarget(d){if(!this.hasTarget){this.x=d.x;this.y=d.y;this.z=d.z;this.yaw=d.yaw;this.hasTarget=true}this.tx=d.x;this.ty=d.y;this.tz=d.z;this.tyaw=d.yaw;this.pitch=d.pitch||0;this.held=d.held||0;this.sneak=!!d.sneak;this.sneaking=!!d.sneak;this.crawling=this.crawl=!!d.crawl;this.h=this.crawl?0.6:1.8;if(d.name)this.name=d.name;this.hidden=!!d.dead||(!!d.dim&&!!world&&d.dim!==world.dimKey);this.armor=d.armor||[0,0,0,0];if(d.sw&&!this.swPrev)this.swingT=0.4;this.swPrev=!!d.sw}
   interact(){return false}
   get hittable(){return pvpOn()&&!this.hidden}
   update(dt){this.age+=dt;if(this.hurtT>0)this.hurtT-=dt;if(this.invT>0)this.invT-=dt;if(!this.hasTarget)return;const k=Math.min(1,dt*12);const ox=this.x,oz=this.z;this.x+=(this.tx-this.x)*k;this.y+=(this.ty-this.y)*k;this.z+=(this.tz-this.z)*k;let dy=this.tyaw-this.yaw;dy=Math.atan2(Math.sin(dy),Math.cos(dy));this.yaw+=dy*k;
     const hs=Math.hypot(this.x-ox,this.z-oz)/Math.max(dt,1e-3);this.walkAmp+=(Math.min(1,hs/3)-this.walkAmp)*Math.min(1,dt*8);this.walkT+=hs*dt*1.6;if(this.swingT>0)this.swingT-=dt}
   render(EB,EBI){if(this.hidden||!this.hasTarget)return;const l=lightAt(this.x,this.y+1,this.z);const s=1/16;const N=TEX.noise;const hurt=this.hurtT>0;const part=(b,px,py,pz,rx,ry,rz,tiles,col)=>{const tf=partTF(this.x,this.y,this.z,this.yaw,px,py,pz,rx,ry,rz,s,0);EB.box(tf,b[0],b[1],b[2],b[3],b[4],b[5],tiles,hurt?[Math.min(1,col[0]+0.5),col[1]*0.4,col[2]*0.4]:col,l,true)};
     const swing=Math.sin(this.walkT)*this.walkAmp*0.9;const skin=[0.85,0.66,0.52],shirt=[0.2,0.62,0.85],pants=[0.25,0.3,0.6];const t=2;
+    if(this.crawl){ // flat on the belly, head forward, arms ahead, legs behind; in a ghillie suit the whole lump is leaves
+      const gh=wearsGhillie(this);const T=gh?TEX.ghillie:N;const cs=gh?[1,1,1]:skin,cb=gh?[1,1,1]:shirt,cp=gh?[1,1,1]:pants;const crawlSwing=Math.sin(this.walkT)*this.walkAmp*0.5;const o=gh?0.6:0;
+      part([-4-o,-2-o,-2-o,4+o,12+o,2+o],0,3,0,-PI/2,0,0,T,cb);part([-4-o,-o,-4-o,4+o,8+o,4+o],0,2.5,-13,-PI/2+0.75,0,0,T,gh?cs:skin);
+      part([-t-o,-10-o,-t-o,t+o,2+o,t+o],-5.5,2,-6,PI/2,0,crawlSwing*0.4,T,cs);part([-t-o,-10-o,-t-o,t+o,2+o,t+o],5.5,2,-6,PI/2,0,-crawlSwing*0.4,T,cs);
+      part([-t-o,-12-o,-t-o,t+o,0,t+o],-2,2,0,-PI/2+crawlSwing*0.3,0,0,T,cp);part([-t-o,-12-o,-t-o,t+o,0,t+o],2,2,0,-PI/2-crawlSwing*0.3,0,0,T,cp);return}
     part([-t,-12,-t,t,0,t],-2,12,0,swing,0,0,N,pants);part([-t,-12,-t,t,0,t],2,12,0,-swing,0,0,N,pants);
     part([-4,12,-2,4,24,2],0,0,0,this.sneak?0.35:0,0,0,N,shirt);
     const hit=this.swingT>0?Math.sin(this.swingT/0.4*PI)*1.6:0;const armR=swing-hit;
