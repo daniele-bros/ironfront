@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="ironcraft-build" content="20261015-134932">
+<meta name="ironcraft-build" content="20261015-140553">
 <meta name="viewport" content="width=device-width,initial-scale=1.0,viewport-fit=cover">
 <title>Ironcraft – Free Voxel Survival Sandbox in Your Browser | Iron Games</title>
 <meta name="description" content="Ironcraft is a free browser-based voxel survival sandbox with building, exploration, private or safety-limited public multiplayer, and optional weather, horror and survival challenges. By Daniele Bros.">
@@ -575,6 +575,7 @@ function brickPattern(p,mortar,brick){p.noise(mortar[0],mortar[1],mortar[2],5);f
 function crossSprite(p,rows,map){p.fill(0,0,0,0);p.sprite(rows,map)}
 // --- texture definitions ---
 defTex('white',p=>p.fill(255,255,255));
+defTex('ghillie',p=>{p.fill(38,66,26);for(let y=0;y<16;y++)for(let x=0;x<16;x++){const r=p.rng();if(r<.7){const f=0.7+p.rng()*.5;p.px(x,y,66*f,108*f,40*f)}else if(r<.78)p.px(x,y,120,110,50)}}); // opaque shaggy leaves: nothing shows through
 defTex('stone',p=>stoneBase(p));
 defTex('cobblestone',p=>cobble(p));
 defTex('mossy_cobblestone',p=>{cobble(p);for(let i=0;i<5;i++)p.blob(floor(p.rng()*16),floor(p.rng()*16),2,90,120,60)});
@@ -1228,7 +1229,7 @@ beef:['meat',{m:[200,60,60],f:[240,220,220]}],cooked_beef:['meat',{m:[130,70,40]
 chicken:['drumstick',{m:[230,170,160],b:[240,230,220]}],cooked_chicken:['drumstick',{m:[200,130,70],b:[240,230,220]}],
 mutton:['meat',{m:[210,80,80],f:[240,220,220]}],cooked_mutton:['meat',{m:[150,80,50],f:[200,150,110]}],
 rotten_flesh:['meat',{m:[120,90,60],f:[90,120,60]}],bone:['bone',{w:[235,235,225]}],arrow:['arrow',{w:[200,200,210],l:[240,240,250],s:[140,110,70],f:[230,230,230]}],
-bow:['bow',{s:[140,100,60],w:[230,230,230]}],pistol:['pistol',{d:[55,55,62],h:[125,125,135],g:[95,62,40]}],rifle:['rifle',{d:[55,55,62],h:[125,125,135],g:[95,62,40],w:[120,80,45]}],shotgun:['shotgun',{d:[50,50,55],h:[120,120,125],g:[95,62,40],w:[130,85,45]}],bullet:['bullet',{b:[205,165,70],w:[150,150,160]}],sniper:['sniper',{d:[45,48,52],h:[120,125,135],g:[80,55,35],w:[95,70,40],s:[30,30,35]}],ghillie:['ghillie',{g:[70,110,45],d:[40,70,30]}],mace:['mace',{d:[60,58,64],h:[120,116,125],s:[120,80,45],g:[85,55,30]}],breeze_rod:['breeze_rod',{w:[215,230,245],b:[120,160,210]}],wind_charge:['wind_charge',{w:[225,235,250],b:[130,170,220],d:[80,110,170]}],trident:['trident',{t:[90,225,215],s:[70,180,170]}],heavy_core:['heavy_core',{d:[38,38,42],k:[70,70,78],h:[110,110,120]}],trial_key:['trial_key',{g:[235,175,60]}],shell:['shotgun_shell',{b:[205,165,70],r:[200,40,40]}],feather:['feather',{w:[240,240,240],s:[200,200,200]}],string:['string',{w:[235,235,235]}],
+bow:['bow',{s:[140,100,60],w:[230,230,230]}],pistol:['pistol',{d:[55,55,62],h:[125,125,135],g:[95,62,40]}],rifle:['rifle',{d:[55,55,62],h:[125,125,135],g:[95,62,40],w:[120,80,45]}],shotgun:['shotgun',{d:[50,50,55],h:[120,120,125],g:[95,62,40],w:[130,85,45]}],bullet:['bullet',{b:[205,165,70],w:[150,150,160]}],sniper:['sniper',{d:[45,48,52],h:[120,125,135],g:[80,55,35],w:[95,70,40],s:[30,30,35]}],ghillie:['ghillie',{g:[92,142,56],d:[48,84,34]}],mace:['mace',{d:[60,58,64],h:[120,116,125],s:[120,80,45],g:[85,55,30]}],breeze_rod:['breeze_rod',{w:[215,230,245],b:[120,160,210]}],wind_charge:['wind_charge',{w:[225,235,250],b:[130,170,220],d:[80,110,170]}],trident:['trident',{t:[90,225,215],s:[70,180,170]}],heavy_core:['heavy_core',{d:[38,38,42],k:[70,70,78],h:[110,110,120]}],trial_key:['trial_key',{g:[235,175,60]}],shell:['shotgun_shell',{b:[205,165,70],r:[200,40,40]}],feather:['feather',{w:[240,240,240],s:[200,200,200]}],string:['string',{w:[235,235,235]}],
 egg:['egg',{m:[230,215,180],l:[245,235,210]}],snowball:['ball',{m:[240,245,255],l:[255,255,255]}],clay_ball:['ball',{m:[160,165,175],l:[190,195,205]}],
 spider_eye:['eye',{r:[150,30,30],k:[30,10,10]}],leather:['leather',{m:[170,100,50]}],brick:['brick',{m:[150,80,65]}],
 bucket:['bucket',{g:[170,170,170],c:[120,120,120]}],water_bucket:['bucket',{g:[170,170,170],c:[50,100,220]}],lava_bucket:['bucket',{g:[170,170,170],c:[240,110,20]}],milk_bucket:['bucket',{g:[170,170,170],c:[245,245,245]}],
@@ -5065,13 +5066,13 @@ class RemotePlayer extends Entity{constructor(id,name){super(0,-100,0);this.pid=
     part([-t,-10,-t,t,2,t],-4,22,0,-swing,0,0.05,N,shirt);part([-t,-10,-t,t,2,t],4,22,0,armR,0,-0.05,N,shirt);
     part([-4,0,-4,4,8,4],0,24,0,-this.pitch,0,0,[N,N,N,N,N,TEX.player_face],skin);
     // armor: coloured shells over the body parts, by material
-    const W=TEX.white,A=this.armor||[0,0,0,0];const ac=i=>{const d=A[i]?ITEMS[A[i]]:null;if(!d||d.elytra)return null;if(d.ghillie)return [0.32,0.45,0.2];const c=ARMOR[d.mat]&&ARMOR[d.mat].color;return c?[c[0]/255,c[1]/255,c[2]/255]:[0.7,0.7,0.7]};
-    const hc=ac(0),cc=ac(1),lc=ac(2),bc=ac(3),o=0.55;
+    const gh=!!(A1=>A1&&ITEMS[A1]&&ITEMS[A1].ghillie)((this.armor||[])[1]);const W=gh?TEX.ghillie:TEX.white,A=this.armor||[0,0,0,0];const ac=i=>{if(gh)return [1,1,1];const d=A[i]?ITEMS[A[i]]:null;if(!d||d.elytra)return null;const c=ARMOR[d.mat]&&ARMOR[d.mat].color;return c?[c[0]/255,c[1]/255,c[2]/255]:[0.7,0.7,0.7]};
+    const hc=ac(0),cc=ac(1),lc=ac(2),bc=ac(3),o=gh?0.9:0.55; // the ghillie suit covers everything, head to boots, in leaves
     if(bc){part([-t-o,-12-o,-t-o,t+o,-7,t+o],-2,12,0,swing,0,0,W,bc);part([-t-o,-12-o,-t-o,t+o,-7,t+o],2,12,0,-swing,0,0,W,bc)}
     if(lc){const lo=o-0.15;part([-t-lo,bc?-7:-12-lo,-t-lo,t+lo,0.5,t+lo],-2,12,0,swing,0,0,W,lc);part([-t-lo,bc?-7:-12-lo,-t-lo,t+lo,0.5,t+lo],2,12,0,-swing,0,0,W,lc);part([-4-lo,12-lo,-2-lo,4+lo,16,2+lo],0,0,0,0,0,0,W,lc)}
     if(cc){part([-4-o,lc?16:12-o,-2-o,4+o,24+o,2+o],0,0,0,this.sneak?0.35:0,0,0,W,cc);part([-t-o,-10-o,-t-o,t+o,2+o,t+o],-4,22,0,-swing,0,0.05,W,cc);part([-t-o,-10-o,-t-o,t+o,2+o,t+o],4,22,0,armR,0,-0.05,W,cc)}
     if(A[1]&&ITEMS[A[1]]&&ITEMS[A[1]].elytra){const wc=[0.36,0.32,0.42];part([-7,-13,0,-0.5,0,1],-1,24,2.5,-0.25,0,0.4,W,wc);part([0.5,-13,0,7,0,1],1,24,2.5,-0.25,0,-0.4,W,wc)}
-    if(hc){const hp=(b)=>part(b,0,24,0,-this.pitch,0,0,W,hc);hp([-4-o,5.5,-4-o,4+o,8+o,4+o]);hp([-4-o,-o,2.5,4+o,8+o,4+o]);hp([-4-o,-o,-4-o,-2.5,8+o,4+o]);hp([2.5,-o,-4-o,4+o,8+o,4+o])} // open-faced so you can still see who it is
+    if(hc){const hp=(b)=>part(b,0,24,0,-this.pitch,0,0,W,hc);if(gh)hp([-4-o,-o,-4-o,4+o,8+o,4+o]);else{hp([-4-o,5.5,-4-o,4+o,8+o,4+o]);hp([-4-o,-o,2.5,4+o,8+o,4+o]);hp([-4-o,-o,-4-o,-2.5,8+o,4+o]);hp([2.5,-o,-4-o,4+o,8+o,4+o])}} // helmets are open-faced so you can still see who it is; a ghillie hood hides the face
     // held item in the right hand: blocks as a small cube, everything else as its icon
     if(this.held&&ITEMS[this.held]){const def=ITEMS[this.held];const atf=partTF(this.x,this.y,this.z,this.yaw,4,22,0,armR,0,-0.05,s,0);
       if(def.isBlock&&ITEMTILE[this.held]===undefined){const rb=renderBoxes(this.held,0,0,0,0);for(const b of rb)EB.box(atf,b[0]*6-3,b[1]*6-14,b[2]*6-9,b[3]*6-3,b[4]*6-14,b[5]*6-9,b[6],b[8]?[b[8][0]/255,b[8][1]/255,b[8][2]/255]:[1,1,1],l,false)}
