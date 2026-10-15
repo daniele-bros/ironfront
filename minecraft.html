@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="ironcraft-build" content="20261014-235231">
+<meta name="ironcraft-build" content="20261015-121505">
 <meta name="viewport" content="width=device-width,initial-scale=1.0,viewport-fit=cover">
 <title>Ironcraft – Free Voxel Survival Sandbox in Your Browser | Iron Games</title>
 <meta name="description" content="Ironcraft is a free browser-based voxel survival sandbox with building, exploration, private or safety-limited public multiplayer, and optional weather, horror and survival challenges. By Daniele Bros.">
@@ -413,6 +413,8 @@ label.lb{font-size:13px;color:#a0a0a0;align-self:flex-start;margin-left:calc(50%
   <div class="hint" style="color:#aaa;width:440px;margin:0 0 4px">Adds the Uncrafting Table (crafting table + book). Put any crafted item in it and get its recipe ingredients back. Worn tools give back fewer materials and enchantments come off as an enchanted book.</div>
   <button class="btn modbtn" data-mod="leafdoors">Leaf Doors: OFF</button>
   <div class="hint" style="color:#aaa;width:440px;margin:0 0 4px">Adds the Leaf Door: six leaves of any kind make three. Opens and closes like a wooden door, rustles instead of creaks, and hides a doorway in a hedge or tree house. Leaves burn, so keep it away from fire.</div>
+  <button class="btn modbtn" data-mod="notags">No Name Tags: OFF</button>
+  <div class="hint" style="color:#aaa;width:440px;margin:0 0 4px">Nobody wears a name above their head in multiplayer. Great for hide and seek and sneaking up on friends. The host sets it for everyone in the world.</div>
   <button class="btn modbtn" data-mod="hearts">Hearts: OFF</button>
   <div class="hint" style="color:#aaa;width:440px;margin:0 0 4px">Your health shows as a row of Minecraft-style hearts with every kind the game has: red hearts and half hearts, hardcore hearts with eyes, green poisoned hearts, black withered hearts, blue frozen hearts, gold absorption hearts from golden apples, a flash when you take damage, a shiver when you are nearly dead, and your horse's hearts while you ride.</div>
   <div class="btnrow" style="margin-top:12px"><button class="btn half" id="btnFunDone">Done</button><button class="btn half" id="btnFunClear">Clear All</button></div>
@@ -4345,8 +4347,8 @@ function randomDrops(){if(Math.random()<0.03){const set=RANDOM_SETS[floor(Math.r
 /* ---- initial spawn ---- */
 function findSpawn(){for(let r=0;r<400;r+=8){for(let a=0;a<PI*2;a+=0.7){const x=floor(Math.cos(a)*r),z=floor(Math.sin(a)*r);const info=world.columnInfo(x,z);if(info.height>SEA+1&&info.biome!==BI.mountains&&info.biome!==BI.ocean)return [x+0.5,info.height+1,z+0.5]}}return [0.5,80,0.5]}
 /* ---- world lifecycle ---- */
-const MODN={weather:'Weather',horror:'Horror',random:'Random Blocks',hardcore:'Hardcore',structures:'Structure Chaos',apocalypse:'Zombie Apocalypse',guns:'Guns',hearts:'Hearts',nightvision:'Night Vision',reallife:'Real Life',uncrafting:'Uncrafting',leafdoors:'Leaf Doors'};
-function applyModsLive(m,fromHost){if(!world||game.state!=='playing')return;const old=game.mods||{};game.mods=Object.assign({weather:false,horror:false,random:false,hardcore:false,structures:false,apocalypse:false,guns:false,hearts:false,nightvision:false,reallife:false,uncrafting:false,leafdoors:false},m);const g=game.mods;
+const MODN={weather:'Weather',horror:'Horror',random:'Random Blocks',hardcore:'Hardcore',structures:'Structure Chaos',apocalypse:'Zombie Apocalypse',guns:'Guns',hearts:'Hearts',nightvision:'Night Vision',reallife:'Real Life',uncrafting:'Uncrafting',leafdoors:'Leaf Doors',notags:'No Name Tags'};
+function applyModsLive(m,fromHost){if(!world||game.state!=='playing')return;const old=game.mods||{};game.mods=Object.assign({weather:false,horror:false,random:false,hardcore:false,structures:false,apocalypse:false,guns:false,hearts:false,nightvision:false,reallife:false,uncrafting:false,leafdoors:false,notags:false},m);const g=game.mods;
   if(g.weather&&!game.wx)game.wx={storm:false,I:0,t:20+Math.random()*40,lt:4,flash:0,tornado:null};else if(!g.weather&&game.wx){stopWeatherLoops();game.wx=null}
   game.hx=g.horror?(game.hx||{amb:15,beat:0}):null;
   if(g.apocalypse&&!game.ax)game.ax={wave:0,next:60,active:false,mobs:[],warned:{},left:0};else if(!g.apocalypse&&game.ax){for(const mb of game.ax.mobs)mb.dead=true;game.ax=null;$('waveHud').style.display='none'}
@@ -4354,7 +4356,7 @@ function applyModsLive(m,fromHost){if(!world||game.state!=='playing')return;cons
   const list=worldList();const meta=list.find(w=>w.id===game.worldId);if(meta){meta.mods=Object.assign({},g);meta.drops=g.random?'random':'normal';localStorage.setItem('ic_worlds',JSON.stringify(list))}
   if(MP.active&&MP.host&&!fromHost)mpSend({t:'mods',mods:g});
   const on=Object.keys(g).filter(k=>g[k]).map(k=>MODN[k]);showMessage('Fun mods: '+(on.length?on.join(', '):'none')+(g.weather&&!old.weather?'. Clouds are gathering...':''));if(game.gui)renderAllSlots()}
-function modsOf(meta){const m=Object.assign({weather:false,horror:false,random:false,hardcore:false,structures:false,apocalypse:false,guns:false,hearts:false,nightvision:false,reallife:false,uncrafting:false,leafdoors:false},meta.mods||{});if(!meta.mods&&meta.drops==='random')m.random=true;return m}
+function modsOf(meta){const m=Object.assign({weather:false,horror:false,random:false,hardcore:false,structures:false,apocalypse:false,guns:false,hearts:false,nightvision:false,reallife:false,uncrafting:false,leafdoors:false,notags:false},meta.mods||{});if(!meta.mods&&meta.drops==='random')m.random=true;return m}
 function newWorld(name,seedStr,mode,diff,mods){const drops=mods&&mods.random?'random':'normal';
   const seed=seedStr?(isNaN(+seedStr)?hashStr(seedStr):(+seedStr|0)):(Math.random()*2147483647|0);
   const id='w'+Date.now().toString(36);const list=worldList();list.push({id,name,seed,mode,diff,drops,mods:mods||{},created:Date.now(),played:Date.now()});localStorage.setItem('ic_worlds',JSON.stringify(list));
@@ -5036,7 +5038,7 @@ function mpTick(dt){const p=player;MP.sendT-=dt;if(MP.sendT<=0){MP.sendT=0.1;con
   if(MP.host){MP.timeT-=dt;if(MP.timeT<=0){MP.timeT=5;mpSend({t:'time',time:world.time,day:world.day})}if(MP.public){MP.annT=(MP.annT||0)-dt;if(MP.annT<=0){MP.annT=8;beaconKeep()}}}
   for(const r of MP.remote.values())if(r.dead){MP.remote.delete(r.pid)}
   mpNameTags()}
-function mpNameTags(){const box=$('nametags');const W=R.canvas.clientWidth,H=R.canvas.clientHeight;const m=R.vp;if(!m)return;
+function mpNameTags(){const box=$('nametags');const W=R.canvas.clientWidth,H=R.canvas.clientHeight;const m=R.vp;if(!m)return;if(game.mods&&game.mods.notags){if(box.firstChild)box.innerHTML='';return} // No Name Tags mod: nobody wears a label
   for(const r of MP.remote.values()){let el=box.querySelector('[data-id="'+r.pid+'"]');if(!el){el=document.createElement('div');el.dataset.id=r.pid;el.className='nametag';box.appendChild(el)}
     if(r.hidden||!r.hasTarget){el.style.display='none';continue}const x=r.x,y=r.y+2.2,z=r.z;const cw=m[3]*x+m[7]*y+m[11]*z+m[15];if(cw<=0.1){el.style.display='none';continue}
     const cx=(m[0]*x+m[4]*y+m[8]*z+m[12])/cw,cy=(m[1]*x+m[5]*y+m[9]*z+m[13])/cw;const d=Math.hypot(x-player.x,z-player.z);if(d>48||abs(cx)>1.1||abs(cy)>1.1){el.style.display='none';continue}
