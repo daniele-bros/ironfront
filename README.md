@@ -40,7 +40,7 @@ The production site is published from the `main` branch with GitHub Pages. The c
 
 - [Privacy notice](privacy.html)
 - [Family and multiplayer safety](safety.html)
-- Public Ironcraft rooms use random aliases and have chat disabled. Public rooms are player-versus-player: swords, arrows and bullets hurt other players, and when you die there everything you carried drops where you fell for anyone to pick up (it vanishes after five minutes).
+- Public Ironcraft rooms use random aliases and have chat disabled. Every multiplayer room, public or private, is player-versus-player: swords, arrows and bullets hurt other players. In a public room, when you die everything you carried drops where you fell for anyone to pick up (it vanishes after five minutes).
 - Private-code rooms are intended for people who already know one another.
 - Game progress is stored locally in the browser.
 

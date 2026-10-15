@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="ironcraft-build" content="20261015-142641">
+<meta name="ironcraft-build" content="20261015-144536">
 <meta name="viewport" content="width=device-width,initial-scale=1.0,viewport-fit=cover">
 <title>Ironcraft – Free Voxel Survival Sandbox in Your Browser | Iron Games</title>
 <meta name="description" content="Ironcraft is a free browser-based voxel survival sandbox with building, exploration, private or safety-limited public multiplayer, and optional weather, horror and survival challenges. By Daniele Bros.">
@@ -2993,9 +2993,9 @@ function playerDie(src){const p=player;p.dead=true;p.hp=0;playSound('death');let
   if(t==='fall')msg='Player fell from a high place';else if(t==='pvp')msg='Player was slain by '+(src.name||'another player');else if(t==='mob')msg='Player was slain by a monster';else if(t==='arrow')msg='Player was shot by a Bonewalker';else if(t==='explosion')msg='Player was blown up';else if(t==='lava')msg='Player tried to swim in lava';else if(t==='fire')msg='Player burned to death';else if(t==='drown')msg='Player drowned';else if(t==='starve')msg='Player starved to death';else if(t==='cactus')msg='Player was pricked to death';else if(t==='lightning')msg='Player was struck by lightning';else if(t==='tornado')msg='Player was swept away by a tornado';else if(t==='sonic')msg='Player was obliterated by a sonically-charged shriek';else if(t==='breath')msg='Player was dissolved by dragon breath';
   if(p.riding)p.riding.dismount();
   for(let i=0;i<36;i++)if(p.inv[i]&&enchLevel(p.inv[i],'vanishing_curse'))p.inv[i]=null;for(let i=0;i<4;i++)if(p.armor[i]&&enchLevel(p.armor[i],'vanishing_curse'))p.armor[i]=null;
-  const dropAll=pvpOn()||!opts.keepInv; // public servers always drop: whoever gets there first can take the loot
+  const dropAll=onPublicServer()||!opts.keepInv; // public servers always drop: whoever gets there first can take the loot
   if(dropAll){if(p.off[0]){spawnItem(p.x,p.y+1,p.z,p.off[0]);p.off[0]=null}for(let i=0;i<36;i++){if(p.inv[i]){spawnItem(p.x,p.y+1,p.z,p.inv[i]);p.inv[i]=null}}for(let i=0;i<4;i++){if(p.armor[i]){spawnItem(p.x,p.y+1,p.z,p.armor[i]);p.armor[i]=null}}
-    spawnXP(p.x,p.y+1,p.z,Math.min(100,p.level*7));showMessage('Your items dropped at X '+floor(p.x)+' Y '+floor(p.y)+' Z '+floor(p.z)+(pvpOn()?' and anyone can pick them up':'')+' (they vanish after 5 minutes)')}
+    spawnXP(p.x,p.y+1,p.z,Math.min(100,p.level*7));showMessage('Your items dropped at X '+floor(p.x)+' Y '+floor(p.y)+' Z '+floor(p.z)+(onPublicServer()?' and anyone can pick them up':'')+' (they vanish after 5 minutes)')}
   else showMessage('You died at X '+floor(p.x)+' Y '+floor(p.y)+' Z '+floor(p.z));
   if(game.mods&&game.mods.hardcore){msg+=' \u2014 HARDCORE: this world is gone';$('btnRespawn').style.display='none';$('btnDeathQuit').textContent='Game Over';deleteWorldSave(game.worldId);localStorage.setItem('ic_worlds',JSON.stringify(worldList().filter(w=>w.id!==game.worldId)));game.noSave=true}else{$('btnRespawn').style.display='';$('btnDeathQuit').textContent='Title Screen'}
   $('deathMsg').textContent=msg;$('deathScore').textContent='Score: '+(p.level*7+floor(p.xp));$('deathScreen').classList.add('show');document.exitPointerLock&&document.exitPointerLock();updateHotbar();
@@ -4967,7 +4967,7 @@ async function mpHello(d){initAudio();const pub=MP.worldId&&PUBLIC_SERVERS.find(
       else if(MP.worldId){const list=worldList();let meta=list.find(w=>w.id===MP.worldId);if(!meta){meta={id:MP.worldId,name:'Public: '+(pub?pub.name:(d.worldName||'world')),seed:d.seed,mode:'survival',diff:2,drops:d.mods&&d.mods.random?'random':'normal',mods:d.mods||{},room:MP.room,created:Date.now(),played:Date.now()};list.push(meta);localStorage.setItem('ic_worlds',JSON.stringify(list))}else if(!meta.room){meta.room=MP.room;localStorage.setItem('ic_worlds',JSON.stringify(list))}await loadWorld(meta);game.noSave=false}
       else{const meta={id:'mp-guest',name:'Multiplayer',seed:d.seed,mode:'survival',diff:2,drops:d.mods&&d.mods.random?'random':'normal',mods:d.mods||{}};startWorld(meta,null);game.noSave=true}
       MP.hostId=d.hostId;world.time=d.time;world.day=d.day;if(d.spawn)game.worldSpawn=d.spawn;mpApplyBlocks(d.blocks||{});if(d.bents)mpApplyBents(d.bents);if(d.items){for(const e of entities)if(e instanceof ItemEntity)e.dead=true;MP.pendingItems=[];for(const it of d.items)mpItemIn(it)}if(d.wx)mpApplyWeather(d.wx);if(d.wave&&game.ax){const A=game.ax;A.wave=d.wave.wave;A.next=d.wave.next;A.left=d.wave.left;if(d.wave.active){A.active=true;A.pendingRoster=d.wave.roster||waveRoster(d.wave.wave)}}
-      mpRemote(d.hostId,d.hostName);for(const pl of d.players||[])if(pl.id!==MP.myId)mpRemote(pl.id,pl.name);mpStatus('');setTimeout(()=>showMessage(MP.public?'Joined a public world. Chat is disabled and names use random aliases.':'Joined '+(d.hostName||'the host')+"'s private world. Press T to chat."),1500)}
+      mpRemote(d.hostId,d.hostName);for(const pl of d.players||[])if(pl.id!==MP.myId)mpRemote(pl.id,pl.name);mpStatus('');setTimeout(()=>showMessage(MP.public?'Joined a public world. Chat is disabled and names use random aliases.':'Joined '+(d.hostName||'the host')+"'s private world. Press T to chat. Watch out: players can hurt each other here."),1500)}
 function mpOnData(conn,d){if(!d||!d.t)return;
   switch(d.t){
     case 'hello':{mpHello(d).catch(e=>console.error('hello',e));break}
@@ -5036,7 +5036,7 @@ function mpApplyBE(d){if(!world||world.dimKey!==(d.dim||'over'))return;const src
 function mpBentList(){const out={};const src=world.savedBents||{};for(const k in src)out[k]=src[k];for(const c of world.chunks.values()){if(c.bents.size)out[c.cx+','+c.cz]=Array.from(c.bents)}return out}
 function mpApplyBents(bents){for(const k in bents){const [cx,cz]=k.split(',').map(Number);for(const [i,be] of bents[k]){const x=cx*16+((+i)>>11),y=(+i)&127,z=cz*16+(((+i)>>7)&15);mpApplyBE({x,y,z,dim:world.dimKey,be})}}}
 // Player versus player is on in public servers only; private rooms stay peaceful
-function pvpOn(){return !!(MP.active&&MP.public)}
+function pvpOn(){return !!MP.active} // every multiplayer world is player-versus-player, private rooms included
 function mpMobsFromHost(){return MP.active&&!MP.host&&game.time-(MP.mobSyncT||-99)<3&&mpHostNear(player.x,player.z,96)}
 function mpHostNear(x,z,r){const h=MP.remote.get(MP.hostId);return !!(h&&!h.hidden&&h.hasTarget&&(h.x-x)**2+(h.z-z)**2<r*r)}
 function mpNearRemote(x,z,r){for(const h of MP.remote.values()){if(h.hidden||!h.hasTarget)continue;if((h.x-x)**2+(h.z-z)**2<r*r)return true}return false}
