@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0,viewport-fit=cover,user-scalable=no">
+<title>Iron Style – Free Fashion Designer and Dress-Up Game in Your Browser | Iron Games</title>
+<meta name="description" content="Iron Style is a free browser fashion game: design outfits with hairstyles, tops, skirts, trousers, dresses, shoes and accessories in any colour, take on runway challenges with themes like Winter Walk and Royal Ball, save your looks and download them as pictures. No download.">
+<meta name="robots" content="index,follow,max-snippet:-1,max-image-preview:large">
+<link rel="canonical" href="https://irongames.win/ironstyle.html">
+<link rel="icon" href="favicon.svg" type="image/svg+xml">
+<link rel="manifest" href="site.webmanifest">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="Iron Games">
+<meta property="og:title" content="Iron Style – Fashion Designer Game | Iron Games">
+<meta property="og:description" content="Design outfits in any colour, take on themed runway challenges, save your looks and download them. Free in your browser, no download.">
+<meta property="og:url" content="https://irongames.win/ironstyle.html">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="Iron Style – Fashion Designer Game | Iron Games">
+<meta name="twitter:description" content="Design outfits, win runway challenges, save and download your looks. Free in your browser, no download.">
+<script type="application/ld+json">{"@context":"https://schema.org","@graph":[{"@type":"VideoGame","name":"Iron Style","url":"https://irongames.win/ironstyle.html","genre":["Casual","Creative","Dress-up","Family"],"gamePlatform":"Web browser","applicationCategory":"Game","operatingSystem":"Any","isAccessibleForFree":true,"offers":{"@type":"Offer","price":"0","priceCurrency":"USD"},"author":{"@type":"Organization","name":"Daniele Bros","url":"https://irongames.win/"},"description":"A fashion design and dress-up game: pick hairstyles, tops, bottoms, dresses, shoes and accessories in any colour, score outfits against themed runway challenges, save looks and download them as pictures."},{"@type":"BreadcrumbList","itemListElement":[{"@type":"ListItem","position":1,"name":"Iron Games","item":"https://irongames.win/"},{"@type":"ListItem","position":2,"name":"Iron Style","item":"https://irongames.win/ironstyle.html"}]}]}</script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Oswald:wght@500;700&family=Share+Tech+Mono&display=swap" rel="stylesheet">
+<style>
+:root{--gold:#e8c84a;--cream:#fff6fb;--dim:#b090b8;--panel:rgba(40,22,52,.95);--border:#6a4a8a;--pink:#ff8fd0;--green:#8ff0a0;}
+*{box-sizing:border-box;margin:0;padding:0;}
+html,body{width:100%;height:100%;overflow:hidden;background:#22142e;}
+body{font-family:'Share Tech Mono','Courier New',monospace;color:var(--cream);user-select:none;-webkit-user-select:none;}
+#wrap{position:absolute;inset:0;display:grid;grid-template-columns:1fr 340px;grid-template-rows:1fr;}
+#main{position:relative;overflow:hidden;background:#000;}
+canvas#c{width:100%;height:100%;display:block;}
+#side{background:var(--panel);border-left:1px solid var(--border);display:flex;flex-direction:column;padding:12px;gap:7px;overflow-y:auto;}
+.back{position:absolute;top:10px;left:10px;z-index:30;background:rgba(40,22,52,.85);color:var(--dim);font-family:'Oswald',sans-serif;font-size:12px;letter-spacing:3px;padding:7px 12px;border:1px solid var(--border);text-decoration:none;border-radius:2px;}
+.back:hover{color:var(--gold);border-color:var(--gold);}
+h2.t{font-family:'Oswald',sans-serif;font-size:22px;letter-spacing:6px;color:var(--pink);}
+.stat{display:flex;justify-content:space-between;font-size:12px;letter-spacing:1px;padding:2px 0;}
+.stat b{color:var(--gold);}
+.btn{display:block;width:100%;background:#4a2a5a;border:1px solid var(--border);color:var(--cream);font-family:'Oswald',sans-serif;font-size:12px;letter-spacing:2px;padding:7px 6px;cursor:pointer;text-align:center;border-radius:6px;}
+.btn:hover{border-color:var(--pink);color:var(--pink);}
+.btn.on{background:#8a3a8a;border-color:var(--pink);color:#fff;}
+.btn:disabled{opacity:.4;cursor:default;}
+.row{display:flex;gap:5px;flex-wrap:wrap;}
+.row .btn{flex:1;min-width:52px;}
+.lbl{font-size:10px;letter-spacing:2px;color:var(--dim);margin-top:4px;display:flex;justify-content:space-between;align-items:center;}
+.lbl input[type=color]{width:34px;height:22px;border:1px solid var(--border);background:none;padding:0;cursor:pointer;}
+.pal{display:flex;gap:4px;flex-wrap:wrap;}
+.pal i{width:18px;height:18px;border-radius:50%;border:1px solid #fff;cursor:pointer;display:inline-block;}
+#panel{flex:1;min-height:90px;overflow-y:auto;font-size:12px;line-height:1.5;border:1px solid var(--border);padding:8px;background:rgba(0,0,0,.3);border-radius:6px;}
+#panel h4{font-family:'Oswald',sans-serif;letter-spacing:3px;color:var(--pink);font-size:13px;margin:4px 0 6px;}
+#panel .it{display:flex;justify-content:space-between;align-items:center;gap:6px;padding:4px 0;border-bottom:1px solid #4a2a5a;}
+#panel .it small{color:var(--dim);display:block;}
+#panel .it button{background:#4a2a5a;border:1px solid var(--border);color:var(--gold);font-family:'Oswald',sans-serif;font-size:11px;letter-spacing:2px;padding:5px 8px;cursor:pointer;white-space:nowrap;border-radius:4px;}
+#overlay{position:absolute;inset:0;display:none;align-items:center;justify-content:center;background:rgba(0,0,0,.55);z-index:20;padding:16px;}
+#overlay.on{display:flex;}
+.modal{background:var(--panel);border:2px solid var(--pink);border-radius:10px;padding:18px 20px;max-width:540px;width:100%;max-height:100%;overflow:auto;}
+.modal h3{font-family:'Oswald',sans-serif;letter-spacing:5px;color:var(--pink);font-size:20px;margin-bottom:10px;}
+.modal p{font-size:13px;line-height:1.6;margin-bottom:10px;}
+.title h1{font-family:'Oswald',sans-serif;font-size:44px;letter-spacing:12px;color:var(--pink);text-shadow:0 0 24px rgba(255,143,208,.4);text-align:center;}
+.title .tag{font-size:12px;letter-spacing:4px;color:var(--dim);margin:6px 0 16px;text-align:center;}
+@media (max-width:760px){#wrap{grid-template-columns:1fr;grid-template-rows:46% 54%;}#side{border-left:none;border-top:1px solid var(--border);}.title h1{font-size:30px;letter-spacing:6px;}}
+</style>
+</head>
+<body>
+<a class="back" href="/" title="Back to Iron Games">◀ IRON GAMES</a>
+<div id="wrap">
+  <div id="main"><canvas id="c"></canvas><div id="overlay"></div></div>
+  <div id="side">
+    <h2 class="t">IRON STYLE</h2>
+    <div class="stat"><span id="sMode">Free design</span><b id="sCoins">0 ★</b></div>
+    <div id="controls"></div>
+    <div class="row"><button class="btn" id="bRandom">SURPRISE ME</button><button class="btn" id="bChallenge">RUNWAY CHALLENGE</button></div>
+    <div class="row"><button class="btn" id="bSave">SAVE LOOK</button><button class="btn" id="bLooks">MY LOOKS</button><button class="btn" id="bDownload">DOWNLOAD</button></div>
+    <div id="panel"></div>
+  </div>
+</div>
+<script>
+'use strict';
+const $=id=>document.getElementById(id);const rnd=(a,b)=>a+Math.random()*(b-a);const ri=(a,b)=>Math.floor(rnd(a,b+1));const pick=a=>a[Math.floor(Math.random()*a.length)];
+const PARTS={
+  hair:[{n:'Long',t:['party','ball']},{n:'Bob',t:['school','city']},{n:'Ponytail',t:['sport','beach']},{n:'Curls',t:['party','ball']},{n:'Bun',t:['ball','city']},{n:'Braids',t:['beach','school']},{n:'Short',t:['sport','space']},{n:'Pigtails',t:['school','party']}],
+  top:[{n:'T-shirt',t:['school','sport','beach']},{n:'Blouse',t:['city','school']},{n:'Hoodie',t:['sport','rain']},{n:'Jumper',t:['winter','school']},{n:'Puffer jacket',t:['winter','rain']},{n:'Crop top',t:['beach','party']},{n:'Jersey',t:['sport']},{n:'Space suit top',t:['space']},{n:'Raincoat',t:['rain']}],
+  bottom:[{n:'Jeans',t:['school','city','rain']},{n:'Skirt',t:['school','party','city']},{n:'Shorts',t:['beach','sport']},{n:'Leggings',t:['sport','winter']},{n:'Long skirt',t:['ball','city']},{n:'Joggers',t:['sport']},{n:'Space suit',t:['space']},{n:'Snow pants',t:['winter']}],
+  dress:[{n:'No dress',t:[]},{n:'Sundress',t:['beach','party']},{n:'Ball gown',t:['ball']},{n:'Party dress',t:['party']},{n:'Pinafore',t:['school']},{n:'Knit dress',t:['winter','city']}],
+  shoes:[{n:'Trainers',t:['sport','school','city']},{n:'Boots',t:['winter','rain','city']},{n:'Sandals',t:['beach']},{n:'Heels',t:['ball','party']},{n:'Wellies',t:['rain']},{n:'Moon boots',t:['space','winter']},{n:'Flats',t:['school','ball']}],
+  hat:[{n:'No hat',t:[]},{n:'Sun hat',t:['beach']},{n:'Beanie',t:['winter','rain']},{n:'Cap',t:['sport','school']},{n:'Tiara',t:['ball','party']},{n:'Space helmet',t:['space']},{n:'Umbrella',t:['rain']}],
+  extra:[{n:'Nothing',t:[]},{n:'Glasses',t:['school','city']},{n:'Sunglasses',t:['beach','party']},{n:'Necklace',t:['ball','party','city']},{n:'Scarf',t:['winter','rain']},{n:'Backpack',t:['school','sport']},{n:'Handbag',t:['city','party']},{n:'Star badge',t:['space','sport']}]};
+const SKINS=['#fbe0cc','#f0c8a8','#d9a57c','#b07c54','#8a5a3a','#5a3a26'];const HAIRC=['#2a1a10','#5a3a1a','#b07040','#e8c070','#f5f0e0','#d04040','#ff8fd0','#8a60d0','#40a0d0','#3a3a5a'];
+const PALETTE=['#ff8fd0','#ff5a7a','#ff9a4a','#ffe070','#9ae0b0','#40c080','#60c0ff','#4060e0','#a070e0','#f0f0f0','#2a2a3a','#8a5a3a'];
+const THEMES=[{k:'beach',n:'Beach Day',d:'Sun, sand and sea'},{k:'winter',n:'Winter Walk',d:'Snow on the hills'},{k:'ball',n:'Royal Ball',d:'An invitation from the palace'},{k:'school',n:'First Day of School',d:'Smart and comfy'},{k:'party',n:'Birthday Party',d:'Cake, music and dancing'},{k:'sport',n:'Sports Day',d:'Ready to run'},{k:'rain',n:'Rainy Day',d:'Puddles everywhere'},{k:'space',n:'Space Camp',d:'Three, two, one...'},{k:'city',n:'City Weekend',d:'Shops, cafés and a museum'}];
+const SCENES={studio:['#ffe6f6','#f2d0ea'],beach:['#9ad8ff','#f4e2b0'],winter:['#dde8f8','#f5f8ff'],ball:['#3a1a5a','#6a2a8a'],school:['#e8f0d0','#c8d8a0'],party:['#ffd6e8','#ffbfd6'],sport:['#c8f0d8','#8ad0a0'],rain:['#8a98b0','#b8c0d0'],space:['#0a0820','#1a1440'],city:['#d8d8e8','#a8a8c0']};
+let L=null,coins=0,mode='free',challenge=null,looks=[];
+function newLook(){return {skin:2,hairc:1,hair:0,top:0,topc:'#ff8fd0',bottom:0,bottomc:'#4060e0',dress:0,dressc:'#a070e0',shoes:0,shoesc:'#f0f0f0',hat:0,hatc:'#ffe070',extra:0,extrac:'#ff5a7a',scene:'studio'}}
+function save(){try{localStorage.setItem('is_style',JSON.stringify({coins,looks,L}))}catch(e){}}
+function load(){try{const s=JSON.parse(localStorage.getItem('is_style'));if(s&&s.L){coins=s.coins||0;looks=s.looks||[];return s.L}}catch(e){}return null}
+/* ---- controls ---- */
+function controls(){const c=$('controls');let h='';const sel=(k,label,colorKey)=>{const list=PARTS[k];h+='<div class="lbl"><span>'+label+'</span>'+(colorKey?'<input type="color" data-c="'+colorKey+'" value="'+L[colorKey]+'">':'')+'</div><div class="row">'+list.map((p,i)=>'<button class="btn'+(L[k]===i?' on':'')+'" data-k="'+k+'" data-i="'+i+'">'+p.n.toUpperCase()+'</button>').join('')+'</div>'};
+  h+='<div class="lbl"><span>SKIN</span></div><div class="pal">'+SKINS.map((s,i)=>'<i style="background:'+s+(L.skin===i?';outline:2px solid #ff8fd0':'')+'" data-skin="'+i+'"></i>').join('')+'</div>';
+  h+='<div class="lbl"><span>HAIR COLOUR</span></div><div class="pal">'+HAIRC.map((s,i)=>'<i style="background:'+s+(L.hairc===i?';outline:2px solid #ff8fd0':'')+'" data-hairc="'+i+'"></i>').join('')+'</div>';
+  sel('hair','HAIRSTYLE');sel('dress','DRESS','dressc');sel('top','TOP','topc');sel('bottom','BOTTOM','bottomc');sel('shoes','SHOES','shoesc');sel('hat','HAT','hatc');sel('extra','ACCESSORY','extrac');
+  h+='<div class="lbl"><span>QUICK COLOURS (click a part first)</span></div><div class="pal">'+PALETTE.map(s=>'<i style="background:'+s+'" data-pal="'+s+'"></i>').join('')+'</div>';
+  h+='<div class="lbl"><span>BACKDROP</span></div><div class="row">'+Object.keys(SCENES).map(k=>'<button class="btn'+(L.scene===k?' on':'')+'" data-scene="'+k+'">'+k.toUpperCase()+'</button>').join('')+'</div>';
+  c.innerHTML=h;
+  for(const b of c.querySelectorAll('button[data-k]'))b.onclick=()=>{L[b.dataset.k]=+b.dataset.i;lastPart=b.dataset.k+'c';if(b.dataset.k==='hair')lastPart=null;controls();save()};
+  for(const b of c.querySelectorAll('button[data-scene]'))b.onclick=()=>{L.scene=b.dataset.scene;controls();save()};
+  for(const i of c.querySelectorAll('i[data-skin]'))i.onclick=()=>{L.skin=+i.dataset.skin;controls();save()};for(const i of c.querySelectorAll('i[data-hairc]'))i.onclick=()=>{L.hairc=+i.dataset.hairc;controls();save()};
+  for(const inp of c.querySelectorAll('input[data-c]'))inp.oninput=()=>{L[inp.dataset.c]=inp.value;lastPart=inp.dataset.c;save()};
+  for(const i of c.querySelectorAll('i[data-pal]'))i.onclick=()=>{if(lastPart&&L[lastPart]!==undefined){L[lastPart]=i.dataset.pal;controls();save()}}}
+let lastPart='topc';
+function randomLook(){const l=L;l.skin=ri(0,SKINS.length-1);l.hairc=ri(0,HAIRC.length-1);for(const k of ['hair','top','bottom','dress','shoes','hat','extra'])l[k]=ri(0,PARTS[k].length-1);if(Math.random()<0.6)l.dress=0;for(const k of ['topc','bottomc','dressc','shoesc','hatc','extrac'])l[k]=pick(PALETTE);controls();save()}
+/* ---- challenge scoring ---- */
+function hexToHsl(h){const n=parseInt(h.slice(1),16);const r=((n>>16)&255)/255,g=((n>>8)&255)/255,b=(n&255)/255;const mx=Math.max(r,g,b),mn=Math.min(r,g,b);let hh=0,s=0;const l=(mx+mn)/2;if(mx!==mn){const d=mx-mn;s=l>0.5?d/(2-mx-mn):d/(mx+mn);hh=mx===r?((g-b)/d+(g<b?6:0)):mx===g?((b-r)/d+2):((r-g)/d+4);hh*=60}return [hh,s,l]}
+function scoreLook(theme){let pts=0;const notes=[];const parts=[['hair','Hair'],['shoes','Shoes'],['hat','Hat'],['extra','Accessory']];if(L.dress>0)parts.push(['dress','Dress']);else parts.push(['top','Top'],['bottom','Bottom']);
+  for(const [k,label] of parts){const p=PARTS[k][L[k]];if(p.t.includes(theme)){pts+=2;notes.push(label+' fits')}else if(p.t.length===0){pts+=0}else{pts-=1}}
+  // colour harmony across the worn colours
+  const cols=(L.dress>0?[L.dressc]:[L.topc,L.bottomc]).concat([L.shoesc]).map(hexToHsl);let harm=0;for(let i=0;i<cols.length;i++)for(let j=i+1;j<cols.length;j++){const d=Math.abs(cols[i][0]-cols[j][0]);const dd=Math.min(d,360-d);if(dd<35||Math.abs(dd-180)<25||cols[i][1]<0.15||cols[j][1]<0.15)harm++}
+  if(harm>=2){pts+=2;notes.push('Colours go together')}else if(harm===1){pts+=1;notes.push('Colours nearly match')}
+  if(L.scene===theme){pts+=1;notes.push('Matching backdrop')}
+  return {pts,notes}}
+function startChallenge(){challenge=pick(THEMES);mode='challenge';$('sMode').textContent='Runway: '+challenge.n;renderPanel()}
+function judge(){const {pts,notes}=scoreLook(challenge.k);const stars=pts>=12?3:pts>=8?2:pts>=4?1:0;coins+=stars*5;$('sCoins').textContent=coins+' ★';save();
+  show('<h3>'+challenge.n.toUpperCase()+'</h3><p>The judges look over your outfit. <b>'+'★'.repeat(stars)+'☆'.repeat(3-stars)+'</b> ('+pts+' points)</p><p>'+(notes.length?notes.join(' · '):'Nothing suited the theme.')+'</p><p>'+(stars===3?'A showstopper! The crowd loves it.':stars===2?'Lovely. One more matching piece would make it perfect.':stars===1?'A start. Think about what the theme needs: shoes, hat and layers all count.':'Back to the wardrobe. Pick pieces made for '+challenge.n.toLowerCase()+'.')+'</p><div class="row"><button class="btn on" id="again">NEW THEME</button><button class="btn" id="ok">KEEP STYLING</button></div>');$('again').onclick=()=>{hide();startChallenge()}}
+function renderPanel(){const p=$('panel');if(mode==='challenge'){p.innerHTML='<h4>RUNWAY CHALLENGE</h4><p><b>'+challenge.n+'</b> — '+challenge.d+'. Dress for the theme: every piece that suits it scores, colours that go together score, and a matching backdrop adds a bonus. Three stars earns 15 ★.</p><div class="row"><button class="btn on" id="judge">WALK THE RUNWAY</button><button class="btn" id="quit">BACK TO FREE DESIGN</button></div>';$('judge').onclick=judge;$('quit').onclick=()=>{mode='free';challenge=null;$('sMode').textContent='Free design';renderPanel()}}
+  else p.innerHTML='<h4>FREE DESIGN</h4><p>Mix and match every piece and colour you like. Click a piece then a quick colour to recolour it, or use the colour pickers. Save your favourite looks, download them as pictures, or try a runway challenge for stars.</p>'}
+function looksScreen(){let h='<h3>MY LOOKS</h3>';if(!looks.length)h+='<p>No saved looks yet. Press SAVE LOOK to keep the one you are wearing.</p>';looks.forEach((l,i)=>{h+='<div class="row" style="margin-bottom:6px"><button class="btn" data-w="'+i+'">'+l.name.toUpperCase()+'</button><button class="btn" data-d="'+i+'" style="flex:0 0 70px">DELETE</button></div>'});h+='<button class="btn" id="ok">CLOSE</button>';show(h);for(const b of document.querySelectorAll('button[data-w]'))b.onclick=()=>{L=Object.assign(newLook(),looks[+b.dataset.w].look);controls();hide();save()};for(const b of document.querySelectorAll('button[data-d]'))b.onclick=()=>{looks.splice(+b.dataset.d,1);save();looksScreen()}}
+function saveLook(){const name=prompt('Name this look:','Look '+(looks.length+1));if(name===null)return;looks.push({name:(name||'Look').slice(0,20),look:JSON.parse(JSON.stringify(L))});save();show('<h3>SAVED</h3><p>'+(name||'Look')+' is in My Looks.</p><button class="btn" id="ok">OK</button>')}
+function download(){const a=document.createElement('a');a.download='iron-style-look.png';a.href=cv.toDataURL('image/png');a.click()}
+function show(html){return new Promise(res=>{$('overlay').innerHTML='<div class="modal">'+html+'</div>';$('overlay').classList.add('on');const b=$('ok');if(b)b.onclick=()=>{hide();res()}})}
+function hide(){$('overlay').classList.remove('on');$('overlay').innerHTML=''}
+/* ---- drawing ---- */
+const cv=$('c'),ctx=cv.getContext('2d');let W=800,H=450;
+function resize(){const r=cv.getBoundingClientRect();W=Math.max(300,Math.floor(r.width));H=Math.max(200,Math.floor(r.height));cv.width=W;cv.height=H}addEventListener('resize',resize);resize();
+function shade(hex,f){const n=parseInt(hex.slice(1),16);const r=Math.min(255,Math.round(((n>>16)&255)*f)),g=Math.min(255,Math.round(((n>>8)&255)*f)),b=Math.min(255,Math.round((n&255)*f));return 'rgb('+r+','+g+','+b+')'}
+function draw(){const t=performance.now()/1000;const sc=SCENES[L?L.scene:'studio'];const g=ctx.createLinearGradient(0,0,0,H);g.addColorStop(0,sc[0]);g.addColorStop(1,sc[1]);ctx.fillStyle=g;ctx.fillRect(0,0,W,H);
+  if(!L)return;const s=L.scene;
+  if(s==='beach'){ctx.fillStyle='#4aa8e0';ctx.fillRect(0,H*0.55,W,H*0.15);ctx.fillStyle='#f4e2b0';ctx.fillRect(0,H*0.7,W,H);ctx.fillStyle='#ffe070';ctx.beginPath();ctx.arc(W*0.8,H*0.18,40,0,7);ctx.fill()}
+  else if(s==='winter'){ctx.fillStyle='#fff';ctx.fillRect(0,H*0.7,W,H);ctx.fillStyle='rgba(255,255,255,0.9)';for(let i=0;i<60;i++)ctx.fillRect((i*73)%W,(i*41+t*30)%H,3,3);ctx.fillStyle='#3a6a3a';for(const x of [W*0.1,W*0.85]){ctx.beginPath();ctx.moveTo(x-40,H*0.7);ctx.lineTo(x,H*0.3);ctx.lineTo(x+40,H*0.7);ctx.fill()}}
+  else if(s==='ball'){ctx.fillStyle='#8a2a6a';ctx.fillRect(0,H*0.7,W,H);ctx.fillStyle='#ffd27a';for(let i=0;i<7;i++){ctx.beginPath();ctx.arc(W*0.15+i*W*0.12,H*0.12,10+Math.sin(t*2+i)*2,0,7);ctx.fill()}ctx.strokeStyle='#ffd27a';ctx.lineWidth=2;ctx.strokeRect(W*0.08,H*0.25,W*0.2,H*0.4);ctx.strokeRect(W*0.72,H*0.25,W*0.2,H*0.4)}
+  else if(s==='school'){ctx.fillStyle='#c8a070';ctx.fillRect(0,H*0.7,W,H);ctx.fillStyle='#2a5a3a';ctx.fillRect(W*0.1,H*0.15,W*0.3,H*0.3);ctx.fillStyle='#fff';ctx.font='bold 20px Oswald, sans-serif';ctx.fillText('A B C',W*0.14,H*0.3)}
+  else if(s==='party'){ctx.fillStyle='#ffe0f0';ctx.fillRect(0,H*0.7,W,H);for(let i=0;i<8;i++){ctx.fillStyle=['#ff5a7a','#60c0ff','#ffe070','#9ae0b0'][i%4];ctx.beginPath();ctx.ellipse(W*0.1+i*W*0.11,H*0.15+Math.sin(t+i)*10,16,20,0,0,7);ctx.fill()}}
+  else if(s==='sport'){ctx.fillStyle='#d04030';ctx.fillRect(0,H*0.7,W,H);ctx.fillStyle='#fff';for(let i=0;i<5;i++)ctx.fillRect(0,H*0.72+i*22,W,2)}
+  else if(s==='rain'){ctx.fillStyle='#6a7080';ctx.fillRect(0,H*0.7,W,H);ctx.strokeStyle='rgba(220,230,255,0.6)';ctx.lineWidth=1;for(let i=0;i<80;i++){const x=(i*61)%W,y=(i*37+t*400)%H;ctx.beginPath();ctx.moveTo(x,y);ctx.lineTo(x-2,y+12);ctx.stroke()}}
+  else if(s==='space'){ctx.fillStyle='#fff';for(let i=0;i<90;i++)ctx.fillRect((i*197)%W,(i*131)%H,i%9?1:2,i%9?1:2);ctx.fillStyle='#8a8a9a';ctx.fillRect(0,H*0.72,W,H);ctx.fillStyle='#60c0ff';ctx.beginPath();ctx.arc(W*0.82,H*0.2,36,0,7);ctx.fill();ctx.fillStyle='#40a060';ctx.beginPath();ctx.arc(W*0.8,H*0.18,14,0,7);ctx.fill()}
+  else if(s==='city'){ctx.fillStyle='#707090';for(let i=0;i<10;i++){const h=H*(0.25+((i*37)%30)/100);ctx.fillRect(i*W/10,H*0.7-h,W/10-6,h);ctx.fillStyle='#ffe9a0';for(let k=0;k<6;k++)ctx.fillRect(i*W/10+8,H*0.7-h+10+k*18,8,10);ctx.fillStyle='#707090'}ctx.fillStyle='#50506a';ctx.fillRect(0,H*0.7,W,H)}
+  else{ctx.fillStyle='#e8d0e8';ctx.fillRect(0,H*0.72,W,H);ctx.fillStyle='rgba(255,255,255,0.5)';ctx.beginPath();ctx.ellipse(W/2,H*0.76,160,22,0,0,7);ctx.fill()}
+  drawFigure(W/2,H*0.84,Math.min(H*0.0024,W*0.0022))}
+function drawFigure(cx,groundY,sc){const l=L;const skin=SKINS[l.skin],hairc=HAIRC[l.hairc];ctx.save();ctx.translate(cx,groundY);ctx.scale(sc,sc);
+  const U=sc;const dress=l.dress>0;ctx.fillStyle='rgba(0,0,0,0.2)';ctx.beginPath();ctx.ellipse(0,4,70,10,0,0,7);ctx.fill();
+  // legs
+  ctx.fillStyle=skin;ctx.fillRect(-22,-110,18,110);ctx.fillRect(4,-110,18,110);
+  // bottom
+  const bn=PARTS.bottom[l.bottom].n,bc=l.bottomc;ctx.fillStyle=bc;if(!dress){if(bn==='Jeans'||bn==='Joggers'||bn==='Snow pants'||bn==='Space suit'){ctx.fillRect(-26,-120,22,bn==='Snow pants'?110:112);ctx.fillRect(4,-120,22,bn==='Snow pants'?110:112);if(bn==='Joggers'){ctx.fillStyle='#fff';ctx.fillRect(-24,-120,3,110);ctx.fillRect(23,-120,3,110)}if(bn==='Snow pants'){ctx.fillStyle=shade(bc,1.3);ctx.fillRect(-26,-60,22,8);ctx.fillRect(4,-60,22,8)}if(bn==='Space suit'){ctx.fillStyle='#d0d0e0';ctx.fillRect(-26,-70,52,10);ctx.fillRect(-26,-20,52,10)}}
+    else if(bn==='Leggings'){ctx.fillRect(-23,-120,19,112);ctx.fillRect(4,-120,19,112)}else if(bn==='Shorts'){ctx.fillRect(-28,-120,56,40)}else if(bn==='Skirt'){ctx.beginPath();ctx.moveTo(-26,-120);ctx.lineTo(26,-120);ctx.lineTo(40,-60);ctx.lineTo(-40,-60);ctx.fill()}else if(bn==='Long skirt'){ctx.beginPath();ctx.moveTo(-26,-120);ctx.lineTo(26,-120);ctx.lineTo(48,-4);ctx.lineTo(-48,-4);ctx.fill()}}
+  // torso / top
+  const tn=PARTS.top[l.top].n,tc=l.topc;if(!dress){ctx.fillStyle=tc;ctx.fillRect(-30,-215,60,100);if(tn==='Crop top')ctx.fillStyle=skin,ctx.fillRect(-30,-140,60,25);const sleeves=['Hoodie','Jumper','Puffer jacket','Raincoat','Space suit top','Blouse'].includes(tn);ctx.fillStyle=sleeves?tc:skin;ctx.fillRect(-52,-210,22,sleeves?80:40);ctx.fillRect(30,-210,22,sleeves?80:40);ctx.fillStyle=skin;ctx.fillRect(-52,-135,22,30);ctx.fillRect(30,-135,22,30);
+    if(tn==='Hoodie'){ctx.fillStyle=shade(tc,0.8);ctx.fillRect(-30,-215,60,14);ctx.fillRect(-14,-200,28,30)}if(tn==='Puffer jacket'){ctx.fillStyle=shade(tc,0.85);for(let y=-205;y<-120;y+=18)ctx.fillRect(-30,y,60,3)}if(tn==='Jersey'){ctx.fillStyle='#fff';ctx.font='bold 40px Oswald, sans-serif';ctx.textAlign='center';ctx.fillText('7',0,-150)}if(tn==='Space suit top'){ctx.fillStyle='#d0d0e0';ctx.fillRect(-30,-215,60,10);ctx.fillRect(-10,-180,20,30)}if(tn==='Raincoat'){ctx.fillStyle=shade(tc,0.8);ctx.fillRect(-2,-215,4,100);ctx.fillRect(-30,-215,60,6)}if(tn==='Blouse'){ctx.fillStyle='#fff';ctx.beginPath();ctx.moveTo(-10,-215);ctx.lineTo(0,-200);ctx.lineTo(10,-215);ctx.fill()}}
+  else{const dn=PARTS.dress[l.dress].n,dc=l.dressc;ctx.fillStyle=dc;if(dn==='Ball gown'){ctx.beginPath();ctx.moveTo(-30,-215);ctx.lineTo(30,-215);ctx.lineTo(34,-130);ctx.lineTo(110,-4);ctx.lineTo(-110,-4);ctx.lineTo(-34,-130);ctx.fill();ctx.fillStyle=shade(dc,1.25);for(let i=0;i<5;i++){ctx.beginPath();ctx.moveTo(-80+i*40,-4);ctx.lineTo(-60+i*40,-60);ctx.lineTo(-40+i*40,-4);ctx.fill()}}
+    else if(dn==='Sundress'||dn==='Party dress'){ctx.beginPath();ctx.moveTo(-28,-215);ctx.lineTo(28,-215);ctx.lineTo(34,-130);ctx.lineTo(60,-50);ctx.lineTo(-60,-50);ctx.lineTo(-34,-130);ctx.fill();if(dn==='Party dress'){ctx.fillStyle='rgba(255,255,255,0.6)';for(let i=0;i<14;i++)ctx.fillRect(-50+(i*37)%100,-200+(i*53)%140,4,4)}else{ctx.fillStyle='rgba(255,255,255,0.5)';for(let i=0;i<8;i++){ctx.beginPath();ctx.arc(-40+(i*29)%80,-180+(i*47)%120,6,0,7);ctx.fill()}}}
+    else if(dn==='Pinafore'){ctx.fillStyle='#fff';ctx.fillRect(-30,-215,60,100);ctx.fillStyle=dc;ctx.fillRect(-26,-200,52,85);ctx.fillRect(-20,-215,8,30);ctx.fillRect(12,-215,8,30);ctx.beginPath();ctx.moveTo(-26,-120);ctx.lineTo(26,-120);ctx.lineTo(44,-60);ctx.lineTo(-44,-60);ctx.fill();ctx.fillStyle='#fff';ctx.fillRect(-52,-210,22,40);ctx.fillRect(30,-210,22,40)}
+    else{ctx.fillRect(-30,-215,60,100);ctx.beginPath();ctx.moveTo(-30,-120);ctx.lineTo(30,-120);ctx.lineTo(40,-40);ctx.lineTo(-40,-40);ctx.fill();ctx.fillStyle=dc;ctx.fillRect(-52,-210,22,80);ctx.fillRect(30,-210,22,80);ctx.fillStyle=shade(dc,0.85);for(let y=-200;y<-50;y+=16)ctx.fillRect(-30,y,60,2)}
+    if(dn!=='Knit dress'&&dn!=='Pinafore'){ctx.fillStyle=skin;ctx.fillRect(-52,-210,22,70);ctx.fillRect(30,-210,22,70)}else{ctx.fillStyle=skin;ctx.fillRect(-52,-135,22,30);ctx.fillRect(30,-135,22,30)}}
+  // shoes
+  const sn=PARTS.shoes[l.shoes].n,shc=l.shoesc;ctx.fillStyle=shc;if(sn==='Boots'||sn==='Wellies'||sn==='Moon boots'){ctx.fillRect(-26,-50,26,50);ctx.fillRect(2,-50,26,50);if(sn==='Moon boots'){ctx.fillStyle='#fff';ctx.fillRect(-26,-30,26,6);ctx.fillRect(2,-30,26,6)}}else if(sn==='Heels'){ctx.fillRect(-26,-14,24,14);ctx.fillRect(4,-14,24,14);ctx.fillRect(-24,-14,4,14)}else{ctx.fillRect(-26,-16,26,16);ctx.fillRect(2,-16,26,16);if(sn==='Trainers'){ctx.fillStyle='#fff';ctx.fillRect(-26,-6,26,4);ctx.fillRect(2,-6,26,4)}}
+  // head
+  ctx.fillStyle=skin;ctx.fillRect(-10,-235,20,26);ctx.beginPath();ctx.arc(0,-262,36,0,7);ctx.fill();
+  // hair
+  const hn=PARTS.hair[l.hair].n;ctx.fillStyle=hairc;ctx.beginPath();ctx.arc(0,-268,38,Math.PI,0);ctx.fill();
+  if(hn==='Long'){ctx.fillRect(-38,-268,14,120);ctx.fillRect(24,-268,14,120)}else if(hn==='Bob'){ctx.fillRect(-38,-268,12,50);ctx.fillRect(26,-268,12,50)}else if(hn==='Ponytail'){ctx.beginPath();ctx.ellipse(40,-240,12,40,0.3,0,7);ctx.fill()}else if(hn==='Curls'){for(let i=0;i<8;i++){ctx.beginPath();ctx.arc(-40+i*11.5,-250+(i%2)*14,12,0,7);ctx.fill()}ctx.beginPath();ctx.arc(-40,-215,12,0,7);ctx.arc(40,-215,12,0,7);ctx.fill()}else if(hn==='Bun'){ctx.beginPath();ctx.arc(0,-305,18,0,7);ctx.fill()}else if(hn==='Braids'){for(const x of [-36,36]){for(let k=0;k<5;k++){ctx.beginPath();ctx.ellipse(x,-250+k*22,9,13,0,0,7);ctx.fill()}}}else if(hn==='Pigtails'){for(const x of [-44,44]){ctx.beginPath();ctx.ellipse(x,-250,10,30,0,0,7);ctx.fill();ctx.fillStyle='#ff5a7a';ctx.beginPath();ctx.arc(x,-272,6,0,7);ctx.fill();ctx.fillStyle=hairc}}
+  // face
+  ctx.fillStyle='#2a1a1a';ctx.beginPath();ctx.arc(-12,-262,4,0,7);ctx.arc(12,-262,4,0,7);ctx.fill();ctx.strokeStyle='#c04060';ctx.lineWidth=2;ctx.beginPath();ctx.arc(0,-250,8,0.2,Math.PI-0.2);ctx.stroke();ctx.fillStyle='rgba(255,120,150,0.35)';ctx.beginPath();ctx.arc(-20,-250,6,0,7);ctx.arc(20,-250,6,0,7);ctx.fill();
+  // hat
+  const han=PARTS.hat[l.hat].n,hc=l.hatc;ctx.fillStyle=hc;if(han==='Sun hat'){ctx.fillRect(-60,-290,120,8);ctx.fillRect(-30,-320,60,32)}else if(han==='Beanie'){ctx.beginPath();ctx.arc(0,-280,38,Math.PI,0);ctx.fill();ctx.fillRect(-38,-284,76,10);ctx.beginPath();ctx.arc(0,-318,8,0,7);ctx.fill()}else if(han==='Cap'){ctx.beginPath();ctx.arc(0,-280,36,Math.PI,0);ctx.fill();ctx.fillRect(-10,-284,60,8)}else if(han==='Tiara'){ctx.fillStyle='#ffd27a';for(let i=0;i<5;i++){ctx.beginPath();ctx.moveTo(-28+i*14,-290);ctx.lineTo(-21+i*14,-312-(i===2?8:0));ctx.lineTo(-14+i*14,-290);ctx.fill()}ctx.fillStyle='#60c0ff';ctx.beginPath();ctx.arc(0,-306,4,0,7);ctx.fill()}else if(han==='Space helmet'){ctx.fillStyle='rgba(160,220,255,0.35)';ctx.beginPath();ctx.arc(0,-262,48,0,7);ctx.fill();ctx.strokeStyle='#d0d0e0';ctx.lineWidth=4;ctx.beginPath();ctx.arc(0,-262,48,0,7);ctx.stroke()}else if(han==='Umbrella'){ctx.fillStyle=hc;ctx.beginPath();ctx.arc(60,-300,70,Math.PI,0);ctx.fill();ctx.fillStyle='#5a3a2a';ctx.fillRect(58,-300,4,150)}
+  // accessory
+  const en=PARTS.extra[l.extra].n,ec=l.extrac;ctx.fillStyle=ec;if(en==='Glasses'||en==='Sunglasses'){ctx.strokeStyle=en==='Glasses'?'#2a2a3a':ec;ctx.lineWidth=3;ctx.beginPath();ctx.arc(-12,-262,10,0,7);ctx.moveTo(22,-262);ctx.arc(12,-262,10,0,7);ctx.stroke();if(en==='Sunglasses'){ctx.fillStyle='#2a2a3a';ctx.beginPath();ctx.arc(-12,-262,9,0,7);ctx.arc(12,-262,9,0,7);ctx.fill()}}else if(en==='Necklace'){ctx.strokeStyle='#ffd27a';ctx.lineWidth=2;ctx.beginPath();ctx.arc(0,-225,16,0.2,Math.PI-0.2);ctx.stroke();ctx.fillStyle=ec;ctx.beginPath();ctx.arc(0,-208,6,0,7);ctx.fill()}else if(en==='Scarf'){ctx.fillRect(-26,-222,52,16);ctx.fillRect(10,-215,14,50)}else if(en==='Backpack'){ctx.fillRect(-56,-205,16,70);ctx.fillRect(44,-205,12,70)}else if(en==='Handbag'){ctx.fillRect(40,-130,30,28);ctx.strokeStyle=ec;ctx.lineWidth=3;ctx.beginPath();ctx.moveTo(44,-130);ctx.lineTo(44,-190);ctx.stroke()}else if(en==='Star badge'){ctx.fillStyle='#ffd27a';ctx.beginPath();for(let i=0;i<10;i++){const r=i%2?4:9,a=i*Math.PI/5-Math.PI/2;ctx.lineTo(-16+Math.cos(a)*r,-195+Math.sin(a)*r)}ctx.closePath();ctx.fill()}
+  ctx.restore()}
+function frame(){requestAnimationFrame(frame);draw()}
+$('bRandom').onclick=randomLook;$('bChallenge').onclick=startChallenge;$('bSave').onclick=saveLook;$('bLooks').onclick=looksScreen;$('bDownload').onclick=download;
+function titleScreen(){const saved=load();$('overlay').innerHTML='<div class="modal title"><h1>IRON STYLE</h1><div class="tag">YOUR OWN FASHION STUDIO</div><p>Choose a skin tone, hair, tops, bottoms, dresses, shoes, hats and accessories in any colour you like, pose in nine backdrops, and save or download your looks. Try the runway challenges: dress for Beach Day, Royal Ball, Space Camp and more to earn stars.</p><button class="btn on" id="go">'+(saved?'OPEN THE STUDIO':'START DESIGNING')+'</button></div>';$('overlay').classList.add('on');
+  $('go').onclick=()=>{L=saved||newLook();hide();controls();renderPanel();$('sCoins').textContent=coins+' ★'}}
+titleScreen();requestAnimationFrame(frame);
+</script>
+</body>
+</html>

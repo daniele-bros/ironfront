@@ -1,0 +1,10 @@
+{
+  "name": "Iron Games",
+  "short_name": "Iron Games",
+  "description": "Free browser games by Daniele Bros.",
+  "start_url": "/",
+  "display": "browser",
+  "background_color": "#080a05",
+  "theme_color": "#080a05",
+  "icons": [{"src": "/favicon.svg", "sizes": "any", "type": "image/svg+xml"}]
+}
