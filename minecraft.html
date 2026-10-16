@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="ironcraft-build" content="20261015-192642">
+<meta name="ironcraft-build" content="20261016-134433">
 <meta name="viewport" content="width=device-width,initial-scale=1.0,viewport-fit=cover">
 <title>Ironcraft – Free Voxel Survival Sandbox in Your Browser | Iron Games</title>
 <meta name="description" content="Ironcraft is a free browser-based voxel survival sandbox with building, exploration, private or safety-limited public multiplayer, and optional weather, horror and survival challenges. By Daniele Bros.">
@@ -297,6 +297,15 @@ label.lb{font-size:13px;color:#a0a0a0;align-self:flex-start;margin-left:calc(50%
   </div>
   <div class="grid" id="furnMain" style="margin-top:8px"></div>
   <div class="grid" id="furnHot" style="margin-top:6px"></div>
+</div></div>
+
+<div id="hopperGui" class="gui"><div class="panel">
+  <h3>Hopper</h3>
+  <div class="grid" id="hopperGrid"></div>
+  <div class="hint" style="font-size:11px;margin-top:4px">Pulls from the chest, furnace or hopper above it and from items dropped on top, and feeds the block its spout points at: down, or sideways into the block you clicked when placing it.</div>
+  <h3 style="margin-top:8px">Inventory</h3>
+  <div class="grid" id="hopperMain"></div>
+  <div class="grid" id="hopperHot" style="margin-top:6px"></div>
 </div></div>
 
 <div id="chestGui" class="gui"><div class="panel">
@@ -622,6 +631,9 @@ defTex('lapis_ore',p=>ore(p,[30,70,200]));
 defTex('copper_ore',p=>ore(p,[210,120,80]));
 defTex('emerald_ore',p=>ore(p,[40,220,90],4));
 defTex('gold_block',p=>{p.noise(250,220,60,8);p.rect(1,1,14,14,255,236,90);p.speckle(10,240,200,50)});
+defTex('hopper_top',p=>{p.noise(70,70,74,6);p.rect(2,2,12,12,30,30,32);p.shadeRect(0,0,16,1,1.25);p.shadeRect(0,0,1,16,1.25)});
+defTex('hopper_side',p=>{p.noise(78,78,82,6);p.rect(0,6,16,10,52,52,56);p.rect(4,6,8,10,66,66,70);p.shadeRect(0,0,16,1,1.3);p.shadeRect(0,5,16,1,0.7)});
+defTex('hopper_bottom',p=>{p.noise(60,60,64,5);p.rect(5,5,6,6,38,38,40)});
 defTex('iron_block',p=>{p.noise(225,225,225,6);p.rect(1,1,14,14,240,240,240);p.shadeRect(0,15,16,1,0.8);p.shadeRect(15,0,1,16,0.8)});
 defTex('diamond_block',p=>{p.noise(100,235,225,10);p.rect(1,1,14,14,120,245,235);p.speckle(8,200,255,250)});
 defTex('lapis_block',p=>{p.noise(30,70,200,14);p.speckle(12,60,100,230)});
@@ -999,6 +1011,7 @@ defBlock(140,'blackstone',{tex:'blackstone',hard:1.5,tool:'pickaxe',needsTool:tr
 defBlock(141,'polished_blackstone_bricks',{label:'Polished Blackstone Bricks',tex:'blackstone_bricks',hard:1.5,tool:'pickaxe',needsTool:true,resist:6,sound:'stone'});
 defBlock(145,'leaf_door',{label:'Leaf Door',tex:{side:'leaf_door_bottom',top:'leaf_door_top'},model:'door',solid:true,hard:0.4,sound:'grass',transparent:true,door:true,leaves:true,stack:64,iconPal:['door',{p:[30,60,20],d:[58,118,32],w:[150,210,110],k:[90,70,40]}]});
 defBlock(146,'grass_pressure_plate',{label:'Grass Pressure Plate',tex:'grass_top',model:'plate',solid:false,hard:0.3,sound:'grass',transparent:true,plate:true});
+defBlock(147,'hopper',{label:'Hopper',tex:{side:'hopper_side',top:'hopper_top',bottom:'hopper_bottom'},model:'hopper',hard:3,tool:'pickaxe',needsTool:true,sound:'stone',transparent:true,gui:'hopper'});
 defBlock(144,'hay_bale',{label:'Hay Bale',tex:{side:'hay_side',top:'hay_top'},hard:0.5,sound:'grass',fuel:5});
 defBlock(143,'uncrafting_table',{label:'Uncrafting Table',tex:{side:'uncraft_side',top:'uncraft_top',bottom:'oak_planks'},hard:2.5,tool:'axe',sound:'wood',fuel:15,gui:'uncraft'});
 defBlock(142,'gilded_blackstone',{label:'Gilded Blackstone',tex:'gilded_blackstone',hard:1.5,tool:'pickaxe',needsTool:true,resist:6,sound:'stone',drop:r=>r()<0.1?[[262,2+floor(r()*4)]]:[[142,1]]});
@@ -1271,7 +1284,7 @@ function buildIcons(){
     let flat=null; // [rows,pal] or tile index
     if(def.isBlock){
       const m=def.model;
-      if(m==='cube'||m==='chest'||m==='cactus'||m==='farmland'||m==='liquid'||m==='table'||m==='anvil'||m==='egg'||m==='endportal'||m==='skull'||m==='rod'){drawIsoCube(ctx,def.faces[2],def.faces[5],def.front!==undefined?def.front:def.faces[0])}
+      if(m==='cube'||m==='chest'||m==='hopper'||m==='cactus'||m==='farmland'||m==='liquid'||m==='table'||m==='anvil'||m==='egg'||m==='endportal'||m==='skull'||m==='rod'){drawIsoCube(ctx,def.faces[2],def.faces[5],def.front!==undefined?def.front:def.faces[0])}
       else if(m==='slab'){ctx.save();ctx.setTransform(14/16,-7/16,14/16,7/16,2,16);ctx.drawImage(tileCanvas(def.faces[2]),0,0);ctx.setTransform(14/16,7/16,0,7.5/16,2,16);ctx.drawImage(shadedTile(def.faces[0],0.72),0,0);ctx.setTransform(14/16,-7/16,0,7.5/16,16,23);ctx.drawImage(shadedTile(def.faces[0],0.55),0,0);ctx.restore()}
       else if(m==='stairs'||m==='fence'||m==='snow'){drawIsoCube(ctx,def.faces[2],def.faces[5],def.faces[0]);if(m==='stairs'){ctx.fillStyle='rgba(0,0,0,.35)';ctx.beginPath();ctx.moveTo(16,2);ctx.lineTo(30,9);ctx.lineTo(23,12.5);ctx.lineTo(9,5.5);ctx.fill()}}
       else if(m==='door'){flat=def.iconPal||ICONDEF.door}
@@ -1341,6 +1354,7 @@ class World{
     c.blocks[i]=id;c.meta[i]=meta;
     if(!opt.gen)c.mods.set(i,id|(meta<<8));if(!opt.gen&&!opt.remote&&MP.active&&!(BLOCKS[id]&&BLOCKS[id].custom))mpSend({t:'b',x,y,z,id,meta});
     if(old===86&&id!==86)this.spawners.delete(x+','+y+','+z);
+    if(id===147&&!c.bents.has(i))c.bents.set(i,{items:new Array(5).fill(null),cd:0}); // a hopper works from the moment it is placed
     if(old!==id&&c.bents.has(i)&&BLOCKS[old].gui){if(!opt.keepEntity){const be=c.bents.get(i);c.bents.delete(i);if(!opt.noDrop&&be&&be.items&&typeof dropInventory==='function')dropInventory(be.items,x,y,z)}}
     if(c.lit){this.updateLightAt(x,y,z,old,id)}
     this.markDirtyAround(x,y,z);
@@ -1677,6 +1691,7 @@ function blockBoxes(id,meta,mode,x,y,z){
       return bx}
     case 'bed':return [[0,0,0,1,0.5625,1]];
     case 'chest':return [[0.0625,0,0.0625,0.9375,0.875,0.9375]];
+    case 'hopper':return [[0,0.625,0,1,1,1],[0.25,0,0.25,0.75,0.625,0.75]];
     case 'cactus':return mode==='c'?[[0.0625,0,0.0625,0.9375,1,0.9375]]:[[0.0625,0,0.0625,0.9375,1,0.9375]];
     case 'snow':return [[0,0,0,1,0.125,1]];
     case 'rail':return mode==='c'?[]:[[0,0,0,1,0.0625,1]];
@@ -1705,6 +1720,8 @@ function renderBoxes(id,meta,x,y,z){
     case 'bed':{const f=meta&3,head=meta&4;const top=head?TEX.bed_top_head:TEX.bed_top_foot;const side=TEX.bed_side;const tiles=[side,side,top,TEX.oak_planks,side,side];
       const bx=[[0,0.1875,0,1,0.5625,1,tiles,(f+2)&3]];const leg=[TEX.oak_planks];const L=all(TEX.oak_planks);
       bx.push([0,0,0,0.1875,0.1875,0.1875,L],[0.8125,0,0,1,0.1875,0.1875,L],[0,0,0.8125,0.1875,0.1875,1,L],[0.8125,0,0.8125,1,0.1875,1,L]);return bx}
+    case 'hopper':{const six=t=>[t,t,t,t,t,t];const rim=[F[0],F[0],F[2],F[3],F[0],F[0]];const out=[[0,0.625,0,1,1,1,rim],[0.25,0.25,0.25,0.75,0.625,0.75,six(F[0])]];
+      if(meta===0)out.push([0.375,0,0.375,0.625,0.25,0.625,six(F[0])]);else out.push(rotBoxT([0.375,0.25,0.75,0.625,0.5,1,six(F[0])],(meta-1)&3));return out}
     case 'chest':{const f=meta&3;const tiles=[F[0],F[0],F[2],F[2],d.front,F[0]];const ff=FACING_TO_FACE[f];const t2=F.slice();t2[ff]=d.front;t2[2]=F[2];t2[3]=F[2];return [[0.0625,0,0.0625,0.9375,0.875,0.9375,t2],rotBoxT([0.4375,0.4375,0.9375,0.5625,0.6875,1,all(TEX.white),0,[80,80,80]],f)]}
     case 'cactus':return [[0.0625,0,0.0625,0.9375,1,0.9375,F,0,null,true]];
     case 'snow':return [[0,0,0,1,0.125,1,F]];
@@ -2995,6 +3012,7 @@ function placeHeldBlock(hd,st,t){
     case 'bed':{const d=FACE_DIR[FACING_TO_FACE[lf]];const hx=px+d[0],hz=pz+d[2];const hb=world.getBlock(hx,py,hz);if(!softBlock(hb)){showMessage('No room for the bed: the block in front of you (where the head goes) must be free');return}if(!BLOCKS[below].solid||!BLOCKS[world.getBlock(hx,py-1,hz)].solid){showMessage('A bed needs solid ground under both halves');return}
       world.setBlock(px,py,pz,62,lf,{silent:true});world.setBlock(hx,py,hz,62,lf|4);consumeHeld();playSoundAt('place_wool',px,py,pz);p.swing=0;return}
     case 'slab':{meta=(face===3||(face!==2&&t.fy>0.5))?1:0;break}
+    case 'hopper':{meta=0;if(face!==2&&face!==3){const n=FACE_DIR[face];for(let f=0;f<4;f++){const dd=FACE_DIR[FACING_TO_FACE[f]];if(dd[0]===-n[0]&&dd[2]===-n[2])meta=1+f}}break}
     case 'stairs':{meta=lf|((face===3||(face!==2&&t.fy>0.5))?4:0);break}
     case 'crop':return;
     case 'cross':{if(!BLOCKS[id].plant&&!BLOCKS[id].crop)break; // cobwebs and the like are not plants: no soil needed
@@ -3791,6 +3809,7 @@ shaped(['h','b'],{h:469,b:471},[467,1]);
 shapeless([471],[472,4]);
 shaped(['ppp','.s.','.s.'],{p:91,s:256},[468,1]);
 shaped(['# #',' # '],{'#':260},[296,1]);
+shaped(['# #','#C#',' # '],{'#':260,'C':39},[147,1]);
 shaped(['#|#','#|#'],{'#':PLANKS,'|':256},[61,3]);
 shaped(['#  ','## ','###'],{'#':PLANKS},[58,4]);shaped(['#  ','## ','###'],{'#':4},[59,4]);shaped(['#  ','## ','###'],{'#':52},[60,4]);
 shaped(['###'],{'#':PLANKS},[55,6]);shaped(['###'],{'#':4},[56,6]);shaped(['###'],{'#':52},[57,6]);
@@ -3833,6 +3852,26 @@ function countItem(id){let n=0;for(const s of player.inv)if(s&&s.id===id)n+=s.co
 /* ===================== FURNACE ===================== */
 const activeFurnaces=new Map();
 function furnaceEntity(x,y,z){return world.getBlockEntity(x,y,z,()=>({items:[null,null,null],burn:0,burnMax:0,cook:0,xp:0}))}
+function hopperEntity(x,y,z){return world.getBlockEntity(x,y,z,()=>({items:new Array(5).fill(null),cd:0}))}
+// hoppers: every 0.4s each hopper near the player takes one item from above and passes one item on
+function hopperInsert(items,st,slots){const max=ITEMS[st.id].stack||64;const same=s=>s&&s.id===st.id&&!s.dur&&!st.dur&&!s.ench&&!st.ench&&!s.items&&!st.items&&s.count<max;
+  for(const i of slots){const s=items[i];if(same(s)){s.count++;return true}}for(const i of slots){if(!items[i]){items[i]={id:st.id,count:1,dur:st.dur,ench:st.ench,items:st.items};return true}}return false}
+function hopperTake(items,i){const s=items[i];const one={id:s.id,count:1,dur:s.dur,ench:s.ench,items:s.items};s.count--;if(s.count<=0)items[i]=null;return one}
+function containerSlots(id,be,asSource){const d=BLOCKS[id];if(!d||!d.gui||!be||!be.items)return null;const n=be.items.length;const all=[...Array(n).keys()];
+  if(d.gui==='furnace')return asSource?[2]:null;if(d.gui==='brew')return asSource?[0,1,2]:null;return all}
+function hopperPushSlots(id,be,st){const d=BLOCKS[id];if(!d||!d.gui||!be)return null;if(d.gui==='furnace'){const it=ITEMS[st.id];if(it.fuel>0&&(!be.items[1]||be.items[1].id===st.id))return [1];if(it.smelt&&(!be.items[0]||be.items[0].id===st.id))return [0];return null}
+  if(d.gui==='brew')return null;return [...Array(be.items.length).keys()]}
+function tickHoppers(){if(!world||(MP.active&&!MP.host))return;const pcx=floor(player.x)>>4,pcz=floor(player.z)>>4;
+  for(const c of world.chunks.values()){const dx=c.cx-pcx,dz=c.cz-pcz;if(dx*dx+dz*dz>16)continue;
+    for(const [i,be] of c.bents){if(c.blocks[i]!==147||!be.items)continue;const x=c.cx*16+(i>>11),y=i&127,z=c.cz*16+((i>>7)&15);const meta=c.meta[i];let changed=false;
+      // items dropped onto the rim fall in
+      for(const e of entities){if(!(e instanceof ItemEntity)||e.dead||!e.stack)continue;if(abs(e.x-x-0.5)<0.7&&abs(e.z-z-0.5)<0.7&&e.y>y+0.4&&e.y<y+1.6){while(e.stack.count>0&&hopperInsert(be.items,e.stack,[0,1,2,3,4])){e.stack.count--;changed=true}if(e.stack.count<=0){e.dead=true;if(e.nid&&MP.active)mpSend({t:'ir',nid:e.nid})}else if(changed&&e.nid&&MP.active)mpSend({t:'ic',nid:e.nid,count:e.stack.count})}}
+      // pull one item from the container above
+      {const aid=world.getBlock(x,y+1,z);const abe=aid?world.getBlockEntity(x,y+1,z):null;const slots=containerSlots(aid,abe,true);if(slots)for(const si of slots){const st=abe.items[si];if(!st)continue;if(hopperInsert(be.items,st,[0,1,2,3,4])){st.count--;if(st.count<=0)abe.items[si]=null;changed=true;if(MP.active)mpSendBE(x,y+1,z,abe);break}}}
+      // push one item into the block the spout points at
+      {let tx=x,ty=y-1,tz=z;if(meta>0){const dd=FACE_DIR[FACING_TO_FACE[(meta-1)&3]];tx=x+dd[0];ty=y;tz=z+dd[2]}const tid=world.getBlock(tx,ty,tz);const tbe=tid?(BLOCKS[tid].gui==='furnace'?furnaceEntity(tx,ty,tz):BLOCKS[tid].gui==='hopper'?hopperEntity(tx,ty,tz):BLOCKS[tid].gui==='chest'?world.getBlockEntity(tx,ty,tz,()=>({items:new Array(27).fill(null)})):null):null;
+        if(tbe)for(let si=0;si<5;si++){const st=be.items[si];if(!st)continue;const slots=hopperPushSlots(tid,tbe,st);if(!slots)continue;if(hopperInsert(tbe.items,st,slots)){st.count--;if(st.count<=0)be.items[si]=null;changed=true;if(BLOCKS[tid].gui==='furnace')activateFurnace(tx,ty,tz);if(MP.active)mpSendBE(tx,ty,tz,tbe);break}}}
+      if(changed){if(MP.active)mpSendBE(x,y,z,be);if(game.gui&&game.gui.be===be)renderAllSlots()}}}}
 function tickFurnaces(dt){
   for(const [k,f] of activeFurnaces){const be=world.getBlockEntity(f.x,f.y,f.z);if(!be){activeFurnaces.delete(k);continue}tickFurnace(be,f.x,f.y,f.z,dt);if(be.burn<=0&&!(be.items[0]&&canSmelt(be))){activeFurnaces.delete(k)}}
 }
@@ -3892,7 +3931,7 @@ function slotClick(slot,button,shift){
 function moveInto(st,arr,off,n){const def=ITEMS[st.id];let c=st.count;if(!st.dur&&!st.ench)for(let i=off;i<off+n&&c>0;i++){const s=arr[i];if(s&&s.id===st.id&&!s.dur&&!s.ench&&s.count<def.stack){const k=Math.min(c,def.stack-s.count);s.count+=k;c-=k}}
   for(let i=off;i<off+n&&c>0;i++){if(!arr[i]){arr[i]={id:st.id,count:c,dur:st.dur,ench:st.ench};c=0}}return c}
 function takeFurnaceXP(){const g=game.gui;if(g&&g.type==='furnace'&&g.be.xp>=1){const n=floor(g.be.xp);g.be.xp-=n;addXP(n);playSound('orb')}}
-function afterSlotChange(){updateCraftOutput();const g=game.gui;if(g&&g.type==='furnace'){activateFurnace(g.x,g.y,g.z)}if(g&&g.type==='brew'){activateBrew(g.x,g.y,g.z);updateBrewGui()}if(g&&g.be&&(g.type==='chest'||g.type==='furnace'||g.type==='brew'))mpSendBE(g.x,g.y,g.z,g.be);if(g&&g.type==='enchant')renderEnchant();if(g&&g.type==='anvil')updateAnvil();if(g&&g.type==='uncraft')updateUncraft();renderAllSlots();if(g&&g.type==='table')renderRecipeBook();if(g&&g.type==='trade')renderTrades()}
+function afterSlotChange(){updateCraftOutput();const g=game.gui;if(g&&g.type==='furnace'){activateFurnace(g.x,g.y,g.z)}if(g&&g.type==='brew'){activateBrew(g.x,g.y,g.z);updateBrewGui()}if(g&&g.be&&(g.type==='chest'||g.type==='hopper'||g.type==='furnace'||g.type==='brew'))mpSendBE(g.x,g.y,g.z,g.be);if(g&&g.type==='enchant')renderEnchant();if(g&&g.type==='anvil')updateAnvil();if(g&&g.type==='uncraft')updateUncraft();renderAllSlots();if(g&&g.type==='table')renderRecipeBook();if(g&&g.type==='trade')renderTrades()}
 const craft2=[null,null,null,null],craft3=new Array(9).fill(null),craftOut=[null];
 /* ---- Uncrafting Table (Uncrafting fun mod): an item goes back to the ingredients of its recipe ---- */
 const uncraftSlots=[null],uncraftOut=new Array(9).fill(null);
@@ -3930,10 +3969,11 @@ function openGui(type,x,y,z){const g={type,x,y,z};if(type==='furnace'){g.be=furn
   if(type==='guide')renderGuide();
   if(type==='uncraft'){if(!$('uncraftIn')._done){mkSlots($('uncraftIn'),uncraftSlots,0,1,'uin');mkSlots($('uncraftOut'),uncraftOut,0,9,'uout','out');mkSlots($('uncraftMain'),player.inv,9,27);mkSlots($('uncraftHot'),player.inv,0,9);$('btnUncraft').onclick=doUncraft;$('uncraftIn')._done=true}updateUncraft()}
   if(type==='brew'){g.be=brewEntity(x,y,z);const be=g.be;if(!$('brewBottles')._done){mkSlots($('brewBottles'),be.items,0,3,'bottle');mkSlots($('brewIngr'),be.items,3,1,'ingr');mkSlots($('brewPowder'),be.items,4,1,'bfuel');$('brewBottles')._done=true}else{for(const id of ['brewBottles','brewIngr','brewPowder'])for(const el of $(id).children)el._slot.arr=be.items}updateBrewGui()}
+  if(type==='hopper'){g.be=hopperEntity(x,y,z);if(!$('hopperGrid')._done){mkSlots($('hopperGrid'),g.be.items,0,5);mkSlots($('hopperMain'),player.inv,9,27);mkSlots($('hopperHot'),player.inv,0,9);$('hopperGrid')._done=true}else{const els=$('hopperGrid').children;for(let i=0;i<5;i++)els[i]._slot.arr=g.be.items}}
   if(type==='chest'){g.be=world.getBlockEntity(x,y,z,()=>({items:new Array(27).fill(null)}));if(!$('chestGrid')._done){mkSlots($('chestGrid'),g.be.items,0,27);$('chestGrid')._done=true}else{const els=$('chestGrid').children;for(let i=0;i<27;i++)els[i]._slot.arr=g.be.items}playSoundAt('chest',x,y,z)}
   if(type==='enchant'){if(!$('enchItem')._done){mkSlots($('enchItem'),enchSlots,0,1,'ench');mkSlots($('enchLapis'),enchSlots,1,1,'lapis');mkSlots($('enchMain'),player.inv,9,27);mkSlots($('enchHot'),player.inv,0,9);$('enchItem')._done=true}game.enchSeed=game.enchSeed||floor(Math.random()*1e9)}
   if(type==='anvil'){if(!$('anvilA')._done){mkSlots($('anvilA'),anvilSlots,0,1,'anvil');mkSlots($('anvilB'),anvilSlots,1,1,'anvil');mkSlots($('anvilOut'),anvilSlots,2,1,'aout','out');mkSlots($('anvilMain'),player.inv,9,27);mkSlots($('anvilHot'),player.inv,0,9);$('anvilA')._done=true}}
-  game.gui=g;$({inv:'invGui',table:'tableGui',furnace:'furnGui',chest:'chestGui',enchant:'enchantGui',anvil:'anvilGui',brew:'brewGui',guide:'guideGui',uncraft:'uncraftGui'}[type]).classList.add('show');document.exitPointerLock&&document.exitPointerLock();mouseL=false;mouseR=false;
+  game.gui=g;$({inv:'invGui',table:'tableGui',furnace:'furnGui',chest:'chestGui',hopper:'hopperGui',enchant:'enchantGui',anvil:'anvilGui',brew:'brewGui',guide:'guideGui',uncraft:'uncraftGui'}[type]).classList.add('show');document.exitPointerLock&&document.exitPointerLock();mouseL=false;mouseR=false;
   updateCraftOutput();renderAllSlots();if(type==='table')renderRecipeBook();if(type==='inv')renderPalette();if(type==='enchant')renderEnchant();if(type==='anvil')updateAnvil();$('hud').style.display='none';syncMobileControls()}
 function closeGui(){const g=game.gui;if(!g)return;returnGrid(craft2);returnGrid(craft3);returnGrid(enchSlots);returnGrid(uncraftSlots);uncraftOut.fill(null);anvilSlots[2]=null;returnGrid(anvilSlots);if(cursor){if(addToInventory(cursor))spawnItem(player.x,player.y+1,player.z,cursor);cursor=null}
   if(g.type==='chest')playSoundAt('chest',g.x,g.y,g.z);for(const el of document.querySelectorAll('.gui'))el.classList.remove('show');$('invGui').classList.remove('full');game.gui=null;hideTip();renderAllSlots();$('hud').style.display='block';syncMobileControls();if(!game.paused)lockPointer()}
@@ -5548,7 +5588,7 @@ function loop(now){
     game.tickAcc+=dt;let n=0;while(game.tickAcc>=0.05&&n<4){game.tickAcc-=0.05;n++;game.tick++;world.time=(world.time+1)%24000;if(world.time===0)world.day++;
       world.runScheduledTicks();
       const pcx=floor(player.x)>>4,pcz=floor(player.z)>>4;const rng=Math.random;for(const c of world.chunks.values()){const dx=c.cx-pcx,dz=c.cz-pcz;if(dx*dx+dz*dz<=25)world.randomTick(c,rng)}
-      if(game.tick%10===0)trySpawnMobs();
+      if(game.tick%10===0)trySpawnMobs();if(game.tick%8===0)tickHoppers();
       if(game.tick%2===0){updateHUD();updateFurnaceGui();updateBrewGui()}
       if(game.tick%3===0)updateInfoHud();
       if(game.tick%200===0)saveWorld();
