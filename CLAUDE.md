@@ -45,6 +45,7 @@ dependencies — open the file in a browser to play.
 - `irontunes.html` — **Iron Tunes**, music grid (16 steps x 9 rows, INST bells/harp/organ/synth, SONGS presets, tempo, random); save `it_tunes`.
 - `irongems.html` — **Iron Gems**, match-3 (8x8, `matches()`, `findMove()`, async `trySwap` cascades/chains, level targets); best `igm_best`.
 - `ironmeadow.html` — **Iron Meadow**, butterfly catching (12 SPECIES by rarity/time, TIMES cycle, net swing radius, scare radius, book, shop); save `imd_save`.
+- `ironguns.html` — **Iron Guns**, top-down turtle battle royale (WEAPONS/RAR tables, chests + items, trees/rocks → wood/stone, Q builds walls, tide circle in `tickTide`, bot AI in `botThink`); save `igun_save`.
 
 ## Verifying changes
 
