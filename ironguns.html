@@ -3,21 +3,21 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1.0,viewport-fit=cover,user-scalable=no">
-<title>Iron Guns – Free Turtle Battle Royale in Your Browser | Iron Games</title>
-<meta name="description" content="Iron Guns is a free 3D browser battle royale with turtles: 24 turtles land on Shell Island, grab water pistols, bubble blasters and shell cannons from chests, chop trees for wood, build shell walls and stay inside the shrinking tide. Last turtle standing wins. Keyboard and mouse or touch, no download.">
+<title>Iron Guns – Free First-Person Battle Royale in Your Browser | Iron Games</title>
+<meta name="description" content="Iron Guns is a free first-person 3D battle royale in your browser: 24 players land on Iron Island, grab pistols, shotguns, rifles, rocket launchers and sniper rifles from chests, chop trees for wood, build walls, heal with medkits and stay inside the shrinking tide. Last one standing wins. Keyboard and mouse or touch, no download.">
 <meta name="robots" content="index,follow,max-snippet:-1,max-image-preview:large">
 <link rel="canonical" href="https://irongames.win/ironguns.html">
 <link rel="icon" href="favicon.svg" type="image/svg+xml">
 <link rel="manifest" href="site.webmanifest">
 <meta property="og:type" content="website">
 <meta property="og:site_name" content="Iron Games">
-<meta property="og:title" content="Iron Guns – Free Turtle Battle Royale | Iron Games">
-<meta property="og:description" content="24 turtles, one island, a shrinking tide. Loot, build shell walls and be the last turtle standing. Free in your browser, no download.">
+<meta property="og:title" content="Iron Guns – Free First-Person Battle Royale | Iron Games">
+<meta property="og:description" content="24 players, one island, a shrinking tide. Loot, build walls and be the last one standing. Free in your browser, no download.">
 <meta property="og:url" content="https://irongames.win/ironguns.html">
 <meta name="twitter:card" content="summary">
-<meta name="twitter:title" content="Iron Guns – Free Turtle Battle Royale | Iron Games">
-<meta name="twitter:description" content="24 turtles, one island, a shrinking tide. Last turtle standing wins. Free in your browser.">
-<script type="application/ld+json">{"@context":"https://schema.org","@graph":[{"@type":"VideoGame","name":"Iron Guns","url":"https://irongames.win/ironguns.html","genre":["Action","Battle royale","Shooter"],"gamePlatform":"Web browser","applicationCategory":"Game","operatingSystem":"Any","isAccessibleForFree":true,"offers":{"@type":"Offer","price":"0","priceCurrency":"USD"},"author":{"@type":"Organization","name":"Daniele Bros"},"publisher":{"@type":"Organization","name":"Daniele Bros"},"inLanguage":"en","dateModified":"2026-10-18","description":"A free 3D third-person battle royale with turtles: 24 turtles land on an island, loot water pistols, bubble blasters, shell cannons and sniper snorkels, chop trees for wood, build shell walls and outlast the shrinking tide."},{"@type":"BreadcrumbList","itemListElement":[{"@type":"ListItem","position":1,"name":"Iron Games","item":"https://irongames.win/"},{"@type":"ListItem","position":2,"name":"Iron Guns","item":"https://irongames.win/ironguns.html"}]}]}</script>
+<meta name="twitter:title" content="Iron Guns – Free First-Person Battle Royale | Iron Games">
+<meta name="twitter:description" content="24 players, one island, a shrinking tide. Last one standing wins. Free in your browser.">
+<script type="application/ld+json">{"@context":"https://schema.org","@graph":[{"@type":"VideoGame","name":"Iron Guns","url":"https://irongames.win/ironguns.html","genre":["Action","Battle royale","Shooter"],"gamePlatform":"Web browser","applicationCategory":"Game","operatingSystem":"Any","isAccessibleForFree":true,"offers":{"@type":"Offer","price":"0","priceCurrency":"USD"},"author":{"@type":"Organization","name":"Daniele Bros"},"publisher":{"@type":"Organization","name":"Daniele Bros"},"inLanguage":"en","dateModified":"2026-10-18","description":"A free first-person 3D battle royale: 24 players land on an island, loot pistols, shotguns, rifles, rocket launchers and sniper rifles, chop trees for wood, build walls, heal with medkits and outlast the shrinking tide."},{"@type":"BreadcrumbList","itemListElement":[{"@type":"ListItem","position":1,"name":"Iron Games","item":"https://irongames.win/"},{"@type":"ListItem","position":2,"name":"Iron Guns","item":"https://irongames.win/ironguns.html"}]}]}</script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Oswald:wght@500;700&family=Share+Tech+Mono&display=swap" rel="stylesheet">
@@ -68,10 +68,10 @@ canvas{position:absolute;inset:0;width:100%;height:100%;display:block;}
 <canvas id="c"></canvas>
 <canvas id="ov"></canvas>
 <div id="hud">
-  <div id="alive"><b id="nAlive">24</b> TURTLES LEFT<br><span id="kills">0 knocked</span></div>
+  <div id="alive"><b id="nAlive">24</b> PLAYERS LEFT<br><span id="kills">0 knocked</span></div>
   <div id="tide"><b id="tideT">TIDE</b><br><span id="tideS">coming in</span></div>
   <div id="feed"></div>
-  <div id="bars"><div class="bar"><i id="hpB"></i><span id="hpT">100</span></div><div class="bar sh"><i id="shB"></i><span id="shT">0</span></div><div id="mats">🪵 0 · 🪨 0 · 🥬 0 · 🧪 0</div></div>
+  <div id="bars"><div class="bar"><i id="hpB"></i><span id="hpT">100</span></div><div class="bar sh"><i id="shB"></i><span id="shT">0</span></div><div id="mats">🪵 0 · 🪨 0 · 🩹 0 · 🧪 0</div></div>
   <div id="slots"></div>
   <canvas id="mini" width="150" height="150"></canvas>
 </div>
@@ -85,14 +85,15 @@ const cv=$('c');const ov=$('ov'),ctx=ov.getContext('2d');const mini=$('mini'),mc
 const PI=Math.PI,TAU=PI*2,rnd=(a,b)=>a+Math.random()*(b-a),ri=(a,b)=>Math.floor(rnd(a,b+1)),clamp=(v,a,b)=>v<a?a:v>b?b:v,pick=a=>a[Math.floor(Math.random()*a.length)];
 const WORLD=2600,ISLAND=1180,N_PLAYERS=24;
 const WEAPONS={
-  pistol:{n:'Water Pistol',dmg:9,rate:0.3,spd:560,spread:0.05,range:540,pellets:1,size:4,col:'#5cf',sfx:[900,0.05]},
-  blaster:{n:'Bubble Blaster',dmg:7,rate:0.95,spd:430,spread:0.2,range:300,pellets:5,size:5,col:'#9ef',sfx:[300,0.1]},
-  pea:{n:'Pea Rifle',dmg:16,rate:0.45,spd:640,spread:0.03,range:760,pellets:1,size:4,col:'#8f4',sfx:[700,0.06]},
-  cannon:{n:'Shell Cannon',dmg:40,rate:1.3,spd:380,spread:0.02,range:650,pellets:1,size:9,col:'#fa6',splash:70,sfx:[160,0.18]},
-  snorkel:{n:'Sniper Snorkel',dmg:60,rate:1.8,spd:980,spread:0,range:1300,pellets:1,size:4,col:'#fd4',sfx:[1200,0.12]}};
+  pistol:{n:'Pistol',dmg:9,rate:0.3,spd:560,spread:0.05,range:540,pellets:1,size:4,col:'#5cf',sfx:[900,0.05]},
+  blaster:{n:'Shotgun',dmg:7,rate:0.95,spd:430,spread:0.2,range:300,pellets:5,size:5,col:'#9ef',sfx:[300,0.1]},
+  pea:{n:'Rifle',dmg:16,rate:0.45,spd:640,spread:0.03,range:760,pellets:1,size:4,col:'#8f4',sfx:[700,0.06]},
+  cannon:{n:'Rocket Launcher',dmg:40,rate:1.3,spd:380,spread:0.02,range:650,pellets:1,size:9,col:'#fa6',splash:70,sfx:[160,0.18]},
+  snorkel:{n:'Sniper Rifle',dmg:60,rate:1.8,spd:980,spread:0,range:1300,pellets:1,size:4,col:'#fd4',sfx:[1200,0.12]}};
 const RAR=[{n:'Common',m:1,c:'#cfd',cls:'c1'},{n:'Rare',m:1.15,c:'#6cf',cls:'c2'},{n:'Epic',m:1.32,c:'#c8f',cls:'c3'},{n:'Legendary',m:1.5,c:'#fc5',cls:'c4'}];
-const NAMES=['Sheldon','Crush','Squirt','Franklin','Koopa','Tortuga','Donatello','Leo','Raph','Mikey','Shelly','Speedy','Myrtle','Verne','Tuck','Bowser Jr','Snappy','Pebble','Moss','Bubbles','Flash','Tilly','Gamera'];
-const COLORS=['#3a9d4a','#5bb35e','#2e8b57','#6b8e23','#8fbc5a','#49a078','#7cb342','#3d7a3d','#a2c75a','#2f9e8f'];
+const NAMES=['Max','Ava','Leo','Zoe','Kai','Mia','Finn','Ruby','Jax','Luna','Eli','Nova','Theo','Ivy','Rex','Cleo','Ace','Sky','Ollie','Rosa','Dash','Pip','Blaze'];
+const SKINS=['#f1c9a5','#e0ac7e','#c68642','#8d5524','#f6d7bd','#a0683a'];
+const COLORS=['#d9534f','#5b8def','#f0a030','#8e44ad','#16a085','#e84393','#2ecc71','#e67e22','#34495e','#00bcd4','#c0392b','#f1c40f'];
 let W=0,H=0,DPR=1;
 function resize(){DPR=Math.min(2,devicePixelRatio||1);W=innerWidth;H=innerHeight;cv.width=W*DPR;cv.height=H*DPR;ov.width=W*DPR;ov.height=H*DPR;ctx.setTransform(DPR,0,0,DPR,0,0)}
 addEventListener('resize',resize);resize();
@@ -102,7 +103,7 @@ try{save=Object.assign(save,JSON.parse(localStorage.getItem('igun_save')||'{}'))
 function persist(){try{localStorage.setItem('igun_save',JSON.stringify(save))}catch(e){}}
 function newGame(){
   const g={t:0,phase:'ready',ready:3,turtles:[],shots:[],items:[],trees:[],rocks:[],bushes:[],walls:[],chests:[],parts:[],feed:[],
-    tide:{cx:WORLD/2,cy:WORLD/2,r:ISLAND+200,tx:WORLD/2,ty:WORLD/2,tr:ISLAND+200,wait:30,shrink:0,stage:0,dps:1.5},alive:N_PLAYERS,placed:0,kills:0,over:false,cam:{x:WORLD/2,y:WORLD/2,yaw:0},shake:0};
+    tide:{cx:WORLD/2,cy:WORLD/2,r:ISLAND+200,tx:WORLD/2,ty:WORLD/2,tr:ISLAND+200,wait:30,shrink:0,stage:0,dps:1.5},alive:N_PLAYERS,placed:0,kills:0,over:false,cam:{x:WORLD/2,y:WORLD/2,yaw:0,pitch:-0.05},shake:0};
   const inLand=(x,y,m)=>Math.hypot(x-WORLD/2,y-WORLD/2)<ISLAND-(m||0);
   const spot=(m)=>{for(let i=0;i<50;i++){const a=rnd(0,TAU),r=Math.sqrt(Math.random())*(ISLAND-m);const x=WORLD/2+Math.cos(a)*r,y=WORLD/2+Math.sin(a)*r;if(g.trees.every(t=>Math.hypot(t.x-x,t.y-y)>50)&&g.rocks.every(t=>Math.hypot(t.x-x,t.y-y)>50))return [x,y]}return [WORLD/2,WORLD/2]};
   for(let i=0;i<150;i++){const [x,y]=spot(60);g.trees.push({x,y,r:rnd(16,26),hp:3})}
@@ -115,7 +116,7 @@ function newGame(){
   const names=NAMES.slice().sort(()=>Math.random()-0.5);
   const spawnAt=i=>{const ring=i<9?0.42:0.8;const n=i<9?9:N_PLAYERS-9;const k=i<9?i:i-9;const a=k/n*TAU+(ring>0.5?0.15:0)+rnd(-0.08,0.08);let x=WORLD/2+Math.cos(a)*ISLAND*ring,y=WORLD/2+Math.sin(a)*ISLAND*ring;for(let tries=0;tries<30&&solidAtSetup(x,y);tries++){x+=rnd(-40,40);y+=rnd(-40,40)}return [x,y]};
   const solidAtSetup=(x,y)=>g.trees.some(t=>Math.hypot(t.x-x,t.y-y)<t.r+24)||g.rocks.some(t=>Math.hypot(t.x-x,t.y-y)<t.r+24)||g.walls.some(w=>Math.hypot(w.x-x,w.y-y)<80);
-  for(let i=0;i<N_PLAYERS;i++){const [x,y]=spawnAt(i);const t={id:i,x,y,r:17,hp:100,shield:0,wood:i?40:0,stone:0,lettuce:0,potions:0,weapons:[null,null,null,null,null],sel:0,aim:rnd(0,TAU),cd:0,bot:i>0,name:i?names[i-1]:'You',col:i?pick(COLORS):'#ffd84a',alive:true,kills:0,vx:0,vy:0,hurtT:0,hidden:false,ai:{wander:rnd(0,TAU),wt:0,target:null,buildCd:0,seeT:0},walk:0,inWater:false};
+  for(let i=0;i<N_PLAYERS;i++){const [x,y]=spawnAt(i);const t={id:i,x,y,r:17,hp:100,shield:0,wood:i?40:0,stone:0,lettuce:0,potions:0,weapons:[null,null,null,null,null],sel:0,aim:rnd(0,TAU),cd:0,bot:i>0,name:i?names[i-1]:'You',col:i?pick(COLORS):'#ffd84a',skin:pick(SKINS),alive:true,kills:0,vx:0,vy:0,hurtT:0,hidden:false,ai:{wander:rnd(0,TAU),wt:0,target:null,buildCd:0,seeT:0},walk:0,inWater:false};
     g.turtles.push(t)}
   g.me=g.turtles[0];g.cam.x=g.me.x;g.cam.y=g.me.y;g.cam.yaw=Math.atan2(WORLD/2-g.me.y,WORLD/2-g.me.x);g.me.aim=g.cam.yaw;return g}
 function makeItem(x,y,kind,extra){const it={x,y,kind,t:0};if(kind==='weapon'){const r=Math.random();it.rar=r<0.55?0:r<0.82?1:r<0.95?2:3;it.w=extra||pick(Object.keys(WEAPONS))}if(kind==='wood'||kind==='stone')it.n=30;return it}
@@ -150,7 +151,7 @@ function damage(t,amt,by){if(!t.alive)return;let a=amt;if(t.shield>0){const s=Ma
     if(t.wood>=30){const it=makeItem(t.x+rnd(-20,20),t.y+rnd(-20,20),'wood');it.n=Math.min(150,t.wood);G.items.push(it)}
     if(t===G.me){G.over=true;setTimeout(()=>endScreen(false),1200)}else if(G.alive===1&&G.me.alive){G.over=true;setTimeout(()=>endScreen(true),1000)}}}
 function fire(t){const w=t.weapons[t.sel];if(!w||t.cd>0)return;const def=WEAPONS[w.k];t.cd=def.rate;const m=RAR[w.rar].m;
-  for(let i=0;i<def.pellets;i++){const a=t.aim+rnd(-def.spread,def.spread);G.shots.push({x:t.x+Math.cos(t.aim)*22,y:t.y+Math.sin(t.aim)*22,vx:Math.cos(a)*def.spd,vy:Math.sin(a)*def.spd,dmg:def.dmg*m,by:t,life:def.range/def.spd,size:def.size,col:def.col,splash:def.splash||0})}
+  for(let i=0;i<def.pellets;i++){const a=t.aim+rnd(-def.spread,def.spread);const pitch=t.bot?0:G.cam.pitch;const cp=Math.cos(pitch);G.shots.push({x:t.x+Math.cos(t.aim)*22,y:t.y+Math.sin(t.aim)*22,h:46,vh:Math.sin(pitch)*def.spd,vx:Math.cos(a)*def.spd*cp,vy:Math.sin(a)*def.spd*cp,dmg:def.dmg*m,by:t,life:def.range/def.spd,size:def.size,col:def.col,splash:def.splash||0})}
   const d=Math.hypot(t.x-G.me.x,t.y-G.me.y);if(d<700)beep(def.sfx[0],def.sfx[1],'square',0.03*(1-d/800))}
 function harvest(t){const ax=t.x+Math.cos(t.aim)*34,ay=t.y+Math.sin(t.aim)*34;
   for(const tr of G.trees){if(Math.hypot(tr.x-ax,tr.y-ay)<tr.r+10){tr.hp--;tr.shake=0.2;t.wood=Math.min(500,t.wood+20);beep(180,0.06,'square',0.04);if(tr.hp<=0)G.trees.splice(G.trees.indexOf(tr),1);return true}}
@@ -187,30 +188,31 @@ function botThink(t,dt){const ai=t.ai;const T=G.tide;ai.wt-=dt;ai.buildCd-=dt;
     if(!gun&&t.cd<=0&&Math.random()<dt*0.3)harvest(t)}
   if(outSoon&&!(best&&t.hp>60&&Math.hypot(best.x-t.x,best.y-t.y)<250)){const s=toSafe();mx=s[0];my=s[1]}
   if(!best){t.aim=Math.atan2(my,mx)}
-  const l=Math.hypot(mx,my);if(l>0.01){const sp=speedOf(t)*dt;moveTurtle(t,mx/l*sp,my/l*sp);t.walk+=dt*6}
+  const l=Math.hypot(mx,my);t.moving=l>0.01;if(l>0.01){const sp=speedOf(t)*dt;moveTurtle(t,mx/l*sp,my/l*sp);t.walk+=dt*8}
   // bump into a wall while walking: hack through it sometimes
   if(ai.wt<-2&&Math.random()<dt)harvest(t)}
 function ni_zero(x,y){return !x&&!y}
 function speedOf(t){let s=165;if(t.inWater)s*=0.55;if(inBush(t))s*=0.85;return s}
 // ---------- update ----------
 function update(dt){const g=G;g.t+=dt;
-  if(g.phase==='ready'){g.ready-=dt;if(g.ready<=0){g.phase='play';banner('GO! LAST TURTLE STANDING');beep(700,0.3,'triangle',0.06)}}
+  if(g.phase==='ready'){g.ready-=dt;if(g.ready<=0){g.phase='play';banner('GO! LAST ONE STANDING');beep(700,0.3,'triangle',0.06)}}
   const me=g.me;
   for(const t of g.turtles){if(!t.alive)continue;t.cd-=dt;if(t.hurtT>0)t.hurtT-=dt;t.inWater=Math.hypot(t.x-WORLD/2,t.y-WORLD/2)>ISLAND;
     if(t.bot){if(g.phase==='play')botThink(t,dt)}
     else if(g.phase==='play'&&!g.over){let fw=0,st=0;if(keys.KeyW||keys.ArrowUp)fw+=1;if(keys.KeyS||keys.ArrowDown)fw-=1;if(keys.KeyA)st-=1;if(keys.KeyD)st+=1;
-      if(keys.ArrowLeft)g.cam.yaw-=dt*2.2;if(keys.ArrowRight)g.cam.yaw+=dt*2.2;if(!pointerLocked()&&!touch.look){const ex=(mouse.x-W/2)/(W/2);if(Math.abs(ex)>0.4)g.cam.yaw+=(ex-Math.sign(ex)*0.4)*dt*3.2}
-      if(touch.move){fw=-touch.move.y;st=touch.move.x}const yaw=g.cam.yaw;const fx=Math.cos(yaw),fz=Math.sin(yaw);let mx=fx*fw-fz*st,my=fz*fw+fx*st;const l=Math.hypot(mx,my);if(l>0.01){const sp=speedOf(t)*dt;moveTurtle(t,mx/Math.max(1,l)*sp,my/Math.max(1,l)*sp);t.walk+=dt*6}
+      if(keys.ArrowLeft)g.cam.yaw-=dt*2.2;if(keys.ArrowRight)g.cam.yaw+=dt*2.2;if(!pointerLocked()&&!touch.look){const ex=(mouse.x-W/2)/(W/2),ey=(mouse.y-H/2)/(H/2);if(Math.abs(ex)>0.4)g.cam.yaw+=(ex-Math.sign(ex)*0.4)*dt*3.2;if(Math.abs(ey)>0.5)g.cam.pitch=clamp(g.cam.pitch-(ey-Math.sign(ey)*0.5)*dt*1.6,-1.2,1.0)}
+      if(touch.move){fw=-touch.move.y;st=touch.move.x}const yaw=g.cam.yaw;const fx=Math.cos(yaw),fz=Math.sin(yaw);let mx=fx*fw-fz*st,my=fz*fw+fx*st;const l=Math.hypot(mx,my);t.moving=l>0.01;if(l>0.01){const sp=speedOf(t)*dt;moveTurtle(t,mx/Math.max(1,l)*sp,my/Math.max(1,l)*sp);t.walk+=dt*8}
       t.aim=yaw;
       if((mouse.down||touch.fire)&&t.cd<=0){if(t.weapons[t.sel])fire(t);else{t.cd=0.35;harvest(t)}}}
     // loot and chests under your feet
     for(let i=g.items.length-1;i>=0;i--){const it=g.items[i];it.t+=dt;if(Math.hypot(it.x-t.x,it.y-t.y)<t.r+12&&it.t>0.6){if(pickup(t,it)){g.items.splice(i,1);if(t===me)beep(it.kind==='weapon'?880:660,0.07,'triangle',0.04)}}}
     for(const c of g.chests){if(!c.open&&Math.hypot(c.x-t.x,c.y-t.y)<t.r+20)openChest(c)}}
   // shots
-  for(let i=g.shots.length-1;i>=0;i--){const s=g.shots[i];s.life-=dt;const nx=s.x+s.vx*dt,ny=s.y+s.vy*dt;let dead=s.life<=0;
-    const w=hitWall(nx,ny,s.size);if(w){w.hp-=s.dmg;if(w.hp<=0)g.walls.splice(g.walls.indexOf(w),1);dead=true}
-    if(!dead)for(const tr of g.trees){if(Math.hypot(tr.x-nx,tr.y-ny)<tr.r-4){dead=true;break}}
-    if(!dead)for(const t of g.turtles){if(!t.alive||t===s.by)continue;if(Math.hypot(t.x-nx,t.y-ny)<t.r+s.size){damage(t,s.dmg,s.by);dead=true;for(let k=0;k<4;k++)g.parts.push({x:nx,y:ny,vx:rnd(-60,60),vy:rnd(-60,60),t:0.3,c:s.col});break}}
+  for(let i=g.shots.length-1;i>=0;i--){const s=g.shots[i];s.life-=dt;const nx=s.x+s.vx*dt,ny=s.y+s.vy*dt;s.h+=s.vh*dt;let dead=s.life<=0;
+    if(s.h<=0){dead=true;for(let k=0;k<4;k++)g.parts.push({x:nx,y:ny,vx:rnd(-40,40),vy:rnd(-40,40),t:0.3,c:'#cdb'})}
+    const w=!dead&&s.h<44?hitWall(nx,ny,s.size):null;if(w){w.hp-=s.dmg;if(w.hp<=0)g.walls.splice(g.walls.indexOf(w),1);dead=true}
+    if(!dead)for(const tr of g.trees){const d=Math.hypot(tr.x-nx,tr.y-ny);if((d<tr.r*0.4&&s.h<44+tr.r)||(d<tr.r*1.2&&s.h>44+tr.r*0.2&&s.h<44+tr.r*2.6)){dead=true;break}}
+    if(!dead)for(const t of g.turtles){if(!t.alive||t===s.by)continue;if(s.h<66&&Math.hypot(t.x-nx,t.y-ny)<t.r+s.size){damage(t,s.dmg,s.by);dead=true;for(let k=0;k<4;k++)g.parts.push({x:nx,y:ny,vx:rnd(-60,60),vy:rnd(-60,60),t:0.3,c:s.col});break}}
     if(dead&&s.splash){for(const t of g.turtles){if(!t.alive||t===s.by)continue;const d=Math.hypot(t.x-nx,t.y-ny);if(d<s.splash)damage(t,s.dmg*0.5*(1-d/s.splash),s.by)}for(let k=0;k<10;k++)g.parts.push({x:nx,y:ny,vx:rnd(-150,150),vy:rnd(-150,150),t:0.4,c:'#fa6'})}
     if(dead)g.shots.splice(i,1);else{s.x=nx;s.y=ny}}
   tickTide(dt);
@@ -255,21 +257,20 @@ const MM=new Float32Array(16),NN=new Float32Array(9);let VP=null,CAMP=[0,0,0];
 function setModel(tx,ty,tz,ry,sx,sy,sz){const c=Math.cos(ry),s=Math.sin(ry);MM.set([c*sx,0,-s*sx,0, 0,sy,0,0, s*sz,0,c*sz,0, tx,ty,tz,1]);NN.set([c/sx,0,-s/sx, 0,1/sy,0, s/sz,0,c/sz]);gl.uniformMatrix4fv(U.uM,false,MM);gl.uniformMatrix3fv(U.uN,false,NN)}
 function drawM(m,tx,ty,tz,ry,sx,sy,sz,col,alpha,mode){setModel(tx,ty,tz,ry,sx,sy,sz);gl.uniform3f(U.uCol,col[0],col[1],col[2]);gl.uniform1f(U.uAlpha,alpha===undefined?1:alpha);gl.uniform1f(U.uMode,mode||0);
   gl.bindBuffer(gl.ARRAY_BUFFER,m.vb);gl.vertexAttribPointer(aPos,3,gl.FLOAT,false,0,0);gl.bindBuffer(gl.ARRAY_BUFFER,m.nb);gl.vertexAttribPointer(aNor,3,gl.FLOAT,false,0,0);gl.drawArrays(gl.TRIANGLES,0,m.n)}
-function hex(h){return [parseInt(h.slice(1,3),16)/255,parseInt(h.slice(3,5),16)/255,parseInt(h.slice(5,7),16)/255]}
+function hex(h){if(h.length===4)h='#'+h[1]+h[1]+h[2]+h[2]+h[3]+h[3];return [parseInt(h.slice(1,3),16)/255,parseInt(h.slice(3,5),16)/255,parseInt(h.slice(5,7),16)/255]}
 const HEX={};const col=h=>HEX[h]||(HEX[h]=hex(h));
 function project(x,y,z){const m=VP;const cw=m[3]*x+m[7]*y+m[11]*z+m[15];if(cw<=0.01)return null;const cx=(m[0]*x+m[4]*y+m[8]*z+m[12])/cw,cy=(m[1]*x+m[5]*y+m[9]*z+m[13])/cw;return [(cx+1)/2*W,(1-cy)/2*H,cw]}
 function shadow(x,z,r,a){drawM(M.disc,x,0.9,z,0,r*2,1,r*2,[0.05,0.12,0.05],a||0.35,4)}
 function draw(){const g=G;const me=g.me;gl.viewport(0,0,cv.width,cv.height);
   const SKY=[0.62,0.82,0.95];gl.clearColor(SKY[0],SKY[1],SKY[2],1);gl.enable(gl.DEPTH_TEST);gl.depthMask(true);gl.disable(gl.BLEND);gl.clear(gl.COLOR_BUFFER_BIT|gl.DEPTH_BUFFER_BIT);
-  // camera: behind and above the turtle, looking where it aims
+  // camera
   const focus=me.alive?me:(g.turtles.find(t=>t.alive)||me);const yaw=g.cam.yaw;const fx=Math.cos(yaw),fz=Math.sin(yaw);const sh=g.shake>0?rnd(-g.shake,g.shake):0;
-  // pull the camera in when a tree, bush or wall would sit between it and the turtle
-  const blocked=(x,y,z)=>{for(const tr of g.trees){const h=44+tr.r;if(Math.hypot(tr.x-x,tr.y-z)<tr.r*1.3+12&&y<h+tr.r*1.4)return true}for(const b of g.bushes)if(Math.hypot(b.x-x,b.y-z)<b.r*0.9+12&&y<b.r*1.2)return true;for(const r of g.rocks)if(Math.hypot(r.x-x,r.y-z)<r.r+10&&y<r.r*1.3)return true;if(y<44&&hitWall(x,z,10))return true;return false};
-  let cd=200;for(;cd>60;cd-=10){const ex=g.cam.x-fx*cd,ez=g.cam.y-fz*cd,ey=40+cd*0.55;if(!blocked(ex,ey,ez)&&!blocked(ex+fx*25,ey-8,ez+fz*25))break}g.camD=g.camD===undefined?cd:g.camD+(cd-g.camD)*(cd<g.camD?0.5:0.08);const D=g.camD;
-  const eye=[g.cam.x-fx*D+sh,40+D*0.55+sh*0.5,g.cam.y-fz*D],at=[g.cam.x+fx*70,26,g.cam.y+fz*70];CAMP=eye;
-  const P=m4persp(62*PI/180,W/H,8,5000),V=m4look(eye,at,[0,1,0]);VP=m4mul(P,V);gl.uniformMatrix4fv(U.uVP,false,VP);gl.uniform3f(U.uCam,eye[0],eye[1],eye[2]);gl.uniform3f(U.uLight,0.45,0.78,0.35);gl.uniform3f(U.uFog,SKY[0],SKY[1],SKY[2]);gl.uniform1f(U.uTime,g.t);
+  // first person: the camera is the player's eyes; when you are out it rides along with the last fight
+  const spec=!me.alive;const pyaw=spec?focus.aim:yaw,ppitch=spec?-0.1:g.cam.pitch;const bob=(me.alive&&me.moving)?Math.sin(me.walk*1.3)*1.6:0;
+  const cp=Math.cos(ppitch);const f3=[Math.cos(pyaw)*cp,Math.sin(ppitch),Math.sin(pyaw)*cp];const eye=[focus.x+sh,54+bob+sh*0.5,focus.y],at=[eye[0]+f3[0]*100,eye[1]+f3[1]*100,eye[2]+f3[2]*100];CAMP=eye;const fx2=Math.cos(pyaw),fz2=Math.sin(pyaw);
+  const P=m4persp(78*PI/180,W/H,4,5000),V=m4look(eye,at,[0,1,0]);VP=m4mul(P,V);gl.uniformMatrix4fv(U.uVP,false,VP);gl.uniform3f(U.uCam,eye[0],eye[1],eye[2]);gl.uniform3f(U.uLight,0.45,0.78,0.35);gl.uniform3f(U.uFog,SKY[0],SKY[1],SKY[2]);gl.uniform1f(U.uTime,g.t);
   const T=g.tide;gl.uniform2f(U.uTideC,T.cx,T.cy);gl.uniform1f(U.uTideR,T.r);
-  const near=(x,z,r)=>{const dx=x-g.cam.x,dz=z-g.cam.y;if(dx*dx+dz*dz>(1500+r)*(1500+r)||(dx*fx+dz*fz)<-260-r)return false;const ex=x-eye[0],ez=z-eye[2];return ex*ex+ez*ez>(r+24)*(r+24)};
+  const near=(x,z,r)=>{const dx=x-eye[0],dz=z-eye[2];return dx*dx+dz*dz<(1500+r)*(1500+r)&&(dx*fx2+dz*fz2)>-60-r};
   // ground: sea, sand, grass
   drawM(M.disc,WORLD/2,-2,WORLD/2,0,9000,1,9000,[0.1,0.42,0.56],1,2);drawM(M.disc,WORLD/2,0,WORLD/2,0,(ISLAND+22)*2,1,(ISLAND+22)*2,[0.85,0.78,0.5],1,1);drawM(M.disc,WORLD/2,0.6,WORLD/2,0,ISLAND*2,1,ISLAND*2,[0.36,0.66,0.3],1,1);
   for(const b of g.bushes){if(!near(b.x,b.y,40))continue;const r=b.r;drawM(M.sphere,b.x,r*0.45,b.y,0,r*1.7,r*1.1,r*1.7,[0.22,0.52,0.22]);drawM(M.sphere,b.x-r*0.35,r*0.6,b.y-r*0.3,0,r*1.1,r*0.9,r*1.1,[0.28,0.62,0.26]);drawM(M.sphere,b.x+r*0.4,r*0.5,b.y+r*0.3,0,r*1.0,r*0.8,r*1.0,[0.25,0.58,0.24])}
@@ -280,30 +281,38 @@ function draw(){const g=G;const me=g.me;gl.viewport(0,0,cv.width,cv.height);
   for(const ch of g.chests){if(!near(ch.x,ch.y,30))continue;drawM(M.box,ch.x,0,ch.y,0,32,20,24,ch.open?[0.42,0.29,0.16]:[0.63,0.44,0.18]);drawM(M.box,ch.x,20,ch.y,ch.open?0:0,34,ch.open?3:7,26,ch.open?[0.3,0.2,0.1]:[1,0.85,0.3]);if(!ch.open)drawM(M.box,ch.x,8,ch.y-12.5,0,8,8,2,[1,0.85,0.3])}
   for(const it of g.items){if(!near(it.x,it.y,30))continue;const bob=Math.sin(g.t*3+it.x)*2+4;
     if(it.kind==='weapon'){drawM(M.box,it.x,bob,it.y,0.8+g.t*0.8,26,5,5,col(WEAPONS[it.w].col));drawM(M.box,it.x+6,bob+5,it.y,0.8+g.t*0.8,6,5,4,[0.2,0.2,0.22])}
-    else if(it.kind==='lettuce'){drawM(M.sphere,it.x,bob+6,it.y,0,18,14,18,[0.5,0.9,0.3]);drawM(M.sphere,it.x-3,bob+9,it.y-3,0,10,8,10,[0.7,1,0.5])}
+    else if(it.kind==='lettuce'){drawM(M.box,it.x,bob,it.y,0,18,10,14,[0.95,0.95,0.95]);drawM(M.box,it.x,bob+10,it.y,0,10,1.5,3,[0.9,0.15,0.15]);drawM(M.box,it.x,bob+10,it.y,0,3,1.5,10,[0.9,0.15,0.15])}
     else if(it.kind==='shield'){drawM(M.cyl,it.x,bob,it.y,0,11,18,11,[0.25,0.55,1]);drawM(M.cyl,it.x,bob+18,it.y,0,6,5,6,[0.8,0.93,1])}
     else drawM(M.box,it.x,bob-2,it.y,0.5,20,11,12,it.kind==='wood'?[0.55,0.35,0.16]:[0.55,0.56,0.58])}
-  for(const t of g.turtles){if(!t.alive||!near(t.x,t.y,40))continue;if(t!==me&&inBush(t)&&me.alive&&Math.hypot(t.x-me.x,t.y-me.y)>150)continue;drawTurtle3(t)}
-  for(const s of g.shots){if(!near(s.x,s.y,10))continue;drawM(M.sphere,s.x,22,s.y,0,s.size*2.6,s.size*2.6,s.size*2.6,col(s.col),1,4)}
+  for(const t of g.turtles){if(!t.alive||t===focus||!near(t.x,t.y,40))continue;if(t!==me&&inBush(t)&&me.alive&&Math.hypot(t.x-me.x,t.y-me.y)>150)continue;drawPerson(t)}
+  for(const s of g.shots){if(!near(s.x,s.y,10))continue;drawM(M.sphere,s.x,s.h,s.y,0,s.size*2.2,s.size*2.2,s.size*2.2,col(s.col),1,4)}
   for(const p of g.parts){drawM(M.box,p.x,12,p.y,p.t*5,5,5,5,col(p.c),1,4)}
   // transparent pass
   gl.enable(gl.BLEND);gl.blendFunc(gl.SRC_ALPHA,gl.ONE_MINUS_SRC_ALPHA);gl.depthMask(false);
-  for(const t of g.turtles)if(t.alive&&near(t.x,t.y,40))shadow(t.x,t.y,t.r*1.1);for(const tr of g.trees)if(near(tr.x,tr.y,60))shadow(tr.x,tr.y,tr.r*1.2,0.28);for(const r of g.rocks)if(near(r.x,r.y,30))shadow(r.x,r.y,r.r,0.25);
+  for(const t of g.turtles)if(t.alive&&t!==focus&&near(t.x,t.y,40))shadow(t.x,t.y,t.r*0.9);for(const tr of g.trees)if(near(tr.x,tr.y,60))shadow(tr.x,tr.y,tr.r*1.2,0.28);for(const r of g.rocks)if(near(r.x,r.y,30))shadow(r.x,r.y,r.r,0.25);
   for(const it of g.items)if(near(it.x,it.y,30)){shadow(it.x,it.y,9,0.25);if(it.kind==='weapon')drawM(M.disc,it.x,1.2,it.y,0,36,1,36,col(RAR[it.rar].c),0.45,4)}
   for(const ch of g.chests)if(!ch.open&&near(ch.x,ch.y,30))drawM(M.disc,ch.x,1.1,ch.y,0,56+Math.sin(g.t*4)*6,1,56+Math.sin(g.t*4)*6,[1,0.85,0.3],0.3,4);
   // the tide: everything outside the ring is under dark water, with a glowing wall at the edge
   drawM(M.disc,WORLD/2,2,WORLD/2,0,9000,1,9000,[0.08,0.2,0.6],0.45,3);drawM(M.ring,T.cx,0,T.cy,0,T.r*2,180,T.r*2,[0.45,0.8,1],0.3,4);
   if(T.shrink>0)drawM(M.ring,T.tx,0,T.ty,0,T.tr*2,10,T.tr*2,[1,1,1],0.6,4);
   gl.depthMask(true);gl.disable(gl.BLEND);
+  if(me.alive){gl.clear(gl.DEPTH_BUFFER_BIT);const rx=-Math.sin(pyaw),rz=Math.cos(pyaw);const w=me.weapons[me.sel];const kick=me.cd>0&&w?Math.max(0,me.cd/WEAPONS[w.k].rate-0.6)*8:0;
+    const gx=eye[0]+f3[0]*(26-kick)+rx*9,gy=eye[1]-9+f3[1]*(26-kick)+Math.sin(me.walk*1.3)*0.5,gz=eye[2]+f3[2]*(26-kick)+rz*9;
+    if(w){const len=w.k==='snorkel'?24:w.k==='cannon'?18:w.k==='blaster'?18:14;const th=w.k==='cannon'?5:3;drawM(M.box,gx,gy,gz,-pyaw,len,th,th,col(WEAPONS[w.k].col));drawM(M.box,gx-f3[0]*len*0.25,gy-2.2,gz-f3[2]*len*0.25,-pyaw,4,4,4,col(me.skin));drawM(M.box,gx-f3[0]*len*0.45-rx*0.5,gy-3.5,gz-f3[2]*len*0.45-rz*0.5,-pyaw,4,5,4,col(me.col))}
+    else{drawM(M.box,gx,gy-1,gz,-pyaw,6,5,5,col(me.skin))}}
   overlay()}
-function drawTurtle3(t){const r=t.r;const bob=Math.abs(Math.sin(t.walk))*2;const c=col(t.col);const dark=[c[0]*0.7,c[1]*0.7,c[2]*0.7];const hurt=t.hurtT>0;
-  for(const [a,s] of [[0.75,1],[2.4,-1],[-0.75,-1],[-2.4,1]]){const px=t.x+Math.cos(a+t.aim)*r*0.85,pz=t.y+Math.sin(a+t.aim)*r*0.85;drawM(M.sphere,px,3+Math.max(0,Math.sin(t.walk)*s)*3,pz,a+t.aim,12,7,8,[0.3,0.62,0.3])}
-  drawM(M.sphere,t.x,r*0.35+bob,t.y,t.aim,r*2.1,r*1.35,r*1.9,hurt?[1,0.5,0.45]:c);drawM(M.sphere,t.x,r*0.7+bob,t.y,t.aim,r*1.3,r*0.9,r*1.2,hurt?[1,0.6,0.55]:dark);
-  const hx=t.x+Math.cos(t.aim)*(r+5),hz=t.y+Math.sin(t.aim)*(r+5);drawM(M.sphere,hx,12+bob,hz,t.aim,16,15,15,[0.4,0.78,0.4]);drawM(M.sphere,hx+Math.cos(t.aim+0.5)*6,16+bob,hz+Math.sin(t.aim+0.5)*6,0,3.5,3.5,3.5,[0.05,0.05,0.05]);drawM(M.sphere,hx+Math.cos(t.aim-0.5)*6,16+bob,hz+Math.sin(t.aim-0.5)*6,0,3.5,3.5,3.5,[0.05,0.05,0.05]);
-  const w=t.weapons[t.sel];if(w){const len=w.k==='snorkel'?34:w.k==='cannon'?22:24;const gx=hx+Math.cos(t.aim)*len*0.5,gz=hz+Math.sin(t.aim)*len*0.5;drawM(M.box,gx,8+bob,gz,-t.aim,len,w.k==='cannon'?9:5,w.k==='cannon'?9:5,col(WEAPONS[w.k].col))}
-  if(t.shield>0){drawM(M.sphere,t.x,r*0.4+bob,t.y,0,r*2.6,r*2.2,r*2.6,[0.4,0.7,1],0.0001)}}
+function drawPerson(t){const a=t.aim,ry=-a;const sw=Math.sin(t.walk)*(t.moving?1:0);const hurt=t.hurtT>0;const shirt=hurt?[1,0.45,0.4]:col(t.col),skin=col(t.skin||'#e0ac7e'),pants=[0.2,0.24,0.42];
+  const fx=Math.cos(a),fz=Math.sin(a),rx=-fz,rz=fx;const P=(f,r)=>[t.x+fx*f+rx*r,t.y+fz*f+rz*r];
+  let p=P(sw*7,-5);drawM(M.box,p[0],0,p[1],ry,9,27,9,pants);p=P(-sw*7,5);drawM(M.box,p[0],0,p[1],ry,9,27,9,pants);
+  drawM(M.box,t.x,27,t.y,ry,13,24,20,shirt);
+  p=P(0,-13);drawM(M.box,p[0],28,p[1],ry,7,24,7,shirt);drawM(M.box,p[0],28,p[1],ry,7.5,8,7.5,skin);
+  const w=t.weapons[t.sel];if(w){p=P(10,12);drawM(M.box,p[0],42,p[1],ry,22,6,6,shirt);p=P(21,12);drawM(M.box,p[0],41,p[1],ry,7,7,7,skin);const len=w.k==='snorkel'?34:w.k==='cannon'?24:22;p=P(21+len*0.5,12);drawM(M.box,p[0],44,p[1],ry,len,w.k==='cannon'?9:5,w.k==='cannon'?9:5,col(WEAPONS[w.k].col))}
+  else{p=P(0,13);drawM(M.box,p[0],28,p[1],ry,7,24,7,shirt);drawM(M.box,p[0],28,p[1],ry,7.5,8,7.5,skin)}
+  drawM(M.box,t.x,51,t.y,ry,12,12,12,skin);drawM(M.box,t.x-fx*0.5,60,t.y-fz*0.5,ry,13,4,13,[0.2,0.14,0.08]);
+  p=P(6.2,-2.5);drawM(M.box,p[0],55,p[1],ry,1,2,2,[0.05,0.05,0.05]);p=P(6.2,2.5);drawM(M.box,p[0],55,p[1],ry,1,2,2,[0.05,0.05,0.05]);
+  if(t.shield>0)drawM(M.box,t.x,26,t.y,ry,15,26,22,[0.4,0.7,1],0.0001)}
 function overlay(){const g=G,me=g.me;ctx.clearRect(0,0,W,H);
-  for(const t of g.turtles){if(!t.alive)continue;if(t!==me&&inBush(t)&&me.alive&&Math.hypot(t.x-me.x,t.y-me.y)>150)continue;const p=project(t.x,48,t.y);if(!p)continue;const k=clamp(600/p[2],0.5,1.4);
+  for(const t of g.turtles){if(!t.alive||t===me)continue;if(t!==me&&inBush(t)&&me.alive&&Math.hypot(t.x-me.x,t.y-me.y)>150)continue;const p=project(t.x,74,t.y);if(!p)continue;const k=clamp(600/p[2],0.5,1.4);
     ctx.font=Math.round(11*k)+'px Share Tech Mono';ctx.textAlign='center';ctx.fillStyle='rgba(0,0,0,.6)';ctx.fillText(t.name,p[0]+1,p[1]-10*k+1);ctx.fillStyle=t===me?'#ffd84a':'#eef';ctx.fillText(t.name,p[0],p[1]-10*k);
     const bw=34*k;ctx.fillStyle='rgba(0,0,0,.55)';ctx.fillRect(p[0]-bw/2,p[1]-6*k,bw,4*k);ctx.fillStyle='#4c4';ctx.fillRect(p[0]-bw/2,p[1]-6*k,bw*t.hp/100,4*k);if(t.shield>0){ctx.fillStyle='#49f';ctx.fillRect(p[0]-bw/2,p[1]-1*k,bw*t.shield/100,3*k)}}
   // crosshair
@@ -319,17 +328,17 @@ function drawMini(){const m=mctx,S=mini.width,k=S/WORLD;m.clearRect(0,0,S,S);m.f
   const me=G.me;m.fillStyle=me.alive?'#fff':'#f66';m.beginPath();m.arc(me.x*k,me.y*k,3,0,TAU);m.fill()}
 function hud(){const me=G.me;$('nAlive').textContent=G.alive;$('kills').textContent=me.kills+' knocked';
   $('hpB').style.width=me.hp+'%';$('hpT').textContent=Math.ceil(me.hp);$('shB').style.width=me.shield+'%';$('shT').textContent=Math.ceil(me.shield);
-  $('mats').textContent='🪵 '+me.wood+' · 🪨 '+me.stone+' · 🥬 '+me.lettuce+' (F) · 🧪 '+me.potions+' (G)';
+  $('mats').textContent='🪵 '+me.wood+' · 🪨 '+me.stone+' · 🩹 '+me.lettuce+' (F) · 🧪 '+me.potions+' (G)';
   const T=G.tide;$('tideT').textContent=T.wait>0?'TIDE IN '+Math.ceil(T.wait)+'s':T.shrink>0?'TIDE COMING IN':'TIDE';$('tideS').textContent=me.inTide?'YOU ARE OUTSIDE: swim to the ring!':T.wait>0?'stay inside the blue ring':'';$('tideS').style.color=me.inTide?'#f88':'#cde';
   const sl=$('slots');if(sl.children.length!==5){sl.innerHTML='';for(let i=0;i<5;i++){const d=document.createElement('div');d.className='slot';d.onclick=()=>{me.sel=i};sl.appendChild(d)}}
   for(let i=0;i<5;i++){const d=sl.children[i];const w=me.weapons[i];d.className='slot'+(i===me.sel?' on':'')+(w?' '+RAR[w.rar].cls:'');d.innerHTML='<span class="k">'+(i+1)+'</span>'+(w?WEAPONS[w.k].n+'<br>'+RAR[w.rar].n:'empty')}
   $('feed').innerHTML=G.feed.map(f=>'<div style="opacity:'+Math.min(1,f.t)+'">'+f.txt+'</div>').join('')}
 // ---------- screens ----------
-function titleScreen(){$('box').innerHTML='<h1>IRON GUNS</h1><h2>3D TURTLE BATTLE ROYALE</h2><p>24 turtles land on Shell Island. Grab water pistols, bubble blasters, shell cannons and sniper snorkels from the glowing chests, chop trees for wood, build shell walls, and stay inside the blue ring as the tide comes in. Last turtle standing wins.</p>'+
-  '<p><b>WASD</b> move · <b>Mouse</b> turns you and aims (click the game to lock the mouse) · <b>Click</b> shoot, or chop trees and rocks with empty hands · <b>Q</b> or right click: build a wall (10 wood) · <b>F</b> eat lettuce · <b>G</b> drink shield · <b>1-5</b> or wheel: weapons<br>On touch: left side moves, drag the right side to look, FIRE button shoots.</p>'+
+function titleScreen(){$('box').innerHTML='<h1>IRON GUNS</h1><h2>FIRST-PERSON BATTLE ROYALE</h2><p>24 players land on Iron Island. Grab pistols, shotguns, rifles, rocket launchers and sniper rifles from the glowing chests, chop trees for wood, build walls, patch up with medkits, and stay inside the blue ring as the tide comes in. Last one standing wins.</p>'+
+  '<p><b>WASD</b> move · <b>Mouse</b> looks around (click the game to lock the mouse) · <b>Click</b> shoot, or chop trees and rocks with empty hands · <b>Q</b> or right click: build a wall (10 wood) · <b>F</b> medkit · <b>G</b> shield potion · <b>1-5</b> or wheel: weapons<br>On touch: left side moves, drag the right side to look, FIRE button shoots.</p>'+
   '<p style="color:#9c9">Best finish: '+(save.best?'#'+save.best:'none yet')+' · Wins: '+save.wins+' · Games: '+save.games+'</p><button class="btn" id="play">DROP IN</button>';$('msg').style.display='flex';$('play').onclick=start}
 function endScreen(won){const me=G.me;save.games++;if(won){save.wins++;save.best=1}else if(!save.best||me.place<save.best)save.best=me.place;persist();
-  $('box').innerHTML=(won?'<h1>TURTLE VICTORY</h1><h2>LAST TURTLE STANDING</h2>':'<h1>#'+me.place+' OF '+N_PLAYERS+'</h1><h2>KNOCKED OUT</h2>')+'<p>You knocked '+me.kills+' turtle'+(me.kills===1?'':'s')+'.'+(won?' The island is yours.':' Grab a gun faster next time, and watch the ring.')+'</p><button class="btn" id="again">PLAY AGAIN</button> <button class="btn" id="menu">TITLE</button>';
+  $('box').innerHTML=(won?'<h1>VICTORY</h1><h2>LAST ONE STANDING</h2>':'<h1>#'+me.place+' OF '+N_PLAYERS+'</h1><h2>KNOCKED OUT</h2>')+'<p>You knocked '+me.kills+' player'+(me.kills===1?'':'s')+'.'+(won?' The island is yours.':' Grab a gun faster next time, and watch the ring.')+'</p><button class="btn" id="again">PLAY AGAIN</button> <button class="btn" id="menu">TITLE</button>';
   $('msg').style.display='flex';$('again').onclick=start;$('menu').onclick=titleScreen}
 function start(){G=newGame();$('msg').style.display='none';beep(520,0.1,'triangle');hud()}
 // ---------- input ----------
@@ -337,14 +346,14 @@ addEventListener('keydown',e=>{if(e.repeat)return;keys[e.code]=true;if(!G||G.pha
   if(e.code==='KeyQ')build(me);if(e.code==='KeyF')eat(me);if(e.code==='KeyG')drink(me);if(/^Digit[1-5]$/.test(e.code))me.sel=+e.code[5]-1;if(e.code==='Space'){e.preventDefault()}});
 addEventListener('keyup',e=>{keys[e.code]=false});
 function pointerLocked(){return document.pointerLockElement===cv}
-addEventListener('mousemove',e=>{mouse.x=e.clientX;mouse.y=e.clientY;if(pointerLocked()&&G){G.cam.yaw+=(e.movementX||0)*0.0032}});
+addEventListener('mousemove',e=>{mouse.x=e.clientX;mouse.y=e.clientY;if(pointerLocked()&&G){G.cam.yaw+=(e.movementX||0)*0.0028;G.cam.pitch=clamp(G.cam.pitch-(e.movementY||0)*0.0022,-1.2,1.0)}});
 cv.addEventListener('mousedown',e=>{if(e.button===0){mouse.down=true;if(G&&!pointerLocked()&&cv.requestPointerLock){try{cv.requestPointerLock()}catch(x){}}}if(e.button===2&&G&&G.me)build(G.me)});addEventListener('mouseup',()=>mouse.down=false);cv.addEventListener('contextmenu',e=>e.preventDefault());
 ov.addEventListener('contextmenu',e=>e.preventDefault());
 addEventListener('wheel',e=>{if(!G)return;const me=G.me;me.sel=(me.sel+(e.deltaY>0?1:4))%5});
 // touch: left half joystick, right half aim + fire
 const touch={move:null,look:false,fire:false,ids:{}};
 cv.addEventListener('touchstart',e=>{$('touch').style.display='block';for(const t of e.changedTouches){if(t.clientX<W/2)touch.ids[t.identifier]={kind:'move',x0:t.clientX,y0:t.clientY};else{touch.ids[t.identifier]={kind:'look',lx:t.clientX};touch.look=true}}e.preventDefault()},{passive:false});
-cv.addEventListener('touchmove',e=>{for(const t of e.changedTouches){const s=touch.ids[t.identifier];if(!s)continue;if(s.kind==='move'){const dx=t.clientX-s.x0,dy=t.clientY-s.y0;const l=Math.hypot(dx,dy);touch.move={x:dx/Math.max(40,l),y:dy/Math.max(40,l)}}else if(G){G.cam.yaw+=(t.clientX-s.lx)*0.008;s.lx=t.clientX}}e.preventDefault()},{passive:false});
+cv.addEventListener('touchmove',e=>{for(const t of e.changedTouches){const s=touch.ids[t.identifier];if(!s)continue;if(s.kind==='move'){const dx=t.clientX-s.x0,dy=t.clientY-s.y0;const l=Math.hypot(dx,dy);touch.move={x:dx/Math.max(40,l),y:dy/Math.max(40,l)}}else if(G){G.cam.yaw+=(t.clientX-s.lx)*0.008;G.cam.pitch=clamp(G.cam.pitch-(t.clientY-(s.ly===undefined?t.clientY:s.ly))*0.006,-1.2,1.0);s.lx=t.clientX;s.ly=t.clientY}}e.preventDefault()},{passive:false});
 const tEnd=e=>{for(const t of e.changedTouches){const s=touch.ids[t.identifier];if(!s)continue;if(s.kind==='move')touch.move=null;else touch.look=false;delete touch.ids[t.identifier]}};
 cv.addEventListener('touchend',tEnd);cv.addEventListener('touchcancel',tEnd);
 $('tFire').ontouchstart=e=>{e.preventDefault();touch.fire=true};$('tFire').ontouchend=$('tFire').ontouchcancel=e=>{e.preventDefault();touch.fire=false};$('tBuild').ontouchstart=e=>{e.preventDefault();if(G)build(G.me)};$('tEat').ontouchstart=e=>{e.preventDefault();if(G)eat(G.me)};$('tShield').ontouchstart=e=>{e.preventDefault();if(G)drink(G.me)};
