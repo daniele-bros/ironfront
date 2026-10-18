@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1.0,viewport-fit=cover,user-scalable=no">
 <title>Iron Guns – Free Turtle Battle Royale in Your Browser | Iron Games</title>
-<meta name="description" content="Iron Guns is a free browser battle royale with turtles: 24 turtles land on Shell Island, grab water pistols, bubble blasters and shell cannons from chests, chop trees for wood, build shell walls and stay inside the shrinking tide. Last turtle standing wins. Keyboard and mouse or touch, no download.">
+<meta name="description" content="Iron Guns is a free 3D browser battle royale with turtles: 24 turtles land on Shell Island, grab water pistols, bubble blasters and shell cannons from chests, chop trees for wood, build shell walls and stay inside the shrinking tide. Last turtle standing wins. Keyboard and mouse or touch, no download.">
 <meta name="robots" content="index,follow,max-snippet:-1,max-image-preview:large">
 <link rel="canonical" href="https://irongames.win/ironguns.html">
 <link rel="icon" href="favicon.svg" type="image/svg+xml">
@@ -17,7 +17,7 @@
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="Iron Guns – Free Turtle Battle Royale | Iron Games">
 <meta name="twitter:description" content="24 turtles, one island, a shrinking tide. Last turtle standing wins. Free in your browser.">
-<script type="application/ld+json">{"@context":"https://schema.org","@graph":[{"@type":"VideoGame","name":"Iron Guns","url":"https://irongames.win/ironguns.html","genre":["Action","Battle royale","Shooter"],"gamePlatform":"Web browser","applicationCategory":"Game","operatingSystem":"Any","isAccessibleForFree":true,"offers":{"@type":"Offer","price":"0","priceCurrency":"USD"},"author":{"@type":"Organization","name":"Daniele Bros"},"publisher":{"@type":"Organization","name":"Daniele Bros"},"inLanguage":"en","dateModified":"2026-10-18","description":"A free top-down battle royale with turtles: 24 turtles land on an island, loot water pistols, bubble blasters, shell cannons and sniper snorkels, chop trees for wood, build shell walls and outlast the shrinking tide."},{"@type":"BreadcrumbList","itemListElement":[{"@type":"ListItem","position":1,"name":"Iron Games","item":"https://irongames.win/"},{"@type":"ListItem","position":2,"name":"Iron Guns","item":"https://irongames.win/ironguns.html"}]}]}</script>
+<script type="application/ld+json">{"@context":"https://schema.org","@graph":[{"@type":"VideoGame","name":"Iron Guns","url":"https://irongames.win/ironguns.html","genre":["Action","Battle royale","Shooter"],"gamePlatform":"Web browser","applicationCategory":"Game","operatingSystem":"Any","isAccessibleForFree":true,"offers":{"@type":"Offer","price":"0","priceCurrency":"USD"},"author":{"@type":"Organization","name":"Daniele Bros"},"publisher":{"@type":"Organization","name":"Daniele Bros"},"inLanguage":"en","dateModified":"2026-10-18","description":"A free 3D third-person battle royale with turtles: 24 turtles land on an island, loot water pistols, bubble blasters, shell cannons and sniper snorkels, chop trees for wood, build shell walls and outlast the shrinking tide."},{"@type":"BreadcrumbList","itemListElement":[{"@type":"ListItem","position":1,"name":"Iron Games","item":"https://irongames.win/"},{"@type":"ListItem","position":2,"name":"Iron Guns","item":"https://irongames.win/ironguns.html"}]}]}</script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Oswald:wght@500;700&family=Share+Tech+Mono&display=swap" rel="stylesheet">
@@ -27,6 +27,7 @@
 html,body{width:100%;height:100%;overflow:hidden;background:#0a2a3a;}
 body{font-family:'Share Tech Mono','Courier New',monospace;color:var(--cream);user-select:none;-webkit-user-select:none;touch-action:none;}
 canvas{position:absolute;inset:0;width:100%;height:100%;display:block;}
+#ov{pointer-events:none;z-index:5;}
 .back{position:absolute;top:10px;left:10px;z-index:30;background:var(--panel);color:var(--dim);font-family:'Oswald',sans-serif;font-size:12px;letter-spacing:3px;padding:7px 12px;border:1px solid var(--border);text-decoration:none;border-radius:3px;}
 .back:hover{color:var(--gold);border-color:var(--gold);}
 #hud{position:absolute;inset:0;z-index:10;pointer-events:none;font-size:13px;letter-spacing:1px;text-shadow:0 1px 3px #000;}
@@ -57,7 +58,7 @@ canvas{position:absolute;inset:0;width:100%;height:100%;display:block;}
 .btn:hover{border-color:var(--gold);}
 #touch{position:absolute;inset:0;display:none;z-index:15;pointer-events:none;}
 #touch .tb{position:absolute;pointer-events:auto;width:64px;height:64px;border-radius:50%;background:var(--panel);border:2px solid var(--border);color:var(--gold);font-family:'Oswald',sans-serif;font-size:11px;letter-spacing:1px;display:flex;align-items:center;justify-content:center;}
-#tBuild{right:24px;bottom:190px}#tEat{right:100px;bottom:190px}#tShield{right:176px;bottom:190px}
+#tBuild{right:124px;bottom:110px}#tEat{right:200px;bottom:110px}#tShield{right:276px;bottom:110px}
 #banner{position:absolute;top:22%;left:0;right:0;text-align:center;font-family:'Oswald',sans-serif;font-size:30px;letter-spacing:6px;color:var(--gold);text-shadow:0 2px 10px #000;opacity:0;transition:opacity .3s;pointer-events:none;z-index:12;}
 @media (max-width:700px){#bars{width:46vw}#mini{width:100px;height:100px}.slot{width:46px;height:40px;font-size:8px}#msg h1{font-size:30px}}
 </style>
@@ -65,6 +66,7 @@ canvas{position:absolute;inset:0;width:100%;height:100%;display:block;}
 <body>
 <a class="back" href="/" title="Back to Iron Games">◀ IRON GAMES</a>
 <canvas id="c"></canvas>
+<canvas id="ov"></canvas>
 <div id="hud">
   <div id="alive"><b id="nAlive">24</b> TURTLES LEFT<br><span id="kills">0 knocked</span></div>
   <div id="tide"><b id="tideT">TIDE</b><br><span id="tideS">coming in</span></div>
@@ -74,12 +76,12 @@ canvas{position:absolute;inset:0;width:100%;height:100%;display:block;}
   <canvas id="mini" width="150" height="150"></canvas>
 </div>
 <div id="banner"></div>
-<div id="touch"><div class="tb" id="tBuild">BUILD</div><div class="tb" id="tEat">EAT</div><div class="tb" id="tShield">SHIELD</div></div>
+<div id="touch"><div class="tb" id="tFire" style="right:24px;bottom:100px;width:84px;height:84px;font-size:14px">FIRE</div><div class="tb" id="tBuild">BUILD</div><div class="tb" id="tEat">EAT</div><div class="tb" id="tShield">SHIELD</div></div>
 <div id="msg"><div class="box" id="box"></div></div>
 <script>
 'use strict';
 const $=id=>document.getElementById(id);
-const cv=$('c'),ctx=cv.getContext('2d');const mini=$('mini'),mctx=mini.getContext('2d');
+const cv=$('c');const ov=$('ov'),ctx=ov.getContext('2d');const mini=$('mini'),mctx=mini.getContext('2d');
 const PI=Math.PI,TAU=PI*2,rnd=(a,b)=>a+Math.random()*(b-a),ri=(a,b)=>Math.floor(rnd(a,b+1)),clamp=(v,a,b)=>v<a?a:v>b?b:v,pick=a=>a[Math.floor(Math.random()*a.length)];
 const WORLD=2600,ISLAND=1180,N_PLAYERS=24;
 const WEAPONS={
@@ -92,7 +94,7 @@ const RAR=[{n:'Common',m:1,c:'#cfd',cls:'c1'},{n:'Rare',m:1.15,c:'#6cf',cls:'c2'
 const NAMES=['Sheldon','Crush','Squirt','Franklin','Koopa','Tortuga','Donatello','Leo','Raph','Mikey','Shelly','Speedy','Myrtle','Verne','Tuck','Bowser Jr','Snappy','Pebble','Moss','Bubbles','Flash','Tilly','Gamera'];
 const COLORS=['#3a9d4a','#5bb35e','#2e8b57','#6b8e23','#8fbc5a','#49a078','#7cb342','#3d7a3d','#a2c75a','#2f9e8f'];
 let W=0,H=0,DPR=1;
-function resize(){DPR=Math.min(2,devicePixelRatio||1);W=innerWidth;H=innerHeight;cv.width=W*DPR;cv.height=H*DPR;ctx.setTransform(DPR,0,0,DPR,0,0)}
+function resize(){DPR=Math.min(2,devicePixelRatio||1);W=innerWidth;H=innerHeight;cv.width=W*DPR;cv.height=H*DPR;ov.width=W*DPR;ov.height=H*DPR;ctx.setTransform(DPR,0,0,DPR,0,0)}
 addEventListener('resize',resize);resize();
 // ---------- state ----------
 let G=null,keys={},mouse={x:0,y:0,down:false},last=0,save={best:0,wins:0,games:0};
@@ -100,7 +102,7 @@ try{save=Object.assign(save,JSON.parse(localStorage.getItem('igun_save')||'{}'))
 function persist(){try{localStorage.setItem('igun_save',JSON.stringify(save))}catch(e){}}
 function newGame(){
   const g={t:0,phase:'ready',ready:3,turtles:[],shots:[],items:[],trees:[],rocks:[],bushes:[],walls:[],chests:[],parts:[],feed:[],
-    tide:{cx:WORLD/2,cy:WORLD/2,r:ISLAND+200,tx:WORLD/2,ty:WORLD/2,tr:ISLAND+200,wait:30,shrink:0,stage:0,dps:1.5},alive:N_PLAYERS,placed:0,kills:0,over:false,cam:{x:WORLD/2,y:WORLD/2},shake:0};
+    tide:{cx:WORLD/2,cy:WORLD/2,r:ISLAND+200,tx:WORLD/2,ty:WORLD/2,tr:ISLAND+200,wait:30,shrink:0,stage:0,dps:1.5},alive:N_PLAYERS,placed:0,kills:0,over:false,cam:{x:WORLD/2,y:WORLD/2,yaw:0},shake:0};
   const inLand=(x,y,m)=>Math.hypot(x-WORLD/2,y-WORLD/2)<ISLAND-(m||0);
   const spot=(m)=>{for(let i=0;i<50;i++){const a=rnd(0,TAU),r=Math.sqrt(Math.random())*(ISLAND-m);const x=WORLD/2+Math.cos(a)*r,y=WORLD/2+Math.sin(a)*r;if(g.trees.every(t=>Math.hypot(t.x-x,t.y-y)>50)&&g.rocks.every(t=>Math.hypot(t.x-x,t.y-y)>50))return [x,y]}return [WORLD/2,WORLD/2]};
   for(let i=0;i<150;i++){const [x,y]=spot(60);g.trees.push({x,y,r:rnd(16,26),hp:3})}
@@ -115,7 +117,7 @@ function newGame(){
   const solidAtSetup=(x,y)=>g.trees.some(t=>Math.hypot(t.x-x,t.y-y)<t.r+24)||g.rocks.some(t=>Math.hypot(t.x-x,t.y-y)<t.r+24)||g.walls.some(w=>Math.hypot(w.x-x,w.y-y)<80);
   for(let i=0;i<N_PLAYERS;i++){const [x,y]=spawnAt(i);const t={id:i,x,y,r:17,hp:100,shield:0,wood:i?40:0,stone:0,lettuce:0,potions:0,weapons:[null,null,null,null,null],sel:0,aim:rnd(0,TAU),cd:0,bot:i>0,name:i?names[i-1]:'You',col:i?pick(COLORS):'#ffd84a',alive:true,kills:0,vx:0,vy:0,hurtT:0,hidden:false,ai:{wander:rnd(0,TAU),wt:0,target:null,buildCd:0,seeT:0},walk:0,inWater:false};
     g.turtles.push(t)}
-  g.me=g.turtles[0];g.cam.x=g.me.x;g.cam.y=g.me.y;return g}
+  g.me=g.turtles[0];g.cam.x=g.me.x;g.cam.y=g.me.y;g.cam.yaw=Math.atan2(WORLD/2-g.me.y,WORLD/2-g.me.x);g.me.aim=g.cam.yaw;return g}
 function makeItem(x,y,kind,extra){const it={x,y,kind,t:0};if(kind==='weapon'){const r=Math.random();it.rar=r<0.55?0:r<0.82?1:r<0.95?2:3;it.w=extra||pick(Object.keys(WEAPONS))}if(kind==='wood'||kind==='stone')it.n=30;return it}
 // ---------- helpers ----------
 function beep(f,d,type,v){try{const ac=beep.ac||(beep.ac=new (window.AudioContext||window.webkitAudioContext)());if(ac.state==='suspended')ac.resume();const o=ac.createOscillator(),gn=ac.createGain();o.type=type||'square';o.frequency.value=f;gn.gain.value=v||0.05;gn.gain.exponentialRampToValueAtTime(0.0001,ac.currentTime+d);o.connect(gn);gn.connect(ac.destination);o.start();o.stop(ac.currentTime+d)}catch(e){}}
@@ -196,9 +198,10 @@ function update(dt){const g=G;g.t+=dt;
   const me=g.me;
   for(const t of g.turtles){if(!t.alive)continue;t.cd-=dt;if(t.hurtT>0)t.hurtT-=dt;t.inWater=Math.hypot(t.x-WORLD/2,t.y-WORLD/2)>ISLAND;
     if(t.bot){if(g.phase==='play')botThink(t,dt)}
-    else if(g.phase==='play'&&!g.over){let mx=0,my=0;if(keys.KeyW||keys.ArrowUp)my-=1;if(keys.KeyS||keys.ArrowDown)my+=1;if(keys.KeyA||keys.ArrowLeft)mx-=1;if(keys.KeyD||keys.ArrowRight)mx+=1;
-      if(touch.move){mx=touch.move.x;my=touch.move.y}const l=Math.hypot(mx,my);if(l>0.01){const sp=speedOf(t)*dt;moveTurtle(t,mx/Math.max(1,l)*sp,my/Math.max(1,l)*sp);t.walk+=dt*6}
-      if(touch.aim){t.aim=touch.aim}else t.aim=Math.atan2(mouse.y-H/2,mouse.x-W/2);
+    else if(g.phase==='play'&&!g.over){let fw=0,st=0;if(keys.KeyW||keys.ArrowUp)fw+=1;if(keys.KeyS||keys.ArrowDown)fw-=1;if(keys.KeyA)st-=1;if(keys.KeyD)st+=1;
+      if(keys.ArrowLeft)g.cam.yaw-=dt*2.2;if(keys.ArrowRight)g.cam.yaw+=dt*2.2;if(!pointerLocked()&&!touch.look){const ex=(mouse.x-W/2)/(W/2);if(Math.abs(ex)>0.4)g.cam.yaw+=(ex-Math.sign(ex)*0.4)*dt*3.2}
+      if(touch.move){fw=-touch.move.y;st=touch.move.x}const yaw=g.cam.yaw;const fx=Math.cos(yaw),fz=Math.sin(yaw);let mx=fx*fw-fz*st,my=fz*fw+fx*st;const l=Math.hypot(mx,my);if(l>0.01){const sp=speedOf(t)*dt;moveTurtle(t,mx/Math.max(1,l)*sp,my/Math.max(1,l)*sp);t.walk+=dt*6}
+      t.aim=yaw;
       if((mouse.down||touch.fire)&&t.cd<=0){if(t.weapons[t.sel])fire(t);else{t.cd=0.35;harvest(t)}}}
     // loot and chests under your feet
     for(let i=g.items.length-1;i>=0;i--){const it=g.items[i];it.t+=dt;if(Math.hypot(it.x-t.x,it.y-t.y)<t.r+12&&it.t>0.6){if(pickup(t,it)){g.items.splice(i,1);if(t===me)beep(it.kind==='weapon'?880:660,0.07,'triangle',0.04)}}}
@@ -217,50 +220,97 @@ function update(dt){const g=G;g.t+=dt;
   // camera follows you (or the last fight when you are out)
   const f=me.alive?me:(g.turtles.find(t=>t.alive)||me);g.cam.x+=(f.x-g.cam.x)*Math.min(1,dt*6);g.cam.y+=(f.y-g.cam.y)*Math.min(1,dt*6);if(g.shake>0)g.shake-=dt*12;
   hud()}
-// ---------- draw ----------
-function drawTurtle(t){const c=ctx;c.save();c.translate(t.x,t.y);const bob=Math.sin(t.walk)*2;
-  if(t.hurtT>0)c.globalAlpha=0.7;
-  // legs
-  c.fillStyle='#2f7a3a';for(const [a,s] of [[0.7,1],[2.4,-1],[-0.7,-1],[-2.4,1]]){const px=Math.cos(a+t.aim)*14,py=Math.sin(a+t.aim)*14+bob*s;c.beginPath();c.ellipse(px,py,6,4,a+t.aim,0,TAU);c.fill()}
-  // shell
-  c.fillStyle=t.col;c.beginPath();c.arc(0,0,t.r,0,TAU);c.fill();c.strokeStyle='rgba(0,0,0,.35)';c.lineWidth=2;c.stroke();
-  c.strokeStyle='rgba(0,0,0,.25)';c.lineWidth=1.5;c.beginPath();for(let i=0;i<6;i++){const a=i/6*TAU;c.moveTo(Math.cos(a)*7,Math.sin(a)*7);c.lineTo(Math.cos(a)*t.r*0.95,Math.sin(a)*t.r*0.95)}c.stroke();c.beginPath();c.arc(0,0,7,0,TAU);c.stroke();
-  // head towards aim
-  const hx=Math.cos(t.aim)*(t.r+6),hy=Math.sin(t.aim)*(t.r+6);c.fillStyle='#5fbf5f';c.beginPath();c.arc(hx,hy,8,0,TAU);c.fill();c.fillStyle='#000';c.beginPath();c.arc(hx+Math.cos(t.aim+0.6)*4,hy+Math.sin(t.aim+0.6)*4,1.6,0,TAU);c.arc(hx+Math.cos(t.aim-0.6)*4,hy+Math.sin(t.aim-0.6)*4,1.6,0,TAU);c.fill();
-  // gun
-  const w=t.weapons[t.sel];if(w){c.strokeStyle=WEAPONS[w.k].col;c.lineWidth=w.k==='cannon'?7:4;c.beginPath();c.moveTo(hx,hy);c.lineTo(hx+Math.cos(t.aim)*16,hy+Math.sin(t.aim)*16);c.stroke()}
-  c.restore();
-  // name + bars
-  if(t!==G.me||true){c.font='11px Share Tech Mono';c.textAlign='center';c.fillStyle=t===G.me?'#ffd84a':'#eef';c.fillText(t.name,t.x,t.y-t.r-14);
-    c.fillStyle='rgba(0,0,0,.5)';c.fillRect(t.x-16,t.y-t.r-11,32,4);c.fillStyle='#4c4';c.fillRect(t.x-16,t.y-t.r-11,32*t.hp/100,4);if(t.shield>0){c.fillStyle='#49f';c.fillRect(t.x-16,t.y-t.r-7,32*t.shield/100,3)}}}
-function draw(){const g=G;const c=ctx;c.setTransform(DPR,0,0,DPR,0,0);
-  c.fillStyle='#0a2a3a';c.fillRect(0,0,W,H);
-  const ox=W/2-g.cam.x+(g.shake>0?rnd(-g.shake,g.shake):0),oy=H/2-g.cam.y+(g.shake>0?rnd(-g.shake,g.shake):0);
-  c.save();c.translate(ox,oy);
-  // sea + island
-  c.fillStyle='#1b6f8a';c.beginPath();c.arc(WORLD/2,WORLD/2,ISLAND+60,0,TAU);c.fill();c.fillStyle='#d9c77a';c.beginPath();c.arc(WORLD/2,WORLD/2,ISLAND+18,0,TAU);c.fill();c.fillStyle='#5aa84a';c.beginPath();c.arc(WORLD/2,WORLD/2,ISLAND,0,TAU);c.fill();
-  // grass texture dots
-  c.fillStyle='rgba(0,0,0,.06)';for(let x=Math.floor((g.cam.x-W/2)/80)*80;x<g.cam.x+W/2;x+=80)for(let y=Math.floor((g.cam.y-H/2)/80)*80;y<g.cam.y+H/2;y+=80){if(Math.hypot(x-WORLD/2,y-WORLD/2)<ISLAND){c.fillRect(x+((x*7+y*13)%40),y+((x*3+y*5)%40),10,3)}}
-  const vis=(x,y,r)=>x>g.cam.x-W/2-r&&x<g.cam.x+W/2+r&&y>g.cam.y-H/2-r&&y<g.cam.y+H/2+r;
-  for(const b of g.bushes){if(!vis(b.x,b.y,40))continue;c.fillStyle='#3f8f3a';c.beginPath();c.arc(b.x,b.y,b.r,0,TAU);c.fill();c.fillStyle='#4fa548';c.beginPath();c.arc(b.x-6,b.y-5,b.r*0.6,0,TAU);c.fill()}
-  for(const ch of g.chests){if(!vis(ch.x,ch.y,30))continue;c.fillStyle=ch.open?'#6b4a2a':'#a0712f';c.fillRect(ch.x-16,ch.y-12,32,24);c.fillStyle=ch.open?'#4a3218':'#ffd84a';c.fillRect(ch.x-16,ch.y-2,32,4);if(!ch.open){c.fillStyle='rgba(255,216,74,.25)';c.beginPath();c.arc(ch.x,ch.y,24+Math.sin(g.t*4)*3,0,TAU);c.fill()}}
-  for(const it of g.items){if(!vis(it.x,it.y,30))continue;const bob=Math.sin(g.t*3+it.x)*2;
-    if(it.kind==='weapon'){c.fillStyle=RAR[it.rar].c;c.globalAlpha=0.35;c.beginPath();c.arc(it.x,it.y,16,0,TAU);c.fill();c.globalAlpha=1;c.strokeStyle=WEAPONS[it.w].col;c.lineWidth=5;c.beginPath();c.moveTo(it.x-10,it.y+bob+3);c.lineTo(it.x+10,it.y+bob-3);c.stroke()}
-    else if(it.kind==='lettuce'){c.fillStyle='#8f4';c.beginPath();c.arc(it.x,it.y+bob,9,0,TAU);c.fill();c.fillStyle='#bf7';c.beginPath();c.arc(it.x-3,it.y+bob-3,5,0,TAU);c.fill()}
-    else if(it.kind==='shield'){c.fillStyle='#49f';c.fillRect(it.x-5,it.y+bob-9,10,18);c.fillStyle='#cef';c.fillRect(it.x-3,it.y+bob-12,6,4)}
-    else{c.fillStyle=it.kind==='wood'?'#8a5a2a':'#888';c.fillRect(it.x-10,it.y+bob-6,20,12);c.fillStyle='rgba(255,255,255,.25)';c.fillRect(it.x-10,it.y+bob-6,20,3)}}
-  for(const w of g.walls){if(!vis(w.x,w.y,60))continue;const R=wallRect(w);c.fillStyle=w.stone?'#8a8f96':'#a8762f';c.fillRect(R.x0,R.y0,R.x1-R.x0,R.y1-R.y0);c.strokeStyle='rgba(0,0,0,.4)';c.lineWidth=2;c.strokeRect(R.x0,R.y0,R.x1-R.x0,R.y1-R.y0);const mh=w.stone?220:120;if(w.hp<mh){c.fillStyle='#4c4';c.fillRect(R.x0,R.y0-6,(R.x1-R.x0)*w.hp/mh,3)}}
-  for(const r of g.rocks){if(!vis(r.x,r.y,30))continue;c.fillStyle='#8d8f94';c.beginPath();c.arc(r.x,r.y,r.r,0,TAU);c.fill();c.fillStyle='#b4b6ba';c.beginPath();c.arc(r.x-r.r*0.3,r.y-r.r*0.3,r.r*0.45,0,TAU);c.fill()}
-  for(const t of g.turtles)if(t.alive&&vis(t.x,t.y,40)){if(t!==g.me&&inBush(t)&&g.me.alive&&Math.hypot(t.x-g.me.x,t.y-g.me.y)>150)continue;drawTurtle(t)}
-  for(const s of g.shots){if(!vis(s.x,s.y,10))continue;c.fillStyle=s.col;c.beginPath();c.arc(s.x,s.y,s.size,0,TAU);c.fill()}
-  for(const tr of g.trees){if(!vis(tr.x,tr.y,40))continue;const sx=tr.shake>0?rnd(-2,2):0;c.fillStyle='#6b4a2a';c.beginPath();c.arc(tr.x+sx,tr.y,tr.r*0.35,0,TAU);c.fill();c.fillStyle='#2f7a35';c.beginPath();c.arc(tr.x+sx-4,tr.y-6,tr.r,0,TAU);c.fill();c.fillStyle='#3f9a40';c.beginPath();c.arc(tr.x+sx+5,tr.y-2,tr.r*0.8,0,TAU);c.fill()}
-  for(const p of g.parts){c.fillStyle=p.c;c.globalAlpha=Math.min(1,p.t*2);c.fillRect(p.x-2,p.y-2,4,4)}c.globalAlpha=1;
-  // the tide: darken outside the safe circle
-  const T=g.tide;c.fillStyle='rgba(20,60,160,.35)';c.beginPath();c.rect(g.cam.x-W/2-10,g.cam.y-H/2-10,W+20,H+20);c.arc(T.cx,T.cy,T.r,0,TAU,true);c.fill();
-  c.strokeStyle='rgba(120,200,255,.9)';c.lineWidth=3;c.beginPath();c.arc(T.cx,T.cy,T.r,0,TAU);c.stroke();
-  if(T.shrink>0||T.wait>0){c.strokeStyle='rgba(255,255,255,.5)';c.setLineDash([10,10]);c.beginPath();c.arc(T.wait>0?T.cx:T.tx,T.wait>0?T.cy:T.ty,T.wait>0?Math.max(0,T.r*(T.stage<5?0.58:0)):T.tr,0,TAU);c.stroke();c.setLineDash([])}
-  c.restore();
-  if(g.phase==='ready'){c.fillStyle='rgba(0,0,0,.4)';c.fillRect(0,0,W,H);c.fillStyle='#ffd84a';c.font='bold 72px Oswald';c.textAlign='center';c.fillText(Math.ceil(g.ready),W/2,H/2+20);c.font='16px Share Tech Mono';c.fillStyle='#eef';c.fillText('Grab a gun from a glowing chest. Stay inside the blue ring.',W/2,H/2+60)}
+// ---------- 3D renderer (WebGL, procedural meshes, fog, blob shadows) ----------
+const gl=cv.getContext('webgl',{antialias:true,alpha:false,powerPreference:'high-performance'});
+const VS=`attribute vec3 aPos;attribute vec3 aNor;uniform mat4 uVP,uM;uniform mat3 uN;varying vec3 vN;varying vec3 vW;void main(){vec4 w=uM*vec4(aPos,1.0);vW=w.xyz;vN=normalize(uN*aNor);gl_Position=uVP*w;}`;
+const FS=`precision mediump float;varying vec3 vN;varying vec3 vW;uniform vec3 uCol,uCam,uLight,uFog;uniform float uAlpha,uTime,uMode,uTideR;uniform vec2 uTideC;
+float hash(vec2 p){return fract(sin(dot(p,vec2(12.9898,78.233)))*43758.5453);}
+void main(){vec3 n=normalize(vN);float d=max(0.0,dot(n,uLight));float l=0.45+0.6*d;vec3 c=uCol*l;
+ if(uMode==1.0){float h=hash(floor(vW.xz/22.0));float h2=hash(floor(vW.xz/6.0)+3.0);c*=0.9+0.14*h+0.06*h2;}
+ if(uMode==2.0){float w=sin(vW.x*0.045+uTime*1.6)*sin(vW.z*0.038-uTime*1.2)+0.5*sin((vW.x+vW.z)*0.09+uTime*2.5);c+=0.06*w;float foam=smoothstep(0.985,1.0,sin(length(vW.xz-vec2(1300.0))*0.06-uTime*2.0));c+=foam*0.25;}
+ if(uMode==3.0){if(distance(vW.xz,uTideC)<uTideR)discard;}
+ if(uMode==4.0){c=uCol;}
+ float dist=distance(vW,uCam);float f=1.0-exp(-dist*0.00075);c=mix(c,uFog,clamp(f,0.0,1.0));gl_FragColor=vec4(c,uAlpha);}`;
+function mkShader(t,src){const sh=gl.createShader(t);gl.shaderSource(sh,src);gl.compileShader(sh);if(!gl.getShaderParameter(sh,gl.COMPILE_STATUS))throw new Error(gl.getShaderInfoLog(sh));return sh}
+const prog=gl.createProgram();gl.attachShader(prog,mkShader(gl.VERTEX_SHADER,VS));gl.attachShader(prog,mkShader(gl.FRAGMENT_SHADER,FS));gl.linkProgram(prog);gl.useProgram(prog);
+const U={};for(const k of ['uVP','uM','uN','uCol','uCam','uLight','uFog','uAlpha','uTime','uMode','uTideR','uTideC'])U[k]=gl.getUniformLocation(prog,k);
+const aPos=gl.getAttribLocation(prog,'aPos'),aNor=gl.getAttribLocation(prog,'aNor');gl.enableVertexAttribArray(aPos);gl.enableVertexAttribArray(aNor);
+function mesh(tris){const P=[],N=[];for(const t of tris){const [a,b,c]=t;const ux=b[0]-a[0],uy=b[1]-a[1],uz=b[2]-a[2],vx=c[0]-a[0],vy=c[1]-a[1],vz=c[2]-a[2];let nx=uy*vz-uz*vy,ny=uz*vx-ux*vz,nz=ux*vy-uy*vx;const l=Math.hypot(nx,ny,nz)||1;nx/=l;ny/=l;nz/=l;for(const p of t){P.push(p[0],p[1],p[2]);N.push(p[3]!==undefined?p[3]:nx,p[4]!==undefined?p[4]:ny,p[5]!==undefined?p[5]:nz)}}
+  const vb=gl.createBuffer();gl.bindBuffer(gl.ARRAY_BUFFER,vb);gl.bufferData(gl.ARRAY_BUFFER,new Float32Array(P),gl.STATIC_DRAW);const nb=gl.createBuffer();gl.bindBuffer(gl.ARRAY_BUFFER,nb);gl.bufferData(gl.ARRAY_BUFFER,new Float32Array(N),gl.STATIC_DRAW);return {vb,nb,n:P.length/3}}
+function sphereMesh(lo,la){const T=[];const pt=(i,j)=>{const th=j/la*PI,ph=i/lo*TAU;const x=Math.sin(th)*Math.cos(ph),y=Math.cos(th),z=Math.sin(th)*Math.sin(ph);return [x*0.5,y*0.5,z*0.5,x,y,z]};
+  for(let j=0;j<la;j++)for(let i=0;i<lo;i++){const a=pt(i,j),b=pt(i+1,j),c=pt(i+1,j+1),d=pt(i,j+1);T.push([a,b,c],[a,c,d])}return mesh(T)}
+function boxMesh(){const T=[];const v=(x,y,z)=>[x-0.5,y,z-0.5];const f=(a,b,c,d)=>T.push([a,b,c],[a,c,d]);
+  f(v(0,0,1),v(1,0,1),v(1,1,1),v(0,1,1));f(v(1,0,0),v(0,0,0),v(0,1,0),v(1,1,0));f(v(1,0,1),v(1,0,0),v(1,1,0),v(1,1,1));f(v(0,0,0),v(0,0,1),v(0,1,1),v(0,1,0));f(v(0,1,1),v(1,1,1),v(1,1,0),v(0,1,0));f(v(0,0,0),v(1,0,0),v(1,0,1),v(0,0,1));return mesh(T)}
+function cylMesh(n,top){const T=[];for(let i=0;i<n;i++){const a0=i/n*TAU,a1=(i+1)/n*TAU;const x0=Math.cos(a0)*0.5,z0=Math.sin(a0)*0.5,x1=Math.cos(a1)*0.5,z1=Math.sin(a1)*0.5;const r=top;
+    T.push([[x0,0,z0,x0*2,0,z0*2],[x1,0,z1,x1*2,0,z1*2],[x1*r,1,z1*r,x1*2,0,z1*2]],[[x0,0,z0,x0*2,0,z0*2],[x1*r,1,z1*r,x1*2,0,z1*2],[x0*r,1,z0*r,x0*2,0,z0*2]]);
+    if(top>0)T.push([[0,1,0,0,1,0],[x1*r,1,z1*r,0,1,0],[x0*r,1,z0*r,0,1,0]]);T.push([[0,0,0,0,-1,0],[x0,0,z0,0,-1,0],[x1,0,z1,0,-1,0]])}return mesh(T)}
+function discMesh(n){const T=[];for(let i=0;i<n;i++){const a0=i/n*TAU,a1=(i+1)/n*TAU;T.push([[0,0,0,0,1,0],[Math.cos(a1)*0.5,0,Math.sin(a1)*0.5,0,1,0],[Math.cos(a0)*0.5,0,Math.sin(a0)*0.5,0,1,0]])}return mesh(T)}
+const M={sphere:sphereMesh(14,9),box:boxMesh(),cyl:cylMesh(12,1),cone:cylMesh(10,0.15),disc:discMesh(40),ring:(function(){const T=[],n=64;for(let i=0;i<n;i++){const a0=i/n*TAU,a1=(i+1)/n*TAU;const p=(a,r,y)=>[Math.cos(a)*r,y,Math.sin(a)*r,-Math.cos(a),0,-Math.sin(a)];T.push([p(a0,0.5,0),p(a1,0.5,0),p(a1,0.5,1)],[p(a0,0.5,0),p(a1,0.5,1),p(a0,0.5,1)])}return mesh(T)})()};
+// matrices (column-major)
+function m4persp(fov,asp,n,f){const t=1/Math.tan(fov/2);return new Float32Array([t/asp,0,0,0,0,t,0,0,0,0,(f+n)/(n-f),-1,0,0,2*f*n/(n-f),0])}
+function m4look(e,c,u){let zx=e[0]-c[0],zy=e[1]-c[1],zz=e[2]-c[2];let l=Math.hypot(zx,zy,zz)||1;zx/=l;zy/=l;zz/=l;let xx=u[1]*zz-u[2]*zy,xy=u[2]*zx-u[0]*zz,xz=u[0]*zy-u[1]*zx;l=Math.hypot(xx,xy,xz)||1;xx/=l;xy/=l;xz/=l;const yx=zy*xz-zz*xy,yy=zz*xx-zx*xz,yz=zx*xy-zy*xx;
+  return new Float32Array([xx,yx,zx,0,xy,yy,zy,0,xz,yz,zz,0,-(xx*e[0]+xy*e[1]+xz*e[2]),-(yx*e[0]+yy*e[1]+yz*e[2]),-(zx*e[0]+zy*e[1]+zz*e[2]),1])}
+function m4mul(a,b){const o=new Float32Array(16);for(let i=0;i<4;i++)for(let j=0;j<4;j++){let v=0;for(let k=0;k<4;k++)v+=a[k*4+j]*b[i*4+k];o[i*4+j]=v}return o}
+const MM=new Float32Array(16),NN=new Float32Array(9);let VP=null,CAMP=[0,0,0];
+function setModel(tx,ty,tz,ry,sx,sy,sz){const c=Math.cos(ry),s=Math.sin(ry);MM.set([c*sx,0,-s*sx,0, 0,sy,0,0, s*sz,0,c*sz,0, tx,ty,tz,1]);NN.set([c/sx,0,-s/sx, 0,1/sy,0, s/sz,0,c/sz]);gl.uniformMatrix4fv(U.uM,false,MM);gl.uniformMatrix3fv(U.uN,false,NN)}
+function drawM(m,tx,ty,tz,ry,sx,sy,sz,col,alpha,mode){setModel(tx,ty,tz,ry,sx,sy,sz);gl.uniform3f(U.uCol,col[0],col[1],col[2]);gl.uniform1f(U.uAlpha,alpha===undefined?1:alpha);gl.uniform1f(U.uMode,mode||0);
+  gl.bindBuffer(gl.ARRAY_BUFFER,m.vb);gl.vertexAttribPointer(aPos,3,gl.FLOAT,false,0,0);gl.bindBuffer(gl.ARRAY_BUFFER,m.nb);gl.vertexAttribPointer(aNor,3,gl.FLOAT,false,0,0);gl.drawArrays(gl.TRIANGLES,0,m.n)}
+function hex(h){return [parseInt(h.slice(1,3),16)/255,parseInt(h.slice(3,5),16)/255,parseInt(h.slice(5,7),16)/255]}
+const HEX={};const col=h=>HEX[h]||(HEX[h]=hex(h));
+function project(x,y,z){const m=VP;const cw=m[3]*x+m[7]*y+m[11]*z+m[15];if(cw<=0.01)return null;const cx=(m[0]*x+m[4]*y+m[8]*z+m[12])/cw,cy=(m[1]*x+m[5]*y+m[9]*z+m[13])/cw;return [(cx+1)/2*W,(1-cy)/2*H,cw]}
+function shadow(x,z,r,a){drawM(M.disc,x,0.9,z,0,r*2,1,r*2,[0.05,0.12,0.05],a||0.35,4)}
+function draw(){const g=G;const me=g.me;gl.viewport(0,0,cv.width,cv.height);
+  const SKY=[0.62,0.82,0.95];gl.clearColor(SKY[0],SKY[1],SKY[2],1);gl.enable(gl.DEPTH_TEST);gl.depthMask(true);gl.disable(gl.BLEND);gl.clear(gl.COLOR_BUFFER_BIT|gl.DEPTH_BUFFER_BIT);
+  // camera: behind and above the turtle, looking where it aims
+  const focus=me.alive?me:(g.turtles.find(t=>t.alive)||me);const yaw=g.cam.yaw;const fx=Math.cos(yaw),fz=Math.sin(yaw);const sh=g.shake>0?rnd(-g.shake,g.shake):0;
+  // pull the camera in when a tree, bush or wall would sit between it and the turtle
+  const blocked=(x,y,z)=>{for(const tr of g.trees){const h=44+tr.r;if(Math.hypot(tr.x-x,tr.y-z)<tr.r*1.3+12&&y<h+tr.r*1.4)return true}for(const b of g.bushes)if(Math.hypot(b.x-x,b.y-z)<b.r*0.9+12&&y<b.r*1.2)return true;for(const r of g.rocks)if(Math.hypot(r.x-x,r.y-z)<r.r+10&&y<r.r*1.3)return true;if(y<44&&hitWall(x,z,10))return true;return false};
+  let cd=200;for(;cd>60;cd-=10){const ex=g.cam.x-fx*cd,ez=g.cam.y-fz*cd,ey=40+cd*0.55;if(!blocked(ex,ey,ez)&&!blocked(ex+fx*25,ey-8,ez+fz*25))break}g.camD=g.camD===undefined?cd:g.camD+(cd-g.camD)*(cd<g.camD?0.5:0.08);const D=g.camD;
+  const eye=[g.cam.x-fx*D+sh,40+D*0.55+sh*0.5,g.cam.y-fz*D],at=[g.cam.x+fx*70,26,g.cam.y+fz*70];CAMP=eye;
+  const P=m4persp(62*PI/180,W/H,8,5000),V=m4look(eye,at,[0,1,0]);VP=m4mul(P,V);gl.uniformMatrix4fv(U.uVP,false,VP);gl.uniform3f(U.uCam,eye[0],eye[1],eye[2]);gl.uniform3f(U.uLight,0.45,0.78,0.35);gl.uniform3f(U.uFog,SKY[0],SKY[1],SKY[2]);gl.uniform1f(U.uTime,g.t);
+  const T=g.tide;gl.uniform2f(U.uTideC,T.cx,T.cy);gl.uniform1f(U.uTideR,T.r);
+  const near=(x,z,r)=>{const dx=x-g.cam.x,dz=z-g.cam.y;if(dx*dx+dz*dz>(1500+r)*(1500+r)||(dx*fx+dz*fz)<-260-r)return false;const ex=x-eye[0],ez=z-eye[2];return ex*ex+ez*ez>(r+24)*(r+24)};
+  // ground: sea, sand, grass
+  drawM(M.disc,WORLD/2,-2,WORLD/2,0,9000,1,9000,[0.1,0.42,0.56],1,2);drawM(M.disc,WORLD/2,0,WORLD/2,0,(ISLAND+22)*2,1,(ISLAND+22)*2,[0.85,0.78,0.5],1,1);drawM(M.disc,WORLD/2,0.6,WORLD/2,0,ISLAND*2,1,ISLAND*2,[0.36,0.66,0.3],1,1);
+  for(const b of g.bushes){if(!near(b.x,b.y,40))continue;const r=b.r;drawM(M.sphere,b.x,r*0.45,b.y,0,r*1.7,r*1.1,r*1.7,[0.22,0.52,0.22]);drawM(M.sphere,b.x-r*0.35,r*0.6,b.y-r*0.3,0,r*1.1,r*0.9,r*1.1,[0.28,0.62,0.26]);drawM(M.sphere,b.x+r*0.4,r*0.5,b.y+r*0.3,0,r*1.0,r*0.8,r*1.0,[0.25,0.58,0.24])}
+  for(const r of g.rocks){if(!near(r.x,r.y,30))continue;drawM(M.sphere,r.x,r.r*0.3,r.y,r.x*0.1,r.r*2.1,r.r*1.3,r.r*1.8,[0.52,0.53,0.56]);drawM(M.sphere,r.x+r.r*0.4,r.r*0.5,r.y-r.r*0.2,0,r.r*1.1,r.r*0.9,r.r*1.0,[0.62,0.63,0.66])}
+  for(const tr of g.trees){if(!near(tr.x,tr.y,60))continue;const sx=tr.shake>0?rnd(-3,3):0;const h=44+tr.r;drawM(M.cyl,tr.x+sx,0,tr.y,0,tr.r*0.55,h,tr.r*0.55,[0.4,0.27,0.14]);
+    drawM(M.sphere,tr.x+sx,h+tr.r*0.3,tr.y,0,tr.r*2.4,tr.r*2.0,tr.r*2.4,[0.17,0.47,0.2]);drawM(M.sphere,tr.x+sx-tr.r*0.6,h+tr.r*0.9,tr.y+tr.r*0.3,0,tr.r*1.6,tr.r*1.4,tr.r*1.6,[0.24,0.58,0.25]);drawM(M.sphere,tr.x+sx+tr.r*0.7,h+tr.r*0.7,tr.y-tr.r*0.4,0,tr.r*1.4,tr.r*1.2,tr.r*1.4,[0.2,0.54,0.22])}
+  for(const w of g.walls){if(!near(w.x,w.y,60))continue;const len=w.len||80;drawM(M.box,w.x,0,w.y,w.a===0?0:PI/2,len,42,14,w.stone?[0.55,0.57,0.6]:[0.62,0.44,0.18]);const mh=w.stone?220:120;if(w.hp<mh){drawM(M.box,w.x,44,w.y,w.a===0?0:PI/2,len*w.hp/mh,3,6,[0.3,0.8,0.3])}}
+  for(const ch of g.chests){if(!near(ch.x,ch.y,30))continue;drawM(M.box,ch.x,0,ch.y,0,32,20,24,ch.open?[0.42,0.29,0.16]:[0.63,0.44,0.18]);drawM(M.box,ch.x,20,ch.y,ch.open?0:0,34,ch.open?3:7,26,ch.open?[0.3,0.2,0.1]:[1,0.85,0.3]);if(!ch.open)drawM(M.box,ch.x,8,ch.y-12.5,0,8,8,2,[1,0.85,0.3])}
+  for(const it of g.items){if(!near(it.x,it.y,30))continue;const bob=Math.sin(g.t*3+it.x)*2+4;
+    if(it.kind==='weapon'){drawM(M.box,it.x,bob,it.y,0.8+g.t*0.8,26,5,5,col(WEAPONS[it.w].col));drawM(M.box,it.x+6,bob+5,it.y,0.8+g.t*0.8,6,5,4,[0.2,0.2,0.22])}
+    else if(it.kind==='lettuce'){drawM(M.sphere,it.x,bob+6,it.y,0,18,14,18,[0.5,0.9,0.3]);drawM(M.sphere,it.x-3,bob+9,it.y-3,0,10,8,10,[0.7,1,0.5])}
+    else if(it.kind==='shield'){drawM(M.cyl,it.x,bob,it.y,0,11,18,11,[0.25,0.55,1]);drawM(M.cyl,it.x,bob+18,it.y,0,6,5,6,[0.8,0.93,1])}
+    else drawM(M.box,it.x,bob-2,it.y,0.5,20,11,12,it.kind==='wood'?[0.55,0.35,0.16]:[0.55,0.56,0.58])}
+  for(const t of g.turtles){if(!t.alive||!near(t.x,t.y,40))continue;if(t!==me&&inBush(t)&&me.alive&&Math.hypot(t.x-me.x,t.y-me.y)>150)continue;drawTurtle3(t)}
+  for(const s of g.shots){if(!near(s.x,s.y,10))continue;drawM(M.sphere,s.x,22,s.y,0,s.size*2.6,s.size*2.6,s.size*2.6,col(s.col),1,4)}
+  for(const p of g.parts){drawM(M.box,p.x,12,p.y,p.t*5,5,5,5,col(p.c),1,4)}
+  // transparent pass
+  gl.enable(gl.BLEND);gl.blendFunc(gl.SRC_ALPHA,gl.ONE_MINUS_SRC_ALPHA);gl.depthMask(false);
+  for(const t of g.turtles)if(t.alive&&near(t.x,t.y,40))shadow(t.x,t.y,t.r*1.1);for(const tr of g.trees)if(near(tr.x,tr.y,60))shadow(tr.x,tr.y,tr.r*1.2,0.28);for(const r of g.rocks)if(near(r.x,r.y,30))shadow(r.x,r.y,r.r,0.25);
+  for(const it of g.items)if(near(it.x,it.y,30)){shadow(it.x,it.y,9,0.25);if(it.kind==='weapon')drawM(M.disc,it.x,1.2,it.y,0,36,1,36,col(RAR[it.rar].c),0.45,4)}
+  for(const ch of g.chests)if(!ch.open&&near(ch.x,ch.y,30))drawM(M.disc,ch.x,1.1,ch.y,0,56+Math.sin(g.t*4)*6,1,56+Math.sin(g.t*4)*6,[1,0.85,0.3],0.3,4);
+  // the tide: everything outside the ring is under dark water, with a glowing wall at the edge
+  drawM(M.disc,WORLD/2,2,WORLD/2,0,9000,1,9000,[0.08,0.2,0.6],0.45,3);drawM(M.ring,T.cx,0,T.cy,0,T.r*2,180,T.r*2,[0.45,0.8,1],0.3,4);
+  if(T.shrink>0)drawM(M.ring,T.tx,0,T.ty,0,T.tr*2,10,T.tr*2,[1,1,1],0.6,4);
+  gl.depthMask(true);gl.disable(gl.BLEND);
+  overlay()}
+function drawTurtle3(t){const r=t.r;const bob=Math.abs(Math.sin(t.walk))*2;const c=col(t.col);const dark=[c[0]*0.7,c[1]*0.7,c[2]*0.7];const hurt=t.hurtT>0;
+  for(const [a,s] of [[0.75,1],[2.4,-1],[-0.75,-1],[-2.4,1]]){const px=t.x+Math.cos(a+t.aim)*r*0.85,pz=t.y+Math.sin(a+t.aim)*r*0.85;drawM(M.sphere,px,3+Math.max(0,Math.sin(t.walk)*s)*3,pz,a+t.aim,12,7,8,[0.3,0.62,0.3])}
+  drawM(M.sphere,t.x,r*0.35+bob,t.y,t.aim,r*2.1,r*1.35,r*1.9,hurt?[1,0.5,0.45]:c);drawM(M.sphere,t.x,r*0.7+bob,t.y,t.aim,r*1.3,r*0.9,r*1.2,hurt?[1,0.6,0.55]:dark);
+  const hx=t.x+Math.cos(t.aim)*(r+5),hz=t.y+Math.sin(t.aim)*(r+5);drawM(M.sphere,hx,12+bob,hz,t.aim,16,15,15,[0.4,0.78,0.4]);drawM(M.sphere,hx+Math.cos(t.aim+0.5)*6,16+bob,hz+Math.sin(t.aim+0.5)*6,0,3.5,3.5,3.5,[0.05,0.05,0.05]);drawM(M.sphere,hx+Math.cos(t.aim-0.5)*6,16+bob,hz+Math.sin(t.aim-0.5)*6,0,3.5,3.5,3.5,[0.05,0.05,0.05]);
+  const w=t.weapons[t.sel];if(w){const len=w.k==='snorkel'?34:w.k==='cannon'?22:24;const gx=hx+Math.cos(t.aim)*len*0.5,gz=hz+Math.sin(t.aim)*len*0.5;drawM(M.box,gx,8+bob,gz,-t.aim,len,w.k==='cannon'?9:5,w.k==='cannon'?9:5,col(WEAPONS[w.k].col))}
+  if(t.shield>0){drawM(M.sphere,t.x,r*0.4+bob,t.y,0,r*2.6,r*2.2,r*2.6,[0.4,0.7,1],0.0001)}}
+function overlay(){const g=G,me=g.me;ctx.clearRect(0,0,W,H);
+  for(const t of g.turtles){if(!t.alive)continue;if(t!==me&&inBush(t)&&me.alive&&Math.hypot(t.x-me.x,t.y-me.y)>150)continue;const p=project(t.x,48,t.y);if(!p)continue;const k=clamp(600/p[2],0.5,1.4);
+    ctx.font=Math.round(11*k)+'px Share Tech Mono';ctx.textAlign='center';ctx.fillStyle='rgba(0,0,0,.6)';ctx.fillText(t.name,p[0]+1,p[1]-10*k+1);ctx.fillStyle=t===me?'#ffd84a':'#eef';ctx.fillText(t.name,p[0],p[1]-10*k);
+    const bw=34*k;ctx.fillStyle='rgba(0,0,0,.55)';ctx.fillRect(p[0]-bw/2,p[1]-6*k,bw,4*k);ctx.fillStyle='#4c4';ctx.fillRect(p[0]-bw/2,p[1]-6*k,bw*t.hp/100,4*k);if(t.shield>0){ctx.fillStyle='#49f';ctx.fillRect(p[0]-bw/2,p[1]-1*k,bw*t.shield/100,3*k)}}
+  // crosshair
+  if(me.alive&&g.phase==='play'){ctx.strokeStyle='rgba(255,255,255,.85)';ctx.lineWidth=2;ctx.beginPath();ctx.moveTo(W/2-10,H/2);ctx.lineTo(W/2-4,H/2);ctx.moveTo(W/2+4,H/2);ctx.lineTo(W/2+10,H/2);ctx.moveTo(W/2,H/2-10);ctx.lineTo(W/2,H/2-4);ctx.moveTo(W/2,H/2+4);ctx.lineTo(W/2,H/2+10);ctx.stroke()}
+  if(me.hurtT>0){ctx.fillStyle='rgba(255,0,0,'+(me.hurtT*0.6)+')';ctx.fillRect(0,0,W,H)}
+  if(me.inTide){ctx.fillStyle='rgba(20,60,160,'+(0.15+0.1*Math.sin(g.t*6))+')';ctx.fillRect(0,0,W,H)}
+  if(g.phase==='ready'){ctx.fillStyle='rgba(0,0,0,.35)';ctx.fillRect(0,0,W,H);ctx.fillStyle='#ffd84a';ctx.font='bold 72px Oswald';ctx.textAlign='center';ctx.fillText(Math.ceil(g.ready),W/2,H/2+20);ctx.font='16px Share Tech Mono';ctx.fillStyle='#eef';ctx.fillText('Grab a gun from a glowing chest. Stay inside the blue ring.',W/2,H/2+60)}
   drawMini()}
 function drawMini(){const m=mctx,S=mini.width,k=S/WORLD;m.clearRect(0,0,S,S);m.fillStyle='#1b6f8a';m.beginPath();m.arc(S/2,S/2,(ISLAND+60)*k,0,TAU);m.fill();m.fillStyle='#5aa84a';m.beginPath();m.arc(S/2,S/2,ISLAND*k,0,TAU);m.fill();
   const T=G.tide;m.fillStyle='rgba(20,60,160,.45)';m.beginPath();m.rect(0,0,S,S);m.arc(T.cx*k,T.cy*k,T.r*k,0,TAU,true);m.fill();m.strokeStyle='#8cf';m.lineWidth=1.5;m.beginPath();m.arc(T.cx*k,T.cy*k,T.r*k,0,TAU);m.stroke();
@@ -275,8 +325,8 @@ function hud(){const me=G.me;$('nAlive').textContent=G.alive;$('kills').textCont
   for(let i=0;i<5;i++){const d=sl.children[i];const w=me.weapons[i];d.className='slot'+(i===me.sel?' on':'')+(w?' '+RAR[w.rar].cls:'');d.innerHTML='<span class="k">'+(i+1)+'</span>'+(w?WEAPONS[w.k].n+'<br>'+RAR[w.rar].n:'empty')}
   $('feed').innerHTML=G.feed.map(f=>'<div style="opacity:'+Math.min(1,f.t)+'">'+f.txt+'</div>').join('')}
 // ---------- screens ----------
-function titleScreen(){$('box').innerHTML='<h1>IRON GUNS</h1><h2>TURTLE BATTLE ROYALE</h2><p>24 turtles land on Shell Island. Grab water pistols, bubble blasters, shell cannons and sniper snorkels from the glowing chests, chop trees for wood, build shell walls, and stay inside the blue ring as the tide comes in. Last turtle standing wins.</p>'+
-  '<p><b>WASD</b> move · <b>Mouse</b> aim · <b>Click</b> shoot (or chop trees and rocks with empty hands) · <b>Q</b> build a wall (10 wood) · <b>F</b> eat lettuce · <b>G</b> drink shield · <b>1-5</b> weapons<br>On touch: left side moves, right side aims and fires.</p>'+
+function titleScreen(){$('box').innerHTML='<h1>IRON GUNS</h1><h2>3D TURTLE BATTLE ROYALE</h2><p>24 turtles land on Shell Island. Grab water pistols, bubble blasters, shell cannons and sniper snorkels from the glowing chests, chop trees for wood, build shell walls, and stay inside the blue ring as the tide comes in. Last turtle standing wins.</p>'+
+  '<p><b>WASD</b> move · <b>Mouse</b> turns you and aims (click the game to lock the mouse) · <b>Click</b> shoot, or chop trees and rocks with empty hands · <b>Q</b> or right click: build a wall (10 wood) · <b>F</b> eat lettuce · <b>G</b> drink shield · <b>1-5</b> or wheel: weapons<br>On touch: left side moves, drag the right side to look, FIRE button shoots.</p>'+
   '<p style="color:#9c9">Best finish: '+(save.best?'#'+save.best:'none yet')+' · Wins: '+save.wins+' · Games: '+save.games+'</p><button class="btn" id="play">DROP IN</button>';$('msg').style.display='flex';$('play').onclick=start}
 function endScreen(won){const me=G.me;save.games++;if(won){save.wins++;save.best=1}else if(!save.best||me.place<save.best)save.best=me.place;persist();
   $('box').innerHTML=(won?'<h1>TURTLE VICTORY</h1><h2>LAST TURTLE STANDING</h2>':'<h1>#'+me.place+' OF '+N_PLAYERS+'</h1><h2>KNOCKED OUT</h2>')+'<p>You knocked '+me.kills+' turtle'+(me.kills===1?'':'s')+'.'+(won?' The island is yours.':' Grab a gun faster next time, and watch the ring.')+'</p><button class="btn" id="again">PLAY AGAIN</button> <button class="btn" id="menu">TITLE</button>';
@@ -286,17 +336,20 @@ function start(){G=newGame();$('msg').style.display='none';beep(520,0.1,'triangl
 addEventListener('keydown',e=>{if(e.repeat)return;keys[e.code]=true;if(!G||G.phase!=='play'||G.over)return;const me=G.me;
   if(e.code==='KeyQ')build(me);if(e.code==='KeyF')eat(me);if(e.code==='KeyG')drink(me);if(/^Digit[1-5]$/.test(e.code))me.sel=+e.code[5]-1;if(e.code==='Space'){e.preventDefault()}});
 addEventListener('keyup',e=>{keys[e.code]=false});
-cv.addEventListener('mousemove',e=>{mouse.x=e.clientX;mouse.y=e.clientY});cv.addEventListener('mousedown',e=>{if(e.button===0)mouse.down=true;if(e.button===2&&G&&G.me)build(G.me)});addEventListener('mouseup',()=>mouse.down=false);cv.addEventListener('contextmenu',e=>e.preventDefault());
+function pointerLocked(){return document.pointerLockElement===cv}
+addEventListener('mousemove',e=>{mouse.x=e.clientX;mouse.y=e.clientY;if(pointerLocked()&&G){G.cam.yaw+=(e.movementX||0)*0.0032}});
+cv.addEventListener('mousedown',e=>{if(e.button===0){mouse.down=true;if(G&&!pointerLocked()&&cv.requestPointerLock){try{cv.requestPointerLock()}catch(x){}}}if(e.button===2&&G&&G.me)build(G.me)});addEventListener('mouseup',()=>mouse.down=false);cv.addEventListener('contextmenu',e=>e.preventDefault());
+ov.addEventListener('contextmenu',e=>e.preventDefault());
 addEventListener('wheel',e=>{if(!G)return;const me=G.me;me.sel=(me.sel+(e.deltaY>0?1:4))%5});
 // touch: left half joystick, right half aim + fire
-const touch={move:null,aim:null,fire:false,ids:{}};
-cv.addEventListener('touchstart',e=>{$('touch').style.display='block';for(const t of e.changedTouches){if(t.clientX<W/2)touch.ids[t.identifier]={kind:'move',x0:t.clientX,y0:t.clientY};else{touch.ids[t.identifier]={kind:'aim',x0:t.clientX,y0:t.clientY};touch.fire=true;touch.aim=null}}e.preventDefault()},{passive:false});
-cv.addEventListener('touchmove',e=>{for(const t of e.changedTouches){const s=touch.ids[t.identifier];if(!s)continue;const dx=t.clientX-s.x0,dy=t.clientY-s.y0;if(s.kind==='move'){const l=Math.hypot(dx,dy);touch.move={x:dx/Math.max(40,l),y:dy/Math.max(40,l)}}else if(Math.hypot(dx,dy)>12)touch.aim=Math.atan2(dy,dx)}e.preventDefault()},{passive:false});
-const tEnd=e=>{for(const t of e.changedTouches){const s=touch.ids[t.identifier];if(!s)continue;if(s.kind==='move')touch.move=null;else{touch.fire=false}delete touch.ids[t.identifier]}};
+const touch={move:null,look:false,fire:false,ids:{}};
+cv.addEventListener('touchstart',e=>{$('touch').style.display='block';for(const t of e.changedTouches){if(t.clientX<W/2)touch.ids[t.identifier]={kind:'move',x0:t.clientX,y0:t.clientY};else{touch.ids[t.identifier]={kind:'look',lx:t.clientX};touch.look=true}}e.preventDefault()},{passive:false});
+cv.addEventListener('touchmove',e=>{for(const t of e.changedTouches){const s=touch.ids[t.identifier];if(!s)continue;if(s.kind==='move'){const dx=t.clientX-s.x0,dy=t.clientY-s.y0;const l=Math.hypot(dx,dy);touch.move={x:dx/Math.max(40,l),y:dy/Math.max(40,l)}}else if(G){G.cam.yaw+=(t.clientX-s.lx)*0.008;s.lx=t.clientX}}e.preventDefault()},{passive:false});
+const tEnd=e=>{for(const t of e.changedTouches){const s=touch.ids[t.identifier];if(!s)continue;if(s.kind==='move')touch.move=null;else touch.look=false;delete touch.ids[t.identifier]}};
 cv.addEventListener('touchend',tEnd);cv.addEventListener('touchcancel',tEnd);
-$('tBuild').ontouchstart=e=>{e.preventDefault();if(G)build(G.me)};$('tEat').ontouchstart=e=>{e.preventDefault();if(G)eat(G.me)};$('tShield').ontouchstart=e=>{e.preventDefault();if(G)drink(G.me)};
+$('tFire').ontouchstart=e=>{e.preventDefault();touch.fire=true};$('tFire').ontouchend=$('tFire').ontouchcancel=e=>{e.preventDefault();touch.fire=false};$('tBuild').ontouchstart=e=>{e.preventDefault();if(G)build(G.me)};$('tEat').ontouchstart=e=>{e.preventDefault();if(G)eat(G.me)};$('tShield').ontouchstart=e=>{e.preventDefault();if(G)drink(G.me)};
 // ---------- loop ----------
-function frame(ts){const dt=Math.min(0.05,(ts-last)/1000||0.016);last=ts;if(G){update(dt);draw()}else{ctx.setTransform(DPR,0,0,DPR,0,0);ctx.fillStyle='#0a2a3a';ctx.fillRect(0,0,W,H)}requestAnimationFrame(frame)}
+function frame(ts){const dt=Math.min(0.05,(ts-last)/1000||0.016);last=ts;if(G){update(dt);draw()}else{gl.viewport(0,0,cv.width,cv.height);gl.clearColor(0.62,0.82,0.95,1);gl.clear(gl.COLOR_BUFFER_BIT|gl.DEPTH_BUFFER_BIT);ctx.clearRect(0,0,W,H)}requestAnimationFrame(frame)}
 titleScreen();requestAnimationFrame(frame);
 </script>
 </body>

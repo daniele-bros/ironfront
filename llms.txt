@@ -26,7 +26,7 @@
 - [Iron Tunes](https://irongames.win/irontunes.html): a music maker. A 16-step grid with eight notes and a drum, bells, harp, organ or synth instruments, tempo control, preset songs (Twinkle, Lullaby, March, Dance), random patterns and saved tunes.
 - [Iron Gems](https://irongames.win/irongems.html): a match-three puzzle. Swap gems on an 8x8 board to line up three or more, cascades multiply the score, each level raises the target and lowers the moves, with a hint button and best level saved.
 - [Iron Meadow](https://irongames.win/ironmeadow.html): butterfly catching. Twelve species by rarity and time of day (morning to night), creep up and swing the net, a collection book and a shop with a wider net, quick wrist, soft boots and lantern.
-- [Iron Guns](https://irongames.win/ironguns.html): a top-down turtle battle royale. 24 turtles on Shell Island, water pistols, bubble blasters, pea rifles, shell cannons and sniper snorkels in four rarities from glowing chests, wood and stone from trees and rocks, buildable shell walls, lettuce and shield potions, bushes to hide in, and a tide that shrinks the island in stages. Last turtle standing wins; best finish and wins are saved.
+- [Iron Guns](https://irongames.win/ironguns.html): a third-person 3D turtle battle royale (WebGL). 24 turtles on Shell Island, water pistols, bubble blasters, pea rifles, shell cannons and sniper snorkels in four rarities from glowing chests, wood and stone from trees and rocks, buildable shell walls, lettuce and shield potions, bushes to hide in, and a tide that shrinks the island in stages. Last turtle standing wins; best finish and wins are saved.
 
 ## Guides
 
