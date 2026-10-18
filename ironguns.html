@@ -144,7 +144,7 @@ function build(t){const stone=t.wood<10&&t.stone>=10;if(t.wood<10&&!stone)return
   G.walls.push({x,y,a,hp:stone?220:120,stone,len:80});if(stone)t.stone-=10;else t.wood-=10;if(!t.bot)beep(240,0.08,'square');return true}
 function damage(t,amt,by){if(!t.alive)return;let a=amt;if(t.shield>0){const s=Math.min(t.shield,a);t.shield-=s;a-=s}t.hp-=a;t.hurtT=0.25;if(t===G.me){G.shake=Math.min(8,G.shake+amt*0.15);beep(200,0.08,'sawtooth',0.04)}
   if(t.hp<=0){t.alive=false;t.hp=0;G.alive--;G.placed++;const place=N_PLAYERS-G.placed+1;t.place=place;if(by&&by!==t){by.kills++;if(by===G.me)beep(1000,0.2,'triangle',0.06)}
-    feed((by&&by!==t?by.name+' knocked ':'The tide got ')+t.name);for(let i=0;i<12;i++)G.parts.push({x:t.x,y:t.y,vx:rnd(-120,120),vy:rnd(-120,120),t:rnd(0.4,0.9),c:t.col});
+    t.diedTide=!(by&&by!==t);feed((by&&by!==t?by.name+' knocked ':'The tide got ')+t.name);for(let i=0;i<12;i++)G.parts.push({x:t.x,y:t.y,vx:rnd(-120,120),vy:rnd(-120,120),t:rnd(0.4,0.9),c:t.col});
     // drop the loot
     for(const w of t.weapons)if(w){const it=makeItem(t.x+rnd(-20,20),t.y+rnd(-20,20),'weapon',w.k);it.rar=w.rar;G.items.push(it)}
     if(t.lettuce)for(let i=0;i<t.lettuce;i++)G.items.push(makeItem(t.x+rnd(-20,20),t.y+rnd(-20,20),'lettuce'));if(t.potions)for(let i=0;i<t.potions;i++)G.items.push(makeItem(t.x+rnd(-20,20),t.y+rnd(-20,20),'shield'));
@@ -158,9 +158,10 @@ function harvest(t){const ax=t.x+Math.cos(t.aim)*34,ay=t.y+Math.sin(t.aim)*34;
   for(const r of G.rocks){if(Math.hypot(r.x-ax,r.y-ay)<r.r+10){r.hp--;t.stone=Math.min(500,t.stone+15);beep(120,0.06,'square',0.04);if(r.hp<=0)G.rocks.splice(G.rocks.indexOf(r),1);return true}}
   const w=hitWall(ax,ay,10);if(w){w.hp-=40;if(w.hp<=0)G.walls.splice(G.walls.indexOf(w),1);beep(150,0.05);return true}return false}
 // ---------- tide ----------
-function tickTide(dt){const T=G.tide;if(G.phase!=='play')return;
-  if(T.wait>0){T.wait-=dt;if(T.wait<=0){T.shrink=T.stage===0?30:T.stage<4?24:18;T.from={cx:T.cx,cy:T.cy,r:T.r};const nr=Math.max(0,T.r*(T.stage<5?0.58:0));const a=rnd(0,TAU),m=Math.random()*(T.r-nr)*0.7;T.tx=clamp(T.cx+Math.cos(a)*m,WORLD/2-ISLAND*0.7,WORLD/2+ISLAND*0.7);T.ty=clamp(T.cy+Math.sin(a)*m,WORLD/2-ISLAND*0.7,WORLD/2+ISLAND*0.7);T.tr=nr;T.total=T.shrink;banner('THE TIDE IS COMING IN');beep(120,0.6,'sine',0.08)}}
-  else if(T.shrink>0){T.shrink-=dt;const k=1-Math.max(0,T.shrink)/T.total;T.cx=T.from.cx+(T.tx-T.from.cx)*k;T.cy=T.from.cy+(T.ty-T.from.cy)*k;T.r=T.from.r+(T.tr-T.from.r)*k;if(T.shrink<=0){T.stage++;T.wait=T.stage<3?18:T.stage<5?12:8;T.dps=1.5+T.stage*1.2}}
+function planTide(T){const nr=Math.max(0,T.r*(T.stage<5?0.58:0));const a=rnd(0,TAU),m=Math.random()*(T.r-nr)*0.7;T.tx=clamp(T.cx+Math.cos(a)*m,WORLD/2-ISLAND*0.7,WORLD/2+ISLAND*0.7);T.ty=clamp(T.cy+Math.sin(a)*m,WORLD/2-ISLAND*0.7,WORLD/2+ISLAND*0.7);T.tr=nr}
+function tickTide(dt){const T=G.tide;if(G.phase!=='play')return;if(!T.planned){T.planned=true;planTide(T)}
+  if(T.wait>0){T.wait-=dt;if(T.wait<=0){T.shrink=T.stage===0?30:T.stage<4?24:18;T.from={cx:T.cx,cy:T.cy,r:T.r};T.total=T.shrink;banner('THE TIDE IS COMING IN');beep(120,0.6,'sine',0.08)}}
+  else if(T.shrink>0){T.shrink-=dt;const k=1-Math.max(0,T.shrink)/T.total;T.cx=T.from.cx+(T.tx-T.from.cx)*k;T.cy=T.from.cy+(T.ty-T.from.cy)*k;T.r=T.from.r+(T.tr-T.from.r)*k;if(T.shrink<=0){T.stage++;T.wait=T.stage<3?18:T.stage<5?12:8;T.dps=1.5+T.stage*1.2;T.cx=T.tx;T.cy=T.ty;T.r=T.tr;planTide(T)}}
   for(const t of G.turtles){if(!t.alive)continue;const out=Math.hypot(t.x-T.cx,t.y-T.cy)>T.r;t.inTide=out;if(out){t.tideAcc=(t.tideAcc||0)+dt;if(t.tideAcc>=1){t.tideAcc-=1;damage(t,T.dps,null)}}}}
 // ---------- bots ----------
 function botThink(t,dt){const ai=t.ai;const T=G.tide;ai.wt-=dt;ai.buildCd-=dt;
@@ -170,8 +171,9 @@ function botThink(t,dt){const ai=t.ai;const T=G.tide;ai.wt-=dt;ai.buildCd-=dt;
   // survival first
   if(t.hp<40&&t.lettuce>0&&!best)eat(t);if(t.shield<30&&t.potions>0&&(!best||Math.random()<dt*0.5))drink(t);
   let mx=0,my=0;
-  const toSafe=()=>{const dx=T.cx-t.x,dy=T.cy-t.y;const d=Math.hypot(dx,dy)||1;return [dx/d,dy/d]};
-  const outSoon=Math.hypot(t.x-T.cx,t.y-T.cy)>(T.shrink>0?T.tr-80:T.r-120);
+  const toSafe=()=>{const dx=T.tx-t.x,dy=T.ty-t.y;const d=Math.hypot(dx,dy)||1;return [dx/d,dy/d]};
+  const dNext=Math.hypot(t.x-T.tx,t.y-T.ty),dCur=Math.hypot(t.x-T.cx,t.y-T.cy);const hurry=T.shrink>0||T.wait<14;
+  const outSoon=t.inTide||dCur>T.r-110||(hurry&&dNext>T.tr-150-(t.id%4)*25);const urgent=t.inTide||(T.shrink>0&&dNext>T.tr-50);
   if(!gun||(!best&&Math.random()<0.5)){ // go shopping
     let ni=null,nd=1e9;for(const it of G.items){const want=it.kind==='weapon'?(!gun||it.rar>gun.rar):it.kind==='lettuce'?t.lettuce<3:it.kind==='shield'?t.potions<2:t.wood<100;if(!want)continue;const d=Math.hypot(it.x-t.x,it.y-t.y);if(d<nd&&d<520){nd=d;ni=it}}
     for(const c of G.chests){if(c.open)continue;const d=Math.hypot(c.x-t.x,c.y-t.y);if(d<nd&&d<520){nd=d;ni=c}}
@@ -186,9 +188,12 @@ function botThink(t,dt){const ai=t.ai;const T=G.tide;ai.wt-=dt;ai.buildCd-=dt;
   else{ // wander, but obey the tide
     if(ai.wt<=0){ai.wt=rnd(1,3);ai.wander+=rnd(-1.2,1.2)}mx=Math.cos(ai.wander);my=Math.sin(ai.wander);
     if(!gun&&t.cd<=0&&Math.random()<dt*0.3)harvest(t)}
-  if(outSoon&&!(best&&t.hp>60&&Math.hypot(best.x-t.x,best.y-t.y)<250)){const s=toSafe();mx=s[0];my=s[1]}
-  if(!best){t.aim=Math.atan2(my,mx)}
-  const l=Math.hypot(mx,my);t.moving=l>0.01;if(l>0.01){const sp=speedOf(t)*dt;moveTurtle(t,mx/l*sp,my/l*sp);t.walk+=dt*8}
+  if(outSoon&&(urgent||!(best&&t.hp>60&&Math.hypot(best.x-t.x,best.y-t.y)<220))){const s=toSafe();mx=s[0];my=s[1]}
+  // smooth steering: ease the heading, and slide round trees, rocks and walls instead of pushing into them
+  let l=Math.hypot(mx,my);if(l>0.01){mx/=l;my/=l;for(const turn of [0,0.7,-0.7,1.4,-1.4]){const c=Math.cos(turn),sn=Math.sin(turn);const ax=mx*c-my*sn,ay=mx*sn+my*c;if(!solidAt(t.x+ax*22,t.y+ay*22,t.r)){mx=ax;my=ay;break}}}
+  const ease=Math.min(1,dt*5);t.sx=(t.sx||0)+(mx-(t.sx||0))*ease;t.sy=(t.sy||0)+(my-(t.sy||0))*ease;const sl=Math.hypot(t.sx,t.sy);
+  const wantAim=best?t.aim:(sl>0.05?Math.atan2(t.sy,t.sx):t.aim);let da=wantAim-t.aim;da=Math.atan2(Math.sin(da),Math.cos(da));t.aim+=da*Math.min(1,dt*(best?14:6));
+  t.moving=sl>0.08;if(t.moving){const sp=speedOf(t)*dt*Math.min(1,sl*1.4);moveTurtle(t,t.sx/sl*sp,t.sy/sl*sp);t.walk+=dt*8}
   // bump into a wall while walking: hack through it sometimes
   if(ai.wt<-2&&Math.random()<dt)harvest(t)}
 function ni_zero(x,y){return !x&&!y}
@@ -311,11 +316,13 @@ const LIGHT=[0.42,0.74,0.52];{const l=Math.hypot(...LIGHT);LIGHT[0]/=l;LIGHT[1]/
 // shadow map
 const SM=2048;const smTex=gl.createTexture();gl.bindTexture(gl.TEXTURE_2D,smTex);gl.texImage2D(gl.TEXTURE_2D,0,gl.RGBA,SM,SM,0,gl.RGBA,gl.UNSIGNED_BYTE,null);gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_MIN_FILTER,gl.NEAREST);gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_MAG_FILTER,gl.NEAREST);gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_WRAP_S,gl.CLAMP_TO_EDGE);gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_WRAP_T,gl.CLAMP_TO_EDGE);
 const smFB=gl.createFramebuffer();gl.bindFramebuffer(gl.FRAMEBUFFER,smFB);gl.framebufferTexture2D(gl.FRAMEBUFFER,gl.COLOR_ATTACHMENT0,gl.TEXTURE_2D,smTex,0);const smRB=gl.createRenderbuffer();gl.bindRenderbuffer(gl.RENDERBUFFER,smRB);gl.renderbufferStorage(gl.RENDERBUFFER,gl.DEPTH_COMPONENT16,SM,SM);gl.framebufferRenderbuffer(gl.FRAMEBUFFER,gl.DEPTH_ATTACHMENT,gl.RENDERBUFFER,smRB);gl.bindFramebuffer(gl.FRAMEBUFFER,null);
-function setModel(tx,ty,tz,ry,sx,sy,sz){const c=Math.cos(ry),s=Math.sin(ry);MM.set([c*sx,0,-s*sx,0, 0,sy,0,0, s*sz,0,c*sz,0, tx,ty,tz,1]);const P=depthPass?dprog:prog;gl.uniformMatrix4fv(P.u.uM,false,MM);if(!depthPass){NN.set([c/sx,0,-s/sx, 0,1/sy,0, s/sz,0,c/sz]);gl.uniformMatrix3fv(prog.u.uN,false,NN)}}
+function setModel(tx,ty,tz,ry,sx,sy,sz,rz){const c=Math.cos(ry),s=Math.sin(ry);if(!rz){MM.set([c*sx,0,-s*sx,0, 0,sy,0,0, s*sz,0,c*sz,0, tx,ty,tz,1]);if(!depthPass)NN.set([c/sx,0,-s/sx, 0,1/sy,0, s/sz,0,c/sz])}
+  else{const cz=Math.cos(rz),sn=Math.sin(rz);MM.set([c*cz*sx,sn*sx,-s*cz*sx,0, -c*sn*sy,cz*sy,s*sn*sy,0, s*sz,0,c*sz,0, tx,ty,tz,1]);if(!depthPass)NN.set([c*cz/sx,sn/sx,-s*cz/sx, -c*sn/sy,cz/sy,s*sn/sy, s/sz,0,c/sz])}
+  const P=depthPass?dprog:prog;gl.uniformMatrix4fv(P.u.uM,false,MM);if(!depthPass)gl.uniformMatrix3fv(prog.u.uN,false,NN)}
 let curTex=null;
 // draw a mesh: tex name, tint colour, options {a alpha, mode, rep [u,v], shin, spec, noShadow}
-function drawM(m,tx,ty,tz,ry,sx,sy,sz,tex,tint,o){o=o||{};if(depthPass){if(o.a!==undefined&&o.a<0.99||o.noShadow)return;setModel(tx,ty,tz,ry,sx,sy,sz);gl.bindBuffer(gl.ARRAY_BUFFER,m.vb);gl.vertexAttribPointer(dprog.a.aPos,3,gl.FLOAT,false,0,0);gl.drawArrays(gl.TRIANGLES,0,m.n);return}
-  setModel(tx,ty,tz,ry,sx,sy,sz);const t=TEX[tex]||TEX.white;if(t!==curTex){gl.activeTexture(gl.TEXTURE0);gl.bindTexture(gl.TEXTURE_2D,t);curTex=t}
+function drawM(m,tx,ty,tz,ry,sx,sy,sz,tex,tint,o){o=o||{};if(depthPass){if(o.a!==undefined&&o.a<0.99||o.noShadow)return;setModel(tx,ty,tz,ry,sx,sy,sz,o.rz);gl.bindBuffer(gl.ARRAY_BUFFER,m.vb);gl.vertexAttribPointer(dprog.a.aPos,3,gl.FLOAT,false,0,0);gl.drawArrays(gl.TRIANGLES,0,m.n);return}
+  setModel(tx,ty,tz,ry,sx,sy,sz,o.rz);const t=TEX[tex]||TEX.white;if(t!==curTex){gl.activeTexture(gl.TEXTURE0);gl.bindTexture(gl.TEXTURE_2D,t);curTex=t}
   gl.uniform3f(prog.u.uCol,tint[0],tint[1],tint[2]);gl.uniform1f(prog.u.uAlpha,o.a===undefined?1:o.a);gl.uniform1f(prog.u.uMode,o.mode||0);gl.uniform2f(prog.u.uRep,o.rep?o.rep[0]:1,o.rep?o.rep[1]:1);gl.uniform1f(prog.u.uShin,o.shin||24);gl.uniform1f(prog.u.uSpec,o.spec===undefined?0.12:o.spec);
   gl.bindBuffer(gl.ARRAY_BUFFER,m.vb);gl.vertexAttribPointer(prog.a.aPos,3,gl.FLOAT,false,0,0);gl.bindBuffer(gl.ARRAY_BUFFER,m.nb);gl.vertexAttribPointer(prog.a.aNor,3,gl.FLOAT,false,0,0);gl.bindBuffer(gl.ARRAY_BUFFER,m.ub);gl.vertexAttribPointer(prog.a.aUV,2,gl.FLOAT,false,0,0);gl.drawArrays(gl.TRIANGLES,0,m.n)}
 function hex(h){if(h.length===4)h='#'+h[1]+h[1]+h[2]+h[2]+h[3]+h[3];return [parseInt(h.slice(1,3),16)/255,parseInt(h.slice(3,5),16)/255,parseInt(h.slice(5,7),16)/255]}
@@ -364,7 +371,7 @@ function draw(){const g=G;const me=g.me;
   for(const it of g.items)if(near(it.x,it.y,30)&&it.kind==='weapon')drawM(M.disc,it.x,1.2,it.y,0,36,1,36,'white',col(RAR[it.rar].c),{a:0.4,mode:4});
   for(const ch of g.chests)if(!ch.open&&near(ch.x,ch.y,30))drawM(M.disc,ch.x,1.1,ch.y,0,56+Math.sin(g.t*4)*6,1,56+Math.sin(g.t*4)*6,'white',[1,0.85,0.3],{a:0.3,mode:4});
   drawM(M.disc,WORLD/2,2,WORLD/2,0,9000,1,9000,'white',[0.08,0.2,0.6],{a:0.45,mode:3});drawM(M.ring,T.cx,0,T.cy,0,T.r*2,180,T.r*2,'white',[0.45,0.8,1],{a:0.28,mode:4});
-  if(T.shrink>0)drawM(M.ring,T.tx,0,T.ty,0,T.tr*2,10,T.tr*2,'white',WHITE,{a:0.6,mode:4});
+  if(T.tr<T.r-1)drawM(M.ring,T.tx,0,T.ty,0,T.tr*2,10,T.tr*2,'white',WHITE,{a:0.6,mode:4});
   gl.depthMask(true);gl.disable(gl.BLEND);
   // 3. your hands and gun
   if(me.alive){gl.clear(gl.DEPTH_BUFFER_BIT);const rx=-Math.sin(pyaw),rz=Math.cos(pyaw);const w=me.weapons[me.sel];const kick=me.cd>0&&w?Math.max(0,me.cd/WEAPONS[w.k].rate-0.6)*8:0;
@@ -374,17 +381,21 @@ function draw(){const g=G;const me=g.me;
       if(kick>2){gl.enable(gl.BLEND);gl.blendFunc(gl.SRC_ALPHA,gl.ONE);drawM(M.lowsphere,gx+f3[0]*len*0.55,gy+f3[1]*len*0.55,gz+f3[2]*len*0.55,0,5+kick,5+kick,5+kick,'white',[1,0.85,0.4],{a:0.8,mode:4});gl.disable(gl.BLEND)}}
     else{drawM(M.box,gx,gy-1,gz,-pyaw,5,4.5,4.5,'skin',col(me.skin),{spec:0.05})}}
   overlay()}
-function drawPerson(t){const a=t.aim,ry=-a;const sw=Math.sin(t.walk)*(t.moving?1:0);const hurt=t.hurtT>0;const shirt=hurt?[1,0.45,0.4]:col(t.col),skin=col(t.skin||'#e0ac7e');
-  const fx=Math.cos(a),fz=Math.sin(a),rx=-fz,rz=fx;const P=(f,r)=>[t.x+fx*f+rx*r,t.y+fz*f+rz*r];
-  let p=P(sw*7,-5);drawM(M.box,p[0],0,p[1],ry,9,27,9,'denim',WHITE,{spec:0.05});drawM(M.box,p[0]+fx*1,0,p[1]+fz*1,ry,10,4,10,'white',[0.15,0.12,0.1],{spec:0.3});
-  p=P(-sw*7,5);drawM(M.box,p[0],0,p[1],ry,9,27,9,'denim',WHITE,{spec:0.05});drawM(M.box,p[0]+fx*1,0,p[1]+fz*1,ry,10,4,10,'white',[0.15,0.12,0.1],{spec:0.3});
-  drawM(M.box,t.x,27,t.y,ry,13,24,20,'shirt',shirt,{spec:0.08});
-  p=P(0,-13);drawM(M.box,p[0],28,p[1],ry,7,24,7,'shirt',shirt,{spec:0.08});drawM(M.box,p[0],28,p[1],ry,7.5,8,7.5,'skin',skin,{spec:0.05});
-  const w=t.weapons[t.sel];if(w){p=P(10,12);drawM(M.box,p[0],42,p[1],ry,22,6,6,'shirt',shirt,{spec:0.08});p=P(21,12);drawM(M.box,p[0],41,p[1],ry,7,7,7,'skin',skin,{spec:0.05});const len=w.k==='snorkel'?34:w.k==='cannon'?24:22;p=P(21+len*0.5,12);drawM(M.box,p[0],44,p[1],ry,len,w.k==='cannon'?9:5,w.k==='cannon'?9:5,'metal',col(WEAPONS[w.k].col),{spec:0.6,shin:40})}
-  else{p=P(0,13);drawM(M.box,p[0],28,p[1],ry,7,24,7,'shirt',shirt,{spec:0.08});drawM(M.box,p[0],28,p[1],ry,7.5,8,7.5,'skin',skin,{spec:0.05})}
-  drawM(M.box,t.x,51,t.y,ry,12,12,12,'skin',skin,{spec:0.06});drawM(M.box,t.x-fx*0.5,60,t.y-fz*0.5,ry,13,4,13,'white',t.hair||(t.hair=[0.2+((t.id*37)%5)*0.1,0.12+((t.id*13)%4)*0.06,0.06+((t.id*7)%3)*0.05]),{spec:0.15});
-  if(!depthPass){p=P(6.2,0);drawM(M.quad,p[0],51,p[1],ry,1,12,12,'face',WHITE,{mode:7,spec:0})}
-  if(t.shield>0&&!depthPass){gl.enable(gl.BLEND);gl.blendFunc(gl.SRC_ALPHA,gl.ONE_MINUS_SRC_ALPHA);gl.depthMask(false);drawM(M.box,t.x,-1,t.y,ry,17,66,24,'white',[0.4,0.7,1],{a:0.12,mode:4});gl.depthMask(true);gl.disable(gl.BLEND)}}
+function drawPerson(t){const a=t.aim,ry=-a;const walk=t.moving?Math.sin(t.walk):0;const sw=walk*0.7;const hurt=t.hurtT>0;const shirt=hurt?[1,0.45,0.4]:col(t.col),skin=col(t.skin||'#e0ac7e');const bob=t.moving?Math.abs(Math.cos(t.walk))*1.6:0;
+  const fx=Math.cos(a),fz=Math.sin(a),rx=-fz,rz=fx;const P=(f,r)=>[t.x+fx*f+rx*r,t.y+fz*f+rz*r];const hair=t.hair||(t.hair=[0.2+((t.id*37)%5)*0.1,0.12+((t.id*13)%4)*0.06,0.06+((t.id*7)%3)*0.05]);
+  // legs: cylinders hanging from the hips, swinging; round shoes at the ends
+  for(const side of [-1,1]){const ang=PI+sw*side;const hip=P(0,side*5);drawM(M.cyl,hip[0],28+bob,hip[1],ry,9,26,9,'denim',WHITE,{rz:ang,spec:0.05});const ex=-Math.sin(ang)*26,ey=Math.cos(ang)*26;const foot=P(ex+2,side*5);drawM(M.sphere,foot[0],28+bob+ey+1,foot[1],ry,11,7,10,'white',[0.15,0.12,0.1],{spec:0.3})}
+  // body: an egg-shaped torso with a rounded belt line
+  drawM(M.sphere,t.x,40+bob,t.y,ry,15,28,21,'shirt',shirt,{spec:0.08});drawM(M.sphere,t.x,30+bob,t.y,ry,13,8,18,'denim',WHITE,{spec:0.05});
+  // arms: left hangs and swings, right holds the gun forward
+  {const ang=PI-sw*1.2;const sh=P(0,-12);drawM(M.cyl,sh[0],50+bob,sh[1],ry,6.5,22,6.5,'shirt',shirt,{rz:ang,spec:0.08});const ex=-Math.sin(ang)*22,ey=Math.cos(ang)*22;const hand=P(ex,-12);drawM(M.sphere,hand[0],50+bob+ey,hand[1],ry,7.5,7.5,7.5,'skin',skin,{spec:0.05})}
+  const w=t.weapons[t.sel];
+  if(w){const sh=P(0,12);drawM(M.cyl,sh[0],48+bob,sh[1],ry,6.5,20,6.5,'shirt',shirt,{rz:-PI/2+0.1,spec:0.08});const hand=P(20,12);drawM(M.sphere,hand[0],46+bob,hand[1],ry,7.5,7.5,7.5,'skin',skin,{spec:0.05});const len=w.k==='snorkel'?34:w.k==='cannon'?24:22;const g=P(20+len*0.45,12);drawM(M.box,g[0],44+bob,g[1],ry,len,w.k==='cannon'?8:4.5,w.k==='cannon'?8:4.5,'metal',col(WEAPONS[w.k].col),{spec:0.6,shin:40})}
+  else{const ang=PI+sw*1.2;const sh=P(0,12);drawM(M.cyl,sh[0],50+bob,sh[1],ry,6.5,22,6.5,'shirt',shirt,{rz:ang,spec:0.08});const ex=-Math.sin(ang)*22,ey=Math.cos(ang)*22;const hand=P(ex,12);drawM(M.sphere,hand[0],50+bob+ey,hand[1],ry,7.5,7.5,7.5,'skin',skin,{spec:0.05})}
+  // head: a sphere with a hair cap and the face on the front
+  drawM(M.sphere,t.x,60+bob,t.y,ry,15,15,15,'skin',skin,{spec:0.08});drawM(M.sphere,t.x-fx*0.8,62.5+bob,t.y-fz*0.8,ry,15.6,10,15.6,'white',hair,{spec:0.2});
+  if(!depthPass){const f=P(7.1,0);drawM(M.quad,f[0],54+bob,f[1],ry,1,12,12,'face',WHITE,{mode:7,spec:0})}
+  if(t.shield>0&&!depthPass){gl.enable(gl.BLEND);gl.blendFunc(gl.SRC_ALPHA,gl.ONE_MINUS_SRC_ALPHA);gl.depthMask(false);drawM(M.sphere,t.x,36+bob,t.y,ry,34,74,38,'white',[0.4,0.7,1],{a:0.12,mode:4});gl.depthMask(true);gl.disable(gl.BLEND)}}
 function overlay(){const g=G,me=g.me;ctx.clearRect(0,0,W,H);
   for(const t of g.turtles){if(!t.alive||t===me)continue;if(t!==me&&inBush(t)&&me.alive&&Math.hypot(t.x-me.x,t.y-me.y)>150)continue;const p=project(t.x,74,t.y);if(!p)continue;const k=clamp(600/p[2],0.5,1.4);
     ctx.font=Math.round(11*k)+'px Share Tech Mono';ctx.textAlign='center';ctx.fillStyle='rgba(0,0,0,.6)';ctx.fillText(t.name,p[0]+1,p[1]-10*k+1);ctx.fillStyle=t===me?'#ffd84a':'#eef';ctx.fillText(t.name,p[0],p[1]-10*k);
@@ -398,7 +409,7 @@ function overlay(){const g=G,me=g.me;ctx.clearRect(0,0,W,H);
   drawMini()}
 function drawMini(){const m=mctx,S=mini.width,k=S/WORLD;m.clearRect(0,0,S,S);m.fillStyle='#1b6f8a';m.beginPath();m.arc(S/2,S/2,(ISLAND+60)*k,0,TAU);m.fill();m.fillStyle='#5aa84a';m.beginPath();m.arc(S/2,S/2,ISLAND*k,0,TAU);m.fill();
   const T=G.tide;m.fillStyle='rgba(20,60,160,.45)';m.beginPath();m.rect(0,0,S,S);m.arc(T.cx*k,T.cy*k,T.r*k,0,TAU,true);m.fill();m.strokeStyle='#8cf';m.lineWidth=1.5;m.beginPath();m.arc(T.cx*k,T.cy*k,T.r*k,0,TAU);m.stroke();
-  if(T.shrink>0){m.strokeStyle='#fff';m.setLineDash([3,3]);m.beginPath();m.arc(T.tx*k,T.ty*k,T.tr*k,0,TAU);m.stroke();m.setLineDash([])}
+  if(T.tr<T.r-1){m.strokeStyle='#fff';m.setLineDash([3,3]);m.beginPath();m.arc(T.tx*k,T.ty*k,T.tr*k,0,TAU);m.stroke();m.setLineDash([])}
   for(const c of G.chests)if(!c.open){m.fillStyle='#ffd84a';m.fillRect(c.x*k-1,c.y*k-1,2,2)}
   const me=G.me;m.fillStyle=me.alive?'#fff':'#f66';m.beginPath();m.arc(me.x*k,me.y*k,3,0,TAU);m.fill()}
 function hud(){const me=G.me;$('nAlive').textContent=G.alive;$('kills').textContent=me.kills+' knocked';
