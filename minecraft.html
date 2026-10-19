@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="ironcraft-build" content="20261019-011824">
+<meta name="ironcraft-build" content="20261019-013044">
 <meta name="viewport" content="width=device-width,initial-scale=1.0,viewport-fit=cover">
 <title>Ironcraft – Free Voxel Survival Sandbox in Your Browser | Iron Games</title>
 <meta name="description" content="Ironcraft is a free browser-based voxel survival sandbox with building, exploration, private or safety-limited public multiplayer, and optional weather, horror and survival challenges. By Daniele Bros.">
@@ -663,6 +663,7 @@ for(let s=0;s<4;s++)defTex('carrots'+s,p=>{p.fill(0,0,0,0);const h=3+s*3;for(let
 for(let s=0;s<4;s++)defTex('potatoes'+s,p=>{p.fill(0,0,0,0);const h=3+s*2.5;for(let i=0;i<5;i++){const x=1+i*3;for(let y=15;y>15-h;y--){const f=0.8+p.rng()*.4;p.px(x,y,70*f,130*f,50*f);if(p.rng()<.5)p.px(x+1,y,90*f,150*f,60*f)}}});
 defTex('farmland_dry',p=>{dirt(p);p.tint(200,200,200);for(let y=1;y<16;y+=4)p.rect(0,y,16,1,90,60,40)});
 defTex('farmland_wet',p=>{dirt(p);p.tint(120,110,110);for(let y=1;y<16;y+=4)p.rect(0,y,16,1,50,35,25)});
+defTex('vine',p=>{p.fill(0,0,0,0);const R=()=>p.rng();for(const [bx,ph] of [[3,0],[8,2],[13,4]]){for(let y=0;y<16;y++){const x=(bx+Math.round(Math.sin((y+ph)*0.7)*1.2)+16)%16;const d=R()*18;p.px(x,y,38+d,96+d*1.5,34+d);if(y%4===ph%4){p.px((x+1)%16,y,52,128,44);p.px((x+15)%16,y+1<16?y+1:y,46,118,40)}}}});
 defTex('ladder',p=>{p.fill(0,0,0,0);p.rect(2,0,2,16,150,120,70);p.rect(12,0,2,16,150,120,70);for(let y=1;y<16;y+=4)p.rect(2,y,12,2,170,140,85)});
 defTex('door_top',p=>{planks(p,[150,120,70]);p.rect(2,2,12,12,120,95,55);p.rect(3,3,4,4,170,210,240);p.rect(9,3,4,4,170,210,240);p.rect(3,9,10,4,150,120,70)});
 defTex('leaf_door_top',p=>{leaves(p,[58,118,32]);for(let i=0;i<16;i++){p.px(0,i,30,60,20);p.px(15,i,30,60,20);p.px(i,0,30,60,20);p.px(i,15,30,60,20)}p.rect(3,3,4,4,150,210,110);p.rect(9,3,4,4,150,210,110);p.rect(2,9,12,1,30,60,20)});
@@ -973,6 +974,7 @@ defBlock(35,'wheat',{tex:'wheat0',model:'crop',solid:false,hard:0,sound:'grass',
 defBlock(36,'farmland',{tex:{top:'farmland_dry',side:'dirt'},model:'farmland',hard:0.6,tool:'shovel',sound:'gravel',drop:()=>[[3,1]],texFn:(m,f)=>f===2?(m?TEX.farmland_wet:TEX.farmland_dry):null});
 defBlock(37,'furnace',{tex:{side:'furnace_side',top:'furnace_top',front:'furnace_front',frontLit:'furnace_front_lit'},hard:3.5,tool:'pickaxe',needsTool:true,gui:'furnace',facing:true});
 defBlock(38,'ladder',{tex:'ladder',model:'ladder',solid:false,hard:0.4,tool:'axe',sound:'wood',transparent:true,climbable:true});
+defBlock(148,'vine',{tex:'vine',model:'cross',solid:false,hard:0.2,tool:'shears',sound:'grass',transparent:true,climbable:true,replaceable:true,vine:true,drop:(r,t)=>t==='shears'?[[148,1]]:[]});
 defBlock(39,'chest',{tex:{side:'chest_side',top:'chest_top',front:'chest_front'},model:'chest',hard:2.5,tool:'axe',sound:'wood',gui:'chest',facing:true,transparent:true});
 defBlock(40,'snow_layer',{label:'Snow',tex:'snow',model:'snow',solid:true,hard:0.1,tool:'shovel',needsTool:true,sound:'snow',replaceable:true,transparent:true,drop:()=>[[293,1]]});
 defBlock(41,'ice',{tex:'ice',hard:0.5,tool:'pickaxe',transparent:true,sound:'glass',slippery:true,drop:()=>[]});
@@ -1635,6 +1637,10 @@ class World{
       for(let i=0;i<hgt;i++)this.setGen(x,y+i,z,15,0,false);
       for(let ly=hgt-2;ly<=hgt+1;ly++){const r=ly>=hgt?2:3;for(let dx=-r;dx<=r;dx++)for(let dz=-r;dz<=r;dz++){if(abs(dx)===r&&abs(dz)===r&&(ly>=hgt||rng()<0.6))continue;if(dx===0&&dz===0&&ly<hgt)continue;this.setGen(x+dx,y+ly,z+dz,16)}}
       for(let k=0;k<3;k++){const ly=3+floor(rng()*(hgt-5));const dx=floor(rng()*3)-1,dz=floor(rng()*3)-1;if(!dx&&!dz)continue;for(let a=-1;a<=1;a++)for(let b=-1;b<=1;b++)if(rng()<0.7)this.setGen(x+dx+a,y+ly,z+dz+b,16);this.setGen(x+dx,y+ly+1,z+dz,16)}
+      // vines: hang from the canopy's outer leaves and cling to the trunk
+      const SIDES=[[1,0],[-1,0],[0,1],[0,-1]];const vine=(vx,vy,vz,wx,wz,len)=>{const f=FACE_DIR.findIndex(d=>d[0]===vx-wx&&d[2]===vz-wz);if(f<0)return;const meta=FACE_TO_FACING[f];for(let i=0;i<len;i++){if(g(vx-x,vy-i-y,vz-z)!==0)break;this.setGen(vx,vy-i,vz,148,meta)}};
+      for(const ly of [hgt-2,hgt-1])for(let dx=-3;dx<=3;dx++)for(let dz=-3;dz<=3;dz++){if(abs(dx)!==3&&abs(dz)!==3)continue;if(g(dx,ly-y+y,dz)!==16||rng()>0.4)continue;const sx=abs(dx)===3?Math.sign(dx):0,sz=sx?0:Math.sign(dz);vine(x+dx+sx,y+ly,z+dz+sz,x+dx,z+dz,3+floor(rng()*5))}
+      for(let k=0;k<6;k++){const ly=2+floor(rng()*(hgt-4));const [sx,sz]=SIDES[floor(rng()*4)];vine(x+sx,y+ly,z+sz,x,z,2+floor(rng()*4))}
       return}
     const hgt=(type===1?5:4)+floor(rng()*3);for(let i=0;i<hgt;i++){const b=g(0,i,0);if(b!==0&&!BLOCKS[b].leaves)return}
     const log=type===1?44:15,leaf=type===1?45:16;
