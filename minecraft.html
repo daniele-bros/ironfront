@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="ironcraft-build" content="20261019-141056">
+<meta name="ironcraft-build" content="20261019-142920">
 <meta name="viewport" content="width=device-width,initial-scale=1.0,viewport-fit=cover">
 <title>Ironcraft – Free Voxel Survival Sandbox in Your Browser | Iron Games</title>
 <meta name="description" content="Ironcraft is a free browser-based voxel survival sandbox with building, exploration, private or safety-limited public multiplayer, and optional weather, horror and survival challenges. By Daniele Bros.">
@@ -62,6 +62,7 @@ canvas#gl{position:absolute;inset:0;width:100%;height:100%;display:block;image-r
 #debug{position:absolute;left:4px;top:4px;font-weight:400;font-size:12px;line-height:14px;white-space:pre;background:rgba(0,0,0,.3);padding:2px 4px;display:none;}
 #vignette{position:absolute;inset:0;background:radial-gradient(ellipse at center,rgba(0,0,0,0) 55%,rgba(0,0,0,.35) 100%);}
 #dmgflash{position:absolute;inset:0;background:rgba(255,0,0,0);transition:background .15s;}
+#nukeflash{position:absolute;inset:0;background:#fff;opacity:0;pointer-events:none;}
 #nametags{position:absolute;inset:0;pointer-events:none;overflow:hidden;}
 #scopeov{position:absolute;inset:0;display:none;pointer-events:none;background:radial-gradient(circle at center,rgba(0,0,0,0) 0,rgba(0,0,0,0) 34%,rgba(0,0,0,.92) 36%,rgba(0,0,0,.97) 100%);}
 #scopeov:before,#scopeov:after{content:'';position:absolute;background:rgba(0,0,0,.85);}
@@ -213,7 +214,7 @@ label.lb{font-size:13px;color:#a0a0a0;align-self:flex-start;margin-left:calc(50%
 </head>
 <body>
 <canvas id="gl"></canvas>
-<div id="overlay"><div id="nametags"></div><div id="scopeov"></div><div id="binov"></div><div id="waterov"></div><div id="fireov"></div><div id="dmgflash"></div><div id="koov"><div id="kotext"></div></div><div id="vignette"></div><div id="sleepfade"></div></div>
+<div id="overlay"><div id="nametags"></div><div id="scopeov"></div><div id="binov"></div><div id="waterov"></div><div id="fireov"></div><div id="dmgflash"></div><div id="nukeflash"></div><div id="koov"><div id="kotext"></div></div><div id="vignette"></div><div id="sleepfade"></div></div>
 <div id="hud">
   <div id="crosshair"></div>
   <div id="bossbar" style="display:none"><div id="bossname">Void Dragon</div><div class="bbar"><i id="bossfill"></i></div></div>
@@ -437,6 +438,8 @@ label.lb{font-size:13px;color:#a0a0a0;align-self:flex-start;margin-left:calc(50%
   <div class="hint" style="color:#aaa;width:440px;margin:0 0 4px">Adds the Leaf Door (six leaves of any kind make three) and the Grass Pressure Plate (two leaves): a plate that looks like grass and opens every door within three blocks when anyone steps on it, then shuts them when they step off. It also sets off any TNT hidden nearby, so it makes a trap too. Leaf doors open and close like wooden doors, rustle instead of creak, and hide a doorway in a hedge or tree house. Leaves burn, so keep them away from fire.</div>
   <button class="btn modbtn" data-mod="notags">No Name Tags: OFF</button>
   <div class="hint" style="color:#aaa;width:440px;margin:0 0 4px">Nobody wears a name above their head in multiplayer. Great for hide and seek and sneaking up on friends. The host sets it for everyone in the world.</div>
+  <button class="btn modbtn" data-mod="nukes">Nukes: OFF</button>
+  <div class="hint" style="color:#aaa;width:440px;margin:0 0 4px">Adds the Nuke: four TNT and four gunpowder round a diamond. Light it with flint and steel (or a pressure plate, fire or another explosion) and it beeps for ten seconds, so run. The blast flashes white, shakes the ground, digs a crater fifty blocks wide, scorches and sets fire to the land round it, kills everything close and hurls everything further out, then a mushroom cloud climbs over the hole. Nukes in the crater go off too.</div>
   <button class="btn modbtn" data-mod="hearts">Hearts: OFF</button>
   <div class="hint" style="color:#aaa;width:440px;margin:0 0 4px">Your health shows as a row of Minecraft-style hearts with every kind the game has: red hearts and half hearts, hardcore hearts with eyes, green poisoned hearts, black withered hearts, blue frozen hearts, gold absorption hearts from golden apples, a flash when you take damage, a shiver when you are nearly dead, and your horse's hearts while you ride.</div>
   <div class="btnrow" style="margin-top:12px"><button class="btn half" id="btnFunDone">Done</button><button class="btn half" id="btnFunClear">Clear All</button></div>
@@ -694,6 +697,8 @@ defTex('bed_top_foot',p=>{p.noise(180,30,30,8);p.rect(0,14,16,2,140,110,70)});
 defTex('bed_side',p=>{p.noise(180,30,30,8);p.rect(0,7,16,9,140,110,70);p.shadeRect(0,7,16,1,0.8)});
 defTex('tnt_side',p=>{p.noise(200,50,40,10);p.rect(0,5,16,6,235,235,235);p.rect(2,7,3,2,40,40,40);p.rect(6,7,4,2,40,40,40);p.rect(11,7,3,2,40,40,40)});
 defTex('tnt_top',p=>{p.noise(200,50,40,10);p.rect(1,1,14,14,110,110,110);p.speckle(16,60,60,60)});
+defTex('nuke_side',p=>{p.noise(84,92,70,8);p.rect(0,0,16,1,46,50,38);p.rect(0,15,16,1,46,50,38);p.rect(0,6,16,4,236,198,32);for(let x=0;x<16;x+=4)p.rect(x,6,2,4,34,34,34);p.rect(1,2,2,2,196,196,186);p.rect(13,2,2,2,196,196,186);p.rect(1,12,2,2,196,196,186);p.rect(13,12,2,2,196,196,186);p.rect(6,11,4,3,120,20,20);p.rect(7,12,2,1,255,80,80)});
+defTex('nuke_top',p=>{p.noise(84,92,70,8);p.blob(8,8,6,236,198,32);p.rect(7,2,2,4,34,34,34);p.rect(3,9,3,3,34,34,34);p.rect(10,9,3,3,34,34,34);p.blob(8,8,2,34,34,34);p.px(8,8,236,198,32)});
 defTex('bookshelf',p=>{planks(p,[162,130,78]);const cols=[[200,60,60],[60,80,200],[60,160,60],[200,180,60],[150,90,180]];for(let y=1;y<15;y+=7){for(let x=1;x<15;x+=2){const c=cols[floor(p.rng()*5)];p.rect(x,y,2,6,c[0],c[1],c[2]);p.px(x,y+1,c[0]*.8,c[1]*.8,c[2]*.8)}}});
 defTex('bricks',p=>brickPattern(p,[170,160,150],[150,80,65]));
 defTex('stone_bricks',p=>brickPattern(p,[100,100,100],[130,130,130]));
@@ -1039,6 +1044,7 @@ defBlock(25,'iron_block',{tex:'iron_block',hard:5,tool:'pickaxe',needsTool:true,
 defBlock(26,'diamond_block',{tex:'diamond_block',hard:5,tool:'pickaxe',needsTool:true,tier:2});
 defBlock(27,'bricks',{tex:'bricks',hard:2,tool:'pickaxe',needsTool:true,resist:6});
 defBlock(28,'tnt',{tex:{side:'tnt_side',top:'tnt_top',bottom:'tnt_top'},hard:0,sound:'grass'});
+defBlock(151,'nuke',{label:'Nuke',tex:{side:'nuke_side',top:'nuke_top',bottom:'nuke_top'},hard:0,sound:'stone'});
 defBlock(29,'bookshelf',{tex:{side:'bookshelf',top:'oak_planks'},hard:1.5,tool:'axe',sound:'wood',fuel:15});
 defBlock(30,'mossy_cobblestone',{tex:'mossy_cobblestone',hard:2,tool:'pickaxe',needsTool:true,resist:6});
 defBlock(31,'obsidian',{tex:'obsidian',hard:50,tool:'pickaxe',needsTool:true,tier:3,resist:1200});
@@ -1518,7 +1524,7 @@ class World{
     if(old===86&&id!==86)this.spawners.delete(x+','+y+','+z);
     if(id===147&&!c.bents.has(i))c.bents.set(i,{items:new Array(5).fill(null),cd:0}); // a hopper works from the moment it is placed
     if(old!==id&&c.bents.has(i)&&BLOCKS[old].gui){if(!opt.keepEntity){const be=c.bents.get(i);c.bents.delete(i);if(!opt.noDrop&&be&&be.items&&typeof dropInventory==='function')dropInventory(be.items,x,y,z)}}
-    if(c.lit){this.updateLightAt(x,y,z,old,id)}
+    if(c.lit){if(opt.noLight)c.relight=true;else this.updateLightAt(x,y,z,old,id)}
     this.markDirtyAround(x,y,z);
     if(!opt.gen&&!opt.silent){this.neighborChanged(x,y,z);}
     if(id===81&&!opt.gen)this.scheduleTick(x,y,z,25+floor(Math.random()*15));
@@ -1775,6 +1781,7 @@ class World{
       // burn neighbours
       for(const d of FACE_DIR){const nx=x+d[0],ny=y+d[1],nz=z+d[2];const nb=this.getBlock(nx,ny,nz);const f=FLAMMABLE[nb];if(!f)continue;if(r()*300<f*(d[1]<0?1:2)){
         if(nb===28){this.setBlock(nx,ny,nz,0,0,{silent:true});if(typeof TNTEntity!=='undefined')entities.push(new TNTEntity(nx+0.5,ny,nz+0.5))}
+        else if(nb===151){this.setBlock(nx,ny,nz,0,0,{silent:true});if(typeof NukeEntity!=='undefined')entities.push(new NukeEntity(nx+0.5,ny,nz+0.5))}
         else this.setBlock(nx,ny,nz,r()<0.6?81:0,0)}}
       // spread to air next to flammable blocks
       for(let dx=-1;dx<=1;dx++)for(let dy=-1;dy<=2;dy++)for(let dz=-1;dz<=1;dz++){if(!dx&&!dy&&!dz)continue;const nx=x+dx,ny=y+dy,nz=z+dz;if(this.getBlock(nx,ny,nz)!==0)continue;let near=0;for(const d of FACE_DIR){const nb=this.getBlock(nx+d[0],ny+d[1],nz+d[2]);if(FLAMMABLE[nb])near+=FLAMMABLE[nb]}if(near&&r()*400<near){this.setBlock(nx,ny,nz,81,0)}}
@@ -2296,6 +2303,45 @@ function spawnFallingBlock(x,y,z,id){entities.push(new FallingBlock(x,y,z,id))}
 class TNTEntity extends Entity{constructor(x,y,z){super(x,y,z);this.w=0.98;this.h=0.98;this.fuse=4;this.vy=2;this.vx=(Math.random()-0.5)*0.5;this.vz=(Math.random()-0.5)*0.5}
   update(dt){this.physics(dt,{fall:false});this.fuse-=dt;if(Math.random()<dt*10)spawnParticles('smoke',this.x,this.y+1,this.z,1);if(this.fuse<=0){this.dead=true;explode(this.x,this.y+0.5,this.z,4)}}
   render(EB){const l=lightAt(this.x,this.y+0.5,this.z);const flash=(Math.sin(this.fuse*20)>0.3&&this.fuse<3)||this.fuse<0.3?1.8:1;const tf=(x,y,z)=>[this.x-0.5+x,this.y+y,this.z-0.5+z];EB.box(tf,0,0,0,1,1,1,BLOCKS[28].faces,[flash,flash,flash],[1,1],false)}}
+class NukeEntity extends Entity{constructor(x,y,z){super(x,y,z);this.w=0.98;this.h=0.98;this.fuse=10;this.vy=1;this.blastProof=true}
+  update(dt){this.physics(dt,{fall:false});const was=this.fuse;this.fuse-=dt;if(Math.random()<dt*14)spawnParticles('smoke',this.x,this.y+1,this.z,1);
+    const iv=this.fuse>5?1:(this.fuse>2?0.5:0.18);if(Math.floor(was/iv)!==Math.floor(this.fuse/iv))playSoundAt('click',this.x,this.y,this.z,this.fuse>2?1.5:2.2,1);
+    if(this.fuse<=0){this.dead=true;nukeExplode(this.x,this.y+0.5,this.z)}}
+  render(EB){const l=lightAt(this.x,this.y+0.5,this.z);const on=Math.sin(this.fuse*(this.fuse>2?8:34))>0;const f=on?2.2:1;const tf=(x,y,z)=>[this.x-0.5+x,this.y+y,this.z-0.5+z];EB.box(tf,0,0,0,1,1,1,BLOCKS[151].faces,[f,on?1.6:1,on?0.8:1],[1,1],false)}}
+function nukeHash(x,y,z){let h=(x*73856093)^(y*19349663)^(z*83492791);h=(h^(h>>>13))*1274126177;return ((h^(h>>>16))>>>0)%1000/1000}
+// the blast: a flash and a shock, then the crater eats outward over a second and a mushroom cloud climbs (tickNuke)
+function nukeExplode(x,y,z,remote){const R=26;game.nuke={x,y,z,R,r:0,t:0,rim:false};
+  if(!remote&&MP.active)mpSend({t:'nuke',x,y,z});
+  playSound('explode',1,0.3);playSound('explode',0.8,0.5);setTimeout(()=>playSound('explode',0.7,0.22),500);
+  const p=player;const dx=p.x-x,dy=p.y-y,dz=p.z-z;const d=sqrt(dx*dx+dy*dy+dz*dz);game.shake=Math.max(game.shake||0,3.5*Math.max(0,1-d/260));
+  const f=$('nukeflash');if(f){f.style.transition='none';f.style.opacity=String(Math.max(0,1-d/300));setTimeout(()=>{f.style.transition='opacity 3s';f.style.opacity='0'},60)}
+  if(d<320)showMessage(d<R*1.3?'Vaporised by a nuke':'A nuke goes off'+(d<R*3?' right next to you':'')+'!');
+  // everything close is vaporised, further out is burned and thrown
+  const rad=R*3.2;const all=entities.filter(e=>(e instanceof Mob||e instanceof ItemEntity||e.hittable)&&!e.dead).concat([p]);
+  for(const e of all){if(e.dead)continue;const ex=e.x-x,ey=e.y+e.h/2-y,ez=e.z-z;const dd=sqrt(ex*ex+ey*ey+ez*ez);if(dd>rad)continue;if(e instanceof ItemEntity){e.dead=true;continue}const imp=1-dd/rad;const dmg=dd<R*1.3?400:floor(imp*imp*140+3);damageEntity(e,dmg,{x,y,z,type:'explosion',kb:imp*30});if(!e.dead||e===p)e.vy+=imp*14}
+  spawnParticles('explosion',x,y+2,z,60);for(let i=0;i<40;i++)spawnParticles('fire',x+(Math.random()-0.5)*6,y+Math.random()*4,z+(Math.random()-0.5)*6,1)}
+function tickNuke(dt){const N=game.nuke;if(!N||!world)return;N.t+=dt;const R=N.R,cx=floor(N.x),cy=floor(N.y),cz=floor(N.z);
+  if(N.r<R){const r0=N.r,r1=Math.min(R,r0+Math.min(dt*20,0.8));N.r=r1;const lo=-Math.ceil(r1),hi=Math.ceil(r1);
+    for(let dy=Math.max(lo,1-cy);dy<=hi;dy++){const wy=dy*dy*1.5;for(let dx=lo;dx<=hi;dx++)for(let dz=lo;dz<=hi;dz++){const dd=sqrt(dx*dx+wy+dz*dz);if(dd>r1||dd<=r0)continue;
+      const bx=cx+dx,by=cy+dy,bz=cz+dz;const id=world.getBlock(bx,by,bz);if(id===0)continue;const def=BLOCKS[id];if(!def||def.hard<0)continue;
+      if(dd>R*0.8&&nukeHash(bx,by,bz)>(R-dd)/(R*0.2)+0.1)continue; // ragged rim
+      if(id===151){world.setBlock(bx,by,bz,0,0,{silent:true,noDrop:true,remote:true,noLight:true});const t=new NukeEntity(bx+0.5,by,bz+0.5);t.fuse=3+nukeHash(bz,bx,by)*2;entities.push(t);continue}
+      world.setBlock(bx,by,bz,0,0,{silent:true,noDrop:true,remote:true,noLight:true})}}
+    if(N.r>=R)world.relightDirty(); // daylight floods the crater once it is dug
+    if(Math.random()<dt*30)spawnParticles('debris',N.x+(Math.random()-0.5)*r1*1.6,N.y+2,N.z+(Math.random()-0.5)*r1*1.6,2,{a:Math.random()*6.283,id:1})}
+  else if(!N.rim){N.rim=true; // scorched earth and fire around the crater, once the blast has reached its edge
+    const R2=Math.ceil(R*1.7);for(let dx=-R2;dx<=R2;dx++)for(let dz=-R2;dz<=R2;dz++){const dh=sqrt(dx*dx+dz*dz);if(dh<R*0.9||dh>R*1.7)continue;const bx=cx+dx,bz=cz+dz;const h=nukeHash(bx,7,bz);if(h>1.1-(dh-R*0.9)/(R*0.8))continue;
+      let top=-1;for(let y=Math.min(CH-2,cy+R);y>Math.max(1,cy-R);y--){const id=world.getBlock(bx,y,bz);if(id!==0&&BLOCKS[id].solid&&!BLOCKS[id].liquid){top=y;break}}if(top<0)continue;const tid=world.getBlock(bx,top,bz);
+      if(tid===2||tid===3||tid===36)world.setBlock(bx,top,bz,h<0.5?3:11,0,{silent:true,noDrop:true,remote:true,noLight:true});else if(FLAMMABLE[tid]&&h<0.35){world.setBlock(bx,top,bz,0,0,{silent:true,noDrop:true,remote:true,noLight:true});continue}
+      if(h<0.12&&world.getBlock(bx,top+1,bz)===0)world.setBlock(bx,top+1,bz,81,0,{silent:true,remote:true,noLight:true})}
+    world.relightDirty()}
+  // mushroom cloud: a fat glowing stem climbs, then a wide cap rolls outward and hangs there
+  if(N.t<10){const h=Math.min(46,N.t*12),cap=Math.min(30,4+N.t*5),hot=Math.max(0,1-N.t/3);
+    const puff=(x,y,z,size,life,col,vx,vy,vz,bright)=>{spawnParticles('wallcloud',x,y,z,1,{a:0});const q=particles[particles.length-1];q.size=size;q.life=life;q.col=col;q.vx=vx;q.vy=vy;q.vz=vz;q.bright=bright};
+    for(let i=0;i<3;i++){const a=Math.random()*6.283,rr=Math.random()*4,yy=Math.random()*h;const g=0.25+Math.random()*0.1;const t=hot*(1-yy/Math.max(1,h));puff(N.x+Math.cos(a)*rr,N.y+yy,N.z+Math.sin(a)*rr,5+Math.random()*3,2+Math.random(),[g+t*0.7,g+t*0.3,g],Math.cos(a)*0.6,4+Math.random()*3,Math.sin(a)*0.6,0.05+t*0.9)}
+    for(let i=0;i<5;i++){const a=Math.random()*6.283,rr=cap*(0.3+Math.random()*0.7);const g=0.42+Math.random()*0.14;puff(N.x+Math.cos(a)*rr,N.y+h+(Math.random()-0.5)*8,N.z+Math.sin(a)*rr,8+Math.random()*5,2.5+Math.random()*1.5,[g+hot*0.3,g+hot*0.1,g],Math.cos(a)*2.5,0.8+Math.random(),Math.sin(a)*2.5,0.1+hot*0.5)}
+    if(N.t<2.5){spawnParticles('fire',N.x+(Math.random()-0.5)*6,N.y+Math.random()*h*0.7,N.z+(Math.random()-0.5)*6,3);spawnParticles('explosion',N.x+(Math.random()-0.5)*10,N.y+2+Math.random()*6,N.z+(Math.random()-0.5)*10,2)}}
+  if(N.t>14)game.nuke=null}
 function explode(x,y,z,power,source){
   playSoundAt('explode',x,y,z);const destroyed=new Set();const rng=Math.random;
   for(let i=0;i<16;i++)for(let j=0;j<16;j++)for(let k=0;k<16;k++){if(i!==0&&i!==15&&j!==0&&j!==15&&k!==0&&k!==15)continue;
@@ -2303,6 +2349,7 @@ function explode(x,y,z,power,source){
     while(s>0){const bx=floor(px),by=floor(py),bz=floor(pz);const id=world.getBlock(bx,by,bz);if(id!==0){const d=BLOCKS[id];const res=d.resist>1?d.resist:(d.hard<0?3600000:Math.min(d.hard*4,6));s-=(res/5+0.3)*0.3;if(s>0)destroyed.add(bx+','+by+','+bz)}px+=dx*0.3;py+=dy*0.3;pz+=dz*0.3;s-=0.225}}
   for(const k of destroyed){const p=k.split(',').map(Number);const id=world.getBlock(p[0],p[1],p[2]);if(id===0)continue;
     if(id===28){world.setBlock(p[0],p[1],p[2],0,0,{silent:true});const t=new TNTEntity(p[0]+0.5,p[1],p[2]+0.5);t.fuse=0.5+Math.random()*0.5;entities.push(t);continue}
+    if(id===151){world.setBlock(p[0],p[1],p[2],0,0,{silent:true});const t=new NukeEntity(p[0]+0.5,p[1],p[2]+0.5);t.fuse=3+Math.random();entities.push(t);continue}
     const drops=Math.random()<1/power?blockDrops(id,world.getMeta(p[0],p[1],p[2]),null):[];world.setBlock(p[0],p[1],p[2],0,0,{noDrop:true});for(const d of drops)spawnItem(p[0]+0.5,p[1]+0.5,p[2]+0.5,{id:d[0],count:d[1]})}
   for(const k of destroyed){const p=k.split(',').map(Number);world.neighborChanged(p[0],p[1],p[2])}
   spawnParticles('explosion',x,y,z,12+power*4);
@@ -2974,7 +3021,7 @@ function updatePlayer(dt){
   p.stepT=(p.stepT||0)+hs*dt;if(p.stepT>2.2&&p.onGround){p.stepT=0;if(hs>1)playSound('step_'+blockSoundUnder(),0.35)}
   // ---- pressure plate / cobweb ----
   const feetId=world.getBlock(floor(p.x),floor(p.y),floor(p.z));
-  if(feetId===90&&!p.onPlate){p.onPlate=true;playSound('click',0.6);let lit=0;for(let dx=-3;dx<=3;dx++)for(let dy=-4;dy<=1;dy++)for(let dz=-3;dz<=3;dz++){const bx=floor(p.x)+dx,by=floor(p.y)+dy,bz=floor(p.z)+dz;if(world.getBlock(bx,by,bz)===28){world.setBlock(bx,by,bz,0,0,{silent:true});const t=new TNTEntity(bx+0.5,by,bz+0.5);t.fuse=1.2+Math.random()*0.6;entities.push(t);lit++}}if(lit)playSound('fuse')}else if(feetId!==90)p.onPlate=false;
+  if(feetId===90&&!p.onPlate){p.onPlate=true;playSound('click',0.6);let lit=0;for(let dx=-3;dx<=3;dx++)for(let dy=-4;dy<=1;dy++)for(let dz=-3;dz<=3;dz++){const bx=floor(p.x)+dx,by=floor(p.y)+dy,bz=floor(p.z)+dz;if(world.getBlock(bx,by,bz)===28){world.setBlock(bx,by,bz,0,0,{silent:true});const t=new TNTEntity(bx+0.5,by,bz+0.5);t.fuse=1.2+Math.random()*0.6;entities.push(t);lit++}else if(world.getBlock(bx,by,bz)===151){world.setBlock(bx,by,bz,0,0,{silent:true});entities.push(new NukeEntity(bx+0.5,by,bz+0.5));lit++}}if(lit)playSound('fuse')}else if(feetId!==90)p.onPlate=false;
   if(BLOCKS[feetId].web||BLOCKS[world.getBlock(floor(p.x),floor(p.y+1),floor(p.z))].web){p.vx*=0.25;p.vz*=0.25;p.vy=clamp(p.vy,-1,1)*0.5;p.fallDist=0}
   // ---- end portal / gateway ----
   {const feet=world.getBlock(floor(p.x),floor(p.y),floor(p.z));if(feet===101){if(!p.endLock){p.endLock=true;if(world.end)leaveEnd();else enterEnd()}}else p.endLock=false;
@@ -3153,7 +3200,7 @@ function tickPlates(dt){if(!world||(MP.active&&!MP.host))return;const P=game.pla
   if(!player.dead)feet(player.x,player.y,player.z);for(const e of entities){if(e.dead)continue;if(e instanceof RemotePlayer){if(e.hidden||!e.hasTarget)continue;feet(e.x,e.y,e.z)}else if(e instanceof Mob||e instanceof ItemEntity)feet(e.x,e.y,e.z)}
   for(const k of pressed){if(P.has(k))continue;const [x,y,z]=k.split(',').map(Number);const doors=[];
     for(let dx=-3;dx<=3;dx++)for(let dy=-1;dy<=1;dy++)for(let dz=-3;dz<=3;dz++){const bx=x+dx,by=y+dy,bz=z+dz;const id=world.getBlock(bx,by,bz);if(BLOCKS[id]&&BLOCKS[id].door&&!(world.getMeta(bx,by,bz)&8)&&setDoorOpen(bx,by,bz,true))doors.push([bx,by,bz])}
-    let lit=0;for(let dx=-3;dx<=3;dx++)for(let dy=-4;dy<=1;dy++)for(let dz=-3;dz<=3;dz++){const bx=x+dx,by=y+dy,bz=z+dz;if(world.getBlock(bx,by,bz)===28){world.setBlock(bx,by,bz,0,0,{silent:true});const t=new TNTEntity(bx+0.5,by,bz+0.5);t.fuse=1.2+Math.random()*0.6;entities.push(t);lit++}}if(lit)playSoundAt('fuse',x,y,z);
+    let lit=0;for(let dx=-3;dx<=3;dx++)for(let dy=-4;dy<=1;dy++)for(let dz=-3;dz<=3;dz++){const bx=x+dx,by=y+dy,bz=z+dz;if(world.getBlock(bx,by,bz)===28){world.setBlock(bx,by,bz,0,0,{silent:true});const t=new TNTEntity(bx+0.5,by,bz+0.5);t.fuse=1.2+Math.random()*0.6;entities.push(t);lit++}else if(world.getBlock(bx,by,bz)===151){world.setBlock(bx,by,bz,0,0,{silent:true});entities.push(new NukeEntity(bx+0.5,by,bz+0.5));lit++}}if(lit)playSoundAt('fuse',x,y,z);
     world.setMeta(x,y,z,1);mpSyncBlock(x,y,z);playSoundAt('grass',x,y,z,0.6,1.3);P.set(k,{doors,t:0})}
   for(const [k,st] of P){if(pressed.has(k)){st.t=0;continue}st.t+=dt;if(st.t<0.6)continue;const [x,y,z]=k.split(',').map(Number);for(const d of st.doors)setDoorOpen(d[0],d[1],d[2],false);if(world.getBlock(x,y,z)===146){world.setMeta(x,y,z,0);mpSyncBlock(x,y,z)}P.delete(k)}}
 function useItem(){
@@ -3169,12 +3216,13 @@ function useItem(){
       const n=FACE_DIR[t.face];const fx=t.bx+n[0],fy=t.by+n[1],fz=t.bz+n[2];const cur=world.getBlock(fx,fy,fz);
       if((cur===0||BLOCKS[cur].replaceable)&&tryLightPortal(fx,fy,fz,125,134)){consumeHeld();playSoundAt('portal',fx,fy,fz);spawnParticles('portal',fx+0.5,fy+1,fz+0.5,20);p.swing=0;return}
       if(id===125){showMessage('No portal here: the frame must be Sift stone, 4 wide and 5 tall with the inside empty, and you must click inside it');return}}
+    if(id===28&&hd&&hd.id===299){world.setBlock(t.bx,t.by,t.bz,0,0,{silent:true});entities.push(new TNTEntity(t.bx+0.5,t.by,t.bz+0.5));playSoundAt('fuse',t.bx,t.by,t.bz);damageItem(st,1);p.swing=0;return}
+    if(id===151&&hd&&hd.id===299){world.setBlock(t.bx,t.by,t.bz,0,0,{silent:true});entities.push(new NukeEntity(t.bx+0.5,t.by,t.bz+0.5));playSoundAt('fuse',t.bx,t.by,t.bz);showMessage('Nuke armed: ten seconds. RUN.');damageItem(st,1);p.swing=0;return}
     if(hd&&hd.id===299){ // flint and steel: light a portal or start a fire
       const n=FACE_DIR[t.face];const fx=t.bx+n[0],fy=t.by+n[1],fz=t.bz+n[2];const cur=world.getBlock(fx,fy,fz);
       if(cur===0||BLOCKS[cur].replaceable){if(tryLightPortal(fx,fy,fz)){damageItem(st,1);playSoundAt('portal',fx,fy,fz);p.swing=0;return}
         if(BLOCKS[t.id].solid){world.setBlock(fx,fy,fz,81,0);damageItem(st,1);playSoundAt('ignite',fx,fy,fz);p.swing=0;return}}
     }
-    if(id===28&&hd&&hd.id===299){world.setBlock(t.bx,t.by,t.bz,0,0,{silent:true});entities.push(new TNTEntity(t.bx+0.5,t.by,t.bz+0.5));playSoundAt('fuse',t.bx,t.by,t.bz);damageItem(st,1);p.swing=0;return}
     if(hd&&hd.tool==='hoe'&&(id===2||id===3)&&t.face===2&&world.getBlock(t.bx,t.by+1,t.bz)===0){world.setBlock(t.bx,t.by,t.bz,36,0);playSoundAt('hit_gravel',t.bx,t.by,t.bz);damageItem(st,1);p.swing=0;return}
     if(hd&&hd.id===305){ // bone meal
       if(d.crop){const m=world.getMeta(t.bx,t.by,t.bz)&7;if(m<7){world.setMeta(t.bx,t.by,t.bz,Math.min(7,m+2+floor(Math.random()*3)));spawnParticles('happy',t.bx+0.5,t.by+0.5,t.bz+0.5,8);consumeHeld();p.swing=0;return}}
@@ -4030,6 +4078,7 @@ RECIPES.push({p:['iii','igi','iti'],k:{i:260,g:17,t:28},out:[I.bomber_spawn_egg,
 RECIPES.push({s:[34,378],out:[143,1],shaped:false,uncraft:true});
 RECIPES.push({p:['##','##','##'],k:{'#':[16,45,47,131]},out:[145,3],shaped:true,mod:'leafdoors'});
 RECIPES.push({p:['##'],k:{'#':[16,45,47,131]},out:[146,1],shaped:true,mod:'leafdoors'});
+RECIPES.push({p:['gtg','tdt','gtg'],k:{g:285,t:28,d:263},out:[151,1],shaped:true,mod:'nukes'});
 shaped(['###','###','###'],{'#':271},[144,1]);shapeless([144],[271,9]);
 RECIPES.push({p:['l.l','lgl','lgl'],k:{l:289,g:16},out:[473,1],shaped:true,guns:true});
 shaped(['h','b'],{h:469,b:471},[467,1]);
@@ -4660,8 +4709,8 @@ function randomDrops(){if(Math.random()<0.03){const set=RANDOM_SETS[floor(Math.r
 /* ---- initial spawn ---- */
 function findSpawn(){for(let r=0;r<400;r+=8){for(let a=0;a<PI*2;a+=0.7){const x=floor(Math.cos(a)*r),z=floor(Math.sin(a)*r);const info=world.columnInfo(x,z);if(info.height>SEA+1&&info.biome!==BI.mountains&&info.biome!==BI.ocean)return [x+0.5,info.height+1,z+0.5]}}return [0.5,80,0.5]}
 /* ---- world lifecycle ---- */
-const MODN={weather:'Weather',horror:'Horror',random:'Random Blocks',hardcore:'Hardcore',structures:'Structure Chaos',apocalypse:'Zombie Apocalypse',guns:'Guns',hearts:'Hearts',nightvision:'Night Vision',reallife:'Real Life',uncrafting:'Uncrafting',leafdoors:'Leaf Doors',notags:'No Name Tags'};
-function applyModsLive(m,fromHost){if(!world||game.state!=='playing')return;const old=game.mods||{};game.mods=Object.assign({weather:false,horror:false,random:false,hardcore:false,structures:false,apocalypse:false,guns:false,hearts:false,nightvision:false,reallife:false,uncrafting:false,leafdoors:false,notags:false},m);const g=game.mods;
+const MODN={weather:'Weather',horror:'Horror',random:'Random Blocks',hardcore:'Hardcore',structures:'Structure Chaos',apocalypse:'Zombie Apocalypse',guns:'Guns',hearts:'Hearts',nightvision:'Night Vision',reallife:'Real Life',uncrafting:'Uncrafting',leafdoors:'Leaf Doors',notags:'No Name Tags',nukes:'Nukes'};
+function applyModsLive(m,fromHost){if(!world||game.state!=='playing')return;const old=game.mods||{};game.mods=Object.assign({weather:false,horror:false,random:false,hardcore:false,structures:false,apocalypse:false,guns:false,hearts:false,nightvision:false,reallife:false,uncrafting:false,leafdoors:false,notags:false,nukes:false},m);const g=game.mods;
   if(g.weather&&!game.wx)game.wx={storm:false,I:0,t:20+Math.random()*40,lt:4,flash:0,tornado:null};else if(!g.weather&&game.wx){stopWeatherLoops();game.wx=null}
   game.hx=g.horror?(game.hx||{amb:15,beat:0}):null;
   if(g.apocalypse&&!game.ax)game.ax={wave:0,next:60,active:false,mobs:[],warned:{},left:0};else if(!g.apocalypse&&game.ax){for(const mb of game.ax.mobs)mb.dead=true;game.ax=null;$('waveHud').style.display='none'}
@@ -4669,7 +4718,7 @@ function applyModsLive(m,fromHost){if(!world||game.state!=='playing')return;cons
   const list=worldList();const meta=list.find(w=>w.id===game.worldId);if(meta){meta.mods=Object.assign({},g);meta.drops=g.random?'random':'normal';localStorage.setItem('ic_worlds',JSON.stringify(list))}
   if(MP.active&&MP.host&&!fromHost)mpSend({t:'mods',mods:g});
   const on=Object.keys(g).filter(k=>g[k]).map(k=>MODN[k]);showMessage('Fun mods: '+(on.length?on.join(', '):'none')+(g.weather&&!old.weather?'. Clouds are gathering...':''));if(game.gui)renderAllSlots()}
-function modsOf(meta){const m=Object.assign({weather:false,horror:false,random:false,hardcore:false,structures:false,apocalypse:false,guns:false,hearts:false,nightvision:false,reallife:false,uncrafting:false,leafdoors:false,notags:false},meta.mods||{});if(!meta.mods&&meta.drops==='random')m.random=true;return m}
+function modsOf(meta){const m=Object.assign({weather:false,horror:false,random:false,hardcore:false,structures:false,apocalypse:false,guns:false,hearts:false,nightvision:false,reallife:false,uncrafting:false,leafdoors:false,notags:false,nukes:false},meta.mods||{});if(!meta.mods&&meta.drops==='random')m.random=true;return m}
 function newWorld(name,seedStr,mode,diff,mods){const drops=mods&&mods.random?'random':'normal';
   const seed=seedStr?(isNaN(+seedStr)?hashStr(seedStr):(+seedStr|0)):(Math.random()*2147483647|0);
   const id='w'+Date.now().toString(36);const list=worldList();list.push({id,name,seed,mode,diff,drops,mods:mods||{},created:Date.now(),played:Date.now()});localStorage.setItem('ic_worlds',JSON.stringify(list));
@@ -5351,6 +5400,7 @@ function mpOnData(conn,d){if(!d||!d.t)return;
     case 'ic':{if(MP.host)mpRelay(conn,d);{const e=entities.find(e=>e.nid===d.nid);if(e&&e.stack)e.stack.count=d.count;const pi=MP.pendingItems.find(it=>it.nid===d.nid);if(pi)pi.s.count=d.count}break}
     case 'be':{if(MP.host)mpRelay(conn,d);mpApplyBE(d);break}
     case 'mods':{if(MP.host)break;applyModsLive(d.mods||{},true);break}
+    case 'nuke':{if(world&&typeof nukeExplode==='function')nukeExplode(d.x,d.y,d.z,true);if(MP.host)mpRelay(conn,d);break}
     case 'hit':{if(MP.host)mpRelay(conn,d);if(d.to!==MP.myId||(!pvpOn()&&d.type!=='mob')||!world||player.dead)break;const was=player.hp;damageEntity(player,d.amount,{type:d.type==='mob'?'mob':'pvp',x:d.x,y:d.y,z:d.z,kb:d.kb,name:d.from,pid:d.by});if(d.type==='mob')break;if(player.dead&&was>0)mpSend({t:'killed',to:d.by,name:MP.name});break}
     case 'killed':{if(MP.host)mpRelay(conn,d);if(d.to===MP.myId){showMessage('You killed '+d.name);playSound('levelup',0.8,1.2)}break}
     case 'leave':{mpRemove(d.id);if(MP.host)mpRelay(conn,d);break}}}
@@ -5866,7 +5916,7 @@ function loop(now){
     updateChunks(6);
     edgeLook(dt);keyLook(dt);updatePlayer(dt);
     for(let i=entities.length-1;i>=0;i--){const e=entities[i];const dx=e.x-player.x,dz=e.z-player.z;if(dx*dx+dz*dz<96*96||e instanceof RemotePlayer||(MP.active&&MP.host&&e instanceof Mob&&mpNearRemote(e.x,e.z,96))||e instanceof FallingBlock||((e instanceof Mob||e instanceof ItemEntity)&&!e.onGround&&!e.inWater&&world.hasChunk(floor(e.x),floor(e.z))))e.update(dt);if(e.dead){entities[i]=entities[entities.length-1];entities.pop()}}
-    updateParticles(dt);if(game.wx)tickWeather(dt);if(game.hx)tickHorror(dt);if(game.ax)tickApocalypse(dt);if(game.disasters&&game.disasters.length)tickDisasters(dt);
+    updateParticles(dt);if(game.nuke)tickNuke(dt);if(game.wx)tickWeather(dt);if(game.hx)tickHorror(dt);if(game.ax)tickApocalypse(dt);if(game.disasters&&game.disasters.length)tickDisasters(dt);
     // fixed 20 tps
     game.tickAcc+=dt;let n=0;while(game.tickAcc>=0.05&&n<4){game.tickAcc-=0.05;n++;game.tick++;world.time=(world.time+1)%24000;if(world.time===0)world.day++;
       world.runScheduledTicks();
