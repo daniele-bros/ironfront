@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="ironcraft-build" content="20261019-135355">
+<meta name="ironcraft-build" content="20261019-141056">
 <meta name="viewport" content="width=device-width,initial-scale=1.0,viewport-fit=cover">
 <title>Ironcraft – Free Voxel Survival Sandbox in Your Browser | Iron Games</title>
 <meta name="description" content="Ironcraft is a free browser-based voxel survival sandbox with building, exploration, private or safety-limited public multiplayer, and optional weather, horror and survival challenges. By Daniele Bros.">
@@ -340,8 +340,11 @@ label.lb{font-size:13px;color:#a0a0a0;align-self:flex-start;margin-left:calc(50%
   <h3>Attachment Table</h3>
   <div class="row" style="justify-content:center;gap:10px"><div class="grid" id="attGun" style="grid-template-columns:38px"></div><span class="plus" style="font-size:18px;color:#333">+</span><div class="grid" id="attPart" style="grid-template-columns:38px"></div><div class="arrow"></div><div class="grid" id="attOut" style="grid-template-columns:52px"></div></div>
   <div class="hint" id="attHint" style="font-size:11px">Put a gun on the left and an attachment on the right.</div>
+  <div class="hint" style="font-size:11px;margin-top:6px">Make attachments here:</div>
+  <div class="row"><div class="grid g3" id="attCraft3"></div><div class="arrow" style="margin:0 20px"></div><div class="grid" id="attCraft3out" style="grid-template-columns:52px"></div></div>
   <div class="grid" id="attMain" style="margin-top:8px"></div>
   <div class="grid" id="attHot" style="margin-top:6px"></div>
+  <div class="rbook" id="arbook"></div>
 </div></div>
 <div id="anvilGui" class="gui"><div class="panel">
   <h3>Repair &amp; Enchant</h3>
@@ -4157,14 +4160,14 @@ function slotClick(slot,button,shift){
 function moveInto(st,arr,off,n){const def=ITEMS[st.id];let c=st.count;if(!st.dur&&!st.ench)for(let i=off;i<off+n&&c>0;i++){const s=arr[i];if(s&&s.id===st.id&&!s.dur&&!s.ench&&s.count<def.stack){const k=Math.min(c,def.stack-s.count);s.count+=k;c-=k}}
   for(let i=off;i<off+n&&c>0;i++){if(!arr[i]){arr[i]={id:st.id,count:c,dur:st.dur,ench:st.ench};c=0}}return c}
 function takeFurnaceXP(){const g=game.gui;if(g&&g.type==='furnace'&&g.be.xp>=1){const n=floor(g.be.xp);g.be.xp-=n;addXP(n);playSound('orb')}}
-function afterSlotChange(){updateCraftOutput();const g=game.gui;if(g&&g.type==='furnace'){activateFurnace(g.x,g.y,g.z)}if(g&&g.type==='brew'){activateBrew(g.x,g.y,g.z);updateBrewGui()}if(g&&g.be&&(g.type==='chest'||g.type==='hopper'||g.type==='furnace'||g.type==='brew'))mpSendBE(g.x,g.y,g.z,g.be);if(g&&g.type==='enchant')renderEnchant();if(g&&g.type==='anvil')updateAnvil();if(g&&g.type==='attach')updateAttach();if(g&&g.type==='uncraft')updateUncraft();renderAllSlots();if(g&&g.type==='table')renderRecipeBook();if(g&&g.type==='trade')renderTrades()}
+function afterSlotChange(){updateCraftOutput();const g=game.gui;if(g&&g.type==='furnace'){activateFurnace(g.x,g.y,g.z)}if(g&&g.type==='brew'){activateBrew(g.x,g.y,g.z);updateBrewGui()}if(g&&g.be&&(g.type==='chest'||g.type==='hopper'||g.type==='furnace'||g.type==='brew'))mpSendBE(g.x,g.y,g.z,g.be);if(g&&g.type==='enchant')renderEnchant();if(g&&g.type==='anvil')updateAnvil();if(g&&g.type==='attach')updateAttach();if(g&&g.type==='uncraft')updateUncraft();renderAllSlots();if(g&&(g.type==='table'||g.type==='attach'))renderRecipeBook();if(g&&g.type==='trade')renderTrades()}
 const craft2=[null,null,null,null],craft3=new Array(9).fill(null),craftOut=[null];
 /* ---- Uncrafting Table (Uncrafting fun mod): an item goes back to the ingredients of its recipe ---- */
 const uncraftSlots=[null],uncraftOut=new Array(9).fill(null);
 // the attachment table: a gun on the left, a scope / suppressor / grip / extended mag / laser on the right, the fitted gun comes out
 const attachSlots=[null,null,null];const ATT_LABEL={scope:'Scope',suppressor:'Suppressor',grip:'Foregrip',extmag:'Extended Mag',laser:'Laser Sight'};
 function attachResult(a,b){if(!a||!b)return null;const ia=ITEMS[a.id],ib=ITEMS[b.id];if(!ia.gun||!ib.att)return null;const att=Object.assign({},a.att||{});if(att[ib.att])return {err:'This gun already has a '+ATT_LABEL[ib.att].toLowerCase()+'.'};if(ib.att==='scope'&&ia.gun.scope)return {err:'The sniper rifle has a scope built in.'};att[ib.att]=1;return {out:Object.assign({},a,{att})}}
-function updateAttach(){const r=attachResult(attachSlots[0],attachSlots[1]);attachSlots[2]=r&&r.out?r.out:null;const h=$('attHint');if(!h)return;if(r&&r.err){h.textContent=r.err;h.style.color='#b33'}else if(r){h.textContent='Take the gun on the right to fit the '+ATT_LABEL[ITEMS[attachSlots[1].id].att].toLowerCase()+'.';h.style.color=''}else{const g=attachSlots[0];h.textContent=g&&g.att?'Fitted: '+Object.keys(g.att).map(k=>ATT_LABEL[k]).join(', ')+'. Add another attachment on the right.':'Put a gun on the left and an attachment on the right. Scope: sneak to zoom. Suppressor: quiet, no flash. Foregrip: steadier. Extended mag: every other shot is free. Laser: tighter spread.';h.style.color=''}}
+function updateAttach(){const r=attachResult(attachSlots[0],attachSlots[1]);attachSlots[2]=r&&r.out?r.out:null;const h=$('attHint');if(!h)return;if(r&&r.err){h.textContent=r.err;h.style.color='#b33'}else if(r){h.textContent='Take the gun on the right to fit the '+ATT_LABEL[ITEMS[attachSlots[1].id].att].toLowerCase()+'.';h.style.color=''}else{const g=attachSlots[0];h.textContent=g&&g.att?'Fitted: '+Object.keys(g.att).map(k=>ATT_LABEL[k]).join(', ')+'. Add another attachment on the right.':'Craft attachments in the grid below, then put a gun on the left and an attachment on the right to fit it. Scope: sneak to zoom. Suppressor: quiet, no flash. Foregrip: steadier. Extended mag: every other shot is free. Laser: tighter spread.';h.style.color=''}}
 function attachTake(){const r=attachResult(attachSlots[0],attachSlots[1]);if(!r||!r.out)return false;cursor=r.out;attachSlots[0]=null;const b=attachSlots[1];b.count--;if(b.count<=0)attachSlots[1]=null;attachSlots[2]=null;return true}
 function uncraftRecipe(id){let best=null;for(const r of RECIPES){if(r.out[0]!==id)continue;if(r.guns&&!(game.mods&&game.mods.guns))continue;if(r.uncraft)continue;const n=r.shaped?r.p.join('').replace(/\./g,'').length:r.s.length;if(!best||n>best.n)best={r,n}}return best?best.r:null}
 function uncraftParts(st){ // the 3x3 of ingredients one craft of this item came from, or null
@@ -4178,7 +4181,7 @@ function updateUncraft(){const st=uncraftSlots[0];const parts=st?uncraftParts(st
 function doUncraft(){const st=uncraftSlots[0];if(!st)return;const parts=uncraftParts(st);if(!parts)return;const r=uncraftRecipe(st.id);st.count-=r.out[1];if(st.count<=0)uncraftSlots[0]=null;
   for(const q of parts){if(!q)continue;const it={id:q.id,count:q.count};if(q.ench)it.ench=q.ench;if(addToInventory(it))spawnItem(player.x,player.y+1,player.z,it)}
   playSound('place_wood',1,0.8);afterSlotChange()}
-function currentGrid(){const g=game.gui;if(!g)return null;if(g.type==='inv')return [craft2,2,2];if(g.type==='table')return [craft3,3,3];return null}
+function currentGrid(){const g=game.gui;if(!g)return null;if(g.type==='inv')return [craft2,2,2];if(g.type==='table'||g.type==='attach')return [craft3,3,3];return null}
 function updateCraftOutput(){const cg=currentGrid();if(!cg){craftOut[0]=null;return}const r=matchRecipe(cg[0],cg[1],cg[2]);craftOut[0]=r?{id:r.out[0],count:r.out[1]}:null}
 function craftTake(){const cg=currentGrid();if(!cg)return null;const r=matchRecipe(cg[0],cg[1],cg[2]);if(!r)return null;const grid=cg[0];
   for(let i=0;i<grid.length;i++){const s=grid[i];if(s){const cont=ITEMS[s.id].container;s.count--;if(s.count<=0)grid[i]=cont?{id:cont,count:1}:null}}
@@ -4197,7 +4200,7 @@ function drawPlayerPreview(){const c=document.createElement('canvas');c.width=48
   r(12,4,24,24,'#c89b78');r(14,12,4,4,'#fff');r(30,12,4,4,'#fff');r(16,12,2,4,'#3a4fbf');r(30,12,2,4,'#3a4fbf');r(18,20,12,3,'#8b5a3c');r(12,4,24,8,'#4a2f1b');r(12,28,24,36,'#2f8f8f');r(0,28,12,36,'#c89b78');r(36,28,12,36,'#c89b78');r(0,28,12,8,'#2f8f8f');r(36,28,12,8,'#2f8f8f');r(12,64,12,30,'#3b3f8c');r(24,64,12,30,'#3b3f8c');r(12,88,12,6,'#555');r(24,88,12,6,'#555');
   $('playerPreview').appendChild(c);c.style.imageRendering='pixelated';c.style.width='72px';c.style.height='144px'}
 function openGui(type,x,y,z,station){const g={type,x,y,z,station:station||null};if(type==='table')$('tableGui').querySelector('h3').textContent=station==='gun'?'Gun Table':'Crafting';
-  if(type==='attach'){if(!$('attGun')._done){mkSlots($('attGun'),attachSlots,0,1,'attg');mkSlots($('attPart'),attachSlots,1,1,'attp');mkSlots($('attOut'),attachSlots,2,1,'atout','out');mkSlots($('attMain'),player.inv,9,27);mkSlots($('attHot'),player.inv,0,9);$('attGun')._done=true}updateAttach()}if(type==='furnace'){g.be=furnaceEntity(x,y,z);const be=g.be;if(!$('furnIn')._done){mkSlots($('furnIn'),be.items,0,1,'in');mkSlots($('furnFuel'),be.items,1,1,'fuel');mkSlots($('furnOut'),be.items,2,1,'out','out');$('furnIn')._done=true}else{for(const id of ['furnIn','furnFuel','furnOut']){$(id).firstChild._slot.arr=be.items}}}
+  if(type==='attach'){if(!$('attGun')._done){mkSlots($('attGun'),attachSlots,0,1,'attg');mkSlots($('attPart'),attachSlots,1,1,'attp');mkSlots($('attOut'),attachSlots,2,1,'atout','out');mkSlots($('attCraft3'),craft3,0,9,'craft');mkSlots($('attCraft3out'),craftOut,0,1,'cout','out');mkSlots($('attMain'),player.inv,9,27);mkSlots($('attHot'),player.inv,0,9);$('attGun')._done=true}updateAttach()}if(type==='furnace'){g.be=furnaceEntity(x,y,z);const be=g.be;if(!$('furnIn')._done){mkSlots($('furnIn'),be.items,0,1,'in');mkSlots($('furnFuel'),be.items,1,1,'fuel');mkSlots($('furnOut'),be.items,2,1,'out','out');$('furnIn')._done=true}else{for(const id of ['furnIn','furnFuel','furnOut']){$(id).firstChild._slot.arr=be.items}}}
   if(type==='guide')renderGuide();
   if(type==='uncraft'){if(!$('uncraftIn')._done){mkSlots($('uncraftIn'),uncraftSlots,0,1,'uin');mkSlots($('uncraftOut'),uncraftOut,0,9,'uout','out');mkSlots($('uncraftMain'),player.inv,9,27);mkSlots($('uncraftHot'),player.inv,0,9);$('btnUncraft').onclick=doUncraft;$('uncraftIn')._done=true}updateUncraft()}
   if(type==='brew'){g.be=brewEntity(x,y,z);const be=g.be;if(!$('brewBottles')._done){mkSlots($('brewBottles'),be.items,0,3,'bottle');mkSlots($('brewIngr'),be.items,3,1,'ingr');mkSlots($('brewPowder'),be.items,4,1,'bfuel');$('brewBottles')._done=true}else{for(const id of ['brewBottles','brewIngr','brewPowder'])for(const el of $(id).children)el._slot.arr=be.items}updateBrewGui()}
@@ -4206,7 +4209,7 @@ function openGui(type,x,y,z,station){const g={type,x,y,z,station:station||null};
   if(type==='enchant'){if(!$('enchItem')._done){mkSlots($('enchItem'),enchSlots,0,1,'ench');mkSlots($('enchLapis'),enchSlots,1,1,'lapis');mkSlots($('enchMain'),player.inv,9,27);mkSlots($('enchHot'),player.inv,0,9);$('enchItem')._done=true}game.enchSeed=game.enchSeed||floor(Math.random()*1e9)}
   if(type==='anvil'){if(!$('anvilA')._done){mkSlots($('anvilA'),anvilSlots,0,1,'anvil');mkSlots($('anvilB'),anvilSlots,1,1,'anvil');mkSlots($('anvilOut'),anvilSlots,2,1,'aout','out');mkSlots($('anvilMain'),player.inv,9,27);mkSlots($('anvilHot'),player.inv,0,9);$('anvilA')._done=true}}
   game.gui=g;$({inv:'invGui',table:'tableGui',furnace:'furnGui',chest:'chestGui',hopper:'hopperGui',enchant:'enchantGui',anvil:'anvilGui',brew:'brewGui',guide:'guideGui',uncraft:'uncraftGui',attach:'attachGui'}[type]).classList.add('show');document.exitPointerLock&&document.exitPointerLock();mouseL=false;mouseR=false;
-  updateCraftOutput();renderAllSlots();if(type==='table')renderRecipeBook();if(type==='inv')renderPalette();if(type==='enchant')renderEnchant();if(type==='anvil')updateAnvil();$('hud').style.display='none';syncMobileControls()}
+  updateCraftOutput();renderAllSlots();if(type==='table'||type==='attach')renderRecipeBook();if(type==='inv')renderPalette();if(type==='enchant')renderEnchant();if(type==='anvil')updateAnvil();$('hud').style.display='none';syncMobileControls()}
 function closeGui(){const g=game.gui;if(!g)return;returnGrid(craft2);returnGrid(craft3);returnGrid(enchSlots);returnGrid(uncraftSlots);uncraftOut.fill(null);anvilSlots[2]=null;returnGrid(anvilSlots);attachSlots[2]=null;returnGrid(attachSlots);if(cursor){if(addToInventory(cursor))spawnItem(player.x,player.y+1,player.z,cursor);cursor=null}
   if(g.type==='chest')playSoundAt('chest',g.x,g.y,g.z);for(const el of document.querySelectorAll('.gui'))el.classList.remove('show');$('invGui').classList.remove('full');game.gui=null;hideTip();renderAllSlots();$('hud').style.display='block';syncMobileControls();if(!game.paused)lockPointer()}
 function updateFurnaceGui(){const g=game.gui;if(!g||g.type!=='furnace')return;const be=g.be;$('furnArrow').firstChild.style.width=(be.cook/10*26)+'px';$('furnFire').firstChild.style.height=(be.burnMax?be.burn/be.burnMax*22:0)+'px';renderAllSlots()}
@@ -4239,7 +4242,7 @@ function showGuideDetail(e,counts){const d=$('guideDetail');const cell=(id,title
   else if(e.kind==='smelt'){html+='<div class="rgrid" style="grid-template-columns:26px 26px 26px;align-items:center">'+cell(e.inp)+'<div style="text-align:center;font-size:14px">→</div>'+cell(e.out)+'</div><div>Put <b>'+ITEMS[e.inp].label+'</b> in a <b>furnace</b> with any fuel (coal, planks, logs...). Each one takes 10 seconds.</div>'}
   else{html+='<div class="rgrid" style="grid-template-columns:26px 26px 26px;align-items:center">'+cell(e.base)+'<div style="text-align:center;font-size:14px">+</div>'+cell(e.ingr)+'</div><div>In a <b>brewing stand</b> with Ember Powder as fuel: put <b>'+ITEMS[e.base].label+(e.base===475?'s':'')+'</b> in the bottle slots and <b>'+ITEMS[e.ingr].label+'</b> in the top slot.'+(e.base===476?' Then: Redstone = longer, Glowstone Dust = stronger, Gunpowder = splash potion.':e.ingr===285?' Throw the splash potion: everyone within 3.5 blocks gets the effect, mobs included.':'')+'</div>'}
   d.innerHTML=html}
-function renderRecipeBook(){const rb=$('rbook');rb.innerHTML='<div class="hint" style="margin:0 0 4px">Recipe book — click a recipe to see what it needs</div><div id="rdetail" class="rdetail" style="display:none"></div>';const counts={};for(const s of player.inv)if(s)counts[s.id]=(counts[s.id]||0)+s.count;const countsAll=Object.assign({},counts);for(const s of craft3)if(s)countsAll[s.id]=(countsAll[s.id]||0)+s.count;
+function renderRecipeBook(){const att=game.gui&&game.gui.type==='attach';const rb=$(att?'arbook':'rbook');$(att?'rbook':'arbook').innerHTML='';rb.innerHTML='<div class="hint" style="margin:0 0 4px">Recipe book — click a recipe to see what it needs</div><div id="rdetail" class="rdetail" style="display:none"></div>';const counts={};for(const s of player.inv)if(s)counts[s.id]=(counts[s.id]||0)+s.count;const countsAll=Object.assign({},counts);for(const s of craft3)if(s)countsAll[s.id]=(countsAll[s.id]||0)+s.count;
   const seen=new Set();const station=game.gui&&game.gui.station||null;
   for(const r of RECIPES){if((r.station||null)!==station)continue;if(r.guns&&!(game.mods&&game.mods.guns))continue;if(r.uncraft&&!(game.mods&&game.mods.uncrafting))continue;if(r.mod&&!(game.mods&&game.mods[r.mod]))continue;if(seen.has(r.out[0]+'_'+(r.shaped?r.p.join(''):r.s.join(''))))continue;seen.add(r.out[0]+'_'+(r.shaped?r.p.join(''):r.s.join('')));
     const need=recipeNeeds(r,counts);const el=document.createElement('div');el.className='r'+(need?'':' no');el.innerHTML='<div class="icon" style="background-image:url('+ICONS[r.out[0]]+')"></div>'+(r.out[1]>1?'<div class="cnt">'+r.out[1]+'</div>':'');el.title=ITEMS[r.out[0]].label;
@@ -4774,7 +4777,7 @@ function setupMenus(){
   $('btnDelete').onclick=()=>{if(!selWorld)return;if(!confirm('Delete this world? This cannot be undone.'))return;deleteWorldSave(selWorld);localStorage.setItem('ic_worlds',JSON.stringify(worldList().filter(w=>w.id!==selWorld)));selWorld=null;refreshWorldList()};
   let optBack='titleMenu';$('btnOptionsT').onclick=()=>{optBack='titleMenu';showMenu('optionsMenu');showOptSeed()};$('btnOptionsP').onclick=()=>{optBack='pauseMenu';showMenu('optionsMenu');showOptSeed()};$('btnOptionsBack').onclick=()=>{saveOpts();showMenu(optBack)};
   $('btnControls').onclick=()=>showMenu('controlsMenu');$('btnControlsBack').onclick=()=>showMenu('titleMenu');
-  $('btnResume').onclick=()=>resumeGame();$('btnSaveQuit').onclick=()=>quitToTitle();
+  $('btnResume').onclick=()=>resumeGame();$('pauseMenu').addEventListener('mousedown',ev=>{if(ev.target===ev.currentTarget&&game.paused&&game.state==='playing')resumeGame()});$('btnSaveQuit').onclick=()=>quitToTitle();
   $('btnGuideP').onclick=()=>{resumeGame();openGui('guide')};$('btnGuideInv').onclick=ev=>{ev.stopPropagation();closeGui();openGui('guide')};$('btnGuideClose').onclick=()=>closeGui();$('guideSearch').addEventListener('input',renderGuide);$('guideSearch').addEventListener('keydown',ev=>{ev.stopPropagation();if(ev.key==='Escape')closeGui()});$('guideCat').addEventListener('change',renderGuide);
   $('btnModeP').onclick=()=>{if(onPublicServer()){showMessage('Game mode cannot be changed on a public server');return}if(MP.active&&!MP.host){showMessage('Only the host can change the game mode');return}const p=player;p.mode=p.mode==='creative'?'survival':'creative';if(p.mode==='survival')p.flying=false;refreshModeBtn();updateHUD();updateHotbar();showMessage('Game mode: '+p.mode)};
   migrateOldSaves();checkForUpdate();setInterval(checkForUpdate,5*60*1000);$('updateBanner').onclick=()=>{location.href=location.pathname+'?v='+Date.now()};
@@ -4792,9 +4795,9 @@ function setupMenus(){
 // Space or either Ctrl jumps (Ctrl also sprints, so holding it while running sprint-jumps)
 function jumpKey(){return !!(keys.Space||keys.ControlLeft||keys.ControlRight)}
 function pauseGame(){if(game.state!=='playing')return;game.paused=true;showMenu('pauseMenu');refreshModeBtn();document.exitPointerLock&&document.exitPointerLock();mouseL=mouseR=false;saveWorld();syncMobileControls()}
-function resumeGame(){game.paused=false;hideMenus();syncMobileControls();lockPointer()}
-function lockPointer(){if(game.state!=='playing'||game.gui||game.paused||player.dead)return;const c=$('gl');if(game.noLock||document.pointerLockElement===c)return;
-  const fail=()=>{if(document.pointerLockElement!==c&&!game.noLock){game.noLock=true;showMessage('Mouse lock unavailable: move the mouse to look around, keep it near a screen edge to keep turning')}};
+function resumeGame(){game.paused=false;hideMenus();syncMobileControls();lockPointer(true)}
+function lockPointer(force){if(game.state!=='playing'||game.gui||game.paused||player.dead)return;const c=$('gl');if(game.touchNoLock||(game.noLock&&!force)||document.pointerLockElement===c)return;
+  const fail=()=>{if(document.pointerLockElement!==c&&!game.noLock){game.noLock=true;if(!game.lockMsg){game.lockMsg=true;showMessage('Mouse lock unavailable: click the screen to try again, or move the mouse near a screen edge to turn')}}};
   if(!c.requestPointerLock){fail();return}
   try{const r=c.requestPointerLock({unadjustedMovement:true});if(r&&r.catch)r.catch(()=>{try{const r2=c.requestPointerLock();if(r2&&r2.catch)r2.catch(fail)}catch(e){fail()}})}catch(e){try{c.requestPointerLock()}catch(e2){fail()}}
   clearTimeout(game.lockTimer);game.lockTimer=setTimeout(fail,600)}
@@ -4808,13 +4811,13 @@ function edgeLook(dt){if(!game.noLock||game.state!=='playing'||game.gui||game.pa
 function setupInput(){
   const c=$('gl');
   c.addEventListener('mousedown',ev=>{initAudio();if(game.state!=='playing')return;if(game.cmdOpen){closeCmd();return}if(game.gui||game.paused||player.dead)return;
-    if(document.pointerLockElement!==c&&!game.noLock){lockPointer();return}
+    if(document.pointerLockElement!==c&&!game.touchNoLock){lockPointer(true);if(!game.noLock)return}
     if(ev.button===0){mouseL=true;attack()}else if(ev.button===2){mouseR=true;useItem();mouseRHeld=0}else if(ev.button===1){ // pick block (creative)
       if(player.mode==='creative'&&player.target){const id=player.target.id;const def=BLOCKS[id];let pid=id;if(id===35)pid=270;if(id===73)pid=302;if(id===74)pid=303;if(id===9)pid=298;if(id===8)pid=297;let f=-1;for(let i=0;i<9;i++)if(player.inv[i]&&player.inv[i].id===pid){f=i;break}if(f>=0)player.sel=f;else{let e=-1;for(let i=0;i<9;i++)if(!player.inv[i]){e=i;break}if(e<0)e=player.sel;player.inv[e]={id:pid,count:1};player.sel=e}updateHotbar()}}});
   document.addEventListener('mouseup',ev=>{if(ev.button===0)mouseL=false;if(ev.button===2)mouseR=false});
   document.addEventListener('mousemove',ev=>{game.mousePos={x:ev.clientX,y:ev.clientY};if((document.pointerLockElement!==c&&!game.noLock)||game.gui||game.paused||player.koT>0)return;const s=opts.sens/100*0.0022;player.yaw-=ev.movementX*s;player.pitch-=ev.movementY*s;player.pitch=clamp(player.pitch,-PI/2+0.001,PI/2-0.001)});
-  document.addEventListener('pointerlockerror',()=>{if(!game.noLock){game.noLock=true;showMessage('Mouse lock unavailable: move the mouse to look around, keep it near a screen edge to keep turning')}});
-  document.addEventListener('pointerlockchange',()=>{if(document.pointerLockElement===c)clearTimeout(game.lockTimer);if(document.pointerLockElement!==c&&game.state==='playing'&&!game.gui&&!player.dead&&!game.paused&&!game.cmdOpen){pauseGame()}});
+  document.addEventListener('pointerlockerror',()=>{if(!game.noLock){game.noLock=true;if(!game.lockMsg){game.lockMsg=true;showMessage('Mouse lock unavailable: click the screen to try again, or move the mouse near a screen edge to turn')}}});
+  document.addEventListener('pointerlockchange',()=>{if(document.pointerLockElement===c){clearTimeout(game.lockTimer);game.noLock=false}if(document.pointerLockElement!==c&&game.state==='playing'&&!game.gui&&!player.dead&&!game.paused&&!game.cmdOpen){pauseGame()}});
   $('cmd').addEventListener('keydown',ev=>{if(ev.code==='Enter'||ev.code==='NumpadEnter'||ev.key==='Enter'){const v=$('cmd').value;closeCmd();if(v.trim()){const s=v.trim();if(MP.active&&!s.startsWith('/'))mpChat(s);else runCommand(s)}}else if(ev.code==='Escape'){closeCmd()}ev.stopPropagation()});
   document.addEventListener('wheel',ev=>{if(game.state!=='playing'||game.gui||game.paused)return;player.sel=(player.sel+(ev.deltaY>0?1:-1)+9)%9;updateHotbar()},{passive:true});
   document.addEventListener('keydown',ev=>{
@@ -4847,7 +4850,7 @@ function isTouchDevice(){return matchMedia('(pointer:coarse)').matches||/Android
 function syncMobileControls(){const el=$('mobileControls');if(!el)return;const touch=isTouchDevice();el.classList.toggle('active',touch&&game.state==='playing'&&!game.paused&&!game.gui&&!player.dead&&!game.cmdOpen);const gc=$('guiClose');if(gc)gc.classList.toggle('show',touch&&!!game.gui)}
 function setupMobileControls(){
   if(!isTouchDevice())return;
-  game.noLock=true;
+  game.noLock=true;game.touchNoLock=true;
   // iPad and phone browsers: no page scroll, rubber-banding or pinch zoom while playing (GUI lists still scroll)
   document.addEventListener('touchmove',ev=>{if(ev.touches.length>1||(game.state==='playing'&&!game.gui&&!game.paused&&!game.cmdOpen))ev.preventDefault()},{passive:false});
   document.addEventListener('gesturestart',ev=>ev.preventDefault());
