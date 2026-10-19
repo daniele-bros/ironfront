@@ -24,7 +24,7 @@ dependencies — open the file in a browser to play.
   FAQ/structured data in `index.html`, `sitemap.xml` and `llms.txt`.
 - `ww2tanks.html` — **Iron Front**, WW2 top-down tank combat.
 - `command.html` — **Iron Battle**, flat-map real-time strategy.
-- `minecraft.html` — **Ironcraft**, Minecraft-style voxel survival (WebGL2). Fun mods live in `MODN` + `modsOf`/`applyModsLive` defaults + a `.modbtn` in the fun menu; a recipe gated by a mod carries `mod:"key"` (Leaf Doors: block 145, recipe from any leaves). Multiplayer: host runs the mobs and streams them (`mpMobTick`/`mpMobsIn`), guests mirror them (`Mob.remote`) and send hits (`mh`) and interactions (`mset`) back.
+- `minecraft.html` — **Ironcraft**, Minecraft-style voxel survival (WebGL2). Fun mods live in `MODN` + `modsOf`/`applyModsLive` defaults + a `.modbtn` in the fun menu; a recipe gated by a mod carries `mod:"key"` (Leaf Doors: block 145, recipe from any leaves). Vehicles: `car`/`jet`/`bomber` are MOBDEF entries with `vehicle:` (ridden via `Mob.rideVehicle`, drawn by `renderVehicle`, pitch rides in the render `roll` slot, bank/pitch/throttle synced as `pt/bk/th`). Multiplayer: host runs the mobs and streams them (`mpMobTick`/`mpMobsIn`), guests mirror them (`Mob.remote`) and send hits (`mh`) and interactions (`mset`) back.
 - `ironhook.html` — **Iron Hook**, canvas fishing game (cast, sink, bite, reel minigame, species log, shop).
 - `worker/mod-ai/` — optional Cloudflare Worker (not served by Pages) that checks Mod Maker photos with Claude; the game calls it only when `MOD_AI_ENDPOINT` in `minecraft.html` is set.
 - `ironjaws.html` — **Iron Jaws**, Hunt-the-Wumpus style shark hunt on the classic 20-cave dodecahedron.

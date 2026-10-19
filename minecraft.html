@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="ironcraft-build" content="20261016-134433">
+<meta name="ironcraft-build" content="20261019-002334">
 <meta name="viewport" content="width=device-width,initial-scale=1.0,viewport-fit=cover">
 <title>Ironcraft – Free Voxel Survival Sandbox in Your Browser | Iron Games</title>
 <meta name="description" content="Ironcraft is a free browser-based voxel survival sandbox with building, exploration, private or safety-limited public multiplayer, and optional weather, horror and survival challenges. By Daniele Bros.">
@@ -1938,7 +1938,7 @@ function renderFrame(dt){
   // ---- entities ----
   EB.clear();EBI.clear();
   for(const e of entities)e.render(EB,EBI,dt);
-  if(game.cam)renderAvatar(EB,EBI,dt);
+  if(game.cam&&!(player.riding&&player.riding.def&&player.riding.def.vehicle))renderAvatar(EB,EBI,dt);
   renderParticles(EB);
   gl.enable(gl.BLEND);gl.blendFunc(gl.SRC_ALPHA,gl.ONE_MINUS_SRC_ALPHA);
   EB.draw(R.progE,R.atlasTex,{});gl.disable(gl.CULL_FACE);EBI.draw(R.progE,R.itemTex,{});gl.enable(gl.CULL_FACE);
@@ -2236,20 +2236,25 @@ const MOBDEF={
   slime:{hp:16,w:2.04,h:2.04,speed:2.4,dmg:4,drops:(r,e)=>e.size===1?[[313,floor(r()*3)]]:[],xp:[4,4],sound:'slime',follow:16},
   witch:{hp:26,w:0.6,h:1.95,speed:2.6,dmg:0,ranged:'potion',drops:r=>{const pool=[265,314,285,307,286,283];return [[pool[floor(r()*6)],1+floor(r()*2)],[pool[floor(r()*6)],floor(r()*2)]]},xp:[5,5],sound:'witch',follow:16},
   shulker:{hp:30,w:1,h:1,speed:0,dmg:0,ranged:'bullet',static:true,drops:r=>[[396,r()<0.5?1:0]],xp:[5,5],sound:'shulker',follow:16,noDespawn:true},
+  car:{hp:60,w:1.3,h:1.1,speed:0,passive:true,vehicle:'car',noDespawn:true,noBurn:true,drops:r=>[[260,4],[17,2]],xp:[0,0],sound:'none',food:[]},
+  jet:{hp:90,w:1.6,h:1.3,speed:0,passive:true,vehicle:'jet',noDespawn:true,noBurn:true,fireproof:true,drops:r=>[[260,6]],xp:[0,0],sound:'none',food:[]},
+  bomber:{hp:180,w:3.2,h:2.2,speed:0,passive:true,vehicle:'bomber',noDespawn:true,noBurn:true,fireproof:true,drops:r=>[[260,10],[28,2]],xp:[0,0],sound:'none',food:[]},
 };
-const EGG_COLORS={piglin:[[240,170,170],[250,210,70]],piglin_brute:[[200,130,130],[60,40,40]],sift_acolyte:[[25,22,30],[215,30,50]],hopling:[[92,172,236],[40,70,160]],sprig:[[140,200,120],[244,150,170]],thornback:[[120,44,80],[250,220,60]],ichor_mage:[[30,120,112],[250,110,170]],crystal_golem:[[230,224,210],[220,80,120]],pig:[[240,160,170],[220,100,120]],cow:[[110,70,50],[230,225,220]],sheep:[[235,235,235],[240,180,180]],villager:[[120,90,60],[80,140,80]],chicken:[[240,240,240],[220,60,40]],zombie:[[60,130,60],[110,150,110]],skeleton:[[190,190,190],[90,90,90]],creeper:[[70,170,60],[20,20,20]],spider:[[50,45,45],[200,30,30]],zombified_piglin:[[220,140,140],[80,110,60]],horse:[[150,110,70],[230,220,200]],wolf:[[200,200,195],[210,150,110]],husk:[[150,130,85],[210,190,150]],stray:[[110,130,150],[210,220,230]],cave_spider:[[20,45,75],[180,40,40]],enderman:[[20,20,25],[200,80,255]],slime:[[110,200,90],[170,240,150]],witch:[[60,30,80],[90,170,60]],vindicator:[[130,135,140],[60,60,65]],guardian:[[90,160,150],[240,150,60]],pillager:[[110,110,115],[50,60,55]],evoker:[[70,70,80],[220,180,60]],blaze:[[240,180,40],[255,240,150]],vex:[[200,210,230],[60,90,150]],shulker:[[150,80,160],[210,200,90]]};
+const EGG_COLORS={car:[[215,40,40],[40,40,45]],jet:[[150,158,170],[40,70,120]],bomber:[[108,118,78],[60,60,56]],piglin:[[240,170,170],[250,210,70]],piglin_brute:[[200,130,130],[60,40,40]],sift_acolyte:[[25,22,30],[215,30,50]],hopling:[[92,172,236],[40,70,160]],sprig:[[140,200,120],[244,150,170]],thornback:[[120,44,80],[250,220,60]],ichor_mage:[[30,120,112],[250,110,170]],crystal_golem:[[230,224,210],[220,80,120]],pig:[[240,160,170],[220,100,120]],cow:[[110,70,50],[230,225,220]],sheep:[[235,235,235],[240,180,180]],villager:[[120,90,60],[80,140,80]],chicken:[[240,240,240],[220,60,40]],zombie:[[60,130,60],[110,150,110]],skeleton:[[190,190,190],[90,90,90]],creeper:[[70,170,60],[20,20,20]],spider:[[50,45,45],[200,30,30]],zombified_piglin:[[220,140,140],[80,110,60]],horse:[[150,110,70],[230,220,200]],wolf:[[200,200,195],[210,150,110]],husk:[[150,130,85],[210,190,150]],stray:[[110,130,150],[210,220,230]],cave_spider:[[20,45,75],[180,40,40]],enderman:[[20,20,25],[200,80,255]],slime:[[110,200,90],[170,240,150]],witch:[[60,30,80],[90,170,60]],vindicator:[[130,135,140],[60,60,65]],guardian:[[90,160,150],[240,150,60]],pillager:[[110,110,115],[50,60,55]],evoker:[[70,70,80],[220,180,60]],blaze:[[240,180,40],[255,240,150]],vex:[[200,210,230],[60,90,150]],shulker:[[150,80,160],[210,200,90]]};
 const MOB_TYPES=Object.keys(MOBDEF);
 // Display names. Internal ids stay as they are; only what players read changes.
-const MOB_LABEL={piglin:'Piglin',piglin_brute:'Piglin Brute',sift_acolyte:'Sift Acolyte',hopling:'Hopling',sprig:'Sprig',thornback:'Thornback',ichor_mage:'Ichor Mage',crystal_golem:'Crystal Golem',zombie:'Rotter',skeleton:'Bonewalker',creeper:'Hisser',enderman:'Voidwalker',slime:'Ooze',witch:'Hexer',zombified_piglin:'Ashen Hog',pillager:'Raider',vindicator:'Axeman',evoker:'Fang Mage',vex:'Wisp',wither_skeleton:'Ashwalker',blaze:'Ember',guardian:'Deep Sentinel',husk:'Dune Rotter',stray:'Frost Bonewalker',shulker:'Shellguard',warden:'Dreadwarden',breeze:'Gale Sprite',iron_golem:'Iron Man',cave_spider:'Venom Spider',villager:'Villager',dragon:'Void Dragon',wither:'Skullbane'};
+const MOB_LABEL={car:'Car',jet:'Fighter Jet',bomber:'B-27 Bomber',piglin:'Piglin',piglin_brute:'Piglin Brute',sift_acolyte:'Sift Acolyte',hopling:'Hopling',sprig:'Sprig',thornback:'Thornback',ichor_mage:'Ichor Mage',crystal_golem:'Crystal Golem',zombie:'Rotter',skeleton:'Bonewalker',creeper:'Hisser',enderman:'Voidwalker',slime:'Ooze',witch:'Hexer',zombified_piglin:'Ashen Hog',pillager:'Raider',vindicator:'Axeman',evoker:'Fang Mage',vex:'Wisp',wither_skeleton:'Ashwalker',blaze:'Ember',guardian:'Deep Sentinel',husk:'Dune Rotter',stray:'Frost Bonewalker',shulker:'Shellguard',warden:'Dreadwarden',breeze:'Gale Sprite',iron_golem:'Iron Man',cave_spider:'Venom Spider',villager:'Villager',dragon:'Void Dragon',wither:'Skullbane'};
 function mobLabel(t){return MOB_LABEL[t]||label(t)}
 // typed names in commands: accept the display name, the old name, plurals and prefixes
-const MOB_BY_LABEL={};for(const k in MOB_LABEL)MOB_BY_LABEL[MOB_LABEL[k].toLowerCase().replace(/\s+/g,'_')]=k;MOB_BY_LABEL.void_dragon='dragon';MOB_BY_LABEL.skullbane='wither';
+const MOB_BY_LABEL={};for(const k in MOB_LABEL)MOB_BY_LABEL[MOB_LABEL[k].toLowerCase().replace(/\s+/g,'_')]=k;MOB_BY_LABEL.void_dragon='dragon';MOB_BY_LABEL.skullbane='wither';MOB_BY_LABEL.b_27_bomber='bomber';MOB_BY_LABEL.b27_bomber='bomber';MOB_BY_LABEL.b27='bomber';MOB_BY_LABEL.b_27='bomber';MOB_BY_LABEL.plane='jet';MOB_BY_LABEL.fighter='jet';MOB_BY_LABEL.fighter_jet='jet';
 function mobTypeFromName(n){n=(n||'').toLowerCase().replace(/[\s-]+/g,'_');if(MOBDEF[n])return n;if(MOB_BY_LABEL[n])return MOB_BY_LABEL[n];const b=n.replace(/e?s$/,'');if(MOBDEF[b])return b;if(MOB_BY_LABEL[b])return MOB_BY_LABEL[b];const lk=Object.keys(MOB_BY_LABEL).find(k=>k.startsWith(b));if(lk&&b.length>=3)return MOB_BY_LABEL[lk];return MOB_TYPES.find(k=>k.startsWith(b))||null}
 MOB_TYPES.forEach((t,i)=>{const c=EGG_COLORS[t]||[[200,200,200],[100,100,100]];defItem(400+i,t+'_spawn_egg',{label:mobLabel(t)+' Spawn Egg',icon:'egg',iconPal:['egg',{m:c[0],l:c[1]}],spawnMob:t,stack:64})});
+for(const [t,lb] of [['car','Car'],['jet','Fighter Jet'],['bomber','B-27 Bomber']]){const d=ITEMS[I[t+'_spawn_egg']];d.label=lb;d.stack=4}
 class Mob extends Entity{
   constructor(type,x,y,z){super(x,y,z);const d=MOBDEF[type];this.type=type;this.def=d;this.w=d.w;this.h=d.h;this.hp=d.hp;this.maxHp=d.hp;this.solidBody=true;this.yaw=Math.random()*PI*2;this.headYaw=0;this.headPitch=0;
     this.moveDir=null;this.wanderT=0;this.idleT=1+Math.random()*3;this.hurtT=0;this.deathT=0;this.walkT=0;this.walkAmp=0;this.atkCd=0;this.fireT=0;this.panicT=0;this.loveT=0;this.baby=false;this.growT=0;this.soundT=10+Math.random()*30;this.swell=0;this.eatT=0;this.eggT=300+Math.random()*300;this.angry=false;this.lastHit=0;
     if(d.spec){if(d.spec.kind==='vehicle'){this.tamed=true;this.saddled=true;this.hspeed=d.spec.speed||8;this.hjump=7;this.buckT=1e9;this.jumpCd=0}else if(d.spec.fly)this.noGravity=true}
+    if(d.vehicle){this.tamed=true;this.saddled=true;this.hspeed=0;this.hjump=0;this.buckT=1e9;this.jumpCd=0;this.pitch=0;this.bank=0;this.speed=0;this.throttle=0;this.engT=0;this.bombCd=0;this.gunCd=0;this.bayT=0;this.color=floor(Math.random()*6)}
     if(type==='villager'){const r=Math.random();this.prof=r<0.1?'nitwit':PROF_NAMES[floor(Math.random()*(PROF_NAMES.length-1))];this.trades=villagerTrades(this.prof);this.vlevel=1;this.vxp=0;this.restockT=240+Math.random()*120}
     if(type==='cartoon_cat'){this.stretch=0;this.lastRoar=0}
     if(type==='iron_golem'){this.armT=0}
@@ -2264,10 +2269,45 @@ class Mob extends Entity{
     if(!this.tamed){this.temper+=5;if(this.temper>=this.temperMax){this.tamed=true;spawnParticles('heart',this.x,this.y+this.h,this.z,8);playSoundAt('horse',this.x,this.y,this.z,1,1.1);showMessage('You tamed the horse! Put a saddle on it to steer (right-click with a saddle).')}else{this.buckT=0.8+Math.random()*1.2}}
     return true}
   customFly(dt){const d=this.def.spec;this.noGravity=true;const p=player;const gy=findGround(this.x,this.z);const hostile=d.hostile&&game.difficulty>0&&!p.dead;const dist=Math.hypot(p.x-this.x,p.z-this.z);let want=gy+2.5+Math.sin(game.time*1.3+this.x*0.7)*1.2;if(hostile&&dist<(this.def.follow||24))want=p.y+1.2;this.vy+=((want-this.y)*2.5-this.vy)*Math.min(1,dt*3);this.vy=clamp(this.vy,-7,7);this.onGround=false}
+  // ---- built-in vehicles: car, fighter jet and B-27 bomber ----
+  rideVehicle(dt,fwd,strafe,jump,sprint){const p=player;const v=this.def.vehicle;if(this.hurtT>0)this.hurtT-=dt;if(this.invT>0)this.invT-=dt;this.engT=(this.engT||0)-dt;this.bombCd=(this.bombCd||0)-dt;this.gunCd=(this.gunCd||0)-dt;if(this.bayT>0)this.bayT-=dt;if(this.hornT>0)this.hornT-=dt;const wrap=a=>Math.atan2(Math.sin(a),Math.cos(a));
+    const sp0=Math.hypot(this.vx,this.vz);
+    if(v==='car'){const max=sprint?24:16;const grounded=this.onGround||this.inWater;
+      const want=wrap(p.yaw-this.yaw);const rate=Math.min(2.6,0.5+sp0*0.2);this.yaw+=clamp(want,-rate*dt,rate*dt);this.bank+=(clamp(want,-1,1)*-0.1*Math.min(1,sp0/8)-this.bank)*Math.min(1,dt*6);
+      const fx=-Math.sin(this.yaw),fz=-Math.cos(this.yaw);let along=this.vx*fx+this.vz*fz;const side=this.vx*fz-this.vz*fx;
+      const target=fwd>0?max:fwd<0?(along>1?0:-6):0;const acc=fwd>0?(grounded?10:1):fwd<0?(grounded?20:1):(grounded?5:0.3);along+=(target-along)*Math.min(1,acc*dt/Math.max(1,Math.abs(target-along)*0.06));
+      const slide=side*(1-(grounded?Math.min(1,dt*8):Math.min(1,dt*0.5)));this.vx=fx*along+fz*slide;this.vz=fz*along-fx*slide;
+      this.physics(dt,{step:1.05,friction:1,gravity:this.inWater?8:32,drag:1});if(this.inWater&&this.vy<2)this.vy+=20*dt;
+      const sp=Math.hypot(this.vx,this.vz);this.speed=sp;this.walkT+=along*dt*3;this.throttle=fwd>0?1:0;
+      if(this.engT<=0&&(fwd||sp>1)){this.engT=0.3;playSoundAt('engine',this.x,this.y,this.z,0.6+sp/22,0.5)}
+      if(jump&&!(this.hornT>0)){this.hornT=0.7;playSound('horn',0.5,1)}
+      this.ramMobs(sp);if(sp0-sp>9&&grounded)this.crash(sp0-sp)}
+    else{const jet=v==='jet';const max=jet?(sprint?60:44):26,takeoff=jet?14:10,turn=jet?1.7:0.8;
+      this.throttle=clamp(this.throttle+(fwd>0?dt*0.6:fwd<0?-dt*0.8:0),0,1);
+      let flying=(!this.onGround&&!this.inWater)||(this.speed>takeoff&&p.pitch>0.03&&!this.inWater);
+      this.speed+=((this.throttle*max)-this.speed)*Math.min(1,dt*(flying?0.7:1.2));if(!flying&&this.throttle<0.02)this.speed*=Math.max(0,1-dt*2);
+      const wy=wrap(p.yaw-this.yaw);const rr=turn*(flying?1:Math.min(1,this.speed/8));this.yaw+=clamp(wy,-rr*dt,rr*dt);
+      const wantPitch=flying?clamp(p.pitch,-1.1,1.1):0;this.pitch+=(wantPitch-this.pitch)*Math.min(1,dt*(jet?3:1.8));
+      this.bank+=(clamp(wy,-1,1)*-(jet?0.9:0.5)-this.bank)*Math.min(1,dt*2.5);
+      const cp=Math.cos(this.pitch),sx=-Math.sin(this.yaw)*cp,sz=-Math.cos(this.yaw)*cp;
+      if(flying){const stall=Math.max(0,takeoff-this.speed);this.vx+=(sx*this.speed-this.vx)*Math.min(1,dt*3);this.vz+=(sz*this.speed-this.vz)*Math.min(1,dt*3);this.vy+=((Math.sin(this.pitch)*this.speed-stall*2.5)-this.vy)*Math.min(1,dt*3);this.physics(dt,{step:0.6,friction:1,gravity:0,drag:1})}
+      else{this.vx+=(sx*this.speed-this.vx)*Math.min(1,dt*4);this.vz+=(sz*this.speed-this.vz)*Math.min(1,dt*4);this.physics(dt,{step:1.05,friction:1,gravity:this.inWater?8:32,drag:1});if(this.inWater&&this.vy<1)this.vy+=16*dt}
+      this.walkT+=dt*(4+this.throttle*40);
+      if(this.engT<=0&&this.throttle>0.02){this.engT=0.3;playSoundAt(jet?'jet':'engine',this.x,this.y,this.z,(jet?0.7:0.4)+this.throttle*0.5,0.35+this.throttle*0.4)}
+      if(jet){if((jump||mouseL)&&this.gunCd<=0&&!game.gui){this.gunCd=0.11;this.fireCannon()}}else if(jump&&this.bombCd<=0){this.bombCd=0.7;this.dropBomb()}
+      const loss=sp0-Math.hypot(this.vx,this.vz);if(loss>14)this.crash(loss)}
+    this.fallDist=0;p.fallDist=0;p.x=this.x;p.z=this.z;p.y=this.y+(v==='car'?-0.6:v==='jet'?-0.42:-0.22);p.vx=this.vx;p.vy=0;p.vz=this.vz;p.onGround=true;p.inWater=false;p.walkAmp=0}
+  ramMobs(sp){if(sp<7)return;const fx=-Math.sin(this.yaw),fz=-Math.cos(this.yaw);for(const e of entities){if(e===this||!(e instanceof Mob)||e.dead||e.dying||e.rider||e.invT>0)continue;const dx=e.x-this.x,dz=e.z-this.z;const ahead=dx*fx+dz*fz;if(ahead<0||ahead>this.w+1.2||Math.abs(dx*fz-dz*fx)>this.w*0.8||Math.abs(e.y-this.y)>1.5)continue;damageEntity(e,Math.min(20,sp*0.8),{type:'player',x:this.x,z:this.z});e.vx+=fx*sp*0.5;e.vz+=fz*sp*0.5;e.vy=6;e.invT=0.5;playSoundAt('hit',this.x,this.y,this.z,0.8,0.8)}}
+  crash(loss){if(this.invT>0)return;this.invT=0.6;const dmg=Math.min(30,loss*1.2);this.hp-=dmg;this.hurtT=0.5;spawnParticles('smoke',this.x,this.y+1,this.z,10);playSoundAt('anvil',this.x,this.y,this.z,0.6,0.8);if(this.rider===player)damageEntity(player,Math.ceil(dmg*0.3),{type:'crash'});
+    if(this.hp<=0){this.hp=0;this.dying=true;this.deathT=0;explode(this.x,this.y+1,this.z,this.def.vehicle==='bomber'?4:2.5)}}
+  fireCannon(){const cp=Math.cos(this.pitch);const d=[-Math.sin(this.yaw)*cp,Math.sin(this.pitch),-Math.cos(this.yaw)*cp];const rx=Math.cos(this.yaw),rz=-Math.sin(this.yaw);this.gunSide=-(this.gunSide||1);const s=this.gunSide*0.9;const x=this.x+d[0]*2.4+rx*s,y=this.y+this.h*0.55+d[1]*2.4,z=this.z+d[2]*2.4+rz*s;const sp=110;
+    const b=new Arrow(x,y,z,d[0]*sp+this.vx*0.2,d[1]*sp,d[2]*sp+this.vz*0.2,'player',9);b.bullet=true;b.noGravity=true;b.kb=3;b.volley=(game.volley=(game.volley||0)+1);entities.push(b);spawnParticles('flash',x+d[0],y+d[1],z+d[2],3);playSoundAt('rifle',this.x,this.y,this.z,0.9+Math.random()*0.2,0.7)}
+  dropBomb(){const t=new TNTEntity(this.x,this.y-0.7,this.z);t.fuse=3.2;t.vx=this.vx*0.95;t.vy=Math.min(0,this.vy)-2;t.vz=this.vz*0.95;entities.push(t);this.bayT=1.2;playSoundAt('fuse',this.x,this.y,this.z,1,0.8)}
   dismount(){const p=player;if(this.rider!==p)return;this.rider=null;p.riding=null;const sy=Math.sin(p.yaw),cy=Math.cos(p.yaw);let placed=false;
     for(const [ox,oz] of [[cy*1.3,-sy*1.3],[-cy*1.3,sy*1.3],[-sy*1.6,-cy*1.6],[sy*1.6,cy*1.6]]){const x=this.x+ox,z=this.z+oz;const w=p.w/2;if(!collectBoxes(x-w,this.y,z-w,x+w,this.y+1.8,z+w).length){p.x=x;p.z=z;p.y=this.y;placed=true;break}}
     if(!placed){p.x=this.x;p.z=this.z;p.y=this.y+this.h+0.05}p.vx=p.vy=p.vz=0;p.fallDist=0;if(this.owned)mpMobRelease(this)}
   ride(dt,fwd,strafe,jump,sprint){ // called from updatePlayer while the player is on this horse
+    if(this.def.vehicle){this.rideVehicle(dt,fwd,strafe,jump,sprint);return}
     if(this.def.spec&&this.def.spec.fly){const p=player;this.yaw=p.yaw;if(this.hurtT>0)this.hurtT-=dt;const speed=this.hspeed*(sprint&&fwd>0?1.4:1);const sy=Math.sin(this.yaw),cy=Math.cos(this.yaw);let mx=(-sy*fwd+cy*strafe*0.6),mz=(-cy*fwd-sy*strafe*0.6);const ml=sqrt(mx*mx+mz*mz);if(ml>1){mx/=ml;mz/=ml}
       this.vx+=(mx*speed-this.vx)*Math.min(1,4*dt);this.vz+=(mz*speed-this.vz)*Math.min(1,4*dt);const up=jump?7:(keys.KeyX||keys.KeyC?-7:0);this.vy+=(up-this.vy)*Math.min(1,5*dt);
       this.physics(dt,{step:1.05,friction:1,gravity:0});this.fallDist=0;p.fallDist=0;this.walkT+=dt*22;this.walkAmp=1;return}
@@ -2450,7 +2490,7 @@ class Mob extends Entity{
     if(this.lastHit>game.time-5)spawnXP(this.x,this.y+0.3,this.z,this.def.xp[0]+floor(Math.random()*(this.def.xp[1]-this.def.xp[0]+1)));playSoundAt(this.def.sound+'_death',this.x,this.y,this.z)}
   interact(stack){ // right click by player, returns true if consumed action
     if(this.type==='piglin'){if(stack&&stack.id===262&&!(this.barterT>0)){if(player.mode!=='creative'){stack.count--;if(stack.count<=0)player.inv[player.sel]=null}this.barterT=3.5;this.angry=false;this.moveDir=null;this.yaw=Math.atan2(-(player.x-this.x),-(player.z-this.z));playSoundAt('pig',this.x,this.y,this.z,1,1.3);spawnParticles('happy',this.x,this.y+2,this.z,4);showMessage('The piglin turns the gold over in its hands...');return true}return false}
-    if(this.def.spec&&this.def.spec.kind==='vehicle'){if(player.sneaking)return false;return this.mount()}
+    if((this.def.spec&&this.def.spec.kind==='vehicle')||this.def.vehicle){if(player.sneaking)return false;return this.mount()}
     const d=this.def;
     if(this.type==='villager'){if(this.baby)return false;if(this.prof==='nitwit'){playSoundAt('villager_no',this.x,this.y,this.z);return true}openTradeGui(this);return true}
     if(this.type==='horse'){if(this.baby)return false;
@@ -2468,11 +2508,12 @@ class Mob extends Entity{
   }
   render(EB){
     const l=lightAt(this.x,this.y+this.h/2,this.z);const hurt=this.hurtT>0?[1,0.5,0.5]:[1,1,1];const s=(this.baby?0.5:1)*(this.def.scale||(this.type==='wither_skeleton'?1.2:1))/16;
-    let roll=0,ex=this.x,ey=this.y,ez=this.z;if(this.dying){roll=Math.min(1,this.deathT*1.5)*PI/2}
+    let roll=0,ex=this.x,ey=this.y,ez=this.z;if(this.dying){roll=Math.min(1,this.deathT*1.5)*PI/2}else if(this.def.vehicle)roll=-(this.pitch||0);
     const swing=Math.sin(this.walkT)*this.walkAmp*0.9;const hy=this.headYaw,hp=this.headPitch;
     const part=(b,px,py,pz,rx,ry,rz,tiles,col)=>{const tf=partTF(ex,ey,ez,this.yaw,px,py,pz,rx,ry,rz,s,roll);EB.box(tf,b[0],b[1],b[2],b[3],b[4],b[5],tiles,[col[0]*hurt[0],col[1]*hurt[1],col[2]*hurt[2]],l,true)};
     const W=TEX.white,N=TEX[MOB_SKIN_NAMES[this.type]]||TEX.noise;const face=(t)=>[N,N,N,N,N,t];
     if(this.def.spec){renderCustomMob(this,part,swing,hp,hy,W,N,face)}
+    if(this.def.vehicle)renderVehicle(this,part,W,N);
     switch(this.type){
       case 'hopling':{const c=[0.42,0.70,0.94];const hop=this.walkAmp>0.1?Math.abs(Math.sin(this.walkT*2))*3:0;for(const [lx,lz,sg] of [[-2,-3,1],[2,-3,-1],[-2,3,-1],[2,3,1]])part([lx-1,-3,lz-1,lx+1,0,lz+1],0,3+hop,0,swing*sg*0.6,0,0,N,c);
         part([-4,3,-5,4,9,5],0,hop,0,0,0,0,N,c);part([-3,-1,-5,3,5,0],0,6+hop,-4,hp,hy,0,face(TEX.hopling_face),c);part([-3,0,-1,-1,6,0],0,11+hop,-6,hp,hy,0,N,[0.36,0.6,0.9]);part([1,0,-1,3,6,0],0,11+hop,-6,hp,hy,0,N,[0.36,0.6,0.9]);part([-2,2,-5,2,4,-4],0,2+hop,5,0,0,0,W,[0.75,0.88,1]);break}
@@ -3800,6 +3841,10 @@ RECIPES.push({p:['ii.','iii','p..'],k:{i:260,p:PLANKS},out:[462,1],shaped:true,g
 RECIPES.push({p:['gii','iii','p.i'],k:{i:260,p:PLANKS,g:17},out:[466,1],shaped:true,guns:true});
 RECIPES.push({s:[260,289],out:[463,8],shaped:false,guns:true});
 RECIPES.push({s:[260,289,289],out:[464,4],shaped:false,guns:true});
+// vehicles: a car, a fighter jet and the B-27 bomber, all iron and glass on a crafting table
+RECIPES.push({p:['igi','iii','l.l'],k:{i:260,g:17,l:289},out:[I.car_spawn_egg,1],shaped:true});
+RECIPES.push({p:['.g.','iii','i.i'],k:{i:260,g:17},out:[I.jet_spawn_egg,1],shaped:true});
+RECIPES.push({p:['iii','igi','iti'],k:{i:260,g:17,t:28},out:[I.bomber_spawn_egg,1],shaped:true});
 RECIPES.push({s:[34,378],out:[143,1],shaped:false,uncraft:true});
 RECIPES.push({p:['##','##','##'],k:{'#':[16,45,47,131]},out:[145,3],shaped:true,mod:'leafdoors'});
 RECIPES.push({p:['##'],k:{'#':[16,45,47,131]},out:[146,1],shaped:true,mod:'leafdoors'});
@@ -4216,6 +4261,9 @@ function playSound(name,vol=1,pitch=1){
     case 'roar':tone('sawtooth',220,45,1.1);noise(1.1,'bandpass',500,2);tone('square',110,30,1);env(0.02,1.2,1.1);break;
     case 'sniper':noise(0.14,'highpass',1400,1);tone('square',170,35,0.16);noise(0.6,'lowpass',350,1);env(0.002,1.3,0.6);break;
     case 'gun':noise(0.09,'highpass',1800,1);tone('square',220,60,0.09);env(0.002,1,0.12);break;
+    case 'engine':tone('sawtooth',62,58,0.34);tone('square',124,118,0.34);noise(0.34,'lowpass',380,1);env(0.01,0.45,0.32);break;
+    case 'jet':noise(0.4,'bandpass',1100,1.2);noise(0.4,'lowpass',300,1);tone('sawtooth',90,96,0.4);env(0.02,0.6,0.38);break;
+    case 'horn':tone('square',415,415,0.5);tone('square',523,523,0.5);env(0.01,0.3,0.45);break;
     case 'rifle':noise(0.07,'highpass',2400,1);tone('sawtooth',300,80,0.07);env(0.002,0.8,0.09);break;
     case 'shotgun':noise(0.35,'lowpass',900,1);noise(0.08,'highpass',2000,1);tone('sine',120,40,0.3);env(0.002,1.4,0.35);break;
     case 'bow':noise(0.2,'bandpass',1200,3);tone('triangle',400,900,0.15);env(0.005,0.5,0.2);break;
@@ -4478,7 +4526,7 @@ function finishLoad(){const p=player;if(!game.pendingMobs.length&&player.spawn==
   if(game.freshWorld){const s=findSurfaceSpawn(p.x,p.z);game.worldSpawn=s;p.x=s[0];p.y=s[1];p.z=s[2];game.freshWorld=false;
     for(const type of ['sheep','pig','cow','chicken','horse']){for(let t=0;t<12;t++){const a=Math.random()*PI*2,r=8+Math.random()*14;if(spawnPack(type,floor(s[0]+Math.cos(a)*r),floor(s[2]+Math.sin(a)*r),type==='chicken'?4:3,false)>0)break}}}else{const bx=floor(p.x),bz=floor(p.z);const inSolid=y=>{const b=world.getBlock(bx,y,bz);return b!==0&&BLOCKS[b].solid};let fy=floor(p.y),n=0;if(inSolid(fy)||inSolid(fy+1)){while(n<40&&(inSolid(fy)||inSolid(fy+1))){fy++;n++}p.y=fy+0.1}}
   if(game.respawnOnLoad){game.respawnOnLoad=false;respawn()}
-  for(const m of game.pendingMobs){if(m.type==='wither'){const w=new Wither(m.x,m.y,m.z);w.hp=m.hp;w.state='hunt';entities.push(w);continue}if(!MOBDEF[m.type])continue;const e=new Mob(m.type,m.x,m.y,m.z);e.hp=m.hp;e.baby=m.baby;e.growT=m.growT||0;if(m.sheared!==undefined)e.sheared=m.sheared;if(m.woolId)e.woolId=m.woolId;if(m.prof&&PROFS[m.prof]){e.prof=m.prof;e.trades=villagerTrades(m.prof);e.vlevel=m.vlevel||1;e.vxp=m.vxp||0;if(m.uses)m.uses.forEach((u,i)=>{if(e.trades[i])e.trades[i].uses=u});if(m.demand)m.demand.forEach((u,i)=>{if(e.trades[i])e.trades[i].demand=u});e.restocks=m.restocks||0}if(m.size&&e.type==='slime')e.setSize(m.size);if(m.tamed){e.tamed=true;if(e.type==='wolf')e.maxHp=20;e.sitting=!!m.sitting}if(e.type==='horse'){if(m.color!==undefined)e.color=m.color;if(m.hspeed)e.hspeed=m.hspeed;if(m.hjump)e.hjump=m.hjump;if(m.maxHp)e.maxHp=m.maxHp;e.saddled=!!m.saddled}entities.push(e)}
+  for(const m of game.pendingMobs){if(m.type==='wither'){const w=new Wither(m.x,m.y,m.z);w.hp=m.hp;w.state='hunt';entities.push(w);continue}if(!MOBDEF[m.type])continue;const e=new Mob(m.type,m.x,m.y,m.z);e.hp=m.hp;e.baby=m.baby;e.growT=m.growT||0;if(m.sheared!==undefined)e.sheared=m.sheared;if(m.woolId)e.woolId=m.woolId;if(m.prof&&PROFS[m.prof]){e.prof=m.prof;e.trades=villagerTrades(m.prof);e.vlevel=m.vlevel||1;e.vxp=m.vxp||0;if(m.uses)m.uses.forEach((u,i)=>{if(e.trades[i])e.trades[i].uses=u});if(m.demand)m.demand.forEach((u,i)=>{if(e.trades[i])e.trades[i].demand=u});e.restocks=m.restocks||0}if(m.size&&e.type==='slime')e.setSize(m.size);if(m.tamed){e.tamed=true;if(e.type==='wolf')e.maxHp=20;e.sitting=!!m.sitting}if(e.type==='horse'){if(m.color!==undefined)e.color=m.color;if(m.hspeed)e.hspeed=m.hspeed;if(m.hjump)e.hjump=m.hjump;if(m.maxHp)e.maxHp=m.maxHp;e.saddled=!!m.saddled}if(e.def.vehicle&&m.color!==undefined)e.color=m.color;entities.push(e)}
   for(const it of game.pendingItems)spawnItem(it.x,it.y,it.z,{id:it.id,count:it.count,dur:it.dur,ench:it.ench,items:it.items},null,undefined,{local:true});
   for(const c of world.chunks.values())for(const [i,be] of c.bents){const x=c.cx*16+(i>>11),y=i&127,z=c.cz*16+((i>>7)&15);if(be.burn>0)activateFurnace(x,y,z);if(be.brewing)activateBrew(x,y,z)}
   updateChunks(200);game.state='playing';game.paused=false;game.gui=null;hideMenus();$('hud').style.display='block';$('overlay').style.display='block';updateHUD();updateHotbar();lockPointer();game.lastSave=game.time;
@@ -4810,6 +4858,49 @@ function applySpecPiece(k,pc,key){const sp=pc.spec;if(!sp)return;paintSpecTextur
     const base=sp.dmg>=15?263:sp.dmg>=9?260:4;const shape={sword:[base,base,256],spear:[base,256,256],axe:[base,base,base,256],pickaxe:[base,base,base,256,256]}[tt]||[base,base,256];if(key!==undefined){shapeless(shape.concat([key]),[id,1]);RECIPES[RECIPES.length-1].custom=true}}}
 function customArmorPerks(){const set=new Set();if(!player||!player.armor)return set;for(const a of player.armor){if(!a)continue;const d=ITEMS[a.id];if(d&&d.perks)for(const x of d.perks)set.add(x)}return set}
 function tickCustomArmor(dt){const p=player;if(p.dead)return;const perks=customArmorPerks();if(!perks.size)return;if(perks.has('fireproof')&&p.fireT>0)p.fireT=0;if(perks.has('regen')){p.regenT=(p.regenT||0)+dt;if(p.regenT>2.5){p.regenT=0;if(p.hp<p.maxHp){p.hp=Math.min(p.maxHp,p.hp+1);updateHUD()}}}}
+const CAR_COLS=[[0.85,0.1,0.1],[0.12,0.35,0.85],[0.95,0.8,0.1],[0.92,0.92,0.95],[0.09,0.09,0.11],[0.1,0.6,0.3]];
+// vehicle models: every box is given in 1/16ths relative to the ground under the vehicle; the whole body banks together
+function renderVehicle(m,part,W,N,kind,tint){kind=kind||m.def.vehicle;const t=game.time;const fp=m.rider===player&&!game.cam;const B=m.bank||0,cb=Math.cos(B),sb=Math.sin(B);const spin=m.remote?t*(8+40*(m.throttle||0)):(m.walkT||0);const onG=m.onGround||m.remote&&!(m.throttle>0.3);
+  const DK=[0.1,0.1,0.11],GR=[0.22,0.22,0.25],CH=[0.82,0.83,0.86],GL=[0.5,0.72,0.92],RED=[0.9,0.12,0.1],YEL=[0.95,0.8,0.15];
+  const bx=(cy,b,col,rx,ry,rzx,px,py,pz)=>{const ox=px||0,oy=py===undefined?cy:py,oz=pz||0;const qx=ox*cb-(oy-cy)*sb,qy=cy+ox*sb+(oy-cy)*cb;part(b,qx,qy,oz,rx||0,ry||0,B+(rzx||0),W,col)}; // box (b relative to its pivot), pivot (px,py,pz) banked round the centre line
+  if(kind==='car'){const cy=8,C=tint||CAR_COLS[(m.color||0)%CAR_COLS.length];const A=(b,col)=>bx(cy,[b[0],b[1]-cy,b[2],b[3],b[4]-cy,b[5]],col);
+    A([-9,3,-16,9,5,16],DK);A([-10,5,-17,10,10,17],C);A([-9,10,-17,9,12,-6],C);A([-9,10,8,9,11.5,17],C);if(!fp){A([-8,12,-5,8,18,8],C);
+    A([-7.5,12.3,-6.4,7.5,17.6,-5],GL);A([-7.5,12.3,8,7.5,17.3,9.3],GL);A([-8.5,12.6,-3.5,-7.9,17,6.5],GL);A([7.9,12.6,-3.5,8.5,17,6.5],GL);
+    for(const [x0,x1] of [[-8.6,-7.6],[7.6,8.6]]){A([x0,12,-5.4,x1,18.2,-4.3],DK);A([x0,12,7.4,x1,18.2,8.6],DK);A([x0,12,0.8,x1,18.2,1.6],DK)}}
+    A([-10.6,4.5,-18.6,10.6,7,-17],GR);A([-10.6,4.5,17,10.6,7,18.6],GR);A([-5,7.2,-17.8,5,9.8,-17],DK);A([-5,8.2,-18,5,8.9,-17.5],CH);
+    A([-9,7.6,-17.9,-5.6,9.8,-17.1],[1,0.98,0.8]);A([5.6,7.6,-17.9,9,9.8,-17.1],[1,0.98,0.8]);A([-9,7.6,17.1,-6,9.6,17.9],RED);A([6,7.6,17.1,9,9.6,17.9],RED);A([-3,5.5,18.5,3,7,18.8],[0.95,0.95,0.9]);
+    if(!fp){A([-10.8,13,-4.5,-8,14.6,-2.5],C);A([8,13,-4.5,10.8,14.6,-2.5],C)}A([-10.4,9.4,-1,-9.9,10.2,2],CH);A([9.9,9.4,-1,10.4,10.2,2],CH);
+    A([-9,15,15,9,16.2,18.2],C);A([-7,11.5,15.6,-5.4,15,17.6],C);A([5.4,11.5,15.6,7,15,17.6],C);A([-6.5,3.4,17.6,-4.3,5.2,19.4],CH);A([4.3,3.4,17.6,6.5,5.2,19.4],CH);
+    if(!fp){A([-6,10,-3,-1,13.5,3],[0.2,0.18,0.16]);A([1,10,-3,6,13.5,3],[0.2,0.18,0.16]);A([-5.5,13.5,-2.5,-1.5,17,-1.5],[0.25,0.22,0.2]);A([1.5,13.5,-2.5,5.5,17,-1.5],[0.25,0.22,0.2])}
+    for(const [wx,wz] of [[-10.6,-11],[10.6,-11],[-10.6,11],[10.6,11]]){for(const a of [0,PI/4]){bx(cy,[-1.7,-4,-4,1.7,4,4],DK,spin+a,0,0,wx,4,wz)}for(const a of [0,PI/4])bx(cy,[-1.9,-2.3,-2.3,1.9,2.3,2.3],CH,spin+a,0,0,wx,4,wz);bx(cy,[-2,-0.9,-0.9,2,0.9,0.9],GR,spin,0,0,wx,4,wz)}
+    return}
+  if(kind==='jet'){const cy=11,C=tint||[0.62,0.65,0.69],C2=[0.4,0.43,0.48];const A=(b,col)=>bx(cy,[b[0],b[1]-cy,b[2],b[3],b[4]-cy,b[5]],col);const thr=m.throttle||0;
+    A([-1.5,10,-30,1.5,13,-24],C2);A([-2.5,9,-24,2.5,14.5,-16],C);A([-3.5,8,-16,3.5,16,-6],C);A([-4.5,7.5,-6,4.5,16.5,10],C);A([-3.8,8,10,3.8,16,20],C);A([-2.8,9,20,2.8,15,25],GR);A([-2.2,9.6,24.6,2.2,14.4,25.6],[0.12,0.08,0.08]);A([-0.15,11.5,-34,0.15,11.8,-30],DK);
+    if(thr>0.8){A([-2,9.8,25,2,14.2,25+8*thr],[1,0.75,0.3]);A([-1.3,10.5,25+8*thr,1.3,13.5,27+11*thr],[1,0.5,0.15])}
+    if(!fp){A([-2.6,16,-14,2.6,20.6,-3],GL);A([-2.8,15.8,-14.2,2.8,16.6,-2.6],C2);A([-2.8,16,-8.8,2.8,20.8,-8.1],C2)}
+    A([-7,8.5,-6,-4.4,13.5,6],C2);A([4.4,8.5,-6,7,13.5,6],C2);A([-6.8,9,-6.4,-4.6,13,-5.8],DK);A([4.6,9,-6.4,6.8,13,-5.8],DK);
+    bx(cy,[-19,0,0,0,1.2,9],C,0,0.55,0,-4.4,11,-2);bx(cy,[0,0,0,19,1.2,9],C,0,-0.55,0,4.4,11,-2);bx(cy,[-18.5,1.2,2,-11,1.5,6],[0.95,0.95,0.98],0,0.55,0,-4.4,11,-2);bx(cy,[11,1.2,2,18.5,1.5,6],[0.95,0.95,0.98],0,-0.55,0,4.4,11,-2);bx(cy,[-17,1.5,3,-12.5,1.7,5],[0.15,0.3,0.7],0,0.55,0,-4.4,11,-2);bx(cy,[12.5,1.5,3,17,1.7,5],[0.15,0.3,0.7],0,-0.55,0,4.4,11,-2);
+    for(const s of [-1,1]){bx(cy,[-0.8,-0.8,-7,0.8,0.8,5],[0.8,0.8,0.82],0,0,0,s*13.2,11.6,10.6);bx(cy,[-0.6,-0.6,-8.6,0.6,0.6,-7],RED,0,0,0,s*13.2,11.6,10.6);bx(cy,[-0.9,-0.9,3,0.9,0.9,4.6],GR,0,0,0,s*13.2,11.6,10.6)}
+    bx(cy,[-9,0,0,0,0.9,6],C,0,0.6,0,-3.5,11,15);bx(cy,[0,0,0,9,0.9,6],C,0,-0.6,0,3.5,11,15);
+    bx(cy,[-0.5,0,-7,0.5,10,1],C,0,0,0.3,-2.6,16,17);bx(cy,[-0.5,0,-7,0.5,10,1],C,0,0,-0.3,2.6,16,17);bx(cy,[-0.6,7,-5.5,0.6,9.6,-1],RED,0,0,0.3,-2.6,16,17);bx(cy,[-0.6,7,-5.5,0.6,9.6,-1],RED,0,0,-0.3,2.6,16,17);
+    if(onG){A([-0.4,3,-15,0.4,8.5,-14.2],GR);for(const a of [0,PI/4])bx(cy,[-0.7,-1.6,-1.6,0.7,1.6,1.6],DK,a,0,0,0,3,-14.6);for(const s of [-1,1]){A([s*4.5-0.4,3,3,s*4.5+0.4,8,3.8],GR);for(const a of [0,PI/4])bx(cy,[-0.9,-2,-2,0.9,2,2],DK,a,0,0,s*4.5,3,3.4)}}
+    return}
+  { // the B-27: four engines, glass nose, turrets, a bomb bay that opens
+    const cy=12,C=tint||[0.42,0.46,0.3],BL=[0.6,0.62,0.58];const A=(b,col)=>bx(cy,[b[0],b[1]-cy,b[2],b[3],b[4]-cy,b[5]],col);
+    A([-4,10,-52,4,19,-44],GL);A([-4.2,14,-52.2,4.2,14.6,-43.8],GR);A([-0.3,10,-52.2,0.3,19,-43.8],GR);
+    A([-5,8,-44,5,20,-20],C);A([-5.5,7.5,-20,5.5,20.5,20],C);A([-5.5,7,-44,5.5,9,20],BL);A([-4.5,9,20,4.5,19,40],C);A([-3,11,40,3,17,50],C);
+    if(!fp){A([-3.5,20,-40,3.5,23.5,-30],GL);A([-3.7,20,-35.2,3.7,23.7,-34.6],GR)}A([-3,20.5,-12,3,23.5,-6],GL);A([-1.6,21.5,-20,-0.8,22.3,-12],DK);A([0.8,21.5,-20,1.6,22.3,-12],DK);
+    A([-2.5,4.5,-2,2.5,7.5,3],BL);A([-2.5,11,50,2.5,16,53],GL);A([-1.1,12.5,53,-0.5,13.3,58],DK);A([0.5,12.5,53,1.1,13.3,58],DK);
+    for(let k=0;k<6;k++){A([5.5,15,-30+k*7,5.8,17,-28+k*7],GL);A([-5.8,15,-30+k*7,-5.5,17,-28+k*7],GL)}
+    A([-5.7,11.5,6,-5.5,16.5,11],[0.95,0.95,0.98]);A([5.5,11.5,6,5.7,16.5,11],[0.95,0.95,0.98]);A([-5.8,12.5,7,-5.6,15.5,10],[0.15,0.3,0.7]);A([5.6,12.5,7,5.8,15.5,10],[0.15,0.3,0.7]);
+    A([-8,10,-8,8,14,10],C);
+    for(const s of [-1,1]){const d=s*-0.05;const wb=s<0?[-62,0,-7,0,2.2,9]:[0,0,-7,62,2.2,9];bx(cy,wb,C,0,0,d,s*5.5,12.5,-6);bx(cy,s<0?[-62,1.1,-7.6,0,1.7,-6.8]:[0,1.1,-7.6,62,1.7,-6.8],GR,0,0,d,s*5.5,12.5,-6);bx(cy,s<0?[-60,0.6,8,-30,1.8,9.6]:[30,0.6,8,60,1.8,9.6],BL,0,0,d,s*5.5,12.5,-6);
+      bx(cy,s<0?[-44,2.2,-3,-36,2.5,4]:[36,2.2,-3,44,2.5,4],[0.95,0.95,0.98],0,0,d,s*5.5,12.5,-6);bx(cy,s<0?[-42.5,2.5,-1.5,-37.5,2.7,2.5]:[37.5,2.5,-1.5,42.5,2.7,2.5],[0.15,0.3,0.7],0,0,d,s*5.5,12.5,-6);
+      for(const ex of [18,38]){const x=s*ex,ey=12.5+0.05*ex;bx(cy,[-3.2,-4,-16,3.2,3,6],C,0,0,0,x,ey,-5);bx(cy,[-3.6,-4.4,-16.6,3.6,3.4,-14],GR,0,0,0,x,ey,-5);bx(cy,[-1,-1.5,-19.5,1,0.5,-16.5],CH,0,0,0,x,ey,-5);
+        for(let k=0;k<3;k++){const a=spin*0.6+k*2.094+ex;bx(cy,[-0.55,0,-18.4,0.55,10,-17.6],[0.2,0.2,0.22],0,0,a,x,ey-0.5,-5);bx(cy,[-0.55,8.6,-18.5,0.55,10,-17.5],YEL,0,0,a,x,ey-0.5,-5)}}}
+    A([-0.6,19,30,0.6,38,48],C);A([-0.7,25,44.2,0.7,36,48.4],YEL);A([-0.7,25,44.1,0.7,28,48.3],RED);bx(cy,[-24,0,0,24,1.4,9],C,0,0,0,0,17,38);
+    if(m.bayT>0){bx(cy,[-5,0,-12,0,0.7,8],BL,0,0,1.1,-0.3,7,0);bx(cy,[0,0,-12,5,0.7,8],BL,0,0,-1.1,0.3,7,0)}else A([-5,6.4,-12,5,7.2,8],BL);
+    if(onG){for(const s of [-1,1]){bx(cy,[-0.8,0,-1,0.8,8,1],GR,0,0,0,s*18,4,-8);for(const a of [0,PI/4])bx(cy,[-1.5,-3.6,-3.6,1.5,3.6,3.6],DK,a,0,0,s*18,3.6,-8)}bx(cy,[-0.5,0,-0.6,0.5,6,0.6],GR,0,0,0,0,3,42);for(const a of [0,PI/4])bx(cy,[-0.8,-2,-2,0.8,2,2],DK,a,0,0,0,2.4,42)}}}
 function renderCustomMob(m,part,swing,hp,hy,W,N,face){const sp=m.def.spec;const c=sp.main.map(v=>v/255),c2=sp.second.map(v=>v/255),gl=sp.features.includes('glow')?[Math.min(1,c[0]+0.35),Math.min(1,c[1]+0.35),Math.min(1,c[2]+0.35)]:c;const t=game.time;const F=face(TEX['custom'+(m.type.replace('custom_mob_',''))]);const feat=f=>sp.features.includes(f);const flap=Math.sin(t*9+m.x)*0.7;
   const horns=(y,z)=>{part([-1,0,-1,1,4,1],-3,y,z,0,0,0.35,W,c2);part([-1,0,-1,1,4,1],3,y,z,0,0,-0.35,W,c2)};
   const halo=(y)=>{for(let i=0;i<4;i++){const a=t*2+i*PI/2;part([-2,0,-0.5,2,0.8,0.5],Math.cos(a)*4,y,Math.sin(a)*4,0,-a,0,W,[1,0.95,0.5])}};
@@ -4818,6 +4909,7 @@ function renderCustomMob(m,part,swing,hp,hy,W,N,face){const sp=m.def.spec;const 
   const spikes=(y,z0,z1,h)=>{for(let z=z0;z<=z1;z+=3)part([-0.8,0,-0.8,0.8,h,0.8],0,y,z,0,0,0,W,c2)};
   const tail=(y,z,len)=>part([-1,-1,0,1,1,len],0,y,z,0.5+Math.sin(t*3)*0.15,Math.sin(t*2)*0.2,0,N,c);
   if(sp.kind==='vehicle'){const spin=t*(m.rider?28:(Math.hypot(m.vx,m.vz)>0.5?20:1));
+    if(sp.shape==='car'||sp.shape==='plane'){m.throttle=m.rider?1:0;if(sp.shape==='car'){m.walkT=(m.walkT||0)+(m.rider?0.3:0)}renderVehicle(m,part,W,N,sp.shape==='car'?'car':'jet',c);return}
     if(sp.shape==='heli'){part([-4,4,-8,4,12,6],0,0,0,0,0,0,F,c);part([-1,8,6,1,10,20],0,0,0,0,0,0,N,c);part([-0.4,8,19,0.4,14,21],0,0,0,0,0,0,N,c2);part([-0.3,-4,-0.3,0.3,4,0.3],0,11,20,spin*1.5,0,0,W,c2);part([-0.5,12,-0.5,0.5,14,0.5],0,0,-1,0,0,0,N,c2);part([-15,0,-0.5,15,0.6,0.5],0,14,-1,0,spin,0,W,[0.2,0.2,0.22]);part([-0.5,0,-15,0.5,0.6,15],0,14,-1,0,spin,0,W,[0.2,0.2,0.22]);for(const x of [-4,4]){part([-0.5,0,-9,0.5,1,8],x,0,0,0,0,0,W,c2);part([-0.4,1,-3,0.4,4,-2],x,0,0,0,0,0,W,c2);part([-0.4,1,4,0.4,4,5],x,0,0,0,0,0,W,c2)}}
     else if(sp.shape==='plane'){part([-2.5,4,-10,2.5,9,10],0,0,0,0,0,0,F,c);part([-15,6,-2,15,7,3],0,0,0,0,0,0,N,c2);part([-6,7,8,6,7.8,11],0,0,0,0,0,0,N,c2);part([-0.5,9,7,0.5,14,10],0,0,0,0,0,0,N,c2);part([-0.4,-4,-0.4,0.4,4,0.4],0,6.5,-10.5,0,0,spin*1.5,W,[0.2,0.2,0.22]);part([-4,-0.4,-0.4,4,0.4,0.4],0,6.5,-10.5,0,0,spin*1.5,W,[0.2,0.2,0.22]);for(const [x,z] of [[-3,-5],[3,-5],[0,7]])part([-0.8,0,-0.8,0.8,4,0.8],x,0,z,0,0,0,W,[0.15,0.15,0.15])}
     else if(sp.shape==='tank'){part([-6,3,-9,6,8,9],0,0,0,0,0,0,N,c);part([-8,0,-10,-6,5,10],0,0,0,0,0,0,N,[0.15,0.15,0.15]);part([6,0,-10,8,5,10],0,0,0,0,0,0,N,[0.15,0.15,0.15]);part([-4,8,-4,4,12,4],0,0,1,0,m.rider?player.yaw-m.yaw:0,0,F,c2);part([-0.7,9.5,-16,0.7,10.9,-4],0,0,1,0,m.rider?player.yaw-m.yaw:0,0,W,c2)}
@@ -5081,14 +5173,14 @@ function mpItemList(){const out=[];for(const e of entities){if(!(e instanceof It
 const MOB_SET_KEYS=['sheared','tamed','sitting','loveT','baby','growT','angry','saddled','color','hp','woolId','temper'];
 function mpMobPack(e){const o={n:e.nid,k:e.type,x:+e.x.toFixed(2),y:+e.y.toFixed(2),z:+e.z.toFixed(2),r:+e.yaw.toFixed(2),h:+e.hp.toFixed(1),m:e.maxHp,hy:+(e.headYaw||0).toFixed(2),hpi:+(e.headPitch||0).toFixed(2)};
   let f=0;if(e.baby)f|=1;if(e.sheared)f|=2;if(e.tamed)f|=4;if(e.sitting)f|=8;if(e.saddled)f|=16;if(e.angry)f|=32;if(e.dying)f|=64;if(e.fireT>0)f|=128;if(e.hurtT>0)f|=256;if(e.swell>0)f|=512;if(e.open>0.5)f|=1024;if(e.rider)f|=2048;if(e.loveT>0)f|=4096;if(e.drinking>0)f|=8192;o.f=f;
-  if(e.size)o.sz=e.size;if(e.woolId!==undefined)o.w=e.woolId;if(e.color!==undefined)o.c=e.color;if(e.prof)o.p=e.prof;if(e.hspeed)o.hs=e.hspeed;if(e.hjump)o.hj=e.hjump;if(e.rider&&e.rider!==player&&e.rider.pid)o.rp=e.rider.pid;return o}
+  if(e.size)o.sz=e.size;if(e.woolId!==undefined)o.w=e.woolId;if(e.color!==undefined)o.c=e.color;if(e.prof)o.p=e.prof;if(e.hspeed)o.hs=e.hspeed;if(e.hjump)o.hj=e.hjump;if(e.rider&&e.rider!==player&&e.rider.pid)o.rp=e.rider.pid;if(e.def.vehicle){o.pt=+(e.pitch||0).toFixed(2);o.bk=+(e.bank||0).toFixed(2);o.th=+(e.throttle||0).toFixed(2)}return o}
 function mpMobList(){const out=[];const ps=[player];for(const r of MP.remote.values())if(!r.hidden)ps.push(r);
   for(const e of entities){if(!(e instanceof Mob)||e.dead)continue;if(MP.host?(e.remote&&e.ownerConn):!e.owned)continue;if(!e.nid)e.nid=MP.myId+':'+(++MP.nidN);
     let near=false;for(const p of ps){const dx=e.x-p.x,dz=e.z-p.z;if(dx*dx+dz*dz<96*96){near=true;break}}if(!near)continue;out.push(mpMobPack(e))}return out}
 function mpMobApplySet(e,set){if(!set)return;for(const k of MOB_SET_KEYS)if(set[k]!==undefined)e[k]=set[k];if(set.tamed&&e.type==='wolf'){e.maxHp=20}}
 function mpMobUnpack(e,o){e.tx=o.x;e.ty=o.y;e.tz=o.z;e.tyaw=o.r;e.hp=o.h;e.maxHp=o.m;e.headYaw=o.hy;e.headPitch=o.hpi;const f=o.f||0;e.baby=!!(f&1);e.sheared=!!(f&2);e.tamed=!!(f&4);e.sitting=!!(f&8);e.saddled=!!(f&16);e.angry=!!(f&32);
   if((f&64)&&!e.dying){e.dying=true;e.deathT=0}e.fireT=(f&128)?1:0;if((f&256)&&!(e.hurtT>0))e.hurtT=0.5;e.swell=(f&512)?Math.max(e.swell||0,0.5):0;e.open=(f&1024)?1:0;e.loveT=(f&4096)?5:0;e.drinking=(f&8192)?1:0;e.remoteRidden=!!(f&2048);
-  if(o.sz&&e.type==='slime'&&e.size!==o.sz)e.setSize(o.sz);if(o.w!==undefined)e.woolId=o.w;if(o.c!==undefined)e.color=o.c;if(o.p&&e.prof!==o.p&&PROFS[o.p]){e.prof=o.p;e.trades=villagerTrades(o.p)}if(o.hs)e.hspeed=o.hs;if(o.hj)e.hjump=o.hj;e.remoteRider=o.rp||null}
+  if(o.sz&&e.type==='slime'&&e.size!==o.sz)e.setSize(o.sz);if(o.w!==undefined)e.woolId=o.w;if(o.c!==undefined)e.color=o.c;if(o.p&&e.prof!==o.p&&PROFS[o.p]){e.prof=o.p;e.trades=villagerTrades(o.p)}if(o.hs)e.hspeed=o.hs;if(o.hj)e.hjump=o.hj;e.remoteRider=o.rp||null;if(o.pt!==undefined){e.pitch=o.pt;e.bank=o.bk||0;e.throttle=o.th||0}}
 function mpMobsIn(conn,d){if(!world||!d.ms)return;const fromHost=!MP.host;if(d.dim!==world.dimKey){if(MP.host)mpRelay(conn,d);return}
   const byId=new Map();for(const e of entities)if(e instanceof Mob&&e.nid)byId.set(e.nid,e);
   for(const o of d.ms){if(!MOBDEF[o.k])continue;let e=byId.get(o.n);
