@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="ironcraft-build" content="20261019-013044">
+<meta name="ironcraft-build" content="20261019-132611">
 <meta name="viewport" content="width=device-width,initial-scale=1.0,viewport-fit=cover">
 <title>Ironcraft – Free Voxel Survival Sandbox in Your Browser | Iron Games</title>
 <meta name="description" content="Ironcraft is a free browser-based voxel survival sandbox with building, exploration, private or safety-limited public multiplayer, and optional weather, horror and survival challenges. By Daniele Bros.">
@@ -723,6 +723,9 @@ defTex('gun_pump',p=>{p.copy('gun_wood');for(let y=2;y<16;y+=3){p.shadeRect(0,y,
 defTex('gun_mag',p=>{p.noise(48,50,57,3);for(let y=0;y<16;y+=4){p.shadeRect(0,y,16,1,1.35);p.shadeRect(0,y+1,16,1,0.7)}p.shadeRect(15,0,1,16,0.65)});
 defTex('gun_muzzle',p=>{p.noise(54,56,62,4);for(let y=0;y<16;y++)for(let x=0;x<16;x++){const d=Math.hypot(x-7.5,y-7.5);if(d<=3.2)p.px(x,y,6,6,8);else if(d<=4.6)p.px(x,y,24,25,29);else if(d<=6.2){const hl=x+y<15;p.px(x,y,hl?118:66,hl?122:69,hl?134:76)}else if(d<=7.4)p.px(x,y,40,42,48)}});
 defTex('gun_lens',p=>{for(let y=0;y<16;y++)for(let x=0;x<16;x++){const d=Math.hypot(x-7.5,y-7.5);if(d<=5.6){const t=(x+y)/30;p.px(x,y,24+t*70,62+t*100,112+t*100)}else if(d<=7){const hl=x+y<15;p.px(x,y,hl?74:16,hl?78:17,hl?88:21)}else p.px(x,y,34,36,42)}p.rect(4,4,2,1,225,245,255);p.rect(3,5,1,2,225,245,255);p.px(6,5,150,205,240);p.px(5,6,150,205,240);p.rect(9,10,2,1,80,150,205)});
+defTex('gun_cyl',p=>{p.noise(122,126,134,5);for(let y=0;y<16;y++)p.shadeRect(0,y,16,1,y===0?1.3:y===1?1.12:y===14?0.82:y===15?0.6:1);for(const x of [1,6,11]){p.rect(x,3,4,10,34,36,42);p.rect(x,3,4,1,20,21,25);p.rect(x+3,3,1,10,150,154,164)}p.speckle(5,190,194,202)});
+defTex('gun_cylf',p=>{p.noise(118,122,130,5);p.shadeRect(0,0,16,1,1.25);p.shadeRect(0,15,16,1,0.65);for(let k=0;k<6;k++){const a=k*Math.PI/3+Math.PI/6,cx=7.5+Math.cos(a)*4.6,cy=7.5+Math.sin(a)*4.6;for(let y=0;y<16;y++)for(let x=0;x<16;x++){const d=Math.hypot(x-cx,y-cy);if(d<=1.5)p.px(x,y,8,8,10);else if(d<=2.4)p.px(x,y,176,180,190)}}for(let y=5;y<11;y++)for(let x=5;x<11;x++){const d=Math.hypot(x-7.5,y-7.5);if(d<=1.2)p.px(x,y,12,12,15);else if(d<=2.6)p.px(x,y,92,96,106)}});
+defTex('gun_supp',p=>{p.noise(44,46,53,3);p.shadeRect(0,0,16,1,1.5);p.shadeRect(0,1,16,1,1.2);p.shadeRect(0,14,16,1,0.8);p.shadeRect(0,15,16,1,0.55);for(const x of [2,7,12]){p.shadeRect(x,0,1,16,0.55);p.shadeRect(x+1,0,1,16,1.25)}p.speckle(6,70,72,80)});
 /* ===================== GUN MODELS (Guns mod) =====================
    Held guns are box models in "gun pixels" (1 px = 1 texel): +X right, +Y up, -Z forward (muzzle). A part is
    [x0,y0,z0,x1,y1,z1,tex,opts]: tex is a texture name or [east,west,top,bottom,south,north]; opts: rx/rz tilt (rad) about piv,
@@ -771,11 +774,66 @@ const GUN_MODELS={};
     [-1.4,7.1,3,1.4,9.9,6,[D,D,D,D,'gun_lens',D],{f:[4]}],[-0.6,9.6,-4.2,0.6,11,-2.8,S],[1.1,7.9,-4.2,2.5,9.1,-2.8,S],
     ...guard(-2,2.5,-1.4),[-1.7,0.6,-22,1.7,1.3,-20,D]];
 }
-const GUN_FP={460:[0.03,0.42,-0.36,-0.78],461:[0.03,0.42,-0.46,-0.6],462:[0.03,0.42,-0.47,-0.6],466:[0.027,0.4,-0.5,-0.72]}; // first person: scale, then x,y,z of the grip in view space
-function drawGun(EB,tf,id,light,cyc){const parts=GUN_MODELS[id];if(!parts)return;const k=Math.sin(Math.min(1,cyc)*PI);
-  for(const b of parts){const o=b[7];let t=tf;if(o){const sz=o.slide==='pump'?k*3.5:o.slide==='bolt'?k*2.5:0;const rx=o.rx||0,rz=o.rz||0,pv=o.piv||[0,0,0];
+const GUN_ATT={};
+// ---- new guns: SMG 478, revolver 479, marksman rifle 482, minigun 483 ----
+{const M='gun_metal',D='gun_dark',S='gun_steel',G='gun_grip',W='gun_wood',MG='gun_mag';const MZ=[D,D,D,D,D,'gun_muzzle'],N5={f:[5]};const RUB=[0.55,0.52,0.55],GOLD=[1.6,1.3,0.5],PORT=[0.45,0.45,0.5];
+  const guard=(z0,z1,yb)=>[[-0.4,yb,z0,0.4,yb+0.5,z1,D],[-0.4,yb,z0,0.4,yb+2.2,z0+0.5,D],[-0.3,yb+0.6,z1-1.6,0.3,yb+2.2,z1-1.1,S,{rx:-0.35,piv:[0,yb+2.2,z1-1.3]}]];
+  // SMG: boxy stamped receiver, ventilated shroud, short barrel, vertical stick magazine, wire folding stock, chequered grip, 36 px
+  GUN_MODELS[478]=[[-1.7,2,-9,1.7,6,5,M],[-1.4,6,-8,1.4,6.6,4,D],[-0.3,6.6,-9,0.3,7.8,-8.3,D],[-1.1,6.6,3,-0.5,7.6,3.8,D],[0.5,6.6,3,1.1,7.6,3.8,D],
+    [-1.55,2.6,-15,1.55,5.6,-9,D],...[0,1,2].flatMap(i=>[[1.55,3.2,-14.2+i*1.9,1.7,5,-13.2+i*1.9,M],[-1.7,3.2,-14.2+i*1.9,-1.55,5,-13.2+i*1.9,M]]),
+    [-0.8,3.7,-18,0.8,5.3,-15,MZ,N5],[-1.1,3.5,-16.8,1.1,5.5,-15.4,D],
+    [1.7,2.8,-3,1.9,4.6,0.5,D,{col:PORT}],[1.7,4.8,-4.5,2.9,5.7,-2.5,S,{slide:'bolt'}],
+    [-1.1,-8,-8,1.1,2,-5,MG],[-1.2,-8.7,-8.1,1.2,-8,-4.9,D],
+    ...guard(-3.4,1,-0.2),
+    [-1.4,-6,0.5,1.4,2.1,3.5,D,{rx:-0.28,piv:[0,2,2]}],[-1.75,-5.2,0.9,1.75,1.3,3.1,G,{rx:-0.28,piv:[0,2,2]}],[-1.5,-6.9,0.3,1.5,-6,3.6,D,{rx:-0.28,piv:[0,2,2]}],
+    [-1.6,2.4,5,1.6,5.6,6.4,D],[-1.4,3,6.4,-0.7,3.7,14,S],[0.7,3,6.4,1.4,3.7,14,S],[-1.2,5,6.4,-0.7,5.6,14,S],[0.7,5,6.4,1.2,5.6,14,S],[-1.4,1.8,14,1.4,5.9,15.2,D],[-1.5,1.6,15.2,1.5,6,16,G,{col:RUB}]];
+  // revolver: ribbed barrel, fluted cylinder with chambers, hammer, wooden grip, 28 px
+  GUN_MODELS[479]=[[-0.9,4.3,-16,0.9,6.1,-4,M],[-0.4,6.1,-16,0.4,6.6,-4,D],[-0.9,4.3,-17.4,0.9,6.1,-16,MZ,N5],[-0.8,3.2,-14,0.8,4.3,-5,D],[-0.35,2.3,-13,0.35,3.2,-5.5,S],[-0.3,6.6,-17,0.3,7.6,-16.4,D],
+    [-1.5,2.7,-4.5,1.5,6.5,0.7,['gun_cyl','gun_cyl','gun_cyl','gun_cyl','gun_cylf','gun_cylf'],{f:[0,1,4,5]}],[-1.1,2.9,-4.7,1.1,6.3,-4.5,D],
+    [-1.2,2.8,0.7,1.2,6.4,3,M],[-1,6.4,-4.5,1,7,3,M],[-0.35,7,-4.5,0.35,7.5,-3.4,D],[-0.8,7,2,-0.3,7.8,3,D],[0.3,7,2,0.8,7.8,3,D],
+    [-0.5,6.2,2.8,0.5,8.2,3.8,S,{rx:-0.7,piv:[0,6.2,3]}],
+    ...guard(-3,2.2,0.6),
+    [-1.3,-5.8,1.2,1.3,3,4.4,W,{rx:-0.35,piv:[0,2.8,2.5]}],[-1.4,-6.1,3.9,1.4,3,4.6,D,{rx:-0.35,piv:[0,2.8,2.5]}],[-1.45,-6.6,1,1.45,-5.8,4.7,D,{rx:-0.35,piv:[0,2.8,2.5]}]];
+  // marksman rifle: long free-float barrel, vented handguard, top rail, box magazine, polymer stock, 60 px
+  GUN_MODELS[482]=[[-1.7,0.6,-6,1.7,4.6,6,M],[-1.6,4.6,-12,1.6,6.2,6,D],[-0.9,6.2,-12,0.9,6.7,6,D],...[0,1,2,3,4,5,6,7,8].map(i=>[-0.9,6.7,-11.4+i*2.2,0.9,7.1,-10.4+i*2.2,D]),
+    [-1.7,2.4,-22,1.7,5.6,-12,D],[-0.9,5.6,-22,0.9,6.2,-12,D],...[0,1,2,3].flatMap(i=>[[1.7,3.1,-21+i*2.4,1.85,5,-19.6+i*2.4,M],[-1.85,3.1,-21+i*2.4,-1.7,5,-19.6+i*2.4,M]]),
+    [-0.8,3.8,-34,0.8,5.4,-22,D],[-1.25,3.4,-37.4,1.25,5.8,-34,MZ,N5],[-1.3,3.5,-35.8,1.3,5.7,-35.4,S],[-1.3,3.5,-34.8,1.3,5.7,-34.4,S],[-0.6,5.4,-25,0.6,7.2,-24,D],[-0.5,6.7,3.5,0.5,7.8,4.5,D],
+    [1.7,3.8,-4,1.9,5,-1.5,D,{col:PORT}],[1.7,4.2,-1,2.8,5,1,S,{slide:'bolt'}],
+    [-1.3,-5,-6,1.3,0.6,-1.8,MG,{rx:0.1,piv:[0,0.6,-4]}],[-1.4,-5.6,-6.1,1.4,-5,-1.7,D,{rx:0.1,piv:[0,0.6,-4]}],
+    ...guard(-1,3.5,-1.6),[-1.5,-5.5,3,1.5,0.6,6,G,{rx:-0.3,piv:[0,0.6,4.5]}],[-1.5,-6,2.9,1.5,-5.5,6.1,D,{rx:-0.3,piv:[0,0.6,4.5]}],
+    [-1,2.6,6,1,4.2,13,D],[-1.3,-0.8,13,1.3,4.6,21,D,{rx:-0.08,piv:[0,3,13]}],[-1.1,4.6,13,1.1,5.6,19,D,{rx:-0.08,piv:[0,3,13]}],[-1.2,-1.4,20.5,1.2,4.8,21.6,D,{rx:-0.08,piv:[0,3,13]}],[-1.5,-1.7,21.6,1.5,4.9,22.6,G,{col:RUB,rx:-0.08,piv:[0,3,13]}]];
+  // minigun: six barrels around a hub, clamp rings, rear drive housing, carry handle, side ammo box with belt, 58 px
+  const bar=[0,1,2,3,4,5].map(i=>{const a=i*Math.PI/3,cx=Math.cos(a)*2.4,cy=5+Math.sin(a)*2.4;return [cx-0.7,cy-0.7,-34,cx+0.7,cy+0.7,-8,MZ,{f:[5],spin:1,piv:[0,5,0]}]});
+  GUN_MODELS[483]=[...bar,[-0.9,4.1,-34,0.9,5.9,-8,D],
+    [-3.4,1.6,-33,3.4,8.4,-31.2,M],[-3.4,1.6,-24,3.4,8.4,-22.2,M],[-3.4,1.6,-15,3.4,8.4,-13.2,M],[-3.8,1.2,-10,3.8,8.8,-4,D],[-3.4,1.6,-4,3.4,8.4,5,M],[-2.8,2.2,5,2.8,7.8,12,D],[-1.6,3.4,12,1.6,6.6,14,S],
+    [-0.6,8.8,-9,0.6,11,-8.2,D],[-0.6,8.8,-1,0.6,11,-0.2,D],[-0.7,11,-9.2,0.7,11.8,-0.2,G],
+    [-1.5,-4,-1,1.5,1.2,2,D,{rx:-0.2,piv:[0,1.2,0.5]}],[-1.7,-3.4,-0.6,1.7,1.2,1.6,G,{rx:-0.2,piv:[0,1.2,0.5]}],...guard(-5,-1,-1),
+    [-3.4,-6,3,3.4,1.6,11,M],[-3.5,1.6,2.8,3.5,2.6,11.2,D],[-3.6,-6.4,2.8,3.6,-6,11.2,D],[3.4,-2,5,4,0,9,S,{col:GOLD}],[-0.8,1.2,2,0.8,2.2,3,S,{col:GOLD}],[-0.8,1.2,0.5,0.8,2.2,1.5,S,{col:GOLD}]];
+  // attachment anchors per gun: scope [rail top y, centre z, size], suppressor [muzzle y, muzzle z, radius, length], foregrip [bottom y, z],
+  // laser [side x, low y, front z], extended magazine parts
+  const xm=(y0,y1,z0,z1,ex,o,w)=>[[-w,y0,z0,w,y1,z1,MG,o],[-w-0.1,y0-0.6,z0-0.2,w+0.1,y0,z1+0.2,D,o]];
+  GUN_ATT[460]={top:[7,-3,0.7],mz:[4.5,-11,1.35,9],gr:[1,-6],lz:[1.5,1.4,-9],mag:xm(-10.4,-6.9,0.2,3.7,0,{rx:0.32,piv:[0,1,2]},1.45)};
+  GUN_ATT[461]={top:[6.2,-2,1],mz:[4.5,-30,1.5,11],gr:[1,-13],lz:[1.9,2.6,-16],mag:xm(-11.6,-7.1,-5.2,-1.3,0,{rx:-0.3,piv:[0,1,-3]},1.45)};
+  GUN_ATT[462]={top:[6.3,0.5,1],mz:[5,-31,1.5,11],gr:[1.5,-9.5],lz:[0.9,2,-12],mag:[[-2.6,1.8,-4.5,-1.7,4.8,2.5,MG],[-2.7,1.6,-4.7,-1.65,1.8,2.7,D],...[0,1,2].map(i=>[-2.3,4.8,-4+i*2.2,-1.9,5.7,-3+i*2.2,S,{col:GOLD}])]};
+  GUN_ATT[466]={top:[6.6,-3,1],mz:[5.6,-40,1.5,11],gr:[1,-10],lz:[1.9,2.4,-14],mag:xm(-4.4,0.6,-8.6,-4.2,0,null,1.2)};
+  GUN_ATT[478]={top:[6.6,-2,1],mz:[4.5,-18,1.45,9],gr:[2.6,-12],lz:[1.55,3,-14],mag:xm(-14.4,-8.7,-8.1,-4.9,0,null,1.25)};
+  GUN_ATT[479]={top:[7,-6,0.8],mz:[5.2,-17.4,1.3,9],gr:[3.2,-9],lz:[0.9,4.4,-12],mag:[[-1.9,2.3,-5,1.9,6.9,1.2,['gun_cyl','gun_cyl','gun_cyl','gun_cyl','gun_cylf','gun_cylf'],{f:[0,1,4,5]}]]};
+  GUN_ATT[482]={top:[7.1,-2,1],mz:[4.6,-37.4,1.5,11],gr:[2.4,-17],lz:[1.85,3,-20],mag:xm(-11.4,-5.6,-6.1,-1.7,0,{rx:0.1,piv:[0,0.6,-4]},1.45)};
+  GUN_ATT[483]={top:[11.8,-5,1],mz:[5,-34,3.7,9],gr:[1.6,-14],lz:[3.8,4.2,-9],mag:[[4,-4,3,8.6,1,11,MG],[3.9,-4.4,2.8,8.7,-4,11.2,D],[4,1,3,8.6,1.6,11,D]]};
+}
+const GUN_FP={478:[0.026,0.3,-0.36,-0.66],479:[0.034,0.4,-0.36,-0.7],482:[0.021,0.3,-0.4,-0.62],483:[0.017,0.22,-0.3,-0.7],460:[0.03,0.42,-0.36,-0.78],461:[0.03,0.42,-0.46,-0.6],462:[0.03,0.42,-0.47,-0.6],466:[0.027,0.4,-0.5,-0.72]}; // first person: scale, then x,y,z of the grip in view space
+function drawGun(EB,tf,id,light,cyc,att){const parts=GUN_MODELS[id];if(!parts)return;const k=Math.sin(Math.min(1,cyc)*PI);const spinA=cyc<1?(typeof performance!=='undefined'?performance.now():0)*0.02:0;
+  const emit=b=>{const o=b[7];let t=tf;if(o){const sz=o.slide==='pump'?k*3.5:o.slide==='bolt'?k*2.5:0;const rx=o.rx||0,rz=(o.rz||0)+(o.spin?spinA:0),pv=o.piv||[0,0,0];
       if(rx||rz||sz){const cx=Math.cos(rx),sx=Math.sin(rx),cz=Math.cos(rz),szr=Math.sin(rz);t=(x,y,z)=>{x-=pv[0];y-=pv[1];z-=pv[2];let x1=x*cz-y*szr,y1=x*szr+y*cz;const y2=y1*cx-z*sx,z2=y1*sx+z*cx;return tf(x1+pv[0],y2+pv[1],z2+pv[2]+sz)}}}
-    gunBox(EB,t,b[0],b[1],b[2],b[3],b[4],b[5],b[6],o&&o.col||[1,1,1],light,o&&o.f)}}
+    gunBox(EB,t,b[0],b[1],b[2],b[3],b[4],b[5],b[6],o&&o.col||[1,1,1],light,o&&o.f)};
+  for(const b of parts)emit(b);
+  const A=att&&GUN_ATT[id];if(!A)return;const D='gun_dark',S='gun_steel',G='gun_grip',LN=[D,D,D,D,D,'gun_lens'],LE=[D,D,D,D,'gun_lens',D];
+  if(att.extmag&&A.mag)for(const b of A.mag)emit(b);
+  if(att.grip&&A.gr){const yb=A.gr[0],z=A.gr[1];emit([-1.1,yb-0.6,z-1.8,1.1,yb,z+1.8,D]);emit([-0.8,yb-4.6,z-0.9,0.8,yb-0.6,z+0.9,G]);emit([-0.9,yb-5.1,z-1,0.9,yb-4.6,z+1,D])}
+  if(att.laser&&A.lz){const x=A.lz[0],y=A.lz[1],z=A.lz[2];emit([x,y,z,x+1.2,y+1.4,z+3.6,D]);emit([x-0.1,y+0.15,z-0.8,x+1.3,y+1.25,z,S,{col:[2.6,0.1,0.1]}]);emit([x+0.4,y+1.4,z+1.2,x+0.8,y+1.8,z+2,S,{col:[1.6,0.2,0.2]}])}
+  if(att.suppressor&&A.mz){const [yc,zf,r,len]=A.mz;emit([-r,yc-r,zf-len,r,yc+r,zf+2,['gun_supp','gun_supp','gun_supp','gun_supp','gun_supp','gun_muzzle'],{f:[5]}])}
+  if(att.scope&&A.top&&id!==466){const [yb,zc,s]=A.top;const e=(x0,y0,z0,x1,y1,z1,tx,o)=>emit([x0*s,yb+y0*s,zc+z0*s,x1*s,yb+y1*s,zc+z1*s,tx,o]);
+    e(-1.3,0,-4,1.3,1.6,-2.6,D);e(-1.3,0,2.6,1.3,1.6,4,D);e(-1.1,0.8,-7,1.1,3,7,D);e(-1.7,0.2,-11,1.7,3.6,-7,LN,{f:[5]});e(-1.4,0.5,7,1.4,3.3,10,LE,{f:[4]});e(-0.6,3,-1,0.6,4.1,0.4,S);e(1.1,1.2,-1,2,2.4,0.4,S)}}
 defTex('skin_bone',p=>{p.noise(240,238,230,5);p.rect(0,0,16,2,204,200,192);p.rect(0,14,16,2,204,200,192);p.rect(0,7,16,1,214,210,202);p.rect(5,0,2,16,250,250,246);p.rect(11,0,1,16,216,212,204);p.speckle(6,200,196,188);shade(p,0.22)});
 defTex('skin_zombie',p=>{p.noise(226,226,226,9);for(let i=0;i<6;i++){const x=floor(p.rng()*14),y=floor(p.rng()*15);p.rect(x,y,2+floor(p.rng()*2),1,188,188,188)}for(let i=0;i<4;i++){const x=floor(p.rng()*15),y=floor(p.rng()*15);p.rect(x,y,1,2,204,204,204)}p.speckle(10,168,168,168);p.speckle(8,246,246,246);shade(p,0.24)});
 defTex('skin_pig',p=>{p.noise(236,236,236,5);p.speckle(16,214,214,214);p.speckle(8,248,248,248);for(let y=12;y<16;y++)for(let x=0;x<16;x++)if(p.rng()<0.55)p.px(x,y,218,218,218);shade(p,0.2)});
@@ -1296,6 +1354,15 @@ trident:["................","...l..ll..l.....","...b..bb..b.....","...b..bb..b..
 sift_crystal:["................","................",".......l........","......lm........",".....lmm........","....lmmm........","...lmmmm........","..lmmmmm.l......","..mmmmmmlm......","...mmmmmmm......","....mmmmmm......",".....mmmm.......","......mm........","................","................","................"],
 heavy_core:["................","................","................","...dddddddddd...","..dkkkkkkkkkkd..","..dkhhhhhhhhkd..","..dkhhhhhhhhkd..","..dkhhhhhhhhkd..","..dkhhhhhhhhkd..","..dkhhhhhhhhkd..","..dkhhhhhhhhkd..","..dkkkkkkkkkkd..","...dddddddddd...","................","................","................"],
 trial_key:["................","................","....gggg........","...gg..gg.......","...gg..gg.......","....gggg........",".....gg.........",".....gg.........",".....gg.........",".....gg.........",".....gggg.......",".....gg.........",".....gggg.......","................","................","................"],
+smg:["................","................","......k....k....",".....kdkkkkdk...","..kkkkhhhhhhkkkk","kkddddmmmmmmtttt","mmdmmdmmmmmmkkkd","kkddddddddddtttt","..kkkkmmkdGgkkkk",".....kddtkGgk...",".....kddkkGgk...",".....kddkkGgk...",".....kddk.kk....",".....kmmk.......","......kk........","................"],
+revolver:["............kdk.","...........kddk.",".......kkkkkddk.","k.....khhhhhddk.","dkkkkkkdttmmmk..","hhhhhhhtdtmmmk..","mmmmmmmtdtmmmk..","kkdddddtttmmmkk.","..kkkkkkdkdwwwwk",".......kddkwWWvk","........kkkwWWvk","..........kwWWvk","..........kwWWvk","..........kwwwwk","...........kkkk.","................"],
+dmr:["................","...k............","..kdkkkkkkkkk...","..kttttttttttkkk","kkkkdddddhhhhmmm","mmmkdddddmmmmddd","dmmddmmmdmmmmkdd","mmmkdddddmmmmkdd","kkk.kkkkkkmmGgkk","........ktddGgk.",".........kddGgk.",".........kddkk..",".........kddk...","..........kk....","................","................"],
+minigun:["...k..kkkgggk...","kkktkkddkgkgk...","hhhthhddhhhhhkkk","mmmtmmddmmmmmddd","kkktkkddmmmmmddd","hhhthhddmmmmmddd","mmmtmmddmmmmmddd","kkktkkddmmmmmddd","hhhthhddmmmmmddd","mmmtmmddmmmmmkkk","kkktkkdddddddk..","...k..kkdooodk..","......ktdohodk..","......ktdooodk..",".......kdddddk..","........kkkkk..."],
+scope:["................","................",".......kk.......","kkk...kttk......","dddk.kkttkk.kkkk","Sddkkdkttkdkdddd","LddhhdhhhhdhdddS","SddmmdmmmmdmdddL","SddmmdmmmmdmdddS","SddddddddddddddS","Sddkkdkkkkdkdddd","dddk.k....k.kkkk","kkk.............","................","................","................"],
+suppressor:["................","................","................","................","kkkkkkkkkkkkkkk.","mhhhhhhhhhhhhhhk","mddmdddmdddmdddk","kddmdddmdddmdddt","kddmdddmdddmdddt","mddmdddmdddmdddk","mkkkkkkkkkkkkkkk","kkkkkkkkkkkkkkk.","................","................","................","................"],
+grip:["...kkkttttkkk...","..khhhhhhhhhhk..","..kmmmmmmmmmmk..","..kmmmmmmmmmmk..","...kkgGgGgGkk...","....kGgGgGgk....","....kgGgGgGk....","....kGgGgGgk....","....kgGgGgGk....","....kGgGgGgk....","....kgGgGgGk....","...kkGgGgGgkk...","..kmmmmmmmmmmk..","..kddddddddddk..","...kkkkkkkkkk...","................"],
+extended_mag:["....kohhok......","...khdddddk.....","...khdddddk.....","...khmmmmmk.....","....khdddddk....","....khdddddk....","....khmmmmmk....","....khdddddk....",".....khdddddk...",".....khmmmmmk...",".....khdddddk...",".....khdddddk...","......khmmmmmk..","......khdddddk..",".....kmmmmmmmmk.","......kkkkkkkk.."],
+laser_sight:["................","................","................","................","........kkkkkkk.",".......khhhhhhhk","...r...Rddddddmk","rrrrrrrRddddddmk",".....r.Rddddddmk",".......kdddddddk","........kktttkk.",".........ktttk..","..........kkk...","................","................","................"],
 sniper:["...............d",".............mdk","............mdk.",".........Lkmdk..",".........Skdk...","........skdk....",".......skdk.....","......skmWk.....",".....skmWwk.....","....SkmWwk......","....kmhwk.......",".....Wwdk.......","...WWwkk........","..WWwkk.........",".WWwkk..........","gvwk............"],
 bullet:["................","................","................",".......ww.......","......wwww......","......bbbb......","......bbbb......","......bbbb......","......bbbb......","......bbbb......","......bbbb......","......bbbb......",".....bbbbbb.....","................","................","................"],
 shotgun_shell:["................","................","................","......rrrr......","......rrrr......","......rrrr......","......rrrr......","......rrrr......","......rrrr......","......rrrr......","......bbbb......","......bbbb......",".....bbbbbb.....","................","................","................"],
@@ -1336,7 +1403,8 @@ beef:['meat',{m:[200,60,60],f:[240,220,220]}],cooked_beef:['meat',{m:[130,70,40]
 chicken:['drumstick',{m:[230,170,160],b:[240,230,220]}],cooked_chicken:['drumstick',{m:[200,130,70],b:[240,230,220]}],
 mutton:['meat',{m:[210,80,80],f:[240,220,220]}],cooked_mutton:['meat',{m:[150,80,50],f:[200,150,110]}],
 rotten_flesh:['meat',{m:[120,90,60],f:[90,120,60]}],bone:['bone',{w:[235,235,225]}],arrow:['arrow',{w:[200,200,210],l:[240,240,250],s:[140,110,70],f:[230,230,230]}],
-bow:['bow',{s:[140,100,60],w:[230,230,230]}],pistol:['pistol',{k:[14,14,18],d:[46,49,57],m:[86,90,100],h:[140,144,154],g:[32,31,36],G:[62,60,68],w:[112,72,40],W:[152,104,58],v:[72,46,26],s:[26,28,34],S:[90,160,220],L:[205,238,255],o:[230,190,80],t:[150,152,158]}],rifle:['rifle',{k:[14,14,18],d:[46,49,57],m:[86,90,100],h:[140,144,154],g:[32,31,36],G:[62,60,68],w:[112,72,40],W:[152,104,58],v:[72,46,26],s:[26,28,34],S:[90,160,220],L:[205,238,255],o:[230,190,80],t:[150,152,158]}],shotgun:['shotgun',{k:[14,14,18],d:[46,49,57],m:[86,90,100],h:[140,144,154],g:[32,31,36],G:[62,60,68],w:[112,72,40],W:[152,104,58],v:[72,46,26],s:[26,28,34],S:[90,160,220],L:[205,238,255],o:[230,190,80],t:[150,152,158]}],bullet:['bullet',{b:[205,165,70],w:[150,150,160]}],sniper:['sniper',{k:[14,14,18],d:[46,49,57],m:[86,90,100],h:[140,144,154],g:[32,31,36],G:[62,60,68],w:[112,72,40],W:[152,104,58],v:[72,46,26],s:[26,28,34],S:[90,160,220],L:[205,238,255],o:[230,190,80],t:[150,152,158]}],ghillie:['ghillie',{g:[92,142,56],d:[48,84,34]}],mace:['mace',{d:[60,58,64],h:[120,116,125],s:[120,80,45],g:[85,55,30]}],breeze_rod:['breeze_rod',{w:[215,230,245],b:[120,160,210]}],wind_charge:['wind_charge',{w:[225,235,250],b:[130,170,220],d:[80,110,170]}],trident:['trident',{t:[90,225,215],s:[70,180,170]}],heavy_core:['heavy_core',{d:[38,38,42],k:[70,70,78],h:[110,110,120]}],trial_key:['trial_key',{g:[235,175,60]}],shell:['shotgun_shell',{b:[205,165,70],r:[200,40,40]}],feather:['feather',{w:[240,240,240],s:[200,200,200]}],string:['string',{w:[235,235,235]}],
+bow:['bow',{s:[140,100,60],w:[230,230,230]}],pistol:['pistol',{k:[14,14,18],d:[46,49,57],m:[86,90,100],h:[140,144,154],g:[32,31,36],G:[62,60,68],w:[112,72,40],W:[152,104,58],v:[72,46,26],s:[26,28,34],S:[90,160,220],L:[205,238,255],o:[230,190,80],t:[150,152,158]}],rifle:['rifle',{k:[14,14,18],d:[46,49,57],m:[86,90,100],h:[140,144,154],g:[32,31,36],G:[62,60,68],w:[112,72,40],W:[152,104,58],v:[72,46,26],s:[26,28,34],S:[90,160,220],L:[205,238,255],o:[230,190,80],t:[150,152,158]}],shotgun:['shotgun',{k:[14,14,18],d:[46,49,57],m:[86,90,100],h:[140,144,154],g:[32,31,36],G:[62,60,68],w:[112,72,40],W:[152,104,58],v:[72,46,26],s:[26,28,34],S:[90,160,220],L:[205,238,255],o:[230,190,80],t:[150,152,158]}],bullet:['bullet',{b:[205,165,70],w:[150,150,160]}],smg:['smg',{k:[14,14,18],d:[46,49,57],m:[86,90,100],h:[140,144,154],g:[32,31,36],G:[62,60,68],w:[112,72,40],W:[152,104,58],v:[72,46,26],s:[26,28,34],S:[90,160,220],L:[205,238,255],o:[230,190,80],t:[150,152,158],r:[235,40,40],R:[255,150,130]}],revolver:['revolver',{k:[14,14,18],d:[46,49,57],m:[86,90,100],h:[140,144,154],g:[32,31,36],G:[62,60,68],w:[112,72,40],W:[152,104,58],v:[72,46,26],s:[26,28,34],S:[90,160,220],L:[205,238,255],o:[230,190,80],t:[150,152,158],r:[235,40,40],R:[255,150,130]}],dmr:['dmr',{k:[14,14,18],d:[46,49,57],m:[86,90,100],h:[140,144,154],g:[32,31,36],G:[62,60,68],w:[112,72,40],W:[152,104,58],v:[72,46,26],s:[26,28,34],S:[90,160,220],L:[205,238,255],o:[230,190,80],t:[150,152,158],r:[235,40,40],R:[255,150,130]}],minigun:['minigun',{k:[14,14,18],d:[46,49,57],m:[86,90,100],h:[140,144,154],g:[32,31,36],G:[62,60,68],w:[112,72,40],W:[152,104,58],v:[72,46,26],s:[26,28,34],S:[90,160,220],L:[205,238,255],o:[230,190,80],t:[150,152,158],r:[235,40,40],R:[255,150,130]}],scope:['scope',{k:[14,14,18],d:[46,49,57],m:[86,90,100],h:[140,144,154],g:[32,31,36],G:[62,60,68],w:[112,72,40],W:[152,104,58],v:[72,46,26],s:[26,28,34],S:[90,160,220],L:[205,238,255],o:[230,190,80],t:[150,152,158],r:[235,40,40],R:[255,150,130]}],suppressor:['suppressor',{k:[14,14,18],d:[46,49,57],m:[86,90,100],h:[140,144,154],g:[32,31,36],G:[62,60,68],w:[112,72,40],W:[152,104,58],v:[72,46,26],s:[26,28,34],S:[90,160,220],L:[205,238,255],o:[230,190,80],t:[150,152,158],r:[235,40,40],R:[255,150,130]}],grip:['grip',{k:[14,14,18],d:[46,49,57],m:[86,90,100],h:[140,144,154],g:[32,31,36],G:[62,60,68],w:[112,72,40],W:[152,104,58],v:[72,46,26],s:[26,28,34],S:[90,160,220],L:[205,238,255],o:[230,190,80],t:[150,152,158],r:[235,40,40],R:[255,150,130]}],extended_mag:['extended_mag',{k:[14,14,18],d:[46,49,57],m:[86,90,100],h:[140,144,154],g:[32,31,36],G:[62,60,68],w:[112,72,40],W:[152,104,58],v:[72,46,26],s:[26,28,34],S:[90,160,220],L:[205,238,255],o:[230,190,80],t:[150,152,158],r:[235,40,40],R:[255,150,130]}],laser_sight:['laser_sight',{k:[14,14,18],d:[46,49,57],m:[86,90,100],h:[140,144,154],g:[32,31,36],G:[62,60,68],w:[112,72,40],W:[152,104,58],v:[72,46,26],s:[26,28,34],S:[90,160,220],L:[205,238,255],o:[230,190,80],t:[150,152,158],r:[235,40,40],R:[255,150,130]}],
+sniper:['sniper',{k:[14,14,18],d:[46,49,57],m:[86,90,100],h:[140,144,154],g:[32,31,36],G:[62,60,68],w:[112,72,40],W:[152,104,58],v:[72,46,26],s:[26,28,34],S:[90,160,220],L:[205,238,255],o:[230,190,80],t:[150,152,158]}],ghillie:['ghillie',{g:[92,142,56],d:[48,84,34]}],mace:['mace',{d:[60,58,64],h:[120,116,125],s:[120,80,45],g:[85,55,30]}],breeze_rod:['breeze_rod',{w:[215,230,245],b:[120,160,210]}],wind_charge:['wind_charge',{w:[225,235,250],b:[130,170,220],d:[80,110,170]}],trident:['trident',{t:[90,225,215],s:[70,180,170]}],heavy_core:['heavy_core',{d:[38,38,42],k:[70,70,78],h:[110,110,120]}],trial_key:['trial_key',{g:[235,175,60]}],shell:['shotgun_shell',{b:[205,165,70],r:[200,40,40]}],feather:['feather',{w:[240,240,240],s:[200,200,200]}],string:['string',{w:[235,235,235]}],
 egg:['egg',{m:[230,215,180],l:[245,235,210]}],snowball:['ball',{m:[240,245,255],l:[255,255,255]}],clay_ball:['ball',{m:[160,165,175],l:[190,195,205]}],
 spider_eye:['eye',{r:[150,30,30],k:[30,10,10]}],leather:['leather',{m:[170,100,50]}],brick:['brick',{m:[150,80,65]}],
 bucket:['bucket',{g:[170,170,170],c:[120,120,120]}],water_bucket:['bucket',{g:[170,170,170],c:[50,100,220]}],lava_bucket:['bucket',{g:[170,170,170],c:[240,110,20]}],milk_bucket:['bucket',{g:[170,170,170],c:[245,245,245]}],
@@ -2081,7 +2149,7 @@ function drawSelection(){const gl=R.gl;const h=player.target;if(!h||!h.block)ret
 // your own body, drawn with the other-player model when the camera is behind or in front of you
 function renderAvatar(EB,EBI,dt){const p=player;let a=game.avatar;if(!a){a=game.avatar=new RemotePlayer('me','You')}const st=heldStack();
   a.setTarget({x:p.x,y:p.y,z:p.z,yaw:p.yaw,pitch:p.pitch,held:st&&!ITEMS[st.id].custom?st.id:0,sneak:!!p.sneaking,crawl:!!p.crawling,dead:!!p.dead,armor:p.armor.map(x=>x?x.id:0),sw:p.swing<0.9?1:0,dim:world.dimKey});
-  a.hidden=!!p.dead;a.hurtT=p.hurtT;a.update(dt);a.render(EB,EBI)}
+  a.att=st&&st.att;a.hidden=!!p.dead;a.hurtT=p.hurtT;a.update(dt);a.render(EB,EBI)}
 function cycleCamera(){game.cam=((game.cam||0)+1)%3;showMessage(game.cam===1?'Camera: behind you (press P again to see your face)':game.cam===2?'Camera: in front of you (press P again for first person)':'Camera: first person')}
 function drawHand(dt){const gl=R.gl;const p=player;const st=p.inv[p.sel];const id=st?st.id:0;const def=ITEMS[id];
   // view-space rendering: identity view, custom projection
@@ -2096,7 +2164,7 @@ function drawHand(dt){const gl=R.gl;const p=player;const st=p.inv[p.sel];const i
   if(st&&def.shield){const tf=makeTF(0.62-ba*0.32+bob,-0.55+ba*0.3+swingY*0.3+bob,-0.85+ba*0.1,-0.25-ba*0.1,-0.55+ba*0.35,-0.25+ba*0.2,0,0,0,1);flat(id,tf,1.1);return}
   if(!st){EB.clear();const tf=makeTF(0.75+bob,-0.7+swingY+bob,-0.85,-0.55+swingR*0.5,swingR*0.6+0.9,0.35,0,0,0,1);EB.box(tf,-0.11,-0.6,-0.11,0.11,0.2,0.11,TEX.steve_arm,[1,1,1],l,true);EB.draw(R.progE,R.atlasTex,{vp:proj,fogStart:100,fogEnd:200});return}
   if(def.gun&&GUN_MODELS[id]){if(p.scoped)return;const fp=GUN_FP[id];const kick=Math.pow(1-sw,2)*(def.gun.recoil*5+0.2);EB.clear();
-    const tf=makeTF(fp[1]+bob,fp[2]+bob*0.7-kick*0.015,fp[3]+kick*0.07,0.13-kick*0.03,kick*0.2,0.03,0,0,0,fp[0]);drawGun(EB,tf,id,l,sw);EB.draw(R.progE,R.atlasTex,{vp:proj,fogStart:100,fogEnd:200});return}
+    const tf=makeTF(fp[1]+bob,fp[2]+bob*0.7-kick*0.015,fp[3]+kick*0.07,0.13-kick*0.03,kick*0.2,0.03,0,0,0,fp[0]);drawGun(EB,tf,id,l,sw,st&&st.att);EB.draw(R.progE,R.atlasTex,{vp:proj,fogStart:100,fogEnd:200});return}
   if(def.isBlock&&(def.model==='cube'||def.model==='slab'||def.model==='stairs'||def.model==='chest'||def.model==='fence'||def.model==='cactus'||def.model==='snow'||def.model==='farmland'||def.model==='liquid')){
     EB.clear();const tf=makeTF(0.55+bob,-0.62+swingY+bob-eat,-0.9,-0.6+swingR*0.4,swingR*0.4,0,0.5,0.5,0.5,0.4);
     const rb=renderBoxes(id,def.facing?0:0,0,0,0);for(const b of rb)EB.box(tf,b[0],b[1],b[2],b[3],b[4],b[5],b[6],b[8]?[b[8][0]/255,b[8][1]/255,b[8][2]/255]:[1,1,1],l,false);
@@ -5378,7 +5446,7 @@ class RemotePlayer extends Entity{constructor(id,name){super(0,-100,0);this.pid=
     if(hc){const hp=(b)=>part(b,0,24,0,-this.pitch,0,0,W,hc);if(gh)hp([-4-o,-o,-4-o,4+o,8+o,4+o]);else{hp([-4-o,5.5,-4-o,4+o,8+o,4+o]);hp([-4-o,-o,2.5,4+o,8+o,4+o]);hp([-4-o,-o,-4-o,-2.5,8+o,4+o]);hp([2.5,-o,-4-o,4+o,8+o,4+o])}} // helmets are open-faced so you can still see who it is; a ghillie hood hides the face
     // held item in the right hand: blocks as a small cube, everything else as its icon
     if(this.held&&ITEMS[this.held]){const def=ITEMS[this.held];const atf=partTF(this.x,this.y,this.z,this.yaw,4,22,0,armR,0,-0.05,s,0);
-      if(gunH){const k=0.42;const gtf=(x,y,z)=>atf(x*k,z*k-9.5,-y*k-1.6);drawGun(EB,gtf,this.held,l,this.swingT>0?1-this.swingT/0.4:1)}
+      if(gunH){const k=0.42;const gtf=(x,y,z)=>atf(x*k,z*k-9.5,-y*k-1.6);drawGun(EB,gtf,this.held,l,this.swingT>0?1-this.swingT/0.4:1,this.att)}
       else if(def.isBlock&&ITEMTILE[this.held]===undefined){const rb=renderBoxes(this.held,0,0,0,0);for(const b of rb)EB.box(atf,b[0]*6-3,b[1]*6-14,b[2]*6-9,b[3]*6-3,b[4]*6-14,b[5]*6-9,b[6],b[8]?[b[8][0]/255,b[8][1]/255,b[8][2]/255]:[1,1,1],l,false)}
       else if(EBI&&ITEMTILE[this.held]!==undefined){const tile=ITEMTILE[this.held];const uv=[[(tile%32)/32,floor(tile/32)/32],[(tile%32+1)/32,floor(tile/32)/32],[(tile%32+1)/32,(floor(tile/32)+1)/32],[(tile%32)/32,(floor(tile/32)+1)/32]];
         const rx=Math.sin(0.8)*10,rz=-Math.cos(0.8)*10;const P=[atf(0,-3,-1),atf(rx,-3,-1+rz),atf(rx,-13,-1+rz),atf(0,-13,-1)];EBI.quad(P,uv,[l[0],l[1],1],[1,1,1]);EBI.quad([P[3],P[2],P[1],P[0]],[uv[3],uv[2],uv[1],uv[0]],[l[0],l[1],1],[1,1,1])}}}}
