@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="ironcraft-build" content="20261019-142920">
+<meta name="ironcraft-build" content="20261019-144226">
 <meta name="viewport" content="width=device-width,initial-scale=1.0,viewport-fit=cover">
 <title>Ironcraft – Free Voxel Survival Sandbox in Your Browser | Iron Games</title>
 <meta name="description" content="Ironcraft is a free browser-based voxel survival sandbox with building, exploration, private or safety-limited public multiplayer, and optional weather, horror and survival challenges. By Daniele Bros.">
@@ -688,6 +688,8 @@ defTex('ladder',p=>{p.fill(0,0,0,0);p.rect(2,0,2,16,150,120,70);p.rect(12,0,2,16
 defTex('door_top',p=>{planks(p,[150,120,70]);p.rect(2,2,12,12,120,95,55);p.rect(3,3,4,4,170,210,240);p.rect(9,3,4,4,170,210,240);p.rect(3,9,10,4,150,120,70)});
 defTex('leaf_door_top',p=>{leaves(p,[58,118,32]);for(let i=0;i<16;i++){p.px(0,i,30,60,20);p.px(15,i,30,60,20);p.px(i,0,30,60,20);p.px(i,15,30,60,20)}p.rect(3,3,4,4,150,210,110);p.rect(9,3,4,4,150,210,110);p.rect(2,9,12,1,30,60,20)});
 defTex('leaf_door_bottom',p=>{leaves(p,[52,108,28]);for(let i=0;i<16;i++){p.px(0,i,30,60,20);p.px(15,i,30,60,20);p.px(i,15,30,60,20)}p.rect(2,2,12,1,30,60,20);p.rect(2,8,12,1,30,60,20);p.rect(12,4,2,2,90,70,40)});
+defTex('iron_door_top',p=>{p.noise(176,178,184,6);p.rect(0,0,16,16,150,152,158);p.rect(1,1,14,14,186,188,194);p.rect(3,3,10,5,120,160,190);p.rect(7,3,2,5,90,92,98);p.rect(3,10,10,4,170,172,178);for(const [x,y] of [[2,2],[13,2],[2,13],[13,13],[2,8],[13,8]])p.px(x,y,110,112,118)});
+defTex('iron_door_bottom',p=>{p.noise(176,178,184,6);p.rect(0,0,16,16,150,152,158);p.rect(1,0,14,15,186,188,194);p.rect(3,1,10,5,170,172,178);p.rect(3,8,10,6,170,172,178);p.rect(12,4,2,2,60,60,66);for(const [x,y] of [[2,1],[13,1],[2,14],[13,14],[2,7],[13,7]])p.px(x,y,110,112,118)});
 defTex('door_bottom',p=>{planks(p,[150,120,70]);p.rect(2,1,12,13,120,95,55);p.rect(3,2,10,5,150,120,70);p.rect(3,8,10,5,150,120,70);p.rect(12,4,2,2,60,60,60)});
 defTex('chest_top',p=>{planks(p,[150,110,60]);p.rect(1,1,14,14,160,120,65);p.rect(7,6,2,4,60,60,60)});
 defTex('chest_front',p=>{planks(p,[150,110,60]);p.rect(1,1,14,14,160,120,65);p.rect(0,7,16,1,100,75,40);p.rect(6,5,4,5,80,80,80);p.rect(7,6,2,3,60,60,60)});
@@ -1157,6 +1159,7 @@ defBlock(138,'brewing_stand',{label:'Brewing Stand',tex:{side:'brew_side',top:'b
 defBlock(139,'nether_wart',{label:'Nether Wart',tex:'wart0',model:'crop',solid:false,opaque:false,transparent:true,hard:0,sound:'grass',crop:true,stages:4,wart:true,texFn:(m)=>TEX['wart'+Math.min(3,m&3)],drop:(r,t,m)=>[[477,(m&3)>=3?2+floor(r()*3):1]]});
 defBlock(140,'blackstone',{tex:'blackstone',hard:1.5,tool:'pickaxe',needsTool:true,resist:6,sound:'stone'});
 defBlock(141,'polished_blackstone_bricks',{label:'Polished Blackstone Bricks',tex:'blackstone_bricks',hard:1.5,tool:'pickaxe',needsTool:true,resist:6,sound:'stone'});
+defBlock(152,'iron_door',{label:'Iron Door',tex:{side:'iron_door_bottom',top:'iron_door_top'},model:'door',solid:true,hard:5,tool:'pickaxe',needsTool:true,sound:'stone',transparent:true,door:true,iron:true,stack:64,iconPal:['door',{p:[150,152,158],d:[186,188,194],w:[120,160,190],k:[60,60,66]}]});
 defBlock(145,'leaf_door',{label:'Leaf Door',tex:{side:'leaf_door_bottom',top:'leaf_door_top'},model:'door',solid:true,hard:0.4,sound:'grass',transparent:true,door:true,leaves:true,stack:64,iconPal:['door',{p:[30,60,20],d:[58,118,32],w:[150,210,110],k:[90,70,40]}]});
 defBlock(146,'grass_pressure_plate',{label:'Grass Pressure Plate',tex:'grass_top',model:'plate',solid:false,hard:0.3,sound:'grass',transparent:true,plate:true});
 defBlock(147,'hopper',{label:'Hopper',tex:{side:'hopper_side',top:'hopper_top',bottom:'hopper_bottom'},model:'hopper',hard:3,tool:'pickaxe',needsTool:true,sound:'stone',transparent:true,gui:'hopper'});
@@ -3194,14 +3197,14 @@ function attack(){const p=player;if(p.dead||game.gui||game.paused||p.koT>0)retur
 function setDoorOpen(x,y,z,open){const id=world.getBlock(x,y,z);if(!BLOCKS[id]||!BLOCKS[id].door)return false;const m=world.getMeta(x,y,z);const y0=(m&8)?y-1:y;const mb=world.getMeta(x,y0,z);if(!!(mb&4)===!!open)return false;
   world.setMeta(x,y0,z,open?mb|4:mb&~4);world.setMeta(x,y0+1,z,open?(mb|4|8):(mb&~4)|8);mpSyncBlock(x,y0,z);mpSyncBlock(x,y0+1,z);playSoundAt(BLOCKS[id].leaves?'grass':'door',x,y0,z);return true}
 function mpSyncBlock(x,y,z){if(MP.active&&world)mpSend({t:'b',x,y,z,id:world.getBlock(x,y,z),meta:world.getMeta(x,y,z)})}
-// grass pressure plates (Leaf Doors mod): anything standing on one opens the doors around it; step off and they swing shut
+// pressure plates (stone, and grass from the Leaf Doors mod): anything standing on one opens the doors around it, iron doors included; step off and they swing shut
 function tickPlates(dt){if(!world||(MP.active&&!MP.host))return;const P=game.plates||(game.plates=new Map());const pressed=new Set();
-  const feet=(x,y,z)=>{const bx=floor(x),by=floor(y+0.05),bz=floor(z);if(world.getBlock(bx,by,bz)===146)pressed.add(bx+','+by+','+bz)};
+  const feet=(x,y,z)=>{const bx=floor(x),by=floor(y+0.05),bz=floor(z);const pid=world.getBlock(bx,by,bz);if(pid===146||pid===90)pressed.add(bx+','+by+','+bz)};
   if(!player.dead)feet(player.x,player.y,player.z);for(const e of entities){if(e.dead)continue;if(e instanceof RemotePlayer){if(e.hidden||!e.hasTarget)continue;feet(e.x,e.y,e.z)}else if(e instanceof Mob||e instanceof ItemEntity)feet(e.x,e.y,e.z)}
   for(const k of pressed){if(P.has(k))continue;const [x,y,z]=k.split(',').map(Number);const doors=[];
     for(let dx=-3;dx<=3;dx++)for(let dy=-1;dy<=1;dy++)for(let dz=-3;dz<=3;dz++){const bx=x+dx,by=y+dy,bz=z+dz;const id=world.getBlock(bx,by,bz);if(BLOCKS[id]&&BLOCKS[id].door&&!(world.getMeta(bx,by,bz)&8)&&setDoorOpen(bx,by,bz,true))doors.push([bx,by,bz])}
     let lit=0;for(let dx=-3;dx<=3;dx++)for(let dy=-4;dy<=1;dy++)for(let dz=-3;dz<=3;dz++){const bx=x+dx,by=y+dy,bz=z+dz;if(world.getBlock(bx,by,bz)===28){world.setBlock(bx,by,bz,0,0,{silent:true});const t=new TNTEntity(bx+0.5,by,bz+0.5);t.fuse=1.2+Math.random()*0.6;entities.push(t);lit++}else if(world.getBlock(bx,by,bz)===151){world.setBlock(bx,by,bz,0,0,{silent:true});entities.push(new NukeEntity(bx+0.5,by,bz+0.5));lit++}}if(lit)playSoundAt('fuse',x,y,z);
-    world.setMeta(x,y,z,1);mpSyncBlock(x,y,z);playSoundAt('grass',x,y,z,0.6,1.3);P.set(k,{doors,t:0})}
+    world.setMeta(x,y,z,1);mpSyncBlock(x,y,z);playSoundAt(world.getBlock(x,y,z)===90?'click':'grass',x,y,z,0.6,1.3);P.set(k,{doors,t:0})}
   for(const [k,st] of P){if(pressed.has(k)){st.t=0;continue}st.t+=dt;if(st.t<0.6)continue;const [x,y,z]=k.split(',').map(Number);for(const d of st.doors)setDoorOpen(d[0],d[1],d[2],false);if(world.getBlock(x,y,z)===146){world.setMeta(x,y,z,0);mpSyncBlock(x,y,z)}P.delete(k)}}
 function useItem(){
   const p=player;if(p.dead||game.gui||game.paused||p.koT>0)return;const st=heldStack();const hd=st?ITEMS[st.id]:null;const t=p.target;const creative=p.mode==='creative';
@@ -3209,7 +3212,7 @@ function useItem(){
   if(t&&t.block&&!p.sneaking){const id=t.id;const d=BLOCKS[id];
     if(id===112){openVault(t.bx,t.by,t.bz);p.swing=0;return}if(id===113){showMessage('This vault has already been emptied');return}
     if(d.gui){openGui(d.gui,t.bx,t.by,t.bz,d.station);return}
-    if(BLOCKS[id]&&BLOCKS[id].door){setDoorOpen(t.bx,t.by,t.bz,!(world.getMeta(t.bx,t.by,t.bz)&4));return}
+    if(BLOCKS[id]&&BLOCKS[id].door){if(BLOCKS[id].iron){showMessage('An iron door only opens from a pressure plate');playSoundAt('stone',t.bx,t.by,t.bz,0.6,0.5);p.swing=0;return}setDoorOpen(t.bx,t.by,t.bz,!(world.getMeta(t.bx,t.by,t.bz)&4));return}
     if(id===62){trySleep(t.bx,t.by,t.bz);return}
     if(id===100&&hd&&hd.id===392&&!(world.getMeta(t.bx,t.by,t.bz)&4)){world.setMeta(t.bx,t.by,t.bz,world.getMeta(t.bx,t.by,t.bz)|4);consumeHeld();playSoundAt('click',t.bx,t.by,t.bz);p.swing=0;if(tryActivateEndPortal(t.bx,t.by,t.bz)){showMessage('The End portal opens!');playSound('portal')}return}
     if(hd&&hd.id===490){ // a Sift crystal lights a Sift stone frame into a portal to the Sift
@@ -4045,7 +4048,7 @@ for(const m of ['wood','stone','iron','diamond','gold','sift']){const id=n=>I[(m
 for(const m of ['leather','iron','gold','diamond','sift']){const mat={leather:289,iron:260,gold:262,diamond:263,sift:490}[m];const id=n=>I[(m==='gold'?'golden':m)+'_'+n];
   shaped(['###','# #'],{'#':mat},[id('helmet'),1]);shaped(['# #','###','###'],{'#':mat},[id('chestplate'),1]);shaped(['###','# #','# #'],{'#':mat},[id('leggings'),1]);shaped(['# #','# #'],{'#':mat},[id('boots'),1])}
 shaped(['WWW','###'],{W:WOOLS,'#':PLANKS},[62,1]);shaped(['###','###','###'],{'#':490},[126,1]);shapeless([126],[490,9]);shaped(['#O','O#'],{'#':490,O:31},[125,4]);shapeless([130],[5,4]);
-shaped(['##','##','##'],{'#':PLANKS},[54,3]);
+shaped(['##','##','##'],{'#':PLANKS},[54,3]);shaped(['##','##','##'],{'#':260},[152,3]);shaped(['##'],{'#':1},[90,1]);
 shaped(['| |','|||','| |'],{'|':256},[38,3]);
 shaped(['##','##'],{'#':1},[52,4]);
 shaped(['WWW'],{W:271},[272,1]);
