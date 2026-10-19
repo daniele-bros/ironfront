@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1.0,viewport-fit=cover,user-scalable=no">
 <title>Iron Guns – Free First-Person Battle Royale in Your Browser | Iron Games</title>
-<meta name="description" content="Iron Guns is a free first-person 3D battle royale in your browser: 24 players drop onto a huge island of hills, towns, lakes and bridges, loot houses and chests for pistols, shotguns, rifles, rocket launchers and sniper rifles, chop trees for wood, build walls, heal with medkits and stay inside the eye of the closing storm. Last one standing wins. Keyboard and mouse or touch, no download.">
+<meta name="description" content="Iron Guns is a free first-person 3D battle royale in your browser: 100 players drop onto a huge island of hills, towns, lakes and bridges, loot houses and chests for pistols, shotguns, rifles, rocket launchers and sniper rifles, chop trees for wood, build walls, heal with medkits and stay inside the eye of the closing storm. Last one standing wins. Keyboard and mouse or touch, no download.">
 <meta name="robots" content="index,follow,max-snippet:-1,max-image-preview:large">
 <link rel="canonical" href="https://irongames.win/ironguns.html">
 <link rel="icon" href="favicon.svg" type="image/svg+xml">
@@ -12,12 +12,12 @@
 <meta property="og:type" content="website">
 <meta property="og:site_name" content="Iron Games">
 <meta property="og:title" content="Iron Guns – Free First-Person Battle Royale | Iron Games">
-<meta property="og:description" content="24 players, a huge island of hills, towns and bridges, and a closing storm. Loot, build walls and be the last one standing. Free in your browser, no download.">
+<meta property="og:description" content="100 players, a huge island of hills, towns and bridges, and a closing storm. Loot, build walls and be the last one standing. Free in your browser, no download.">
 <meta property="og:url" content="https://irongames.win/ironguns.html">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="Iron Guns – Free First-Person Battle Royale | Iron Games">
-<meta name="twitter:description" content="24 players, a huge island, a closing storm. Last one standing wins. Free in your browser.">
-<script type="application/ld+json">{"@context":"https://schema.org","@graph":[{"@type":"VideoGame","name":"Iron Guns","url":"https://irongames.win/ironguns.html","genre":["Action","Battle royale","Shooter"],"gamePlatform":"Web browser","applicationCategory":"Game","operatingSystem":"Any","isAccessibleForFree":true,"offers":{"@type":"Offer","price":"0","priceCurrency":"USD"},"author":{"@type":"Organization","name":"Daniele Bros"},"publisher":{"@type":"Organization","name":"Daniele Bros"},"inLanguage":"en","dateModified":"2026-10-18","description":"A free first-person 3D battle royale: 24 players drop onto a huge island of hills, towns, lakes and bridges, loot pistols, shotguns, rifles, rocket launchers and sniper rifles from houses and chests, chop trees for wood, build walls, heal with medkits and outlast the closing storm."},{"@type":"BreadcrumbList","itemListElement":[{"@type":"ListItem","position":1,"name":"Iron Games","item":"https://irongames.win/"},{"@type":"ListItem","position":2,"name":"Iron Guns","item":"https://irongames.win/ironguns.html"}]}]}</script>
+<meta name="twitter:description" content="100 players, a huge island, a closing storm. Last one standing wins. Free in your browser.">
+<script type="application/ld+json">{"@context":"https://schema.org","@graph":[{"@type":"VideoGame","name":"Iron Guns","url":"https://irongames.win/ironguns.html","genre":["Action","Battle royale","Shooter"],"gamePlatform":"Web browser","applicationCategory":"Game","operatingSystem":"Any","isAccessibleForFree":true,"offers":{"@type":"Offer","price":"0","priceCurrency":"USD"},"author":{"@type":"Organization","name":"Daniele Bros"},"publisher":{"@type":"Organization","name":"Daniele Bros"},"inLanguage":"en","dateModified":"2026-10-18","description":"A free first-person 3D battle royale: 100 players drop onto a huge island of hills, towns, lakes and bridges, loot pistols, shotguns, rifles, rocket launchers and sniper rifles from houses and chests, chop trees for wood, build walls, heal with medkits and outlast the closing storm."},{"@type":"BreadcrumbList","itemListElement":[{"@type":"ListItem","position":1,"name":"Iron Games","item":"https://irongames.win/"},{"@type":"ListItem","position":2,"name":"Iron Guns","item":"https://irongames.win/ironguns.html"}]}]}</script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Oswald:wght@500;700&family=Share+Tech+Mono&display=swap" rel="stylesheet">
@@ -68,7 +68,7 @@ canvas{position:absolute;inset:0;width:100%;height:100%;display:block;}
 <canvas id="c"></canvas>
 <canvas id="ov"></canvas>
 <div id="hud">
-  <div id="alive"><b id="nAlive">24</b> PLAYERS LEFT<br><span id="kills">0 knocked</span></div>
+  <div id="alive"><b id="nAlive">100</b> PLAYERS LEFT<br><span id="kills">0 knocked</span></div>
   <div id="tide"><b id="tideT">STORM</b><br><span id="tideS">closing in</span></div>
   <div id="feed"></div>
   <div id="bars"><div class="bar"><i id="hpB"></i><span id="hpT">100</span></div><div class="bar sh"><i id="shB"></i><span id="shT">0</span></div><div id="mats">🪵 0 · 🪨 0 · 🩹 0 · 🧪 0</div></div>
@@ -83,7 +83,7 @@ canvas{position:absolute;inset:0;width:100%;height:100%;display:block;}
 const $=id=>document.getElementById(id);
 const cv=$('c');const ov=$('ov'),ctx=ov.getContext('2d');const mini=$('mini'),mctx=mini.getContext('2d');
 const PI=Math.PI,TAU=PI*2,rnd=(a,b)=>a+Math.random()*(b-a),ri=(a,b)=>Math.floor(rnd(a,b+1)),clamp=(v,a,b)=>v<a?a:v>b?b:v,pick=a=>a[Math.floor(Math.random()*a.length)];
-const WORLD=18000,ISLAND=8200,N_PLAYERS=24,CELL=40,NG=Math.round(WORLD/CELL)+1,TCH=225;
+const WORLD=36000,ISLAND=16400,N_PLAYERS=100,CELL=60,NG=Math.round(WORLD/CELL)+1,TCH=225;
 const WEAPONS={
   pistol:{n:'Pistol',dmg:9,rate:0.22,spd:620,spread:0.045,range:560,pellets:1,size:4,col:'#5cf',sfx:[900,0.05],mag:12,reload:1.3,cls:'light',kind:'bullet'},
   blaster:{n:'Shotgun',dmg:7,rate:0.95,spd:430,spread:0.2,range:300,pellets:5,size:5,col:'#9ef',sfx:[300,0.1],mag:6,reload:2.2,cls:'shell',kind:'pellet'},
@@ -92,7 +92,7 @@ const WEAPONS={
   snorkel:{n:'Sniper Rifle',dmg:60,rate:1.6,spd:1000,spread:0.014,range:1400,pellets:1,size:4,col:'#fd4',sfx:[1200,0.12],mag:5,reload:2.6,cls:'sniper',kind:'bullet'}};
 const AMMO_CLS=['light','shell','rocket','sniper'],AMMO_START={light:48,shell:14,rocket:3,sniper:10},AMMO_BOX={light:30,shell:8,rocket:2,sniper:5};
 const RAR=[{n:'Common',m:1,c:'#cfd',cls:'c1'},{n:'Rare',m:1.15,c:'#6cf',cls:'c2'},{n:'Epic',m:1.32,c:'#c8f',cls:'c3'},{n:'Legendary',m:1.5,c:'#fc5',cls:'c4'}];
-const NAMES=['Max','Ava','Leo','Zoe','Kai','Mia','Finn','Ruby','Jax','Luna','Eli','Nova','Theo','Ivy','Rex','Cleo','Ace','Sky','Ollie','Rosa','Dash','Pip','Blaze'];
+const NAMES=['Max','Ava','Leo','Zoe','Kai','Mia','Finn','Ruby','Jax','Luna','Eli','Nova','Theo','Ivy','Rex','Cleo','Ace','Sky','Ollie','Rosa','Dash','Pip','Blaze','Milo','Nia','Otto','Vera','Hugo','Lila','Nico','Faye','Axel','Juno','Remy','Tess','Zane','Ella','Bodhi','Wren','Cruz','Iris','Knox','Maya','Enzo','Opal','Ravi','Sage','Troy','Uma','Vince','Willa','Yara','Zeke','Arlo','Bea','Cole','Dina','Ezra','Gia','Hank','Isla','Jude','Kira','Lars','Mina','Nash','Orla','Paz','Quin','Rio','Suki','Tate','Ulla','Vito','Wes','Xavi','Yuki','Zara','Beck','Cass','Drew','Elke','Flor','Gus','Hera','Ike','Jem','Kit','Lou','Moss','Nell','Odin','Perl','Reed','Sol','Tove','Umi','Vale','Wim','Yves','Zuri','Ash','Bo','Cy'];
 const SKINS=['#f1c9a5','#e0ac7e','#c68642','#8d5524','#f6d7bd','#a0683a'];
 const COLORS=['#d9534f','#5b8def','#f0a030','#8e44ad','#16a085','#e84393','#2ecc71','#e67e22','#34495e','#00bcd4','#c0392b','#f1c40f'];
 let W=0,H=0,DPR=1;
@@ -107,7 +107,7 @@ function hsh(x,y){const s=Math.sin(x*127.1+y*311.7)*43758.5453;return s-Math.flo
 function vn(x,y){const ix=Math.floor(x),iy=Math.floor(y);let fx=x-ix,fy=y-iy;fx=fx*fx*(3-2*fx);fy=fy*fy*(3-2*fy);const a=hsh(ix,iy),b=hsh(ix+1,iy),c=hsh(ix,iy+1),d=hsh(ix+1,iy+1);return a+(b-a)*fx+(c-a)*fy+(a-b-c+d)*fx*fy}
 const sstep=(a,b,v)=>{const t=clamp((v-a)/(b-a),0,1);return t*t*(3-2*t)};
 function rawH(L,x,z){const ox=L.ox,oz=L.oz;let h=vn((x+ox)*0.0009,(z+oz)*0.0009)*80+vn((x+ox)*0.0035,(z+oz)*0.0035)*22+vn((x+ox)*0.012,(z+oz)*0.012)*5;
-  for(const H of L.hills){const dx=x-H.x,dz=z-H.y;h+=H.h*Math.exp(-(dx*dx+dz*dz)/(2*H.r*H.r))}
+  for(const H of L.hills){const dx=x-H.x,dz=z-H.y;const lim=H.r*3.2;if(dx>lim||dx<-lim||dz>lim||dz<-lim)continue;h+=H.h*Math.exp(-(dx*dx+dz*dz)/(2*H.r*H.r))}
   for(const K of L.lakes){const d=Math.hypot(x-K.x,z-K.y);if(d<K.r+140)h-=K.dep*sstep(K.r+140,K.r*0.35,d)}
   for(const T of L.towns){const d=Math.hypot(x-T.x,z-T.y);if(d<T.r*1.25)h+=(T.h-h)*sstep(T.r*1.25,T.r*0.85,d)}
   for(const B of L.bridges)for(const e of [B.p0,B.p1]){const d=Math.hypot(x-e[0],z-e[1]);if(d<170)h+=(B.y-3-h)*sstep(170,70,d)}
@@ -124,16 +124,16 @@ Grid.prototype.remove=function(o){if(!o.cells)return;for(const s of o.cells){con
 Grid.prototype.each=function(x,y,r,fn){const c0x=Math.floor((x-r)/256),c1x=Math.floor((x+r)/256),c0y=Math.floor((y-r)/256),c1y=Math.floor((y+r)/256);for(let cx=c0x;cx<=c1x;cx++)for(let cy=c0y;cy<=c1y;cy++){const s=this.m.get(cx*4096+cy);if(!s)continue;for(let i=s.length-1;i>=0;i--)if(fn(s[i]))return true}return false};
 function newGame(){
   const g={t:0,phase:'ready',ready:3,turtles:[],shots:[],items:[],trees:[],rocks:[],bushes:[],walls:[],chests:[],parts:[],feed:[],towns:[],houses:[],bridges:[],lakes:[],vehicles:[],
-    tide:{cx:WORLD/2,cy:WORLD/2,r:ISLAND+300,tx:WORLD/2,ty:WORLD/2,tr:ISLAND+300,wait:75,shrink:0,stage:0,dps:1.5},alive:N_PLAYERS,placed:0,kills:0,over:false,cam:{x:WORLD/2,y:WORLD/2,yaw:0,pitch:-0.05},shake:0,camStorm:0,dtDraw:0.016,
+    tide:{cx:WORLD/2,cy:WORLD/2,r:ISLAND+300,tx:WORLD/2,ty:WORLD/2,tr:ISLAND+300,wait:90,shrink:0,stage:0,dps:1.5},alive:N_PLAYERS,placed:0,kills:0,over:false,cam:{x:WORLD/2,y:WORLD/2,yaw:0,pitch:-0.05},shake:0,camStorm:0,dtDraw:0.016,
     gTree:new Grid(),gRock:new Grid(),gBush:new Grid(),gWall:new Grid()};
   G=g;const C=WORLD/2;
   // 1. the land
   const L={ox:rnd(0,5000),oz:rnd(0,5000),hills:[],lakes:[],towns:[],bridges:[]};
   const far=(x,y,list,gap)=>list.every(o=>Math.hypot(o.x-x,o.y-y)>gap+(o.r||0));
-  for(let i=0;i<52;i++){const a=rnd(0,TAU),d=Math.sqrt(Math.random())*ISLAND*0.78;L.hills.push({x:C+Math.cos(a)*d,y:C+Math.sin(a)*d,r:rnd(260,560),h:rnd(80,240)})}
-  for(let i=0;i<200&&L.lakes.length<13;i++){const a=rnd(0,TAU),d=Math.sqrt(Math.random())*ISLAND*0.68;const x=C+Math.cos(a)*d,y=C+Math.sin(a)*d,r=rnd(190,330);if(!far(x,y,L.lakes,r+450))continue;const K={x,y,r,dep:0};K.dep=rawH(L,x,y)+48;L.lakes.push(K)}
-  for(let i=0;i<300&&L.towns.length<15;i++){const a=rnd(0,TAU),d=Math.sqrt(Math.random())*ISLAND*0.8;const x=C+Math.cos(a)*d,y=C+Math.sin(a)*d,r=rnd(340,480);if(!far(x,y,L.lakes,r+260)||!far(x,y,L.towns,r+420))continue;const h=Math.max(12,rawH(L,x,y));L.towns.push({x,y,r,h,chests:0})}
-  for(let i=0;i<400;i++){const a=rnd(0,TAU),d=Math.sqrt(Math.random())*ISLAND*0.6;const x=C+Math.cos(a)*d,y=C+Math.sin(a)*d,r=820;if(!far(x,y,L.lakes,r+200)||!far(x,y,L.towns,r+300))continue;L.towns.push({x,y,r,h:Math.max(14,rawH(L,x,y)),chests:0,air:true,yaw:pick([0,PI/2,PI,-PI/2])});break}
+  for(let i=0;i<200;i++){const a=rnd(0,TAU),d=Math.sqrt(Math.random())*ISLAND*0.78;L.hills.push({x:C+Math.cos(a)*d,y:C+Math.sin(a)*d,r:rnd(260,560),h:rnd(80,240)})}
+  for(let i=0;i<900&&L.lakes.length<50;i++){const a=rnd(0,TAU),d=Math.sqrt(Math.random())*ISLAND*0.68;const x=C+Math.cos(a)*d,y=C+Math.sin(a)*d,r=rnd(190,330);if(!far(x,y,L.lakes,r+450))continue;const K={x,y,r,dep:0};K.dep=rawH(L,x,y)+48;L.lakes.push(K)}
+  for(let i=0;i<1400&&L.towns.length<60;i++){const a=rnd(0,TAU),d=Math.sqrt(Math.random())*ISLAND*0.8;const x=C+Math.cos(a)*d,y=C+Math.sin(a)*d,r=rnd(340,480);if(!far(x,y,L.lakes,r+260)||!far(x,y,L.towns,r+420))continue;const h=Math.max(12,rawH(L,x,y));L.towns.push({x,y,r,h,chests:0})}
+  for(let i=0,na=0;i<1200&&na<3;i++){const a=rnd(0,TAU),d=Math.sqrt(Math.random())*ISLAND*0.7;const x=C+Math.cos(a)*d,y=C+Math.sin(a)*d,r=820;if(!far(x,y,L.lakes,r+200)||!far(x,y,L.towns,r+300))continue;L.towns.push({x,y,r,h:Math.max(14,rawH(L,x,y)),chests:0,air:true,yaw:pick([0,PI/2,PI,-PI/2])});na++}
   for(const K of L.lakes){const ax=Math.random()<0.5;const dx=ax?1:0,dz=ax?0:1;const e=K.r+90;const p0=[K.x-dx*e,K.y-dz*e],p1=[K.x+dx*e,K.y+dz*e];const y=Math.max(4,(rawH(L,p0[0],p0[1])+rawH(L,p1[0],p1[1]))/2)+4;
     L.bridges.push({p0,p1,dx,dz,ax,len:e*2,w:76,y,cx:K.x,cz:K.y,hx:ax?e:38,hz:ax?38:e})}
   g.land=L;g.towns=L.towns;g.lakes=L.lakes;g.bridges=L.bridges;g.HG=buildHeights(L);
@@ -157,16 +157,16 @@ function newGame(){
     g.chests.push({x:T.x+40,y:T.y+40,open:false,gy:T.h,town:T});T.chests++;T.lamps=[[T.x-80,T.y-80],[T.x+80,T.y-80],[T.x-80,T.y+80],[T.x+80,T.y+80]];
     const well={x:T.x,y:T.y,r:24,hp:9999,fixed:true,well:true,gy:T.h};g.rocks.push(well);g.gRock.add(well,well.r)}
   // 3. lookout towers on hill tops, bridge railings
-  let nt=0;for(const H of L.hills){if(nt>=12)break;if(inTown(H.x,H.y,200)||L.lakes.some(K=>Math.hypot(K.x-H.x,K.y-H.y)<K.r+300))continue;const tw={x:H.x,y:H.y,r:34,hp:9999,fixed:true,tower:true,gy:land(H.x,H.y)};g.rocks.push(tw);g.gRock.add(tw,tw.r);g.chests.push({x:H.x+70,y:H.y+20,open:false,gy:land(H.x+70,H.y+20)});nt++}
+  let nt=0;for(const H of L.hills){if(nt>=40)break;if(inTown(H.x,H.y,200)||L.lakes.some(K=>Math.hypot(K.x-H.x,K.y-H.y)<K.r+300))continue;const tw={x:H.x,y:H.y,r:34,hp:9999,fixed:true,tower:true,gy:land(H.x,H.y)};g.rocks.push(tw);g.gRock.add(tw,tw.r);g.chests.push({x:H.x+70,y:H.y+20,open:false,gy:land(H.x+70,H.y+20)});nt++}
   for(const B of L.bridges){for(const s of [-1,1]){const v=s*(B.w/2-6);addWall({x:B.cx+(B.ax?0:v),y:B.cz+(B.ax?v:0),a:B.ax?0:PI/2,len:B.len-30,h:12,hp:9999,fixed:true,rail:true,gy:B.y,tex:'planks',tint:[0.8,0.6,0.4]})}}
   // 4. forests, rocks, bushes, shell huts, loose chests and loot
   const spot=(m,minH,gap)=>{for(let i=0;i<60;i++){const a=rnd(0,TAU),r=Math.sqrt(Math.random())*(ISLAND-m);const x=C+Math.cos(a)*r,y=C+Math.sin(a)*r;if(land(x,y)<minH||inTown(x,y,40)||onBridge(x,y)||solidAt(x,y,gap||40))continue;return [x,y]}return null};
-  for(let i=0;i<4800;i++){const s=spot(60,8,62);if(!s)continue;const t={x:s[0],y:s[1],r:rnd(16,26),hp:3,gy:land(s[0],s[1])};g.trees.push(t);g.gTree.add(t,t.r)}
-  for(let i=0;i<1500;i++){const s=spot(60,1,56);if(!s)continue;const r={x:s[0],y:s[1],r:rnd(14,22),hp:4,gy:land(s[0],s[1])};g.rocks.push(r);g.gRock.add(r,r.r)}
-  for(let i=0;i<2200;i++){const s=spot(40,6);if(!s)continue;const b={x:s[0],y:s[1],r:rnd(22,30),gy:land(s[0],s[1])};g.bushes.push(b);g.gBush.add(b,b.r)}
-  for(let i=0;i<130;i++){const s=spot(150,8);if(!s)continue;const [x,y]=s;const d=70,gy=land(x,y);for(const [wx,wy,a] of [[x,y-d,0],[x,y+d,0],[x-d,y,PI/2]])addWall({x:wx,y:wy,a,hp:220,stone:true,len:2*d,gy});g.chests.push({x,y,open:false,gy})}
-  for(let i=0;i<330;i++){const s=spot(60,8);if(!s)continue;g.chests.push({x:s[0],y:s[1],open:false,gy:land(s[0],s[1])})}
-  for(let i=0;i<1100;i++){const s=spot(40,8);if(!s)continue;g.items.push(makeItem(s[0],s[1],Math.random()<0.5?'weapon':pick(['lettuce','shield','wood','stone','ammo','ammo'])))}
+  for(let i=0;i<19000;i++){const s=spot(60,8,62);if(!s)continue;const t={x:s[0],y:s[1],r:rnd(16,26),hp:3,gy:land(s[0],s[1])};g.trees.push(t);g.gTree.add(t,t.r)}
+  for(let i=0;i<6000;i++){const s=spot(60,1,56);if(!s)continue;const r={x:s[0],y:s[1],r:rnd(14,22),hp:4,gy:land(s[0],s[1])};g.rocks.push(r);g.gRock.add(r,r.r)}
+  for(let i=0;i<8800;i++){const s=spot(40,6);if(!s)continue;const b={x:s[0],y:s[1],r:rnd(22,30),gy:land(s[0],s[1])};g.bushes.push(b);g.gBush.add(b,b.r)}
+  for(let i=0;i<500;i++){const s=spot(150,8);if(!s)continue;const [x,y]=s;const d=70,gy=land(x,y);for(const [wx,wy,a] of [[x,y-d,0],[x,y+d,0],[x-d,y,PI/2]])addWall({x:wx,y:wy,a,hp:220,stone:true,len:2*d,gy});g.chests.push({x,y,open:false,gy})}
+  for(let i=0;i<1300;i++){const s=spot(60,8);if(!s)continue;g.chests.push({x:s[0],y:s[1],open:false,gy:land(s[0],s[1])})}
+  for(let i=0;i<4400;i++){const s=spot(40,8);if(!s)continue;g.items.push(makeItem(s[0],s[1],Math.random()<0.5?'weapon':pick(['lettuce','shield','wood','stone','ammo','ammo'])))}
   // 5. players, dropped far apart from each other all over the island
   const names=NAMES.slice().sort(()=>Math.random()-0.5);const spawns=[];
   const spawnAt=()=>{let best=null,bd=-1;for(let k=0;k<50;k++){const a=rnd(0,TAU),r=Math.sqrt(Math.random())*ISLAND*0.86;const x=C+Math.cos(a)*r,y=C+Math.sin(a)*r;if(land(x,y)<10||onBridge(x,y)||solidAt(x,y,24))continue;let d=1e9;for(const s of spawns)d=Math.min(d,Math.hypot(s[0]-x,s[1]-y));if(d>bd){bd=d;best=[x,y]}}best=best||[C,C];spawns.push(best);return best};
@@ -222,11 +222,11 @@ function harvest(t){const ax=t.x+Math.cos(t.aim)*34,ay=t.y+Math.sin(t.aim)*34;co
   if(G.gRock.each(ax,ay,12,r=>{if(!r.fixed&&Math.hypot(r.x-ax,r.y-ay)<r.r+10){r.hp--;t.stone=Math.min(500,t.stone+15);snd(120,0.04);if(r.hp<=0){G.gRock.remove(r);G.rocks.splice(G.rocks.indexOf(r),1)}return true}}))return true;
   const w=hitWall(ax,ay,10);if(w&&!w.fixed){w.hp-=40;if(w.hp<=0)removeWall(w);snd(150,0.05);return true}return false}
 // ---------- the storm ----------
-const STORM_WAIT=[75,35,30,25,20,15,10],STORM_SHRINK=[60,50,40,35,30,25,20];
-function planStorm(T){const nr=Math.max(0,T.r*(T.stage<6?0.58:0));const a=rnd(0,TAU),m=Math.random()*(T.r-nr)*0.7;let tx=T.cx+Math.cos(a)*m,ty=T.cy+Math.sin(a)*m;const dc=Math.hypot(tx-WORLD/2,ty-WORLD/2);if(dc>ISLAND*0.7){tx=WORLD/2+(tx-WORLD/2)*ISLAND*0.7/dc;ty=WORLD/2+(ty-WORLD/2)*ISLAND*0.7/dc}T.tx=tx;T.ty=ty;T.tr=nr}
+const STORM_WAIT=[90,40,35,30,25,20,15,10],STORM_SHRINK=[75,60,50,40,35,30,25,20];
+function planStorm(T){const nr=Math.max(0,T.r*(T.stage<7?0.58:0));const a=rnd(0,TAU),m=Math.random()*(T.r-nr)*0.7;let tx=T.cx+Math.cos(a)*m,ty=T.cy+Math.sin(a)*m;const dc=Math.hypot(tx-WORLD/2,ty-WORLD/2);if(dc>ISLAND*0.7){tx=WORLD/2+(tx-WORLD/2)*ISLAND*0.7/dc;ty=WORLD/2+(ty-WORLD/2)*ISLAND*0.7/dc}T.tx=tx;T.ty=ty;T.tr=nr}
 function tickStorm(dt){const T=G.tide;if(G.phase!=='play')return;if(!T.planned){T.planned=true;planStorm(T)}
-  if(T.wait>0){T.wait-=dt;if(T.wait<=0){T.shrink=STORM_SHRINK[Math.min(T.stage,6)];T.from={cx:T.cx,cy:T.cy,r:T.r};T.total=T.shrink;banner('THE STORM IS CLOSING IN');beep(90,0.8,'sawtooth',0.07)}}
-  else if(T.shrink>0){T.shrink-=dt;const k=1-Math.max(0,T.shrink)/T.total;T.cx=T.from.cx+(T.tx-T.from.cx)*k;T.cy=T.from.cy+(T.ty-T.from.cy)*k;T.r=T.from.r+(T.tr-T.from.r)*k;if(T.shrink<=0){T.stage++;T.wait=STORM_WAIT[Math.min(T.stage,6)];T.dps=1.5+T.stage*1.2;T.cx=T.tx;T.cy=T.ty;T.r=T.tr;planStorm(T)}}
+  if(T.wait>0){T.wait-=dt;if(T.wait<=0){T.shrink=STORM_SHRINK[Math.min(T.stage,7)];T.from={cx:T.cx,cy:T.cy,r:T.r};T.total=T.shrink;banner('THE STORM IS CLOSING IN');beep(90,0.8,'sawtooth',0.07)}}
+  else if(T.shrink>0){T.shrink-=dt;const k=1-Math.max(0,T.shrink)/T.total;T.cx=T.from.cx+(T.tx-T.from.cx)*k;T.cy=T.from.cy+(T.ty-T.from.cy)*k;T.r=T.from.r+(T.tr-T.from.r)*k;if(T.shrink<=0){T.stage++;T.wait=STORM_WAIT[Math.min(T.stage,7)];T.dps=1.5+T.stage*1.2;T.cx=T.tx;T.cy=T.ty;T.r=T.tr;planStorm(T)}}
   for(const t of G.turtles){if(!t.alive)continue;const out=Math.hypot(t.x-T.cx,t.y-T.cy)>T.r;t.inStorm=out;if(out){t.stormAcc=(t.stormAcc||0)+dt;if(t.stormAcc>=1){t.stormAcc-=1;damage(t,T.dps,null)}}}}
 // ---------- bots ----------
 // houses have one door: route through it instead of pressing against the walls
@@ -239,7 +239,7 @@ function routeTo(t,tx,ty){const hin=houseAt(t.x,t.y),hto=houseAt(tx,ty);const la
 function botThink(t,dt){const ai=t.ai;const T=G.tide;ai.wt-=dt;ai.buildCd-=dt;
   ai.winT=(ai.winT||0)+dt;if(ai.winT>2){ai.winT=0;const mv=ai.px===undefined?99:Math.hypot(t.x-ai.px,t.y-ai.py);ai.px=t.x;ai.py=t.y;if(mv<25&&ai.wantMove){ai.unstick=rnd(0,TAU);ai.unT=1.5;ai.turn=-(ai.turn||0.6)}}ai.wantMove=false;
   // what can I see
-  let best=null,bd=1e9;const vis=inBush(t)?640:560;for(const o of G.turtles){if(o===t||!o.alive)continue;const d=Math.hypot(o.x-t.x,o.y-t.y);const seeR=inBush(o)?150:vis;if(d<seeR&&d<bd&&losClear(t,o)){bd=d;best=o}}
+  let best=null,bd=1e9;if(t.bushF!==G.frame){t.bushF=G.frame;t.bushy=inBush(t)}const vis=t.bushy?640:560;for(const o of G.turtles){if(o===t||!o.alive)continue;const d=Math.hypot(o.x-t.x,o.y-t.y);if(d>=vis||d>=bd)continue;if(o.bushF!==G.frame){o.bushF=G.frame;o.bushy=inBush(o)}const seeR=o.bushy?150:vis;if(d<seeR&&losClear(t,o)){bd=d;best=o}}
   ai.target=best;const gun=t.weapons[t.sel];
   // survival first
   if(t.hp<40&&t.lettuce>0&&!best)eat(t);if(t.shield<30&&t.potions>0&&(!best||Math.random()<dt*0.5))drink(t);
@@ -248,9 +248,11 @@ function botThink(t,dt){const ai=t.ai;const T=G.tide;ai.wt-=dt;ai.buildCd-=dt;
   const dNext=Math.hypot(t.x-T.tx,t.y-T.ty),dCur=Math.hypot(t.x-T.cx,t.y-T.cy);const hurry=T.shrink>0||T.wait<14;
   const outSoon=t.inStorm||dCur>T.r-160||(hurry&&dNext>T.tr-220-(t.id%4)*40);const urgent=t.inStorm||(T.shrink>0&&dNext>T.tr-80);t.sprint=urgent;
   if(!gun||(!best&&Math.random()<0.5)){ // go shopping
-    let ni=null,nd=1e9;for(const it of G.items){const want=it.kind==='ammo'?false:it.kind==='weapon'?(!gun||it.rar>gun.rar):it.kind==='lettuce'?t.lettuce<3:it.kind==='shield'?t.potions<2:t.wood<100;if(!want)continue;const d=Math.hypot(it.x-t.x,it.y-t.y);if(d<nd&&d<900){nd=d;ni=it}}
-    for(const c of G.chests){if(c.open)continue;const d=Math.hypot(c.x-t.x,c.y-t.y);if(d<nd&&d<900){nd=d;ni=c}}
-    if(ni){[mx,my]=routeTo(t,ni.x,ni.y)}else{let bt=null,bdd=1e9;for(const Tn of G.towns){if(Tn.chests<=0)continue;const d=Math.hypot(Tn.x-t.x,Tn.y-t.y);if(d<bdd){bdd=d;bt=Tn}}if(bt&&bdd>200){[mx,my]=routeTo(t,bt.x,bt.y);ni=bt}}}
+    ai.lootT=(ai.lootT||0)-dt;let ni=ai.loot;if(ni&&(ni.taken||ni.open||(ni.chests!==undefined&&ni.chests<=0)))ni=null;
+    if(ai.lootT<=0||!ni){ai.lootT=0.4+Math.random()*0.3;ni=null;let nd=1e9;for(const it of G.items){const dx=it.x-t.x,dy=it.y-t.y;if(dx>900||dx<-900||dy>900||dy<-900)continue;const want=it.kind==='ammo'?false:it.kind==='weapon'?(!gun||it.rar>gun.rar):it.kind==='lettuce'?t.lettuce<3:it.kind==='shield'?t.potions<2:t.wood<100;if(!want)continue;const d=Math.hypot(dx,dy);if(d<nd&&d<900){nd=d;ni=it}}
+      for(const c of G.chests){if(c.open)continue;const dx=c.x-t.x,dy=c.y-t.y;if(dx>900||dx<-900||dy>900||dy<-900)continue;const d=Math.hypot(dx,dy);if(d<nd&&d<900){nd=d;ni=c}}
+      if(!ni){let bt=null,bdd=1e9;for(const Tn of G.towns){if(Tn.chests<=0)continue;const d=Math.hypot(Tn.x-t.x,Tn.y-t.y);if(d<bdd){bdd=d;bt=Tn}}if(bt&&bdd>200)ni=bt}ai.loot=ni}
+    if(ni){[mx,my]=routeTo(t,ni.x,ni.y)}}
   if(best&&gun){const def=WEAPONS[gun.k];const want=def.range*0.55;const dx=best.x-t.x,dy=best.y-t.y;const d=Math.hypot(dx,dy)||1;
     // aim with a little error, fire when ready
     const err=(0.2-t.id%5*0.025)*(0.5+d/400);t.aim=Math.atan2(dy,dx)+rnd(-err,err);if(d<def.range*0.9&&t.cd<=0&&Math.random()<0.75)fire(t,Math.atan2(best.gy-t.gy,d));
@@ -274,7 +276,7 @@ function ni_zero(x,y){return !x&&!y}
 function speedOf(t){let s=190;if(t.inWater)s*=0.5;else if(inBush(t))s*=0.85;if(t.sprint&&!t.inWater)s*=1.4;if(t===G.me)s*=(1-0.4*(G.adsK||0))*(1-0.5*(G.scopeK||0));return s}
 function jump(t){if(!t.alive||t.jz>0||t.inWater)return;t.jv=200;t.jz=0.01;if(t===G.me)beep(300,0.05,'triangle',0.02)}
 // ---------- update ----------
-function update(dt){const g=G;g.t+=dt;
+function update(dt){const g=G;g.t+=dt;g.frame=(g.frame||0)+1;
   if(g.phase==='ready'){g.ready-=dt;if(g.ready<=0){g.phase='play';banner('GO! LAST ONE STANDING');beep(700,0.3,'triangle',0.06)}}
   const me=g.me;
   {const w=me.weapons[me.sel];const canAim=me.alive&&g.phase==='play'&&!g.over&&w;const scopeT=canAim&&w.k==='snorkel'&&(keys.AltLeft||keys.AltRight)?1:0;const adsT=canAim&&!scopeT&&(keys.ShiftLeft||keys.ShiftRight||touch.aim)?1:0;g.adsK=(g.adsK||0)+(adsT-(g.adsK||0))*Math.min(1,dt*10);g.scopeK=(g.scopeK||0)+(scopeT-(g.scopeK||0))*Math.min(1,dt*8)}
@@ -287,8 +289,12 @@ function update(dt){const g=G;g.t+=dt;
       t.aim=yaw;
       const w0=t.weapons[t.sel];if(mouse.clickQ>0)mouse.clickQ-=dt;const wantFire=touch.fire||(mouse.down&&(!w0||!mouse.fired))||(w0&&mouse.clickQ>0);if(wantFire&&t.cd<=0){if(w0){fire(t);mouse.fired=true;mouse.clickQ=0}else{t.cd=0.35;harvest(t)}}}
     // loot and chests under your feet
-    for(let i=g.items.length-1;i>=0;i--){const it=g.items[i];it.t+=dt;if(Math.hypot(it.x-t.x,it.y-t.y)<t.r+12&&it.t>0.6){if(pickup(t,it)){g.items.splice(i,1);if(t===me)beep(it.kind==='weapon'?880:660,0.07,'triangle',0.04)}}}
-    for(const c of g.chests){if(!c.open&&Math.hypot(c.x-t.x,c.y-t.y)<t.r+20)openChest(c)}}
+    }
+  // loot and chests under people's feet: bucket the players by 256-unit cell, then one pass over items and chests
+  {const B=new Map();const key=(x,y)=>Math.floor(x/256)*4096+Math.floor(y/256);for(const t of g.turtles){if(!t.alive)continue;const k=key(t.x,t.y);let a=B.get(k);if(!a)B.set(k,a=[]);a.push(t)}
+    const nearT=(x,y,fn)=>{const cx=Math.floor(x/256),cy=Math.floor(y/256);for(let ox=-1;ox<=1;ox++)for(let oy=-1;oy<=1;oy++){const a=B.get((cx+ox)*4096+cy+oy);if(a)for(const t of a)if(fn(t))return true}return false};
+    for(let i=g.items.length-1;i>=0;i--){const it=g.items[i];it.t+=dt;if(it.t<=0.6)continue;nearT(it.x,it.y,t=>{if(Math.hypot(it.x-t.x,it.y-t.y)<t.r+12&&pickup(t,it)){it.taken=true;g.items.splice(i,1);if(t===me)beep(it.kind==='weapon'?880:660,0.07,'triangle',0.04);return true}return false})}
+    for(const c of g.chests){if(c.open)continue;nearT(c.x,c.y,t=>{if(Math.hypot(c.x-t.x,c.y-t.y)<t.r+20){openChest(c);return true}return false})}}
   // shots
   for(let i=g.shots.length-1;i>=0;i--){const s=g.shots[i];s.life-=dt;if(s.bomb)s.vh-=520*dt;if(s.life0===undefined)s.life0=s.life;if(s.kind==='rocket'&&s.life0-s.life>0.12&&Math.random()<dt*50)g.parts.push({x:s.x,y:s.y,h:s.h,vx:rnd(-12,12),vy:rnd(-12,12),vh:rnd(8,25),t:rnd(0.5,1),c:'#a8a8a8',grow:true});const nx=s.x+s.vx*dt,ny=s.y+s.vy*dt;s.h+=s.vh*dt;let dead=s.life<=0;
     if(!dead)for(const v of g.vehicles){if(v.gone||v.dead||v===s.fromVeh)continue;const D=VEHDEF[v.kind];if(Math.hypot(v.x-nx,v.y-ny)<D.R+s.size&&s.h>v.h-8&&s.h<v.h+D.H){hitVehicle(v,s.dmg,s.by);if(v.driver&&s.dmg>=40)damage(v.driver,s.dmg*0.25,s.by);dead=true;for(let k=0;k<5;k++)g.parts.push({x:nx,y:ny,h:s.h,vx:rnd(-80,80),vy:rnd(-80,80),t:0.3,c:'#fc8'});break}}
@@ -612,8 +618,8 @@ function tickVehicles(dt){const g=G;for(const v of g.vehicles){if(v.gone)continu
     if(t){t.x=v.x;t.y=v.y;t.gy=v.h;t.jz=0;t.jv=0;t.moving=false;t.aim=v.yaw;if(me)t.sprint=false}}}
 // vehicle spawns: cars in towns and on the roadside, the airfield's jets and bombers
 function spawnVehicles(g){for(const T of g.towns){if(T.air)continue;const a=rnd(0,TAU);addVehicle('car',T.x+Math.cos(a)*95,T.y+Math.sin(a)*95,a+PI/2);if(Math.random()<0.5)addVehicle('car',T.x+Math.cos(a+PI)*95,T.y+Math.sin(a+PI)*95,a-PI/2)}
-  for(let i=0,n=0;i<400&&n<10;i++){const a=rnd(0,TAU),r=Math.sqrt(Math.random())*ISLAND*0.8;const x=WORLD/2+Math.cos(a)*r,y=WORLD/2+Math.sin(a)*r;if(terrainH(x,y)<10||onBridge(x,y)||solidAt(x,y,90)||g.towns.some(T=>Math.hypot(T.x-x,T.y-y)<T.r+200))continue;addVehicle('car',x,y,rnd(0,TAU));n++}
-  const A=g.towns.find(T=>T.air);if(A){const ax=Math.cos(A.yaw),ay=Math.sin(A.yaw),px=-ay,py=ax;for(let i=0;i<3;i++)addVehicle('jet',A.x+ax*(-380+i*260)+px*300,A.y+ay*(-380+i*260)+py*300,A.yaw);for(let i=0;i<2;i++)addVehicle('bomber',A.x+ax*(-420+i*840)+px*640,A.y+ay*(-420+i*840)+py*640,A.yaw);addVehicle('jet',A.x-ax*680,A.y-ay*680,A.yaw);for(const v of g.vehicles)if(v.kind!=='car')v.h=surfaceH(v.x,v.y)}
+  for(let i=0,n=0;i<1600&&n<40;i++){const a=rnd(0,TAU),r=Math.sqrt(Math.random())*ISLAND*0.8;const x=WORLD/2+Math.cos(a)*r,y=WORLD/2+Math.sin(a)*r;if(terrainH(x,y)<10||onBridge(x,y)||solidAt(x,y,90)||g.towns.some(T=>Math.hypot(T.x-x,T.y-y)<T.r+200))continue;addVehicle('car',x,y,rnd(0,TAU));n++}
+  for(const A of g.towns.filter(T=>T.air)){const ax=Math.cos(A.yaw),ay=Math.sin(A.yaw),px=-ay,py=ax;for(let i=0;i<3;i++)addVehicle('jet',A.x+ax*(-380+i*260)+px*300,A.y+ay*(-380+i*260)+py*300,A.yaw);for(let i=0;i<2;i++)addVehicle('bomber',A.x+ax*(-420+i*840)+px*640,A.y+ay*(-420+i*840)+py*640,A.yaw);addVehicle('jet',A.x-ax*680,A.y-ay*680,A.yaw);for(const v of g.vehicles)if(v.kind!=='car')v.h=surfaceH(v.x,v.y)}
   for(const v of g.vehicles)v.h=surfaceH(v.x,v.y)}
 function drawVehicle(v){const me=G.me;const R=vehR(v.yaw,v.pitch,v.bank);const fp=v.driver===me&&me.alive;const st={fp,gear:v.onGround||v.kind==='car',ab:v.kind==='jet'&&v.throttle>0.85&&v.flying,bay:v.bayT>0,pilot:!!v.driver,wheel:v.wheel,prop:v.prop,tint:v.dead?[0.22,0.2,0.19]:(v.hurtT>0?[1,0.6,0.6]:null)};
   drawParts(vehParts(v.kind,v.color),v.x,v.h,v.y,R,1,st)}
@@ -788,13 +794,13 @@ function hud(){const me=G.me;$('nAlive').textContent=G.alive;$('kills').textCont
   for(let i=0;i<5;i++){const d=sl.children[i];const w=me.weapons[i];d.className='slot'+(i===me.sel?' on':'')+(w?' '+RAR[w.rar].cls:'');d.innerHTML='<span class="k">'+(i+1)+'</span>'+(w?WEAPONS[w.k].n+'<br>'+w.mag+'/'+me.ammo[WEAPONS[w.k].cls]:'empty')}
   $('feed').innerHTML=G.feed.map(f=>'<div style="opacity:'+Math.min(1,f.t)+'">'+f.txt+'</div>').join('')}
 // ---------- screens ----------
-function titleScreen(){$('box').innerHTML='<h1>IRON GUNS</h1><h2>FIRST-PERSON BATTLE ROYALE</h2><p>24 players drop far apart onto a huge island of hills, forests, lakes, bridges and towns. Loot the houses and glowing chests for pistols, shotguns, rifles, rocket launchers and sniper rifles, chop trees for wood, build walls, patch up with medkits, steal a car or take a fighter jet or the B-27 bomber up from the airfield, and keep inside the eye as the storm closes in and the rain hammers down. Last one standing wins.</p>'+
+function titleScreen(){$('box').innerHTML='<h1>IRON GUNS</h1><h2>FIRST-PERSON BATTLE ROYALE</h2><p>100 players drop far apart onto a huge island of hills, forests, lakes, bridges and towns. Loot the houses and glowing chests for pistols, shotguns, rifles, rocket launchers and sniper rifles, chop trees for wood, build walls, patch up with medkits, steal a car or take a fighter jet or the B-27 bomber up from the airfield, and keep inside the eye as the storm closes in and the rain hammers down. Last one standing wins.</p>'+
   '<p><b>WASD</b> move · <b>Space</b> jump · <b>Shift</b> aim down the sights · <b>Alt</b> sniper scope · <b>R</b> reload (magazines run dry: grab ammo boxes) · double-tap <b>W</b> to sprint · <b>E</b> gets into cars, fighter jets and the B-27 bomber (planes: W throttle, look up to lift off, click or Space to shoot or bomb) · <b>Mouse</b> looks around (click the game to lock the mouse) · <b>Click</b> shoot, or chop trees and rocks with empty hands · <b>Q</b> or right click: build a wall (10 wood) · <b>F</b> medkit · <b>G</b> shield potion · <b>1-5</b> or wheel: weapons<br>On touch: left side moves, drag the right side to look, FIRE button shoots.</p>'+
   '<p style="color:#9c9">Best finish: '+(save.best?'#'+save.best:'none yet')+' · Wins: '+save.wins+' · Games: '+save.games+'</p><button class="btn" id="play">DROP IN</button>';$('msg').style.display='flex';$('play').onclick=start}
 function endScreen(won){const me=G.me;save.games++;if(won){save.wins++;save.best=1}else if(!save.best||me.place<save.best)save.best=me.place;persist();
   $('box').innerHTML=(won?'<h1>VICTORY</h1><h2>LAST ONE STANDING</h2>':'<h1>#'+me.place+' OF '+N_PLAYERS+'</h1><h2>KNOCKED OUT</h2>')+'<p>You knocked '+me.kills+' player'+(me.kills===1?'':'s')+'.'+(won?' The island is yours.':' Grab a gun faster next time, and watch the storm.')+'</p><button class="btn" id="again">PLAY AGAIN</button> <button class="btn" id="menu">TITLE</button>';
   $('msg').style.display='flex';$('again').onclick=start;$('menu').onclick=titleScreen}
-function start(){G=newGame();$('msg').style.display='none';beep(520,0.1,'triangle');hud()}
+function start(){const bx=$('box');bx.innerHTML='<h1>DROPPING IN</h1><h2>BUILDING THE ISLAND</h2><p>100 players, sixty towns, three airfields and a lot of trees. One moment.</p>';$('msg').style.display='flex';beep(520,0.1,'triangle');setTimeout(()=>{G=newGame();$('msg').style.display='none';hud()},30)}
 // ---------- input ----------
 let lastW=0;addEventListener('keydown',e=>{if(e.code==='AltLeft'||e.code==='AltRight'||e.code==='Space'||e.code==='Tab')e.preventDefault();if(e.repeat)return;keys[e.code]=true;if(!G||G.phase!=='play'||G.over)return;const me=G.me;
   if(e.code==='KeyW'){const now=performance.now();if(now-lastW<320)me.sprintTap=true;lastW=now}
