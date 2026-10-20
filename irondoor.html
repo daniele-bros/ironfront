@@ -136,6 +136,7 @@ function rawCell(x,y){const P=L.P;const cx=Math.floor(x/P),cy=Math.floor(y/P);co
   if(hash(x,y,18)<0.03)return 1;return 0}
 function cell(x,y){if(x===EXIT.x&&y===EXIT.y)return 2;const k=x*1e5+y;let v=cellCache.get(k);if(v===undefined){v=rawCell(x,y);cellCache.set(k,v)}return v}
 function open(x,y){return cell(Math.floor(x),Math.floor(y))===0}
+function nearestOpenCell(x,y){for(let r=0;r<20;r++)for(let dx=-r;dx<=r;dx++)for(let dy=-r;dy<=r;dy++){if(Math.max(Math.abs(dx),Math.abs(dy))!==r)continue;if(cell(x+dx,y+dy)===0)return [x+dx,y+dy]}return [x,y]}
 function nearestOpen(x,y){for(let r=0;r<20;r++)for(let dx=-r;dx<=r;dx++)for(let dy=-r;dy<=r;dy++){if(Math.max(Math.abs(dx),Math.abs(dy))!==r)continue;if(rawCell(x+dx,y+dy)===0)return [x+dx,y+dy]}return [x,y]}
 // ---------- state ----------
 const P={x:0,y:0,a:0,san:100,stam:100,water:0,bob:0,t:0,deep:0,lvlT:0,dead:false,won:false};let ENTS=[],ITEMS=[],playing=false,paused=false,flick=1,shake=0,lastT=0,caughtT=0;
@@ -164,6 +165,8 @@ function losClear(x0,y0,x1,y1){const dx=x1-x0,dy=y1-y0;const d=Math.hypot(dx,dy)
 function update(dt){P.t+=dt;P.lvlT+=dt;if(tipT>0){tipT-=dt;if(tipT<=0)$('tip').style.opacity=0}
   // look
   P.a+=mdx*0.0025+touch.look*dt;mdx=0;touch.look=0;
+  // never let the camera sit inside a wall: every ray would hit at zero distance and the picture would break up
+  if(cell(Math.floor(P.x),Math.floor(P.y))!==0){const [ox,oy]=nearestOpenCell(Math.floor(P.x),Math.floor(P.y));P.x=ox+0.5;P.y=oy+0.5}
   // walk
   let f=0,s=0;if(keys.KeyW||keys.ArrowUp)f+=1;if(keys.KeyS||keys.ArrowDown)f-=1;if(keys.KeyA||keys.ArrowLeft)s-=1;if(keys.KeyD||keys.ArrowRight)s+=1;f+=touch.my;s+=touch.mx;const ml=Math.hypot(f,s);if(ml>1){f/=ml;s/=ml}
   const wantRun=(keys.ShiftLeft||keys.ShiftRight||touch.run)&&ml>0.1;const run=wantRun&&P.stam>0;P.stam=clamp(P.stam+(run?-22:P.stam<100?12:0)*dt,0,100);
@@ -192,7 +195,7 @@ function update(dt){P.t+=dt;P.lvlT+=dt;if(tipT>0){tipT-=dt;if(tipT<=0)$('tip').s
   if(caughtT>0)caughtT-=dt;if(shake>0)shake=Math.max(0,shake-dt*2);
   $('san').firstChild.style.width=P.san+'%';$('stam').firstChild.style.width=P.stam+'%';$('inv').textContent='ALMOND WATER DRUNK: '+P.water+'   ·   '+fmt(P.t);
   $('noise').style.opacity=clamp(0.9-P.san/100,0,0.55)+clamp(1-nearest/5,0,0.4);$('hurt').style.background='rgba(120,0,0,'+(caughtT>0?0.45:P.san<25?0.18:0)+')'}
-function caught(e){P.san=clamp(P.san-30,0,100);caughtT=0.6;shake=1;snd.scream();const a=Math.atan2(P.y-e.y,P.x-e.x);moveBody(P,Math.cos(a)*1.2,Math.sin(a)*1.2,0.22);tip('IT GOT YOU','run')}
+function caught(e){P.san=clamp(P.san-30,0,100);caughtT=0.6;shake=1;snd.scream();const a=Math.atan2(P.y-e.y,P.x-e.x);for(let i=0;i<6;i++)moveBody(P,Math.cos(a)*0.2,Math.sin(a)*0.2,0.22);tip('IT GOT YOU','run')}
 // ---------- raycast renderer ----------
 const zbuf=new Float32Array(W);const FOV=0.66;
 function fogMix(c,f,fog){ // c ABGR, f 0..1 toward fog colour (array)
@@ -218,7 +221,7 @@ function render(){const fog=packFog(L.fog);const fogD=L.fogD;const dirX=Math.cos
     if(rx<0){stepX=-1;sdx=(P.x-mx)*ddx}else{stepX=1;sdx=(mx+1-P.x)*ddx}if(ry<0){stepY=-1;sdy=(P.y-my)*ddy}else{stepY=1;sdy=(my+1-P.y)*ddy}
     let side=0,hit=0,n=0;while(!hit&&n<60){if(sdx<sdy){sdx+=ddx;mx+=stepX;side=0}else{sdy+=ddy;my+=stepY;side=1}if(cell(mx,my)!==0)hit=1;n++}
     const dist=hit?(side===0?sdx-ddx:sdy-ddy):fogD*2;zbuf[x]=dist;const f=clamp(dist/fogD,0,1);
-    const lh=(H/dist)|0;let y0=hor-(lh>>1),y1=hor+(lh>>1);const ys=Math.max(0,y0),ye=Math.min(H-1,y1);
+    const lh=Math.min(H*16,H/Math.max(dist,0.01))|0;let y0=hor-(lh>>1),y1=hor+(lh>>1);const ys=Math.max(0,y0),ye=Math.min(H-1,y1);
     if(f>=1||!hit){for(let y=ys;y<=ye;y++)px[y*W+x]=fog.u;continue}
     let wx=side===0?P.y+dist*ry:P.x+dist*rx;wx-=Math.floor(wx);let tx=(wx*TS)|0;if((side===0&&rx>0)||(side===1&&ry<0))tx=TS-1-tx;
     const t=wallTexFor(mx,my,side,stepX,stepY);const k=(side===1?0.78:1)*bright;const step=TS/lh;let tp=(ys-y0)*step;
@@ -233,7 +236,7 @@ function render(){const fog=packFog(L.fog);const fogD=L.fogD;const dirX=Math.cos
     for(let x=Math.max(0,x0);x<Math.min(W,x0+wid);x++){if(zbuf[x]<trY)continue;const tx=((x-x0)*sp.s.w/wid)|0;
       for(let y=Math.max(0,y0);y<Math.min(H,y0+hgt);y++){const ty=((y-y0)*sp.s.h/hgt)|0;const c=sp.s.d[ty*sp.s.w+tx];if(!(c>>>24))continue;let cc=shade(c,k);px[y*W+x]=f>0?fogMix(cc,f,fog):cc}}}
   // low sanity: the picture tears
-  if(P.san<35&&rnd()<(35-P.san)/60){const rows=2+rnd()*6|0,y=rnd()*(H-rows)|0,off=(rnd()-0.5)*30|0;const row=px.slice(y*W,(y+rows)*W);for(let r=0;r<rows;r++)for(let x=0;x<W;x++)px[(y+r)*W+x]=row[r*W+((x+off+W)%W)]}
+  if(P.san<35&&rnd()<(35-P.san)/160){const rows=2+rnd()*6|0,y=rnd()*(H-rows)|0,off=(rnd()-0.5)*30|0;const row=px.slice(y*W,(y+rows)*W);for(let r=0;r<rows;r++)for(let x=0;x<W;x++)px[(y+r)*W+x]=row[r*W+((x+off+W)%W)]}
   ctx.putImageData(img,0,0)}
 // ---------- sound ----------
 const snd=(()=>{let ac=null,hum=null,humG=null,fearG=null,fearO=null,beat=0;const S={};
