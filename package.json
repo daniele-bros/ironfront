@@ -1,0 +1,11 @@
+{
+  "scripts": {
+    "build-activities": "node scripts/build-activity-pages.js",
+    "capture-previews": "node scripts/capture-previews.js",
+    "verify-site": "node scripts/verify-site.js",
+    "verify-mobile": "node scripts/verify-mobile.js"
+  },
+  "dependencies": {
+    "playwright": "^1.61.1"
+  }
+}

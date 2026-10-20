@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0,viewport-fit=cover,user-scalable=no">
+<title>Iron Aquarium – Free Fish Tank Game in Your Browser | Iron Games</title>
+<meta name="description" content="Iron Aquarium is a free browser fish tank game: buy goldfish, guppies, angelfish, clownfish, bettas and seahorses, feed them, wipe the algae off the glass, decorate the tank and earn coins from happy fish. Saves in your browser. No download.">
+<meta name="robots" content="index,follow,max-snippet:-1,max-image-preview:large">
+<link rel="canonical" href="https://irongames.win/ironaquarium.html">
+<link rel="icon" href="favicon.svg" type="image/svg+xml"><link rel="manifest" href="site.webmanifest">
+<meta property="og:type" content="website"><meta property="og:site_name" content="Iron Games"><meta property="og:title" content="Iron Aquarium – Fish Tank Game | Iron Games"><meta property="og:description" content="Feed, clean and decorate a fish tank full of colourful fish. Free in your browser, no download."><meta property="og:url" content="https://irongames.win/ironaquarium.html"><meta name="twitter:card" content="summary">
+<script type="application/ld+json">{"@context":"https://schema.org","@graph":[{"@type":"VideoGame","name":"Iron Aquarium","url":"https://irongames.win/ironaquarium.html","genre":["Casual","Simulation","Pets","Family"],"gamePlatform":"Web browser","applicationCategory":"Game","operatingSystem":"Any","isAccessibleForFree":true,"offers":{"@type":"Offer","price":"0","priceCurrency":"USD"},"author":{"@type":"Organization","name":"Daniele Bros","url":"https://irongames.win/"},"description":"A cozy fish tank game: buy six kinds of fish, drop food for them, wipe algae off the glass, add castles, plants and treasure chests, and earn coins from happy fish."},{"@type":"BreadcrumbList","itemListElement":[{"@type":"ListItem","position":1,"name":"Iron Games","item":"https://irongames.win/"},{"@type":"ListItem","position":2,"name":"Iron Aquarium","item":"https://irongames.win/ironaquarium.html"}]}]}</script>
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link href="https://fonts.googleapis.com/css2?family=Oswald:wght@500;700&family=Share+Tech+Mono&display=swap" rel="stylesheet">
+<style>
+:root{--gold:#e8c84a;--cream:#f0faff;--dim:#80b0c8;--panel:rgba(8,32,52,.94);--border:#2a6a8a;--accent:#7fe0ff;}
+*{box-sizing:border-box;margin:0;padding:0;}html,body{width:100%;height:100%;overflow:hidden;background:#06223a;}
+body{font-family:'Share Tech Mono','Courier New',monospace;color:var(--cream);user-select:none;-webkit-user-select:none;touch-action:none;}
+#wrap{position:absolute;inset:0;display:grid;grid-template-columns:1fr 300px;}#main{position:relative;overflow:hidden;}canvas#c{width:100%;height:100%;display:block;}
+#side{background:var(--panel);border-left:1px solid var(--border);display:flex;flex-direction:column;padding:12px;gap:7px;overflow-y:auto;}
+.back{position:absolute;top:10px;left:10px;z-index:30;background:rgba(8,32,52,.85);color:var(--dim);font-family:'Oswald',sans-serif;font-size:12px;letter-spacing:3px;padding:7px 12px;border:1px solid var(--border);text-decoration:none;border-radius:2px;}.back:hover{color:var(--gold);border-color:var(--gold);}
+h2.t{font-family:'Oswald',sans-serif;font-size:22px;letter-spacing:6px;color:var(--accent);}
+.stat{display:flex;justify-content:space-between;font-size:12px;letter-spacing:1px;padding:2px 0;border-bottom:1px dashed #1e4a62;}.stat b{color:var(--gold);}
+.btn{display:block;width:100%;background:#124060;border:1px solid var(--border);color:var(--cream);font-family:'Oswald',sans-serif;font-size:12px;letter-spacing:2px;padding:7px 6px;cursor:pointer;text-align:center;border-radius:6px;}.btn:hover{border-color:var(--accent);color:var(--accent);}.btn.on{background:#1e7aa0;border-color:var(--accent);color:#fff;}.btn:disabled{opacity:.4;cursor:default;}
+.row{display:flex;gap:5px;flex-wrap:wrap;}.row .btn{flex:1;min-width:60px;}
+#panel{flex:1;min-height:90px;overflow-y:auto;font-size:12px;line-height:1.5;border:1px solid var(--border);padding:8px;background:rgba(0,0,0,.3);border-radius:6px;}
+#panel h4{font-family:'Oswald',sans-serif;letter-spacing:3px;color:var(--accent);font-size:13px;margin:4px 0 6px;}
+#panel .it{display:flex;justify-content:space-between;align-items:center;gap:6px;padding:4px 0;border-bottom:1px solid #1e4a62;}#panel .it small{color:var(--dim);display:block;}
+#panel .it button{background:#124060;border:1px solid var(--border);color:var(--gold);font-family:'Oswald',sans-serif;font-size:11px;letter-spacing:2px;padding:5px 8px;cursor:pointer;border-radius:4px;white-space:nowrap;}#panel .it button:disabled{opacity:.35;cursor:default;}
+#log{max-height:70px;overflow-y:auto;font-size:11px;line-height:1.5;color:#cfe8f8;border-top:1px solid var(--border);padding-top:4px;}#log p.good{color:#8ff0a0;}
+#overlay{position:absolute;inset:0;display:none;align-items:center;justify-content:center;background:rgba(0,0,0,.55);z-index:20;padding:16px;}#overlay.on{display:flex;}
+.modal{background:var(--panel);border:2px solid var(--accent);border-radius:10px;padding:18px 20px;max-width:520px;width:100%;max-height:100%;overflow:auto;}.modal h3{font-family:'Oswald',sans-serif;letter-spacing:5px;color:var(--accent);font-size:20px;margin-bottom:10px;}.modal p{font-size:13px;line-height:1.6;margin-bottom:10px;}
+.title h1{font-family:'Oswald',sans-serif;font-size:44px;letter-spacing:12px;color:var(--accent);text-align:center;text-shadow:0 0 24px rgba(127,224,255,.35);}.title .tag{font-size:12px;letter-spacing:4px;color:var(--dim);margin:6px 0 16px;text-align:center;}
+@media (max-width:760px){#wrap{grid-template-columns:1fr;grid-template-rows:52% 48%;}#side{border-left:none;border-top:1px solid var(--border);}.title h1{font-size:30px;letter-spacing:6px;}}
+</style></head>
+<body>
+<a class="back" href="/" title="Back to Iron Games">◀ IRON GAMES</a>
+<div id="wrap">
+  <div id="main"><canvas id="c"></canvas><div id="overlay"></div></div>
+  <div id="side">
+    <h2 class="t">IRON AQUARIUM</h2>
+    <div class="stat"><span id="sFish">0 fish</span><b id="sCoins">0 coins</b></div>
+    <div class="stat"><span>Hunger · clean · happiness</span><b id="sNeeds">—</b></div>
+    <div class="row"><button class="btn on" id="tFeed">FEED (TAP TANK)</button><button class="btn" id="tWipe">WIPE GLASS</button></div>
+    <div class="row"><button class="btn" id="bShop">FISH &amp; DECOR SHOP</button></div>
+    <div id="panel"></div>
+    <div id="log"></div>
+  </div>
+</div>
+<script>
+'use strict';
+const $=id=>document.getElementById(id);const clamp=(v,a,b)=>v<a?a:v>b?b:v;const rnd=(a,b)=>a+Math.random()*(b-a);const ri=(a,b)=>Math.floor(rnd(a,b+1));const pick=a=>a[Math.floor(Math.random()*a.length)];
+const FISH={goldfish:{n:'Goldfish',price:0,col:'#ff9a30',size:1,earn:1},guppy:{n:'Guppy',price:25,col:'#60c0ff',size:0.7,earn:1,tail:'#ff6ad0'},angelfish:{n:'Angelfish',price:60,col:'#e8e8f0',size:1.2,earn:2,stripes:true},clownfish:{n:'Clownfish',price:90,col:'#ff7a30',size:0.9,earn:2,bands:true},betta:{n:'Betta',price:140,col:'#a060e0',size:1,earn:3,tail:'#ff8fd0',flow:true},seahorse:{n:'Seahorse',price:220,col:'#ffd27a',size:1,earn:4,horse:true}};
+const DECOR=[{k:'plant',n:'Water plants',price:30},{k:'castle',n:'Sand castle',price:80},{k:'chest',n:'Treasure chest',price:120},{k:'bubbler',n:'Bubble stone',price:60},{k:'shell',n:'Giant shell',price:50},{k:'lights',n:'Fairy lights',price:150}];
+let S=null,tool='feed',food=[],bubbles=[],wipe=null,last=0,coinT=0,shopOpen=false;
+function newState(){return {coins:40,fish:[],algae:10,decor:{},t:Date.now()}}
+function newFish(k){return {k,x:rnd(60,W-60),y:rnd(80,H-80),dir:Math.random()<0.5?1:-1,hunger:70,speed:rnd(25,45),ph:rnd(0,6),target:null}}
+function save(){try{S.t=Date.now();localStorage.setItem('ia_save',JSON.stringify(S))}catch(e){}}
+function load(){try{const s=JSON.parse(localStorage.getItem('ia_save'));if(s&&s.fish)return s}catch(e){}return null}
+function log(t,cls){const el=document.createElement('p');if(cls)el.className=cls;el.textContent=t;$('log').appendChild(el);while($('log').children.length>6)$('log').removeChild($('log').firstChild);$('log').scrollTop=$('log').scrollHeight}
+function hide(){$('overlay').classList.remove('on');$('overlay').innerHTML=''}
+function happiness(){if(!S.fish.length)return 0;const h=S.fish.reduce((a,f)=>a+f.hunger,0)/S.fish.length;return Math.round(h*0.6+(100-S.algae)*0.3+Math.min(10,Object.keys(S.decor).length*2))}
+function refresh(){$('sFish').textContent=S.fish.length+' fish';$('sCoins').textContent=S.coins+' coins';$('sNeeds').textContent=(S.fish.length?Math.round(S.fish.reduce((a,f)=>a+f.hunger,0)/S.fish.length):0)+' · '+Math.round(100-S.algae)+' · '+happiness();$('tFeed').classList.toggle('on',tool==='feed');$('tWipe').classList.toggle('on',tool==='wipe');save()}
+function renderPanel(){const p=$('panel');if(shopOpen){let h='<h4>FISH</h4>';for(const k in FISH){const f=FISH[k];h+='<div class="it"><span>'+f.n+'<small>Earns '+f.earn+' coin'+(f.earn>1?'s':'')+' a minute when happy · '+f.price+' coins</small></span><button data-a="fish:'+k+'" '+(S.coins>=f.price&&S.fish.length<12?'':'disabled')+'>BUY</button></div>'}h+='<h4>DECORATIONS</h4>';for(const d of DECOR)h+='<div class="it"><span>'+d.n+'<small>'+(S.decor[d.k]?'In the tank':d.price+' coins · happier fish')+'</small></span><button data-a="decor:'+d.k+'" '+(!S.decor[d.k]&&S.coins>=d.price?'':'disabled')+'>'+(S.decor[d.k]?'OWNED':'BUY')+'</button></div>';h+='<button class="btn" id="closeShop" style="margin-top:8px">BACK TO THE TANK</button>';p.innerHTML=h;$('closeShop').onclick=()=>{shopOpen=false;renderPanel()};for(const b of p.querySelectorAll('button[data-a]'))b.onclick=()=>buy(b.dataset.a);return}
+  p.innerHTML='<h4>HOW TO PLAY</h4><p>With FEED selected, tap the water to drop flakes and the fish swim over to eat. Green algae creeps over the glass: pick WIPE and drag across the glass to clean it. Hungry fish in a dirty tank are unhappy and earn nothing; well-fed fish in a clean, decorated tank earn coins every minute. Buy new fish and decorations in the shop. Up to twelve fish fit in the tank.</p>'}
+function buy(a){const [t,k]=a.split(':');if(t==='fish'){const f=FISH[k];if(S.coins<f.price||S.fish.length>=12)return;S.coins-=f.price;S.fish.push(newFish(k));log('A '+f.n.toLowerCase()+' joins the tank!','good');beep(800,0.1)}else{const d=DECOR.find(d=>d.k===k);if(S.decor[k]||S.coins<d.price)return;S.coins-=d.price;S.decor[k]=true;log('Added the '+d.n.toLowerCase()+'.','good')}refresh();renderPanel()}
+function tap(x,y){if(!S)return;ac();if(tool==='feed'){for(let i=0;i<4;i++)food.push({x:x+rnd(-14,14),y:Math.max(30,y)+rnd(-6,6),vy:rnd(8,16),t:12});beep(600,0.05)}}
+function wipeAt(x,y){if(tool!=='wipe'||!S)return;S.algae=clamp(S.algae-1.2,0,100);wipe={x,y,t:0.3}}
+function tick(dt){S.algae=clamp(S.algae+dt*0.12,0,100);for(const f of S.fish){f.hunger=clamp(f.hunger-dt*0.25,0,100)}
+  for(const b of food){b.y+=b.vy*dt;b.t-=dt;if(b.y>H-40)b.vy=0}food=food.filter(b=>b.t>0);
+  for(const f of S.fish){const d=FISH[f.k];f.ph+=dt;let tx=null,ty=null;if(f.hunger<90&&food.length){let best=null,bd=1e9;for(const b of food){const dd=Math.hypot(b.x-f.x,b.y-f.y);if(dd<bd){bd=dd;best=b}}if(best){tx=best.x;ty=best.y;if(bd<12){best.t=0;f.hunger=clamp(f.hunger+12,0,100);bubbles.push({x:f.x,y:f.y,r:3,t:1.2})}}}
+    if(tx!==null){const dx=tx-f.x,dy=ty-f.y;const dd=Math.hypot(dx,dy)||1;f.x+=dx/dd*f.speed*2.2*dt;f.y+=dy/dd*f.speed*2.2*dt;f.dir=dx>0?1:-1}else{f.x+=f.dir*f.speed*dt*(d.horse?0.4:1);f.y+=Math.sin(f.ph*1.5)*12*dt;if(f.x<50){f.dir=1}if(f.x>W-50){f.dir=-1}if(Math.random()<dt*0.1)f.dir*=-1;f.y=clamp(f.y,60,H-60)}}
+  if(S.decor.bubbler&&Math.random()<dt*6)bubbles.push({x:W*0.75+rnd(-6,6),y:H-30,r:rnd(2,5),t:3});for(const b of bubbles){b.y-=dt*40;b.t-=dt}bubbles=bubbles.filter(b=>b.t>0&&b.y>20);
+  coinT+=dt;if(coinT>=60){coinT=0;const hp=happiness();if(hp>=60){let e=0;for(const f of S.fish)e+=FISH[f.k].earn;S.coins+=e;log('Your happy fish earned '+e+' coins.','good')}else log('The fish are unhappy ('+hp+'%). Feed them and clean the glass.')}
+  if(wipe){wipe.t-=dt;if(wipe.t<=0)wipe=null}}
+const cv=$('c'),ctx=cv.getContext('2d');let W=800,H=450;
+function resize(){const r=cv.getBoundingClientRect();W=Math.max(300,Math.floor(r.width));H=Math.max(200,Math.floor(r.height));cv.width=W;cv.height=H}addEventListener('resize',resize);resize();
+function draw(){const t=performance.now()/1000;const g=ctx.createLinearGradient(0,0,0,H);g.addColorStop(0,'#3aa0e0');g.addColorStop(1,'#0e4a7a');ctx.fillStyle=g;ctx.fillRect(0,0,W,H);
+  ctx.fillStyle='rgba(255,255,255,0.08)';for(let i=0;i<6;i++){ctx.beginPath();ctx.moveTo(W*0.1+i*W*0.16+Math.sin(t+i)*20,0);ctx.lineTo(W*0.14+i*W*0.16+Math.sin(t+i)*20,0);ctx.lineTo(W*0.3+i*W*0.16,H);ctx.lineTo(W*0.2+i*W*0.16,H);ctx.fill()}
+  ctx.fillStyle='#e8d8a0';ctx.fillRect(0,H-36,W,36);ctx.fillStyle='#d0c088';for(let i=0;i<40;i++)ctx.fillRect((i*97)%W,H-30+(i*13)%24,4,3);
+  if(S){if(S.decor.plant){ctx.fillStyle='#30a060';for(const [x,h] of [[W*0.1,90],[W*0.14,120],[W*0.18,80],[W*0.6,100],[W*0.64,70]]){for(let k=0;k<4;k++){ctx.beginPath();ctx.ellipse(x+Math.sin(t*1.5+k)*6,H-36-k*h/4,8,h/5,Math.sin(t+k)*0.2,0,7);ctx.fill()}}}
+    if(S.decor.castle){ctx.fillStyle='#e0c890';ctx.fillRect(W*0.35,H-110,80,74);for(let i=0;i<4;i++)ctx.fillRect(W*0.35+i*22,H-122,12,14);ctx.fillRect(W*0.35+25,H-150,30,44);ctx.fillStyle='#8a6a3a';ctx.fillRect(W*0.35+32,H-70,16,34);ctx.fillStyle='#ff5a7a';ctx.beginPath();ctx.moveTo(W*0.35+40,H-150);ctx.lineTo(W*0.35+40,H-166);ctx.lineTo(W*0.35+56,H-160);ctx.fill()}
+    if(S.decor.chest){const open=Math.sin(t)*0.5+0.5;ctx.fillStyle='#8a5a2a';ctx.fillRect(W*0.82,H-70,60,34);ctx.fillStyle='#a06a30';ctx.fillRect(W*0.82,H-70-open*14,60,16);ctx.fillStyle='#ffd040';ctx.fillRect(W*0.82+22,H-62,16,10);if(open>0.5){ctx.fillStyle='#ffe070';for(const [dx,dy] of [[10,-6],[30,-10],[48,-4]])ctx.fillRect(W*0.82+dx,H-70+dy,6,6)}}
+    if(S.decor.shell){ctx.fillStyle='#ffd0e0';ctx.beginPath();ctx.ellipse(W*0.5,H-42,30,16,0,Math.PI,0);ctx.fill();ctx.strokeStyle='#ff9ac0';ctx.lineWidth=2;for(let i=-2;i<=2;i++){ctx.beginPath();ctx.moveTo(W*0.5,H-42);ctx.lineTo(W*0.5+i*12,H-56);ctx.stroke()}}
+    if(S.decor.lights){for(let i=0;i<12;i++){ctx.fillStyle=['#ff8fd0','#ffe070','#8ff0a0','#7fe0ff'][i%4];ctx.globalAlpha=0.6+0.4*Math.sin(t*3+i);ctx.beginPath();ctx.arc(30+i*(W-60)/11,24+Math.sin(i)*6,5,0,7);ctx.fill()}ctx.globalAlpha=1}
+    for(const b of food){ctx.fillStyle='#d0a050';ctx.fillRect(b.x-2,b.y-2,4,4)}
+    for(const f of S.fish)drawFish(f,t);
+    ctx.fillStyle='rgba(220,240,255,0.7)';for(const b of bubbles){ctx.beginPath();ctx.arc(b.x,b.y,b.r,0,7);ctx.fill()}
+    ctx.fillStyle='rgba(60,160,60,'+(S.algae/100*0.55)+')';for(let i=0;i<30;i++){const x=(i*131)%W,y=(i*71)%H;ctx.beginPath();ctx.arc(x,y,20+(i%5)*10,0,7);ctx.fill()}
+    if(wipe){ctx.fillStyle='rgba(255,255,255,0.6)';ctx.beginPath();ctx.arc(wipe.x,wipe.y,30,0,7);ctx.fill()}}
+  ctx.fillStyle='rgba(8,32,52,0.55)';ctx.fillRect(0,0,W,26);ctx.fillStyle='#cfe8f8';ctx.font='bold 13px Oswald, sans-serif';ctx.textAlign='left';ctx.fillText(tool==='feed'?'TAP THE WATER TO DROP FOOD':'DRAG ACROSS THE GLASS TO WIPE THE ALGAE',150,17)}
+function drawFish(f,t){const d=FISH[f.k];const s=d.size*18;ctx.save();ctx.translate(f.x,f.y);ctx.scale(f.dir,1);const wag=Math.sin(t*8+f.ph)*0.4;
+  if(d.horse){ctx.fillStyle=d.col;ctx.beginPath();ctx.ellipse(0,0,s*0.45,s*1.1,0,0,7);ctx.fill();ctx.beginPath();ctx.arc(s*0.3,-s*1.1,s*0.4,0,7);ctx.fill();ctx.fillRect(s*0.5,-s*1.15,s*0.7,s*0.25);ctx.save();ctx.translate(-s*0.1,s*1.0);ctx.rotate(0.8+wag);ctx.fillRect(0,0,s*0.3,s*0.9);ctx.restore();ctx.fillStyle='#2a1a1a';ctx.fillRect(s*0.4,-s*1.2,3,3);ctx.restore();return}
+  ctx.fillStyle=d.tail||d.col;ctx.save();ctx.translate(-s*0.8,0);ctx.rotate(wag);ctx.beginPath();ctx.moveTo(0,0);ctx.lineTo(-s*(d.flow?1.2:0.7),-s*(d.flow?0.9:0.5));ctx.lineTo(-s*(d.flow?1.0:0.7),s*(d.flow?0.9:0.5));ctx.closePath();ctx.fill();ctx.restore();
+  ctx.fillStyle=d.col;ctx.beginPath();ctx.ellipse(0,0,s,s*(d.stripes?0.8:0.55),0,0,7);ctx.fill();if(d.stripes){ctx.fillStyle='#2a2a3a';for(const k of [-0.4,0.1,0.5])ctx.fillRect(k*s-2,-s*0.75,4,s*1.5);ctx.fillStyle=d.col;ctx.beginPath();ctx.moveTo(-s*0.2,-s*0.7);ctx.lineTo(s*0.2,-s*1.5);ctx.lineTo(s*0.4,-s*0.6);ctx.fill()}
+  if(d.bands){ctx.fillStyle='#fff';for(const k of [-0.35,0.3]){ctx.fillRect(k*s-3,-s*0.55,6,s*1.1)}}
+  ctx.fillStyle=d.tail||'rgba(255,255,255,0.4)';ctx.beginPath();ctx.ellipse(-s*0.1,s*0.3,s*0.3,s*0.15,0.6,0,7);ctx.fill();
+  ctx.fillStyle='#fff';ctx.beginPath();ctx.arc(s*0.55,-s*0.1,s*0.16,0,7);ctx.fill();ctx.fillStyle='#1a1a2a';ctx.beginPath();ctx.arc(s*0.6,-s*0.1,s*0.08,0,7);ctx.fill();
+  if(f.hunger<30){ctx.fillStyle='#fff';ctx.font='bold 11px Oswald, sans-serif';ctx.scale(f.dir,1);ctx.fillText('?',f.dir*(-s*0.2),-s-6)}
+  ctx.restore()}
+function frame(now){requestAnimationFrame(frame);const dt=Math.min(0.1,(now-last)/1000||0);last=now;if(S){tick(dt);if(Math.floor(now/800)!==Math.floor((now-dt*1000)/800))refresh()}draw()}
+let dragging=false;const pos=e=>{const r=cv.getBoundingClientRect();const t=e.touches?e.touches[0]:e;return [(t.clientX-r.left)*W/r.width,(t.clientY-r.top)*H/r.height]};
+cv.addEventListener('mousedown',e=>{dragging=true;const [x,y]=pos(e);tap(x,y);wipeAt(x,y)});cv.addEventListener('mousemove',e=>{if(dragging){const [x,y]=pos(e);wipeAt(x,y)}});addEventListener('mouseup',()=>dragging=false);
+cv.addEventListener('touchstart',e=>{dragging=true;const [x,y]=pos(e);tap(x,y);wipeAt(x,y);e.preventDefault()},{passive:false});cv.addEventListener('touchmove',e=>{const [x,y]=pos(e);wipeAt(x,y);e.preventDefault()},{passive:false});cv.addEventListener('touchend',()=>dragging=false);
+$('tFeed').onclick=()=>{tool='feed';refresh()};$('tWipe').onclick=()=>{tool='wipe';refresh()};$('bShop').onclick=()=>{shopOpen=!shopOpen;renderPanel()};
+let AC=null;function ac(){if(!AC){try{AC=new (window.AudioContext||window.webkitAudioContext)()}catch(e){}}if(AC&&AC.state==='suspended')AC.resume();return AC}
+function beep(f,d,type){const a=ac();if(!a)return;const o=a.createOscillator(),g=a.createGain();o.type=type||'sine';o.frequency.value=f;g.gain.value=0.05;g.gain.exponentialRampToValueAtTime(0.0001,a.currentTime+d);o.connect(g);g.connect(a.destination);o.start();o.stop(a.currentTime+d)}
+function titleScreen(){const saved=load();$('overlay').innerHTML='<div class="modal title"><h1>IRON AQUARIUM</h1><div class="tag">FEED · CLEAN · DECORATE</div><p>Your own fish tank. Start with a goldfish, keep everyone fed, wipe the algae off the glass and fill the tank with plants, a castle, a treasure chest and bubbles. Happy fish earn coins for new fish: guppies, angelfish, clownfish, bettas and seahorses.</p>'+(saved?'<button class="btn on" id="cont">CONTINUE — '+saved.fish.length+' FISH</button>':'')+'<button class="btn" id="new" style="margin-top:6px">NEW TANK</button></div>';$('overlay').classList.add('on');
+  const begin=st=>{S=st;if(!S.fish.length)S.fish.push(newFish('goldfish'));for(const f of S.fish){f.x=clamp(f.x,60,W-60);f.y=clamp(f.y,80,H-80)}if(saved===st){const away=Math.min(4*3600,(Date.now()-(S.t||Date.now()))/1000);for(const f of S.fish)f.hunger=clamp(f.hunger-away*0.01,15,100);S.algae=clamp(S.algae+away*0.005,0,100)}hide();refresh();renderPanel();log(saved===st?'Welcome back. The fish missed you.':'Welcome! Tap the water to feed your goldfish.')};if(saved)$('cont').onclick=()=>begin(saved);$('new').onclick=()=>begin(newState())}
+titleScreen();requestAnimationFrame(frame);
+</script></body></html>

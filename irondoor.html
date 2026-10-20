@@ -1,0 +1,285 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0,viewport-fit=cover,user-scalable=no">
+<title>Iron Door – Free Backrooms Horror Game in Your Browser | Iron Games</title>
+<meta name="description" content="Iron Door is a free browser backrooms game: you noclipped out of reality into endless yellow rooms with buzzing lights and damp carpet. Walk the infinite maze, keep your sanity up with almond water, stay away from the things that live down here, and find the door down through five levels to the Iron Door. First-person, no download, works on phones.">
+<meta name="robots" content="index,follow,max-snippet:-1,max-image-preview:large">
+<link rel="canonical" href="https://irongames.win/irondoor.html">
+<link rel="icon" href="favicon.svg" type="image/svg+xml"><link rel="manifest" href="site.webmanifest">
+<meta property="og:type" content="website"><meta property="og:site_name" content="Iron Games"><meta property="og:title" content="Iron Door – Backrooms Horror | Iron Games"><meta property="og:description" content="Lost in the backrooms. Endless yellow rooms, buzzing lights, things in the dark. Find the way down through five levels to the Iron Door. Free browser game."><meta property="og:url" content="https://irongames.win/irondoor.html">
+<meta name="twitter:card" content="summary"><meta name="twitter:title" content="Iron Door – Backrooms Horror | Iron Games"><meta name="twitter:description" content="Endless yellow rooms, buzzing lights, things in the dark. Find the way down to the Iron Door. Free browser game.">
+<script type="application/ld+json">{"@context":"https://schema.org","@graph":[{"@type":"VideoGame","name":"Iron Door","url":"https://irongames.win/irondoor.html","genre":["Horror","Exploration","Backrooms","First-person"],"gamePlatform":"Web browser","applicationCategory":"Game","operatingSystem":"Any","isAccessibleForFree":true,"offers":{"@type":"Offer","price":"0","priceCurrency":"USD"},"author":{"@type":"Organization","name":"Daniele Bros"},"inLanguage":"en","description":"A free first-person backrooms horror game in the browser: endless procedurally generated yellow rooms with buzzing fluorescent lights, five levels down (the Lobby, the Habitable Zone, Pipe Dreams, the Electrical Station and the Poolrooms), entities that hunt you, almond water to keep your sanity up, sprinting with stamina, and a hidden exit door on every level leading to the Iron Door."},{"@type":"BreadcrumbList","itemListElement":[{"@type":"ListItem","position":1,"name":"Iron Games","item":"https://irongames.win/"},{"@type":"ListItem","position":2,"name":"Iron Door","item":"https://irongames.win/irondoor.html"}]},{"@type":"FAQPage","mainEntity":[{"@type":"Question","name":"How do I play Iron Door?","acceptedAnswer":{"@type":"Answer","text":"Click to lock the mouse, then look with the mouse and walk with WASD or the arrow keys. Hold Shift to sprint while you have stamina. On a phone, drag on the left of the screen to walk and on the right to look. Every level hides an exit door somewhere in the endless rooms: spray-painted arrows on the walls point toward it. Walk into the door to go down a level. Walk into almond water bottles to drink them."}},{"@type":"Question","name":"What drains sanity in Iron Door?","acceptedAnswer":{"@type":"Answer","text":"Time in the rooms drains it slowly, being near an entity drains it fast and getting caught costs a big chunk. Almond water restores it. When it reaches zero you are lost and the run ends; your deepest level and time are saved as your record."}},{"@type":"Question","name":"What are the levels in Iron Door?","acceptedAnswer":{"@type":"Answer","text":"Level 0 The Lobby (yellow rooms, buzzing lights, wanderers), Level 1 The Habitable Zone (dark concrete warehouse, hounds), Level 2 Pipe Dreams (red pipe tunnels, skin-stealers), Level 3 The Electrical Station (green machinery, smilers that only move when you look away) and Level 4 The Poolrooms (white tiles and water, where the Iron Door waits)."}}]}]}</script>
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link href="https://fonts.googleapis.com/css2?family=Oswald:wght@500;700&family=Share+Tech+Mono&display=swap" rel="stylesheet">
+<style>
+:root{--gold:#e8c84a;--cream:#f4ecc8;--dim:#9a9060;--panel:rgba(20,18,10,.92);--border:#5a5030;}
+*{box-sizing:border-box;margin:0;padding:0;}html,body{width:100%;height:100%;overflow:hidden;background:#000;}
+body{font-family:'Share Tech Mono','Courier New',monospace;color:var(--cream);user-select:none;-webkit-user-select:none;touch-action:none;}
+#main{position:absolute;inset:0;overflow:hidden;background:#000;}
+canvas#c{position:absolute;inset:0;width:100%;height:100%;display:block;image-rendering:pixelated;image-rendering:crisp-edges;cursor:crosshair;}
+#fx{position:absolute;inset:0;pointer-events:none;background:repeating-linear-gradient(0deg,rgba(0,0,0,.18) 0 1px,transparent 1px 3px);mix-blend-mode:multiply;}
+#vig{position:absolute;inset:0;pointer-events:none;background:radial-gradient(ellipse at center,transparent 45%,rgba(0,0,0,.75) 100%);}
+#hurt{position:absolute;inset:0;pointer-events:none;background:rgba(120,0,0,0);transition:background .2s;}
+#noise{position:absolute;inset:0;pointer-events:none;opacity:0;background:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='120'%3E%3Cfilter id='n'%3E%3CfeTurbulence baseFrequency='.9' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='120' height='120' filter='url(%23n)' opacity='.5'/%3E%3C/svg%3E");}
+.back{position:absolute;top:10px;left:10px;z-index:30;background:var(--panel);color:var(--dim);font-family:'Oswald',sans-serif;font-size:12px;letter-spacing:3px;padding:7px 12px;border:1px solid var(--border);text-decoration:none;border-radius:3px;}.back:hover{color:var(--gold);border-color:var(--gold);}
+#hud{position:absolute;left:0;right:0;bottom:0;padding:10px 14px;pointer-events:none;display:none;z-index:20;}
+#lvl{position:absolute;top:10px;right:12px;font-family:'Oswald',sans-serif;letter-spacing:3px;font-size:14px;color:var(--gold);text-shadow:0 0 8px #000;z-index:20;display:none;text-align:right;}
+#lvl small{display:block;color:var(--dim);font-size:11px;letter-spacing:2px;}
+.bar{height:9px;background:rgba(0,0,0,.6);border:1px solid var(--border);width:220px;margin-top:4px;}.bar i{display:block;height:100%;background:var(--gold);transition:width .15s;}
+#stam i{background:#8fb0d0;}.lab{font-size:10px;letter-spacing:2px;color:var(--dim);}
+#inv{font-size:12px;margin-top:6px;color:var(--cream);}
+#tip{position:absolute;left:50%;top:14%;transform:translateX(-50%);font-family:'Oswald',sans-serif;font-size:clamp(16px,3vw,26px);letter-spacing:4px;color:var(--cream);text-shadow:0 0 12px #000,0 0 30px #000;opacity:0;transition:opacity .6s;pointer-events:none;text-align:center;z-index:20;white-space:nowrap;}
+#tip small{display:block;font-family:'Share Tech Mono',monospace;font-size:12px;letter-spacing:2px;color:var(--dim);margin-top:4px;}
+.menu{position:absolute;inset:0;display:none;align-items:center;justify-content:center;background:rgba(0,0,0,.72);z-index:40;}
+.panel{background:var(--panel);border:1px solid var(--border);padding:26px 30px;width:min(92vw,520px);text-align:center;max-height:92vh;overflow-y:auto;}
+.panel h1{font-family:'Oswald',sans-serif;letter-spacing:8px;color:var(--gold);font-size:34px;}
+.panel h2{font-family:'Oswald',sans-serif;letter-spacing:4px;color:var(--cream);font-size:18px;margin-top:4px;}
+.panel p{font-size:12px;line-height:1.6;color:var(--dim);margin:12px 0;}
+.btn{display:inline-block;font-family:'Oswald',sans-serif;letter-spacing:3px;font-size:14px;padding:10px 24px;margin:4px;border:1px solid var(--gold);color:var(--gold);background:transparent;cursor:pointer;}.btn:hover{background:var(--gold);color:#000;}
+.rec{font-size:12px;color:var(--cream);}
+#touch{position:absolute;inset:0;display:none;z-index:25;pointer-events:none;}
+#stick{position:absolute;left:40px;bottom:60px;width:120px;height:120px;border:1px solid rgba(255,255,255,.25);border-radius:50%;pointer-events:auto;}
+#knob{position:absolute;left:35px;top:35px;width:50px;height:50px;border-radius:50%;background:rgba(232,200,74,.35);border:1px solid rgba(232,200,74,.6);}
+#look{position:absolute;right:0;top:0;bottom:0;width:55%;pointer-events:auto;}
+#runbtn{position:absolute;right:30px;bottom:70px;width:74px;height:74px;border-radius:50%;border:1px solid var(--gold);color:var(--gold);font-family:'Oswald',sans-serif;letter-spacing:2px;font-size:13px;display:flex;align-items:center;justify-content:center;pointer-events:auto;background:rgba(0,0,0,.4);}
+@media (pointer:coarse){#hud .bar{width:150px;}}
+</style>
+</head>
+<body>
+<div id="main">
+<canvas id="c" width="400" height="240"></canvas>
+<div id="fx"></div><div id="vig"></div><div id="noise"></div><div id="hurt"></div>
+<a class="back" href="index.html">◀ IRON GAMES</a>
+<div id="lvl"></div>
+<div id="tip"></div>
+<div id="hud"><div class="lab">SANITY</div><div class="bar" id="san"><i></i></div><div class="lab" style="margin-top:6px">STAMINA</div><div class="bar" id="stam"><i></i></div><div id="inv"></div></div>
+<div id="touch"><div id="stick"><div id="knob"></div></div><div id="look"></div><div id="runbtn">RUN</div></div>
+<div class="menu" id="title" style="display:flex"><div class="panel">
+  <h1>IRON DOOR</h1><h2>YOU NOCLIPPED OUT OF REALITY</h2>
+  <p>Endless yellow rooms. The hum of fluorescent lights. Damp carpet. Something is walking the halls with you.<br>Every level hides a door down. Spray-painted arrows on the walls point the way. Drink almond water to keep your head. Reach the Iron Door.</p>
+  <p>Mouse to look, <b>WASD</b> to walk, <b>Shift</b> to run. Phone: left thumb walks, right thumb looks.<br>Click the screen to lock the mouse.</p>
+  <div class="rec" id="best"></div>
+  <button class="btn" id="play">ENTER</button>
+</div></div>
+<div class="menu" id="over"><div class="panel">
+  <h1 id="overH">LOST</h1><h2 id="overS"></h2><p id="overP"></p>
+  <button class="btn" id="again">AGAIN</button><a class="btn" href="index.html">HUB</a>
+</div></div>
+</div>
+<script>
+(()=>{
+'use strict';
+const W=400,H=240,HH=H>>1,TS=64;const cv=document.getElementById('c'),ctx=cv.getContext('2d');const img=ctx.createImageData(W,H);const px=new Uint32Array(img.data.buffer);
+const $=id=>document.getElementById(id);const clamp=(v,a,b)=>v<a?a:v>b?b:v;const PI=Math.PI;
+// ---------- deterministic hashing (the maze is infinite and never stored) ----------
+let SEED=1;function hash(x,y,s){let h=(x|0)*374761393+(y|0)*668265263+(s|0)*2246822519+SEED*1013904223;h=(h^(h>>>13))*1274126177;h^=h>>>16;return (h>>>0)/4294967296}
+function rnd(){return Math.random()}
+// ---------- levels ----------
+const LEVELS=[
+ {name:'LEVEL 0',sub:'THE LOBBY',wall:[200,180,90],wall2:[160,140,60],floor:[120,100,40],ceil:[220,214,190],light:[255,250,210],fog:[160,140,70],fogD:14,P:7,rooms:0.55,pillars:0.25,ents:3,ent:{name:'wanderer',speed:1.5,sight:9,col:[30,25,20],eye:[255,255,255],freeze:false},drain:0.45,water:0.06,exitD:[60,85],intro:'Find the way down. Follow the arrows.'},
+ {name:'LEVEL 1',sub:'THE HABITABLE ZONE',wall:[110,112,110],wall2:[80,82,84],floor:[70,70,68],ceil:[50,50,52],light:[180,190,200],fog:[12,12,14],fogD:8,P:8,rooms:0.7,pillars:0.35,ents:4,ent:{name:'hound',speed:2.6,sight:6,col:[40,30,30],eye:[255,80,40],freeze:false,low:true},drain:0.6,water:0.07,exitD:[70,95],intro:'It is dark here. Things move fast in the dark.'},
+ {name:'LEVEL 2',sub:'PIPE DREAMS',wall:[120,40,30],wall2:[70,25,20],floor:[60,40,36],ceil:[40,20,18],light:[255,120,60],fog:[40,8,6],fogD:9,P:6,rooms:0.35,pillars:0.15,ents:4,ent:{name:'skin-stealer',speed:2.2,sight:10,col:[120,90,80],eye:[255,220,200],freeze:false},drain:0.75,water:0.07,exitD:[75,100],intro:'Hot pipes, tight tunnels. Keep moving.'},
+ {name:'LEVEL 3',sub:'THE ELECTRICAL STATION',wall:[70,100,80],wall2:[40,60,50],floor:[50,60,54],ceil:[30,40,36],light:[180,255,200],fog:[8,16,12],fogD:10,P:7,rooms:0.5,pillars:0.4,ents:5,ent:{name:'smiler',speed:3.4,sight:14,col:[10,12,12],eye:[230,255,240],freeze:true},drain:0.85,water:0.08,exitD:[80,105],intro:'The smilers only move when you are not looking.'},
+ {name:'LEVEL 4',sub:'THE POOLROOMS',wall:[230,235,240],wall2:[180,200,215],floor:[120,170,200],ceil:[235,240,245],light:[255,255,255],fog:[190,215,230],fogD:18,P:9,rooms:0.85,pillars:0.15,ents:2,ent:{name:'drowned',speed:1.8,sight:8,col:[60,80,90],eye:[200,240,255],freeze:false},drain:0.6,water:0.05,exitD:[90,120],intro:'Quiet water. The Iron Door is somewhere in here.'}];
+// ---------- textures (procedural, 64x64, Uint32 ABGR) ----------
+function tex(fn){const c=document.createElement('canvas');c.width=TS;c.height=TS;const g=c.getContext('2d');fn(g);const d=g.getImageData(0,0,TS,TS);return new Uint32Array(d.data.buffer)}
+const rgb=c=>'rgb('+c[0]+','+c[1]+','+c[2]+')';const mul=(c,f)=>[clamp(c[0]*f,0,255)|0,clamp(c[1]*f,0,255)|0,clamp(c[2]*f,0,255)|0];
+function grain(g,c,amt,n){for(let i=0;i<n;i++){const f=1+(rnd()-0.5)*amt;g.fillStyle=rgb(mul(c,f));g.fillRect(rnd()*TS|0,rnd()*TS|0,1+rnd()*2|0,1+rnd()*2|0)}}
+function makeLevelTex(L,li){const T={};const base=L.wall,dark=L.wall2;
+  T.wall=[];const variants=[];
+  variants.push(g=>{});
+  variants.push(g=>{g.fillStyle='rgba(0,0,0,.18)';for(let i=0;i<4;i++){const x=rnd()*TS,y=rnd()*TS;g.beginPath();g.ellipse(x,y,6+rnd()*10,4+rnd()*8,rnd()*3,0,PI*2);g.fill()}});
+  variants.push(g=>{g.fillStyle='rgba(0,0,0,.35)';g.fillRect(0,0,TS,2);g.fillRect(0,TS-3,TS,3);for(let i=0;i<30;i++)g.fillRect(rnd()*TS|0,rnd()*TS|0,1,1+rnd()*3|0)});
+  for(const v of variants)T.wall.push(tex(g=>{g.fillStyle=rgb(base);g.fillRect(0,0,TS,TS);
+    if(li===0){for(let x=0;x<TS;x+=8){g.fillStyle=rgb(mul(base,0.93));g.fillRect(x,0,3,TS)}g.fillStyle='rgba(0,0,0,.08)';for(let y=0;y<TS;y+=16)g.fillRect(0,y,TS,1)}
+    if(li===1){g.fillStyle=rgb(dark);g.fillRect(0,20,TS,2);g.fillRect(0,44,TS,2);g.fillStyle='rgba(0,0,0,.3)';g.fillRect(0,0,TS,1)}
+    if(li===2){for(let y=0;y<TS;y+=16){g.fillStyle=rgb(dark);g.fillRect(0,y,TS,3);g.fillStyle=rgb(mul(base,1.25));for(let x=4;x<TS;x+=12)g.fillRect(x,y+7,3,3)}}
+    if(li===3){g.fillStyle=rgb(dark);g.fillRect(0,0,TS,8);g.fillRect(0,TS-8,TS,8);g.fillStyle='#d8c030';for(let x=0;x<TS;x+=16)g.fillRect(x,TS-8,8,8);g.fillStyle=rgb(mul(base,1.2));g.fillRect(10,20,44,24);g.fillStyle='#204030';g.fillRect(14,24,36,6);g.fillStyle='#50ff80';g.fillRect(16,26,2,2)}
+    if(li===4){g.fillStyle=rgb(dark);for(let y=0;y<=TS;y+=16)g.fillRect(0,y-1,TS,2);for(let x=0;x<=TS;x+=16)g.fillRect(x-1,0,2,TS)}
+    grain(g,base,0.16,li===4?60:260);v(g)}));
+  // spray-painted arrows and words, pointing to the exit
+  const spray=(g,f)=>{g.fillStyle=rgb(base);g.fillRect(0,0,TS,TS);if(li===0){for(let x=0;x<TS;x+=8){g.fillStyle=rgb(mul(base,0.93));g.fillRect(x,0,3,TS)}}grain(g,base,0.16,200);g.strokeStyle='rgba(10,10,10,.85)';g.lineWidth=5;g.lineCap='round';g.lineJoin='round';f(g)};
+  T.arrowR=tex(g=>spray(g,g=>{g.beginPath();g.moveTo(10,32);g.lineTo(54,32);g.moveTo(40,18);g.lineTo(54,32);g.lineTo(40,46);g.stroke()}));
+  T.arrowL=tex(g=>spray(g,g=>{g.beginPath();g.moveTo(54,32);g.lineTo(10,32);g.moveTo(24,18);g.lineTo(10,32);g.lineTo(24,46);g.stroke()}));
+  T.words=['RUN','NO EXIT','DONT LOOK','STAY SANE','DOWN','IT SEES','HELP'].map(w=>tex(g=>spray(g,g=>{g.fillStyle='rgba(10,10,10,.85)';g.font='bold 13px sans-serif';g.textAlign='center';g.fillText(w,32,37)})));
+  T.door=tex(g=>{g.fillStyle='#4a4c52';g.fillRect(0,0,TS,TS);g.fillStyle='#2a2c30';g.fillRect(0,0,6,TS);g.fillRect(TS-6,0,6,TS);g.fillRect(0,0,TS,4);g.fillStyle='#6a6c74';g.fillRect(8,6,48,56);g.fillStyle='#3a3c42';g.fillRect(12,10,40,20);g.fillRect(12,36,40,22);g.fillStyle='#9a9ca4';for(let y=8;y<TS;y+=12){g.fillRect(9,y,2,2);g.fillRect(53,y,2,2)}g.fillStyle='#d8c030';g.fillRect(44,32,6,3);grain(g,[80,82,90],0.3,120);if(li===4){g.fillStyle='rgba(232,200,74,.9)';g.font='bold 9px sans-serif';g.textAlign='center';g.fillText('IRON DOOR',32,22)}});
+  T.floor=tex(g=>{g.fillStyle=rgb(L.floor);g.fillRect(0,0,TS,TS);if(li===4){g.fillStyle=rgb(mul(L.floor,1.25));for(let i=0;i<6;i++){g.beginPath();g.ellipse(rnd()*TS,rnd()*TS,10+rnd()*14,3+rnd()*4,rnd()*3,0,PI*2);g.fill()}g.fillStyle='rgba(255,255,255,.15)';for(let y=0;y<=TS;y+=16)g.fillRect(0,y,TS,1);for(let x=0;x<=TS;x+=16)g.fillRect(x,0,1,TS)}
+    if(li===2){g.fillStyle=rgb(mul(L.floor,0.5));for(let x=0;x<TS;x+=8)g.fillRect(x,0,2,TS);for(let y=0;y<TS;y+=8)g.fillRect(0,y,TS,2)}
+    if(li===0){g.fillStyle='rgba(0,0,0,.25)';for(let i=0;i<5;i++){g.beginPath();g.ellipse(rnd()*TS,rnd()*TS,5+rnd()*9,4+rnd()*6,rnd()*3,0,PI*2);g.fill()}}
+    grain(g,L.floor,li===4?0.08:0.3,li===4?80:400)});
+  T.ceil=tex(g=>{g.fillStyle=rgb(L.ceil);g.fillRect(0,0,TS,TS);g.fillStyle='rgba(0,0,0,.25)';g.fillRect(0,0,TS,1);g.fillRect(0,0,1,TS);if(li===1||li===3){g.fillStyle=rgb(mul(L.ceil,0.7));g.fillRect(0,28,TS,8);g.fillStyle=rgb(mul(L.ceil,1.3));g.fillRect(0,30,TS,1)}if(li===2){g.fillStyle=rgb(mul(L.ceil,1.6));g.fillRect(20,0,10,TS);g.fillStyle=rgb(mul(L.ceil,0.6));g.fillRect(22,0,2,TS)}grain(g,L.ceil,0.12,120)});
+  T.lamp=tex(g=>{g.fillStyle=rgb(L.ceil);g.fillRect(0,0,TS,TS);g.fillStyle='rgba(0,0,0,.25)';g.fillRect(0,0,TS,1);g.fillRect(0,0,1,TS);g.fillStyle='#777';g.fillRect(10,22,44,20);g.fillStyle=rgb(L.light);g.fillRect(13,25,38,14);g.fillStyle='rgba(255,255,255,.5)';g.fillRect(13,25,38,4)});
+  T.exitFloor=tex(g=>{g.fillStyle='#000';g.fillRect(0,0,TS,TS);g.fillStyle='#302040';for(let i=0;i<40;i++)g.fillRect(rnd()*TS|0,rnd()*TS|0,2,1)});
+  return T}
+const TEX=LEVELS.map((L,i)=>makeLevelTex(L,i));
+// sprites: tall dark figures with glowing eyes; a bottle of almond water
+function spriteTex(w,h,fn){const c=document.createElement('canvas');c.width=w;c.height=h;const g=c.getContext('2d');fn(g);const d=g.getImageData(0,0,w,h);return {w,h,d:new Uint32Array(d.data.buffer)}}
+const SPR={};
+SPR.ent=LEVELS.map(L=>spriteTex(48,112,g=>{const e=L.ent;g.fillStyle=rgb(e.col);if(e.low){g.beginPath();g.ellipse(24,86,20,14,0,0,PI*2);g.fill();g.fillRect(6,92,6,20);g.fillRect(36,92,6,20);g.fillRect(14,96,5,16);g.fillRect(29,96,5,16);g.beginPath();g.ellipse(12,76,11,9,0,0,PI*2);g.fill();g.fillStyle=rgb(e.eye);g.fillRect(6,73,3,3);g.fillRect(13,73,3,3)}
+  else{g.beginPath();g.ellipse(24,16,9,11,0,0,PI*2);g.fill();g.fillRect(12,24,24,52);g.fillRect(6,28,7,40);g.fillRect(35,28,7,40);g.fillRect(14,74,8,38);g.fillRect(26,74,8,38);g.fillStyle=rgb(e.eye);if(e.freeze){g.fillRect(16,12,5,3);g.fillRect(27,12,5,3);g.fillRect(15,20,18,2);for(let x=15;x<33;x+=3)g.fillRect(x,22,1,2)}else{g.fillRect(18,13,3,3);g.fillRect(27,13,3,3)}}
+  for(let i=0;i<60;i++){g.fillStyle='rgba(0,0,0,'+(rnd()*0.5)+')';g.fillRect(rnd()*48|0,rnd()*112|0,2,2)}}));
+SPR.water=spriteTex(24,40,g=>{g.fillStyle='#e8e2c8';g.fillRect(8,8,8,30);g.fillRect(6,16,12,22);g.fillStyle='#d8c030';g.fillRect(8,4,8,5);g.fillStyle='#7a6a30';g.fillRect(6,24,12,8);g.fillStyle='#fff';g.fillRect(8,26,8,2);g.fillStyle='rgba(255,255,255,.4)';g.fillRect(7,17,2,20)});
+// ---------- the infinite map ----------
+// 0 open, 1 wall, 2 exit door. Corridors every P cells keep everything connected; rooms with pillars fill the blocks between.
+let LI=0,L=LEVELS[0],T=TEX[0];const cellCache=new Map();let EXIT={x:0,y:0};
+function rawCell(x,y){const P=L.P;const cx=Math.floor(x/P),cy=Math.floor(y/P);const lx=((x%P)+P)%P,ly=((y%P)+P)%P;
+  // corridor lines (2 wide) with a per-strip wobble
+  const ox=Math.floor(hash(cx,0,11)*2),oy=Math.floor(hash(0,cy,12)*2);
+  if(lx===ox||lx===ox+1||ly===oy||ly===oy+1)return 0;
+  // the block between corridors is a room or a solid mass
+  const r=hash(cx,cy,13);if(r>L.rooms)return (hash(x,y,14)<0.04)?0:1;
+  // room: walls around its edge sometimes, pillars inside
+  const wallEdge=hash(cx,cy,15)<0.5;const edge=lx===ox+2||lx===ox-1+(ox?0:P)||ly===oy+2||ly===oy-1+(oy?0:P);
+  if(wallEdge&&edge&&hash(x,y,16)>0.35)return 1;
+  if(((x%3)+3)%3===0&&((y%3)+3)%3===0&&hash(x,y,17)<L.pillars)return 1;
+  if(hash(x,y,18)<0.03)return 1;return 0}
+function cell(x,y){if(x===EXIT.x&&y===EXIT.y)return 2;const k=x*1e5+y;let v=cellCache.get(k);if(v===undefined){v=rawCell(x,y);cellCache.set(k,v)}return v}
+function open(x,y){return cell(Math.floor(x),Math.floor(y))===0}
+function nearestOpenCell(x,y){for(let r=0;r<20;r++)for(let dx=-r;dx<=r;dx++)for(let dy=-r;dy<=r;dy++){if(Math.max(Math.abs(dx),Math.abs(dy))!==r)continue;if(cell(x+dx,y+dy)===0)return [x+dx,y+dy]}return [x,y]}
+function nearestOpen(x,y){for(let r=0;r<20;r++)for(let dx=-r;dx<=r;dx++)for(let dy=-r;dy<=r;dy++){if(Math.max(Math.abs(dx),Math.abs(dy))!==r)continue;if(rawCell(x+dx,y+dy)===0)return [x+dx,y+dy]}return [x,y]}
+// ---------- state ----------
+const P={x:0,y:0,a:0,san:100,stam:100,water:0,bob:0,t:0,deep:0,lvlT:0,dead:false,won:false};let ENTS=[],ITEMS=[],playing=false,paused=false,flick=1,shake=0,lastT=0,caughtT=0;
+const keys={};let mdx=0;const touch={mx:0,my:0,look:0,run:false};
+function best(){try{return JSON.parse(localStorage.getItem('idoor_best')||'null')}catch(e){return null}}
+function saveBest(){const b=best()||{deep:-1,time:0};const better=P.won?(!b.won||P.t<b.time):(!b.won&&(P.deep>b.deep||(P.deep===b.deep&&P.t>b.time)));if(better)localStorage.setItem('idoor_best',JSON.stringify({deep:P.deep,time:P.t|0,won:!!P.won}));showBest()}
+function showBest(){const b=best();$('best').textContent=b?(b.won?'RECORD: REACHED THE IRON DOOR IN '+fmt(b.time):'RECORD: LEVEL '+b.deep+', '+fmt(b.time)+' DOWN THERE'):'NO ONE HAS COME BACK YET'}
+function fmt(s){s=s|0;return (s/60|0)+':'+('0'+s%60).slice(-2)}
+function startLevel(i){LI=i;L=LEVELS[i];T=TEX[i];cellCache.clear();SEED=(SEED*7+i*131+11)|0;
+  // spawn in an open cell, exit far away in a random direction
+  const [sx,sy]=nearestOpen(1,1);P.x=sx+0.5;P.y=sy+0.5;P.a=hash(i,0,21)*PI*2;const ang=hash(i,1,22)*PI*2,d=L.exitD[0]+hash(i,2,23)*(L.exitD[1]-L.exitD[0]);
+  const [ex,ey]=nearestOpen(Math.round(sx+Math.cos(ang)*d),Math.round(sy+Math.sin(ang)*d));EXIT={x:ex,y:ey};cellCache.clear();
+  ENTS=[];ITEMS=[];P.lvlT=0;P.deep=Math.max(P.deep,i);for(let k=0;k<L.ents;k++)spawnEnt(true);for(let k=0;k<14;k++)spawnWater(10,40);
+  $('lvl').innerHTML=L.name+'<small>'+L.sub+'</small>';tip(L.name+' · '+L.sub,L.intro);snd.drop();snd.hum(L)}
+function randOpenAround(x,y,r0,r1){for(let t=0;t<80;t++){const a=rnd()*PI*2,d=r0+rnd()*(r1-r0);const cx=Math.floor(x+Math.cos(a)*d),cy=Math.floor(y+Math.sin(a)*d);if(cell(cx,cy)===0)return [cx+0.5,cy+0.5]}return null}
+function spawnEnt(far){const p=randOpenAround(P.x,P.y,far?14:22,far?26:34);if(!p)return;ENTS.push({x:p[0],y:p[1],vx:0,vy:0,a:rnd()*PI*2,state:'wander',t:0,cool:0})}
+function spawnWater(r0,r1){const p=randOpenAround(P.x,P.y,r0,r1);if(p)ITEMS.push({x:p[0],y:p[1]})}
+let tipT=0;function tip(a,b){$('tip').innerHTML=a+(b?'<small>'+b+'</small>':'');$('tip').style.opacity=1;tipT=4}
+// ---------- movement with wall sliding ----------
+function moveBody(o,dx,dy,rad){const tryX=o.x+dx;if(cell(Math.floor(tryX+Math.sign(dx)*rad),Math.floor(o.y-rad))===0&&cell(Math.floor(tryX+Math.sign(dx)*rad),Math.floor(o.y+rad))===0)o.x=tryX;else if(o===P)touchWall(Math.floor(tryX+Math.sign(dx)*rad),Math.floor(o.y));
+  const tryY=o.y+dy;if(cell(Math.floor(o.x-rad),Math.floor(tryY+Math.sign(dy)*rad))===0&&cell(Math.floor(o.x+rad),Math.floor(tryY+Math.sign(dy)*rad))===0)o.y=tryY;else if(o===P)touchWall(Math.floor(o.x),Math.floor(tryY+Math.sign(dy)*rad))}
+function touchWall(cx,cy){if(cell(cx,cy)===2)exitLevel()}
+function exitLevel(){if(LI>=LEVELS.length-1){P.won=true;endGame(true);return}snd.door();startLevel(LI+1)}
+function losClear(x0,y0,x1,y1){const dx=x1-x0,dy=y1-y0;const d=Math.hypot(dx,dy);const n=Math.ceil(d*3);for(let i=1;i<n;i++){const t=i/n;if(cell(Math.floor(x0+dx*t),Math.floor(y0+dy*t))!==0)return false}return true}
+// ---------- update ----------
+function update(dt){P.t+=dt;P.lvlT+=dt;if(tipT>0){tipT-=dt;if(tipT<=0)$('tip').style.opacity=0}
+  // look
+  P.a+=mdx*0.0025+touch.look*dt;mdx=0;touch.look=0;
+  // never let the camera sit inside a wall: every ray would hit at zero distance and the picture would break up
+  if(cell(Math.floor(P.x),Math.floor(P.y))!==0){const [ox,oy]=nearestOpenCell(Math.floor(P.x),Math.floor(P.y));P.x=ox+0.5;P.y=oy+0.5}
+  // walk
+  let f=0,s=0;if(keys.KeyW||keys.ArrowUp)f+=1;if(keys.KeyS||keys.ArrowDown)f-=1;if(keys.KeyA||keys.ArrowLeft)s-=1;if(keys.KeyD||keys.ArrowRight)s+=1;f+=touch.my;s+=touch.mx;const ml=Math.hypot(f,s);if(ml>1){f/=ml;s/=ml}
+  const wantRun=(keys.ShiftLeft||keys.ShiftRight||touch.run)&&ml>0.1;const run=wantRun&&P.stam>0;P.stam=clamp(P.stam+(run?-22:P.stam<100?12:0)*dt,0,100);
+  const sp=run?3.8:2.3;const ca=Math.cos(P.a),sa=Math.sin(P.a);const dx=(ca*f-sa*s)*sp*dt,dy=(sa*f+ca*s)*sp*dt;if(ml>0.05){moveBody(P,dx,dy,0.22);P.bob+=dt*(run?11:7);snd.step(dt,run)}
+  // almond water
+  for(let i=ITEMS.length-1;i>=0;i--){const it=ITEMS[i];if(Math.hypot(it.x-P.x,it.y-P.y)<0.5){ITEMS.splice(i,1);P.san=clamp(P.san+40,0,100);P.water++;snd.drink();tip('ALMOND WATER','sanity restored')}else if(Math.hypot(it.x-P.x,it.y-P.y)>60){ITEMS.splice(i,1)}}
+  if(ITEMS.length<12&&rnd()<dt*0.3)spawnWater(12,40);
+  // sanity drain
+  let drain=L.drain;let nearest=99;
+  for(const e of ENTS){const d=Math.hypot(e.x-P.x,e.y-P.y);nearest=Math.min(nearest,d);e.t+=dt;e.cool-=dt;
+    const sees=d<L.ent.sight&&losClear(e.x,e.y,P.x,P.y);
+    // smilers freeze while you look at them
+    const toward=Math.atan2(e.y-P.y,e.x-P.x);let rel=toward-P.a;rel=Math.atan2(Math.sin(rel),Math.cos(rel));const inView=Math.abs(rel)<0.55&&sees;
+    if(L.ent.freeze&&inView){e.vx=e.vy=0;continue}
+    if(e.state==='retreat'){e.rt-=dt;if(e.rt<=0)e.state='wander'}else if(sees){e.state='chase';e.lost=0}else if(e.state==='chase'){e.lost=(e.lost||0)+dt;if(e.lost>4)e.state='wander'}
+    let spd=L.ent.speed;if(e.state==='chase'){e.a=Math.atan2(P.y-e.y,P.x-e.x)+(rnd()-0.5)*0.2;spd*=1.25}else if(e.state==='retreat'){e.a=Math.atan2(e.y-P.y,e.x-P.x)+(rnd()-0.5)*0.6;spd*=1.1}
+    else{if(rnd()<dt*0.7)e.a+=(rnd()-0.5)*2.2;spd*=0.55}
+    const ox=e.x,oy=e.y;moveBody(e,Math.cos(e.a)*spd*dt,Math.sin(e.a)*spd*dt,0.3);if(Math.hypot(e.x-ox,e.y-oy)<spd*dt*0.3)e.a+=PI/2+rnd()*PI;
+    if(d<0.75&&e.cool<=0){e.cool=2.2;e.state='retreat';e.rt=3.5+rnd()*2;caught(e)}
+    if(d>45){ENTS.splice(ENTS.indexOf(e),1);spawnEnt(false)}}
+  if(nearest<6)drain+=(6-nearest)*0.7;
+  P.san=clamp(P.san-drain*dt,0,100);if(P.san<=0&&!P.dead){P.dead=true;endGame(false)}
+  snd.fear(clamp(1-nearest/8,0,1),P.san);
+  // lights
+  if(rnd()<dt*2.5)flick=0.75+rnd()*0.35;else flick+=(1-flick)*Math.min(1,dt*8);
+  if(caughtT>0)caughtT-=dt;if(shake>0)shake=Math.max(0,shake-dt*2);
+  $('san').firstChild.style.width=P.san+'%';$('stam').firstChild.style.width=P.stam+'%';$('inv').textContent='ALMOND WATER DRUNK: '+P.water+'   ·   '+fmt(P.t);
+  $('noise').style.opacity=clamp(0.9-P.san/100,0,0.55)+clamp(1-nearest/5,0,0.4);$('hurt').style.background='rgba(120,0,0,'+(caughtT>0?0.45:P.san<25?0.18:0)+')'}
+function caught(e){P.san=clamp(P.san-30,0,100);caughtT=0.6;shake=1;snd.scream();const a=Math.atan2(P.y-e.y,P.x-e.x);for(let i=0;i<6;i++)moveBody(P,Math.cos(a)*0.2,Math.sin(a)*0.2,0.22);tip('IT GOT YOU','run')}
+// ---------- raycast renderer ----------
+const zbuf=new Float32Array(W);const FOV=0.66;
+function fogMix(c,f,fog){ // c ABGR, f 0..1 toward fog colour (array)
+  if(f<=0)return c;if(f>=1)return fog.u;const r=(c&255),g=(c>>8)&255,b=(c>>16)&255;const k=1-f;return 0xff000000|((b*k+fog.b*f)<<16)|((g*k+fog.g*f)<<8)|(r*k+fog.r*f)}
+function packFog(c){return {r:c[0],g:c[1],b:c[2],u:0xff000000|(c[2]<<16)|(c[1]<<8)|c[0]}}
+function shade(c,k){const r=(c&255)*k,g=((c>>8)&255)*k,b=((c>>16)&255)*k;return 0xff000000|(clamp(b,0,255)<<16)|(clamp(g,0,255)<<8)|clamp(r,0,255)}
+function wallTexFor(cx,cy,side,stepX,stepY){if(cell(cx,cy)===2)return T.door;const h=hash(cx,cy,side+30);
+  if(h<0.035){ // an arrow toward the exit, as seen from this face
+    const ex=EXIT.x+0.5-(cx+0.5),ey=EXIT.y+0.5-(cy+0.5);let right;if(side===0)right=stepX>0?ey<0:ey>0;else right=stepY>0?ex>0:ex<0;return right?T.arrowR:T.arrowL}
+  if(h<0.05)return T.words[Math.floor(hash(cx,cy,side+40)*T.words.length)];
+  return T.wall[Math.floor(hash(cx,cy,side+50)*T.wall.length)]}
+function render(){const fog=packFog(L.fog);const fogD=L.fogD;const dirX=Math.cos(P.a),dirY=Math.sin(P.a),plX=-dirY*FOV,plY=dirX*FOV;
+  const bobY=Math.sin(P.bob)*2+(shake?(rnd()-0.5)*8*shake:0);const hor=HH+bobY|0;const bright=flick*(LI===1||LI===3?0.9:1);
+  // floor and ceiling
+  const fl=T.floor,ce=T.ceil,lamp=T.lamp,exf=T.exitFloor;
+  for(let y=0;y<H;y++){const isFloor=y>hor;const p=isFloor?y-hor:hor-y;if(p<=0){continue}const rowD=HH/p;const f=clamp(rowD/fogD,0,1);if(f>=1){const u=fog.u;const o=y*W;for(let x=0;x<W;x++)px[o+x]=u;continue}
+    const sx=rowD*(dirX-plX),sy=rowD*(dirY-plY),stX=rowD*2*plX/W,stY=rowD*2*plY/W;let fx=P.x+sx,fy=P.y+sy;const o=y*W;const k=(1-f)*bright;
+    for(let x=0;x<W;x++){const cx=fx|0,cy=fy|0;const tx=((fx-cx)*TS)|0,ty=((fy-cy)*TS)|0;let c;
+      if(isFloor)c=fl[ty*TS+tx];else{c=(hash(cx,cy,60)<0.22)?lamp[ty*TS+tx]:ce[ty*TS+tx]}
+      c=shade(c,k);px[o+x]=f>0?fogMix(c,f,fog):c;fx+=stX;fy+=stY}}
+  // walls
+  for(let x=0;x<W;x++){const camX=2*x/W-1;const rx=dirX+plX*camX,ry=dirY+plY*camX;let mx=P.x|0,my=P.y|0;const ddx=Math.abs(1/rx),ddy=Math.abs(1/ry);let stepX,stepY,sdx,sdy;
+    if(rx<0){stepX=-1;sdx=(P.x-mx)*ddx}else{stepX=1;sdx=(mx+1-P.x)*ddx}if(ry<0){stepY=-1;sdy=(P.y-my)*ddy}else{stepY=1;sdy=(my+1-P.y)*ddy}
+    let side=0,hit=0,n=0;while(!hit&&n<60){if(sdx<sdy){sdx+=ddx;mx+=stepX;side=0}else{sdy+=ddy;my+=stepY;side=1}if(cell(mx,my)!==0)hit=1;n++}
+    const dist=hit?(side===0?sdx-ddx:sdy-ddy):fogD*2;zbuf[x]=dist;const f=clamp(dist/fogD,0,1);
+    const lh=Math.min(H*16,H/Math.max(dist,0.01))|0;let y0=hor-(lh>>1),y1=hor+(lh>>1);const ys=Math.max(0,y0),ye=Math.min(H-1,y1);
+    if(f>=1||!hit){for(let y=ys;y<=ye;y++)px[y*W+x]=fog.u;continue}
+    let wx=side===0?P.y+dist*ry:P.x+dist*rx;wx-=Math.floor(wx);let tx=(wx*TS)|0;if((side===0&&rx>0)||(side===1&&ry<0))tx=TS-1-tx;
+    const t=wallTexFor(mx,my,side,stepX,stepY);const k=(side===1?0.78:1)*bright;const step=TS/lh;let tp=(ys-y0)*step;
+    for(let y=ys;y<=ye;y++){const ty=tp|0;tp+=step;let c=t[(ty&(TS-1))*TS+tx];c=shade(c,k);px[y*W+x]=f>0?fogMix(c,f,fog):c}}
+  // sprites
+  const sprites=[];for(const e of ENTS)sprites.push({x:e.x,y:e.y,s:SPR.ent[LI],scale:1,e});for(const it of ITEMS)sprites.push({x:it.x,y:it.y,s:SPR.water,scale:0.35,lift:0.3});
+  for(const sp of sprites)sp.d=(sp.x-P.x)**2+(sp.y-P.y)**2;sprites.sort((a,b)=>b.d-a.d);
+  const invDet=1/(plX*dirY-dirX*plY);
+  for(const sp of sprites){const sx=sp.x-P.x,sy=sp.y-P.y;const trX=invDet*(dirY*sx-dirX*sy),trY=invDet*(-plY*sx+plX*sy);if(trY<=0.1)continue;
+    const scrX=((W/2)*(1+trX/trY))|0;const hgt=((H/trY)*sp.scale)|0;const wid=(hgt*sp.s.w/sp.s.h)|0;if(wid<1)continue;const f=clamp(trY/fogD,0,1);if(f>=1)continue;
+    const lift=sp.lift?(H/trY)*sp.lift/2|0:0;const y0=hor-(hgt>>1)+((H/trY)*(1-sp.scale)/2|0)+lift,x0=scrX-(wid>>1);const k=bright;
+    for(let x=Math.max(0,x0);x<Math.min(W,x0+wid);x++){if(zbuf[x]<trY)continue;const tx=((x-x0)*sp.s.w/wid)|0;
+      for(let y=Math.max(0,y0);y<Math.min(H,y0+hgt);y++){const ty=((y-y0)*sp.s.h/hgt)|0;const c=sp.s.d[ty*sp.s.w+tx];if(!(c>>>24))continue;let cc=shade(c,k);px[y*W+x]=f>0?fogMix(cc,f,fog):cc}}}
+  // low sanity: the picture tears
+  if(P.san<35&&rnd()<(35-P.san)/160){const rows=2+rnd()*6|0,y=rnd()*(H-rows)|0,off=(rnd()-0.5)*30|0;const row=px.slice(y*W,(y+rows)*W);for(let r=0;r<rows;r++)for(let x=0;x<W;x++)px[(y+r)*W+x]=row[r*W+((x+off+W)%W)]}
+  ctx.putImageData(img,0,0)}
+// ---------- sound ----------
+const snd=(()=>{let ac=null,hum=null,humG=null,fearG=null,fearO=null,beat=0;const S={};
+  function ctxOn(){if(!ac){try{ac=new (window.AudioContext||window.webkitAudioContext)()}catch(e){return null}}if(ac.state==='suspended')ac.resume();return ac}
+  S.init=ctxOn;
+  S.hum=L=>{const a=ctxOn();if(!a)return;if(!hum){hum=a.createOscillator();hum.type='sawtooth';hum.frequency.value=120;const h2=a.createOscillator();h2.type='sine';h2.frequency.value=60;const lp=a.createBiquadFilter();lp.type='lowpass';lp.frequency.value=600;humG=a.createGain();humG.gain.value=0;hum.connect(lp);h2.connect(lp);lp.connect(humG);humG.connect(a.destination);hum.start();h2.start();
+      fearO=a.createOscillator();fearO.type='sine';fearO.frequency.value=38;fearG=a.createGain();fearG.gain.value=0;const lfo=a.createOscillator();lfo.frequency.value=2.3;const lg=a.createGain();lg.gain.value=14;lfo.connect(lg);lg.connect(fearO.frequency);lfo.start();fearO.connect(fearG);fearG.connect(a.destination);fearO.start()}
+    hum.frequency.setTargetAtTime(LI===2?90:LI===3?150:LI===4?70:120,a.currentTime,0.5);humG.gain.setTargetAtTime(LI===4?0.015:0.045,a.currentTime,0.5)};
+  S.stop=()=>{if(humG){humG.gain.setTargetAtTime(0,ac.currentTime,0.2)}if(fearG)fearG.gain.setTargetAtTime(0,ac.currentTime,0.2)};
+  S.flicker=f=>{if(humG&&playing)humG.gain.setTargetAtTime((LI===4?0.015:0.045)*(0.6+f*0.6),ac.currentTime,0.05)};
+  function noise(dur,vol,lp){const a=ctxOn();if(!a)return;const n=a.sampleRate*dur|0;const b=a.createBuffer(1,n,a.sampleRate);const d=b.getChannelData(0);for(let i=0;i<n;i++)d[i]=(Math.random()*2-1)*(1-i/n);const s=a.createBufferSource();s.buffer=b;const f=a.createBiquadFilter();f.type='lowpass';f.frequency.value=lp;const g=a.createGain();g.gain.value=vol;s.connect(f);f.connect(g);g.connect(a.destination);s.start()}
+  let stepT=0;S.step=(dt,run)=>{stepT-=dt;if(stepT>0)return;stepT=run?0.28:0.42;noise(0.08,LI===4?0.12:0.2,LI===2||LI===3?900:400)};
+  S.drink=()=>{const a=ctxOn();if(!a)return;for(let i=0;i<3;i++){const o=a.createOscillator();o.type='sine';o.frequency.value=300+i*120;const g=a.createGain();g.gain.value=0.08;o.connect(g);g.connect(a.destination);o.start(a.currentTime+i*0.09);o.stop(a.currentTime+i*0.09+0.08)}};
+  S.scream=()=>{noise(0.5,0.6,2500);const a=ctxOn();if(!a)return;const o=a.createOscillator();o.type='square';o.frequency.setValueAtTime(700,a.currentTime);o.frequency.exponentialRampToValueAtTime(90,a.currentTime+0.5);const g=a.createGain();g.gain.value=0.15;g.gain.exponentialRampToValueAtTime(0.001,a.currentTime+0.5);o.connect(g);g.connect(a.destination);o.start();o.stop(a.currentTime+0.5)};
+  S.door=()=>{noise(0.6,0.5,300);const a=ctxOn();if(!a)return;const o=a.createOscillator();o.type='triangle';o.frequency.setValueAtTime(80,a.currentTime);o.frequency.exponentialRampToValueAtTime(30,a.currentTime+1.2);const g=a.createGain();g.gain.value=0.3;g.gain.exponentialRampToValueAtTime(0.001,a.currentTime+1.4);o.connect(g);g.connect(a.destination);o.start();o.stop(a.currentTime+1.4)};
+  S.drop=()=>{const a=ctxOn();if(!a)return;const o=a.createOscillator();o.type='sine';o.frequency.setValueAtTime(400,a.currentTime);o.frequency.exponentialRampToValueAtTime(40,a.currentTime+1);const g=a.createGain();g.gain.value=0.2;g.gain.exponentialRampToValueAtTime(0.001,a.currentTime+1.1);o.connect(g);g.connect(a.destination);o.start();o.stop(a.currentTime+1.1)};
+  S.fear=(f,san)=>{if(!fearG||!playing)return;fearG.gain.setTargetAtTime(f*0.25,ac.currentTime,0.1);beat-=1/60;if(san<30&&beat<=0){beat=0.5+san/60;const o=ac.createOscillator();o.type='sine';o.frequency.value=50;const g=ac.createGain();g.gain.value=0.3;g.gain.exponentialRampToValueAtTime(0.001,ac.currentTime+0.18);o.connect(g);g.connect(ac.destination);o.start();o.stop(ac.currentTime+0.2)}};
+  return S})();
+// ---------- game flow ----------
+function startGame(){SEED=(Math.random()*1e9)|0;Object.assign(P,{san:100,stam:100,water:0,t:0,deep:0,dead:false,won:false,bob:0});for(const k in keys)keys[k]=false;snd.init();$('title').style.display='none';$('over').style.display='none';$('hud').style.display='block';$('lvl').style.display='block';$('touch').style.display=isTouch?'block':'none';playing=true;paused=false;startLevel(0);lastT=performance.now();if(!isTouch)lock()}
+function endGame(won){playing=false;snd.stop();document.exitPointerLock&&document.exitPointerLock();saveBest();$('overH').textContent=won?'YOU FOUND THE IRON DOOR':'LOST';$('overS').textContent=won?'OUT OF THE BACKROOMS IN '+fmt(P.t):'YOUR MIND GAVE OUT ON '+L.name;$('overP').innerHTML=won?'Through the Iron Door and back to reality. '+P.water+' almond waters along the way.':'Deepest: '+L.name+' · '+L.sub+'<br>'+fmt(P.t)+' in the rooms, '+P.water+' almond waters.';$('over').style.display='flex';$('touch').style.display='none'}
+function frame(now){const dt=Math.min(0.05,(now-lastT)/1000);lastT=now;if(playing&&!paused){update(dt);render();snd.flicker(flick)}requestAnimationFrame(frame)}
+// ---------- input ----------
+const isTouch=matchMedia('(pointer:coarse)').matches;
+function lock(){if(isTouch)return;try{const r=cv.requestPointerLock();if(r&&r.catch)r.catch(()=>{})}catch(e){}}
+cv.addEventListener('mousedown',()=>{if(playing){snd.init();if(document.pointerLockElement!==cv)lock();if(paused){paused=false;lastT=performance.now()}}});
+document.addEventListener('mousemove',e=>{if(document.pointerLockElement===cv)mdx+=e.movementX});
+document.addEventListener('pointerlockchange',()=>{if(document.pointerLockElement!==cv&&playing&&!isTouch){paused=true;tip('PAUSED','click to go on')}});
+addEventListener('keydown',e=>{keys[e.code]=true;if(['ArrowUp','ArrowDown','ArrowLeft','ArrowRight','Space'].includes(e.code))e.preventDefault();if(e.code==='Escape'&&playing){paused=!paused;if(!paused){lastT=performance.now();lock()}else tip('PAUSED','click to go on')}});
+addEventListener('keyup',e=>{keys[e.code]=false});
+$('play').onclick=startGame;$('again').onclick=startGame;
+// touch: left stick walks, right half looks, RUN holds sprint
+(()=>{const st=$('stick'),kn=$('knob'),lk=$('look'),rb=$('runbtn');let sid=null,sx=0,sy=0,lid=null,lx=0;
+  st.addEventListener('touchstart',e=>{const t=e.changedTouches[0];sid=t.identifier;sx=t.clientX;sy=t.clientY;e.preventDefault()},{passive:false});
+  st.addEventListener('touchmove',e=>{for(const t of e.changedTouches)if(t.identifier===sid){const dx=clamp((t.clientX-sx)/45,-1,1),dy=clamp((t.clientY-sy)/45,-1,1);touch.mx=dx;touch.my=-dy;kn.style.left=(35+dx*35)+'px';kn.style.top=(35+dy*35)+'px'}e.preventDefault()},{passive:false});
+  const stEnd=e=>{for(const t of e.changedTouches)if(t.identifier===sid){sid=null;touch.mx=touch.my=0;kn.style.left='35px';kn.style.top='35px'}};st.addEventListener('touchend',stEnd);st.addEventListener('touchcancel',stEnd);
+  lk.addEventListener('touchstart',e=>{const t=e.changedTouches[0];lid=t.identifier;lx=t.clientX;e.preventDefault()},{passive:false});
+  lk.addEventListener('touchmove',e=>{for(const t of e.changedTouches)if(t.identifier===lid){P.a+=(t.clientX-lx)*0.006;lx=t.clientX}e.preventDefault()},{passive:false});
+  lk.addEventListener('touchend',e=>{for(const t of e.changedTouches)if(t.identifier===lid)lid=null});
+  rb.addEventListener('touchstart',e=>{touch.run=true;e.preventDefault()},{passive:false});rb.addEventListener('touchend',()=>{touch.run=false});rb.addEventListener('touchcancel',()=>{touch.run=false})})();
+showBest();render();requestAnimationFrame(frame);
+window.idoor={P,start:startGame,get ents(){return ENTS},get items(){return ITEMS},get level(){return LI},cell,EXIT:()=>EXIT,exitLevel,keys};
+})();
+</script>
+</body>
+</html>
