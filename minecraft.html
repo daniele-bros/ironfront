@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="ironcraft-build" content="20261020-125124">
+<meta name="ironcraft-build" content="20261020-131406">
 <meta name="viewport" content="width=device-width,initial-scale=1.0,viewport-fit=cover">
 <title>Ironcraft – Free Voxel Survival Sandbox in Your Browser | Iron Games</title>
 <meta name="description" content="Ironcraft is a free browser-based voxel survival sandbox with building, exploration, private or safety-limited public multiplayer, and optional weather, horror and survival challenges. By Daniele Bros.">
@@ -690,6 +690,8 @@ defTex('leaf_door_top',p=>{leaves(p,[58,118,32]);for(let i=0;i<16;i++){p.px(0,i,
 defTex('leaf_door_bottom',p=>{leaves(p,[52,108,28]);for(let i=0;i<16;i++){p.px(0,i,30,60,20);p.px(15,i,30,60,20);p.px(i,15,30,60,20)}p.rect(2,2,12,1,30,60,20);p.rect(2,8,12,1,30,60,20);p.rect(12,4,2,2,90,70,40)});
 defTex('iron_door_top',p=>{p.noise(176,178,184,6);p.rect(0,0,16,16,150,152,158);p.rect(1,1,14,14,186,188,194);p.rect(3,3,10,5,120,160,190);p.rect(7,3,2,5,90,92,98);p.rect(3,10,10,4,170,172,178);for(const [x,y] of [[2,2],[13,2],[2,13],[13,13],[2,8],[13,8]])p.px(x,y,110,112,118)});
 defTex('iron_door_bottom',p=>{p.noise(176,178,184,6);p.rect(0,0,16,16,150,152,158);p.rect(1,0,14,15,186,188,194);p.rect(3,1,10,5,170,172,178);p.rect(3,8,10,6,170,172,178);p.rect(12,4,2,2,60,60,66);for(const [x,y] of [[2,1],[13,1],[2,14],[13,14],[2,7],[13,7]])p.px(x,y,110,112,118)});
+defTex('button_icon',p=>{p.fill(0,0,0,0);p.rect(3,6,10,6,120,120,120);p.rect(4,5,8,6,170,170,170);p.rect(5,6,6,3,200,200,200)});
+defTex('lever_icon',p=>{p.fill(0,0,0,0);p.rect(3,11,10,4,110,110,110);p.rect(4,12,8,2,140,140,140);for(let i=0;i<7;i++)p.rect(8+i*0.6|0,10-i,2,1,137,100,50);p.rect(12,2,3,3,90,90,95)});
 defTex('door_bottom',p=>{planks(p,[150,120,70]);p.rect(2,1,12,13,120,95,55);p.rect(3,2,10,5,150,120,70);p.rect(3,8,10,5,150,120,70);p.rect(12,4,2,2,60,60,60)});
 defTex('chest_top',p=>{planks(p,[150,110,60]);p.rect(1,1,14,14,160,120,65);p.rect(7,6,2,4,60,60,60)});
 defTex('chest_front',p=>{planks(p,[150,110,60]);p.rect(1,1,14,14,160,120,65);p.rect(0,7,16,1,100,75,40);p.rect(6,5,4,5,80,80,80);p.rect(7,6,2,3,60,60,60)});
@@ -1159,6 +1161,8 @@ defBlock(138,'brewing_stand',{label:'Brewing Stand',tex:{side:'brew_side',top:'b
 defBlock(139,'nether_wart',{label:'Nether Wart',tex:'wart0',model:'crop',solid:false,opaque:false,transparent:true,hard:0,sound:'grass',crop:true,stages:4,wart:true,texFn:(m)=>TEX['wart'+Math.min(3,m&3)],drop:(r,t,m)=>[[477,(m&3)>=3?2+floor(r()*3):1]]});
 defBlock(140,'blackstone',{tex:'blackstone',hard:1.5,tool:'pickaxe',needsTool:true,resist:6,sound:'stone'});
 defBlock(141,'polished_blackstone_bricks',{label:'Polished Blackstone Bricks',tex:'blackstone_bricks',hard:1.5,tool:'pickaxe',needsTool:true,resist:6,sound:'stone'});
+defBlock(153,'stone_button',{label:'Stone Button',tex:'stone',model:'button',solid:false,hard:0.5,tool:'pickaxe',sound:'stone',transparent:true,iconTile:'button_icon',switch:true});
+defBlock(154,'lever',{label:'Lever',tex:'cobblestone',model:'lever',solid:false,hard:0.5,sound:'stone',transparent:true,iconTile:'lever_icon',switch:true});
 defBlock(152,'iron_door',{label:'Iron Door',tex:{side:'iron_door_bottom',top:'iron_door_top'},model:'door',solid:true,hard:5,tool:'pickaxe',needsTool:true,sound:'stone',transparent:true,door:true,iron:true,stack:64,iconPal:['door',{p:[150,152,158],d:[186,188,194],w:[120,160,190],k:[60,60,66]}]});
 defBlock(145,'leaf_door',{label:'Leaf Door',tex:{side:'leaf_door_bottom',top:'leaf_door_top'},model:'door',solid:true,hard:0.4,sound:'grass',transparent:true,door:true,leaves:true,stack:64,iconPal:['door',{p:[30,60,20],d:[58,118,32],w:[150,210,110],k:[90,70,40]}]});
 defBlock(146,'grass_pressure_plate',{label:'Grass Pressure Plate',tex:'grass_top',model:'plate',solid:false,hard:0.3,sound:'grass',transparent:true,plate:true});
@@ -1455,7 +1459,8 @@ function buildIcons(){
     let flat=null; // [rows,pal] or tile index
     if(def.isBlock){
       const m=def.model;
-      if(m==='cube'||m==='chest'||m==='hopper'||m==='cactus'||m==='farmland'||m==='liquid'||m==='table'||m==='anvil'||m==='egg'||m==='endportal'||m==='skull'||m==='rod'){drawIsoCube(ctx,def.faces[2],def.faces[5],def.front!==undefined?def.front:def.faces[0])}
+      if(def.iconTile!==undefined){flat=TEX[def.iconTile]}
+      else if(m==='cube'||m==='chest'||m==='hopper'||m==='cactus'||m==='farmland'||m==='liquid'||m==='table'||m==='anvil'||m==='egg'||m==='endportal'||m==='skull'||m==='rod'){drawIsoCube(ctx,def.faces[2],def.faces[5],def.front!==undefined?def.front:def.faces[0])}
       else if(m==='slab'){ctx.save();ctx.setTransform(14/16,-7/16,14/16,7/16,2,16);ctx.drawImage(tileCanvas(def.faces[2]),0,0);ctx.setTransform(14/16,7/16,0,7.5/16,2,16);ctx.drawImage(shadedTile(def.faces[0],0.72),0,0);ctx.setTransform(14/16,-7/16,0,7.5/16,16,23);ctx.drawImage(shadedTile(def.faces[0],0.55),0,0);ctx.restore()}
       else if(m==='stairs'||m==='fence'||m==='snow'){drawIsoCube(ctx,def.faces[2],def.faces[5],def.faces[0]);if(m==='stairs'){ctx.fillStyle='rgba(0,0,0,.35)';ctx.beginPath();ctx.moveTo(16,2);ctx.lineTo(30,9);ctx.lineTo(23,12.5);ctx.lineTo(9,5.5);ctx.fill()}}
       else if(m==='door'){flat=def.iconPal||ICONDEF.door}
@@ -1765,7 +1770,7 @@ class World{
     if(id===40){if(!BLOCKS[below].opaque){breakBlock(x,y,z,null,true)}return}
     if(id===82){const ax=this.getMeta(x,y,z)&1;const dirs=ax?[[0,1,0],[0,-1,0],[0,0,1],[0,0,-1]]:[[0,1,0],[0,-1,0],[1,0,0],[-1,0,0]];for(const dd of dirs){const nb=this.getBlock(x+dd[0],y+dd[1],z+dd[2]);if(nb!==31&&nb!==82){this.setBlock(x,y,z,0,0);return}}return}
     if(id===81){if(this.getBlock(x,y-1,z)===0&&!FACE_DIR.some(d=>FLAMMABLE[this.getBlock(x+d[0],y+d[1],z+d[2])]))this.setBlock(x,y,z,0,0,{silent:true});return}
-    if(id===32){const m=this.getMeta(x,y,z);let sup;if(m===0)sup=this.getBlock(x,y-1,z);else{const f=FACING_TO_FACE[(m-1)];const dd=FACE_DIR[f];sup=this.getBlock(x-dd[0],y,z-dd[2])}if(!BLOCKS[sup].opaque&&!(m===0&&(BLOCKS[sup].model==='fence'||BLOCKS[sup].model==='slab'))){breakBlock(x,y,z,null,true)}return}
+    if(id===32||id===153||id===154){const m=this.getMeta(x,y,z)&7;let sup;if(m===0)sup=this.getBlock(x,y-1,z);else{const f=FACING_TO_FACE[(m-1)];const dd=FACE_DIR[f];sup=this.getBlock(x-dd[0],y,z-dd[2])}if(!BLOCKS[sup].opaque&&!(m===0&&(BLOCKS[sup].model==='fence'||BLOCKS[sup].model==='slab'))){breakBlock(x,y,z,null,true)}return}
     if(id===38){const f=FACING_TO_FACE[this.getMeta(x,y,z)&3];const dd=FACE_DIR[f];if(!BLOCKS[this.getBlock(x-dd[0],y,z-dd[2])].opaque)breakBlock(x,y,z,null,true);return}
     if(BLOCKS[id].door){const m=this.getMeta(x,y,z);if(m&8){if(this.getBlock(x,y-1,z)!==id)this.setBlock(x,y,z,0,0,{silent:true})}else{if(!BLOCKS[below].solid){breakBlock(x,y,z,null,true)}else if(this.getBlock(x,y+1,z)!==id)this.setBlock(x,y,z,0,0,{silent:true})}return}
     if(id===62){const m=this.getMeta(x,y,z);const f=FACING_TO_FACE[m&3];const dd=FACE_DIR[f];const ox=(m&4)?x-dd[0]:x+dd[0],oz=(m&4)?z-dd[2]:z+dd[2];if(this.getBlock(ox,y,oz)!==62){if(m&4)breakBlock(x,y,z,null,true);else this.setBlock(x,y,z,0,0,{silent:true})}return}
@@ -1872,6 +1877,8 @@ function blockBoxes(id,meta,mode,x,y,z){
     case 'snow':return [[0,0,0,1,0.125,1]];
     case 'rail':return mode==='c'?[]:[[0,0,0,1,0.0625,1]];
     case 'plate':return mode==='c'?[]:[[0.0625,0,0.0625,0.9375,0.0625,0.9375]];
+    case 'button':{if(mode==='c')return [];const d=(meta&8)?0.0625:0.125;if((meta&7)===0)return [[0.3125,0,0.375,0.6875,d,0.625]];return [rotBox([0.3125,0.375,0,0.6875,0.625,d],(meta-1)&3)]}
+    case 'lever':{if(mode==='c')return [];if((meta&7)===0)return [[0.3125,0,0.25,0.6875,0.6,0.75]];return [rotBox([0.3125,0.25,0,0.6875,0.75,0.6],(meta-1)&3)]}
     case 'farmland':return [[0,0,0,1,0.9375,1]];
     case 'table':return [[0,0,0,1,0.75,1]];
     case 'anvil':return [[0.125,0,0.125,0.875,1,0.875]];
@@ -1903,6 +1910,10 @@ function renderBoxes(id,meta,x,y,z){
     case 'snow':return [[0,0,0,1,0.125,1,F]];
     case 'rail':return [[0,0,0,1,0.0625,1,F]];
     case 'plate':return [[0.0625,0,0.0625,0.9375,(meta&1)?0.03:0.0625,0.9375,F]]; // pressed plates sit lower
+    case 'button':{const d=(meta&8)?0.0625:0.125;if((meta&7)===0)return [[0.3125,0,0.375,0.6875,d,0.625,all(F[0])]];return [rotBoxT([0.3125,0.375,0,0.6875,0.625,d,all(F[0])],(meta-1)&3)]}
+    case 'lever':{const on=meta&8,st=all(TEX.oak_planks),base=all(F[0]);
+      if((meta&7)===0){const k=on?-1:1;return [[0.3125,0,0.25,0.6875,0.125,0.75,base],[0.4375,0.1,0.5+k*0.05,0.5625,0.4,0.5+k*0.2,st],[0.4375,0.35,0.5+k*0.15,0.5625,0.62,0.5+k*0.32,st],[0.42,0.56,0.5+k*0.17,0.58,0.72,0.5+k*0.36,all(F[0])]]}
+      const y=on?0.25:0.55;return [rotBoxT([0.3125,0.25,0,0.6875,0.75,0.125,base],(meta-1)&3),rotBoxT([0.4375,y,0.1,0.5625,y+0.22,0.3,st],(meta-1)&3),rotBoxT([0.4375,on?y-0.15:y+0.18,0.28,0.5625,on?y+0.08:y+0.4,0.46,st],(meta-1)&3),rotBoxT([0.42,on?y-0.26:y+0.3,0.42,0.58,on?y-0.1:y+0.46,0.58,all(F[0])],(meta-1)&3)]}
     case 'farmland':return [[0,0,0,1,0.9375,1,F]];
     case 'table':{const t=d.texFn?d.texFn(meta,2):null;const tiles=t!==null&&t!==undefined?[F[0],F[1],t,F[3],F[4],F[5]]:F;return [[0,0,0,1,0.75,1,tiles]]}
     case 'endportal':return [[0,0,0,1,0.75,1,F]];
@@ -3198,20 +3209,25 @@ function setDoorOpen(x,y,z,open){const id=world.getBlock(x,y,z);if(!BLOCKS[id]||
   world.setMeta(x,y0,z,open?mb|4:mb&~4);world.setMeta(x,y0+1,z,open?(mb|4|8):(mb&~4)|8);mpSyncBlock(x,y0,z);mpSyncBlock(x,y0+1,z);playSoundAt(BLOCKS[id].leaves?'grass':'door',x,y0,z);return true}
 function mpSyncBlock(x,y,z){if(MP.active&&world)mpSend({t:'b',x,y,z,id:world.getBlock(x,y,z),meta:world.getMeta(x,y,z)})}
 // pressure plates (stone, and grass from the Leaf Doors mod): anything standing on one opens the doors around it, iron doors included; step off and they swing shut
+// buttons and levers: a pressed button (one second) or a lever that is on works like a pressed plate for the doors within three blocks
+function switchSet(x,y,z,on,hold){const S=game.switches||(game.switches=new Map());const k=x+','+y+','+z;if(on)S.set(k,{t:hold});else S.delete(k);if(MP.active&&!MP.host)mpSend({t:'sw',x,y,z,on,hold})}
 function tickPlates(dt){if(!world||(MP.active&&!MP.host))return;const P=game.plates||(game.plates=new Map());const pressed=new Set();
+  if(game.switches)for(const [k,sw] of game.switches){const [x,y,z]=k.split(',').map(Number);const id=world.getBlock(x,y,z);if(id!==153&&id!==154||!(world.getMeta(x,y,z)&8)){game.switches.delete(k);continue}
+    if(id===153){sw.t-=dt;if(sw.t<=0){world.setMeta(x,y,z,world.getMeta(x,y,z)&~8);mpSyncBlock(x,y,z);playSoundAt('click',x,y,z,0.8,0.6);game.switches.delete(k);continue}}pressed.add(k)}
   const feet=(x,y,z)=>{const bx=floor(x),by=floor(y+0.05),bz=floor(z);const pid=world.getBlock(bx,by,bz);if(pid===146||pid===90)pressed.add(bx+','+by+','+bz)};
   if(!player.dead)feet(player.x,player.y,player.z);for(const e of entities){if(e.dead)continue;if(e instanceof RemotePlayer){if(e.hidden||!e.hasTarget)continue;feet(e.x,e.y,e.z)}else if(e instanceof Mob||e instanceof ItemEntity)feet(e.x,e.y,e.z)}
   for(const k of pressed){if(P.has(k))continue;const [x,y,z]=k.split(',').map(Number);const doors=[];
     for(let dx=-3;dx<=3;dx++)for(let dy=-1;dy<=1;dy++)for(let dz=-3;dz<=3;dz++){const bx=x+dx,by=y+dy,bz=z+dz;const id=world.getBlock(bx,by,bz);if(BLOCKS[id]&&BLOCKS[id].door&&!(world.getMeta(bx,by,bz)&8)&&setDoorOpen(bx,by,bz,true))doors.push([bx,by,bz])}
     let lit=0;for(let dx=-3;dx<=3;dx++)for(let dy=-4;dy<=1;dy++)for(let dz=-3;dz<=3;dz++){const bx=x+dx,by=y+dy,bz=z+dz;if(world.getBlock(bx,by,bz)===28){world.setBlock(bx,by,bz,0,0,{silent:true});const t=new TNTEntity(bx+0.5,by,bz+0.5);t.fuse=1.2+Math.random()*0.6;entities.push(t);lit++}else if(world.getBlock(bx,by,bz)===151){world.setBlock(bx,by,bz,0,0,{silent:true});entities.push(new NukeEntity(bx+0.5,by,bz+0.5));lit++}}if(lit)playSoundAt('fuse',x,y,z);
-    world.setMeta(x,y,z,1);mpSyncBlock(x,y,z);playSoundAt(world.getBlock(x,y,z)===90?'click':'grass',x,y,z,0.6,1.3);P.set(k,{doors,t:0})}
-  for(const [k,st] of P){if(pressed.has(k)){st.t=0;continue}st.t+=dt;if(st.t<0.6)continue;const [x,y,z]=k.split(',').map(Number);for(const d of st.doors)setDoorOpen(d[0],d[1],d[2],false);if(world.getBlock(x,y,z)===146){world.setMeta(x,y,z,0);mpSyncBlock(x,y,z)}P.delete(k)}}
+    const sid=world.getBlock(x,y,z);if(sid===146||sid===90){world.setMeta(x,y,z,1);mpSyncBlock(x,y,z);playSoundAt(sid===90?'click':'grass',x,y,z,0.6,1.3)}P.set(k,{doors,t:0})}
+  for(const [k,st] of P){if(pressed.has(k)){st.t=0;continue}st.t+=dt;if(st.t<0.6)continue;const [x,y,z]=k.split(',').map(Number);for(const d of st.doors)setDoorOpen(d[0],d[1],d[2],false);const rid=world.getBlock(x,y,z);if(rid===146||rid===90){world.setMeta(x,y,z,0);mpSyncBlock(x,y,z)}P.delete(k)}}
 function useItem(){
   const p=player;if(p.dead||game.gui||game.paused||p.koT>0)return;const st=heldStack();const hd=st?ITEMS[st.id]:null;const t=p.target;const creative=p.mode==='creative';
   if(p.targetEntity){const te=p.targetEntity;if((te instanceof Mob&&te.remote&&MP.active)?mpMobInteract(te,st):te.interact(st)){p.swing=0;updateHotbar();return}}
   if(t&&t.block&&!p.sneaking){const id=t.id;const d=BLOCKS[id];
     if(id===112){openVault(t.bx,t.by,t.bz);p.swing=0;return}if(id===113){showMessage('This vault has already been emptied');return}
     if(d.gui){openGui(d.gui,t.bx,t.by,t.bz,d.station);return}
+    if(id===153||id===154){const m=world.getMeta(t.bx,t.by,t.bz);const on=id===153?true:!(m&8);world.setMeta(t.bx,t.by,t.bz,on?m|8:m&~8);mpSyncBlock(t.bx,t.by,t.bz);playSoundAt('click',t.bx,t.by,t.bz,on?1.3:0.9);switchSet(t.bx,t.by,t.bz,on,id===153?1.0:0);p.swing=0;return}
     if(BLOCKS[id]&&BLOCKS[id].door){if(BLOCKS[id].iron){showMessage('An iron door only opens from a pressure plate');playSoundAt('stone',t.bx,t.by,t.bz,0.6,0.5);p.swing=0;return}setDoorOpen(t.bx,t.by,t.bz,!(world.getMeta(t.bx,t.by,t.bz)&4));return}
     if(id===62){trySleep(t.bx,t.by,t.bz);return}
     if(id===100&&hd&&hd.id===392&&!(world.getMeta(t.bx,t.by,t.bz)&4)){world.setMeta(t.bx,t.by,t.bz,world.getMeta(t.bx,t.by,t.bz)|4);consumeHeld();playSoundAt('click',t.bx,t.by,t.bz);p.swing=0;if(tryActivateEndPortal(t.bx,t.by,t.bz)){showMessage('The End portal opens!');playSound('portal')}return}
@@ -3266,6 +3282,7 @@ function placeHeldBlock(hd,st,t){
   let meta=0;const below=world.getBlock(px,py-1,pz);const lf=lookFacing();
   switch(hd.model){
     case 'torch':{if(face===2||(tdef.replaceable&&BLOCKS[below].opaque)){const s=BLOCKS[world.getBlock(px,py-1,pz)];if(!(s.opaque||s.model==='fence'||s.model==='slab'))return;meta=0}else if(face===3)return;else{const wall=BLOCKS[t.id];if(!wall.opaque)return;meta=FACE_TO_FACING[face]+1}break}
+    case 'button':case 'lever':{if(face===2||(tdef.replaceable&&BLOCKS[below].opaque)){if(!BLOCKS[world.getBlock(px,py-1,pz)].opaque)return;meta=0}else if(face===3)return;else{if(!BLOCKS[t.id].opaque)return;meta=FACE_TO_FACING[face]+1}break}
     case 'ladder':{if(face===2||face===3)return;if(!tdef.opaque)return;meta=FACE_TO_FACING[face];break}
     case 'door':{if(!BLOCKS[below].solid){showMessage('A door needs a solid block under it');return}const up=world.getBlock(px,py+1,pz);if(!softBlock(up)){showMessage('No room for the door: the block above must be free');return}if(boxesOverlapEntity(px,py,pz,px+1,py+2,pz+1))return;
       const rx=Math.cos(p.yaw),rz=-Math.sin(p.yaw);let hinge=((t.fx-0.5)*rx+(t.fz-0.5)*rz)<0?16:0; // 16 = hinge on your left (opens left)
@@ -4053,7 +4070,7 @@ for(const m of ['wood','stone','iron','diamond','gold','sift']){const id=n=>I[(m
 for(const m of ['leather','iron','gold','diamond','sift']){const mat={leather:289,iron:260,gold:262,diamond:263,sift:490}[m];const id=n=>I[(m==='gold'?'golden':m)+'_'+n];
   shaped(['###','# #'],{'#':mat},[id('helmet'),1]);shaped(['# #','###','###'],{'#':mat},[id('chestplate'),1]);shaped(['###','# #','# #'],{'#':mat},[id('leggings'),1]);shaped(['# #','# #'],{'#':mat},[id('boots'),1])}
 shaped(['WWW','###'],{W:WOOLS,'#':PLANKS},[62,1]);shaped(['###','###','###'],{'#':490},[126,1]);shapeless([126],[490,9]);shaped(['#O','O#'],{'#':490,O:31},[125,4]);shapeless([130],[5,4]);
-shaped(['##','##','##'],{'#':PLANKS},[54,3]);shaped(['##','##','##'],{'#':260},[152,3]);shaped(['##'],{'#':1},[90,1]);
+shaped(['##','##','##'],{'#':PLANKS},[54,3]);shaped(['##','##','##'],{'#':260},[152,3]);shaped(['##'],{'#':1},[90,1]);shaped(['#'],{'#':1},[153,1]);shaped(['s','c'],{s:256,c:4},[154,1]);
 shaped(['| |','|||','| |'],{'|':256},[38,3]);
 shaped(['##','##'],{'#':1},[52,4]);
 shaped(['WWW'],{W:271},[272,1]);
@@ -5408,6 +5425,7 @@ function mpOnData(conn,d){if(!d||!d.t)return;
     case 'ic':{if(MP.host)mpRelay(conn,d);{const e=entities.find(e=>e.nid===d.nid);if(e&&e.stack)e.stack.count=d.count;const pi=MP.pendingItems.find(it=>it.nid===d.nid);if(pi)pi.s.count=d.count}break}
     case 'be':{if(MP.host)mpRelay(conn,d);mpApplyBE(d);break}
     case 'mods':{if(MP.host)break;applyModsLive(d.mods||{},true);break}
+    case 'sw':{if(MP.host&&world)switchSet(d.x,d.y,d.z,!!d.on,d.hold||0);break}
     case 'nuke':{if(world&&typeof nukeExplode==='function')nukeExplode(d.x,d.y,d.z,true);if(MP.host)mpRelay(conn,d);break}
     case 'hit':{if(MP.host)mpRelay(conn,d);if(d.to!==MP.myId||(!pvpOn()&&d.type!=='mob')||!world||player.dead)break;const was=player.hp;damageEntity(player,d.amount,{type:d.type==='mob'?'mob':'pvp',x:d.x,y:d.y,z:d.z,kb:d.kb,name:d.from,pid:d.by});if(d.type==='mob')break;if(player.dead&&was>0)mpSend({t:'killed',to:d.by,name:MP.name});break}
     case 'killed':{if(MP.host)mpRelay(conn,d);if(d.to===MP.myId){showMessage('You killed '+d.name);playSound('levelup',0.8,1.2)}break}
