@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="ironcraft-build" content="20261019-144226">
+<meta name="ironcraft-build" content="20261020-125124">
 <meta name="viewport" content="width=device-width,initial-scale=1.0,viewport-fit=cover">
 <title>Ironcraft – Free Voxel Survival Sandbox in Your Browser | Iron Games</title>
 <meta name="description" content="Ironcraft is a free browser-based voxel survival sandbox with building, exploration, private or safety-limited public multiplayer, and optional weather, horror and survival challenges. By Daniele Bros.">
@@ -1857,7 +1857,7 @@ function blockBoxes(id,meta,mode,x,y,z){
     case 'ladder':return [rotBox([0,0,0,1,1,0.125],meta&3)];
     case 'slab':return (meta&1)?[[0,0.5,0,1,1,1]]:[[0,0,0,1,0.5,1]];
     case 'stairs':{const f=meta&3,up=meta&4;const boxes=up?[[0,0.5,0,1,1,1],rotBox([0,0,0.5,1,0.5,1],f)]:[[0,0,0,1,0.5,1],rotBox([0,0.5,0.5,1,1,1],f)];return boxes}
-    case 'door':{const f=meta&3,open=meta&4;const b=open?[0,0,0,0.1875,1,1]:[0,0,0,1,1,0.1875];return [rotBox(b,f)]}
+    case 'door':{const f=meta&3,open=meta&4;const b=open?(meta&16?[1-0.1875,0,0,1,1,1]:[0,0,0,0.1875,1,1]):[0,0,0,1,1,0.1875];return [rotBox(b,f)]}
     case 'fence':{const h=mode==='c'?1.5:1;const bx=[[0.375,0,0.375,0.625,h,0.625]];
       const W=typeof world!=='undefined'?world:null;if(W&&x!==undefined){
         const con=(dx,dz)=>{const n=W.getBlock(x+dx,y,z+dz);const nd=BLOCKS[n];return nd.model==='fence'||(nd.opaque&&nd.model==='cube')};
@@ -1891,7 +1891,7 @@ function renderBoxes(id,meta,x,y,z){
     case 'ladder':return [rotBoxT([0,0,0,1,1,0.0625,all(F[0])],meta&3)];
     case 'slab':return [(meta&1)?[0,0.5,0,1,1,1,F]:[0,0,0,1,0.5,1,F]];
     case 'stairs':{const f=meta&3,up=meta&4;return up?[[0,0.5,0,1,1,1,F],rotBoxT([0,0,0.5,1,0.5,1,F],f)]:[[0,0,0,1,0.5,1,F],rotBoxT([0,0.5,0.5,1,1,1,F],f)]}
-    case 'door':{const f=meta&3,open=meta&4,top=meta&8;const t=top?F[2]:F[0];const b=open?[0,0,0,0.1875,1,1,all(t)]:[0,0,0,1,1,0.1875,all(t)];return [rotBoxT(b,f)]}
+    case 'door':{const f=meta&3,open=meta&4,top=meta&8;const t=top?F[2]:F[0];const b=open?(meta&16?[1-0.1875,0,0,1,1,1,all(t)]:[0,0,0,0.1875,1,1,all(t)]):[0,0,0,1,1,0.1875,all(t)];return [rotBoxT(b,f)]}
     case 'fence':return blockBoxes(id,meta,'r',x,y,z).map(b=>[b[0],b[1],b[2],b[3],b[4],b[5],F]);
     case 'bed':{const f=meta&3,head=meta&4;const top=head?TEX.bed_top_head:TEX.bed_top_foot;const side=TEX.bed_side;const tiles=[side,side,top,TEX.oak_planks,side,side];
       const bx=[[0,0.1875,0,1,0.5625,1,tiles,(f+2)&3]];const leg=[TEX.oak_planks];const L=all(TEX.oak_planks);
@@ -3268,7 +3268,12 @@ function placeHeldBlock(hd,st,t){
     case 'torch':{if(face===2||(tdef.replaceable&&BLOCKS[below].opaque)){const s=BLOCKS[world.getBlock(px,py-1,pz)];if(!(s.opaque||s.model==='fence'||s.model==='slab'))return;meta=0}else if(face===3)return;else{const wall=BLOCKS[t.id];if(!wall.opaque)return;meta=FACE_TO_FACING[face]+1}break}
     case 'ladder':{if(face===2||face===3)return;if(!tdef.opaque)return;meta=FACE_TO_FACING[face];break}
     case 'door':{if(!BLOCKS[below].solid){showMessage('A door needs a solid block under it');return}const up=world.getBlock(px,py+1,pz);if(!softBlock(up)){showMessage('No room for the door: the block above must be free');return}if(boxesOverlapEntity(px,py,pz,px+1,py+2,pz+1))return;
-      world.setBlock(px,py,pz,id,lf,{silent:true});world.setBlock(px,py+1,pz,id,lf|8);consumeHeld();playSoundAt(hd.leaves?'grass':'place_wood',px,py,pz);p.swing=0;return}
+      const rx=Math.cos(p.yaw),rz=-Math.sin(p.yaw);let hinge=((t.fx-0.5)*rx+(t.fz-0.5)*rz)<0?16:0; // 16 = hinge on your left (opens left)
+      const nbr=(sx,sz)=>{const bx=px+sx,bz=pz+sz;const nid=world.getBlock(bx,py,bz);return nid===id&&(world.getMeta(bx,py,bz)&3)===lf&&!(world.getMeta(bx,py,bz)&8)?[bx,bz]:null};
+      const dxr=Math.round(rx),dzr=Math.round(rz);const onRight=nbr(dxr,dzr),onLeft=nbr(-dxr,-dzr);
+      if(onRight){hinge=16;const m=world.getMeta(onRight[0],py,onRight[1])&~16;world.setMeta(onRight[0],py,onRight[1],m);world.setMeta(onRight[0],py+1,onRight[1],m|8);mpSyncBlock(onRight[0],py,onRight[1]);mpSyncBlock(onRight[0],py+1,onRight[1])}
+      else if(onLeft){hinge=0;const m=(world.getMeta(onLeft[0],py,onLeft[1])&~16)|16;world.setMeta(onLeft[0],py,onLeft[1],m);world.setMeta(onLeft[0],py+1,onLeft[1],m|8);mpSyncBlock(onLeft[0],py,onLeft[1]);mpSyncBlock(onLeft[0],py+1,onLeft[1])}
+      world.setBlock(px,py,pz,id,lf|hinge,{silent:true});world.setBlock(px,py+1,pz,id,lf|hinge|8);consumeHeld();playSoundAt(hd.leaves?'grass':'place_wood',px,py,pz);p.swing=0;return}
     case 'bed':{const d=FACE_DIR[FACING_TO_FACE[lf]];const hx=px+d[0],hz=pz+d[2];const hb=world.getBlock(hx,py,hz);if(!softBlock(hb)){showMessage('No room for the bed: the block in front of you (where the head goes) must be free');return}if(!BLOCKS[below].solid||!BLOCKS[world.getBlock(hx,py-1,hz)].solid){showMessage('A bed needs solid ground under both halves');return}
       world.setBlock(px,py,pz,62,lf,{silent:true});world.setBlock(hx,py,hz,62,lf|4);consumeHeld();playSoundAt('place_wool',px,py,pz);p.swing=0;return}
     case 'slab':{meta=(face===3||(face!==2&&t.fy>0.5))?1:0;break}
