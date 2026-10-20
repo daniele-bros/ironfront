@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="ironcraft-build" content="20261020-131406">
+<meta name="ironcraft-build" content="20261020-131835">
 <meta name="viewport" content="width=device-width,initial-scale=1.0,viewport-fit=cover">
 <title>Ironcraft – Free Voxel Survival Sandbox in Your Browser | Iron Games</title>
 <meta name="description" content="Ironcraft is a free browser-based voxel survival sandbox with building, exploration, private or safety-limited public multiplayer, and optional weather, horror and survival challenges. By Daniele Bros.">
@@ -1911,9 +1911,9 @@ function renderBoxes(id,meta,x,y,z){
     case 'rail':return [[0,0,0,1,0.0625,1,F]];
     case 'plate':return [[0.0625,0,0.0625,0.9375,(meta&1)?0.03:0.0625,0.9375,F]]; // pressed plates sit lower
     case 'button':{const d=(meta&8)?0.0625:0.125;if((meta&7)===0)return [[0.3125,0,0.375,0.6875,d,0.625,all(F[0])]];return [rotBoxT([0.3125,0.375,0,0.6875,0.625,d,all(F[0])],(meta-1)&3)]}
-    case 'lever':{const on=meta&8,st=all(TEX.oak_planks),base=all(F[0]);
-      if((meta&7)===0){const k=on?-1:1;return [[0.3125,0,0.25,0.6875,0.125,0.75,base],[0.4375,0.1,0.5+k*0.05,0.5625,0.4,0.5+k*0.2,st],[0.4375,0.35,0.5+k*0.15,0.5625,0.62,0.5+k*0.32,st],[0.42,0.56,0.5+k*0.17,0.58,0.72,0.5+k*0.36,all(F[0])]]}
-      const y=on?0.25:0.55;return [rotBoxT([0.3125,0.25,0,0.6875,0.75,0.125,base],(meta-1)&3),rotBoxT([0.4375,y,0.1,0.5625,y+0.22,0.3,st],(meta-1)&3),rotBoxT([0.4375,on?y-0.15:y+0.18,0.28,0.5625,on?y+0.08:y+0.4,0.46,st],(meta-1)&3),rotBoxT([0.42,on?y-0.26:y+0.3,0.42,0.58,on?y-0.1:y+0.46,0.58,all(F[0])],(meta-1)&3)]}
+    case 'lever':{const on=meta&8,st=all(TEX.oak_planks),base=all(F[0]);const r=(meta-1)&3;
+      if((meta&7)===0){const k=on?-1:1;return [[0.3125,0,0.25,0.6875,0.1,0.75,base],[0.46,0.08,0.5+k*0.02,0.54,0.26,0.5+k*0.1,st],[0.46,0.22,0.5+k*0.09,0.54,0.4,0.5+k*0.18,st],[0.44,0.37,0.5+k*0.14,0.56,0.49,0.5+k*0.26,all(F[0])]]}
+      const y=on?0.3:0.5,k=on?-1:1;return [rotBoxT([0.3125,0.25,0,0.6875,0.75,0.1,base],r),rotBoxT([0.46,y+k*0.02,0.08,0.54,y+k*0.1,0.26,st],r),rotBoxT([0.46,y+k*0.09,0.22,0.54,y+k*0.18,0.4,st],r),rotBoxT([0.44,y+k*0.14,0.37,0.56,y+k*0.26,0.49,all(F[0])],r)]}
     case 'farmland':return [[0,0,0,1,0.9375,1,F]];
     case 'table':{const t=d.texFn?d.texFn(meta,2):null;const tiles=t!==null&&t!==undefined?[F[0],F[1],t,F[3],F[4],F[5]]:F;return [[0,0,0,1,0.75,1,tiles]]}
     case 'endportal':return [[0,0,0,1,0.75,1,F]];
