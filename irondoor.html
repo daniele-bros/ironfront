@@ -203,9 +203,9 @@ function fogMix(c,f,fog){ // c ABGR, f 0..1 toward fog colour (array)
 function packFog(c){return {r:c[0],g:c[1],b:c[2],u:0xff000000|(c[2]<<16)|(c[1]<<8)|c[0]}}
 function shade(c,k){const r=(c&255)*k,g=((c>>8)&255)*k,b=((c>>16)&255)*k;return 0xff000000|(clamp(b,0,255)<<16)|(clamp(g,0,255)<<8)|clamp(r,0,255)}
 function wallTexFor(cx,cy,side,stepX,stepY){if(cell(cx,cy)===2)return T.door;const h=hash(cx,cy,side+30);
-  if(h<0.035){ // an arrow toward the exit, as seen from this face
+  if(h<0.1){ // an arrow toward the exit, as seen from this face
     const ex=EXIT.x+0.5-(cx+0.5),ey=EXIT.y+0.5-(cy+0.5);let right;if(side===0)right=stepX>0?ey<0:ey>0;else right=stepY>0?ex>0:ex<0;return right?T.arrowR:T.arrowL}
-  if(h<0.05)return T.words[Math.floor(hash(cx,cy,side+40)*T.words.length)];
+  if(h<0.115)return T.words[Math.floor(hash(cx,cy,side+40)*T.words.length)];
   return T.wall[Math.floor(hash(cx,cy,side+50)*T.wall.length)]}
 function render(){const fog=packFog(L.fog);const fogD=L.fogD;const dirX=Math.cos(P.a),dirY=Math.sin(P.a),plX=-dirY*FOV,plY=dirX*FOV;
   const bobY=Math.sin(P.bob)*2+(shake?(rnd()-0.5)*8*shake:0);const hor=HH+bobY|0;const bright=flick*(LI===1||LI===3?0.9:1);
