@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="ironcraft-build" content="20261027-161559">
+<meta name="ironcraft-build" content="20261027-162509">
 <meta name="viewport" content="width=device-width,initial-scale=1.0,viewport-fit=cover">
 <title>Ironcraft – Free Voxel Survival Sandbox in Your Browser | Iron Games</title>
 <meta name="description" content="Ironcraft is a free browser-based voxel survival sandbox with building, exploration, private or safety-limited public multiplayer, and optional weather, horror and survival challenges. By Daniele Bros.">
@@ -783,6 +783,23 @@ defTex('a10_nose',p=>{p.noise(150,156,162,6);p.rect(0,7,16,1,22,22,26);p.rect(0,
 defTex('a10_hull',p=>{p.noise(238,238,238,6);p.rect(0,7,16,1,196,196,196);p.rect(7,0,1,16,204,204,204);for(const [x,y] of [[2,2],[13,2],[2,12],[13,12],[10,4],[4,10]])p.px(x,y,176,176,176)});
 defTex('flak_top',p=>{p.noise(72,78,62,9);p.rect(0,0,16,1,38,42,34);p.rect(0,15,16,1,38,42,34);p.rect(0,0,1,16,38,42,34);p.rect(15,0,1,16,38,42,34);p.blob(8,8,4,56,62,50);p.rect(7,3,2,10,28,30,26);p.rect(3,7,10,2,28,30,26);p.rect(7,7,2,2,200,170,60)});
 defTex('flak_side',p=>{p.noise(78,84,66,9);p.rect(0,0,16,3,50,54,44);p.rect(0,13,16,3,50,54,44);p.rect(4,4,8,8,34,38,30);p.rect(5,5,6,6,24,26,22);p.rect(6,6,4,4,196,166,58);p.rect(7,3,2,1,200,170,60);p.speckle(8,20,22,18)});
+// soldier uniforms: 16x16 camo tiles reused (with UV) over every body box; blobs are drawn wrapped so the tile repeats cleanly
+{const camo=(name,base,blobs)=>defTex(name,p=>{p.noise(base[0],base[1],base[2],5);for(const [c,n,r] of blobs)for(let i=0;i<n;i++){const cx=floor(p.rng()*16),cy=floor(p.rng()*16),rr=r*(0.7+p.rng()*0.6);for(const ox of [-16,0,16])for(const oy of [-16,0,16])p.blob(cx+ox,cy+oy,rr,c[0],c[1],c[2])}});
+  camo('sol_camo_wood',[66,84,44],[[[98,104,56],5,3.2],[[92,68,42],4,2.8],[[24,28,20],3,2]]);
+  camo('sol_camo_desert',[200,174,122],[[[224,202,154],5,3.2],[[150,118,78],4,2.8],[[112,90,60],2,1.8]]);
+  camo('sol_camo_coyote',[150,124,88],[[[178,154,114],5,3.2],[[112,92,64],4,2.6],[[84,70,50],2,1.8]]);
+  camo('sol_camo_ru',[46,64,40],[[[30,44,30],5,3],[[72,84,52],4,2.6],[[16,20,14],2,1.6]]);
+  camo('sol_camo_cn',[74,98,60],[[[104,122,72],4,3],[[52,72,44],5,2.8],[[122,98,60],3,2.4]]);
+  camo('sol_camo_uk',[118,104,70],[[[84,80,50],5,3],[[60,52,38],4,2.4],[[164,142,102],4,2.6]]);
+  camo('sol_camo_de',[100,114,66],[[[116,88,52],9,1.7],[[34,34,28],8,1.4],[[170,160,112],7,1.5]]);
+  camo('sol_camo_fr',[88,100,114],[[[64,74,92],5,3],[[124,134,144],4,2.6],[[40,46,58],3,2]]);
+  // plate-carrier webbing: neutral dark grid, tinted per nation
+  defTex('sol_vest',p=>{p.noise(210,210,206,8);for(let y=3;y<16;y+=4)p.shadeRect(0,y,16,1,0.62);for(let x=1;x<16;x+=4)p.shadeRect(x,0,1,16,0.82);p.speckle(10,160,160,156)});
+  // faces: skin tone, brows, eyes with a dark iris, nose shadow, mouth, stubble
+  [[236,190,152],[200,150,108],[132,92,66]].forEach((b,i)=>defTex('sol_face'+i,p=>{p.noise(b[0],b[1],b[2],5);const d=0.7;
+    p.rect(3,5,3,1,52,38,26);p.rect(10,5,3,1,52,38,26);p.rect(3,7,3,2,238,238,232);p.rect(10,7,3,2,238,238,232);p.rect(4,7,2,2,56,70,92);p.rect(10,7,2,2,56,70,92);p.rect(4,8,1,1,18,18,22);p.rect(10,8,1,1,18,18,22);
+    p.rect(7,9,2,2,b[0]*d,b[1]*d,b[2]*d);p.rect(6,12,4,1,b[0]*0.55,b[1]*0.42,b[2]*0.4);p.shadeRect(0,12,16,4,0.9);p.speckle(14,b[0]*0.6,b[1]*0.6,b[2]*0.6);p.shadeRect(0,0,16,1,0.85)}));
+}
 defTex('door_bottom',p=>{planks(p,[150,120,70]);p.rect(2,1,12,13,120,95,55);p.rect(3,2,10,5,150,120,70);p.rect(3,8,10,5,150,120,70);p.rect(12,4,2,2,60,60,60)});
 defTex('chest_top',p=>{planks(p,[150,110,60]);p.rect(1,1,14,14,160,120,65);p.rect(7,6,2,4,60,60,60)});
 defTex('chest_front',p=>{planks(p,[150,110,60]);p.rect(1,1,14,14,160,120,65);p.rect(0,7,16,1,100,75,40);p.rect(6,5,4,5,80,80,80);p.rect(7,6,2,3,60,60,60)});
@@ -3881,28 +3898,96 @@ function soldierCmd(args,say){const t=args.filter(a=>!/^\d+$/.test(a)).join('_')
 // right click with a soldier egg: Recruit Soldier = friendly, Enemy Soldier = enemy
 function soldierUseHook(st,hd,t){if(!hd||!hd.soldierEgg||!t||!t.block)return false;const n=FACE_DIR[t.face];const m=new Mob('soldier',t.bx+n[0]+0.5,t.by+(n[1]<0?-2:n[1]),t.bz+n[2]+0.5);m.soldierSetup(hd.soldierEgg,'rifle',{});m.yaw=player.yaw+PI;entities.push(m);consumeHeld();playSoundAt('pop',m.x,m.y,m.z);player.swing=0;return true}
 // multiplayer: the guest gets team/nation/kind/gun and the aim pose with every mob packet
-function soldierPack(e,o){o.tm=e.team==='player'?1:0;if(e.nation&&e.nation!==e.team)o.nt=e.nation;o.kd=e.kind==='heavy'?'h':e.kind==='sniper'?'s':'r';o.gn=e.gunId;if(e.elite)o.el=1;if(e.aimOn)o.sa=1;if(e.aimE)o.ae=+e.aimE.toFixed(2);if(e.shotT>0)o.sh=1}
-function soldierUnpack(e,o){e.team=o.tm?'player':'enemy';e.nation=o.nt||e.team;e.kind=o.kd==='h'?'heavy':o.kd==='s'?'sniper':'rifle';e.gunId=o.gn||461;e.elite=!!o.el;e.aimOn=!!o.sa;e.aimE=o.ae||0;if(o.sh)e.shotT=0.14}
+function soldierPack(e,o){o.tm=e.team==='player'?1:0;if(e.nation&&e.nation!==e.team)o.nt=e.nation;o.kd=e.kind==='heavy'?'h':e.kind==='sniper'?'s':'r';o.gn=e.gunId;if(e.elite)o.el=1;if(e.aimOn)o.sa=1;if(e.aimE)o.ae=+e.aimE.toFixed(2);if(e.shotT>0)o.sh=1;if(e.coverT>0)o.cv=1}
+function soldierUnpack(e,o){e.team=o.tm?'player':'enemy';e.nation=o.nt||e.team;e.kind=o.kd==='h'?'heavy':o.kd==='s'?'sniper':'rifle';e.gunId=o.gn||461;e.elite=!!o.el;e.aimOn=!!o.sa;e.aimE=o.ae||0;if(o.sh)e.shotT=0.14;e.coverT=o.cv?0.3:0}
 // world save: restore team/nation/kind from the mob record
 function soldierRestore(e,m){e.team=m.tm==='player'?'player':'enemy';e.nation=m.nt||e.team;e.kind=m.kd==='heavy'||m.kd==='sniper'?m.kd:'rifle';e.gunId=m.gn||(e.kind==='sniper'?466:e.kind==='heavy'?517:461);e.rng=e.kind==='sniper'?24:e.kind==='heavy'?11:12;if(m.el){e.elite=true;e.maxHp=Math.round(e.def.hp*1.6)}e.sHp=e.hp}
-// uniform: green + helmet for your side, tan/grey + helmet for the enemy; boxes in 1/16 block units like the zombie and skeleton
+// soldier look: camo uniform per nation/team, plate carrier, helmet, boots, kit; two-handed gun held at the shoulder (the arms are solved to the grip and fore-end, so the muzzle follows the aim yaw/pitch); boxes in 1/16 block units like the player avatar
+const SOLDIER_CAMO={USA:{tex:'sol_camo_coyote',vest:[0.34,0.28,0.18]},Russia:{tex:'sol_camo_ru',vest:[0.12,0.17,0.1]},China:{tex:'sol_camo_cn',vest:[0.12,0.2,0.1],flash:[0.9,0.1,0.08]},UK:{tex:'sol_camo_uk',vest:[0.22,0.2,0.13]},Germany:{tex:'sol_camo_de',vest:[0.15,0.18,0.11]},France:{tex:'sol_camo_fr',vest:[0.14,0.17,0.25]}};
+const SOLDIER_CAMO_TEAM={player:{tex:'sol_camo_wood',vest:[0.12,0.18,0.1]},enemy:{tex:'sol_camo_desert',vest:[0.36,0.3,0.2]}};
+const soldierCamo=m=>SOLDIER_CAMO[m.nation]||SOLDIER_CAMO_TEAM[m.team==='player'?'player':'enemy'];
+// right-hand grip and left-hand fore-end spots in gun model units, per gun; zx/zn = rear/muzzle end of the model
+const SOLDIER_GRIP={461:[[0,-2.2,4],[0,0.4,-10]],517:[[0,-2.4,4.5],[0,1,-12]],520:[[0,-2.4,5],[0,1,-11]],466:[[0,-1.8,4.5],[0,0.2,-9]]},SOLDIER_GUNB={};
+function soldierGunBox(id){let g=SOLDIER_GUNB[id];if(!g){let zx=-1e9,zn=1e9;for(const b of GUN_MODELS[id]){if(b[5]>zx)zx=b[5];if(b[2]<zn)zn=b[2]}g=SOLDIER_GUNB[id]={zx,zn}}return g}
+// two-bone arm: elbow position for a shoulder S reaching hand H (arm segments U and F), elbow pushed down and out
+function soldierIK(S,H,U,F,o){let dx=H[0]-S[0],dy=H[1]-S[1],dz=H[2]-S[2],d=Math.hypot(dx,dy,dz)||1e-3;const mx=(U+F)*0.995;if(d>mx){const k=mx/d;dx*=k;dy*=k;dz*=k;d=mx}
+  const ux=dx/d,uy=dy/d,uz=dz/d,a=(U*U-F*F+d*d)/(2*d),h=Math.sqrt(Math.max(0,U*U-a*a));let px=o*0.45,py=-1,pz=0.1;const pd=px*ux+py*uy+pz*uz;px-=pd*ux;py-=pd*uy;pz-=pd*uz;const pl=Math.hypot(px,py,pz)||1;
+  return [[S[0]+ux*a+px/pl*h,S[1]+uy*a+py/pl*h,S[2]+uz*a+pz/pl*h],[S[0]+dx,S[1]+dy,S[2]+dz]]}
+// part rotations (rx,rz) that point a box hanging down its -y axis from P toward Q
+function soldierBone(P,Q){const dx=Q[0]-P[0],dy=Q[1]-P[1],dz=Q[2]-P[2],d=Math.hypot(dx,dy,dz)||1;return [Math.atan2(-dz,-dy),Math.asin(Math.max(-1,Math.min(1,dx/d)))]}
 function renderSoldier(m,EB,part,s,roll,ex,ey,ez,swing,hp,hy,l,W){
-  const en=m.team!=='player',hv=m.kind==='heavy',sn=m.kind==='sniper';
-  const skin=[0.95,0.8,0.68],tunic=en?[0.64,0.57,0.42]:[0.27,0.42,0.22],pants=en?[0.4,0.41,0.44]:[0.22,0.33,0.2],helm=en?[0.43,0.45,0.48]:[0.3,0.4,0.24],gear=en?[0.26,0.26,0.29]:[0.17,0.23,0.13],boot=[0.14,0.11,0.09],band=en?[0.75,0.12,0.1]:[0.95,0.95,0.9];
-  part([-2,-12,-2,2,0,2],-2,12,0,swing,0,0,W,pants);part([-2,-12,-2,2,0,2],2,12,0,-swing,0,0,W,pants);
-  part([-2.2,-12,-2.2,2.2,-8.5,2.2],-2,12,0,swing,0,0,W,boot);part([-2.2,-12,-2.2,2.2,-8.5,2.2],2,12,0,-swing,0,0,W,boot);
-  part([-4,12,-2,4,24,2],0,0,0,0,0,0,W,tunic);part([-4.2,12,-2.2,4.2,14,2.2],0,0,0,0,0,0,W,gear);
-  if(hv){part([-4.5,13.5,-2.5,4.5,23,2.5],0,0,0,0,0,0,W,gear);part([-6.5,21,-2.6,-3.8,24,2.6],0,0,0,0,0,0,W,gear);part([3.8,21,-2.6,6.5,24,2.6],0,0,0,0,0,0,W,gear)}
-  else part([-3.6,15,-2.6,3.6,19.5,2.6],0,0,0,0,0,0,W,gear);
-  const aim=m.aimOn?1:0,ae=(m.aimE||0)*aim,armR=0.55+0.9*aim+ae*0.9,armL=0.5+0.8*aim+ae*0.9,armLz=0.05+0.5*aim;
-  part([-2,-10,-2,2,2,2],-4,22,0,armL,0,armLz,W,tunic);part([-2.1,-10,-2.1,2.1,-7,2.1],-4,22,0,armL,0,armLz,W,skin);part([-2.2,-3,-2.2,2.2,-1,2.2],-4,22,0,armL,0,armLz,W,band);
-  part([-2,-10,-2,2,2,2],4,22,0,armR,0,-0.05,W,tunic);part([-2.1,-10,-2.1,2.1,-7,2.1],4,22,0,armR,0,-0.05,W,skin);
-  part([-4,0,-4,4,8,4],0,24,0,hp,hy,0,[W,W,W,W,W,TEX.player_face],skin);
-  const hh=(b,c)=>part(b,0,24,0,hp,hy,0,W,c||helm);
-  if(sn){hh([-7,5.2,-7,7,6.4,7],[0.36,0.4,0.22]);hh([-4.7,5.8,-4.7,4.7,9,4.7],[0.32,0.37,0.2])}
-  else{hh([-4.6,5.4,-4.6,4.6,8.8,4.6]);hh([-4.6,-0.6,2.6,4.6,8.8,4.6]);hh([-4.6,-0.6,-4.6,-2.6,8.8,4.6]);hh([2.6,-0.6,-4.6,4.6,8.8,4.6]);if(hv)hh([-4.9,8.4,-4.9,4.9,9.4,4.9],gear)}
-  if(m.elite)hh([-5.1,6.2,-5.1,5.1,7,5.1],[0.9,0.74,0.2]);
-  const gid=m.gunId||461;if(GUN_MODELS[gid]){const atf=partTF(ex,ey,ez,m.yaw,4,22,0,armR,0,-0.05,s,roll);const k=0.42;const gtf=(x,y,z)=>atf(x*k,z*k-9.5,-y*k-1.6);drawGun(EB,gtf,gid,l,m.shotT>0?1-m.shotT/0.14:1,null)}}
+  const en=m.team!=='player',hv=m.kind==='heavy',sn=m.kind==='sniper',dead=!!m.dying;
+  const cam=soldierCamo(m),CT=TEX[cam.tex]!==undefined?TEX[cam.tex]:W,VT=TEX.sol_vest!==undefined?TEX.sol_vest:W,N=TEX.noise,GH=TEX.ghillie;
+  if(m._sd===undefined){let h=2166136261;const k=String(m.nid!==undefined?m.nid:Math.random());for(let i=0;i<k.length;i++)h=Math.imul(h^k.charCodeAt(i),16777619);m._sd=h>>>0}
+  const rn=mulberry32(m._sd),tone=floor(rn()*3),rolled=[rn()<0.4,rn()<0.4],radio=!hv&&!sn&&rn()<0.25,sway=Math.sin(game.time*2+m._sd%7)*0.05;
+  const now=performance.now(),dt=Math.min(0.1,Math.max(0,(now-(m._rt||now))/1000));m._rt=now;
+  if(m.remote){if(m.shotT>0)m.shotT=Math.max(0,m.shotT-dt);if(m.coverT>0)m.coverT=Math.max(0,m.coverT-dt)} // guests never run the AI tick
+  m._cr=(m._cr||0)+(((m.coverT>0&&!dead)?1:0)-(m._cr||0))*Math.min(1,dt*12);const c=m._cr;       // crouch 0..1 (taking cover)
+  m._ak=(m._ak||0)+(((m.aimOn&&!dead)?1:0)-(m._ak||0))*Math.min(1,dt*8);const ak=m._ak;            // gun up 0..1 (has a target)
+  const det=(ex-player.x)*(ex-player.x)+(ez-player.z)*(ez-player.z)<900; // small kit only when close
+  const SK=[[0.97,0.78,0.62],[0.82,0.6,0.42],[0.55,0.38,0.27]][tone],FT=TEX['sol_face'+tone]!==undefined?TEX['sol_face'+tone]:W;
+  const PC=en?[0.9,0.15,0.12]:[0.25,0.55,1],VC=cam.vest,VC2=[VC[0]*0.8,VC[1]*0.8,VC[2]*0.8],DK=[0.14,0.14,0.15],BT=[0.12,0.1,0.08],WH=[1,1,1],G2=[0.85,0.85,0.85];
+  // torso space: x, y above the hip, z; leans forward when crouched
+  const hipY=12-5.4*c,Lr=0.38*c,cl=Math.cos(Lr),sl=Math.sin(Lr);
+  const Tt=(x,y,z)=>[x,hipY+y*cl+z*sl,-y*sl+z*cl];
+  const tp=(b,x,y,z,rx,rz,tex,col)=>{const q=Tt(x,y,z);part(b,q[0],q[1],q[2],(rx||0)-Lr,0,rz||0,tex,col)};
+  const T=(b,tex,col)=>tp(b,0,0,0,0,0,tex,col);
+  // ---- legs: thigh + shin hinged at the knee, boots darker than the trousers, knee pads ----
+  for(const sx of [-2,2]){const o=sx<0?-1:1,wk=(sx<0?swing:-swing)*(1-c),bd=o<0?-0.35:-0.6; // crouch: shin angle bd, thigh angle solved so the foot stays on the ground
+    const b=wk-Math.max(0,-wk)*0.8+c*bd,a=wk+c*Math.acos(Math.max(-1,Math.min(1,(hipY-5.8*Math.cos(bd))/6.2)));
+    const fr=(b-c*bd)*0.8; // walking: the foot follows the shin a little (toes dip as the leg swings back); crouched it stays flat
+    const ky=hipY-6.2*Math.cos(a),kz=-6.2*Math.sin(a),ay=ky-5.8*Math.cos(b),az=kz-5.8*Math.sin(b);
+    part([-1.95,-6.2,-1.95,1.95,0.5,1.95],sx,hipY,0,a,0,0,CT,WH);
+    if(det)part(o<0?[-2.75,-4.8,-1.5,-1.9,-1.6,1.5]:[1.9,-4.8,-1.5,2.75,-1.6,1.5],sx,hipY,0,a,0,0,CT,[0.8,0.8,0.8]); // cargo pocket
+    part([-1.9,-5.8,-1.9,1.9,0.3,1.9],sx,ky,kz,b,0,0,CT,WH);
+    part([-2.15,-5.8,-2.15,2.15,-2.4,2.15],sx,ky,kz,b,0,0,N,BT);
+    part([-2.05,-2.4,-2.05,2.05,-1.7,2.05],sx,ky,kz,b,0,0,CT,G2); // trousers bloused over the boot
+    part([-2.0,-1.7,-2.55,2.0,1.5,-1.85],sx,ky,kz,b,0,0,VT,VC);   // knee pad
+    part([-2.35,0,-3.7,2.35,0.6,2.0],sx,ay,az,fr,0,0,N,[0.06,0.05,0.05]);part([-2.25,0.6,-3.5,2.25,1.9,1.9],sx,ay,az,fr,0,0,N,BT)}
+  // ---- torso: shirt, belt + pouches, plate carrier with mag pouches and straps ----
+  T([-4,0,-2,4,12,2],CT,WH);
+  T([-4.25,-0.3,-2.25,4.25,1.5,2.25],N,[0.22,0.19,0.13]);
+  T([-4.3,2.6,-2.55,4.3,11.5,2.55],VT,VC);T([-3.4,5.6,-3.15,3.4,10.8,-2.55],VT,VC2);
+  T([-3.6,11.2,-2.6,-1.6,12.3,2.6],VT,VC);T([1.6,11.2,-2.6,3.6,12.3,2.6],VT,VC);T([-3.0,10.8,-2.4,3.0,12.2,2.4],CT,G2);
+  T([-3.9,3.0,-3.7,-1.9,5.4,-2.55],VT,VC2);T([-0.9,3.0,-3.5,0.9,5.4,-2.55],VT,VC2);T([1.9,3.0,-3.7,3.9,5.4,-2.55],VT,VC2);
+  if(det){T([-3.9,-0.6,-3.2,-1.9,2.0,-2.25],N,VC2);T([1.9,-0.6,-3.2,3.9,2.0,-2.25],N,VC2);T([-3,-0.3,2.25,3,2.2,3.2],N,VC2);T([4.25,-2.8,-0.8,5.4,1.2,1.8],N,DK);
+    T([-3.0,8.6,-3.25,-1.0,9.5,-3.17],W,[0.12,0.12,0.1]);if(cam.flash)T([1.2,8.4,-3.25,3.0,9.8,-3.17],W,cam.flash)}
+  if(hv){T([-3.7,0.8,2.55,3.7,10.8,6.6],VT,VC);T([-4.7,1.2,3,-3.7,6.4,6],VT,VC2);T([3.7,1.2,3,4.7,6.4,6],VT,VC2);T([-3.8,10.8,2.8,3.8,13.2,6.2],N,[0.5,0.44,0.3]);
+    tp([-0.9,-6.8,-0.4,0.9,6.8,0.4],0,7.2,-3.95,0,0.85,W,[0.78,0.62,0.26])} // pack, bedroll, ammo belt across the chest
+  if(radio){T([-2.3,2.8,2.55,2.3,9.0,4.4],N,DK);tp([-0.3,0,-0.3,0.3,12,0.3],1.4,9.0,3.6,0,sway,W,DK)}
+  if(sn){T([-4.5,2,2.55,4.5,12,3.7],GH,WH);for(const o of [-1,1]){T([o>0?2:-7.4,10.4,-3.3,o>0?7.4:-2,12.4,3.3],GH,WH);
+      for(let i=0;i<5;i++){const z=-2.6+i*1.3,len=2+rn()*3;T([o*7.2-0.7,10.6-len,z-0.6,o*7.2+0.7,10.6,z+0.6],GH,WH)}}}
+  // ---- head: face, helmet (or boonie hat for snipers) ----
+  const hq=Tt(0,12,0),HP=(b,tex,col)=>part(b,hq[0],hq[1],hq[2],hp-Lr,hy,0,tex,col);
+  HP([-4,0,-4,4,8,4],[W,W,W,W,W,FT],SK);
+  if(sn){HP([-6.6,5.2,-6.6,6.6,5.9,6.6],CT,G2);HP([-4.7,5.9,-4.7,4.7,8.2,4.7],CT,WH);HP([-3.9,8.2,-3.9,3.9,8.7,3.9],CT,G2);HP([-4.8,5.9,-4.8,4.8,6.6,4.8],N,DK);
+    for(const z of [-3,0,3])for(const o of [-1,1])HP([o>0?6.0:-6.6,3.4,z-0.7,o>0?6.6:-6.0,5.2,z+0.7],GH,WH);for(const x of [-4,0,4])HP([x-0.7,2.4,5.8,x+0.7,5.2,6.6],GH,WH)}
+  else{HP([-4.7,5.0,-4.7,4.7,7.5,4.7],CT,WH);HP([-4.1,7.5,-4.1,4.1,8.3,4.1],CT,WH);HP([-2.8,8.3,-2.8,2.8,8.6,2.8],CT,G2);
+    HP([-4.9,5.0,-5.9,4.9,5.8,-4.7],CT,G2);HP([-4.7,1.2,4.0,4.7,5.0,5.0],CT,G2);HP([-4.9,2.2,-2.0,-4.1,5.0,3.0],CT,G2);HP([4.1,2.2,-2.0,4.9,5.0,3.0],CT,G2);
+    HP([-4.85,5.8,-4.85,4.85,6.5,4.85],N,DK);HP([-4.2,-0.5,-4.2,4.2,0.3,-3.6],N,BT);HP([-4.25,0.3,-2.6,-3.7,5.0,-1.8],N,BT);HP([3.7,0.3,-2.6,4.25,5.0,-1.8],N,BT);
+    if(det){HP([-5.0,6.0,-1.2,-4.8,7.4,1.2],W,PC);HP([4.8,6.0,-1.2,5.0,7.4,1.2],W,PC)}
+    if(m.elite){HP([-4.95,6.6,-4.95,4.95,7.7,4.95],N,DK);HP([-3.8,6.2,-5.9,3.8,7.9,-4.9],N,DK);HP([-3.4,6.5,-6.1,-0.3,7.8,-5.8],W,[0.95,0.6,0.1]);HP([0.3,6.5,-6.1,3.4,7.8,-5.8],W,[0.95,0.6,0.1])}
+    if(hv){HP([-5.4,2.4,-1.5,-4.3,5.0,1.5],N,DK);HP([4.3,2.4,-1.5,5.4,5.0,1.5],N,DK);HP([-4.9,0.9,-4.4,-3.6,2.1,-3.6],N,DK)}}
+  // ---- the gun: butt at the right shoulder, pivoting there with the aim pitch; recoil kicks it back and up ----
+  const gid=m.gunId||461,GB=GUN_MODELS[gid]?soldierGunBox(gid):null,zx=GB?GB.zx:21,kk=sn?0.38:0.42,kick=m.shotT>0?Math.min(1,m.shotT/0.14):0,wa=m.walkAmp||0;
+  const gp=dead?0.3:Math.max(-0.9,Math.min(0.9,m.aimE||0))*ak-0.45*(1-ak)+kick*0.07,cg=Math.cos(gp),sg=Math.sin(gp);
+  const Pq=Tt(2.7+Math.cos(m.walkT)*0.3*wa,9.3-1.6*(1-ak)+Math.sin(m.walkT*2)*0.35*wa,-0.5+kick*1.2);
+  const gpt=(gx,gy,gz)=>{const x=gx*kk,y=gy*kk,z=(gz-zx)*kk;return [Pq[0]+x,Pq[1]+y*cg-z*sg,Pq[2]+y*sg+z*cg]};
+  const GR=SOLDIER_GRIP[gid]||[[0,-2.2,4],[0,0.5,-10]],hR=gpt(GR[0][0],GR[0][1],GR[0][2]),hL=gpt(GR[1][0],GR[1][1],GR[1][2]);
+  // ---- arms: sleeve, elbow pad, forearm (sleeve rolled on some), glove, team patch on the shoulder ----
+  const U=6.8,F=7.6;
+  for(const o of [-1,1]){const S=Tt(o*4.7,10,0),ik=soldierIK(S,o>0?hR:hL,U,F,o),E=ik[0],Hd=ik[1],b1=soldierBone(S,E),b2=soldierBone(E,Hd),rl=rolled[o>0?1:0];
+    if(o>0)m._rh=[ex+Hd[0]*s*Math.cos(m.yaw)+Hd[2]*s*Math.sin(m.yaw),ey+Hd[1]*s,ez-Hd[0]*s*Math.sin(m.yaw)+Hd[2]*s*Math.cos(m.yaw)]; // world position of the right hand (debug/tests)
+    part([-1.9,-U,-1.9,1.9,1.4,1.9],S[0],S[1],S[2],b1[0],0,b1[1],CT,WH);
+    part(o>0?[1.9,-3.8,-1.1,2.25,-0.9,1.1]:[-2.25,-3.8,-1.1,-1.9,-0.9,1.1],S[0],S[1],S[2],b1[0],0,b1[1],W,PC);
+    part([-2.0,-1.0,-2.0,2.0,1.8,2.0],E[0],E[1],E[2],b2[0],0,b2[1],VT,VC2);
+    if(rl){part([-1.65,-3.4,-1.65,1.65,0.6,1.65],E[0],E[1],E[2],b2[0],0,b2[1],CT,WH);part([-1.5,-F+0.9,-1.5,1.5,-3.4,1.5],E[0],E[1],E[2],b2[0],0,b2[1],W,SK);part([-1.95,-3.9,-1.95,1.95,-3.3,1.95],E[0],E[1],E[2],b2[0],0,b2[1],CT,G2);
+      part([-1.7,-F-1.1,-1.7,1.7,-F+1.1,1.7],E[0],E[1],E[2],b2[0],0,b2[1],W,SK)}
+    else{part([-1.65,-F+0.9,-1.65,1.65,0.6,1.65],E[0],E[1],E[2],b2[0],0,b2[1],CT,WH);part([-1.8,-F-1.1,-1.8,1.8,-F+1.1,1.8],E[0],E[1],E[2],b2[0],0,b2[1],N,[0.17,0.15,0.13])}}
+  if(GB){const gtf=partTF(ex,ey,ez,m.yaw,Pq[0],Pq[1],Pq[2],gp,0,0,s,roll),gt=(x,y,z)=>gtf(x*kk,y*kk,(z-zx)*kk);m._gtf=gt;
+    drawGun(EB,gt,gid,l,m.shotT>0?1-m.shotT/0.14:1,null);
+    if(kick>0){const f=0.55+0.45*kick,mz=GB.zn,fc=[1.9,1.55,0.7],lt=[1,1]; // muzzle flash: core, two crossed blades and a hot centre
+      EB.box(gt,-1.4,3.5,mz-13*f,1.4,6.1,mz-0.5,W,fc,lt,true);EB.box(gt,-6*f,4.5,mz-7*f,6*f,4.9,mz-0.5,W,fc,lt,true);EB.box(gt,-0.25,0.5,mz-7*f,0.25,8.8,mz-0.5,W,fc,lt,true);EB.box(gt,-2,3.1,mz-3,2,6.5,mz+0.5,W,[2,2,1.6],lt,true)}}}
 
 function damageEntity(e,amount,src){if(e===player&&src&&src.type&&customArmorPerks().has({fire:'fireproof',lava:'fireproof',fall:'feather'}[src.type]))return false;if(e===player&&src&&(src.type==='fire'||src.type==='lava')&&player.effects&&player.effects.fire_res>0)return false;if(e instanceof Mob&&e.def&&e.def.neutral&&src&&(src.type==='player'||src.type==='arrow'||src.type==='bullet')&&!e.tamed)e.angry=true;
   if(e.dead||e.dying)return false;if(e.invT>0&&amount<=e.lastDmg)return false;src=src||{};
