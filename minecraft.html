@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="ironcraft-build" content="20261027-153350">
+<meta name="ironcraft-build" content="20261027-154804">
 <meta name="viewport" content="width=device-width,initial-scale=1.0,viewport-fit=cover">
 <title>Ironcraft – Free Voxel Survival Sandbox in Your Browser | Iron Games</title>
 <meta name="description" content="Ironcraft is a free browser-based voxel survival sandbox with building, exploration, private or safety-limited public multiplayer, and optional weather, horror and survival challenges. By Daniele Bros.">
@@ -369,6 +369,27 @@ label.lb{font-size:13px;color:#a0a0a0;align-self:flex-start;margin-left:calc(50%
   <h3 style="margin-top:8px">Inventory</h3>
   <div class="grid" id="bpMain"></div>
   <div class="grid" id="bpHot" style="margin-top:6px"></div>
+</div></div>
+<div id="warMapGui" class="gui"><div class="panel" id="wmPanel">
+  <style>#wmPanel{max-width:97vw;max-height:97vh;box-sizing:border-box;overflow:auto}#wmBody{display:flex;gap:10px;flex-wrap:wrap;justify-content:center;align-items:flex-start}#warMapCv{display:block;border:2px solid #222;background:#0a2a4d;cursor:crosshair;width:min(840px,calc(100vw - 50px),calc((100vh - 110px)*2));height:auto;aspect-ratio:2/1}#wmSide{width:214px;max-width:100%;font-size:12px;color:#303030;display:flex;flex-direction:column;gap:2px}#wmSide .k{font-size:10px;text-transform:uppercase;letter-spacing:1px;color:#606060;margin-top:5px}#wmSide .v{font-size:13px;font-weight:bold;min-height:16px}#wmSide .btn{width:100%;height:34px;font-size:13px;margin-top:6px}</style>
+  <h3 id="wmTitle" style="font-size:18px;text-align:center">World Map</h3>
+  <div id="wmBody">
+    <canvas id="warMapCv" width="1024" height="512"></canvas>
+    <div id="wmSide">
+      <div class="k">Your nation</div><div class="v" id="wmHome">-</div>
+      <div class="k">Countries owned</div><div class="v" id="wmOwned">0</div>
+      <div class="k">Record</div><div class="v" id="wmScore" style="font-size:11px">-</div>
+      <div class="k">Selected</div><div class="v" id="wmSel">Click a country</div>
+      <div class="k">Enemy strength</div><div class="v" id="wmStr">-</div>
+      <div class="hint" id="wmHov">Hover: -</div>
+      <div class="hint" id="wmMsg" style="min-height:48px"></div>
+      <div class="k">Zoom (wheel, drag to pan)</div><div style="display:flex;gap:4px"><button class="btn" id="wmZout" style="width:auto;flex:1;height:26px;margin:0">-</button><button class="btn" id="wmZ0" style="width:auto;flex:1;height:26px;margin:0">1x</button><button class="btn" id="wmZin" style="width:auto;flex:1;height:26px;margin:0">+</button></div>
+      <button class="btn" id="wmConfirm">CONFIRM</button>
+      <button class="btn" id="wmAttack">ATTACK</button>
+      <button class="btn" id="wmRecruit">RECRUIT</button>
+      <button class="btn" id="wmClose">CLOSE</button>
+    </div>
+  </div>
 </div></div>
 <div id="attachGui" class="gui"><div class="panel">
   <h3>Attachment Table</h3>
@@ -3399,7 +3420,7 @@ if(this.def.vehicle){if(this.hurtT>0)this.hurtT-=dt;if(this.invT>0)this.invT-=dt
     }
     if(this.type==='creeper'&&this.swell>0&&Math.random()<dt*4)playSoundAt('fuse',this.x,this.y,this.z,1,0.2);
     // despawn
-    if(!d.passive&&!d.noDespawn){if(dist3>128)this.dead=true;else if(dist3>32&&Math.random()<dt/60)this.dead=true}
+    if(!d.passive&&!d.noDespawn&&!this.wmpSquad){if(dist3>128)this.dead=true;else if(dist3>32&&Math.random()<dt/60)this.dead=true}
   }
   updateShulker(dt){ // shulkers sit in their shell, peek out when the player is near and fire homing bullets
     const p=player;if(this.hurtT>0)this.hurtT-=dt;if(this.invT>0)this.invT-=dt;if(this.atkCd>0)this.atkCd-=dt;this.vx=this.vy=this.vz=0;
@@ -5215,7 +5236,7 @@ function openGui(type,x,y,z,station){const g={type,x,y,z,station:station||null};
   if(type==='chest'){g.be=world.getBlockEntity(x,y,z,()=>({items:new Array(27).fill(null)}));if(!$('chestGrid')._done){mkSlots($('chestGrid'),g.be.items,0,27);$('chestGrid')._done=true}else{const els=$('chestGrid').children;for(let i=0;i<27;i++)els[i]._slot.arr=g.be.items}playSoundAt('chest',x,y,z)}
   if(type==='enchant'){if(!$('enchItem')._done){mkSlots($('enchItem'),enchSlots,0,1,'ench');mkSlots($('enchLapis'),enchSlots,1,1,'lapis');mkSlots($('enchMain'),player.inv,9,27);mkSlots($('enchHot'),player.inv,0,9);$('enchItem')._done=true}game.enchSeed=game.enchSeed||floor(Math.random()*1e9)}
   if(type==='anvil'){if(!$('anvilA')._done){mkSlots($('anvilA'),anvilSlots,0,1,'anvil');mkSlots($('anvilB'),anvilSlots,1,1,'anvil');mkSlots($('anvilOut'),anvilSlots,2,1,'aout','out');mkSlots($('anvilMain'),player.inv,9,27);mkSlots($('anvilHot'),player.inv,0,9);$('anvilA')._done=true}}
-  game.gui=g;$({inv:'invGui',table:'tableGui',furnace:'furnGui',chest:'chestGui',hopper:'hopperGui',enchant:'enchantGui',anvil:'anvilGui',brew:'brewGui',guide:'guideGui',uncraft:'uncraftGui',attach:'attachGui',backpack:'backpackGui',silo:'siloGui',nukeTimer:'nukeTimerGui'}[type]).classList.add('show');document.exitPointerLock&&document.exitPointerLock();mouseL=false;mouseR=false;
+  game.gui=g;$({inv:'invGui',table:'tableGui',furnace:'furnGui',chest:'chestGui',hopper:'hopperGui',enchant:'enchantGui',anvil:'anvilGui',brew:'brewGui',guide:'guideGui',uncraft:'uncraftGui',attach:'attachGui',warmap:'warMapGui',backpack:'backpackGui',silo:'siloGui',nukeTimer:'nukeTimerGui'}[type]).classList.add('show');document.exitPointerLock&&document.exitPointerLock();mouseL=false;mouseR=false;
   updateCraftOutput();renderAllSlots();if(type==='table'||type==='attach')renderRecipeBook();if(type==='inv')renderPalette();if(type==='enchant')renderEnchant();if(type==='anvil')updateAnvil();$('hud').style.display='none';syncMobileControls()}
 function closeGui(){const g=game.gui;if(!g)return;returnGrid(craft2);returnGrid(craft3);returnGrid(enchSlots);returnGrid(uncraftSlots);uncraftOut.fill(null);anvilSlots[2]=null;returnGrid(anvilSlots);attachSlots[2]=null;returnGrid(attachSlots);if(cursor){if(addToInventory(cursor))spawnItem(player.x,player.y+1,player.z,cursor);cursor=null}
   if(g.type==='chest')playSoundAt('chest',g.x,g.y,g.z);for(const el of document.querySelectorAll('.gui'))el.classList.remove('show');$('invGui').classList.remove('full');game.gui=null;hideTip();renderAllSlots();$('hud').style.display='block';syncMobileControls();if(!game.paused)lockPointer()}
@@ -5713,11 +5734,11 @@ function migrateSaveHeight(save){if(!save||(save.ch&&save.ch!==128))return save;
   save.ch=CH;return save}
 function startWorld(meta,save){if(save)migrateSaveHeight(save);if(window.trackEvent)trackEvent('game_start',{game:'Ironcraft',multiplayer:!!(MP&&MP.active),mods:Object.keys(modsOf(meta)).filter(k=>modsOf(meta)[k]).join(',')||'none'});
   game.mods=modsOf(meta);game.baseDiff=meta.diff;game.noSave=false;game.wx=game.mods.weather?{storm:false,I:0,t:30+Math.random()*60,lt:4,flash:0,tornado:null}:null;game.hx=game.mods.horror?{amb:15,beat:0}:null;game.ax=game.mods.apocalypse?{wave:0,next:75,active:false,mobs:[],warned:{},left:0}:null;
-  game.dims={over:null,nether:null,end:null,sift:null};world=new World(meta.seed);game.seed=meta.seed;game.worldId=meta.id;game.worldName=meta.name;game.difficulty=game.mods.hardcore?3:(game.mods.apocalypse?Math.max(1,meta.diff):meta.diff);game.randomDrops=game.mods.random;entities.length=0;particles.length=0;activeFurnaces.clear();game.plates=new Map();game.nukeTimers=new Map();game.nukeTimerDim=new Map();if(MP.active)for(const r of MP.remote.values()){r.dead=false;entities.push(r)}
+  game.war=null;game.wmpBattle=null;game.wmpCounter=null;wmAsk=false;wmCd=null;game.dims={over:null,nether:null,end:null,sift:null};world=new World(meta.seed);game.seed=meta.seed;game.worldId=meta.id;game.worldName=meta.name;game.difficulty=game.mods.hardcore?3:(game.mods.apocalypse?Math.max(1,meta.diff):meta.diff);game.randomDrops=game.mods.random;entities.length=0;particles.length=0;activeFurnaces.clear();game.plates=new Map();game.nukeTimers=new Map();game.nukeTimerDim=new Map();if(MP.active)for(const r of MP.remote.values()){r.dead=false;entities.push(r)}
   const p=player;p.mode=meta.mode;p.inv.fill(null);p.armor.fill(null);p.off[0]=null;p.sel=0;p.hp=20;p.absorb=0;p.absorbT=0;p.coldT=0;p.frozen=false;p.koT=0;$('koov').style.opacity=0;p.effLvl={};p.swimming=false;p.hunger=20;p.sat=5;p.exh=0;p.xp=0;p.level=0;p.dead=false;p.flying=false;p.effects={};p.spawn=null;p.fireT=0;p.air=300;p.vx=p.vy=p.vz=0;p.riding=null;
   if(save){if(game.ax&&save.apoc)game.ax.wave=save.apoc.wave||0;world.time=save.time;world.day=save.day||0;game.worldSpawn=save.spawn;world.savedMods={};for(const k in save.mods)world.savedMods[k]=save.mods[k];world.savedBents=save.bents||{};world.populated=new Set(save.pop||[]);
     const sp=save.player;if(sp.hp<=0)game.respawnOnLoad=true;Object.assign(p,{x:sp.x,y:sp.y,z:sp.z,yaw:sp.yaw,pitch:sp.pitch,hp:sp.hp,hunger:sp.hunger,sat:sp.sat,xp:sp.xp,level:sp.level,sel:sp.sel,spawn:sp.spawn,flying:sp.flying||false});p.off[0]=sp.offhand||null;for(let i=0;i<36;i++)p.inv[i]=sp.inv[i]||null;for(let i=0;i<4;i++)p.armor[i]=sp.armor[i]||null;
-    game.pendingMobs=save.mobs||[];game.pendingItems=save.items||[];nukeTimersLoad(save.nukeT);
+    game.pendingMobs=save.mobs||[];game.pendingItems=save.items||[];nukeTimersLoad(save.nukeT);wmpLoad(save.war);
     if(save.nether){const nw=new World(meta.seed+1,true);nw.savedMods=save.nether.mods||{};nw.savedBents=save.nether.bents||{};nw.populated=new Set(save.nether.pop||[]);game.dims.nether={world:nw,ents:(save.nether.mobs||[]).filter(m=>m.type==='wither'||MOBDEF[m.type]).map(m=>{if(m.type==='wither'){const w=new Wither(m.x,m.y,m.z);w.hp=m.hp;w.state='hunt';return w}const e=new Mob(m.type,m.x,m.y,m.z);e.hp=m.hp;return e}),furn:new Map()}}
     if(save.end){const ew=new World(meta.seed+2,'end');ew.savedMods=save.end.mods||{};ew.savedBents=save.end.bents||{};ew.populated=new Set(save.end.pop||[]);ew.dragonDead=!!save.end.dragonDead;const ents=(save.end.mobs||[]).filter(m=>MOBDEF[m.type]).map(m=>{const e=new Mob(m.type,m.x,m.y,m.z);e.hp=m.hp;return e});
       if(!ew.dragonDead){const d=new Dragon(0,80,-30);if(save.end.dragonHp)d.hp=save.end.dragonHp;ents.push(d)}for(const c of (save.end.crystals||[]))ents.push(new Crystal(c[0],c[1],c[2]));ew.crystalsPlaced=true;game.dims.end={world:ew,ents,furn:new Map()}}
@@ -5752,7 +5773,7 @@ function saveWorld(){if(!world||game.state!=='playing'||game.noSave)return;const
   if(overSaveWorld){for(const c of overSaveWorld.chunks.values()){const k=c.cx+','+c.cz;if(!overSaveWorld.savedMods)overSaveWorld.savedMods={};if(!overSaveWorld.savedBents)overSaveWorld.savedBents={};if(c.mods.size)overSaveWorld.savedMods[k]=Array.from(c.mods);if(c.bents.size)overSaveWorld.savedBents[k]=Array.from(c.bents)}Object.assign(mods,overSaveWorld.savedMods||{});Object.assign(bents,overSaveWorld.savedBents||{})}
   const mobs=[],items=[];const overEnts=world.dimKey==='over'?entities:(game.dims.over?game.dims.over.ents:[]);for(const e of overEnts){if(e.dead)continue;if(e instanceof Wither&&!e.dying)mobs.push({type:'wither',x:e.x,y:e.y,z:e.z,hp:e.hp});else if(e instanceof Mob&&!e.dying)mobs.push({type:e.type,x:e.x,y:e.y,z:e.z,hp:e.hp,baby:e.baby,growT:e.growT,sheared:e.sheared,woolId:e.woolId,prof:e.prof,vlevel:e.vlevel,vxp:e.vxp,uses:e.trades?e.trades.map(t=>t.uses):undefined,tamed:e.tamed||undefined,sitting:e.sitting||undefined,color:e.color,hspeed:e.hspeed,hjump:e.hjump,saddled:e.saddled||undefined,maxHp:e.type==='horse'?e.maxHp:undefined,size:e.size,demand:e.trades?e.trades.map(t=>t.demand||0):undefined,restocks:e.restocks});else if(e instanceof ItemEntity)items.push({x:e.x,y:e.y,z:e.z,id:e.stack.id,count:e.stack.count,dur:e.stack.dur,ench:e.stack.ench,items:e.stack.items})}
   const save={v:1,ch:CH,apoc:game.ax?{wave:game.ax.wave}:undefined,dim:world.dimKey,nether:netherSave,end:endSave,sift:siftSave,time:world.time,day:world.day,spawn:game.worldSpawn,player:{x:p.x,y:p.y,z:p.z,yaw:p.yaw,pitch:p.pitch,hp:p.hp,hunger:p.hunger,sat:p.sat,xp:p.xp,level:p.level,sel:p.sel,inv:p.inv,armor:p.armor,spawn:p.spawn,flying:p.flying,offhand:p.off[0]||null},mods,bents,mobs:mobs.slice(0,120),items:items.slice(0,100),pop:Array.from(overSaveWorld?overSaveWorld.populated:[])};
-  const wid=game.worldId;const nt=nukeTimersSave();if(nt)save.nukeT=nt;const packed=packSave(save);SaveDB.put('ic_world_'+wid,packed).then(ok=>{if(ok)return;let done=false;try{localStorage.setItem('ic_world_'+wid,JSON.stringify(save));done=true}catch(e){}if(!done&&game.time-saveFailT>60){saveFailT=game.time;showMessage('Save failed: the browser gave no room to save. Free space by removing old worlds from the world list.')}});
+  const wid=game.worldId;const nt=nukeTimersSave();if(nt)save.nukeT=nt;if(game.war)save.war=wmpSave();const packed=packSave(save);SaveDB.put('ic_world_'+wid,packed).then(ok=>{if(ok)return;let done=false;try{localStorage.setItem('ic_world_'+wid,JSON.stringify(save));done=true}catch(e){}if(!done&&game.time-saveFailT>60){saveFailT=game.time;showMessage('Save failed: the browser gave no room to save. Free space by removing old worlds from the world list.')}});
   try{const list=worldList();const m=list.find(w=>w.id===wid);if(m){m.played=Date.now();localStorage.setItem('ic_worlds',JSON.stringify(list))}}catch(e){}
   if(ridePos){p.y=ridePos[1]}game.lastSave=game.time;
 }
@@ -5847,6 +5868,7 @@ function setupInput(){
     if(ev.code==='Escape'){if(game.gui)closeGui();else if(game.paused)resumeGame();else pauseGame();ev.preventDefault();return}
     if(game.paused)return;
     if(ev.code==='KeyE'){if(game.gui)closeGui();else if(!player.dead)openGui('inv');ev.preventDefault();return}
+    if(ev.code==='KeyM'&&!ev.ctrlKey&&!ev.metaKey&&wmpKey()){ev.preventDefault();return}
     if(ev.code==='KeyP'&&!game.gui){cycleCamera();ev.preventDefault();return}
     if(ev.code==='KeyV'&&!game.gui&&cycleSeat()){ev.preventDefault();return}
     if(game.gui)return;
@@ -6442,6 +6464,245 @@ function warKit(){const p=player;for(const [id,n] of KITS.war.items){const def=I
     if(def.armor!==undefined&&def.mat&&!p.armor[def.armor]){p.armor[def.armor]={id,count:1};continue}
     let left=n;while(left>0){const k=Math.min(left,def.stack||64);const rest=addToInventory({id,count:k});if(rest>0)spawnItem(p.x,p.y+1,p.z,{id,count:rest});left-=k}}
   updateHotbar();if(game.gui)renderAllSlots()}
+/* ---- War world map: real countries, rough outlines in lon/lat (equirectangular) ---- */
+const WAR_NATIONS=[
+['USA','Washington','#4a6fd0',10,[[-123,49,-95,49,-83,46,-67,45,-76,37,-81,31,-80,25.5,-89,30,-97,26,-106,31.8,-117,32.5,-124,40],[-141,60,-141,70,-156,71,-166,68.5,-165,63,-158,58.5,-152,59,-148,60.5]]],
+['Canada','Ottawa','#c9503f',6,[[-141,70,-100,69,-82,64,-93,58,-80,52,-66,58,-56,52,-53,47,-67,45,-83,46,-95,49,-123,49,-132,55,-141,60]]],
+['Mexico','Mexico City','#3f9d6b',5,[[-117,32.5,-106,31.8,-97,26,-97.5,21,-94,18,-90.5,21,-87,21,-88,18,-92,14.5,-105,19,-110,24,-115,30]]],
+['Cuba','Havana','#d9a441',2,[[-85,22,-81,23,-77,21,-74,20,-78,19.8,-83,21.8]]],
+['Nicaragua','Managua','#9a68c8',1,[[-88,14,-85,14.9,-83.3,15,-83.5,11,-85.7,10.9,-87.5,12.8]]],
+['Panama','Panama City','#c9803d',1,[[-83,8.4,-81,8.8,-79.5,9.6,-77.5,8.7,-77.5,7.6,-79,7.2,-80.5,7.3,-82.5,8.2]]],
+['Colombia','Bogota','#e0c341',3,[[-77.3,8.8,-75.5,10.8,-72,12.4,-72.5,9,-70,6.9,-67.5,6,-67.4,2.3,-70,-4.2,-73.5,-2.2,-75.5,-0.1,-78.5,1.5,-77.5,6.5]]],
+['Venezuela','Caracas','#d96a2b',3,[[-72,12,-68,10.6,-62,10.6,-60,8.5,-60.7,5.2,-64,4,-64,1.5,-67,2.3,-67.5,6,-70,6.9,-72.5,9]]],
+['Brazil','Brasilia','#35b560',7,[[-60.7,5.2,-44,-2.4,-35,-5.5,-39,-17.5,-48.5,-26,-53.5,-33.7,-54.5,-26,-57.8,-19.5,-60,-13.5,-69,-12.5,-70.5,-9.5,-73.9,-7.5,-70,-4.2,-67.4,2.3]]],
+['Peru','Lima','#b84f78',3,[[-80,-3.4,-75.5,-0.1,-73.5,-2.2,-70,-4.2,-73.9,-7.5,-70.5,-9.5,-69,-12.5,-69.4,-15,-70.4,-18.3,-76.2,-14,-78.5,-9.5,-81,-6.2]]],
+['Bolivia','Sucre','#8bb03c',2,[[-69,-12.5,-60,-13.5,-58.2,-16.3,-57.8,-19.5,-62,-22.2,-67,-22.8,-68.5,-20.5,-69.4,-17.5,-69.4,-15]]],
+['Argentina','Buenos Aires','#6fa9e6',4,[[-67,-22.8,-62,-22.2,-54.5,-26,-58,-34,-57,-38,-65,-41,-67.5,-46.5,-69,-51.5,-68.5,-52.4,-71.5,-50,-72,-45,-71.5,-39,-70,-32,-68,-24]]],
+['Chile','Santiago','#c23a4a',3,[[-70.4,-18.3,-68.5,-20.5,-68,-24,-70,-32,-71.5,-39,-72,-45,-71.5,-50,-68.5,-52.4,-67.5,-55,-74,-52,-76,-47,-74.5,-37,-72.6,-30,-71.5,-23]]],
+['UK','London','#d8466a',8,[[-5.7,50,1.4,51.2,1.7,52.8,-0.2,54.5,-2,56,-1.8,57.6,-3.3,58.6,-5.3,58.5,-6,56.5,-5,55,-3,54.3,-4.6,53.3,-5,51.7]]],
+['Ireland','Dublin','#53b87a',2,[[-10,51.7,-8,51.6,-6.2,52.2,-6,54,-7.5,55.2,-10,54.2]]],
+['France','Paris','#4a78d6',8,[[-4.7,48.5,2.5,51,6,49.5,8,48.9,7.5,47.5,7.2,43.8,3.1,42.4,-1.8,43.4,-1.2,46,-4.5,47.8]]],
+['Germany','Berlin','#8a8f98',7,[[6,49.5,6,51.5,7,53.5,9,55,14,54,14.8,51.5,12.5,50.2,13.8,48.7,13,47.6,10,47.5,7.5,47.6,8,48.9]]],
+['Spain','Madrid','#e08a2e',5,[[-9,43.5,-1.8,43.4,3.2,42.4,0,39.5,-0.7,37.6,-2.2,36.7,-5.5,36,-7.4,37.2,-7,39.5,-6.9,41.9,-8.8,42]]],
+['Portugal','Lisbon','#2f8f5a',2,[[-8.8,42,-6.9,41.9,-7,39.5,-7.4,37.2,-9,37,-9.5,38.8,-8.8,41]]],
+['Italy','Rome','#47a89a',6,[[7.2,43.8,7,45.5,10,46.5,13.7,46.5,12.3,44.8,14,42.2,16,41.6,18.5,40.2,16.5,38.3,15.7,38,15.6,40,12.5,41.5,10.5,43,8.5,44.3]]],
+['Poland','Warsaw','#d65c5c',5,[[14,54,19,54.5,23.5,54,24,51,22.7,49.2,19,49.4,15,50.8,14.8,51.5]]],
+['Ukraine','Kyiv','#e3c93a',6,[[22.7,49.2,24,51.2,30,51.5,32.5,52.2,35.5,51.5,40,49.8,38.2,47.1,35.5,45.3,33.7,44.4,32,46.1,29.5,45.5,28.2,46.5,26.5,48.2,24.5,47.9]]],
+['Romania','Bucharest','#a06fc0',3,[[20.3,45,22,48,26.5,48.2,28,46.5,29.7,45.3,28.6,43.8,25,43.7,22.7,44.2]]],
+['Greece','Athens','#5aa3e0',4,[[20.2,39.7,20.8,41.2,23,41.3,26.2,41.6,24.2,40,24,38,23,36.4,22,36.5,21.5,38]]],
+['Sweden','Stockholm','#3d8fd0',4,[[11,59,12.8,56,14.3,55.5,16.5,57,18.5,59.5,17.5,61.5,21,64.5,24,65.8,23.5,68,21,69.1,18,68.3,14.5,65.5,12.2,61.5]]],
+['Norway','Oslo','#b8453a',3,[[5,58.5,11,59,12.2,61.5,14.5,65.5,18,68.3,21,69.1,26,69.8,30,69.8,28,71,18,70,12,66.5,8,63,5,61]]],
+['Finland','Helsinki','#8fb6d9',4,[[21.5,61,23,60,27,60.4,30.5,61.5,31.5,63,29,66,29.5,69.5,26,69.8,21,69.1,23.5,68,24,65.8,21.5,63]]],
+['Russia','Moscow','#8c3b3b',9,[[29,69.5,44,68.5,60,69,60,51,50,51.5,47.5,46,48,42,40,43.6,38.2,47.1,40,49.8,35.5,51.5,28,57,30,62,29,66],[60,69,70,73,80,73.5,100,77,115,73.5,130,71,130,50,120,53,117,49.8,98,50.5,88,49.5,83,51,76,54,60,51],[130,71,150,72,180,69,180,65,172,61,163,57,156.5,51,156,57,143,59.5,135,54.5,140,48,131,43,134.5,48.5,130,50],[-180,69,-172,66,-175,65,-180,65]]],
+['Turkey','Ankara','#c8553d',7,[[26,41.5,29,41.2,35,42,41.5,41.5,44.8,39.7,44.2,37.2,38,36.8,36,36.2,32,36.2,28,36.7,26.4,38.5,26.2,40.2]]],
+['Egypt','Cairo','#d8b04a',5,[[25,31.7,32,31.4,34.3,31.2,34.9,29.5,33.5,27.8,35.7,23.9,36.9,22,25,22]]],
+['Nigeria','Abuja','#3aa05a',4,[[2.7,6.4,3.6,11.7,8,13.5,13.5,13.7,14.6,11,12,7.5,9.5,6,8.5,4.5,5.5,4.5]]],
+['South Africa','Pretoria','#e0a02f',5,[[16.5,-28.6,20,-25,25,-25.7,27,-23.3,31.3,-22.4,32,-26.8,30.9,-29.9,27,-33.6,22,-34.2,18.4,-34.1,17.7,-31]]],
+['Ethiopia','Addis Ababa','#7ab845',3,[[36.5,14.3,40,14.8,43,12.2,48,8,44,4.5,41,3.8,38,3.6,35.5,5,34.2,8,34.5,10.5]]],
+['Kenya','Nairobi','#c04a4a',2,[[34,4,36,4.6,38,3.6,41,3.9,41.5,-1.6,39.2,-4.7,37.6,-3.5,34,-1,34,1.5]]],
+['Algeria','Algiers','#3f9e7a',4,[[-2,35.1,3,36.8,8.6,37,8.3,34.5,9.8,30.5,10,25.5,11.5,24,8.5,22,4,19.2,1,21,-4.8,25,-8.7,27.7,-8.7,28.7,-2.5,32.1]]],
+['Morocco','Rabat','#c8393f',3,[[-5.9,35.8,-2,35.1,-2.5,32.1,-8.7,28.7,-8.7,27.7,-13,27.7,-13,21.5,-17,21,-14,26.5,-10,29.5,-9.3,32.5,-6.8,34.2]]],
+['Libya','Tripoli','#5f9a3f',2,[[9.8,30.5,11.5,33.2,15.2,32.3,19,30.3,20.2,32.7,25,31.7,25,22,24,20,15.5,23.5,11.5,24,10,25.5]]],
+['Sudan','Khartoum','#c9884a',2,[[24,20,25,22,36.9,22,37.3,18,36.5,14.3,34.5,10.5,34,6,31,3.8,27,5,24,9,22,12.5,24,15]]],
+['Mali','Bamako','#e0b33c',1,[[-4.8,25,1,21,4,19.2,4,16,1.2,14.7,-5.5,10.4,-8.5,10.5,-12,12.5,-11.5,15.2,-5.7,16.4,-6,19.5]]],
+['DR Congo','Kinshasa','#4f8fd0',2,[[12.2,-6,15,-4,15.5,2,18,3.8,22,4.5,27,5,31,3.8,30.5,-1.1,29.5,-4.5,30,-8.2,28.5,-12,24,-13,22,-11,16.5,-8]]],
+['Angola','Luanda','#b8453f',2,[[12.2,-6,16.5,-8,22,-11,24,-13,23.5,-17.5,13.8,-17.2,11.8,-16,13.5,-11,13,-9]]],
+['Tanzania','Dodoma','#46b0a0',2,[[30.5,-1.1,34,-1,37.6,-3.5,39.2,-4.7,39.5,-8,40.5,-10.5,34.5,-11.5,33,-9.5,30,-8.2,29.5,-4.5]]],
+['Mozambique','Maputo','#8a62b8',1,[[40.5,-10.5,34.5,-11.5,35.5,-14,33,-16,31.3,-22.4,32,-26.8,35.5,-24,35,-20,37,-17.8,40,-16,40.7,-14]]],
+['Namibia','Windhoek','#d08a3c',1,[[13.8,-17.2,23.5,-17.5,25,-17.8,20,-22,20,-25,16.5,-28.6,14.5,-22.5]]],
+['Saudi Arabia','Riyadh','#3a9a52',5,[[35,29,37.5,31.5,39,32,44,29,48,28.5,50,26,52,24.5,55.5,22.5,52,19,47,17.3,43,17,41,20,37,25]]],
+['Iraq','Baghdad','#9a6a3a',3,[[42,37.3,44.5,37.2,45.5,35.5,46.2,33,48.5,30.2,47.3,29.1,44,29,39,32,40.5,34.5]]],
+['Iran','Tehran','#b87a9a',6,[[44.5,39.5,48,38.5,54,37.3,60.5,36.5,61,31.5,61.5,25.2,57,25.8,52,27.5,49,30.2,46.2,33,45.5,35.5,44.2,37.2]]],
+['Israel','Jerusalem','#5aa8e8',6,[[34.2,31.4,34.9,33.1,36,32.8,35.7,31.2,35.2,29.5,34.8,29.5]]],
+['Afghanistan','Kabul','#a8553a',3,[[60.8,35,61.5,36.5,66,37.5,71,37.3,74.7,37,71,34.5,69.5,31.9,66.5,29.5,62.5,29.5,61,31.5]]],
+['Pakistan','Islamabad','#2f8a4a',6,[[61.5,25.2,66.5,25.4,71,24.2,74.5,31,77,35.5,74.7,37,71,34.5,69.5,31.9,66.5,29.5,62.5,29.5]]],
+['India','New Delhi','#e08a3a',8,[[68.2,23.6,71,24.3,74.5,31,77,35.5,80,30,88,27.8,96,28,93,22,85,19.5,80,15,78,8.2,73.5,16,72.7,21]]],
+['Kazakhstan','Astana','#56a8c8',3,[[50,51.5,61,51,76,54,83,51,87,49,80,45,80,42.5,68,42,61,44,56,41.5,52,42,50,45,47.5,46.5]]],
+['Mongolia','Ulaanbaatar','#6a8fd8',2,[[88,49,98,50.5,108,50,117,49.8,120,47,112,43,105,41.8,96,42.7,90,45.5,87,48]]],
+['China','Beijing','#d94a3a',10,[[74,38.5,80,42.5,87,48,96,42.7,112,43,120,47,120,53,127.5,50,134.5,48.5,131,43,124.5,40,121,39,119,37,79,36],[119,37,120,35,122,30.5,120,26,117,23.5,110,21.5,105.5,23.3,102.5,22.5,101,21.5,98,24,98,28,88,27.8,80,30,79,36]]],
+['Myanmar','Naypyidaw','#c8b03a',3,[[93,22,96,28,98,28,98,24,101,21.5,98.5,17.5,98.6,10,97.5,16.5,94.5,16,94.5,19.5]]],
+['Thailand','Bangkok','#7a5ac8',3,[[98.5,18,100.5,20.3,102,18,105.5,16,105,14,102.3,12,100.5,13.2,100,10,98.6,10,98.8,15]]],
+['Vietnam','Hanoi','#d84a6a',4,[[102.5,22.5,105.5,23.3,108,21.5,106.5,18.5,109,15,109.3,12,107,10.3,105,8.6,105,10.8,107.5,14.5,104.5,17.5,102,20.5]]],
+['North Korea','Pyongyang','#a02f3a',6,[[124.5,40,128,42,130.5,42.6,129.5,40.7,127.5,39.4,127.4,38.5,125,37.7,125.2,39]]],
+['South Korea','Seoul','#3a78d0',6,[[127.4,38.5,128.4,38.5,129.4,36,129.2,35.1,127.5,34.7,126.3,34.6,126.4,36.8,125.3,37.7]]],
+['Japan','Tokyo','#e86a8a',7,[[130.2,31.2,131.8,33,135.2,33.7,139.8,35,141,38,141.7,41,140,40,139,37.5,136.8,37,133,35.5,130.9,34.4,129.8,33],[140,42,141.5,45.5,145.5,43.3,143.2,41.9,141.5,42.3]]],
+['Philippines','Manila','#3ab8c8',3,[[120.4,18.3,122.2,18.5,121.8,15.5,122,14,124,12.8,121,13.7,120.5,15.5],[122,7,125.5,9.8,126.5,7,125.5,5.8,123.5,7.5]]],
+['Indonesia','Jakarta','#c85a3a',5,[[95.3,5.6,100,2,104,-1,106,-3.2,105.8,-5.8,101,-3,97,2],[105.5,-6.5,108,-6.5,112,-6.8,114.5,-7.8,110,-8.4,106,-7.2],[109,0,111,1.5,114.5,1.8,116.5,3.5,117.5,0,116,-3.8,112,-3.5,110,-2.5],[119,-5.5,119,0.5,121,1.2,125,1.5,123,-1,121.5,-1.5,123,-4.5,121,-4],[131,-1,135,-3.2,141,-2.6,141,-9,138.5,-8.3,135,-4.5]]],
+['Papua New Guinea','Port Moresby','#4aa86a',1,[[141,-2.6,145.5,-4.5,150.5,-10.5,147,-10,143,-9,141,-9]]],
+['Australia','Canberra','#e0b040',6,[[113.5,-22,115,-34,124,-33.5,131,-31.5,138,-35.5,144,-38.5,150,-37,153,-28,149,-20,145.3,-15,142.5,-10.8,136,-12,129,-15,122.5,-17.5]]],
+['New Zealand','Wellington','#4a8fd8',2,[[172.7,-34.5,175.5,-36.5,178.5,-37.7,176.8,-39.8,175.2,-41.6,174.7,-39.5,173.8,-39.2,174.6,-37.2],[172.7,-40.5,174.3,-41.5,173,-43.5,171,-44.5,169,-46.6,166.5,-46,168.5,-44,171.5,-41.8]]]
+];
+const WAR_SEA_LINKS=[['UK','France'],['UK','Ireland'],['USA','Russia'],['USA','Cuba'],['Spain','Morocco'],['Japan','South Korea'],['Japan','Russia'],['Indonesia','Australia'],['Australia','New Zealand'],['Italy','Greece'],['Turkey','Greece'],['Egypt','Saudi Arabia'],['Philippines','Indonesia'],['Philippines','Vietnam'],['Philippines','China'],['Thailand','Indonesia'],['Nigeria','DR Congo'],['Nigeria','Sudan'],['Sweden','Poland'],['Norway','UK']];
+const WMP_LAND=[
+[-9.5,37,-9.5,43.5,-4.8,48.5,2,51.2,8.5,54,10,57.5,11,54,14,54,20,54.8,21,57,24,57.3,24,59.5,30,60,23,60,21.5,61,21.3,63,25,65,21.5,65,17.5,62,19,60,16.8,57,14.3,55.5,12.5,56.2,11,59,8,58,5,58.5,5,61,8,63,12,66.5,18,70,28,71,41,67.5,60,69,70,73,80,73.5,100,78,112,74,140,72,160,70,180,69,180,65,172,62,163,58,156.5,51,156,58,143,59.5,137,54.5,141,50,140,48,131,42.8,129.5,41,129.4,36,126.5,34.5,126,37.5,125,39.5,121.5,38.8,122,37,120,35,122,30.5,120,26,117,23.3,110,21,108,21.5,106.5,18.5,109,15,109.3,11.5,105,8.6,105,10.5,102.3,12,100.5,13.2,100,10,101,6.5,103.5,2,101,2.7,98.5,8,98.6,12,97.5,16.5,94.5,16,94,19,92,22,88,21.5,85.5,19.8,80.2,15.5,80,10,77.5,8.2,73.5,16,72.7,21,70,20.8,68.2,23.6,66.5,25.4,61.5,25.2,57,25.8,56.5,27,52,27.5,50.2,29.5,48.5,29.8,50.2,26.5,51.5,24.5,54,24,56.5,24.5,56.3,26.3,59.8,22.5,57,18.7,52,16,45,12.8,43.2,12.7,42.7,16,39,21,35,28,34.9,29.5,34.3,31.2,35.5,34.5,36.2,36.2,32,36.2,28,36.7,26.4,38.5,24,40.5,23.5,38,22,36.5,21,38,20.2,39.7,19.5,42,16,43.5,13.7,45.5,12.3,45.3,12.5,44.3,14,42.2,16,41.6,18.5,40.2,16.5,38.3,15.7,38,15.6,40,12.5,41.5,10.5,43,8.5,44.3,7.2,43.8,3.1,42.4,0,39.5,-0.7,37.6,-2.2,36.7,-5.5,36],
+[-17,21,-16,16,-17.5,14.7,-15,11,-13,8.5,-10,6,-7.5,4.5,-2,5,2,6.2,5,5.5,8.5,4.5,9.5,1,9,-1,12,-5,13,-9,12,-13,11.8,-17,14.5,-22.5,16.5,-28.6,18.4,-34.1,22,-34.2,27,-33.6,30.9,-29.9,32.8,-27,35.5,-24,35,-20,37,-17.8,40.5,-15,40.5,-10.5,39.5,-8,39.2,-4.7,41.5,-1.6,43,1,46,3.5,48.5,8,51.2,11.8,48,11.2,43.2,11.7,43,12.7,39.5,15.5,37.3,18,37,22,35.7,23.9,33.5,27.8,32.5,30,32.3,31.3,29,30.9,25,31.7,20.2,32.7,19,30.3,15.2,32.3,11.5,33.2,10,34,10.5,37.2,8.6,37,3,36.8,-2,35.1,-5.9,35.8,-9.5,32.5,-13,27.7],
+[-168,65.5,-166,68.5,-156,71.3,-141,70,-125,70,-110,68,-95,69,-85,69.5,-82,66.5,-93,61,-94,58.5,-86,55.5,-82,52.5,-79,52,-77,58,-78,62,-70,61,-65,60,-62,57,-56,52,-53,47,-60,46,-66,44.5,-70,42,-75,38.5,-76,35,-81,31,-80,25.5,-82,27,-83,29.5,-89,30,-94,29.5,-97.5,26,-97.5,21,-95,18.5,-91,19,-90.5,21,-87,21.5,-88,18,-88,14,-83.5,15,-83.5,11,-81,8.8,-79.5,9.6,-77.3,8.7,-78,7.2,-80.5,7.3,-83,8.2,-85.7,10.8,-87.5,13,-92,14.5,-96,15.8,-105,19.5,-106,23,-110,24,-112,28,-115,30,-117,32.5,-120.5,34.5,-124,40,-124,46,-123,49,-127,50,-130,54,-134,58,-140,59.5,-148,60.5,-152,58,-158,56.5,-162,58.5,-165,62,-161,64.5],
+[-77.3,8.7,-75.5,10.8,-72,12.4,-68,10.6,-62,10.6,-60,8.5,-57,6,-52,4.5,-50,1.8,-50,-0.5,-44,-2.4,-39,-3.5,-35,-5.5,-35,-9,-37,-12,-39,-17.5,-41,-22.5,-45,-23.5,-48.5,-26,-48.5,-28,-53.5,-33.7,-56,-34.8,-58,-34.5,-57,-37,-62,-39,-65,-41,-64.5,-42.5,-67.5,-46.5,-66,-48,-69,-51.5,-68.5,-52.4,-67.5,-55,-71,-54.5,-74,-52,-76,-47,-74.5,-42,-74.5,-37,-72.6,-30,-71.5,-23,-70.4,-18.3,-76.2,-14,-81,-6.2,-80,-3.4,-80.5,-1,-78.8,1.5,-77.5,4,-77.5,6.5],
+[-73,78,-60,82,-30,83.5,-20,80,-18,75,-22,70,-33,68,-42,60,-50,64,-54,69,-58,75],
+[-24,65.5,-18,66.5,-14,65,-18,63.4,-22,64],
+[44,-25,47,-25,50,-15.5,49,-12,44,-17],
+[109,1.5,111,2,114,4.5,117,7,119,5,117.5,1,116,-3.8,112,-3.5,110,-3],
+[-74.5,18.5,-72,19.8,-68.5,18.6,-71.5,17.8],
+[120,22,121.5,25,122,24.5,121,22],
+[80,9.8,81.8,7.5,80.5,6,79.8,8],
+[145,-41,148.3,-41,147,-43.5],
+[-180,-90,180,-90,180,-73,150,-68,120,-66,90,-66,60,-67,30,-70,0,-70,-30,-72,-60,-65,-70,-72,-110,-74,-150,-77,-180,-78]
+];
+/* ---- War world map: pick a country, then conquer the others (state in game.war, saved as save.war) ---- */
+const WMP_ME='#27c7e8';
+let wmAsk=false,wmCd=null,wmUi=0;
+const wm={ready:false,list:[],by:{},adj:{},hover:null,sel:null,base:null,dirty:true,pat:null,cv:null,vz:1,vx:0,vy:0};
+function wmX(lon){return (lon+180)/360*1024}
+function wmY(lat){return (90-lat)/180*512}
+function wmArea(p){let a=0;const n=p.length/2;for(let i=0;i<n;i++){const j=(i+1)%n;a+=p[2*i]*p[2*j+1]-p[2*j]*p[2*i+1]}return a/2}
+function wmInPoly(p,x,y){let c=false;const n=p.length/2;for(let i=0,j=n-1;i<n;j=i++){const xi=p[2*i],yi=p[2*i+1],xj=p[2*j],yj=p[2*j+1];if((yi>y)!==(yj>y)&&x<(xj-xi)*(y-yi)/(yj-yi)+xi)c=!c}return c}
+function wmInit(){if(wm.ready)return;wm.ready=true;
+  for(let i=0;i<WAR_NATIONS.length;i++){const [name,cap,col,str,parts]=WAR_NATIONS[i];const o={i,name,cap,col,str,parts,area:0,bb:[1e9,1e9,-1e9,-1e9],pts:[]};let best=null,ba=-1;
+    for(const p of parts){const a=Math.abs(wmArea(p));o.area+=a;if(a>ba){ba=a;best=p}const n=p.length/2;
+      for(let k=0;k<n;k++){const x0=p[2*k],y0=p[2*k+1],x1=p[2*((k+1)%n)],y1=p[2*((k+1)%n)+1];o.bb[0]=Math.min(o.bb[0],x0);o.bb[1]=Math.min(o.bb[1],y0);o.bb[2]=Math.max(o.bb[2],x0);o.bb[3]=Math.max(o.bb[3],y0);
+        const st=Math.max(1,Math.ceil(Math.hypot(x1-x0,y1-y0)/1.5));for(let s=0;s<st;s++)o.pts.push(x0+(x1-x0)*s/st,y0+(y1-y0)*s/st)}}
+    // label point: centroid of the biggest part, nudged inside if the shape is concave
+    let A=wmArea(best),cx=0,cy=0;const n=best.length/2;for(let k=0;k<n;k++){const j=(k+1)%n,cr=best[2*k]*best[2*j+1]-best[2*j]*best[2*k+1];cx+=(best[2*k]+best[2*j])*cr;cy+=(best[2*k+1]+best[2*j+1])*cr}cx/=6*A;cy/=6*A;
+    if(!wmInPoly(best,cx,cy)){let bx=best[0],by=best[1],bd=1e9;let x0=1e9,y0=1e9,x1=-1e9,y1=-1e9;for(let k=0;k<n;k++){x0=Math.min(x0,best[2*k]);x1=Math.max(x1,best[2*k]);y0=Math.min(y0,best[2*k+1]);y1=Math.max(y1,best[2*k+1])}
+      for(let a=0;a<=24;a++)for(let b=0;b<=24;b++){const x=x0+(x1-x0)*a/24,y=y0+(y1-y0)*b/24;if(!wmInPoly(best,x,y))continue;const d=(x-cx)**2+(y-cy)**2;if(d<bd){bd=d;bx=x;by=y}}cx=bx;cy=by}
+    o.lon=cx;o.lat=cy;o.px=wmX(cx);o.py=wmY(cy);wm.list.push(o);wm.by[name]=o;wm.adj[name]=[]}
+  // neighbours: outlines within 5 degrees of each other, plus the sea links
+  const near=(a,b)=>{if(a.bb[0]-5>b.bb[2]||b.bb[0]-5>a.bb[2]||a.bb[1]-5>b.bb[3]||b.bb[1]-5>a.bb[3])return false;const P=a.pts,Q=b.pts;for(let i=0;i<P.length;i+=2)for(let j=0;j<Q.length;j+=2){const dx=P[i]-Q[j],dy=P[i+1]-Q[j+1];if(dx*dx+dy*dy<=25)return true}return false};
+  const link=(a,b)=>{if(a===b||!wm.by[a]||!wm.by[b]||wm.adj[a].includes(b))return;wm.adj[a].push(b);wm.adj[b].push(a)};
+  for(let i=0;i<wm.list.length;i++)for(let j=i+1;j<wm.list.length;j++)if(near(wm.list[i],wm.list[j]))link(wm.list[i].name,wm.list[j].name);
+  for(const [a,b] of WAR_SEA_LINKS)link(a,b);
+  wm.order=wm.list.slice().sort((a,b)=>b.area-a.area)}
+function wmpNeighbors(n){wmInit();return (wm.adj[n]||[]).slice()}
+function wmpNew(){const en={};for(const n of WAR_NATIONS)en[n[0]]=n[3];return {home:null,owned:[],lost:[],battles:0,turn:0,enemy:en,score:0,won:false}}
+function wmpSave(){const w=game.war;return w?{home:w.home,owned:w.owned.slice(),lost:w.lost.slice(),battles:w.battles,turn:w.turn,enemy:Object.assign({},w.enemy),score:w.score||0,won:!!w.won}:null}
+function wmpNorm(o){wmInit();const w=wmpNew();if(!o||typeof o!=='object')return w;const ok=n=>typeof n==='string'&&!!wm.by[n];
+  if(ok(o.home))w.home=o.home;w.owned=(Array.isArray(o.owned)?o.owned:[]).filter((n,i,a)=>ok(n)&&a.indexOf(n)===i);w.lost=(Array.isArray(o.lost)?o.lost:[]).filter(ok);w.battles=+o.battles||0;w.turn=+o.turn||0;w.score=+o.score||0;w.won=!!o.won;
+  if(o.enemy&&typeof o.enemy==='object')for(const n in o.enemy)if(ok(n)&&isFinite(+o.enemy[n]))w.enemy[n]=Math.max(1,Math.min(20,+o.enemy[n]));
+  if(w.home&&!w.owned.includes(w.home))w.owned.unshift(w.home);return w}
+function wmpLoad(o){game.war=o?wmpNorm(o):null;wmAsk=!!(game.war&&!game.war.home)}
+function wmpIn(o){game.war=o?wmpNorm(o):null;wm.dirty=true;wmRefresh()}
+function wmpChanged(){wm.dirty=true;wmRefresh();if(MP.active&&MP.host)mpSend({t:'warmap',war:wmpSave()})}
+function wmpOwns(n){return !!(game.war&&game.war.owned.includes(n))}
+function wmpTargets(){const w=game.war;if(!w||!w.home)return [];wmInit();const out=[];for(const o of wm.list)if(!w.owned.includes(o.name)&&wm.adj[o.name].some(x=>w.owned.includes(x)))out.push(o.name);return out}
+function wmpStrength(n){const w=game.war;return (w&&w.enemy[n])||(wm.by[n]&&wm.by[n].str)||1}
+function wmState(n){const w=game.war;if(!w||!w.home)return 'enemy';if(n===w.home)return 'home';if(w.owned.includes(n))return 'own';if(wmpTargets().includes(n))return 'target';return 'enemy'}
+function wmPattern(){if(wm.pat)return wm.pat;const t=document.createElement('canvas');t.width=t.height=8;const c=t.getContext('2d');c.strokeStyle='rgba(255,50,50,.75)';c.lineWidth=2;c.beginPath();c.moveTo(-2,6);c.lineTo(6,-2);c.moveTo(2,10);c.lineTo(10,2);c.moveTo(-2,10);c.lineTo(10,-2);c.stroke();wm.pat=document.createElement('canvas').getContext('2d').createPattern(t,'repeat');return wm.pat}
+function wmNatPath(c,o){c.beginPath();for(const p of o.parts){const n=p.length/2;for(let i=0;i<n;i++){const x=wmX(p[2*i]),y=wmY(p[2*i+1]);if(i)c.lineTo(x,y);else c.moveTo(x,y)}c.closePath()}}
+function wmTf(c){c.setTransform(wm.vz,0,0,wm.vz,-wm.vx*wm.vz,-wm.vy*wm.vz)}
+function wmView(vz,cx,cy){const wx=cx/wm.vz+wm.vx,wy=cy/wm.vz+wm.vy;wm.vz=Math.max(1,Math.min(6,vz));wm.vx=wx-cx/wm.vz;wm.vy=wy-cy/wm.vz;wmClamp();wm.dirty=true}
+function wmClamp(){wm.vx=Math.max(0,Math.min(1024-1024/wm.vz,wm.vx));wm.vy=Math.max(0,Math.min(512-512/wm.vz,wm.vy))}
+function wmBase(){wmInit();const cv=wm.base||(wm.base=document.createElement('canvas'));cv.width=1024;cv.height=512;const c=cv.getContext('2d');const L=1/wm.vz;
+  const g=c.createLinearGradient(0,0,0,512);g.addColorStop(0,'#14477a');g.addColorStop(1,'#0a2a4d');c.fillStyle=g;c.fillRect(0,0,1024,512);wmTf(c);
+  c.strokeStyle='rgba(255,255,255,.07)';c.lineWidth=L;c.beginPath();for(let lo=-150;lo<=150;lo+=30){c.moveTo(wmX(lo),0);c.lineTo(wmX(lo),512)}for(let la=-60;la<=60;la+=30){c.moveTo(0,wmY(la));c.lineTo(1024,wmY(la))}c.stroke();
+  WMP_LAND.forEach((p,k)=>{c.beginPath();for(let i=0;i<p.length/2;i++){const x=wmX(p[2*i]),y=wmY(p[2*i+1]);if(i)c.lineTo(x,y);else c.moveTo(x,y)}c.closePath();c.fillStyle=k===WMP_LAND.length-1?'#9fb7c4':'#1d4d2c';c.fill();c.strokeStyle=k===WMP_LAND.length-1?'#cfe0ea':'#2f7040';c.lineWidth=L;c.stroke()});
+  const cn=game.wmpCounter&&game.wmpCounter.country,bt=game.wmpBattle&&game.wmpBattle.country;
+  for(const o of wm.order){const st=wmState(o.name);wmNatPath(c,o);c.globalAlpha=st==='own'||st==='home'?0.92:0.82;c.fillStyle=st==='own'||st==='home'?WMP_ME:o.col;c.fill();c.globalAlpha=1;
+    if(st==='target'){c.fillStyle=wmPattern();c.fill()}
+    c.lineJoin='round';c.strokeStyle='rgba(0,0,0,.65)';c.lineWidth=L;c.stroke();
+    if(st==='own'){c.strokeStyle='#e8fbff';c.lineWidth=1.5*L;c.stroke()}
+    if(st==='target'){c.save();c.setLineDash([5*L,3*L]);c.strokeStyle='#ff4a3a';c.lineWidth=2*L;c.stroke();c.restore()}
+    if(st==='home'){c.strokeStyle='#ffd34a';c.lineWidth=3*L;c.stroke()}
+    if(o.name===cn||o.name===bt){c.strokeStyle=o.name===cn?'#ff1f1f':'#ff9a2a';c.lineWidth=3.5*L;c.stroke()}}
+  c.setTransform(1,0,0,1,0,0);wm.dirty=false}
+function wmLabel(c,o,big){const w=game.war;const own=wmpOwns(o.name);const t1=o.name;const t2='Str '+wmpStrength(o.name)+(own?' - yours':(w&&w.home?' - enemy':''));const L=1/wm.vz;c.textAlign='center';c.lineJoin='round';
+  c.fillStyle='#fff';c.beginPath();c.arc(o.px,o.py,2.5*L,0,6.3);c.fill();c.strokeStyle='#000';c.lineWidth=L;c.stroke();
+  c.font='bold '+13*L+'px sans-serif';c.lineWidth=4*L;c.strokeStyle='rgba(0,0,0,.85)';c.strokeText(t1,o.px,o.py-8*L);c.fillStyle='#fff';c.fillText(t1,o.px,o.py-8*L);
+  if(big){c.font=11*L+'px sans-serif';c.lineWidth=3*L;c.strokeText(t2,o.px,o.py+14*L);c.fillStyle='#ffe9a8';c.fillText(t2,o.px,o.py+14*L)}}
+function wmDraw(){const cv=wm.cv;if(!cv)return;const c=cv.getContext('2d');if(wm.dirty||!wm.base)wmBase();c.setTransform(1,0,0,1,0,0);c.drawImage(wm.base,0,0);wmTf(c);
+  const hv=wm.hover!=null?wm.list[wm.hover]:null,sl=wm.sel!=null?wm.list[wm.sel]:null,w=game.war,L=1/wm.vz;
+  for(const [o,a,lw] of [[hv,.28,2],[sl,.2,3]]){if(!o)continue;wmNatPath(c,o);c.fillStyle='rgba(255,255,255,'+a+')';c.fill();c.strokeStyle='#fff';c.lineWidth=lw*L;c.stroke()}
+  const home=w&&w.home?wm.by[w.home]:null;const seen=new Set();
+  for(const [o,big] of [[hv,true],[sl,true],[home,false]]){if(!o||seen.has(o.name))continue;seen.add(o.name);wmLabel(c,o,big)}
+  c.setTransform(1,0,0,1,0,0)}
+function wmRefresh(){if(game.gui&&game.gui.type==='warmap'){wmInfo();wmDraw()}}
+function wmInfo(){const g=game.gui,w=game.war;if(!g||g.type!=='warmap'||!w)return;wmInit();const pick=!w.home;const sl=wm.sel!=null?wm.list[wm.sel]:null,hv=wm.hover!=null?wm.list[wm.hover]:null;
+  $('wmTitle').textContent=pick?'Choose your country':'World Map';
+  $('wmHome').textContent=w.home?w.home+' ('+wm.by[w.home].cap+')':'not chosen yet';
+  $('wmOwned').textContent=w.owned.length+' / '+WAR_NATIONS.length+(w.won?' - WORLD CONQUERED':'');
+  $('wmScore').textContent='Score '+(w.score||0)+'  |  Battles '+w.battles+'  |  Lost '+w.lost.length;
+  const desc=o=>o?(o.name+' ('+o.cap+')'):'';const who=o=>wmpOwns(o.name)?'yours':(w.home?'enemy':'unclaimed');
+  $('wmHov').textContent=hv?('Hover: '+hv.name+', strength '+wmpStrength(hv.name)+', '+who(hv)):'Hover: -';
+  $('wmSel').textContent=sl?desc(sl)+' - '+who(sl):'Click a country';
+  $('wmStr').textContent=sl?(wmpOwns(sl.name)?'your territory':String(wmpStrength(sl.name))+' / 10'):'-';
+  const B=game.wmpBattle,C=game.wmpCounter;let msg='';
+  if(pick)msg='Click a country, then press CONFIRM to lead it.';
+  else if(B)msg='Battle for '+B.country+' underway: defeat their soldiers ('+B.mobs.filter(m=>!(m.dead||m.dying||m.hp<=0)).length+' left).';
+  else if(C)msg='ALERT: '+C.from+' attacks '+C.country+'! '+Math.max(0,Math.ceil(C.t))+' s to repel them.';
+  else if(sl&&!wmpOwns(sl.name)&&!wmpTargets().includes(sl.name))msg=sl.name+' is out of reach: take a neighbouring country first.';
+  else msg='Striped red countries can be attacked. Gold outline is your home.';
+  $('wmMsg').textContent=msg;
+  const show=(id,on,dis)=>{const b=$(id);b.style.display=on?'flex':'none';b.disabled=!!dis;b.style.opacity=dis?'.45':'1'};
+  show('wmConfirm',pick,!sl);
+  const canAtk=!!(sl&&wmpTargets().includes(sl.name));
+  show('wmAttack',!pick,B?false:!canAtk);$('wmAttack').textContent=B?'RETREAT':'ATTACK';
+  show('wmRecruit',!pick,false);$('wmRecruit').textContent='RECRUIT ('+WMP_COST+' iron)'}
+const WMP_COST=6;
+function wmHit(cx,cy){const px=cx/wm.vz+wm.vx,py=cy/wm.vz+wm.vy;const lon=px/1024*360-180,lat=90-py/512*180;let best=null,ba=1e9;for(const o of wm.list){if(lon<o.bb[0]||lon>o.bb[2]||lat<o.bb[1]||lat>o.bb[3])continue;for(const p of o.parts)if(wmInPoly(p,lon,lat)){if(o.area<ba){ba=o.area;best=o.i}break}}return best}
+function wmPos(ev){const r=wm.cv.getBoundingClientRect();return [(ev.clientX-r.left)/r.width*1024,(ev.clientY-r.top)/r.height*512]}
+function wmSetup(){const cv=$('warMapCv');wm.cv=cv;if(cv._done)return;cv._done=true;let down=null;
+  cv.addEventListener('mousedown',ev=>{down={x:ev.clientX,y:ev.clientY,vx:wm.vx,vy:wm.vy,moved:false}});
+  window.addEventListener('mouseup',()=>{if(down&&!down.moved)down.click=true;setTimeout(()=>{down=null},0)});
+  cv.addEventListener('mousemove',ev=>{if(down&&ev.buttons&&(down.moved||Math.hypot(ev.clientX-down.x,ev.clientY-down.y)>5)&&wm.vz>1){down.moved=true;const r=cv.getBoundingClientRect(),k=1024/r.width/wm.vz;wm.vx=down.vx-(ev.clientX-down.x)*k;wm.vy=down.vy-(ev.clientY-down.y)*k;wmClamp();wm.dirty=true;wmDraw();return}
+    const [x,y]=wmPos(ev);const h=wmHit(x,y);if(h!==wm.hover){wm.hover=h;wmInfo();wmDraw()}});
+  cv.addEventListener('mouseleave',()=>{if(wm.hover!=null){wm.hover=null;wmInfo();wmDraw()}});
+  cv.addEventListener('click',ev=>{if(down&&down.moved)return;const [x,y]=wmPos(ev);const h=wmHit(x,y);wm.hover=h;wm.sel=h;wmInfo();wmDraw()});
+  cv.addEventListener('wheel',ev=>{ev.preventDefault();const [x,y]=wmPos(ev);wmView(wm.vz*(ev.deltaY<0?1.35:1/1.35),x,y);wmDraw()},{passive:false});
+  cv.addEventListener('dblclick',()=>{wmView(1,512,256);wmDraw()});
+  $('wmZin').onclick=()=>{wmView(wm.vz*1.5,512,256);wmDraw()};$('wmZout').onclick=()=>{wmView(wm.vz/1.5,512,256);wmDraw()};$('wmZ0').onclick=()=>{wmView(1,512,256);wmDraw()};
+  $('wmConfirm').onclick=()=>{if(wm.sel!=null&&wmpPick(wm.list[wm.sel].name))closeGui()};
+  $('wmAttack').onclick=()=>{if(game.wmpBattle){wmpRetreat();wmInfo();return}if(wm.sel!=null)wmpAttack(wm.list[wm.sel].name)};
+  $('wmRecruit').onclick=()=>{wmpRecruit();wmInfo()};
+  $('wmClose').onclick=()=>closeGui()}
+function openWarMap(pick){if(!(game.mods&&game.mods.war)||!world||player.dead||game.gui)return false;wmInit();
+  if(!game.war){if(MP.active&&!MP.host){showMessage('The host has not started the war yet');return false}game.war=wmpNew()}
+  if(!openGui('warmap')&&!(game.gui&&game.gui.type==='warmap'))return false;wmSetup();wm.hover=null;wm.vz=1;wm.vx=wm.vy=0;if(!game.war.home)wm.sel=null;wm.dirty=true;wmInfo();wmDraw();return true}
+function wmpKey(){if(!(game.mods&&game.mods.war)||player.dead)return false;if(game.gui){if(game.gui.type==='warmap'){closeGui();return true}return false}return openWarMap()}
+function wmpPick(name){const w=game.war;if(!w||w.home||!wm.by[name])return false;if(MP.active&&!MP.host){showMessage('Only the host picks the country');return false}w.home=name;w.owned=[name];w.turn=1;wmCd=240+Math.random()*120;wmpChanged();showMessage('You lead '+name+'. Press M to open the map and attack your neighbours.');return true}
+/* ---- battles: a squad of enemy soldiers near the player ---- */
+function wmpSquadPos(){const p=player;const a0=Math.random()*PI*2;
+  for(const [d0,d1] of [[35,15],[20,10],[10,6]])for(let k=0;k<14;k++){const a=a0+k*0.9,d=d0+Math.random()*d1;const x=p.x+Math.cos(a)*d,z=p.z+Math.sin(a)*d;if(!world.hasChunk(floor(x),floor(z)))continue;const y=findGround(x,z);if(y<=SEA+1||y>=CH-4)continue;return [x,z]}
+  return [p.x+30,p.z]}
+function wmpSpawn(n,name){const pos=wmpSquadPos();let arr=null,fb=false;
+  if(typeof spawnWarSquad==='function'){try{arr=spawnWarSquad('enemy',n,pos[0],pos[1],{nation:name})}catch(e){arr=null}}
+  if(!Array.isArray(arr)||!arr.length){fb=true;arr=[];for(let i=0;i<n;i++){const ox=pos[0]+(Math.random()-0.5)*10,oz=pos[1]+(Math.random()-0.5)*10;const m=new Mob('zombie',ox,findGround(ox,oz),oz);entities.push(m);arr.push(m)}}
+  for(const m of arr)m.wmpSquad=true;return {mobs:arr,fb}}
+function wmpDone(mobs){return mobs.every(m=>m.dead||m.dying||m.hp<=0)}
+function wmpAttack(name){const w=game.war;if(!w||!w.home)return false;wmInit();
+  if(MP.active&&!MP.host){showMessage('Only the host can lead attacks');return false}
+  if(game.wmpBattle){showMessage('A battle is already underway');return false}
+  if(!wmpTargets().includes(name)){showMessage(name+' is not within reach of your territory');return false}
+  if(player.dead||world.dimKey!=='over'){showMessage('Battles are fought in the overworld');return false}
+  const str=wmpStrength(name),n=3+str;if(game.gui&&game.gui.type==='warmap')closeGui();
+  const r=wmpSpawn(n,name);if(!r.mobs.length){showMessage('Could not deploy enemy troops here');return false}
+  game.wmpBattle={country:name,str,n,mobs:r.mobs,fb:r.fb,t:0};showMessage('Battle for '+name+': defeat their soldiers');return true}
+function wmpRetreat(){const B=game.wmpBattle;if(!B)return false;for(const m of B.mobs)m.dead=true;game.wmpBattle=null;showMessage('You pulled back from '+B.country);wm.dirty=true;wmRefresh();return true}
+function wmpWon(){const w=game.war,B=game.wmpBattle;game.wmpBattle=null;if(!w||!B)return;if(!w.owned.includes(B.country))w.owned.push(B.country);w.lost=w.lost.filter(n=>n!==B.country);w.battles++;w.turn++;w.score=(w.score||0)+B.str;
+  const rw=8*B.str;if(typeof giveItems==='function')giveItems(463,rw);showMessage('Victory! '+B.country+' is yours (+'+B.str+' score, +'+rw+' bullets)');
+  if(w.owned.length>=WAR_NATIONS.length&&!w.won){w.won=true;showMessage('TOTAL VICTORY! Every country on the map is yours. Keep playing as you like.')}wmpChanged()}
+function wmpLost(){const w=game.war,B=game.wmpBattle;game.wmpBattle=null;if(!w||!B)return;for(const m of B.mobs)m.dead=true;w.battles++;w.turn++;w.enemy[B.country]=Math.min(20,wmpStrength(B.country)+1);
+  showMessage('Battle lost: '+B.country+' stays enemy and grows stronger (strength '+w.enemy[B.country]+')');wmpChanged()}
+/* ---- enemy counter-attacks on a border country ---- */
+function wmpCounter(){const w=game.war;if(!w||!w.home||game.wmpCounter||!world||world.dimKey!=='over'||player.dead)return false;wmInit();const c=[];
+  for(const n of w.owned){if(n===w.home)continue;const en=wmpNeighbors(n).filter(x=>!w.owned.includes(x));if(en.length)c.push([n,en])}
+  if(!c.length)return false;const [tgt,en]=c[floor(Math.random()*c.length)];const att=en[floor(Math.random()*en.length)];const n=3+Math.ceil(wmpStrength(att)/2);
+  const r=wmpSpawn(n,att);if(!r.mobs.length)return false;
+  game.wmpCounter={country:tgt,from:att,mobs:r.mobs,t:180,n};showMessage('ALERT: '+att+' attacks '+tgt+'! Kill their soldiers within 3 minutes or it falls.');playSound('explode',0.3,0.8);wmpChanged();return true}
+function wmpCounterEnd(won){const w=game.war,C=game.wmpCounter;game.wmpCounter=null;wmCd=240+Math.random()*120;if(!w||!C)return;
+  if(won){w.score=(w.score||0)+1;showMessage('You repelled the attack from '+C.from+': '+C.country+' holds.')}
+  else{for(const m of C.mobs)m.dead=true;w.owned=w.owned.filter(n=>n!==C.country);if(!w.lost.includes(C.country))w.lost.push(C.country);w.turn++;w.won=false;showMessage(C.country+' has fallen to '+C.from+'! Retake it from the map (M).')}
+  wmpChanged()}
+function wmpTick(dt){const m=game.mods;if(!m||!m.war||!world||game.state!=='playing')return;if(MP.active&&!MP.host)return;
+  if(!game.war){game.war=wmpNew();wmAsk=true}
+  if(wmAsk&&!game.gui&&!game.paused&&!player.dead&&!game.cmdOpen){wmAsk=false;if(!game.war.home)openWarMap(true)}
+  const w=game.war;if(!w.home)return;
+  const B=game.wmpBattle,C=game.wmpCounter;
+  if(B){B.t+=dt;if(player.dead)wmpLost();else if(wmpDone(B.mobs))wmpWon()}
+  if(C&&game.wmpCounter===C){C.t-=dt;if(wmpDone(C.mobs))wmpCounterEnd(true);else if(C.t<=0)wmpCounterEnd(false)}
+  else if(!C&&!B){if(wmCd==null)wmCd=240+Math.random()*120;wmCd-=dt;if(wmCd<=0){if(!wmpCounter())wmCd=60}}
+  wmUi-=dt;if(wmUi<=0){wmUi=1;if(game.gui&&game.gui.type==='warmap')wmInfo()}}
+function wmpRecruit(){if(!game.mods||!game.mods.war)return false;const p=player;const eggs=ITEMS[448]?{id:448,n:3,label:'Recruit Soldier eggs'}:{id:463,n:32,label:'bullets (no Recruit Soldier egg in this build)'};
+  if(p.mode!=='creative'){if(countItem(260)<WMP_COST){showMessage('Recruiting needs '+WMP_COST+' iron ingots');return false}removeItem(260,WMP_COST)}
+  giveItems(eggs.id,eggs.n);showMessage('Recruited: '+eggs.n+' '+eggs.label);return true}
 function warRespawn(){const p=player;if(!(game.mods&&game.mods.war))return;if(p.inv.every(x=>!x)&&p.armor.every(x=>!x)){warKit();showMessage('War kit issued')}}
 function warAttackHook(){const r=player.riding;return !!(r&&r.def&&r.def.ship)} // left click on a ship is the gun, never a pickaxe
 /* ---- /tp targets: ores and structures ---- */
@@ -6606,7 +6867,7 @@ function mpHost(room,seed,mods,worldId,isPublic,code,keepWorld){const peer=newPe
     if(!meta){const pub=PUBLIC_SERVERS.find(s=>s.room===room);meta={id:worldId,name:pub?'Public: '+pub.name:'Room '+code.toUpperCase(),seed,mode:'survival',diff:2,drops:mods.random?'random':'normal',mods,room:isPublic?room:undefined,created:Date.now(),played:Date.now()};list.push(meta);localStorage.setItem('ic_worlds',JSON.stringify(list))}else if(isPublic&&!meta.room){meta.room=room;localStorage.setItem('ic_worlds',JSON.stringify(list))}
     initAudio();loadWorld(meta);setTimeout(()=>showMessage(isPublic?'You are hosting a public world. Chat is disabled and a random alias is used.':'Hosting. Room code: '+code.toUpperCase()+' (friends type it under Join by Code). Press T to chat.'),1500)});
   peer.on('connection',conn=>{conn.on('open',()=>{if(MP.peer!==peer){try{conn.close()}catch(e){}return}if(conn.metadata&&conn.metadata.probe){try{conn.send(mpInfo())}catch(e){}setTimeout(()=>{try{conn.close()}catch(e){}},1500);return}MP.conns.push(conn);conn.on('data',d=>{if(MP.conns.includes(conn))mpOnData(conn,d)});conn.on('close',()=>mpDrop(conn));conn.on('error',()=>mpDrop(conn));
-    if(!world)return;conn.send({t:'hello',ch:CH,seed:game.seed,mods:game.mods,worldName:game.worldName,time:world.time,day:world.day,spawn:game.worldSpawn,blocks:mpCollectBlocks(),wx:mpWeatherState(),wave:game.ax?{wave:game.ax.wave,active:game.ax.active,next:game.ax.next,left:game.ax.left||0,roster:game.ax.roster}:null,hostId:MP.myId,hostName:MP.name,players:[...MP.remote.values()].map(r=>({id:r.pid,name:r.name})),items:mpItemList(),bents:mpBentList()})})});
+    if(!world)return;conn.send({t:'hello',ch:CH,seed:game.seed,mods:game.mods,worldName:game.worldName,time:world.time,day:world.day,spawn:game.worldSpawn,blocks:mpCollectBlocks(),wx:mpWeatherState(),war:(typeof wmpSave==='function'?wmpSave():null),wave:game.ax?{wave:game.ax.wave,active:game.ax.active,next:game.ax.next,left:game.ax.left||0,roster:game.ax.roster}:null,hostId:MP.myId,hostName:MP.name,players:[...MP.remote.values()].map(r=>({id:r.pid,name:r.name})),items:mpItemList(),bents:mpBentList()})})});
   peer.on('error',err=>{if(err.type==='peer-unavailable')return;if(err.type==='unavailable-id'){mpStatus('Someone just opened this server: joining them...');setTimeout(()=>{if(!MP.active&&MP.room===room)mpJoin(room,String(seed),mods,worldId,isPublic)},800)}else mpStatus('Network error: '+err.type)})}
 function mpBecomeGuest(peer,conn,worldId){MP.peer=peer;MP.conns=[conn];MP.worldId=worldId;MP.public=!!worldId;MP.host=false;MP.myId=peer.id;MP.active=true;mpStatus('Connected! Receiving the world...');
   conn.on('data',d=>{if(MP.conns.includes(conn))mpOnData(conn,d)});conn.on('close',()=>{if(MP.active&&!MP.host&&MP.conns.includes(conn))mpHostLost()});conn.on('error',()=>{})}
@@ -6623,7 +6884,7 @@ async function mpHello(d){initAudio();const pub=MP.worldId&&PUBLIC_SERVERS.find(
       if(keep){game.noSave=!MP.worldId;for(const r of MP.remote.values())r.dead=true;MP.remote.clear()}
       else if(MP.worldId){const list=worldList();let meta=list.find(w=>w.id===MP.worldId);if(!meta){meta={id:MP.worldId,name:'Public: '+(pub?pub.name:(d.worldName||'world')),seed:d.seed,mode:'survival',diff:2,drops:d.mods&&d.mods.random?'random':'normal',mods:d.mods||{},room:MP.room,created:Date.now(),played:Date.now()};list.push(meta);localStorage.setItem('ic_worlds',JSON.stringify(list))}else if(!meta.room){meta.room=MP.room;localStorage.setItem('ic_worlds',JSON.stringify(list))}await loadWorld(meta);game.noSave=false}
       else{const meta={id:'mp-guest',name:'Multiplayer',seed:d.seed,mode:'survival',diff:2,drops:d.mods&&d.mods.random?'random':'normal',mods:d.mods||{}};startWorld(meta,null);game.noSave=true}
-      MP.hostId=d.hostId;world.time=d.time;world.day=d.day;if(d.spawn)game.worldSpawn=d.spawn;if(!d.ch){d.blocks=oldLayoutMods(d.blocks||{});if(d.bents)d.bents=oldLayoutMods(d.bents)}mpApplyBlocks(d.blocks||{});if(d.bents)mpApplyBents(d.bents);if(d.items){for(const e of entities)if(e instanceof ItemEntity)e.dead=true;MP.pendingItems=[];for(const it of d.items)mpItemIn(it)}if(d.wx)mpApplyWeather(d.wx);if(d.wave&&game.ax){const A=game.ax;A.wave=d.wave.wave;A.next=d.wave.next;A.left=d.wave.left;if(d.wave.active){A.active=true;A.pendingRoster=d.wave.roster||waveRoster(d.wave.wave)}}
+      MP.hostId=d.hostId;world.time=d.time;world.day=d.day;if(d.spawn)game.worldSpawn=d.spawn;if(!d.ch){d.blocks=oldLayoutMods(d.blocks||{});if(d.bents)d.bents=oldLayoutMods(d.bents)}mpApplyBlocks(d.blocks||{});if(d.bents)mpApplyBents(d.bents);if(d.items){for(const e of entities)if(e instanceof ItemEntity)e.dead=true;MP.pendingItems=[];for(const it of d.items)mpItemIn(it)}if(d.wx)mpApplyWeather(d.wx);if(d.war)wmpIn(d.war);if(d.wave&&game.ax){const A=game.ax;A.wave=d.wave.wave;A.next=d.wave.next;A.left=d.wave.left;if(d.wave.active){A.active=true;A.pendingRoster=d.wave.roster||waveRoster(d.wave.wave)}}
       mpRemote(d.hostId,d.hostName);for(const pl of d.players||[])if(pl.id!==MP.myId)mpRemote(pl.id,pl.name);mpStatus('');setTimeout(()=>showMessage(MP.public?'Joined a public world. Chat is disabled and names use random aliases.':'Joined '+(d.hostName||'the host')+"'s private world. Press T to chat. Watch out: players can hurt each other here."),1500)}
 function mpOnData(conn,d){if(!d||!d.t)return;
   switch(d.t){
@@ -6647,6 +6908,7 @@ function mpOnData(conn,d){if(!d||!d.t)return;
     case 'ic':{if(MP.host)mpRelay(conn,d);{const e=entities.find(e=>e.nid===d.nid);if(e&&e.stack)e.stack.count=d.count;const pi=MP.pendingItems.find(it=>it.nid===d.nid);if(pi)pi.s.count=d.count}break}
     case 'be':{if(MP.host)mpRelay(conn,d);mpApplyBE(d);break}
     case 'mods':{if(MP.host)break;applyModsLive(d.mods||{},true);break}
+    case 'warmap':{if(MP.host)break;wmpIn(d.war);break}
     case 'seat':{seatNet(conn,d);break}
     case 'seats':{if(!MP.host)seatsIn(d);break}
     case 'sact':{seatActIn(conn,d);break}
@@ -7232,6 +7494,7 @@ function runCommand(line){const p=player;const raw=line.trim().replace(/^\/+/,''
       p.vx=p.vy=p.vz=0;p.fallDist=0;if(p.riding)p.riding.dismount();say('Teleported to '+floor(p.x)+' '+floor(p.y)+' '+floor(p.z));return}
     case 'time':{const a=(args[0]||'').toLowerCase();const t=a==='day'?1000:a==='noon'?6000:a==='night'?13000:a==='midnight'?18000:parseInt(a);if(isNaN(t)){say('Usage: /time day|night|<0-24000>');return}world.time=((t%24000)+24000)%24000;say('Time set to '+world.time);return}
     case 'gamemode':case 'gm':{const a=(args[0]||'').toLowerCase();const m=a==='c'||a==='creative'||a==='1'?'creative':a==='s'||a==='survival'||a==='0'?'survival':null;if(!m){say('Usage: /gamemode survival|creative');return}p.mode=m;if(m==='survival')p.flying=false;say('Game mode: '+m);return}
+    case 'map':{if(!(game.mods&&game.mods.war)){say('The world map needs the War fun mod (switch it on in Fun Mods from the pause menu)');return}if(!openWarMap())say('Close the open screen first');return}
     case 'war':{const on=!!(game.mods&&game.mods.war);say('War is '+(on?'ON':'OFF (switch it on in Fun Mods from the pause menu)')+'. It includes:');
       say('- Guns switched on, and every player starts with the war kit: rifle, shotgun, 128 bullets, 32 shells, iron armour, 16 TNT, a car egg, a jet egg and 8 steak (/kit war gives it again).');
       say('- Real-size vehicles: car x1.8 (4.5 m), tank x2.5 (9 m), jet x3 (15 m) and B-27 bomber x3 (20 m), with matching seats, cameras and guns.');
@@ -7270,7 +7533,7 @@ function loop(now){
       if(game.tick%3===0)updateInfoHud();
       if(game.tick%200===0)saveWorld();
     }
-    tickPlates(dt);a10Tick(dt);
+    tickPlates(dt);wmpTick(dt);a10Tick(dt);
     mortarTick(dt);if(typeof tickCamp==='function')tickCamp(dt);tickNukeTimers(dt);tickFurnaces(dt);tickBrews(dt);tickSpawners(dt);tickTrials(dt);tickShriekers(dt);if(typeof beaconTick==='function')beaconTick();if(MP.active)mpTick(dt);
     updateMusic(dt);
     if(player.sleeping>0&&player.sleeping>2.2)$('sleepfade').style.opacity=1;
