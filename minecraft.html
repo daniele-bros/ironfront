@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="ironcraft-build" content="20261027-145955">
+<meta name="ironcraft-build" content="20261027-153350">
 <meta name="viewport" content="width=device-width,initial-scale=1.0,viewport-fit=cover">
 <title>Ironcraft – Free Voxel Survival Sandbox in Your Browser | Iron Games</title>
 <meta name="description" content="Ironcraft is a free browser-based voxel survival sandbox with building, exploration, private or safety-limited public multiplayer, and optional weather, horror and survival challenges. By Daniele Bros.">
@@ -2546,7 +2546,7 @@ class Arrow extends Entity{constructor(x,y,z,vx,vy,vz,owner,dmg){super(x,y,z);th
     if(this.age>2&&(inB===8||inB===9)&&sqrt(this.vx*this.vx+this.vy*this.vy+this.vz*this.vz)<1.5&&!this.fireball){this.stuck=true;this.vx=this.vy=this.vz=0;return}
     const nx=this.x+this.vx*dt,ny=this.y+this.vy*dt,nz=this.z+this.vz*dt;
     // entity hit
-    const targets=this.owner==='player'?entities.filter(e=>(e instanceof Mob||e.hittable)&&!e.dead&&e!==this.skip):(MP.active&&MP.host?[player,...[...MP.remote.values()].filter(r=>!r.hidden&&r.hasTarget)]:[player]);
+    const targets=this.ghost?[]:this.owner==='player'?entities.filter(e=>(e instanceof Mob||e.hittable)&&!e.dead&&e!==this.skip):(MP.active&&MP.host?[player,...[...MP.remote.values()].filter(r=>!r.hidden&&r.hasTarget)]:[player]);
     for(const t of targets){if(t.dead)continue;const w=t.w/2+0.1;const hit=t.def&&t.def.ship?shipSegHit(t,ox,oy,oz,nx,ny,nz):segAABB(ox,oy,oz,nx,ny,nz,t.x-w,t.y-0.1,t.z-w,t.x+w,t.y+t.h+0.1,t.z+w);if(hit){if(this.onImpact){this.x=nx;this.y=ny;this.z=nz;this.onImpact(t);this.dead=true;return}if(this.bullet&&this.volley&&t.lastVolley===this.volley)t.invT=0;if(this.bullet)t.lastVolley=this.volley;if(damageEntity(t,this.dmg*(this.vehMul&&t.def&&t.def.vehicle?this.vehMul:1),{x:ox,y:oy,z:oz,type:'arrow',crit:this.crit,kb:this.kb||4,fromMob:this.owner!=='player'})){if(this.trident){if(this.channeling&&game.wx&&game.wx.storm)lightningStrike(t.x,t.z);if(this.loyalty){this.returning=true;this.x=nx;this.y=ny;this.z=nz;playSound('arrowhit');return}else{this.x=nx;this.y=ny;this.z=nz;this.stuck=true;this.vx=this.vy=this.vz=0;playSound('arrowhit');return}}if(this.effect&&t===player)player.effects[this.effect]=Math.max(player.effects[this.effect]||0,this.effectT);if(this.tipped&&t!==player)applyPotion(this.tipped,1,false,t);if(this.flame&&t!==player)t.fireT=Math.max(t.fireT||0,5)}this.dead=true;playSound('arrowhit');return}}
     // block hit
     const segLen=sqrt((nx-ox)**2+(ny-oy)**2+(nz-oz)**2);const bh=raycast(ox,oy,oz,nx-ox,ny-oy,nz-oz,segLen,false);
@@ -3045,7 +3045,7 @@ class Mob extends Entity{
     return true}
   customFly(dt){const d=this.def.spec;this.noGravity=true;const p=player;const gy=findGround(this.x,this.z);const hostile=d.hostile&&game.difficulty>0&&!p.dead;const dist=Math.hypot(p.x-this.x,p.z-this.z);let want=gy+2.5+Math.sin(game.time*1.3+this.x*0.7)*1.2;if(hostile&&dist<(this.def.follow||24))want=p.y+1.2;this.vy+=((want-this.y)*2.5-this.vy)*Math.min(1,dt*3);this.vy=clamp(this.vy,-7,7);this.onGround=false}
   // ---- built-in vehicles: car, fighter jet and B-27 bomber ----
-  rideVehicle(dt,fwd,strafe,jump,sprint){if(this.def.ship)return this.rideShip(dt,fwd,strafe,jump,sprint);if(this.def.vehicle==='flak')return this.rideFlak(dt);if(this.def.vehicle==='tank')return this.rideTank(dt,fwd,strafe,jump,sprint);if(this.def.vehicle==='sub')return this.rideSub(dt,fwd,strafe,jump,sprint);if(this.def.vehicle==='heli')return this.rideHeli(dt,fwd,strafe,jump,sprint);if(this.def.vehicle==='mortar')return this.rideMortar(dt,fwd,strafe,jump,sprint);const p=player;const v=this.def.vehicle;if(this.hurtT>0)this.hurtT-=dt;if(this.invT>0)this.invT-=dt;this.engT=(this.engT||0)-dt;this.bombCd=(this.bombCd||0)-dt;this.gunCd=(this.gunCd||0)-dt;if(this.bayT>0)this.bayT-=dt;if(this.hornT>0)this.hornT-=dt;const wrap=a=>Math.atan2(Math.sin(a),Math.cos(a));
+  rideVehicle(dt,fwd,strafe,jump,sprint){if(MP.active&&this.seatIds&&seatDriver(this)!==MP.myId)return this.ridePassenger(dt,jump);if(this.def.ship)return this.rideShip(dt,fwd,strafe,jump,sprint);if(this.def.vehicle==='flak')return this.rideFlak(dt);if(this.def.vehicle==='tank')return this.rideTank(dt,fwd,strafe,jump,sprint);if(this.def.vehicle==='sub')return this.rideSub(dt,fwd,strafe,jump,sprint);if(this.def.vehicle==='heli')return this.rideHeli(dt,fwd,strafe,jump,sprint);if(this.def.vehicle==='mortar')return this.rideMortar(dt,fwd,strafe,jump,sprint);const p=player;const v=this.def.vehicle;if(this.hurtT>0)this.hurtT-=dt;if(this.invT>0)this.invT-=dt;this.engT=(this.engT||0)-dt;this.bombCd=(this.bombCd||0)-dt;this.gunCd=(this.gunCd||0)-dt;if(this.bayT>0)this.bayT-=dt;if(this.hornT>0)this.hornT-=dt;const wrap=a=>Math.atan2(Math.sin(a),Math.cos(a));
     const sp0=Math.hypot(this.vx,this.vz);
     if(v==='car'){const max=(sprint?24:16)*vehSpd(this);const grounded=this.onGround||this.inWater;
       const want=wrap(p.yaw-this.yaw);const rate=Math.min(2.6,0.5+sp0*0.2);this.yaw+=clamp(want,-rate*dt,rate*dt);this.bank+=(clamp(want,-1,1)*-0.1*Math.min(1,sp0/8)-this.bank)*Math.min(1,dt*6);
@@ -3212,16 +3212,29 @@ class Mob extends Entity{
     this.bay=b.concat([st.id]);consumeHeld();playSoundAt('click',this.x,this.y,this.z,1,0.9);showMessage('Bomb bay loaded: '+bayText(this));return true}
   // per-frame crew work: bombing, turret aim and fire, HUD
   crewTick(jump){const p=player,sn=p.seat|0,g=this.gun||(this.gun=[{y:0,p:0,on:false},{y:0,p:0,on:false}]);
-    for(let i=0;i<2;i++){const on=sn===i+1;g[i].on=on;if(on){g[i].y=Math.atan2(Math.sin(p.yaw-this.yaw),Math.cos(p.yaw-this.yaw))}else g[i].y*=0.9}
-    if(sn===1||sn===2){p.pitch=sn===2?Math.max(0,p.pitch):Math.min(0,p.pitch);g[sn-1].p=p.pitch;if((jump||mouseL)&&this.gunCd<=0&&!game.gui){this.gunCd=0.11;this.fireTurret(sn)}}
-    else if((sn===3||(sn===0&&!this.riders[3]))&&jump&&this.bombCd<=0){this.bombCd=0.7;this.dropBomb()}
+    for(let i=0;i<2;i++){const on=sn===i+1;if(!on&&MP.active&&this.seatIds&&seatGunBusy(this,i))continue;g[i].on=on;if(on){g[i].y=Math.atan2(Math.sin(p.yaw-this.yaw),Math.cos(p.yaw-this.yaw))}else g[i].y*=0.9}
+    if(sn===1||sn===2){p.pitch=sn===2?Math.max(0,p.pitch):Math.min(0,p.pitch);g[sn-1].p=p.pitch;if((jump||mouseL)&&this.gunCd<=0&&!game.gui){this.gunCd=0.11;this.turretOrSend(sn)}}
+    else if((sn===3||(sn===0&&!this.riders[3]))&&jump&&this.bombCd<=0){this.bombCd=0.7;this.bombOrSend(sn)}
     bomberHud(this)}
-  fireTurret(sn){const p=player;const o=bomberPoint(this,BTURRET[sn-1][0],BTURRET[sn-1][1],BTURRET[sn-1][2]);const d=eyeDir();const rx=Math.cos(p.yaw),rz=-Math.sin(p.yaw);this.gunSide=-(this.gunSide||1);const sd=this.gunSide*0.09;const sp=110;
+  fireTurret(sn,dd,yw,gh){const p=player;const o=bomberPoint(this,BTURRET[sn-1][0],BTURRET[sn-1][1],BTURRET[sn-1][2]);const d=dd||eyeDir();const yy=yw===undefined?p.yaw:yw;const rx=Math.cos(yy),rz=-Math.sin(yy);this.gunSide=-(this.gunSide||1);const sd=this.gunSide*0.09;const sp=110;
     const vk=vehScale(this),x=o[0]+d[0]*1.4*vk+rx*sd*vk,y=o[1]+d[1]*1.4*vk,z=o[2]+d[2]*1.4*vk+rz*sd*vk;
-    const b=new Arrow(x,y,z,d[0]*sp+this.vx*0.2,d[1]*sp,d[2]*sp+this.vz*0.2,'player',9);b.bullet=true;b.noGravity=true;b.kb=3;b.skip=this;b.volley=(game.volley=(game.volley||0)+1);entities.push(b);spawnParticles('flash',x+d[0],y+d[1],z+d[2],3);playSoundAt('rifle',this.x,this.y,this.z,0.9+Math.random()*0.2,0.7)}
-  dismount(){const p=player;if(this.rider!==p)return;if(this.def.ship)return this.shipDismount();this.rider=null;if(this.riders)this.riders=this.riders.map(()=>null);p.seat=0;bomberHudHide();p.riding=null;const sy=Math.sin(p.yaw),cy=Math.cos(p.yaw);let placed=false;
+    const b=new Arrow(x,y,z,d[0]*sp+this.vx*0.2,d[1]*sp,d[2]*sp+this.vz*0.2,'player',9);b.bullet=true;b.noGravity=true;b.kb=3;b.skip=this;if(gh)b.ghost=true;b.volley=(game.volley=(game.volley||0)+1);entities.push(b);spawnParticles('flash',x+d[0],y+d[1],z+d[2],3);playSoundAt('rifle',this.x,this.y,this.z,0.9+Math.random()*0.2,0.7)}
+  // a passenger (not the driver): the vehicle is a mirror, the player just follows it; gunner and bombardier actions go to the driver's machine
+  ridePassenger(dt,jump){const p=player,v=this.def.vehicle,sn=p.seat|0;if(this.hurtT>0)this.hurtT-=dt;this.bombCd=(this.bombCd||0)-dt;this.gunCd=(this.gunCd||0)-dt;this.fallDist=0;p.fallDist=0;p.vx=p.vy=p.vz=0;p.onGround=true;p.inWater=false;p.walkAmp=0;
+    if(this.def.ship){const wrap=a=>Math.atan2(Math.sin(a),Math.cos(a)),g=this.gun,cd=this.cd||(this.cd=[0,0,0]),gi=seatGunI(this,sn);
+      for(let i=0;i<g.length;i++){cd[i]-=dt;if(i===gi){const pr=SHIP_GUNS[v][i].pr;g[i].on=true;p.pitch=clamp(p.pitch,pr[0],pr[1]);g[i].y=wrap(p.yaw-this.yaw);g[i].p=p.pitch;if((keys.Space||mouseL)&&cd[i]<=0&&!game.gui){seatAct(this,sn,'f');this.shipFire(i,null,undefined,true)}}}
+      const S=SEATS[v],e=vehPoint(this,...(S[sn]||S[0]).e);p.x=e[0];p.z=e[2];p.y=e[1]-1.62;bomberHud(this);return}
+    p.x=this.x;p.z=this.z;p.y=seatFeet(this);if(v==='bomber')this.crewTick(jump)}
+  turretOrSend(sn){if(MP.active&&this.seatIds&&seatDriver(this)!==MP.myId){seatAct(this,sn,'f');this.fireTurret(sn,null,undefined,true)}else this.fireTurret(sn)} // the tracer on a passenger's screen is a harmless ghost
+  bombOrSend(sn){if(MP.active&&this.seatIds&&seatDriver(this)!==MP.myId)seatAct(this,sn,'b');else this.dropBomb()}
+  // the driver's machine runs a crew member's action (fire the gun they man, drop a bomb)
+  seatDo(sn,a,yaw,pitch){const now=game.time,t=this.actT||(this.actT=[0,0,0,0]);if(!(sn>=0&&sn<4)||now<t[sn])return;const gi=seatGunI(this,sn);
+    if(a==='f'&&gi>=0){const pr=seatGunPR(this,gi);pitch=Math.max(pr[0],Math.min(pr[1],pitch));const cp=Math.cos(pitch),dir=[-Math.sin(yaw)*cp,Math.sin(pitch),-Math.cos(yaw)*cp];
+      if(this.def.ship){const cd=this.cd||(this.cd=[0,0,0]);if(cd[gi]>0)return;this.shipFire(gi,dir,yaw)}else{t[sn]=now+0.09;this.fireTurret(sn,dir,yaw)}}
+    else if(a==='b'&&this.def.vehicle==='bomber'&&(sn===3||(sn===0&&!(this.seatIds&&this.seatIds[3])))){t[sn]=now+0.65;this.dropBomb()}}
+  dismount(){const p=player;if(this.rider!==p)return;seatLeave(this);if(this.def.ship)return this.shipDismount();this.rider=null;if(this.riders)this.riders=this.riders.map(()=>null);p.seat=0;bomberHudHide();p.riding=null;const sy=Math.sin(p.yaw),cy=Math.cos(p.yaw);let placed=false;
     const dk=vehScale(this);for(const [ox,oz] of [[cy*1.3*dk,-sy*1.3*dk],[-cy*1.3*dk,sy*1.3*dk],[-sy*1.6*dk,-cy*1.6*dk],[sy*1.6*dk,cy*1.6*dk]]){const x=this.x+ox,z=this.z+oz;const w=p.w/2;if(!collectBoxes(x-w,this.y,z-w,x+w,this.y+1.8,z+w).length){p.x=x;p.z=z;p.y=this.y;placed=true;break}}
-    if(!placed){p.x=this.x;p.z=this.z;p.y=this.y+this.h+0.05}p.vx=p.vy=p.vz=0;p.fallDist=0;if(this.owned)mpMobRelease(this)}
+    if(!placed){p.x=this.x;p.z=this.z;p.y=this.y+this.h+0.05}p.vx=p.vy=p.vz=0;p.fallDist=0;if(this.owned&&!this.seatIds)mpMobRelease(this)}
   ride(dt,fwd,strafe,jump,sprint){ // called from updatePlayer while the player is on this horse
     if(this.def.vehicle){this.rideVehicle(dt,fwd,strafe,jump,sprint);return}
     if(this.def.spec&&this.def.spec.fly){const p=player;this.yaw=p.yaw;if(this.hurtT>0)this.hurtT-=dt;const speed=this.hspeed*(sprint&&fwd>0?1.4:1);const sy=Math.sin(this.yaw),cy=Math.cos(this.yaw);let mx=(-sy*fwd+cy*strafe*0.6),mz=(-cy*fwd-sy*strafe*0.6);const ml=sqrt(mx*mx+mz*mz);if(ml>1){mx/=ml;mz/=ml}
@@ -3262,12 +3275,13 @@ class Mob extends Entity{
     return false}
   get alive(){return !this.dying}
   nearestPlayer(){if(!MP.active||!MP.host||!MP.remote.size)return player;let best=player,bd=player.dead?1e18:(player.x-this.x)**2+(player.z-this.z)**2;for(const r of MP.remote.values()){if(r.hidden||!r.hasTarget)continue;const d=(r.x-this.x)**2+(r.z-this.z)**2;if(d<bd){bd=d;best=r}}return best}
-  updateRemote(dt){if(this.hurtT>0)this.hurtT-=dt;if(this.invT>0)this.invT-=dt;if(!this.hasTarget)return;const k=Math.min(1,dt*10);const ox=this.x,oz=this.z;this.x+=(this.tx-this.x)*k;this.y+=(this.ty-this.y)*k;this.z+=(this.tz-this.z)*k;let dy=this.tyaw-this.yaw;dy=Math.atan2(Math.sin(dy),Math.cos(dy));this.yaw+=dy*k;
+  updateRemote(dt){if(this.hurtT>0)this.hurtT-=dt;if(this.invT>0)this.invT-=dt;if(!this.hasTarget)return;if(this.netS&&this.def.vehicle&&game.time-(this.lastSync||0)<0.4){this.tx+=this.netS[1]*dt;this.ty+=this.netS[2]*dt;this.tz+=this.netS[3]*dt}const k=Math.min(1,dt*10);const ox=this.x,oz=this.z;this.x+=(this.tx-this.x)*k;this.y+=(this.ty-this.y)*k;this.z+=(this.tz-this.z)*k;let dy=this.tyaw-this.yaw;dy=Math.atan2(Math.sin(dy),Math.cos(dy));this.yaw+=dy*k;
     const hs=Math.hypot(this.x-ox,this.z-oz)/Math.max(dt,1e-3);this.walkAmp+=(Math.min(1,hs/2)-this.walkAmp)*Math.min(1,dt*8);this.walkT+=hs*dt*2.2;this.vx=this.vy=this.vz=0;this.onGround=true;if(this.fireT>0&&Math.random()<dt*8)spawnParticles('fire',this.x+(Math.random()-0.5)*this.w,this.y+Math.random()*this.h,this.z+(Math.random()-0.5)*this.w,1);if(this.loveT>0&&Math.random()<dt*0.3)spawnParticles('heart',this.x,this.y+this.h+0.2,this.z,1)}
   update(dt){
     if(this.def.vehicle)this.vehFit();this.age+=dt;if(this.dying){this.deathT+=dt;if(this.deathT>1){this.dead=true}if(this.rider)this.dismount();return}
     if(this.remote){this.updateRemote(dt);return}
     if(this.rider){if(this.rider!==player||player.riding!==this){this.rider=null}else return}
+    if(this.seatHold>0&&this.def.vehicle){this.seatHold-=dt;return}
     if(this.def.vehicle==='heli'){this.heliIdle(dt);return} // parked helicopter: rotor spins down, floats, falls
     if(this.def.vehicle==='flak')this.flakIdle(dt);
     if(this.def.ship){this.shipTick(dt);return}    if(this.def.vehicle==='sub'){this.parkSub(dt);return}
@@ -3410,7 +3424,7 @@ if(this.def.vehicle){if(this.hurtT>0)this.hurtT-=dt;if(this.invT>0)this.invT-=dt
     if(this.lastHit>game.time-5)spawnXP(this.x,this.y+0.3,this.z,this.def.xp[0]+floor(Math.random()*(this.def.xp[1]-this.def.xp[0]+1)));playSoundAt(this.def.sound+'_death',this.x,this.y,this.z)}
   interact(stack){ // right click by player, returns true if consumed action
     if(this.type==='piglin'){if(stack&&stack.id===262&&!(this.barterT>0)){if(player.mode!=='creative'){stack.count--;if(stack.count<=0)player.inv[player.sel]=null}this.barterT=3.5;this.angry=false;this.moveDir=null;this.yaw=Math.atan2(-(player.x-this.x),-(player.z-this.z));playSoundAt('pig',this.x,this.y,this.z,1,1.3);spawnParticles('happy',this.x,this.y+2,this.z,4);showMessage('The piglin turns the gold over in its hands...');return true}return false}
-    if((this.def.spec&&this.def.spec.kind==='vehicle')||this.def.vehicle){if(this.def.vehicle==='bomber'&&this.loadBay(stack))return true;if(player.sneaking)return false;const ok=this.mount();if(ok&&this.riders)this.seatIn(Math.max(0,this.riders.findIndex(r=>!r)));return ok}
+    if((this.def.spec&&this.def.spec.kind==='vehicle')||this.def.vehicle){if(this.def.vehicle==='bomber'&&this.loadBay(stack))return true;if(player.sneaking)return false;if(MP.active&&this.def.vehicle&&(MP.host||this.remote))return seatBoard(this,-1);const ok=this.mount();if(ok&&this.riders)this.seatIn(Math.max(0,this.riders.findIndex(r=>!r)));return ok}
     const d=this.def;
     if(this.type==='villager'){if(this.baby)return false;if(this.prof==='nitwit'){playSoundAt('villager_no',this.x,this.y,this.z);return true}openTradeGui(this);return true}
     if(this.type==='horse'){if(this.baby)return false;
@@ -6118,7 +6132,7 @@ Object.assign(Mob.prototype,{
     this.speed+=(this.throttle*max-this.speed)*Math.min(1,dt*d.accel);
     this.shipMove(dt,dyaw);this.shipFloat(dt);
     const g=this.gun,cd=this.cd||(this.cd=[0,0,0]),defs=SHIP_GUNS[v],gi=v==='boat_pt'?(sn===1?0:-1):(sn>=1?sn-1:-1);
-    for(let i=0;i<g.length;i++){cd[i]-=dt;const on=i===gi;g[i].on=on;
+    for(let i=0;i<g.length;i++){cd[i]-=dt;const on=i===gi;if(!on&&MP.active&&this.seatIds&&seatGunBusy(this,i))continue;g[i].on=on;
       if(on){p.pitch=clamp(p.pitch,defs[i].pr[0],defs[i].pr[1]);g[i].y=wrap(p.yaw-this.yaw);g[i].p=p.pitch;if((keys.Space||mouseL)&&cd[i]<=0&&!game.gui)this.shipFire(i)}
       else{g[i].y+=wrap(defs[i].idle-g[i].y)*Math.min(1,dt*2);g[i].p*=Math.max(0,1-dt*2)}}
     if(this.engT<=0&&Math.abs(this.speed)>0.5){this.engT=0.4;playSoundAt('engine',this.x,this.y,this.z,0.3+Math.abs(this.speed)/20,0.35)}
@@ -6144,12 +6158,12 @@ Object.assign(Mob.prototype,{
     else{this.dry=(this.dry||0)+dt;if(this.dry>0.3){this.vy-=32*dt;moveEntity(this,0,this.vy*dt,0,0)}}
     this.pitch=Math.sin(game.time*0.9+this.id*1.7)*0.012+clamp(this.speed/d.maxSpeed,-0.4,1)*0.012},
   shipWake(dt){const sp=Math.abs(this.speed);if(sp>2&&Math.random()<dt*14){const d=this.def,fx=-Math.sin(this.yaw),fz=-Math.cos(this.yaw),o=d.len*0.42*(this.speed>0?1:-1);spawnParticles('splash',this.x+fx*o,this.y+d.draft,this.z+fz*o,2)}},
-  shipFire(i){const p=player,d=this.def,v=d.vehicle,G=SHIP_GUNS[v][i],cd=this.cd,dir=eyeDir();
-    const o=vehPoint(this,G.p[0],G.p[1],G.p[2]);this.gunSide=-(this.gunSide||1);const rx=Math.cos(p.yaw),rz=-Math.sin(p.yaw),sd=this.gunSide*0.45;
+  shipFire(i,dd,yw,gh){const p=player,d=this.def,v=d.vehicle,G=SHIP_GUNS[v][i],cd=this.cd,dir=dd||eyeDir(),yy=yw===undefined?p.yaw:yw;
+    const o=vehPoint(this,G.p[0],G.p[1],G.p[2]);this.gunSide=-(this.gunSide||1);const rx=Math.cos(yy),rz=-Math.sin(yy),sd=this.gunSide*0.45;
     const x=o[0]+dir[0]*G.len+rx*sd,y=o[1]+dir[1]*G.len,z=o[2]+dir[2]*G.len+rz*sd;
-    if(v!=='boat_pt'&&i<2){cd[i]=2.2;const sh=new TankShell(x,y,z,dir[0]*75+this.vx*0.3,dir[1]*75,dir[2]*75+this.vz*0.3,this);sh.skip=this;sh.ship=true;sh.pow=3.5;entities.push(sh);
+    if(v!=='boat_pt'&&i<2){cd[i]=2.2;const sh=new TankShell(x,y,z,dir[0]*75+this.vx*0.3,dir[1]*75,dir[2]*75+this.vz*0.3,this);sh.skip=this;sh.ship=true;sh.pow=3.5;if(!gh)entities.push(sh);
       spawnParticles('flash',x,y,z,6);spawnParticles('smoke',x+dir[0],y,z+dir[2],10);playSoundAt('explode',this.x,this.y,this.z,1.8,0.7);if(this.rider===player)game.shake=Math.max(game.shake||0,0.7)}
-    else{const aa=v!=='boat_pt';cd[i]=aa?0.07:0.09;const sp=aa?170:120;const b=new Arrow(x,y,z,dir[0]*sp+this.vx*0.2,dir[1]*sp,dir[2]*sp+this.vz*0.2,'player',aa?10:6);b.bullet=true;b.noGravity=true;b.kb=3;b.skip=this;b.volley=(game.volley=(game.volley||0)+1);entities.push(b);
+    else{const aa=v!=='boat_pt';cd[i]=aa?0.07:0.09;const sp=aa?170:120;const b=new Arrow(x,y,z,dir[0]*sp+this.vx*0.2,dir[1]*sp,dir[2]*sp+this.vz*0.2,'player',aa?10:6);b.bullet=true;b.noGravity=true;b.kb=3;b.skip=this;if(gh)b.ghost=true;b.volley=(game.volley=(game.volley||0)+1);entities.push(b);
       spawnParticles('flash',x+dir[0],y+dir[1],z+dir[2],3);playSoundAt('rifle',this.x,this.y,this.z,aa?1.2:0.9+Math.random()*0.2,aa?0.55:0.7)}},
   // step off onto the nearest shore within reach, otherwise into the water beside the hull
   shipDismount(){const p=player,d=this.def;this.rider=null;if(this.riders)this.riders=this.riders.map(()=>null);p.seat=0;bomberHudHide();p.riding=null;
@@ -6157,7 +6171,7 @@ Object.assign(Mob.prototype,{
     outer:for(let r=d.beam/2+1.5;r<=30;r+=1.5)for(let a=0;a<24;a++){const an=a*PI/12+p.yaw,x=this.x+Math.cos(an)*r,z=this.z+Math.sin(an)*r;
       for(let y=floor(base)+3;y>=floor(base)-2;y--){const b=world.getBlock(floor(x),y-1,floor(z));if(b!==0&&BLOCKS[b].solid&&!BLOCKS[b].liquid){const w=p.w/2;if(!collectBoxes(x-w,y,z-w,x+w,y+1.8,z+w).length&&world.getBlock(floor(x),y,floor(z))!==8){p.x=x;p.z=z;p.y=y;placed=true;break outer}break}}}
     if(!placed){const sx=Math.cos(this.yaw),sz=-Math.sin(this.yaw),o=d.beam/2+1.5;p.x=this.x+sx*o;p.z=this.z+sz*o;p.y=base-0.4}
-    p.vx=p.vy=p.vz=0;p.fallDist=0;if(this.owned)mpMobRelease(this)}
+    p.vx=p.vy=p.vz=0;p.fallDist=0;if(this.owned&&!this.seatIds)mpMobRelease(this)}
 });
 // ---- ship models: boxes in 1/4-block units (x right, y up from the keel, -z the bow), grey paint ----
 function renderShip(m,part,W,N){const K=4,t=game.time,fp=m.rider===player&&!game.cam,fs=fp?(player.seat|0):-1,G=m.gun||[{},{},{}];
@@ -6248,14 +6262,78 @@ function renderFlak(m,part,W,N,tint){const fp=m.rider===player&&!game.cam;const 
   part([-9,-5,-7,9,5,-5],0,19,-2,gp,0,0,H,C); // gun shield rides with the barrels
   if(!fp)part([-2.5,-5,-2,2.5,-1,2],0,19,-2,gp,0,0,W,DK) // sight block
 }
-function bomberUseHook(st,hd,t){const m=player.riding;if(m&&m.def&&m.def.vehicle==='bomber'&&st&&(st.id===28||st.id===151)){m.loadBay(st);player.swing=0;return true}return false}
+function bomberUseHook(st,hd,t){const m=player.riding;if(m&&m.def&&m.def.vehicle==='bomber'&&st&&(st.id===28||st.id===151)){m.loadBay(st);if(MP.active&&m.nid)mpSend({t:'mset',nid:m.nid,set:{bay:m.bay}});player.swing=0;return true}return false}
 function bomberHudHide(){const h=document.getElementById('bomberHud');if(h)h.style.display='none'}
 function bomberHud(m){let h=document.getElementById('bomberHud');if(!h){h=document.createElement('div');h.id='bomberHud';h.style.cssText='position:absolute;left:50%;top:44px;transform:translateX(-50%);padding:4px 12px;border:1px solid #d39a33;border-radius:6px;background:rgba(5,10,13,.7);color:#f2e6c8;font-size:14px;letter-spacing:.5px;white-space:nowrap;pointer-events:none;z-index:6';(document.getElementById('hud')||document.body).appendChild(h)}
   const t=seatName(m,player.seat|0)+' \u00b7 '+seatInfo(m);if(h.textContent!==t)h.textContent=t;h.style.display='block'}
 function seatCam(p){const m=p.riding;if(!m||!m.def||m.rider!==p)return null;const S=SEATS[m.def.vehicle];if(!S)return null;const e=(S[p.seat|0]||S[0]).e;return bomberPoint(m,e[0],e[1],e[2])}
-function cycleSeat(){if(heliCycleSeat())return true;const p=player,m=p.riding;if(!m||!m.riders||!m.def||!SEATS[m.def.vehicle])return false;const cur=p.seat|0;const NS=m.riders.length;
+function cycleSeat(){if(heliCycleSeat())return true;const p=player,m=p.riding;if(!m||!m.riders||!m.def||!SEATS[m.def.vehicle])return false;const cur=p.seat|0;if(MP.active&&m.seatIds&&m.nid)return seatCycleMP(m,cur);const NS=m.riders.length;
   for(let i=1;i<NS;i++){const sn=(cur+i)%NS;if(!m.riders[sn]){m.riders[cur]=null;m.riders[sn]=p;p.seat=sn;m.crewSync();showMessage('Seat: '+seatName(m,sn)+' - '+seatInfo(m));return true}}
   showMessage('No free seat');return true}
+// ---- shared seats (multiplayer) ----
+// The host keeps m.seatIds=[peer id|null per seat] (one per entry of m.riders, otherwise 1) and streams it. The peer in the first occupied seat DRIVES: it runs the vehicle
+// (autopilot for the other seats) and streams it like any guest-owned mob; every other peer, host included, mirrors it. Gunner / bombardier actions are packets
+// that the driver's machine runs. Single-player never touches any of this (every entry point checks MP.active).
+function seatInit(m){if(!m.seatIds)m.seatIds=new Array(m.riders?m.riders.length:1).fill(null);if(!m.nid&&MP.active&&MP.host)m.nid=MP.myId+':'+(++MP.nidN);return m.seatIds}
+function seatDriver(m){const a=m.seatIds;if(a)for(let i=0;i<a.length;i++)if(a[i])return a[i];return null}
+function seatClaim(m,id,want){const a=seatInit(m),cur=a.indexOf(id);if(cur>=0)return cur;if(want>=0&&want<a.length)return a[want]?-1:(a[want]=id,want);for(let i=0;i<a.length;i++)if(!a[i]){a[i]=id;return i}return -1}
+function seatNext(m,id){const a=m.seatIds,cur=a.indexOf(id);for(let i=1;i<a.length;i++){const sn=(cur+i)%a.length;if(!a[sn])return sn}return -1}
+function seatShare(m,no){if(MP.active&&MP.host&&m.nid&&m.seatIds)mpSend({t:'seats',nid:m.nid,si:m.seatIds.slice(),no:no||null})}
+function seatApply(m,si){if(!Array.isArray(si))return;const a=seatInit(m);for(let i=0;i<a.length;i++)a[i]=typeof si[i]==='string'&&si[i]?si[i]:null}
+function seatEnter(m,sn){const p=player;if(p.dead||(p.riding&&p.riding!==m))return false;if(p.riding!==m&&!m.mount())return false;if(m.riders)m.seatIn(sn);else p.seat=0;return true}
+function seatMoveLocal(m,sn){const p=player;if(!m.riders)return;const cur=p.seat|0;m.riders[cur]=null;m.riders[sn]=p;p.seat=sn;m.crewSync();showMessage('Seat: '+seatName(m,sn)+' - '+seatInfo(m))}
+// gun index a seat works (-1: none) and that gun's pitch range
+function seatGunI(m,sn){const v=m.def.vehicle;if(v==='bomber')return sn===1||sn===2?sn-1:-1;if(v==='boat_pt')return sn===1?0:-1;if(v==='destroyer')return sn>=1?sn-1:-1;return -1}
+function seatGunPR(m,i){return m.def.vehicle==='bomber'?(i?[0,1.5]:[-1.5,0]):SHIP_GUNS[m.def.vehicle][i].pr}
+function seatGunBusy(m,i){const a=m.seatIds;if(a)for(let sn=0;sn<a.length;sn++)if(a[sn]&&a[sn]!==MP.myId&&seatGunI(m,sn)===i)return true;return false} // somebody else mans gun i
+// where a single-seat driver's feet are (mirrors what each ride function does to the player)
+function seatFeet(m){const v=m.def.vehicle,k=vehScale(m);if(v==='car'||v==='jet'||v==='bomber')return m.y+k*(1.62+(v==='car'?-0.6:v==='jet'?-0.42:-0.22))-1.62;if(v==='sub')return m.y+0.88;return m.y+k*1.72-1.62}
+// right-click on a vehicle in multiplayer: the host hands out the seat, a guest asks the host and boards when the answer lists it
+function seatBoard(m,want){const p=player;if(p.riding||m.dead||m.dying)return false;seatInit(m);if(!m.nid)return false;
+  if(MP.host){const sn=seatClaim(m,MP.myId,want);if(sn<0){showMessage('No free seat');return true}if(!seatEnter(m,sn)){m.seatIds[sn]=null;return false}seatShare(m);return true}
+  m.seatPend=game.time;mpSend({t:'seat',op:'in',nid:m.nid,seat:want});return true}
+function seatCycleMP(m,cur){if(MP.host){const sn=seatNext(m,MP.myId);if(sn<0){showMessage('No free seat');return true}m.seatIds[cur]=null;m.seatIds[sn]=MP.myId;seatMoveLocal(m,sn);seatShare(m)}else mpSend({t:'seat',op:'sw',nid:m.nid});return true}
+function seatLeave(m){if(!MP.active||!m.seatIds)return;const k=m.seatIds.indexOf(MP.myId);if(k<0)return;m.seatIds[k]=null;if(MP.host)seatShare(m);else mpSend({t:'seat',op:'out',nid:m.nid})}
+// host: a guest asked for a seat / to move on / to get off
+function seatNet(conn,d){if(!MP.host||!conn.mpId)return;const m=entities.find(e=>e.nid===d.nid&&e instanceof Mob&&e.def.vehicle);if(!m||m.dead||m.dying)return;const id=conn.mpId,a=seatInit(m),cur=a.indexOf(id);let no=null;
+  if(d.op==='in'){if(cur<0){const r=MP.remote.get(id);if(r&&r.hasTarget&&Math.hypot(r.x-m.x,r.z-m.z)>40+m.w*2)no=id; /* too far away to be at the door */ else if(seatClaim(m,id,Number.isInteger(d.seat)?d.seat:-1)<0)no=id}}
+  else if(d.op==='sw'){if(cur>=0){const sn=seatNext(m,id);if(sn<0)no=id;else{a[cur]=null;a[sn]=id}}}
+  else if(d.op==='out'){if(cur>=0)a[cur]=null}
+  seatShare(m,no)}
+function seatsIn(d){const m=entities.find(e=>e.nid===d.nid&&e instanceof Mob);if(!m||!m.def.vehicle)return;seatApply(m,d.si);if(d.no===MP.myId){m.seatPend=0;showMessage('No free seat')}}
+// a gunner / bombardier action: the driver's machine runs it (the host forwards it when a guest drives)
+function seatAct(m,sn,a){const p=player,pk={t:'sact',nid:m.nid,seat:sn,a,yaw:+p.yaw.toFixed(3),pitch:+p.pitch.toFixed(3)};if(MP.host){const drv=seatDriver(m),c=MP.conns.find(c=>c.mpId===drv);if(c&&c.open)c.send(pk)}else mpSend(pk)}
+function seatActIn(conn,d){const m=entities.find(e=>e.nid===d.nid&&e instanceof Mob);if(!m||!m.seatIds||m.dead||m.dying)return;const sn=d.seat|0,yaw=+d.yaw||0,pitch=+d.pitch||0;
+  if(MP.host){if(!conn.mpId||m.seatIds[sn]!==conn.mpId)return;const drv=seatDriver(m);if(drv===MP.myId)m.seatDo(sn,d.a,yaw,pitch);else{const c=MP.conns.find(c=>c.mpId===drv);if(c&&c!==conn&&c.open)c.send(d)}}
+  else if(seatDriver(m)===MP.myId)m.seatDo(sn,d.a,yaw,pitch)}
+// who runs the vehicle: the host runs it unless a guest is the driver (then that guest streams it and the host mirrors it)
+function seatTake(m){const s=m.netS;if(s){m.speed=s[0];m.vx=s[1];m.vy=s[2];m.vz=s[3];m.onGround=!!s[4]}}
+function seatOwn(m){const drv=seatDriver(m),p=player;
+  if(MP.host){const was=m.seatDrv;m.seatDrv=drv;
+    if(drv===null||drv===MP.myId){if(m.remote||m.ownerConn||(was&&was!==drv&&was!==MP.myId)){m.remote=false;m.ownerConn=null;seatTake(m)}} // the host runs it, carrying on with the last streamed speed
+    else if(!m.remote)m.seatHold=1.5} // a guest drives: stand still until its stream arrives
+  else if(drv===MP.myId&&p.riding===m){if(!m.owned){m.owned=true;m.remote=false;seatTake(m)}}
+  else if(m.owned){m.owned=false;m.remote=true;m.lastSync=game.time;m.tx=m.x;m.ty=m.y;m.tz=m.z;m.tyaw=m.yaw}}
+function seatTick(dt){const p=player,me=MP.myId;if(!world||!me)return;const bc=MP.host&&((MP.seatT=(MP.seatT||0)-dt)<=0);if(bc)MP.seatT=1;
+  for(const r of MP.remote.values()){r.seatM=null;r.seated=false}
+  for(const m of entities){if(!(m instanceof Mob)||!m.def.vehicle||m.dead||!m.seatIds)continue;const ids=m.seatIds;let ch=false;
+    if(MP.host){for(let i=0;i<ids.length;i++){const id=ids[i];if(id&&(id===me?p.riding!==m:!MP.remote.has(id))){ids[i]=null;ch=true}} // players who left or got off
+      if(p.riding===m&&ids.indexOf(me)<0){if(seatClaim(m,me,p.seat|0)>=0)ch=true;else m.dismount()}}
+    else{const k=ids.indexOf(me);if(k>=0&&p.riding!==m){if(m.seatPend&&game.time-m.seatPend<4){m.seatPend=0;if(!seatEnter(m,k)){ids[k]=null;mpSend({t:'seat',op:'out',nid:m.nid})}}else{ids[k]=null;mpSend({t:'seat',op:'out',nid:m.nid})}}}
+    const k=ids.indexOf(me);
+    if(p.riding===m){if(k<0){m.dismount();if(p.riding===m){p.riding=null;m.rider=null}}else if((p.seat|0)!==k&&m.riders)seatMoveLocal(m,k)}
+    seatOwn(m);
+    for(let i=0;i<ids.length;i++){const id=ids[i];if(id&&id!==me){const r=MP.remote.get(id);if(r){r.seatM=m;r.seatN=i;r.seated=true}}}
+    if(m.gun&&m.riders){ // other players' guns follow their look direction (a mirror also lets unmanned guns settle)
+      for(let i=0;i<m.gun.length;i++){const g=m.gun[i];let sn=-1;for(let q=0;q<ids.length;q++)if(seatGunI(m,q)===i)sn=q;const id=sn>=0?ids[sn]:null;if(id===me)continue;const r=id&&MP.remote.get(id);
+        if(r&&r.hasTarget){const pr=seatGunPR(m,i);g.on=true;g.y=Math.atan2(Math.sin(r.tyaw-m.yaw),Math.cos(r.tyaw-m.yaw));g.p=Math.max(pr[0],Math.min(pr[1],r.pitch||0))}
+        else if(m.remote){g.on=false;if(m.def.ship){const idl=SHIP_GUNS[m.def.vehicle][i].idle;g.y+=Math.atan2(Math.sin(idl-g.y),Math.cos(idl-g.y))*0.1;g.p*=0.9}else g.y*=0.9}}}
+    if(ch||(bc&&ids.some(x=>x)))seatShare(m)}}
+// a remote player with a seat is drawn in it: crew seats from SEATS[kind], single-seat vehicles at the driver position
+function seatPlace(r){const m=r.seatM;if(!m||m.dead||!r.hasTarget)return;let yw=m.yaw,q;const S=SEATS[m.def.vehicle];
+  if(S&&m.riders){const e=(S[r.seatN]||S[0]).e,w=vehPoint(m,e[0],e[1],e[2]);q=[w[0],w[1]-1.62,w[2]];if(seatGunI(m,r.seatN)>=0)yw=r.tyaw}
+  else q=[m.x,seatFeet(m),m.z];
+  r.x=q[0];r.y=q[1];r.z=q[2];r.yaw=yw}
 function renderVehicle(m,part,W,N,kind,tint){if(m.def.ship)return renderShip(m,part,W,N);if((kind||m.def.vehicle)==='flak')return renderFlak(m,part,W,N,tint);if((kind||m.def.vehicle)==='tank')return renderTank(m,part,W,N,tint);if((kind||m.def.vehicle)==='sub')return renderSub(m,part,W,N,tint);if((kind||m.def.vehicle)==='heli')return renderHeli(m,part,W,N,tint);if((kind||m.def.vehicle)==='mortar')return renderMortar(m,part,W,N,tint);kind=kind||m.def.vehicle;if(kind==='a10')return renderA10(m,part,W,N,tint);const t=game.time;const fp=m.rider===player&&vehCamMode()===1,fs=fp?(player.seat|0):-1;const B=m.bank||0,cb=Math.cos(B),sb=Math.sin(B);const spin=m.remote?t*(8+40*(m.throttle||0)):(m.walkT||0);const onG=m.onGround||m.remote&&!(m.throttle>0.3);
   const DK=[0.1,0.1,0.11],GR=[0.22,0.22,0.25],CH=[0.82,0.83,0.86],GL=[0.5,0.72,0.92],RED=[0.9,0.12,0.1],YEL=[0.95,0.8,0.15];
   const bx=(cy,b,col,rx,ry,rzx,px,py,pz)=>{const ox=px||0,oy=py===undefined?cy:py,oz=pz||0;const qx=ox*cb-(oy-cy)*sb,qy=cy+ox*sb+(oy-cy)*cb;part(b,qx,qy,oz,rx||0,ry||0,B+(rzx||0),W,col)}; // box (b relative to its pivot), pivot (px,py,pz) banked round the centre line
@@ -6553,7 +6631,7 @@ function mpOnData(conn,d){if(!d||!d.t)return;
     case 'm':{mpMobsIn(conn,d);break}
     case 'mh':{if(!MP.host)break;const e=entities.find(e=>e.nid===d.nid);if(e&&!e.dead&&!e.dying){const src=d.src||{};src.by=conn.mpId;damageEntity(e,d.amount,src)}break}
     case 'mset':{const e=entities.find(e=>e.nid===d.nid);if(e&&e instanceof Mob)mpMobApplySet(e,d.set);if(MP.host)mpRelay(conn,d);break}
-    case 'mrel':{if(!MP.host)break;const e=entities.find(e=>e.nid===d.nid);if(e&&e instanceof Mob){e.remote=false;e.ownerConn=null;e.x=d.x;e.y=d.y;e.z=d.z;e.vx=e.vy=e.vz=0;e.rider=null}break}
+    case 'mrel':{if(!MP.host)break;const e=entities.find(e=>e.nid===d.nid);if(e&&e instanceof Mob){e.remote=false;e.ownerConn=null;e.x=d.x;e.y=d.y;e.z=d.z;e.vx=e.vy=e.vz=0;if(e.rider!==player)e.rider=null}break}
     case 'p':{if(d.id===MP.myId)break;if(MP.host)conn.mpId=d.id;const r=mpRemote(d.id,d.name);r.setTarget(d);if(MP.host)mpRelay(conn,d);break}
     // blocks from other players are applied silently: the sender runs the support checks and sends every knock-on change itself; running them here too deleted half-placed doors and echoed the deletion back
     case 'b':{if(!world||!BLOCKS[d.id])break;if(world.hasChunk(d.x,d.z))world.setBlock(d.x,d.y,d.z,d.id,d.meta,{remote:true,noDrop:true,silent:true});else{const k=(d.x>>4)+','+(d.z>>4);world.savedMods=world.savedMods||{};(world.savedMods[k]||(world.savedMods[k]=[])).push([cidx(d.x&15,d.y,d.z&15),d.id|(d.meta<<8)])}if(MP.host)mpRelay(conn,d);break}
@@ -6569,6 +6647,9 @@ function mpOnData(conn,d){if(!d||!d.t)return;
     case 'ic':{if(MP.host)mpRelay(conn,d);{const e=entities.find(e=>e.nid===d.nid);if(e&&e.stack)e.stack.count=d.count;const pi=MP.pendingItems.find(it=>it.nid===d.nid);if(pi)pi.s.count=d.count}break}
     case 'be':{if(MP.host)mpRelay(conn,d);mpApplyBE(d);break}
     case 'mods':{if(MP.host)break;applyModsLive(d.mods||{},true);break}
+    case 'seat':{seatNet(conn,d);break}
+    case 'seats':{if(!MP.host)seatsIn(d);break}
+    case 'sact':{seatActIn(conn,d);break}
     case 'missile':{if(world&&(!d.dim||d.dim===world.dimKey)&&typeof NukeMissile!=='undefined')entities.push(new NukeMissile(d.x,d.y,d.z,d.tx,d.tz,true));if(MP.host)mpRelay(conn,d);break}
     case 'nukeT':{if(world&&typeof nukeTimerSet==='function')nukeTimerSet(d.x,d.y,d.z,d.s,true);if(MP.host)mpRelay(conn,d);break}
     case 'sw':{if(MP.host&&world)switchSet(d.x,d.y,d.z,!!d.on,d.hold||0);break}
@@ -6585,19 +6666,21 @@ function mpItemList(){const out=[];for(const e of entities){if(!(e instanceof It
 const MOB_SET_KEYS=['sheared','tamed','sitting','loveT','baby','growT','angry','saddled','color','hp','woolId','temper','bay'];
 function mpMobPack(e){const o={n:e.nid,k:e.type,x:+e.x.toFixed(2),y:+e.y.toFixed(2),z:+e.z.toFixed(2),r:+e.yaw.toFixed(2),h:+e.hp.toFixed(1),m:e.maxHp,hy:+(e.headYaw||0).toFixed(2),hpi:+(e.headPitch||0).toFixed(2)};
   let f=0;if(e.baby)f|=1;if(e.sheared)f|=2;if(e.tamed)f|=4;if(e.sitting)f|=8;if(e.saddled)f|=16;if(e.angry)f|=32;if(e.dying)f|=64;if(e.fireT>0)f|=128;if(e.hurtT>0)f|=256;if(e.swell>0)f|=512;if(e.open>0.5)f|=1024;if(e.rider)f|=2048;if(e.loveT>0)f|=4096;if(e.drinking>0)f|=8192;o.f=f;
-  if(e.size)o.sz=e.size;if(e.woolId!==undefined)o.w=e.woolId;if(e.color!==undefined)o.c=e.color;if(e.prof)o.p=e.prof;if(e.hspeed)o.hs=e.hspeed;if(e.hjump)o.hj=e.hjump;if(e.rider&&e.rider!==player&&e.rider.pid)o.rp=e.rider.pid;if(e.def.vehicle){o.pt=+(e.pitch||0).toFixed(2);o.bk=+(e.bank||0).toFixed(2);o.th=+(e.throttle||0).toFixed(2)}if(e.bay)o.by=e.bay;return o}
+  if(e.size)o.sz=e.size;if(e.woolId!==undefined)o.w=e.woolId;if(e.color!==undefined)o.c=e.color;if(e.prof)o.p=e.prof;if(e.hspeed)o.hs=e.hspeed;if(e.hjump)o.hj=e.hjump;if(e.rider&&e.rider!==player&&e.rider.pid)o.rp=e.rider.pid;if(e.def.vehicle){o.pt=+(e.pitch||0).toFixed(2);o.bk=+(e.bank||0).toFixed(2);o.th=+(e.throttle||0).toFixed(2);o.vs=[+(e.speed||0).toFixed(1),+(e.vx||0).toFixed(1),+(e.vy||0).toFixed(1),+(e.vz||0).toFixed(1),e.onGround?1:0];if(MP.host){seatInit(e);o.si=e.seatIds}}if(e.bay)o.by=e.bay;return o}
 function mpMobList(){const out=[];const ps=[player];for(const r of MP.remote.values())if(!r.hidden)ps.push(r);
   for(const e of entities){if(!(e instanceof Mob)||e.dead)continue;if(MP.host?(e.remote&&e.ownerConn):!e.owned)continue;if(!e.nid)e.nid=MP.myId+':'+(++MP.nidN);
     let near=false;for(const p of ps){const dx=e.x-p.x,dz=e.z-p.z;if(dx*dx+dz*dz<96*96){near=true;break}}if(!near)continue;out.push(mpMobPack(e))}return out}
 function mpMobApplySet(e,set){if(!set)return;for(const k of MOB_SET_KEYS)if(set[k]!==undefined)e[k]=set[k];if(set.tamed&&e.type==='wolf'){e.maxHp=20}}
 function mpMobUnpack(e,o){e.tx=o.x;e.ty=o.y;e.tz=o.z;e.tyaw=o.r;e.hp=o.h;e.maxHp=o.m;e.headYaw=o.hy;e.headPitch=o.hpi;const f=o.f||0;e.baby=!!(f&1);e.sheared=!!(f&2);e.tamed=!!(f&4);e.sitting=!!(f&8);e.saddled=!!(f&16);e.angry=!!(f&32);
   if((f&64)&&!e.dying){e.dying=true;e.deathT=0}e.fireT=(f&128)?1:0;if((f&256)&&!(e.hurtT>0))e.hurtT=0.5;e.swell=(f&512)?Math.max(e.swell||0,0.5):0;e.open=(f&1024)?1:0;e.loveT=(f&4096)?5:0;e.drinking=(f&8192)?1:0;e.remoteRidden=!!(f&2048);
-  if(o.sz&&e.type==='slime'&&e.size!==o.sz)e.setSize(o.sz);if(o.w!==undefined)e.woolId=o.w;if(o.c!==undefined)e.color=o.c;if(o.p&&e.prof!==o.p&&PROFS[o.p]){e.prof=o.p;e.trades=villagerTrades(o.p)}if(o.hs)e.hspeed=o.hs;if(o.hj)e.hjump=o.hj;e.remoteRider=o.rp||null;if(o.by&&e.bay)e.bay=o.by.slice();if(o.pt!==undefined){e.pitch=o.pt;e.bank=o.bk||0;e.throttle=o.th||0}}
+  if(o.sz&&e.type==='slime'&&e.size!==o.sz)e.setSize(o.sz);if(o.w!==undefined)e.woolId=o.w;if(o.c!==undefined)e.color=o.c;if(o.p&&e.prof!==o.p&&PROFS[o.p]){e.prof=o.p;e.trades=villagerTrades(o.p)}if(o.hs)e.hspeed=o.hs;if(o.hj)e.hjump=o.hj;e.remoteRider=o.rp||null;if(o.by&&e.bay)e.bay=o.by.slice();if(o.pt!==undefined){e.pitch=o.pt;e.bank=o.bk||0;e.throttle=o.th||0;e.netS=o.vs||null}}
 function mpMobsIn(conn,d){if(!world||!d.ms)return;const fromHost=!MP.host;if(d.dim!==world.dimKey){if(MP.host)mpRelay(conn,d);return}
   const byId=new Map();for(const e of entities)if(e instanceof Mob&&e.nid)byId.set(e.nid,e);
   for(const o of d.ms){if(!MOBDEF[o.k])continue;let e=byId.get(o.n);
     if(!e){if(MP.host)continue;e=new Mob(o.k,o.x,o.y,o.z);e.nid=o.n;e.remote=true;e.hasTarget=true;e.yaw=o.r;entities.push(e);byId.set(o.n,e)}
-    if(e.owned||(e.rider===player))continue; // I am steering this one
+    if(o.si&&!MP.host&&e.def.vehicle)seatApply(e,o.si); // seat list from the host, also for a vehicle I drive
+    const vh=MP.host&&e.def.vehicle;if(vh){seatInit(e);if(!conn.mpId||seatDriver(e)!==conn.mpId)continue} // only the player in the driver seat may steer a vehicle
+    if(!vh&&(e.owned||(e.rider===player&&!e.remote)))continue; // I am steering this one
     if(MP.host){e.remote=true;e.ownerConn=conn}
     e.remote=true;e.hasTarget=true;e.lastSync=game.time;mpMobUnpack(e,o)}
   if(fromHost)MP.mobSyncT=game.time;else if(MP.host)mpRelay(conn,d)}
@@ -6610,7 +6693,7 @@ function mpMobTick(dt){if(!world)return;
   MP.mobT=(MP.mobT||0)-dt;if(MP.mobT<=0){MP.mobT=0.2;const ms=mpMobList();if(ms.length||MP.host)mpSend({t:'m',dim:world.dimKey,ms})}}
 // a guest right-clicked a mirror mob: run the interaction on the copy, then tell the host what changed
 function mpMobInteract(e,stack){const before={};for(const k of MOB_SET_KEYS)before[k]=e[k];const r=e.interact(stack);const set={};let any=false;for(const k of MOB_SET_KEYS)if(e[k]!==before[k]){set[k]=e[k];any=true}
-  if(e.rider===player){e.owned=true;e.remote=false;any=false}if(any)mpSend({t:'mset',nid:e.nid,set});return r}
+  if(e.rider===player&&!e.seatIds){e.owned=true;e.remote=false;any=false}if(any)mpSend({t:'mset',nid:e.nid,set});return r}
 function mpMobRelease(e){if(!e.owned)return;e.owned=false;e.remote=true;e.lastSync=game.time;e.tx=e.x;e.ty=e.y;e.tz=e.z;e.tyaw=e.yaw;mpSend({t:'mrel',nid:e.nid,x:e.x,y:e.y,z:e.z})}
 // chests and furnaces: whoever changes one sends its whole contents; the copy on every other screen is replaced in place
 function mpSendBE(x,y,z,be){if(!MP.active||!be)return;mpSend({t:'be',x,y,z,dim:world.dimKey,be:{items:be.items,burn:be.burn||0,burnMax:be.burnMax||0,cook:be.cook||0}})}
@@ -6628,9 +6711,9 @@ function mpRelay(from,d){for(const c of MP.conns)if(c!==from&&c.open)c.send(d)}
 function mpSend(d){for(const c of MP.conns)if(c.open)c.send(d)}
 function mpRemote(id,name){if(!id)return null;if(MP.public)name=publicAlias(id);else name=String(name||'Player').replace(/[^a-z0-9 _-]/gi,'').slice(0,16)||'Player';let r=MP.remote.get(id);if(!r){r=new RemotePlayer(id,name);MP.remote.set(id,r);entities.push(r);if(game.state==='playing')showMessage(name+' joined')}else if(name)r.name=name;return r}
 function mpRemove(id){const r=MP.remote.get(id);if(!r)return;r.dead=true;MP.remote.delete(id);showMessage(r.name+' left');const el=$('nametags').querySelector('[data-id="'+id+'"]');if(el)el.remove()}
-function mpDrop(conn){const i=MP.conns.indexOf(conn);if(i>=0)MP.conns.splice(i,1);for(const e of entities)if(e instanceof Mob&&e.ownerConn===conn){e.remote=false;e.ownerConn=null;e.rider=null}if(conn.mpId){mpRemove(conn.mpId);mpSend({t:'leave',id:conn.mpId})}}
+function mpDrop(conn){const i=MP.conns.indexOf(conn);if(i>=0)MP.conns.splice(i,1);for(const e of entities)if(e instanceof Mob&&e.ownerConn===conn){e.remote=false;e.ownerConn=null;if(e.rider!==player)e.rider=null}if(conn.mpId){mpRemove(conn.mpId);mpSend({t:'leave',id:conn.mpId})}}
 function mpTick(dt){const p=player;MP.sendT-=dt;if(MP.sendT<=0){MP.sendT=0.1;const st=heldStack();mpSend({t:'p',id:MP.myId,name:MP.name,x:p.x,y:p.y,z:p.z,yaw:p.yaw,pitch:p.pitch,dim:world?world.dimKey:'over',held:st&&!ITEMS[st.id].custom?st.id:0,att:st&&st.att||undefined,sneak:!!p.sneaking,crawl:!!p.crawling,dead:!!p.dead,armor:p.armor.map(a=>a?a.id:0),sw:p.swing<0.9?1:0})}
-  mpFlushItems();mpMobTick(dt);
+  mpFlushItems();mpMobTick(dt);seatTick(dt);
   if(MP.host){MP.timeT-=dt;if(MP.timeT<=0){MP.timeT=5;mpSend({t:'time',time:world.time,day:world.day})}if(MP.public){MP.annT=(MP.annT||0)-dt;if(MP.annT<=0){MP.annT=8;beaconKeep()}}}
   for(const r of MP.remote.values()){if(r.dead)r.dead=false;if(!entities.includes(r))entities.push(r)}
   mpNameTags()}
@@ -6648,8 +6731,8 @@ class RemotePlayer extends Entity{constructor(id,name){super(0,-100,0);this.pid=
   interact(){return false}
   get hittable(){return pvpOn()&&!this.hidden}
   update(dt){this.age+=dt;if(this.hurtT>0)this.hurtT-=dt;if(this.invT>0)this.invT-=dt;if(!this.hasTarget)return;const k=Math.min(1,dt*12);const ox=this.x,oz=this.z;this.x+=(this.tx-this.x)*k;this.y+=(this.ty-this.y)*k;this.z+=(this.tz-this.z)*k;let dy=this.tyaw-this.yaw;dy=Math.atan2(Math.sin(dy),Math.cos(dy));this.yaw+=dy*k;
-    const hs=Math.hypot(this.x-ox,this.z-oz)/Math.max(dt,1e-3);this.walkAmp+=(Math.min(1,hs/3)-this.walkAmp)*Math.min(1,dt*8);this.walkT+=hs*dt*1.6;if(this.swingT>0)this.swingT-=dt}
-  render(EB,EBI){if(this.hidden||!this.hasTarget)return;const l=lightAt(this.x,this.y+1,this.z);const s=1/16;const N=TEX.noise;const hurt=this.hurtT>0;const part=(b,px,py,pz,rx,ry,rz,tiles,col)=>{const tf=partTF(this.x,this.y,this.z,this.yaw,px,py,pz,rx,ry,rz,s,0);EB.box(tf,b[0],b[1],b[2],b[3],b[4],b[5],tiles,hurt?[Math.min(1,col[0]+0.5),col[1]*0.4,col[2]*0.4]:col,l,true)};
+    const hs=Math.hypot(this.x-ox,this.z-oz)/Math.max(dt,1e-3);this.walkAmp+=(Math.min(1,hs/3)-this.walkAmp)*Math.min(1,dt*8);this.walkT+=hs*dt*1.6;if(this.swingT>0)this.swingT-=dt;if(this.seatM)seatPlace(this)}
+  render(EB,EBI){if(this.hidden||!this.hasTarget)return;if(this.seatM)seatPlace(this);const l=lightAt(this.x,this.y+1,this.z);const s=1/16;const N=TEX.noise;const hurt=this.hurtT>0;const part=(b,px,py,pz,rx,ry,rz,tiles,col)=>{const tf=partTF(this.x,this.y,this.z,this.yaw,px,py,pz,rx,ry,rz,s,0);EB.box(tf,b[0],b[1],b[2],b[3],b[4],b[5],tiles,hurt?[Math.min(1,col[0]+0.5),col[1]*0.4,col[2]*0.4]:col,l,true)};
     const swing=Math.sin(this.walkT)*this.walkAmp*0.9;const sit=!!this.seated,lsw=sit?1.45:swing,rsw=sit?1.45:-swing;const skin=[0.85,0.66,0.52],shirt=[0.2,0.62,0.85],pants=[0.25,0.3,0.6];const t=2;
     if(this.crawl){ // flat on the belly, head forward, arms ahead, legs behind; in a ghillie suit the whole lump is leaves
       const gh=wearsGhillie(this);const T=gh?TEX.ghillie:N;const cs=gh?[1,1,1]:skin,cb=gh?[1,1,1]:shirt,cp=gh?[1,1,1]:pants;const crawlSwing=Math.sin(this.walkT)*this.walkAmp*0.5;const o=gh?0.6:0;
