@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="ironcraft-build" content="20261027-214944">
+<meta name="ironcraft-build" content="20261027-220101">
 <meta name="viewport" content="width=device-width,initial-scale=1.0,viewport-fit=cover">
 <title>Ironcraft – Free Voxel Survival Sandbox in Your Browser | Iron Games</title>
 <meta name="description" content="Ironcraft is a free browser-based voxel survival sandbox with building, exploration, private or safety-limited public multiplayer, and optional weather, horror and survival challenges. By Daniele Bros.">
@@ -2609,8 +2609,8 @@ class Arrow extends Entity{constructor(x,y,z,vx,vy,vz,owner,dmg){super(x,y,z);th
     if(this.age>2&&(inB===8||inB===9)&&sqrt(this.vx*this.vx+this.vy*this.vy+this.vz*this.vz)<1.5&&!this.fireball){this.stuck=true;this.vx=this.vy=this.vz=0;return}
     const nx=this.x+this.vx*dt,ny=this.y+this.vy*dt,nz=this.z+this.vz*dt;
     // entity hit
-    const targets=this.ghost?[]:this.owner&&this.owner.def&&this.owner.def.soldier?soldierTargets(this):this.owner==='player'?entities.filter(e=>(e instanceof Mob||e.hittable)&&!e.dead&&e!==this.skip&&!(this.bullet&&e.team==='player'&&e.def&&e.def.soldier)):(MP.active&&MP.host?[player,...[...MP.remote.values()].filter(r=>!r.hidden&&r.hasTarget)]:[player]);
-    for(const t of targets){if(t.dead)continue;const w=t.w/2+0.1;const hit=t.def&&t.def.ship?shipSegHit(t,ox,oy,oz,nx,ny,nz):segAABB(ox,oy,oz,nx,ny,nz,t.x-w,t.y-0.1,t.z-w,t.x+w,t.y+t.h+0.1,t.z+w);if(hit){if(this.onImpact){this.x=nx;this.y=ny;this.z=nz;this.onImpact(t);this.dead=true;return}if(this.bullet&&this.volley&&t.lastVolley===this.volley)t.invT=0;if(this.bullet)t.lastVolley=this.volley;if(damageEntity(t,this.dmg*(this.vehMul&&t.def&&t.def.vehicle?this.vehMul:1),{x:ox,y:oy,z:oz,type:'arrow',crit:this.crit,kb:this.kb||4,fromMob:this.owner!=='player'})){if(this.trident){if(this.channeling&&game.wx&&game.wx.storm)lightningStrike(t.x,t.z);if(this.loyalty){this.returning=true;this.x=nx;this.y=ny;this.z=nz;playSound('arrowhit');return}else{this.x=nx;this.y=ny;this.z=nz;this.stuck=true;this.vx=this.vy=this.vz=0;playSound('arrowhit');return}}if(this.effect&&t===player)player.effects[this.effect]=Math.max(player.effects[this.effect]||0,this.effectT);if(this.tipped&&t!==player)applyPotion(this.tipped,1,false,t);if(this.flame&&t!==player)t.fireT=Math.max(t.fireT||0,5)}this.dead=true;playSound('arrowhit');return}}
+    if(this.bullet&&!this.shell)bulletNearMiss(this,nx,ny,nz);const targets=this.ghost?[]:this.owner&&this.owner.def&&this.owner.def.soldier?soldierTargets(this):this.owner==='player'?entities.filter(e=>(e instanceof Mob||e.hittable)&&!e.dead&&e!==this.skip&&!(this.bullet&&e.team==='player'&&e.def&&e.def.soldier)):(MP.active&&MP.host?[player,...[...MP.remote.values()].filter(r=>!r.hidden&&r.hasTarget)]:[player]);
+    for(const t of targets){if(t.dead)continue;const w=t.w/2+0.1;const hit=t.def&&t.def.ship?shipSegHit(t,ox,oy,oz,nx,ny,nz):segAABB(ox,oy,oz,nx,ny,nz,t.x-w,t.y-0.1,t.z-w,t.x+w,t.y+t.h+0.1,t.z+w);if(hit){if(this.onImpact){this.x=nx;this.y=ny;this.z=nz;this.onImpact(t);this.dead=true;return}if(this.bullet&&this.volley&&t.lastVolley===this.volley)t.invT=0;if(this.bullet)t.lastVolley=this.volley;if(damageEntity(t,this.dmg*(this.vehMul&&t.def&&t.def.vehicle?this.vehMul:1),{x:ox,y:oy,z:oz,type:'arrow',shooter:this.owner,crit:this.crit,kb:this.kb||4,fromMob:this.owner!=='player'})){if(this.trident){if(this.channeling&&game.wx&&game.wx.storm)lightningStrike(t.x,t.z);if(this.loyalty){this.returning=true;this.x=nx;this.y=ny;this.z=nz;playSound('arrowhit');return}else{this.x=nx;this.y=ny;this.z=nz;this.stuck=true;this.vx=this.vy=this.vz=0;playSound('arrowhit');return}}if(this.effect&&t===player)player.effects[this.effect]=Math.max(player.effects[this.effect]||0,this.effectT);if(this.tipped&&t!==player)applyPotion(this.tipped,1,false,t);if(this.flame&&t!==player)t.fireT=Math.max(t.fireT||0,5)}this.dead=true;playSound('arrowhit');return}}
     // block hit
     const segLen=sqrt((nx-ox)**2+(ny-oy)**2+(nz-oz)**2);const bh=raycast(ox,oy,oz,nx-ox,ny-oy,nz-oz,segLen,false);
     if(bh&&bh.block&&this.onImpact){this.x=bh.x;this.y=bh.y;this.z=bh.z;this.onImpact(null);this.dead=true;return}
@@ -2931,7 +2931,7 @@ MOB_TYPES.push('tank');MOB_LABEL.tank='Tank';MOB_BY_LABEL.tank='tank';
 MOBDEF.flak={hp:150,w:1.7,h:1.7,speed:0,passive:true,vehicle:'flak',noDespawn:true,noBurn:true,fireproof:true,kbMul:0.1,drops:r=>[[159,1],[260,3]],xp:[0,0],sound:'none',food:[]};
 MOB_TYPES.push('flak');MOB_LABEL.flak='Flak Cannon';MOB_BY_LABEL.flak='flak';MOB_BY_LABEL.flak_cannon='flak';
 // ---- War soldiers: MOBDEF.soldier is driven by Mob.soldierTick (team 'player' follows and defends you, 'enemy' hunts you); kind rifle|heavy|sniper
-MOBDEF.soldier={hp:24,w:0.6,h:1.95,speed:3.6,soldier:true,noDespawn:true,noBurn:true,drops:(r,m)=>{const k=m&&m.kind;return [[463,2+floor(r()*4)],[r()<0.18?461:0,1],[k==='heavy'&&r()<0.25?517:0,1],[k==='sniper'&&r()<0.2?466:0,1]]},xp:[5,5],sound:'hurt',follow:40};
+MOBDEF.soldier={hp:24,w:0.6,h:1.95,speed:2.4,soldier:true,noDespawn:true,noBurn:true,drops:(r,m)=>{const k=m&&m.kind;return [[463,2+floor(r()*4)],[r()<0.18?461:0,1],[k==='heavy'&&r()<0.25?517:0,1],[k==='sniper'&&r()<0.2?466:0,1]]},xp:[5,5],sound:'hurt',follow:40};
 MOB_TYPES.push('soldier');MOB_LABEL.soldier='Soldier';MOB_BY_LABEL.soldier='soldier';MOB_BY_LABEL.enemy_soldier='soldier';MOB_BY_LABEL.sniper='soldier';MOB_BY_LABEL.heavy_soldier='soldier';MOB_BY_LABEL.heavy='soldier';MOB_BY_LABEL.enemy_sniper='soldier';MOB_BY_LABEL.enemy_heavy_soldier='soldier';
 defItem(448,'recruit_soldier_egg',{label:'Recruit Soldier',icon:'egg',iconPal:['egg',{m:[72,106,56],l:[196,168,120]}],spawnMob:'soldier',soldierEgg:'player',stack:16});
 defItem(449,'enemy_soldier_egg',{label:'Enemy Soldier',icon:'egg',iconPal:['egg',{m:[156,138,100],l:[104,106,112]}],spawnMob:'soldier',soldierEgg:'enemy',stack:16});
@@ -3477,7 +3477,7 @@ class Mob extends Entity{
     return false}
   get alive(){return !this.dying}
   // ---- War soldiers ----
-  soldierInit(){this.team='enemy';this.nation='enemy';this.kind='rifle';this.gunId=461;this.sHp=this.hp;this.shotT=0;this.burstLeft=0;this.burstCd=0.6+Math.random()*0.8;this.shotCd=0;this.burstN=0;this.reloadT=0;this.coverT=0;this.coverCd=0;this.strafeDir=Math.random()<0.5?1:-1;this.strafeT=1+Math.random()*2;this.tgtT=Math.random()*0.4;this.rng=12;this.fol=6+Math.random()*4;this.following=false;this.tgt=null;this.reactT=0;this.flankT=0;this.aimOn=false;this.aimE=0;this.coverDir=null}
+  soldierInit(){this.team='enemy';this.nation='enemy';this.kind='rifle';this.gunId=461;this.sHp=this.hp;this.shotT=0;this.burstLeft=0;this.burstCd=0.6+Math.random()*0.8;this.shotCd=0;this.burstN=0;this.reloadT=0;this.coverT=0;this.coverCd=0;this.strafeDir=Math.random()<0.5?1:-1;this.strafeT=1+Math.random()*2;this.tgtT=Math.random()*0.4;this.rng=12;this.fol=6+Math.random()*4;this.following=false;this.tgt=null;this.reactT=0;this.flankT=0;this.aimOn=false;this.aimE=0;this.coverDir=null;this.squadId=0;this.alertT=0;this.alertHold=0;this.alertTurn=0;this.alertFrom=null;this.alertTgt=null;this.lastKnown=null;this.unseenT=0;this.alertCovered=false;this.boundLeft=0;this.boundPause=0;this.squadCd=0}
   soldierSetup(team,kind,o){o=o||{};this.team=team==='player'?'player':'enemy';this.nation=o.nation||this.team;this.kind=kind==='heavy'||kind==='sniper'?kind:'rifle';
     this.gunId=this.kind==='sniper'?466:this.kind==='heavy'?(Math.random()<0.5?517:520):461;this.rng=this.kind==='sniper'?23+Math.random()*3:this.kind==='heavy'?9+Math.random()*4:10+Math.random()*4;
     if(o.elite){this.elite=true;this.hp=this.maxHp=Math.round(this.def.hp*1.6)}if(o.march)this.march=true;return this}
@@ -3500,27 +3500,60 @@ class Mob extends Entity{
     const dm=(sn?14:4)*(this.team==='enemy'?[0,0.7,1,1.25][game.difficulty|0]||1:1);
     const b=new Arrow(ox+dx*0.7,oy+dy*0.7-0.05,oz+dz*0.7,sx/N*spd,sy/N*spd,sz/N*spd,this,dm);b.bullet=true;b.noGravity=true;b.kb=2;b.skip=this;b.crit=false;entities.push(b);
     spawnParticles('flash',ox+dx*1.1,oy+dy*1.1-0.1,oz+dz*1.1,3);playSoundAt(g?g.snd:'pop',this.x,this.y,this.z,0.9+Math.random()*0.25,sn?1:0.75);this.shotT=0.14}
+  // ---- reacting to fire: a hit or a near miss turns the soldier toward the shooter, who becomes its target when it is a valid foe ----
+  soldierFoe(e){if(!e||e.dead||e.dying||e===this)return false;const en=this.team==='enemy';
+    if(e===player)return en&&game.difficulty>0&&!player.dead&&!playerHidden();
+    if(e instanceof RemotePlayer)return en&&!e.hidden;
+    if(!(e instanceof Mob))return false;const d=e.def;
+    if(en)return d.soldier?e.team==='player':!!(d.vehicle&&!d.ship&&(e.rider||e.remoteRider));
+    return d.soldier?e.team==='enemy':soldierHostileMob(e)}
+  // a shot came from (x,y,z): whip round to face it (alertT 3 s), take the shooter as target if it is a foe within 60 blocks (even unseen: it moves to get line of sight), tell the squad
+  soldierAlert(x,z,src,y,viaSquad){if(this.dead||this.dying||this.remote)return;const fresh=!(this.alertT>0);
+    this.alertFrom=[x,y===undefined?this.y+1.5:y,z];this.alertT=3;this.alertTurn=0.6;
+    if(fresh&&!viaSquad)playSoundAt('click',this.x,this.y,this.z,0.55,0.5);
+    if(src&&this.soldierFoe(src)&&Math.hypot(src.x-this.x,src.z-this.z)<60){const had=this.tgt===src;
+      this.tgt=this.alertTgt=src;this.alertHold=10;this.lastKnown=[src.x,src.y+(src.h||1.8)*0.55,src.z];
+      if(!had){this.reactT=0.5+Math.random()*0.4;this.burstLeft=0;this.unseenT=0;this.alertCovered=false;this.boundLeft=0;this.boundPause=0}}
+    if(!viaSquad&&(fresh||!(this.squadCd>0))){this.squadCd=0.5;this.soldierSquad(x,y,z,src)}}
+  // same-team soldiers within 12 blocks (25 for the same squadId) get the alert too
+  soldierSquad(x,y,z,src){for(const e of entities){if(e===this||!(e instanceof Mob)||!e.def.soldier||e.dead||e.dying||e.team!==this.team)continue;const d=Math.hypot(e.x-this.x,e.z-this.z);
+      if(d<12||(this.squadId&&e.squadId===this.squadId&&d<25))e.soldierAlert(x,z,src,y,true)}}
+  // called from damageEntity for any damage that has a source position
+  soldierHurt(src){if(!src||src.x===undefined)return;const ty=src.type;if(ty==='fire'||ty==='lava'||ty==='fall'||ty==='dry'||ty==='fade'||ty==='drown'||ty==='cactus')return;
+    const sh=soldierShooter(src.shooter!==undefined?src.shooter:ty==='player'?'player':src.mob);if(sh&&soldierTeamOf(sh)===this.team)return;
+    const x=sh?sh.x:src.x,z=sh?sh.z:src.z,y=sh?sh.y+(sh.h||1.8)*0.8:src.y;
+    if(this.hp>0)this.soldierAlert(x,z,sh,y);else this.soldierSquad(x,y,z,sh)}
+  // keep the alert target over the nearest-enemy pick unless something else is much closer
+  soldierKeepAlert(pick){const a=this.alertTgt;if(a&&this.alertHold>0&&this.soldierFoe(a)&&Math.hypot(a.x-this.x,a.z-this.z)<60){if(!pick||pick===a)return a;
+      const dp=Math.hypot(pick.x-this.x,pick.z-this.z),da=Math.hypot(a.x-this.x,a.z-this.z);return dp<12&&dp<da?pick:a}return pick}
+  // advance in short bounds: move 3 blocks, pause 1 s
+  soldierBound(md,dt){if(this.boundPause>0)return null;if(!(this.boundLeft>0))this.boundLeft=3;this.boundLeft-=Math.hypot(this.vx,this.vz)*dt;if(this.boundLeft<=0){this.boundLeft=0;this.boundPause=1;return null}return md}
   soldierTick(dt){
     if(this.hurtT>0)this.hurtT-=dt;if(this.invT>0)this.invT-=dt;
-    for(const k of ['shotT','shotCd','burstCd','reloadT','coverT','coverCd','strafeT','tgtT','reactT','flankT'])if(this[k]>0)this[k]-=dt;
+    for(const k of ['shotT','shotCd','burstCd','reloadT','coverT','coverCd','strafeT','tgtT','reactT','flankT','alertT','alertHold','alertTurn','boundPause','squadCd'])if(this[k]>0)this[k]-=dt;
     const d=this.def,p=this.team==='player'&&MP.active&&MP.host?this.nearestPlayer():player;
     // hit reaction: take cover
-    if(this.hp<this.sHp-0.01&&this.coverCd<=0&&this.coverT<=0&&Math.random()<0.8){this.coverCd=3;const t=this.tgt;this.soldierCover(t&&!t.dead?[t.x,t.y+1,t.z]:null)}this.sHp=this.hp;
-    if(this.tgtT<=0){this.tgtT=0.4+Math.random()*0.2;const had=!!this.tgt;this.tgt=this.soldierPickTarget();if(this.tgt&&!had){this.reactT=0.6+Math.random()*0.8;this.burstLeft=0}}
+    if(this.hp<this.sHp-0.01&&this.coverCd<=0&&this.coverT<=0&&Math.random()<0.8){this.coverCd=3;const t=this.tgt;this.soldierCover(this.alertT>0&&this.alertFrom?this.alertFrom:t&&!t.dead?[t.x,t.y+1,t.z]:null)}this.sHp=this.hp;
+    if(this.tgtT<=0){this.tgtT=0.4+Math.random()*0.2;const had=!!this.tgt;this.tgt=this.soldierKeepAlert(this.soldierPickTarget());if(this.tgt&&!had){this.reactT=0.6+Math.random()*0.8;this.burstLeft=0}}
     if(this.tgt&&(this.tgt.dead||this.tgt.dying))this.tgt=null;
-    let md=null,spd=d.speed,face=null;this.aimOn=false;
-    if(this.coverT>0&&this.coverDir){md=this.coverDir;spd*=1.5}
-    if(this.tgt){const t=this.tgt;const lead=t===player?0.1:0.08;const ap=[t.x+(t.vx||0)*lead,t.y+(t.h||1.8)*0.55,t.z+(t.vz||0)*lead];
-      const dx=ap[0]-this.x,dz=ap[2]-this.z,dist=Math.hypot(dx,dz)||0.01,los=!blockedLOS(this.x,this.y+1.45,this.z,ap[0],ap[1],ap[2]);
-      face=Math.atan2(-dx,-dz);this.aimE=Math.atan2(ap[1]-(this.y+1.45),dist);this.aimOn=true;
+    let md=null,spd=this.kind==='sniper'?2.0:d.speed,face=null;this.aimOn=false;
+    if(this.coverT>0&&this.coverDir){md=this.coverDir;spd*=1.3}
+    if(this.tgt){const t=this.tgt;const lead=t===player?0.1:0.08;let ap=[t.x+(t.vx||0)*lead,t.y+(t.h||1.8)*0.55,t.z+(t.vz||0)*lead];
+      const seen=!blockedLOS(this.x,this.y+1.45,this.z,ap[0],ap[1],ap[2]);let srch=false;
+      if(this.alertTgt===t&&this.alertHold>0){if(seen){this.unseenT=0;this.alertCovered=false;this.lastKnown=ap.slice();this.alertHold=Math.max(this.alertHold,4)}
+        else{srch=true;this.unseenT=(this.unseenT||0)+dt;const lk=this.lastKnown||ap;if(Math.hypot(lk[0]-this.x,lk[2]-this.z)<3&&this.unseenT>4)this.lastKnown=ap.slice();ap=this.lastKnown||ap;
+          if(this.unseenT>=3&&!this.alertCovered&&this.coverCd<=0&&this.coverT<=0){this.alertCovered=true;this.coverCd=3;this.soldierCover(this.alertFrom||ap)}}}
+      const dx=ap[0]-this.x,dz=ap[2]-this.z,dist=Math.hypot(dx,dz)||0.01,los=seen&&!srch;
+      face=Math.atan2(-dx,-dz);const yErr=Math.atan2(Math.sin(face-this.yaw),Math.cos(face-this.yaw));this.aimE+=(Math.atan2(ap[1]-(this.y+1.45),dist)-this.aimE)*Math.min(1,dt*10);this.aimOn=true;
       if(!md){const rg=this.rng;
         if(!los||dist>rg+3){if(!los&&this.collidedH&&this.flankT<=0){this.flankT=1.2;this.strafeDir=-this.strafeDir}
-          const k=this.flankT>0?1:(los?0:0.35);md=[dx/dist-dz/dist*this.strafeDir*k,dz/dist+dx/dist*this.strafeDir*k];const l=Math.hypot(md[0],md[1])||1;md=[md[0]/l,md[1]/l];spd*=1.15}
+          const k=this.flankT>0?1:(los?0:0.35);md=[dx/dist-dz/dist*this.strafeDir*k,dz/dist+dx/dist*this.strafeDir*k];const l=Math.hypot(md[0],md[1])||1;md=[md[0]/l,md[1]/l];spd*=1}
         else if(dist<rg-4){md=[-dx/dist,-dz/dist];spd*=0.9}
-        else{md=[-dz/dist*this.strafeDir,dx/dist*this.strafeDir];spd*=0.7}
+        else{md=[-dz/dist*this.strafeDir,dx/dist*this.strafeDir];spd*=0.667}
         if(this.strafeT<=0){this.strafeDir=-this.strafeDir;this.strafeT=1+Math.random()*2}}
+      if(srch&&md&&this.coverT<=0)md=this.soldierBound(md,dt);
       // fire bursts: 3 rounds (heavy 6, sniper 1), 0.6 s apart, a 2 s reload every 4 bursts; never through blocks
-      if(!los||dist>46||this.coverT>0)this.burstLeft=0;
+      if(!los||dist>46||this.coverT>0||Math.abs(yErr)>0.8)this.burstLeft=0;
       else if(this.reactT<=0&&this.reloadT<=0){
         if(this.burstLeft>0){if(this.shotCd<=0){this.soldierShoot(ap);this.burstLeft--;this.shotCd=this.kind==='heavy'?0.07:0.1;
           if(this.burstLeft<=0){this.burstCd=this.kind==='sniper'?2.5:0.6+Math.random()*0.2;if(++this.burstN>=4){this.burstN=0;this.reloadT=2}}}}
@@ -3530,10 +3563,11 @@ class Mob extends Entity{
       else if(this.team==='player'&&!md){if(!p.dead){const dx=p.x-this.x,dz=p.z-this.z,dist=Math.hypot(dx,dz)||0.01;
           if(dist>10)this.following=true;else if(dist<this.fol)this.following=false;
           if(dist>64&&p.onGround&&!p.riding)this.soldierJoin(p);
-          else if(this.following){md=[dx/dist,dz/dist];if(dist>16)spd*=1.5}}}
+          else if(this.following){md=[dx/dist,dz/dist];if(dist>20)spd*=1.42}}}
       else if(this.team==='enemy'&&this.march&&!md&&!p.dead&&game.difficulty>0){const dx=p.x-this.x,dz=p.z-this.z,dist=Math.hypot(dx,dz)||0.01;if(dist>9&&dist<150){md=[dx/dist,dz/dist];spd*=0.9}}}
+    if(face===null&&this.alertT>0&&this.alertFrom){const af=this.alertFrom;face=Math.atan2(-(af[0]-this.x),-(af[2]-this.z));this.aimOn=true;this.aimE+=(Math.atan2(af[1]-(this.y+1.45),Math.hypot(af[0]-this.x,af[2]-this.z)||1)-this.aimE)*Math.min(1,dt*10);if(!this.tgt&&this.alertTurn>0&&this.coverT<=0)md=null}
     if(md&&face===null)face=Math.atan2(-md[0],-md[1]);
-    if(face!==null){let da=face-this.yaw;da=Math.atan2(Math.sin(da),Math.cos(da));this.yaw+=clamp(da,-10*dt,10*dt)}
+    if(face!==null){let da=face-this.yaw;da=Math.atan2(Math.sin(da),Math.cos(da));const rt=this.alertTurn>0?8.5:3;this.yaw+=clamp(da,-rt*dt,rt*dt)}
     this.moveDir=md;
     if(md&&this.onGround){ // do not walk off cliffs or into water
       const fx=this.x+md[0]*1.2,fz=this.z+md[1]*1.2;let drop=0;while(drop<4&&!BLOCKS[world.getBlockPhys(floor(fx),floor(this.y-1-drop),floor(fz))].solid)drop++;
@@ -3545,7 +3579,7 @@ class Mob extends Entity{
     else if(md&&this.onGround&&!inW){const ax=this.x+md[0]*(this.w/2+0.2),az=this.z+md[1]*(this.w/2+0.2);const fy=floor(this.y+0.05);const ahead=world.getBlock(floor(ax),fy,floor(az));
       if(ahead!==0&&BLOCKS[ahead].solid&&world.getBlock(floor(ax),fy+1,floor(az))===0&&world.getBlock(floor(ax),fy+2,floor(az))===0)this.vy=9.4}
     if(inW){if(md||Math.random()<0.1)this.vy+=20*dt;if(this.vy>3)this.vy=3}
-    this.physics(dt,{step:0.6,friction:0.9,gravity:inW?8:32,airStep:!!md}); // light friction so they really walk at their speed
+    this.physics(dt,{step:0.6,friction:1,gravity:inW?8:32,airStep:!!md}); // light friction so they really walk at their speed
     const hs=Math.hypot(this.vx,this.vz);this.walkAmp+=(Math.min(1,hs/2)-this.walkAmp)*Math.min(1,dt*8);this.walkT+=hs*dt*2.2}
   // friendly soldiers that lost the player catch up by dropping in beside them
   soldierJoin(p){for(let i=0;i<8;i++){const a=Math.random()*PI*2,x=p.x+Math.cos(a)*5,z=p.z+Math.sin(a)*5,gy=soldierGround(x,z);if(gy<0||Math.abs(gy-p.y)>8)continue;this.x=x;this.y=gy;this.z=z;this.vx=this.vy=this.vz=0;return}}
@@ -3892,6 +3926,18 @@ class Fang extends Entity{constructor(x,y,z,delay){super(x,y,z);this.w=0.5;this.
 // hostile mob that friendly soldiers shoot at
 function soldierHostileMob(e){const d=e.def;return !!d&&!d.passive&&!d.animal&&!d.neutral&&!d.vehicle&&!d.soldier&&!d.static&&e.type!=='villager'}
 // what a soldier's bullet can hurt: enemy bullets hit you, your soldiers and your vehicles; friendly bullets hit enemy soldiers and hostile mobs
+function soldierShooter(o){if(o==='player'){const r=player.riding;return r&&r.def&&r.def.vehicle?r:player}return o&&typeof o==='object'?o:null}
+function soldierTeamOf(e){if(e===player||e instanceof RemotePlayer)return 'player';if(e instanceof Mob&&e.def.soldier)return e.team;return 'mob'}
+const SOLD_C={t:-1,l:[]};
+// a bullet passing within 2.5 blocks of a soldier of the other side alerts it: checked every third frame over the swept segment, only for soldiers near it
+function bulletNearMiss(b,nx,ny,nz){if(b.nmN===undefined){b.nmN=0;b.nmx=b.x;b.nmy=b.y;b.nmz=b.z;b.org=[b.x,b.y,b.z]}
+  if(++b.nmN%3)return;const ax=b.nmx,ay=b.nmy,az=b.nmz;b.nmx=nx;b.nmy=ny;b.nmz=nz;
+  if(SOLD_C.t!==game.time){SOLD_C.t=game.time;SOLD_C.l=entities.filter(e=>e.def&&e.def.soldier&&!e.dead&&!e.dying&&!e.remote)}
+  if(!SOLD_C.l.length)return;const sh=soldierShooter(b.owner),ot=sh?soldierTeamOf(sh):'mob';
+  const vx=nx-ax,vy=ny-ay,vz=nz-az,L2=vx*vx+vy*vy+vz*vz||1e-6,x0=Math.min(ax,nx)-3,x1=Math.max(ax,nx)+3,z0=Math.min(az,nz)-3,z1=Math.max(az,nz)+3;
+  for(const s of SOLD_C.l){if(s.dead||s===sh||s.team===ot||(ot==='mob'&&s.team==='enemy')||s.x<x0||s.x>x1||s.z<z0||s.z>z1)continue;
+    const sx=s.x,sy=s.y+1,sz=s.z;let t=((sx-ax)*vx+(sy-ay)*vy+(sz-az)*vz)/L2;t=t<0?0:t>1?1:t;const dx=ax+vx*t-sx,dy=ay+vy*t-sy,dz=az+vz*t-sz;
+    if(dx*dx+dy*dy+dz*dz<6.25){if(sh)s.soldierAlert(sh.x,sh.z,sh,sh.y+(sh.h||1.8)*0.8);else s.soldierAlert(b.org[0],b.org[2],null,b.org[1])}}}
 function soldierTargets(b){const o=b.owner,out=[],p=player;
   if(o.team==='enemy'){if(!p.dead&&!playerHidden()&&!(p.riding&&p.riding.def&&p.riding.def.vehicle))out.push(p);if(MP.active&&MP.host)for(const r of MP.remote.values())if(!r.hidden&&r.hasTarget)out.push(r);
     for(const e of entities)if(e instanceof Mob&&e!==o&&!e.dead&&!e.dying&&((e.def.soldier&&e.team==='player')||(e.def.vehicle&&!e.def.ship)))out.push(e)}
@@ -3900,9 +3946,10 @@ function soldierTargets(b){const o=b.owner,out=[],p=player;
 // ground height for a soldier at (x,z): -1 when the chunk is not loaded or the surface is water; leaves are skipped
 function soldierGround(x,z){const bx=floor(x),bz=floor(z);if(!world.hasChunk(bx,bz))return -1;for(let y=CH-1;y>0;y--){const id=world.getBlock(bx,y,bz);if(id===0)continue;const b=BLOCKS[id];if(b.liquid)return -1;if(b.solid&&!b.leaves)return y+1}return -1}
 // spawn n soldiers in a loose formation near (x,z). opts: nation (text), kinds (array of 'rifle'|'heavy'|'sniper', cycled), elite (more hp), march (enemy squad walks at the player), y (spawn at this height instead of the ground). Returns the mobs.
-function spawnWarSquad(team,n,x,z,opts){opts=opts||{};const out=[];if(MP.active&&!MP.host)return out;team=team==='player'?'player':'enemy';const ks=opts.kinds&&opts.kinds.length?opts.kinds:['rifle'];
+let SQUAD_SEQ=0;
+function spawnWarSquad(team,n,x,z,opts){opts=opts||{};const sid=opts.squadId||++SQUAD_SEQ;const out=[];if(MP.active&&!MP.host)return out;team=team==='player'?'player':'enemy';const ks=opts.kinds&&opts.kinds.length?opts.kinds:['rifle'];
   for(let i=0;i<n;i++){let gy=-1,gx=x,gz=z;for(let t=0;t<6&&gy<0;t++){const col=i%3,row=floor(i/3);gx=x+(col-1)*2.4+(Math.random()-0.5)*(1.2+t);gz=z+row*2.4-1.2+(Math.random()-0.5)*(1.2+t);gy=opts.y!==undefined?opts.y:soldierGround(gx,gz)}
-    if(gy<0)continue;const m=new Mob('soldier',gx,gy+0.05,gz);m.soldierSetup(team,ks[i%ks.length],opts);m.yaw=opts.yaw!==undefined?opts.yaw:Math.random()*PI*2;entities.push(m);out.push(m)}
+    if(gy<0)continue;const m=new Mob('soldier',gx,gy+0.05,gz);m.soldierSetup(team,ks[i%ks.length],opts);m.squadId=sid;m.yaw=opts.yaw!==undefined?opts.yaw:Math.random()*PI*2;entities.push(m);out.push(m)}
   return out}
 const SOLDIER_COMPASS=['north','north-east','east','south-east','south','south-west','west','north-west'];
 function spawnWarPatrol(){const p=player,wins=game.warWins|0,n=clamp(3+floor(Math.random()*2)+floor(wins/2),3,6);
@@ -4030,7 +4077,7 @@ function damageEntity(e,amount,src){if(e===player&&src&&src.type&&customArmorPer
   if(e.invulnerable)return false;if(src.type==='arrow'&&e.arrowImmune&&e.arrowImmune()){playSoundAt('arrowhit',e.x,e.y,e.z);return false}
   e.lastDmg=amount;e.invT=0.5;e.hp-=amount;e.hurtT=0.5;if(src.type==='player'){e.lastHit=game.time;e.lootLvl=src.loot||0;if(e instanceof Mob&&!(e.type==='wolf'&&e.tamed)){game.petTarget=e;game.petTargetT=game.time}}
   if(src.x!==undefined){const dx=e.x-src.x,dz=e.z-src.z;const d=sqrt(dx*dx+dz*dz)||1;const kb=src.kb||4;e.vx+=dx/d*kb;e.vz+=dz/d*kb;e.vy+=kb*0.6;if(e.vy>6)e.vy=6}
-  if(e.onHurt)e.onHurt(src);playSoundAt(e.def?e.def.sound+'_hurt':'hurt',e.x,e.y,e.z);
+  if(e.def&&e.def.soldier&&e.soldierHurt)e.soldierHurt(src);if(e.onHurt)e.onHurt(src);playSoundAt(e.def?e.def.sound+'_hurt':'hurt',e.x,e.y,e.z);
   if(e.hp<=0){e.dying=true;e.deathT=0;if(e.onDeath)e.onDeath();return true}return true;
 }
 /* ===================== PLAYER ===================== */
