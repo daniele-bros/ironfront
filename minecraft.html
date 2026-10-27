@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="ironcraft-build" content="20261027-155752">
+<meta name="ironcraft-build" content="20261027-161559">
 <meta name="viewport" content="width=device-width,initial-scale=1.0,viewport-fit=cover">
 <title>Ironcraft – Free Voxel Survival Sandbox in Your Browser | Iron Games</title>
 <meta name="description" content="Ironcraft is a free browser-based voxel survival sandbox with building, exploration, private or safety-limited public multiplayer, and optional weather, horror and survival challenges. By Daniele Bros.">
@@ -3051,6 +3051,112 @@ MOB_TYPES.push('sub');MOB_LABEL.sub='Submarine';MOB_BY_LABEL.sub='sub';MOB_BY_LA
 defItem(455,'sub_spawn_egg',{label:'Submarine',icon:'egg',iconPal:['egg',{m:[66,72,84],l:[132,142,158]}],spawnMob:'sub',stack:4});
 defItem(447,'torpedo',{label:'Torpedo',icon:'bullet',iconPal:['bullet',{w:[210,62,48],b:[78,84,96]}],stack:16});
 
+/* ---- howitzer (Guns mod): a towed long-range gun. Barrel yaw (relative to the carriage .yaw) rides in .bank and elevation in .throttle so the vehicle sync (bk/th) carries them ---- */
+const HOW_V=70,HOW_G=9.8,HOW_MIN=10*PI/180,HOW_MAX=70*PI/180,HOW_PIV=1.125,HOW_LEN=4.375,HOW_EYE=1.4,HOW_CD=6,HOW_RT=1.2,HOW_SLEW=0.5,HOW_TRAV=0.6,HOW_REACH=3,HOW_BEHIND=4,HOW_SHELL=530;
+let howCamSave;
+MOBDEF.howitzer={hp:160,w:2.4,h:1.6,speed:0,passive:true,vehicle:'howitzer',noDespawn:true,noBurn:true,fireproof:true,dmgMul:0.6,kbMul:0.1,drops:r=>[[260,8],[25,3],[263,1],[28,2]],xp:[0,0],sound:'none',food:[]};
+MOB_TYPES.push('howitzer');MOB_LABEL.howitzer='Howitzer';MOB_BY_LABEL.howitzer='howitzer';MOB_BY_LABEL.artillery='howitzer';MOB_BY_LABEL.cannon='howitzer';
+defItem(529,'howitzer_spawn_egg',{label:'Howitzer',icon:'egg',iconPal:['egg',{m:[84,92,52],l:[150,158,104]}],spawnMob:'howitzer',stack:4});
+defItem(HOW_SHELL,'artillery_shell',{label:'Artillery Shell',icon:'bullet',iconPal:['bullet',{b:[96,102,60],w:[230,176,64]}],stack:64});
+// horizontal distance from the base at which a shell comes down dy blocks above the base (the muzzle offset is included): the same ballistics HowShell flies (muzzle speed HOW_V, gravity HOW_G, no drag)
+function howRange(e,dy){dy=dy||0;const vh=HOW_V*Math.cos(e),vv=HOW_V*Math.sin(e),d=vv*vv+2*HOW_G*(HOW_PIV+HOW_LEN*Math.sin(e)-dy);if(d<0)return 0;return HOW_LEN*Math.cos(e)+vh*(vv+Math.sqrt(d))/HOW_G}
+// the low-angle elevation that lands at distance D on ground dy blocks above the base, or why not
+function howSolve(D,dy){const N=240,r0=howRange(HOW_MIN,dy);if(r0>D)return {err:'near',min:Math.round(r0)};let mx=r0;
+  for(let i=1;i<=N;i++){const e=HOW_MIN+(HOW_MAX-HOW_MIN)*i/N,r=howRange(e,dy);if(r>mx)mx=r;if(r>=D){let a=HOW_MIN+(HOW_MAX-HOW_MIN)*(i-1)/N,b=e;for(let k=0;k<40;k++){const m=(a+b)/2;if(howRange(m,dy)<D)a=m;else b=m}return {el:(a+b)/2}}}
+  return {err:'far',max:Math.round(mx)}}
+function howGroundY(x,z){const fx=floor(x),fz=floor(z);if(!world.hasChunk(fx,fz)&&world.savedMods&&world.savedMods[(fx>>4)+','+(fz>>4)])populateChunk(world.generateChunk(fx>>4,fz>>4)); // a chunk with saved edits (a base, a crater) is loaded to read the real ground
+  if(world.hasChunk(fx,fz))return findGround(x,z);try{return world.surfaceY(fx,fz)+1}catch(e){return 64}} // top of the ground, also over chunks that are not loaded
+function howEnsure(x,z){const cx=floor(x)>>4,cz=floor(z)>>4;for(let dx=-1;dx<=1;dx++)for(let dz=-1;dz<=1;dz++){const c=world.getChunk(cx+dx,cz+dz);if(c&&c.generated)continue;populateChunk(world.generateChunk(cx+dx,cz+dz))}} // the ground round a landing shell must exist
+class HowShell extends Arrow{constructor(x,y,z,vx,vy,vz,gun,aimR){super(x,y,z,vx,vy,vz,'player',0);this.gun=gun;this.sx=gun.x;this.sz=gun.z;this.aimR=aimR;this.noGravity=true;this.w=0.4;this.h=0.4;this.kb=0;this.shell=true;this.howShell=true;this.howFx=true;this.wT=0;this.whist=false}
+  update(){} // stepped from howTick instead: the entity loop skips anything more than 96 blocks away and a shell flies five times that
+  step(dt){const n=Math.max(1,Math.ceil(dt/0.05));for(let i=0;i<n&&!this.dead;i++)this.sub(dt/n)}
+  sub(dt){this.age+=dt;if(this.age>60||this.y<-40){this.dead=true;return}
+    const ox=this.x,oy=this.y,oz=this.z,vy0=this.vy;this.vy-=HOW_G*dt;const nx=ox+this.vx*dt,ny=oy+(vy0+this.vy)/2*dt,nz=oz+this.vz*dt; // exact for constant gravity
+    for(const t of entities){if(!(t instanceof Mob||t.hittable)||t.dead||(t===this.gun&&this.age<0.6))continue;const w=t.w/2+0.2;
+      if(segAABB(ox,oy,oz,nx,ny,nz,t.x-w,t.y-0.1,t.z-w,t.x+w,t.y+t.h+0.1,t.z+w)){this.x=nx;this.y=ny;this.z=nz;this.onImpact();this.dead=true;return}}
+    const fx=floor(nx),fz=floor(nz);
+    if(!world.hasChunk(fx,fz)){let gh=64;try{gh=world.surfaceY(fx,fz)}catch(e){}const low=ny<=gh+12||oy<=gh+12,sm=world.savedMods&&world.savedMods[(fx>>4)+','+(fz>>4)]; // not loaded: high over bare ground there is nothing to hit; low, or over a chunk with saved edits (a base, a crater), build the ground first
+      if(!low&&!sm){this.x=nx;this.y=ny;this.z=nz;this.aim();return}if(low)howEnsure(nx,nz);else populateChunk(world.generateChunk(fx>>4,fz>>4))}
+    const segLen=sqrt((nx-ox)**2+(ny-oy)**2+(nz-oz)**2);const bh=segLen>0?raycast(ox,oy,oz,nx-ox,ny-oy,nz-oz,segLen,false):null;
+    if(bh&&bh.block){this.x=bh.x;this.y=bh.y;this.z=bh.z;this.onImpact();this.dead=true;return}
+    this.x=nx;this.y=ny;this.z=nz;this.aim();
+    const pd=Math.hypot(this.x-player.x,this.z-player.z);if(pd<140&&Math.random()<dt*20)spawnParticles('smoke',this.x,this.y,this.z,1);
+    if(this.vy<0&&!this.whist){this.wT-=dt;if(this.wT<=0){this.wT=0.1;const h=this.y-howGroundY(this.x,this.z);if(h>0){const sd=-this.vy;if((-sd+Math.sqrt(sd*sd+2*HOW_G*h))/HOW_G<2){this.whist=true;if(pd<180)playSound('howl',0.95*(1-pd/180)+0.05,1)}}}} // heavy whistle through the last two seconds
+  }
+  aim(){this.yaw=Math.atan2(-this.vx,-this.vz);this.pitch=Math.atan2(this.vy,sqrt(this.vx*this.vx+this.vz*this.vz))}
+  onImpact(){if(this.dead)return;const own=[player,this.gun].filter(Boolean),was=own.map(e=>e.blastProof);for(const e of own)e.blastProof=true; // the crew and the gun are shielded from their own shell
+    try{explode(this.x,this.y,this.z,5,this)}finally{own.forEach((e,i)=>{e.blastProof=was[i]})}spawnParticles('smoke',this.x,this.y,this.z,24);entities.push(new HowSmoke(this.x,this.y,this.z));
+    const D=Math.hypot(this.x-this.sx,this.z-this.sz);if(D>60){const df=D-this.aimR,n=Math.round(Math.abs(df));showMessage(n<2?'Shell landed on target':'Shell landed '+n+' blocks '+(df<0?'short':'long'))} // spotting for a shell that is too far to watch
+    const pd=Math.hypot(this.x-player.x,this.y-player.y,this.z-player.z);if(pd<45)game.shake=Math.max(game.shake||0,(1-pd/45)*1.4)}
+  render(EB){const l=[1,1];const tf=makeTF(this.x,this.y,this.z,this.yaw,this.pitch,0,0,0,0,1);EB.box(tf,-0.15,-0.15,-0.42,0.15,0.15,0.42,TEX.white,[0.3,0.33,0.2],l,true);EB.box(tf,-0.1,-0.1,-0.66,0.1,0.1,-0.42,TEX.white,[0.85,0.6,0.2],l,true);EB.box(tf,-0.2,-0.02,0.2,0.2,0.02,0.5,TEX.white,[0.22,0.22,0.24],l,true);EB.box(tf,-0.02,-0.2,0.2,0.02,0.2,0.5,TEX.white,[0.22,0.22,0.24],l,true)}}
+// the smoke column a shell leaves for 10 s so a fall of shot can be seen from afar; past the fog distance it is drawn as a scaled copy on the line of sight (fog would swallow the real one)
+class HowSmoke extends Entity{constructor(x,y,z){super(x,y,z);this.w=0.1;this.h=0.1;this.howFx=true;this.t=0;this.ph=Math.random()*6.28;this.sT=0}
+  update(){}
+  step(dt){this.t+=dt;if(this.t>10){this.dead=true;return}this.sT-=dt;if(this.sT<=0&&Math.hypot(this.x-player.x,this.z-player.z)<150){this.sT=0.12;spawnParticles('smoke',this.x+(Math.random()-0.5)*3,this.y+0.5,this.z+(Math.random()-0.5)*3,2);const q=particles[particles.length-1];q.size=1.5;q.vy=6;q.life=4;q.col=[0.45,0.45,0.47]}}
+  render(EB){const t=this.t,e=R.eye;if(t>=10||!e)return;const dx=this.x-e[0],dz=this.z-e[2],D=Math.hypot(dx,dz)||1;if(D<30)return; // close up the particles are the smoke
+    const far=Math.max(36,R.fogStart*0.85),k=D>far?far/D:1,bx=e[0]+dx*k,by=e[1]+(this.y-e[1])*k,bz=e[2]+dz*k,l=[1,1],tf=(x,y,z)=>[bx+x*k,by+y*k,bz+z*k];
+    const gr=Math.min(1,t/1.8),fd=t>8?(10-t)/2:1,H=90*gr*(0.4+0.6*fd),n=12;
+    for(let i=0;i<n;i++){const f=i/n,y0=H*f,y1=H*(i+1)/n+0.5,w=(2.2+6.5*f+1.6*Math.sin(t*1.3+i*1.7+this.ph))*fd,sx=Math.sin(t*0.4+this.ph)*f*f*9+Math.sin(i*2.3+this.ph)*1.2,g=0.2+0.22*f,hot=Math.max(0,1-t/2.5)*(1-f)*0.45;
+      EB.box(tf,sx-w,y0,-w,sx+w,y1,w,TEX.white,[g+hot,g+hot*0.55,g+0.02],l,true)}}}
+function howAttackHook(){const r=player.riding;if(r&&r.def&&r.def.vehicle==='howitzer'&&r.rider===player){if(!game.gui)r.howFire();return true}return false} // left click while manning fires instead of mining or hitting
+function howHudHide(){const h=document.getElementById('howHud');if(h)h.style.display='none'}
+function howHud(t){let h=document.getElementById('howHud');if(!h){h=document.createElement('div');h.id='howHud';h.style.cssText='position:absolute;left:50%;top:44px;transform:translateX(-50%);padding:4px 12px;border:1px solid #9aa35a;border-radius:6px;background:rgba(5,10,13,.7);color:#f2e6c8;font-size:14px;letter-spacing:.5px;white-space:nowrap;pointer-events:none;z-index:6';(document.getElementById('hud')||document.body).appendChild(h)}
+  if(h.textContent!==t)h.textContent=t;h.style.display='block'}
+function howAligned(m){return !!m.sol&&Math.abs(Math.atan2(Math.sin(m.sol.ya-(m.yaw+m.bank)),Math.cos(m.sol.ya-(m.yaw+m.bank))))<0.004}
+// ---- towing: a car or tank driver within reach right-clicks an unmanned howitzer to hitch it; right-click again unhitches ----
+function howNear(v){let best=null,bd=1e9;for(const e of entities){if(!(e instanceof Mob)||e.dead||e.dying||e.remote||!e.def||e.def.vehicle!=='howitzer'||e.rider||e.tow)continue;
+  const d=Math.hypot(e.x-v.x,e.z-v.z)-(v.w+e.w)/2;if(d<=HOW_REACH&&Math.abs(e.y-v.y)<3&&d<bd){bd=d;best=e}}return best}
+function howHitch(m,v){m.tow=v;m.sol=null;m.armed=false;showMessage('Howitzer hitched: drive on, right-click again to unhitch');playSoundAt('click',m.x,m.y,m.z,0.7,1)}
+function howUnhitch(m,quiet){if(!m.tow)return;m.tow=null;m.vx=m.vz=0;if(!quiet)showMessage('Howitzer unhitched');playSoundAt('click',m.x,m.y,m.z,0.9,1)}
+function howDriver(){const v=player.riding;return v&&!v.dead&&v.rider===player&&v.def&&(v.def.vehicle==='car'||v.def.vehicle==='tank')?v:null}
+function howUseHook(st,hd,t){const v=howDriver();if(!v||(MP.active&&!MP.host&&v.remote))return false;const mine=entities.filter(e=>e.tow===v&&!e.dead);if(mine.length){mine.forEach(e=>howUnhitch(e));return true}
+  const h=howNear(v);if(!h)return false;howHitch(h,v);return true}
+// the ground under (x,z) within a few blocks of y0, or null
+function howSurf(x,z,y0){const bx=floor(x),bz=floor(z);for(let y=floor(y0)+3;y>=floor(y0)-8;y--){const id=world.getBlockPhys(bx,y,bz);if(id!==0&&BLOCKS[id].solid)return y+1}return null}
+function howCarry(m,dt){const wrap=a=>Math.atan2(Math.sin(a),Math.cos(a));if(m.recoilT>0)m.recoilT-=dt;if(m.flashT>0)m.flashT-=dt;
+  if(!m.rider){m.sol=null;m.armed=false}
+  const v=m.tow;if(v){if(v.dead||m.dead||m.rider||v.remote)m.tow=null;else{
+    const tx=v.x+Math.sin(v.yaw)*HOW_BEHIND,tz=v.z+Math.cos(v.yaw)*HOW_BEHIND,far=Math.hypot(tx-m.x,tz-m.z)>14,k=far?1:1-Math.exp(-dt*10); // trails end towards the vehicle, barrel trailing like a real tow
+    m.x+=(tx-m.x)*k;m.z+=(tz-m.z)*k;m.yaw=wrap(m.yaw+wrap(v.yaw+PI-m.yaw)*k);m.bank*=Math.max(0,1-dt*6);m.throttle=0.12;m.pitch=0;m.vx=m.vz=0;
+    const g=howSurf(m.x,m.z,Math.max(m.y,v.y));if(g!==null){m.y=g;m.vy=0;m.onGround=true}m.fallDist=0}}
+  if(m._wx!==undefined){const s=(m.x-m._wx)*-Math.sin(m.yaw)+(m.z-m._wz)*-Math.cos(m.yaw);m.wheelA=((m.wheelA||0)-s/0.625)%(PI*2)} // the wheels roll with the distance covered
+  m._wx=m.x;m._wz=m.z}
+// every frame: shells and smoke columns step (they outrun the entity loop), towed guns follow, and the HUD, eye height and camera go back to normal once nobody mans a howitzer
+function howTick(dt){const p=player,r=p.riding;for(const e of entities){if(e.howFx){e.step(dt);continue}if(e instanceof Mob&&e.def&&e.def.vehicle==='howitzer'&&!e.dead&&!e.remote)howCarry(e,dt)}
+  if(r&&r.def&&r.def.vehicle==='howitzer'&&r.rider===p)return;howHudHide();if(p.howEye){p.howEye=false;if(p.eyeHeight===HOW_EYE)p.eyeHeight=p.sneaking?1.27:1.62}
+  if(howCamSave!==undefined){game.vcam=howCamSave;game.cockpit=howCamSave===1;howCamSave=undefined}}
+// /target x z (fire mission), /hitch and /unhitch (the same as right-clicking from a car or tank)
+function howCommand(cmd,args,say){const p=player,r=p.riding,m=r&&r.def&&r.def.vehicle==='howitzer'&&r.rider===p?r:null;
+  if(cmd==='hitch'||cmd==='unhitch'){const v=howDriver();if(!v){say('Drive a car or tank up to an unmanned howitzer first');return}if(cmd==='unhitch'){const mine=entities.filter(e=>e.tow===v&&!e.dead);if(!mine.length)say('Nothing is hitched');mine.forEach(e=>howUnhitch(e));return}
+    if(entities.some(e=>e.tow===v&&!e.dead)){say('Already towing a howitzer: /unhitch first');return}const h=howNear(v);if(!h){say('No howitzer within '+HOW_REACH+' blocks');return}howHitch(h,v);return}
+  if(!m){say('Man a howitzer first (right-click it), then /target x z');return}
+  if(/^(off|clear|cancel)$/i.test(args[0]||'')){m.sol=null;m.armed=false;say('Fire mission cancelled');return}
+  const tx=parseFloat(args[0]),tz=parseFloat(args[1]);if(args.length<2||isNaN(tx)||isNaN(tz)){say('Usage: /target x z   e.g. /target 120 -340  (/target off cancels)');return}
+  const dx=tx-m.x,dz=tz-m.z,D=Math.hypot(dx,dz),sol=howSolve(D,howGroundY(tx,tz)-m.y);
+  if(sol.err==='near'){say('Out of range: too close (the minimum is about '+sol.min+' blocks)');return}if(sol.err==='far'||D<1){say('Out of range: too far (the maximum is about '+(sol.max||0)+' blocks)');return}
+  const ya=Math.atan2(-dx,-dz);m.sol={ya,el:sol.el,D,tx,tz,hint:false};p.yaw=ya;p.pitch=sol.el;m.sol.ly=p.yaw;m.sol.lp=p.pitch;m.armed=false;
+  say('Target '+args[0]+' '+args[1]+': elevation '+(sol.el*180/PI).toFixed(1)+'°, range '+Math.round(D)+' blocks. Laying the gun (traverse is slow)...')}
+// boxes are in 1/16ths relative to the ground under the gun. The trails, wheels and axle stay with the carriage; the turntable, shield and barrel turn by m.bank, the barrel rises by m.throttle; everything slides back on a shot
+function renderHowitzer(m,part,W,N,tint){const H=TEX.tank_hull,O=tint||[0.3,0.34,0.2],O2=[O[0]*0.7,O[1]*0.7,O[2]*0.7],DK=[0.09,0.09,0.1],ST=[0.24,0.25,0.26],RB=[0.05,0.05,0.06];
+  const bank=m.bank||0,el=clamp(m.throttle||0,0,HOW_MAX),wa=m.wheelA||0;let u=0;if(m.recoilT>0){const f=1-m.recoilT/HOW_RT,k=f<0.12?f/0.12:1-(f-0.12)/0.88;u=k*k*(3-2*k)}
+  const RX=Math.sin(bank)*9.6*u,RZ=Math.cos(bank)*9.6*u,P=(b,ox,oy,oz,rx,ry,rz,tx,col)=>part(b,ox+RX,oy,oz+RZ,rx,ry,rz,tx,col);
+  const T=(b,col,tx)=>P(b,0,HOW_PIV*16,0,el,bank,0,tx||H,col); // barrel group: pivots at the trunnions, -z is the muzzle
+  P([-19,7.5,-1.3,19,10.5,1.3],0,0,0,0,0,0,H,DK); // axle
+  for(const sg of [-1,1]){const X=sg*19.5;P([-2.2,-2.4,-2.4,2.2,2.4,2.4],X,9,0,wa,0,0,H,ST);
+    for(let k=0;k<3;k++)P([-0.9,-8.6,-0.8,0.9,8.6,0.8],X,9,0,wa+k*PI/3,0,0,H,O2); // six spokes
+    for(let k=0;k<12;k++)P([-2,8.2,-2.8,2,10.2,2.8],X,9,0,wa+k*PI/6,0,0,W,RB)} // the tyre as twelve segments
+  P([-9,9,-6,9,14,7],0,0,0,0,0,0,H,O2);
+  for(const sg of [-1,1]){const A=[sg*5,14,6],F=[sg*26,1.2,60],vx=A[0]-F[0],vy=A[1]-F[1],vz=A[2]-F[2],len=Math.hypot(vx,vy,vz); // each trail runs from its spade on the ground up to the carriage
+    P([-2.2,0,-1.8,2.2,len,1.8],F[0],F[1],F[2],Math.atan2(vz,vy),0,Math.asin(-vx/len),H,O2);P([-4,0,-2.4,4,3.2,2.4],F[0],F[1]-1,F[2],0,0,0,H,DK)}
+  if(m.tow){P([-1.6,1,56,1.6,3.6,84],0,0,0,0,0,0,H,DK);P([-26,0.6,57,26,3.4,60.5],0,0,0,0,0,0,H,DK)} // drawbar and cross bar when hitched
+  P([-7,14,-7,7,18,9],0,0,0,0,bank,0,H,O); // turntable
+  for(const sg of [-1,1])P([sg*6.5-1,14,-4,sg*6.5+1,23,8],0,0,0,0,bank,0,H,O); // trunnion cheeks
+  P([-13,9,-7.5,13,26,-6.3],0,0,0,0,bank,0,H,O);P([-13.5,25,-8.2,13.5,26.6,-6],0,0,0,0,bank,0,H,DK);P([-4.5,13,-7.8,4.5,15,-6],0,0,0,0,bank,0,H,DK); // gun shield with a top rail and a lower flap
+  T([-3.4,-3.4,1,3.4,3.4,9],DK);T([-4.6,-4.6,-18,4.6,4.6,1],O2);T([-7,-1,-14,-5.4,1,1],ST);T([5.4,-1,-14,7,1,1],ST); // breech, recoil sleeve, two recuperator rods
+  T([-2.7,-2.7,-66,2.7,2.7,-18],ST);T([-3.3,-3.3,-40,3.3,3.3,-37],O2);T([-3.3,-3.3,-52,3.3,3.3,-50],O2); // barrel with two bands
+  T([-3.8,-3.8,-74,3.8,3.8,-66],DK);T([-4,-0.9,-72,4,0.9,-68],[0.01,0.01,0.01],W);T([-0.9,-4,-72,0.9,4,-68],[0.01,0.01,0.01],W);T([-1.1,-1.1,-74.4,1.1,1.1,-73.6],[0.01,0.01,0.01],W); // muzzle brake slots and bore
+  if(m.flashT>0){T([-5.5,-5.5,-96,5.5,5.5,-74],[1,0.75,0.3],W);T([-2.8,-2.8,-118,2.8,2.8,-74],[1,1,0.8],W);T([-13,-1.6,-72,13,1.6,-67],[1,0.85,0.4],W)} // muzzle flash, with side blast from the brake
+}
 class Mob extends Entity{
   constructor(type,x,y,z){super(x,y,z);const d=MOBDEF[type];this.type=type;this.def=d;{const vk=vehScaleK(d.vehicle);this.w=d.w*vk;this.h=d.h*vk}this.hp=d.hp;this.maxHp=d.hp;this.solidBody=true;this.yaw=Math.random()*PI*2;this.headYaw=0;this.headPitch=0;
     this.moveDir=null;this.wanderT=0;this.idleT=1+Math.random()*3;this.hurtT=0;this.deathT=0;this.walkT=0;this.walkAmp=0;this.atkCd=0;this.fireT=0;this.panicT=0;this.loveT=0;this.baby=false;this.growT=0;this.soundT=10+Math.random()*30;this.swell=0;this.eatT=0;this.eggT=300+Math.random()*300;this.angry=false;this.lastHit=0;
@@ -3072,7 +3178,7 @@ class Mob extends Entity{
     return true}
   customFly(dt){const d=this.def.spec;this.noGravity=true;const p=player;const gy=findGround(this.x,this.z);const hostile=d.hostile&&game.difficulty>0&&!p.dead;const dist=Math.hypot(p.x-this.x,p.z-this.z);let want=gy+2.5+Math.sin(game.time*1.3+this.x*0.7)*1.2;if(hostile&&dist<(this.def.follow||24))want=p.y+1.2;this.vy+=((want-this.y)*2.5-this.vy)*Math.min(1,dt*3);this.vy=clamp(this.vy,-7,7);this.onGround=false}
   // ---- built-in vehicles: car, fighter jet and B-27 bomber ----
-  rideVehicle(dt,fwd,strafe,jump,sprint){if(MP.active&&this.seatIds&&seatDriver(this)!==MP.myId)return this.ridePassenger(dt,jump);if(this.def.ship)return this.rideShip(dt,fwd,strafe,jump,sprint);if(this.def.vehicle==='flak')return this.rideFlak(dt);if(this.def.vehicle==='tank')return this.rideTank(dt,fwd,strafe,jump,sprint);if(this.def.vehicle==='sub')return this.rideSub(dt,fwd,strafe,jump,sprint);if(this.def.vehicle==='heli')return this.rideHeli(dt,fwd,strafe,jump,sprint);if(this.def.vehicle==='mortar')return this.rideMortar(dt,fwd,strafe,jump,sprint);const p=player;const v=this.def.vehicle;if(this.hurtT>0)this.hurtT-=dt;if(this.invT>0)this.invT-=dt;this.engT=(this.engT||0)-dt;this.bombCd=(this.bombCd||0)-dt;this.gunCd=(this.gunCd||0)-dt;if(this.bayT>0)this.bayT-=dt;if(this.hornT>0)this.hornT-=dt;const wrap=a=>Math.atan2(Math.sin(a),Math.cos(a));
+  rideVehicle(dt,fwd,strafe,jump,sprint){if(MP.active&&this.seatIds&&seatDriver(this)!==MP.myId)return this.ridePassenger(dt,jump);if(this.def.ship)return this.rideShip(dt,fwd,strafe,jump,sprint);if(this.def.vehicle==='flak')return this.rideFlak(dt);if(this.def.vehicle==='tank')return this.rideTank(dt,fwd,strafe,jump,sprint);if(this.def.vehicle==='sub')return this.rideSub(dt,fwd,strafe,jump,sprint);if(this.def.vehicle==='heli')return this.rideHeli(dt,fwd,strafe,jump,sprint);if(this.def.vehicle==='mortar')return this.rideMortar(dt,fwd,strafe,jump,sprint);if(this.def.vehicle==='howitzer')return this.rideHowitzer(dt,fwd,strafe,jump,sprint);const p=player;const v=this.def.vehicle;if(this.hurtT>0)this.hurtT-=dt;if(this.invT>0)this.invT-=dt;this.engT=(this.engT||0)-dt;this.bombCd=(this.bombCd||0)-dt;this.gunCd=(this.gunCd||0)-dt;if(this.bayT>0)this.bayT-=dt;if(this.hornT>0)this.hornT-=dt;const wrap=a=>Math.atan2(Math.sin(a),Math.cos(a));
     const sp0=Math.hypot(this.vx,this.vz);
     if(v==='car'){const max=(sprint?24:16)*vehSpd(this);const grounded=this.onGround||this.inWater;
       const want=wrap(p.yaw-this.yaw);const rate=Math.min(2.6,0.5+sp0*0.2);this.yaw+=clamp(want,-rate*dt,rate*dt);this.bank+=(clamp(want,-1,1)*-0.1*Math.min(1,sp0/8)-this.bank)*Math.min(1,dt*6);
@@ -3147,6 +3253,33 @@ class Mob extends Entity{
     const k=Math.min(1,dt*3);this.pitch-=this.pitch*k;this.bank-=this.bank*k}
   fireDoor(){const d=eyeDir();const rx=Math.cos(this.yaw),rz=-Math.sin(this.yaw);const x=this.x+rx*0.9+d[0]*0.8,y=this.y+1.1+d[1]*0.8,z=this.z+rz*0.9+d[2]*0.8;const sp=110;
     const b=new Arrow(x,y,z,d[0]*sp+this.vx*0.2,d[1]*sp,d[2]*sp+this.vz*0.2,'player',9);b.bullet=true;b.noGravity=true;b.kb=3;b.skip=this;b.volley=(game.volley=(game.volley||0)+1);entities.push(b);spawnParticles('flash',x,y,z,3);playSoundAt('rifle',this.x,this.y,this.z,0.9+Math.random()*0.2,0.7)}
+  // ---- howitzer: the gunner stands behind and to the left of the breech; look yaw slews the barrel at 0.5 rad/s, look pitch (clamped to 10-70 deg) sets the elevation; left mouse or Space fires every 6 s ----
+  rideHowitzer(dt,fwd,strafe,jump,sprint){const p=player;if(this.hurtT>0)this.hurtT-=dt;if(this.invT>0)this.invT-=dt;this.gunCd=(this.gunCd||0)-dt;
+    const wrap=a=>Math.atan2(Math.sin(a),Math.cos(a));this.vx=this.vz=0;this.speed=0;this.pitch=0;this.physics(dt,{friction:0.5,gravity:this.inWater?8:32,drag:1}); // it never drives off with the crew
+    if(this.tow)howUnhitch(this,true);
+    if(game.vcam===undefined)vehCamMode();if(game.vcam!==1){if(howCamSave===undefined)howCamSave=game.vcam;game.vcam=1;game.cockpit=true} // aim through the gunner's own eyes: the chase camera ignores the look direction
+    p.pitch=clamp(p.pitch,HOW_MIN,HOW_MAX);
+    const S=this.sol;if(S&&(Math.abs(wrap(p.yaw-S.ly))>0.3||Math.abs(p.pitch-S.lp)>0.12)){this.sol=null;this.armed=false;showMessage('Fire mission cancelled: you took the sights')} // moving the mouse far takes the gun back
+    const sol=this.sol,tya=sol?sol.ya:p.yaw;let ya=this.yaw+this.bank;const d=wrap(tya-ya);ya+=Math.sign(d)*Math.min(Math.abs(d),HOW_SLEW*dt);this.bank=wrap(ya-this.yaw);
+    if(Math.abs(this.bank)>HOW_TRAV){const ex=this.bank-Math.sign(this.bank)*HOW_TRAV;this.yaw=wrap(this.yaw+ex);this.bank-=ex} // past the traverse limit the trails are shifted round with the barrel
+    this.throttle=sol?sol.el:p.pitch;
+    if(game.time-(this.rideT===undefined?-99:this.rideT)>1)showMessage('Howitzer: look to aim (slow traverse), click or Space to fire, T then /target x z, Shift to leave');this.rideT=game.time;
+    const al=howAligned(this);if(sol&&al&&!sol.hint){sol.hint=true;showMessage('On target: FIRE')}
+    if(this.armed&&sol&&al&&this.gunCd<=0){this.armed=false;this.howFire()}
+    if((keys.Space||mouseL)&&!game.gui)this.howFire();
+    p.breakCooldown=Math.max(p.breakCooldown||0,0.3); // holding the mouse must not mine
+    ya=this.yaw+this.bank;const bx=Math.sin(ya),bz=Math.cos(ya);p.eyeHeight=HOW_EYE;p.howEye=true;p.x=this.x+bx*1.4-bz*1.4;p.z=this.z+bz*1.4+bx*1.4;p.y=this.y; // behind the breech and to its left
+    this.fallDist=0;p.fallDist=0;p.vx=p.vy=p.vz=0;p.onGround=true;p.inWater=false;p.walkAmp=0;
+    const e=this.throttle,err=Math.abs(wrap((sol?sol.ya:p.yaw)-ya))*180/PI;
+    howHud('Howitzer '+Math.round(e*180/PI)+'° · range '+Math.round(howRange(e))+' blocks · '+countItem(HOW_SHELL)+' shells'+(this.gunCd>0?' · reloading '+Math.max(0,this.gunCd).toFixed(1)+'s':'')+(sol?' · target '+Math.round(sol.D)+' blocks'+(al?' · FIRE':' · laying '+err.toFixed(1)+'°'):err>0.5?' · traversing '+err.toFixed(1)+'°':''))}
+  howFire(){if((this.gunCd||0)>0||this.rider!==player)return false;
+    if(this.sol&&!howAligned(this)){if(!this.armed)showMessage('Laying the gun on target: it fires when the barrel is on');this.armed=true;return false} // a fire mission fires on the computed solution only
+    if(countItem(HOW_SHELL)<=0){if(game.time-(this.dryT===undefined?-99:this.dryT)>1.5){this.dryT=game.time;showMessage('Out of artillery shells');playSound('pop',0.4,0.5)}return false}
+    removeItem(HOW_SHELL,1);this.gunCd=HOW_CD;this.recoilT=HOW_RT;this.flashT=0.2;const e=clamp(this.throttle||0,HOW_MIN,HOW_MAX),ya=this.yaw+this.bank,ce=Math.cos(e);const d=[-Math.sin(ya)*ce,Math.sin(e),-Math.cos(ya)*ce];
+    const x=this.x+d[0]*HOW_LEN,y=this.y+HOW_PIV+d[1]*HOW_LEN,z=this.z+d[2]*HOW_LEN;entities.push(new HowShell(x,y,z,d[0]*HOW_V,d[1]*HOW_V,d[2]*HOW_V,this,this.sol?this.sol.D:howRange(e)));
+    spawnParticles('flash',x,y,z,10);spawnParticles('smoke',x,y,z,16);spawnParticles('explosion',x,y,z,3);
+    const rx=Math.cos(ya),rz=-Math.sin(ya);for(let i=0;i<20;i++){const a=i/20*PI*2,ux=rx*Math.cos(a),uy=Math.sin(a),uz=rz*Math.cos(a);spawnParticles('smoke',x+d[0]*0.6,y+d[1]*0.6,z+d[2]*0.6,1);const q=particles[particles.length-1];q.size=0.4;q.col=[0.75,0.75,0.72];q.vx=d[0]*5+ux*3.2;q.vy=d[1]*5+uy*3.2;q.vz=d[2]*5+uz*3.2;q.life=1.6;q.grav=0} // smoke ring
+    playSoundAt('explode',this.x,this.y,this.z,0.35,1.5);game.shake=Math.max(game.shake||0,1.4);return true}
   // ---- tank: A/D turn the hull, W/S drive, the turret follows the look yaw and the barrel the pitch (-10..+25 deg); left mouse or jump fires a shell every 1.2 s ----
   // turret yaw (relative to the hull) rides in .bank and barrel pitch in .throttle so the existing vehicle sync (bk/th) carries them; .pitch stays 0 so the hull never tilts
   rideTank(dt,fwd,strafe,jump,sprint){const p=player;if(this.hurtT>0)this.hurtT-=dt;if(this.invT>0)this.invT-=dt;this.engT=(this.engT||0)-dt;this.gunCd=(this.gunCd||0)-dt;if(this.recoilT>0)this.recoilT-=dt;const wrap=a=>Math.atan2(Math.sin(a),Math.cos(a));
@@ -4190,7 +4323,7 @@ class NukeMissile extends Entity{constructor(x,y,z,tx,tz,remote){super(x,y,z);th
       EB.box(tf,-0.24,-0.24,1.0,0.24,0.24,1.35,T,RD,l,true);EB.box(tf,-0.16,-0.16,1.35,0.16,0.16,1.65,T,RD,l,true);EB.box(tf,-0.07,-0.07,1.65,0.07,0.07,1.9,T,RD,l,true);EB.box(tf,-0.24,-0.24,-1.5,0.24,0.24,-1.3,T,DK,l,true)}
     EB.box(tfs[0],-0.8,-0.03,-1.5,0.8,0.03,-0.8,T,RD,l,true);EB.box(tfs[0],-0.03,-0.8,-1.5,0.03,0.8,-0.8,T,RD,l,true);
     const fl=0.7+Math.random()*0.5;EB.box(tfs[0],-0.16,-0.16,-1.5-1.1*fl,0.16,0.16,-1.5,T,[1,0.7,0.2],[1,1],true);EB.box(tfs[1],-0.16,-0.16,-1.5-0.8*fl,0.16,0.16,-1.5,T,[1,0.95,0.7],[1,1],true)}}
-function attack(){const p=player;if(p.dead||game.gui||game.paused||p.koT>0)return;p.swing=0;if(typeof subAttackHook==='function'&&subAttackHook())return;if(typeof warAttackHook==='function'&&warAttackHook())return;if(typeof flakAttackHook==='function'&&flakAttackHook())return;if(typeof a10AttackHook==='function'&&a10AttackHook())return;if(typeof mortarAttackHook==='function'&&mortarAttackHook())return;if(typeof tankAttackHook==='function'&&tankAttackHook())return;if(typeof siloAttack==='function'&&siloAttack())return;if(typeof nukeTimerHook==='function'&&nukeTimerHook())return;
+function attack(){const p=player;if(p.dead||game.gui||game.paused||p.koT>0)return;p.swing=0;if(typeof howAttackHook==='function'&&howAttackHook())return;if(typeof subAttackHook==='function'&&subAttackHook())return;if(typeof warAttackHook==='function'&&warAttackHook())return;if(typeof flakAttackHook==='function'&&flakAttackHook())return;if(typeof a10AttackHook==='function'&&a10AttackHook())return;if(typeof mortarAttackHook==='function'&&mortarAttackHook())return;if(typeof tankAttackHook==='function'&&tankAttackHook())return;if(typeof siloAttack==='function'&&siloAttack())return;if(typeof nukeTimerHook==='function'&&nukeTimerHook())return;
   const e=p.targetEntity;if(!e)return;const st=heldStack();const it=st?ITEMS[st.id]:null;let dmg=(it&&it.dmg?it.dmg:1)+(p.effects.strength>0?3*effLvl('strength'):0);const spd=it&&it.atkSpd?it.atkSpd:4;
   const t=Math.min(1,(game.time-p.lastAtk)*spd);p.lastAtk=game.time;dmg*=0.2+0.8*t*t;let crit=false;
   if(p.fallDist>0&&!p.onGround&&!p.inWater&&!p.sprinting&&t>0.848){dmg*=1.5;crit=true}
@@ -4222,6 +4355,7 @@ function tickPlates(dt){if(!world||(MP.active&&!MP.host))return;const P=game.pla
   for(const [k,st] of P){if(pressed.has(k)){st.t=0;continue}st.t+=dt;if(st.t<0.6)continue;const [x,y,z]=k.split(',').map(Number);for(const d of st.doors)setDoorOpen(d[0],d[1],d[2],false);const rid=world.getBlock(x,y,z);if(rid===146||rid===90){world.setMeta(x,y,z,0);mpSyncBlock(x,y,z)}P.delete(k)}}
 function useItem(){
   const p=player;if(p.dead||game.gui||game.paused||p.koT>0)return;const st=heldStack();const hd=st?ITEMS[st.id]:null;const t=p.target;const creative=p.mode==='creative';
+  if(typeof howUseHook==='function'&&howUseHook(st,hd,t))return;
   if(typeof soldierUseHook==='function'&&soldierUseHook(st,hd,t))return;
   if(typeof warUseHook==='function'&&warUseHook(st,hd,t))return;
   if(typeof flakUseHook==='function'&&flakUseHook(st,hd,t))return;
@@ -5137,7 +5271,9 @@ for(const m of ['wood','stone','iron','diamond','gold','sift']){const id=n=>I[(m
 for(const m of ['leather','iron','gold','diamond','sift']){const mat={leather:289,iron:260,gold:262,diamond:263,sift:490}[m];const id=n=>I[(m==='gold'?'golden':m)+'_'+n];
   shaped(['###','# #'],{'#':mat},[id('helmet'),1]);shaped(['# #','###','###'],{'#':mat},[id('chestplate'),1]);shaped(['###','# #','# #'],{'#':mat},[id('leggings'),1]);shaped(['# #','# #'],{'#':mat},[id('boots'),1])}
 shaped(['WWW','###'],{W:WOOLS,'#':PLANKS},[62,1]);shaped(['###','###','###'],{'#':490},[126,1]);shapeless([126],[490,9]);shaped(['#O','O#'],{'#':490,O:31},[125,4]);shapeless([130],[5,4]);
-shaped(['##','##','##'],{'#':PLANKS},[54,3]);shaped(['##','##','##'],{'#':260},[152,3]);shaped(['##'],{'#':1},[90,1]);RECIPES.push({s:[260,289,272],out:[448,1],shaped:false,mod:'war'}); /* Recruit Soldier egg: iron ingot + leather + bread (the Enemy Soldier egg is creative only) */
+shaped(['##','##','##'],{'#':PLANKS},[54,3]);shaped(['##','##','##'],{'#':260},[152,3]);shaped(['##'],{'#':1},[90,1]);
+RECIPES.push({p:['BBB','dTB','i.i'],k:{B:25,d:263,T:28,i:260},out:[529,1],shaped:true,guns:true,station:'gun'}); /* howitzer: three iron blocks for the barrel, TNT charge, diamond sight, ingot wheels */
+RECIPES.push({s:[28,28,260,285],out:[HOW_SHELL,2],shaped:false,guns:true,station:'gun'}); /* artillery shells: 2 TNT + iron ingot + gunpowder */RECIPES.push({s:[260,289,272],out:[448,1],shaped:false,mod:'war'}); /* Recruit Soldier egg: iron ingot + leather + bread (the Enemy Soldier egg is creative only) */
 shaped(['BgB','dtd','BBB'],{B:25,g:17,d:263,t:28},[455,1]); /* submarine spawn egg: 5 iron blocks, glass, 2 diamonds, TNT */
 RECIPES.push({s:[28,260,260,265],out:[447,2],shaped:false}); /* 2 torpedoes: TNT + 2 iron ingots + redstone */
 RECIPES.push({p:['.d.','pBp','BBB'],k:{d:263,p:PLANKS,B:25},out:[445,1],shaped:true,mod:'war'});
@@ -5606,6 +5742,7 @@ function playSound(name,vol=1,pitch=1){
     case 'pop':tone('sine',500,1400,0.12);env(0.005,0.4,0.12);break;
     case 'orb':tone('sine',1000+Math.random()*800,2000,0.15);env(0.005,0.25,0.2);break;
     case 'levelup':{[0,0.1,0.2,0.3].forEach((d,i)=>{const o=c.createOscillator();o.type='triangle';o.frequency.value=[523,659,784,1046][i];const gg=c.createGain();gg.gain.setValueAtTime(0.3*vol,t+d);gg.gain.exponentialRampToValueAtTime(0.001,t+d+0.5);o.connect(gg);gg.connect(AU.master);o.start(t+d);o.stop(t+d+0.6)});return}
+    case 'howl':tone('sawtooth',1500,380,2);tone('sine',1530,400,2);noise(2,'bandpass',1100,3);env(0.4,0.5,1.55);break;
     case 'whistle':tone('sine',2300,650,1.1);tone('triangle',2330,680,1.1);env(0.12,0.22,0.98);break;
     case 'explode':noise(1.2,'lowpass',300);tone('sine',90,30,1);env(0.01,1.5,1.2);break;
     case 'rumble':noise(2.2,'lowpass',90);tone('sine',42,28,2.2);env(0.2,1.6,2.2);break;
@@ -6496,7 +6633,7 @@ function seatPlace(r){const m=r.seatM;if(!m||m.dead||!r.hasTarget)return;let yw=
   if(S&&m.riders){const e=(S[r.seatN]||S[0]).e,w=vehPoint(m,e[0],e[1],e[2]);q=[w[0],w[1]-1.62,w[2]];if(seatGunI(m,r.seatN)>=0)yw=r.tyaw}
   else q=[m.x,seatFeet(m),m.z];
   r.x=q[0];r.y=q[1];r.z=q[2];r.yaw=yw}
-function renderVehicle(m,part,W,N,kind,tint){if(m.def.ship)return renderShip(m,part,W,N);if((kind||m.def.vehicle)==='flak')return renderFlak(m,part,W,N,tint);if((kind||m.def.vehicle)==='tank')return renderTank(m,part,W,N,tint);if((kind||m.def.vehicle)==='sub')return renderSub(m,part,W,N,tint);if((kind||m.def.vehicle)==='heli')return renderHeli(m,part,W,N,tint);if((kind||m.def.vehicle)==='mortar')return renderMortar(m,part,W,N,tint);kind=kind||m.def.vehicle;if(kind==='a10')return renderA10(m,part,W,N,tint);const t=game.time;const fp=m.rider===player&&vehCamMode()===1,fs=fp?(player.seat|0):-1;const B=m.bank||0,cb=Math.cos(B),sb=Math.sin(B);const spin=m.remote?t*(8+40*(m.throttle||0)):(m.walkT||0);const onG=m.onGround||m.remote&&!(m.throttle>0.3);
+function renderVehicle(m,part,W,N,kind,tint){if(m.def.ship)return renderShip(m,part,W,N);if((kind||m.def.vehicle)==='flak')return renderFlak(m,part,W,N,tint);if((kind||m.def.vehicle)==='tank')return renderTank(m,part,W,N,tint);if((kind||m.def.vehicle)==='sub')return renderSub(m,part,W,N,tint);if((kind||m.def.vehicle)==='heli')return renderHeli(m,part,W,N,tint);if((kind||m.def.vehicle)==='mortar')return renderMortar(m,part,W,N,tint);if((kind||m.def.vehicle)==='howitzer')return renderHowitzer(m,part,W,N,tint);kind=kind||m.def.vehicle;if(kind==='a10')return renderA10(m,part,W,N,tint);const t=game.time;const fp=m.rider===player&&vehCamMode()===1,fs=fp?(player.seat|0):-1;const B=m.bank||0,cb=Math.cos(B),sb=Math.sin(B);const spin=m.remote?t*(8+40*(m.throttle||0)):(m.walkT||0);const onG=m.onGround||m.remote&&!(m.throttle>0.3);
   const DK=[0.1,0.1,0.11],GR=[0.22,0.22,0.25],CH=[0.82,0.83,0.86],GL=[0.5,0.72,0.92],RED=[0.9,0.12,0.1],YEL=[0.95,0.8,0.15];
   const bx=(cy,b,col,rx,ry,rzx,px,py,pz)=>{const ox=px||0,oy=py===undefined?cy:py,oz=pz||0;const qx=ox*cb-(oy-cy)*sb,qy=cy+ox*sb+(oy-cy)*cb;part(b,qx,qy,oz,rx||0,ry||0,B+(rzx||0),W,col)}; // box (b relative to its pivot), pivot (px,py,pz) banked round the centre line
   if(kind==='car'){const cy=8,C=tint||CAR_COLS[(m.color||0)%CAR_COLS.length];const A=(b,col)=>bx(cy,[b[0],b[1]-cy,b[2],b[3],b[4]-cy,b[5]],col);
@@ -7636,6 +7773,7 @@ function runCommand(line){const p=player;const raw=line.trim().replace(/^\/+/,''
     case 'time':{const a=(args[0]||'').toLowerCase();const t=a==='day'?1000:a==='noon'?6000:a==='night'?13000:a==='midnight'?18000:parseInt(a);if(isNaN(t)){say('Usage: /time day|night|<0-24000>');return}world.time=((t%24000)+24000)%24000;say('Time set to '+world.time);return}
     case 'gamemode':case 'gm':{const a=(args[0]||'').toLowerCase();const m=a==='c'||a==='creative'||a==='1'?'creative':a==='s'||a==='survival'||a==='0'?'survival':null;if(!m){say('Usage: /gamemode survival|creative');return}p.mode=m;if(m==='survival')p.flying=false;say('Game mode: '+m);return}
     case 'map':{if(!(game.mods&&game.mods.war)){say('The world map needs the War fun mod (switch it on in Fun Mods from the pause menu)');return}if(!openWarMap())say('Close the open screen first');return}
+    case 'target':case 'hitch':case 'unhitch':howCommand(cmd,args,say);return;
     case 'war':{const on=!!(game.mods&&game.mods.war);say('War is '+(on?'ON':'OFF (switch it on in Fun Mods from the pause menu)')+'. It includes:');
       say('- Guns switched on, and every player starts with the war kit: rifle, shotgun, 128 bullets, 32 shells, iron armour, 16 TNT, a car egg, a jet egg and 8 steak (/kit war gives it again).');
       say('- Real-size vehicles: car x1.8 (4.5 m), tank x2.5 (9 m), jet x3 (15 m) and B-27 bomber x3 (20 m), with matching seats, cameras and guns.');
@@ -7674,7 +7812,8 @@ function loop(now){
       if(game.tick%3===0)updateInfoHud();
       if(game.tick%200===0)saveWorld();
     }
-    tickPlates(dt);soldierWarTick(dt);wmpTick(dt);a10Tick(dt);
+    tickPlates(dt);
+    howTick(dt);soldierWarTick(dt);wmpTick(dt);a10Tick(dt);
     mortarTick(dt);if(typeof tickCamp==='function')tickCamp(dt);tickNukeTimers(dt);tickFurnaces(dt);tickBrews(dt);tickSpawners(dt);tickTrials(dt);tickShriekers(dt);if(typeof beaconTick==='function')beaconTick();if(MP.active)mpTick(dt);
     updateMusic(dt);
     if(player.sleeping>0&&player.sleeping>2.2)$('sleepfade').style.opacity=1;
