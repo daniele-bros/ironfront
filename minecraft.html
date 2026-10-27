@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="ironcraft-build" content="20261027-212909">
+<meta name="ironcraft-build" content="20261027-214944">
 <meta name="viewport" content="width=device-width,initial-scale=1.0,viewport-fit=cover">
 <title>Ironcraft – Free Voxel Survival Sandbox in Your Browser | Iron Games</title>
 <meta name="description" content="Ironcraft is a free browser-based voxel survival sandbox with building, exploration, private or safety-limited public multiplayer, and optional weather, horror and survival challenges. By Daniele Bros.">
@@ -80,6 +80,8 @@ canvas#gl{position:absolute;inset:0;width:100%;height:100%;display:block;image-r
 .gui.show{display:flex;}
 #nukeHud{position:absolute;top:34px;left:50%;transform:translateX(-50%);font:700 16px/1.2 'Segoe UI',Arial,sans-serif;color:#ffd27a;text-shadow:2px 2px 0 #000;letter-spacing:1px;display:none;pointer-events:none;white-space:nowrap}
 #nukeHud.hot{color:#ff3b30;font-size:26px}
+#pvpHud{position:absolute;top:62px;left:50%;transform:translateX(-50%);font:700 15px/1.2 'Segoe UI',Arial,sans-serif;color:#ffd27a;background:rgba(0,0,0,.45);padding:3px 10px;border-radius:4px;text-shadow:2px 2px 0 #000;letter-spacing:1px;display:none;pointer-events:none;white-space:nowrap;max-width:96vw;overflow:hidden}
+#pvpHud.def{color:#ff6b5a}
 #nukeTimerGui .panel{min-width:300px;max-width:92vw;text-align:center;box-sizing:border-box}
 #nukeTimerGui .ntrow{display:flex;flex-wrap:wrap;gap:6px;justify-content:center;margin:8px 0}
 .ntbtn{min-width:78px;height:34px;padding:0 10px;background:#8b8b8b;color:#fff;border:2px solid;border-color:#fff #555 #555 #fff;font:700 14px 'Segoe UI',Arial,sans-serif;cursor:pointer;text-shadow:1px 1px #3f3f3f}
@@ -232,7 +234,7 @@ label.lb{font-size:13px;color:#a0a0a0;align-self:flex-start;margin-left:calc(50%
   <div id="info" style="display:none"></div>
   <div id="effects"></div>
   <div id="waveHud" style="position:absolute;top:8px;left:50%;transform:translateX(-50%);font-size:18px;font-weight:700;color:#f55;text-shadow:2px 2px 0 #000;display:none;pointer-events:none;letter-spacing:1px"></div>
-  <div id="nukeHud"></div><div id="chat"></div>
+  <div id="nukeHud"></div><div id="pvpHud"></div><div id="chat"></div>
   <input id="cmd" placeholder="/help" autocomplete="off" spellcheck="false">
   <div id="itemname" class="sh"></div>
   <div id="status"><div id="armor"></div><div id="hearts"></div><div id="food"></div><div id="air"></div><div id="xpbar"><div id="xpfill"></div></div><div id="xplvl"></div></div>
@@ -379,6 +381,7 @@ label.lb{font-size:13px;color:#a0a0a0;align-self:flex-start;margin-left:calc(50%
       <div class="k">Your nation</div><div class="v" id="wmHome">-</div>
       <div class="k">Countries owned</div><div class="v" id="wmOwned">0</div>
       <div class="k">Record</div><div class="v" id="wmScore" style="font-size:11px">-</div>
+      <div class="k">Players</div><div class="v" id="wmPlayers" style="font-size:11px">-</div>
       <div class="k">Selected</div><div class="v" id="wmSel">Click a country</div>
       <div class="k">Enemy strength</div><div class="v" id="wmStr">-</div>
       <div class="hint" id="wmHov">Hover: -</div>
@@ -418,11 +421,33 @@ label.lb{font-size:13px;color:#a0a0a0;align-self:flex-start;margin-left:calc(50%
   <button class="btn" id="btnSingle">Solo Worlds</button>
   <button class="btn" id="btnMulti">Play Together</button>
   <button class="btn" id="btnOptionsT">Game Settings</button>
+  <button class="btn" id="btnChat">Chat</button>
   <button class="btn" id="btnControls">How to Play</button>
   <button class="btn" id="btnModMaker">Mod Maker</button>
-  <p id="titleAbout" style="position:absolute;bottom:43px;left:0;right:0;text-align:center;font-size:12px;font-weight:400;color:#ddd;text-shadow:1px 1px 0 #000;margin:0;padding:0 14px;pointer-events:none;">A free voxel survival sandbox by Daniele Bros. Public rooms use random aliases and have chat disabled.</p>
+  <p id="titleAbout" style="position:absolute;bottom:43px;left:0;right:0;text-align:center;font-size:12px;font-weight:400;color:#ddd;text-shadow:1px 1px 0 #000;margin:0;padding:0 14px;pointer-events:none;">A free voxel survival sandbox by Daniele Bros. Public rooms use random aliases. Chat is open to everyone there: be kind.</p>
   <p id="legalNote" style="position:absolute;bottom:22px;left:0;right:0;text-align:center;font-size:10px;font-weight:500;color:#e1b65f;margin:0;padding:0 14px;pointer-events:none;">NOT AN OFFICIAL MINECRAFT PRODUCT. NOT APPROVED BY OR ASSOCIATED WITH MOJANG OR MICROSOFT.</p>
   <div id="versionNote" style="position:absolute;bottom:6px;left:8px;font-size:12px;font-weight:400;color:#aaa">Ironcraft 1.0 &mdash; a browser voxel survival game</div>
+</div>
+
+<style>
+#chatWrap{display:flex;gap:8px;width:min(92vw,640px);height:min(46vh,330px)}
+#chatList{flex:1;min-width:0;overflow-y:auto;background:rgba(0,0,0,.55);border:1px solid #d39a33;padding:6px 8px;font-size:14px;font-weight:400;color:#dfe6ea;text-align:left}
+#chatList .cl{margin-bottom:2px;word-break:break-word}#chatList .cl.sys{color:#e1b65f;font-size:12px}
+#chatSide{width:170px;flex-shrink:0;display:flex;flex-direction:column;background:rgba(0,0,0,.55);border:1px solid #d39a33;padding:6px 8px;text-align:left}
+#chatSide h3{margin:0 0 4px;font-size:12px;letter-spacing:1px;text-transform:uppercase;color:#e1b65f}
+#chatUsers{overflow-y:auto;flex:1;font-size:13px;font-weight:400}#chatUsers .cu{margin-bottom:3px;word-break:break-word}#chatUsers small{display:block;color:#9ab;font-size:11px}
+.cname{color:#fff;font-weight:700}.chatln{color:#dfe6ea}
+#chatSendRow{display:flex;gap:8px;width:min(92vw,640px)}
+@media (max-width:700px){#chatWrap{flex-direction:column;height:auto}#chatList{height:30vh;flex:none}#chatSide{width:auto;max-height:84px}}
+</style>
+<div id="chatMenu" class="menu dirtbg">
+  <h2 class="sh">Lobby Chat</h2>
+  <div class="hint" id="chatStatus" style="color:#ff6;min-height:16px;margin:0">Connecting&hellip;</div>
+  <div id="chatWrap"><div id="chatList"></div><div id="chatSide"><h3>Online</h3><div id="chatUsers"></div></div></div>
+  <div id="chatSendRow"><input class="tx" id="chatInput" maxlength="160" placeholder="Type a message and press Enter" autocomplete="off" style="flex:1;width:auto;min-width:0"><button class="btn" id="btnChatSend" style="width:110px;letter-spacing:1px">Send</button></div>
+  <div id="chatSendRow2" style="display:flex;gap:8px;align-items:center;width:min(92vw,640px)"><label class="lb" style="margin:0;align-self:center">Your name</label><input class="tx" id="chatName" maxlength="16" autocomplete="off" style="flex:1;width:auto;min-width:0;height:30px;font-size:14px"></div>
+  <div class="hint" style="color:#ccc;width:min(92vw,640px);margin:0">Anyone online can read this chat. Be kind and never share your real name, address or other personal details.</div>
+  <button class="btn" id="btnChatBack">Back</button>
 </div>
 
 <div id="modMenu" class="menu dirtbg">
@@ -459,7 +484,7 @@ label.lb{font-size:13px;color:#a0a0a0;align-self:flex-start;margin-left:calc(50%
   <div class="btnrow" style="margin-top:6px"><button class="btn half" id="btnMpHost">Host Private World</button><input class="tx half" id="mpCode" maxlength="8" placeholder="Room code" style="text-transform:uppercase"></div>
   <div class="btnrow"><button class="btn half" id="btnMpJoin">Join by Code</button><button class="btn half" id="btnMpBack">Back</button></div>
   <div class="hint" style="color:#ffb45b;width:440px;margin:12px 0 2px;font-weight:700">PUBLIC WORLDS &mdash; ask a parent or guardian first</div>
-  <div class="hint" style="color:#ccc;width:440px;margin:0 0 6px">Anyone can join. Public chat is disabled, names are replaced with random aliases, and custom public-world names are hidden. <a href="safety.html" target="_blank" style="color:#ffdb78">Family safety</a></div>
+  <div class="hint" style="color:#ccc;width:440px;margin:0 0 6px">Anyone can join. Public chat is on (be kind, one message per second), names are replaced with random aliases, and custom public-world names are hidden. <a href="safety.html" target="_blank" style="color:#ffdb78">Family safety</a></div>
   <div id="mpList" style="width:440px;max-height:130px;overflow-y:auto;margin-bottom:6px"></div>
   <div class="btnrow"><button class="btn half" id="btnMpCreate">Create Safe Public World</button><button class="btn half" id="btnMpRefresh">Refresh List</button></div>
   <div class="hint" id="mpStatus" style="color:#ff6;width:440px;margin-top:8px;min-height:18px"></div>
@@ -3991,7 +4016,7 @@ function renderSoldier(m,EB,part,s,roll,ex,ey,ez,swing,hp,hy,l,W){
 
 function damageEntity(e,amount,src){if(e===player&&src&&src.type&&customArmorPerks().has({fire:'fireproof',lava:'fireproof',fall:'feather'}[src.type]))return false;if(e===player&&src&&(src.type==='fire'||src.type==='lava')&&player.effects&&player.effects.fire_res>0)return false;if(e instanceof Mob&&e.def&&e.def.neutral&&src&&(src.type==='player'||src.type==='arrow'||src.type==='bullet')&&!e.tamed)e.angry=true;
   if(e.dead||e.dying)return false;if(e.invT>0&&amount<=e.lastDmg)return false;src=src||{};
-  if(e instanceof RemotePlayer){if((!pvpOn()&&src.type!=='mob'&&!src.fromMob)||e.hidden)return false;e.invT=0.5;e.lastDmg=amount;e.hurtT=0.5;mpSend({t:'hit',to:e.pid,by:MP.myId,from:MP.name,amount,type:src.fromMob?'mob':(src.type||'player'),x:src.x,y:src.y,z:src.z,kb:src.kb||4});playSoundAt('hurt',e.x,e.y,e.z,0.8);return true}
+  if(e instanceof RemotePlayer){if((!pvpOn()&&src.type!=='mob'&&!src.fromMob)||e.hidden)return false;e.invT=0.5;e.lastDmg=amount;e.hurtT=0.5;wmpHitNote({to:e.pid,by:MP.myId});mpSend({t:'hit',to:e.pid,by:MP.myId,from:MP.name,amount,type:src.fromMob?'mob':(src.type||'player'),x:src.x,y:src.y,z:src.z,kb:src.kb||4});playSoundAt('hurt',e.x,e.y,e.z,0.8);return true}
   if(e instanceof Mob&&e.remote&&MP.active){if(src.type==='fire'||src.type==='fall'||src.type==='dry'||src.type==='fade')return false;e.invT=0.5;e.lastDmg=amount;e.hurtT=0.5;if(src.type==='player'&&!(e.type==='wolf'&&e.tamed)){game.petTarget=e;game.petTargetT=game.time}mpSend({t:'mh',nid:e.nid,amount,src:{type:src.type||'player',x:src.x,y:src.y,z:src.z,kb:src.kb,loot:src.loot}});playSoundAt(e.def?e.def.sound+'_hurt':'hurt',e.x,e.y,e.z);return true}
   if(e===player){if(player.mode==='creative')return false;
     if(player.blocking&&(src.type==='mob'||src.type==='arrow'||src.type==='bullet'||src.type==='explosion'||src.type==='pvp'||src.type==='sonic')){const sh=shieldInHands();let front=true;if(src.x!==undefined){const d=eyeDir();const dx=src.x-player.x,dz=src.z-player.z;const l=Math.hypot(dx,dz)||1;front=(dx/l*d[0]+dz/l*d[2])>-0.2}
@@ -4600,7 +4625,7 @@ function trySleep(bx,by,bz){const p=player;const t=world.time;
   if(world.nether){world.setBlock(bx,by,bz,0,0,{noDrop:true});explode(bx+0.5,by+0.5,bz+0.5,5);for(let i=0;i<6;i++){const x=bx+floor(Math.random()*5)-2,z=bz+floor(Math.random()*5)-2;let y=by;while(y>1&&world.getBlock(x,y-1,z)===0)y--;if(world.getBlock(x,y,z)===0&&BLOCKS[world.getBlock(x,y-1,z)].solid)world.setBlock(x,y,z,81,0)}return}if(!(t>12540&&t<23460)){showMessage('You can only sleep at night');return}
   for(const e of entities){if(e instanceof Mob&&!e.def.passive&&!e.dead){const dx=e.x-bx,dz=e.z-bz;if(dx*dx+dz*dz<64){showMessage('You may not rest now, there are monsters nearby');return}}}
   p.spawn=[bx+0.5,by+0.6,bz+0.5];p.sleeping=0.01;$('sleepfade').style.opacity=1;showMessage('Respawn point set')}
-function playerDie(src){const p=player;p.dead=true;p.hp=0;playSound('death');let msg='Player died';const t=src&&src.type;
+function playerDie(src){const p=player;p.dead=true;p.hp=0;playSound('death');if(MP.active&&MP.host&&src&&src.pid)wmpOnKill(src.pid,MP.myId,true);let msg='Player died';const t=src&&src.type;
   if(t==='fall')msg='Player fell from a high place';else if(t==='pvp')msg='Player was slain by '+(src.name||'another player');else if(t==='mob')msg='Player was slain by a monster';else if(t==='arrow')msg='Player was shot by a Bonewalker';else if(t==='explosion')msg='Player was blown up';else if(t==='lava')msg='Player tried to swim in lava';else if(t==='fire')msg='Player burned to death';else if(t==='drown')msg='Player drowned';else if(t==='starve')msg='Player starved to death';else if(t==='cactus')msg='Player was pricked to death';else if(t==='lightning')msg='Player was struck by lightning';else if(t==='tornado')msg='Player was swept away by a tornado';else if(t==='sonic')msg='Player was obliterated by a sonically-charged shriek';else if(t==='breath')msg='Player was dissolved by dragon breath';
   if(p.riding)p.riding.dismount();
   for(let i=0;i<36;i++)if(p.inv[i]&&enchLevel(p.inv[i],'vanishing_curse'))p.inv[i]=null;for(let i=0;i<4;i++)if(p.armor[i]&&enchLevel(p.armor[i],'vanishing_curse'))p.armor[i]=null;
@@ -4618,7 +4643,7 @@ function spearCharge(dt,h){const p=player;if(p.spearCd>0)p.spearCd-=dt;const st=
     const dmg=it.dmg+hs*1.5;if(damageEntity(e,dmg,{x:h.x-fx*2,y:h.y,z:h.z-fz*2,type:'player',kb:9})){p.spearCd=0.8;p.swing=0;spawnParticles('crit',e.x,e.y+e.h*0.7,e.z,8);playSound('arrowhit');damageItem(st,1);showMessage('Charge! '+Math.round(dmg)+' damage');break}}}
 function respawn(){const p=player;if(world.dimKey!=='over')goHome();p.dead=false;p.hp=20;p.absorb=0;p.absorbT=0;p.coldT=0;p.frozen=false;p.koT=0;$('koov').style.opacity=0;p.effLvl={};p.hunger=20;p.sat=5;p.exh=0;p.air=300;p.fireT=0;p.effects={};p.vx=p.vy=p.vz=0;p.fallDist=0;p.invT=0;
   let s=p.spawn||game.worldSpawn;let ok=false;if(p.spawn){ensureChunks(s[0],s[2],1);const b=world.getBlock(floor(s[0]),floor(s[1]),floor(s[2]));if(b===62||b===157||world.getBlock(floor(s[0]),floor(s[1])-1,floor(s[2]))===62)ok=true;else showMessage('Your home bed was missing or obstructed')}
-  if(!ok){s=game.worldSpawn;ensureChunks(s[0],s[2],1)} // the world spawn never moves: you always come back to the same place
+  if(!ok){s=game.mySpawn||game.worldSpawn;ensureChunks(s[0],s[2],1)} // the world spawn never moves: you always come back to the same place
   const spot=(ok&&spotByBed(s))||safeSpotNear(s[0],s[2]);p.x=spot[0];p.z=spot[2];p.y=spot[1];$('deathScreen').classList.remove('show');if(typeof warRespawn==='function')warRespawn();updateHUD();updateHotbar();saveWorld()}
 // nearest standable column to (x,z): solid ground, two air blocks, no liquid. Chunks must already be generated.
 function isStandable(bx,bz){if(!world.hasChunk(bx,bz))return null;const y=findGround(bx,bz);if(y<=1||y>=CH-2)return null;const g=world.getBlock(bx,y-1,bz);if(g===8||g===9||g===81)return null;
@@ -5704,7 +5729,7 @@ function updateHUD(){syncMobileControls();const p=player;const creative=p.mode==
   $('xpfill').style.width=(p.xp/xpToNext(p.level)*100)+'%';$('xplvl').textContent=p.level>0?p.level:'';
   $('hearts').style.animation=p.hp<=4?(heartsOn?'heartshiver .12s infinite alternate':'sp .3s infinite alternate'):'';$('hearts').style.transform='';
   $('fireov').style.display=p.fireT>0?'block':'none';$('waterov').style.display=headWater?'block':'none'}
-function showMessage(t){const c=$('chat');const el=document.createElement('div');el.className='msg';el.textContent=t;c.appendChild(el);while(c.children.length>6)c.removeChild(c.firstChild);setTimeout(()=>el.remove(),8000)}
+function showMessage(t){const c=$('chat');const el=document.createElement('div');el.className='msg';el.textContent=t;c.appendChild(el);while(c.children.length>8)c.removeChild(c.firstChild);setTimeout(()=>el.remove(),8000)}
 
 let paletteFilter='';
 function renderPalette(){const pl=$('palette');const creative=player.mode==='creative';pl.style.display=creative?'block':'none';$('invGui').classList.toggle('full',creative);const ab=$('armorBox');if(creative){$('invBottom').prepend(ab)}else{$('invTop').prepend(ab)}if(!creative)return;
@@ -5931,7 +5956,7 @@ function updateChunks(budgetMs){
   dirty.sort((a,b)=>a[0]-b[0]);
   for(const [d,c] of dirty){const m=buildChunkMesh(world,c,opts.smooth);uploadChunkMesh(c,m);c.dirty=false;if(performance.now()-t0>budgetMs*1.6)break}
   // unload far chunks
-  if(game.tick%40===0){for(const [k,c] of world.chunks){const dx=c.cx-pcx,dz=c.cz-pcz;if(dx*dx+dz*dz>(rd+4)*(rd+4)&&!siloKeeps(c)){stashChunk(c);deleteChunkMesh(c);world.chunks.delete(k)}}}
+  if(game.tick%40===0){for(const [k,c] of world.chunks){const dx=c.cx-pcx,dz=c.cz-pcz;if(dx*dx+dz*dz>(rd+4)*(rd+4)&&!siloKeeps(c)&&!mpKeeps(c)){stashChunk(c);deleteChunkMesh(c);world.chunks.delete(k)}}}
 }
 function stashChunk(c){if(!world.savedMods)world.savedMods={};if(!world.savedBents)world.savedBents={};const k=c.cx+','+c.cz;if(c.mods.size)world.savedMods[k]=Array.from(c.mods);else delete world.savedMods[k];if(c.bents.size)world.savedBents[k]=Array.from(c.bents);else delete world.savedBents[k]}
 /* ---- dimensions (overworld / nether) ---- */
@@ -6096,11 +6121,11 @@ function migrateSaveHeight(save){if(!save||(save.ch&&save.ch!==128))return save;
   save.ch=CH;return save}
 function startWorld(meta,save){if(save)migrateSaveHeight(save);if(window.trackEvent)trackEvent('game_start',{game:'Ironcraft',multiplayer:!!(MP&&MP.active),mods:Object.keys(modsOf(meta)).filter(k=>modsOf(meta)[k]).join(',')||'none'});
   game.mods=modsOf(meta);game.baseDiff=meta.diff;game.noSave=false;game.wx=game.mods.weather?{storm:false,I:0,t:30+Math.random()*60,lt:4,flash:0,tornado:null}:null;game.hx=game.mods.horror?{amb:15,beat:0}:null;game.ax=game.mods.apocalypse?{wave:0,next:75,active:false,mobs:[],warned:{},left:0}:null;
-  game.war=null;game.wmpBattle=null;game.wmpCounter=null;wmAsk=false;wmCd=null;game.dims={over:null,nether:null,end:null,sift:null};world=new World(meta.seed);game.seed=meta.seed;game.worldId=meta.id;game.worldName=meta.name;game.difficulty=game.mods.hardcore?3:(game.mods.apocalypse?Math.max(1,meta.diff):meta.diff);game.randomDrops=game.mods.random;entities.length=0;particles.length=0;activeFurnaces.clear();game.plates=new Map();game.nukeTimers=new Map();game.nukeTimerDim=new Map();if(MP.active)for(const r of MP.remote.values()){r.dead=false;entities.push(r)}
+  game.spawns={};game.mySpawn=null;game.mySpawnShown=false;game.wmpPvp=[];game.wmpPB={};game.pvpHud=null;game.wmpRB=null;game.war=null;game.wmpBattle=null;game.wmpCounter=null;wmAsk=false;wmCd=null;game.dims={over:null,nether:null,end:null,sift:null};world=new World(meta.seed);game.seed=meta.seed;game.worldId=meta.id;game.worldName=meta.name;game.difficulty=game.mods.hardcore?3:(game.mods.apocalypse?Math.max(1,meta.diff):meta.diff);game.randomDrops=game.mods.random;entities.length=0;particles.length=0;activeFurnaces.clear();game.plates=new Map();game.nukeTimers=new Map();game.nukeTimerDim=new Map();if(MP.active)for(const r of MP.remote.values()){r.dead=false;entities.push(r)}
   const p=player;p.mode=meta.mode;p.inv.fill(null);p.armor.fill(null);p.off[0]=null;p.sel=0;p.hp=20;p.absorb=0;p.absorbT=0;p.coldT=0;p.frozen=false;p.koT=0;$('koov').style.opacity=0;p.effLvl={};p.swimming=false;p.hunger=20;p.sat=5;p.exh=0;p.xp=0;p.level=0;p.dead=false;p.flying=false;p.effects={};p.spawn=null;p.fireT=0;p.air=300;p.vx=p.vy=p.vz=0;p.riding=null;
   if(save){if(game.ax&&save.apoc)game.ax.wave=save.apoc.wave||0;world.time=save.time;world.day=save.day||0;game.worldSpawn=save.spawn;world.savedMods={};for(const k in save.mods)world.savedMods[k]=save.mods[k];world.savedBents=save.bents||{};world.populated=new Set(save.pop||[]);
     const sp=save.player;if(sp.hp<=0)game.respawnOnLoad=true;Object.assign(p,{x:sp.x,y:sp.y,z:sp.z,yaw:sp.yaw,pitch:sp.pitch,hp:sp.hp,hunger:sp.hunger,sat:sp.sat,xp:sp.xp,level:sp.level,sel:sp.sel,spawn:sp.spawn,flying:sp.flying||false});p.off[0]=sp.offhand||null;for(let i=0;i<36;i++)p.inv[i]=sp.inv[i]||null;for(let i=0;i<4;i++)p.armor[i]=sp.armor[i]||null;
-    game.pendingMobs=save.mobs||[];game.pendingItems=save.items||[];nukeTimersLoad(save.nukeT);game.warWins=save.warWins|0;game._warLoaded=true;wmpLoad(save.war);
+    game.pendingMobs=save.mobs||[];game.pendingItems=save.items||[];nukeTimersLoad(save.nukeT);game.warWins=save.warWins|0;game._warLoaded=true;wmpLoad(save.war);game.spawns=save.spawns||{};
     if(save.nether){const nw=new World(meta.seed+1,true);nw.savedMods=save.nether.mods||{};nw.savedBents=save.nether.bents||{};nw.populated=new Set(save.nether.pop||[]);game.dims.nether={world:nw,ents:(save.nether.mobs||[]).filter(m=>m.type==='wither'||MOBDEF[m.type]).map(m=>{if(m.type==='wither'){const w=new Wither(m.x,m.y,m.z);w.hp=m.hp;w.state='hunt';return w}const e=new Mob(m.type,m.x,m.y,m.z);e.hp=m.hp;return e}),furn:new Map()}}
     if(save.end){const ew=new World(meta.seed+2,'end');ew.savedMods=save.end.mods||{};ew.savedBents=save.end.bents||{};ew.populated=new Set(save.end.pop||[]);ew.dragonDead=!!save.end.dragonDead;const ents=(save.end.mobs||[]).filter(m=>MOBDEF[m.type]).map(m=>{const e=new Mob(m.type,m.x,m.y,m.z);e.hp=m.hp;return e});
       if(!ew.dragonDead){const d=new Dragon(0,80,-30);if(save.end.dragonHp)d.hp=save.end.dragonHp;ents.push(d)}for(const c of (save.end.crystals||[]))ents.push(new Crystal(c[0],c[1],c[2]));ew.crystalsPlaced=true;game.dims.end={world:ew,ents,furn:new Map()}}
@@ -6135,7 +6160,7 @@ function saveWorld(){if(!world||game.state!=='playing'||game.noSave)return;const
   if(overSaveWorld){for(const c of overSaveWorld.chunks.values()){const k=c.cx+','+c.cz;if(!overSaveWorld.savedMods)overSaveWorld.savedMods={};if(!overSaveWorld.savedBents)overSaveWorld.savedBents={};if(c.mods.size)overSaveWorld.savedMods[k]=Array.from(c.mods);if(c.bents.size)overSaveWorld.savedBents[k]=Array.from(c.bents)}Object.assign(mods,overSaveWorld.savedMods||{});Object.assign(bents,overSaveWorld.savedBents||{})}
   const mobs=[],items=[];const overEnts=world.dimKey==='over'?entities:(game.dims.over?game.dims.over.ents:[]);for(const e of overEnts){if(e.dead)continue;if(e instanceof Wither&&!e.dying)mobs.push({type:'wither',x:e.x,y:e.y,z:e.z,hp:e.hp});else if(e instanceof Mob&&!e.dying)mobs.push({type:e.type,x:e.x,y:e.y,z:e.z,hp:e.hp,baby:e.baby,growT:e.growT,sheared:e.sheared,woolId:e.woolId,prof:e.prof,vlevel:e.vlevel,vxp:e.vxp,uses:e.trades?e.trades.map(t=>t.uses):undefined,tamed:e.tamed||undefined,sitting:e.sitting||undefined,color:e.color,hspeed:e.hspeed,hjump:e.hjump,saddled:e.saddled||undefined,maxHp:e.type==='horse'?e.maxHp:undefined,size:e.size,demand:e.trades?e.trades.map(t=>t.demand||0):undefined,restocks:e.restocks,tm:e.def.soldier?e.team:undefined,nt:e.def.soldier?e.nation:undefined,kd:e.def.soldier?e.kind:undefined,gn:e.def.soldier?e.gunId:undefined,el:e.elite||undefined});else if(e instanceof ItemEntity)items.push({x:e.x,y:e.y,z:e.z,id:e.stack.id,count:e.stack.count,dur:e.stack.dur,ench:e.stack.ench,items:e.stack.items})}
   const save={v:1,ch:CH,apoc:game.ax?{wave:game.ax.wave}:undefined,dim:world.dimKey,nether:netherSave,end:endSave,sift:siftSave,time:world.time,day:world.day,spawn:game.worldSpawn,player:{x:p.x,y:p.y,z:p.z,yaw:p.yaw,pitch:p.pitch,hp:p.hp,hunger:p.hunger,sat:p.sat,xp:p.xp,level:p.level,sel:p.sel,inv:p.inv,armor:p.armor,spawn:p.spawn,flying:p.flying,offhand:p.off[0]||null},mods,bents,mobs:mobs.slice(0,120),items:items.slice(0,100),pop:Array.from(overSaveWorld?overSaveWorld.populated:[])};
-  const wid=game.worldId;const nt=nukeTimersSave();if(nt)save.nukeT=nt;if(game.warWins)save.warWins=game.warWins;if(game.war)save.war=wmpSave();const packed=packSave(save);SaveDB.put('ic_world_'+wid,packed).then(ok=>{if(ok)return;let done=false;try{localStorage.setItem('ic_world_'+wid,JSON.stringify(save));done=true}catch(e){}if(!done&&game.time-saveFailT>60){saveFailT=game.time;showMessage('Save failed: the browser gave no room to save. Free space by removing old worlds from the world list.')}});
+  const wid=game.worldId;const nt=nukeTimersSave();if(nt)save.nukeT=nt;if(game.warWins)save.warWins=game.warWins;if(game.war)save.war=wmpSave();if(game.spawns&&Object.keys(game.spawns).length)save.spawns=game.spawns;const packed=packSave(save);SaveDB.put('ic_world_'+wid,packed).then(ok=>{if(ok)return;let done=false;try{localStorage.setItem('ic_world_'+wid,JSON.stringify(save));done=true}catch(e){}if(!done&&game.time-saveFailT>60){saveFailT=game.time;showMessage('Save failed: the browser gave no room to save. Free space by removing old worlds from the world list.')}});
   try{const list=worldList();const m=list.find(w=>w.id===wid);if(m){m.played=Date.now();localStorage.setItem('ic_worlds',JSON.stringify(list))}}catch(e){}
   if(ridePos){p.y=ridePos[1]}game.lastSave=game.time;
 }
@@ -6179,7 +6204,7 @@ function setupMenus(){
   $('btnPlay').onclick=()=>{const w=worldList().find(w=>w.id===selWorld);if(w){initAudio();openWorld(w)}};
   $('btnDelete').onclick=()=>{if(!selWorld)return;if(!confirm('Delete this world? This cannot be undone.'))return;deleteWorldSave(selWorld);localStorage.setItem('ic_worlds',JSON.stringify(worldList().filter(w=>w.id!==selWorld)));selWorld=null;refreshWorldList()};
   let optBack='titleMenu';$('btnOptionsT').onclick=()=>{optBack='titleMenu';showMenu('optionsMenu');showOptSeed()};$('btnOptionsP').onclick=()=>{optBack='pauseMenu';showMenu('optionsMenu');showOptSeed()};$('btnOptionsBack').onclick=()=>{saveOpts();showMenu(optBack)};
-  $('btnControls').onclick=()=>showMenu('controlsMenu');$('btnControlsBack').onclick=()=>showMenu('titleMenu');
+  $('btnControls').onclick=()=>showMenu('controlsMenu');$('btnControlsBack').onclick=()=>showMenu('titleMenu');try{lobbySetup()}catch(e){}
   $('btnResume').onclick=()=>resumeGame();$('pauseMenu').addEventListener('mousedown',ev=>{if(ev.target===ev.currentTarget&&game.paused&&game.state==='playing')resumeGame()});$('btnSaveQuit').onclick=()=>quitToTitle();
   $('btnGuideP').onclick=()=>{resumeGame();openGui('guide')};$('btnGuideInv').onclick=ev=>{ev.stopPropagation();closeGui();openGui('guide')};$('btnGuideClose').onclick=()=>closeGui();$('guideSearch').addEventListener('input',renderGuide);$('guideSearch').addEventListener('keydown',ev=>{ev.stopPropagation();if(ev.key==='Escape')closeGui()});$('guideCat').addEventListener('change',renderGuide);
   $('btnModeP').onclick=()=>{if(onPublicServer()){showMessage('Game mode cannot be changed on a public server');return}if(MP.active&&!MP.host){showMessage('Only the host can change the game mode');return}const p=player;p.mode=p.mode==='creative'?'survival':'creative';if(p.mode==='survival')p.flying=false;refreshModeBtn();updateHUD();updateHotbar();showMessage('Game mode: '+p.mode)};
@@ -6936,19 +6961,20 @@ function wmInit(){if(wm.ready)return;wm.ready=true;
   for(const [a,b] of WAR_SEA_LINKS)link(a,b);
   wm.order=wm.list.slice().sort((a,b)=>b.area-a.area)}
 function wmpNeighbors(n){wmInit();return (wm.adj[n]||[]).slice()}
-function wmpNew(){const en={};for(const n of WAR_NATIONS)en[n[0]]=n[3];return {home:null,owned:[],lost:[],battles:0,turn:0,enemy:en,score:0,won:false}}
-function wmpSave(){const w=game.war;return w?{home:w.home,owned:w.owned.slice(),lost:w.lost.slice(),battles:w.battles,turn:w.turn,enemy:Object.assign({},w.enemy),score:w.score||0,won:!!w.won,scenes:(w.scenes||[]).slice(-80)}:null}
+function wmpNew(){const en={};for(const n of WAR_NATIONS)en[n[0]]=n[3];return {home:null,owned:[],lost:[],battles:0,turn:0,enemy:en,score:0,won:false,players:{}}}
+function wmpSave(){const w=game.war;return w?{home:w.home,owned:w.owned.slice(),lost:w.lost.slice(),battles:w.battles,turn:w.turn,enemy:Object.assign({},w.enemy),score:w.score||0,won:!!w.won,scenes:(w.scenes||[]).slice(-80),players:wmpPlayersSave(w)}:null}
 function wmpNorm(o){wmInit();const w=wmpNew();if(!o||typeof o!=='object')return w;const ok=n=>typeof n==='string'&&!!wm.by[n];
   if(ok(o.home))w.home=o.home;w.owned=(Array.isArray(o.owned)?o.owned:[]).filter((n,i,a)=>ok(n)&&a.indexOf(n)===i);w.lost=(Array.isArray(o.lost)?o.lost:[]).filter(ok);w.battles=+o.battles||0;w.turn=+o.turn||0;w.score=+o.score||0;w.won=!!o.won;w.scenes=(Array.isArray(o.scenes)?o.scenes:[]).filter(q=>Array.isArray(q)&&isFinite(+q[0])&&isFinite(+q[1])).slice(-80).map(q=>[+q[0],+q[1],String(q[2]||''),q[3]|0,q[4]|0]);
   if(o.enemy&&typeof o.enemy==='object')for(const n in o.enemy)if(ok(n)&&isFinite(+o.enemy[n]))w.enemy[n]=Math.max(1,Math.min(20,+o.enemy[n]));
-  if(w.home&&!w.owned.includes(w.home))w.owned.unshift(w.home);return w}
+  if(w.home&&!w.owned.includes(w.home))w.owned.unshift(w.home);wmpPlayersNorm(w,o.players);return w}
 function wmpLoad(o){game.war=o?wmpNorm(o):null;wmAsk=!!(game.war&&!game.war.home)}
-function wmpIn(o){game.war=o?wmpNorm(o):null;wm.dirty=true;wmRefresh()}
+function wmpIn(o){const was=game.war?wmpMine().home:null;game.war=o?wmpNorm(o):null;wm.dirty=true;wmRefresh();wmpAfterIn(was)}
 function wmpChanged(){wm.dirty=true;wmRefresh();if(MP.active&&MP.host)mpSend({t:'warmap',war:wmpSave()})}
-function wmpOwns(n){return !!(game.war&&game.war.owned.includes(n))}
-function wmpTargets(){const w=game.war;if(!w||!w.home)return [];wmInit();const out=[];for(const o of wm.list)if(!w.owned.includes(o.name)&&wm.adj[o.name].some(x=>w.owned.includes(x)))out.push(o.name);return out}
+function wmpOwns(n){return !!(game.war&&wmpMine().owned.includes(n))}
+function wmpTargets(){return game.war?wmpTargetsFor(wmpMine()):[]}
+function wmpTargetsSolo(){const w=game.war;if(!w||!w.home)return [];wmInit();const out=[];for(const o of wm.list)if(!w.owned.includes(o.name)&&wm.adj[o.name].some(x=>w.owned.includes(x)))out.push(o.name);return out}
 function wmpStrength(n){const w=game.war;return (w&&w.enemy[n])||(wm.by[n]&&wm.by[n].str)||1}
-function wmState(n){const w=game.war;if(!w||!w.home)return 'enemy';if(n===w.home)return 'home';if(w.owned.includes(n))return 'own';if(wmpTargets().includes(n))return 'target';return 'enemy'}
+function wmState(n){const w=game.war&&wmpMine();if(!w||!w.home)return 'enemy';if(n===w.home)return 'home';if(w.owned.includes(n))return 'own';if(wmpTargets().includes(n))return 'target';return 'enemy'}
 function wmPattern(){if(wm.pat)return wm.pat;const t=document.createElement('canvas');t.width=t.height=8;const c=t.getContext('2d');c.strokeStyle='rgba(255,50,50,.75)';c.lineWidth=2;c.beginPath();c.moveTo(-2,6);c.lineTo(6,-2);c.moveTo(2,10);c.lineTo(10,2);c.moveTo(-2,10);c.lineTo(10,-2);c.stroke();wm.pat=document.createElement('canvas').getContext('2d').createPattern(t,'repeat');return wm.pat}
 function wmNatPath(c,o){c.beginPath();for(const p of o.parts){const n=p.length/2;for(let i=0;i<n;i++){const x=wmX(p[2*i]),y=wmY(p[2*i+1]);if(i)c.lineTo(x,y);else c.moveTo(x,y)}c.closePath()}}
 function wmTf(c){c.setTransform(wm.vz,0,0,wm.vz,-wm.vx*wm.vz,-wm.vy*wm.vz)}
@@ -6958,44 +6984,44 @@ function wmBase(){wmInit();const cv=wm.base||(wm.base=document.createElement('ca
   const g=c.createLinearGradient(0,0,0,512);g.addColorStop(0,'#14477a');g.addColorStop(1,'#0a2a4d');c.fillStyle=g;c.fillRect(0,0,1024,512);wmTf(c);
   c.strokeStyle='rgba(255,255,255,.07)';c.lineWidth=L;c.beginPath();for(let lo=-150;lo<=150;lo+=30){c.moveTo(wmX(lo),0);c.lineTo(wmX(lo),512)}for(let la=-60;la<=60;la+=30){c.moveTo(0,wmY(la));c.lineTo(1024,wmY(la))}c.stroke();
   WMP_LAND.forEach((p,k)=>{c.beginPath();for(let i=0;i<p.length/2;i++){const x=wmX(p[2*i]),y=wmY(p[2*i+1]);if(i)c.lineTo(x,y);else c.moveTo(x,y)}c.closePath();c.fillStyle=k===WMP_LAND.length-1?'#9fb7c4':'#1d4d2c';c.fill();c.strokeStyle=k===WMP_LAND.length-1?'#cfe0ea':'#2f7040';c.lineWidth=L;c.stroke()});
-  const cn=game.wmpCounter&&game.wmpCounter.country,bt=game.wmpBattle&&game.wmpBattle.country;
-  for(const o of wm.order){const st=wmState(o.name);wmNatPath(c,o);c.globalAlpha=st==='own'||st==='home'?0.92:0.82;c.fillStyle=st==='own'||st==='home'?WMP_ME:o.col;c.fill();c.globalAlpha=1;
+  const cn=game.wmpCounter&&game.wmpCounter.country,bt=(wmpMyB()||{}).country;
+  for(const o of wm.order){const st=wmState(o.name);wmNatPath(c,o);c.globalAlpha=st==='own'||st==='home'?0.92:0.82;c.fillStyle=wmpCol(o.name,st==='own'||st==='home'?WMP_ME:o.col);c.fill();c.globalAlpha=1;
     if(st==='target'){c.fillStyle=wmPattern();c.fill()}
     c.lineJoin='round';c.strokeStyle='rgba(0,0,0,.65)';c.lineWidth=L;c.stroke();
-    if(st==='own'){c.strokeStyle='#e8fbff';c.lineWidth=1.5*L;c.stroke()}
+    wmpOtherMark(c,o,st,L);if(st==='own'){c.strokeStyle='#e8fbff';c.lineWidth=1.5*L;c.stroke()}
     if(st==='target'){c.save();c.setLineDash([5*L,3*L]);c.strokeStyle='#ff4a3a';c.lineWidth=2*L;c.stroke();c.restore()}
     if(st==='home'){c.strokeStyle='#ffd34a';c.lineWidth=3*L;c.stroke()}
     if(o.name===cn||o.name===bt){c.strokeStyle=o.name===cn?'#ff1f1f':'#ff9a2a';c.lineWidth=3.5*L;c.stroke()}}
   c.setTransform(1,0,0,1,0,0);wm.dirty=false}
-function wmLabel(c,o,big){const w=game.war;const own=wmpOwns(o.name);const t1=o.name;const t2='Str '+wmpStrength(o.name)+(own?' - yours':(w&&w.home?' - enemy':''));const L=1/wm.vz;c.textAlign='center';c.lineJoin='round';
+function wmLabel(c,o,big){const w=game.war;const own=wmpOwns(o.name);const t1=o.name;const t2='Str '+wmpStrength(o.name)+(own?' - yours':wmpHeldTag(o.name));const L=1/wm.vz;c.textAlign='center';c.lineJoin='round';
   c.fillStyle='#fff';c.beginPath();c.arc(o.px,o.py,2.5*L,0,6.3);c.fill();c.strokeStyle='#000';c.lineWidth=L;c.stroke();
   c.font='bold '+13*L+'px sans-serif';c.lineWidth=4*L;c.strokeStyle='rgba(0,0,0,.85)';c.strokeText(t1,o.px,o.py-8*L);c.fillStyle='#fff';c.fillText(t1,o.px,o.py-8*L);
   if(big){c.font=11*L+'px sans-serif';c.lineWidth=3*L;c.strokeText(t2,o.px,o.py+14*L);c.fillStyle='#ffe9a8';c.fillText(t2,o.px,o.py+14*L)}}
 function wmDraw(){const cv=wm.cv;if(!cv)return;const c=cv.getContext('2d');if(wm.dirty||!wm.base)wmBase();c.setTransform(1,0,0,1,0,0);c.drawImage(wm.base,0,0);wmTf(c);
   const hv=wm.hover!=null?wm.list[wm.hover]:null,sl=wm.sel!=null?wm.list[wm.sel]:null,w=game.war,L=1/wm.vz;
   for(const [o,a,lw] of [[hv,.28,2],[sl,.2,3]]){if(!o)continue;wmNatPath(c,o);c.fillStyle='rgba(255,255,255,'+a+')';c.fill();c.strokeStyle='#fff';c.lineWidth=lw*L;c.stroke()}
-  const home=w&&w.home?wm.by[w.home]:null;const seen=new Set();
-  for(const [o,big] of [[hv,true],[sl,true],[home,false]]){if(!o||seen.has(o.name))continue;seen.add(o.name);wmLabel(c,o,big)}
+  const home=w&&wmpMine().home?wm.by[wmpMine().home]:null;const seen=new Set();
+  for(const [o,big] of [[hv,true],[sl,true],[home,false]]){if(!o||seen.has(o.name))continue;seen.add(o.name);wmLabel(c,o,big)}wmpLabels(c);
   c.setTransform(1,0,0,1,0,0)}
 function wmRefresh(){if(game.gui&&game.gui.type==='warmap'){wmInfo();wmDraw()}}
-function wmInfo(){const g=game.gui,w=game.war;if(!g||g.type!=='warmap'||!w)return;wmInit();const pick=!w.home;const sl=wm.sel!=null?wm.list[wm.sel]:null,hv=wm.hover!=null?wm.list[wm.hover]:null;
+function wmInfo(){const g=game.gui,w=game.war;if(!g||g.type!=='warmap'||!w)return;wmInit();const me=wmpMine();const pick=!me.home;const sl=wm.sel!=null?wm.list[wm.sel]:null,hv=wm.hover!=null?wm.list[wm.hover]:null;
   $('wmTitle').textContent=pick?'Choose your country':'World Map';
-  $('wmHome').textContent=w.home?w.home+' ('+wm.by[w.home].cap+')':'not chosen yet';
-  $('wmOwned').textContent=w.owned.length+' / '+WAR_NATIONS.length+(w.won?' - WORLD CONQUERED':'');
-  $('wmScore').textContent='Score '+(w.score||0)+'  |  Battles '+w.battles+'  |  Lost '+w.lost.length;
-  const desc=o=>o?(o.name+' ('+o.cap+')'):'';const who=o=>wmpOwns(o.name)?'yours':(w.home?'enemy':'unclaimed');
+  $('wmHome').textContent=me.home?me.home+' ('+wm.by[me.home].cap+')':'not chosen yet';
+  $('wmOwned').textContent=me.owned.length+' / '+WAR_NATIONS.length+(w.won?' - WORLD CONQUERED':'');
+  $('wmScore').textContent='Score '+(me.score||0)+'  |  Battles '+(me.battles||0)+'  |  Lost '+(me.lost||[]).length;wmpPlayersList();
+  const desc=o=>o?(o.name+' ('+o.cap+')'):'';const who=o=>wmpOwns(o.name)?'yours':(wmpOwnerOf(o.name)?'held by '+wmpPName(wmpOwnerOf(o.name)):(me.home?'enemy':'unclaimed'));
   $('wmHov').textContent=hv?('Hover: '+hv.name+', strength '+wmpStrength(hv.name)+', '+who(hv)):'Hover: -';
   $('wmSel').textContent=sl?desc(sl)+' - '+who(sl):'Click a country';
   $('wmStr').textContent=sl?(wmpOwns(sl.name)?'your territory':String(wmpStrength(sl.name))+' / 10'):'-';
-  const B=game.wmpBattle,C=game.wmpCounter;let msg='';
-  if(pick)msg='Click a country, then press CONFIRM to lead it.';
-  else if(B)msg='Battle for '+B.country+' underway: defeat their soldiers ('+B.mobs.filter(m=>!(m.dead||m.dying||m.hp<=0)).length+' left).';
+  const B=wmpMyB(),C=game.wmpCounter;let msg='';
+  if(pick)msg=sl&&wmpTaken(sl.name)?sl.name+' is taken: choose another country.':'Click a country, then press CONFIRM to lead it.';
+  else if(B&&B.pvp)msg='Duel for '+B.country+': kill the defender before the timer ends.';else if(B)msg='Battle for '+B.country+' underway: defeat their soldiers ('+B.mobs.filter(m=>!(m.dead||m.dying||m.hp<=0)).length+' left).';
   else if(C)msg='ALERT: '+C.from+' attacks '+C.country+'! '+Math.max(0,Math.ceil(C.t))+' s to repel them.';
   else if(sl&&!wmpOwns(sl.name)&&!wmpTargets().includes(sl.name))msg=sl.name+' is out of reach: take a neighbouring country first.';
   else msg='Striped red countries can be attacked. Gold outline is your home.';
   $('wmMsg').textContent=msg;
   const show=(id,on,dis)=>{const b=$(id);b.style.display=on?'flex':'none';b.disabled=!!dis;b.style.opacity=dis?'.45':'1'};
-  show('wmConfirm',pick,!sl);
+  show('wmConfirm',pick,!sl||wmpTaken(sl.name));
   const canAtk=!!(sl&&wmpTargets().includes(sl.name));
   show('wmAttack',!pick,B?false:!canAtk);$('wmAttack').textContent=B?'RETREAT':'ATTACK';
   show('wmRecruit',!pick,false);$('wmRecruit').textContent='RECRUIT ('+WMP_COST+' iron)'}
@@ -7013,33 +7039,33 @@ function wmSetup(){const cv=$('warMapCv');wm.cv=cv;if(cv._done)return;cv._done=t
   cv.addEventListener('dblclick',()=>{wmView(1,512,256);wmDraw()});
   $('wmZin').onclick=()=>{wmView(wm.vz*1.5,512,256);wmDraw()};$('wmZout').onclick=()=>{wmView(wm.vz/1.5,512,256);wmDraw()};$('wmZ0').onclick=()=>{wmView(1,512,256);wmDraw()};
   $('wmConfirm').onclick=()=>{if(wm.sel!=null&&wmpPick(wm.list[wm.sel].name))closeGui()};
-  $('wmAttack').onclick=()=>{if(game.wmpBattle){wmpRetreat();wmInfo();return}if(wm.sel!=null)wmpAttack(wm.list[wm.sel].name)};
+  $('wmAttack').onclick=()=>{if(wmpMyB()){wmpRetreat();wmInfo();return}if(wm.sel!=null)wmpAttack(wm.list[wm.sel].name)};
   $('wmRecruit').onclick=()=>{wmpRecruit();wmInfo()};
   $('wmClose').onclick=()=>closeGui()}
 function openWarMap(pick){if(!(game.mods&&game.mods.war)||!world||player.dead||game.gui)return false;wmInit();
   if(!game.war){if(MP.active&&!MP.host){showMessage('The host has not started the war yet');return false}game.war=wmpNew()}
-  if(!openGui('warmap')&&!(game.gui&&game.gui.type==='warmap'))return false;wmSetup();wm.hover=null;wm.vz=1;wm.vx=wm.vy=0;if(!game.war.home)wm.sel=null;wm.dirty=true;wmInfo();wmDraw();return true}
+  if(!openGui('warmap')&&!(game.gui&&game.gui.type==='warmap'))return false;wmSetup();wm.hover=null;wm.vz=1;wm.vx=wm.vy=0;if(!wmpMine().home)wm.sel=null;wm.dirty=true;wmInfo();wmDraw();return true}
 function wmpKey(){if(!(game.mods&&game.mods.war)||player.dead)return false;if(game.gui){if(game.gui.type==='warmap'){closeGui();return true}return false}return openWarMap()}
-function wmpPick(name){const w=game.war;if(!w||w.home||!wm.by[name])return false;if(MP.active&&!MP.host){showMessage('Only the host picks the country');return false}w.home=name;w.owned=[name];w.turn=1;nsOnPick(name);wmCd=240+Math.random()*120;wmpChanged();showMessage('You lead '+name+'. Press M to open the map and attack your neighbours.');return true}
+function wmpPick(name){const w=game.war;if(MP.active&&!MP.host)return wmpGuestPick(name);if(!w||w.home||!wm.by[name])return false;if(wmpTaken(name)){showMessage(name+' is already taken by '+wmpPName(wmpOwnerOf(name)||'host'));return false}if(MP.active&&!MP.host){showMessage('Only the host picks the country');return false}w.home=name;w.owned=[name];w.turn=1;nsOnPick(name);wmCd=240+Math.random()*120;wmpChanged();showMessage('You lead '+name+'. Press M to open the map and attack your neighbours.');return true}
 /* ---- battles: a squad of enemy soldiers near the player ---- */
-function wmpSquadPos(){if(game.nsSquad){const q=game.nsSquad;game.nsSquad=null;if(Date.now()-q.t<3000)return q.pos}const p=player;const a0=Math.random()*PI*2;
+function wmpSquadPos(at){if(!at&&game.nsSquad){const q=game.nsSquad;game.nsSquad=null;if(Date.now()-q.t<3000)return q.pos}const p=at||player;const a0=Math.random()*PI*2;
   for(const [d0,d1] of [[35,15],[20,10],[10,6]])for(let k=0;k<14;k++){const a=a0+k*0.9,d=d0+Math.random()*d1;const x=p.x+Math.cos(a)*d,z=p.z+Math.sin(a)*d;if(!world.hasChunk(floor(x),floor(z)))continue;const y=findGround(x,z);if(y<=SEA+1||y>=CH-4)continue;return [x,z]}
   return [p.x+30,p.z]}
-function wmpSpawn(n,name){const pos=wmpSquadPos();let arr=null,fb=false;
+function wmpSpawn(n,name,at){const pos=wmpSquadPos(at);let arr=null,fb=false;
   if(typeof spawnWarSquad==='function'){try{arr=spawnWarSquad('enemy',n,pos[0],pos[1],{nation:name})}catch(e){arr=null}}
   if(!Array.isArray(arr)||!arr.length){fb=true;arr=[];for(let i=0;i<n;i++){const ox=pos[0]+(Math.random()-0.5)*10,oz=pos[1]+(Math.random()-0.5)*10;const m=new Mob('zombie',ox,findGround(ox,oz),oz);entities.push(m);arr.push(m)}}
   for(const m of arr)m.wmpSquad=true;return {mobs:arr,fb}}
 function wmpDone(mobs){return mobs.every(m=>m.dead||m.dying||m.hp<=0)}
-function wmpAttack(name){const w=game.war;if(!w||!w.home)return false;wmInit();
+function wmpAttack(name){const w=game.war;if(MP.active&&!MP.host)return wmpGuestAttack(name);if(!w||!w.home)return false;wmInit();
   if(MP.active&&!MP.host){showMessage('Only the host can lead attacks');return false}
-  if(game.wmpBattle){showMessage('A battle is already underway');return false}
+  if(wmpMyB()){showMessage('A battle is already underway');return false}
   if(!wmpTargets().includes(name)){showMessage(name+' is not within reach of your territory');return false}
   if(player.dead||world.dimKey!=='over'){showMessage('Battles are fought in the overworld');return false}
-  const str=wmpStrength(name),n=3+str;if(game.gui&&game.gui.type==='warmap')closeGui();
+  if(wmpPvpStart('host',MP.myId,name))return true;const str=wmpStrength(name),n=3+str;if(game.gui&&game.gui.type==='warmap')closeGui();
   nsBeforeSquad(name);const r=wmpSpawn(n,name);if(!r.mobs.length){showMessage('Could not deploy enemy troops here');return false}
   game.wmpBattle={country:name,str,n,mobs:r.mobs,fb:r.fb,t:0};showMessage('Battle for '+name+': defeat their soldiers');return true}
-function wmpRetreat(){const B=game.wmpBattle;if(!B)return false;for(const m of B.mobs)m.dead=true;game.wmpBattle=null;showMessage('You pulled back from '+B.country);wm.dirty=true;wmRefresh();return true}
-function wmpWon(){const w=game.war,B=game.wmpBattle;game.wmpBattle=null;if(!w||!B)return;if(!w.owned.includes(B.country))w.owned.push(B.country);w.lost=w.lost.filter(n=>n!==B.country);w.battles++;w.turn++;w.score=(w.score||0)+B.str;
+function wmpRetreat(){if(MP.active&&!MP.host){if(!game.wmpRB)return false;mpSend({t:'wmret'});return true}if(!game.wmpBattle)return wmpPvpRetreat('host');const B=game.wmpBattle;if(!B)return false;for(const m of B.mobs)m.dead=true;game.wmpBattle=null;showMessage('You pulled back from '+B.country);wm.dirty=true;wmRefresh();return true}
+function wmpWon(){const w=game.war,B=game.wmpBattle;game.wmpBattle=null;if(!w||!B)return;wmpStrip(B.country,'host');if(!w.owned.includes(B.country))w.owned.push(B.country);w.lost=w.lost.filter(n=>n!==B.country);w.battles++;w.turn++;w.score=(w.score||0)+B.str;
   const rw=8*B.str;if(typeof giveItems==='function')giveItems(463,rw);showMessage('Victory! '+B.country+' is yours (+'+B.str+' score, +'+rw+' bullets)');
   if(w.owned.length>=WAR_NATIONS.length&&!w.won){w.won=true;showMessage('TOTAL VICTORY! Every country on the map is yours. Keep playing as you like.')}wmpChanged()}
 function wmpLost(){const w=game.war,B=game.wmpBattle;game.wmpBattle=null;if(!w||!B)return;for(const m of B.mobs)m.dead=true;w.battles++;w.turn++;w.enemy[B.country]=Math.min(20,wmpStrength(B.country)+1);
@@ -7054,10 +7080,10 @@ function wmpCounterEnd(won){const w=game.war,C=game.wmpCounter;game.wmpCounter=n
   if(won){w.score=(w.score||0)+1;showMessage('You repelled the attack from '+C.from+': '+C.country+' holds.')}
   else{for(const m of C.mobs)m.dead=true;w.owned=w.owned.filter(n=>n!==C.country);if(!w.lost.includes(C.country))w.lost.push(C.country);w.turn++;w.won=false;showMessage(C.country+' has fallen to '+C.from+'! Retake it from the map (M).')}
   wmpChanged()}
-function wmpTick(dt){const m=game.mods;if(!m||!m.war||!world||game.state!=='playing')return;if(MP.active&&!MP.host)return;
-  if(!game.war){game.war=wmpNew();wmAsk=true}
+function wmpTick(dt){const m=game.mods;if(!m||!m.war||!world||game.state!=='playing')return;if(MP.active&&!MP.host){wmpGuestTick(dt);return}wmpHudTick(dt);
+  if(!game.war){game.war=wmpNew();wmAsk=true;if(MP.active)wmpChanged()}
   if(wmAsk&&!game.gui&&!game.paused&&!player.dead&&!game.cmdOpen){wmAsk=false;if(!game.war.home)openWarMap(true)}
-  const w=game.war;if(!w.home)return;
+  wmpPlayersTick(dt);const w=game.war;if(!w.home)return;
   const B=game.wmpBattle,C=game.wmpCounter;
   if(B){B.t+=dt;if(player.dead)wmpLost();else if(wmpDone(B.mobs))wmpWon()}
   if(C&&game.wmpCounter===C){C.t-=dt;if(wmpDone(C.mobs))wmpCounterEnd(true);else if(C.t<=0)wmpCounterEnd(false)}
@@ -7066,6 +7092,148 @@ function wmpTick(dt){const m=game.mods;if(!m||!m.war||!world||game.state!=='play
 function wmpRecruit(){if(!game.mods||!game.mods.war)return false;const p=player;const eggs=ITEMS[448]?{id:448,n:3,label:'Recruit Soldier eggs'}:{id:463,n:32,label:'bullets (no Recruit Soldier egg in this build)'};
   if(p.mode!=='creative'){if(countItem(260)<WMP_COST){showMessage('Recruiting needs '+WMP_COST+' iron ingots');return false}removeItem(260,WMP_COST)}
   giveItems(eggs.id,eggs.n);showMessage('Recruited: '+eggs.n+' '+eggs.label);return true}
+/* ---- servers: separate spawns, player nations in War, fights for countries (the host decides, guests ask) ---- */
+const WMP_COLS=['#ff9f1c','#c77dff','#ff5d8f','#7bd88f','#f4e04d','#4d7cff','#ff6b3d','#3dd6b5','#cfcfcf','#b5651d'];
+const MP_DIRS=['north','north-east','east','south-east','south','south-west','west','north-west'];
+const WMP_PVP_SECS=240;
+function mpDirWord(dx,dz){const a=Math.atan2(dx,-dz);return MP_DIRS[((Math.round(a/(PI/4))%8)+8)%8]}
+function mpTok(){try{let t=localStorage.getItem('ic_tok');if(!t){t=Math.random().toString(36).slice(2,12)+Math.random().toString(36).slice(2,6);localStorage.setItem('ic_tok',t)}return t}catch(e){return null}}
+// --- own spawn per player: a ring 160-320 blocks round the world spawn, golden-angle spacing, on dry land ---
+function mpOverWorld(){if(world&&world.dimKey==='over')return world;const d=game.dims&&game.dims.over;return d&&d.world||new World(game.seed)}
+function mpSpawnLand(W,x,z){x=floor(x);z=floor(z);for(const [dx,dz] of [[0,0],[7,0],[-7,0],[0,7],[0,-7]]){const i=W.columnInfo(x+dx,z+dz);if(i.height<=SEA+2||i.biome===BI.ocean||i.biome===BI.deep_ocean||i.biome===BI.mountains)return false}return true}
+function mpSpawnFor(key,name){const S=game.spawns||(game.spawns={});if(S[key]){if(name)S[key].name=name;return S[key]}
+  const n=Object.keys(S).length,ws=game.worldSpawn,W=mpOverWorld(),others=Object.keys(S).map(k=>S[k]);
+  const ok=(x,z)=>mpSpawnLand(W,x,z)&&others.every(o=>Math.hypot(o.x-x,o.z-z)>=48);
+  const a0=(n+1)*2.399963+(game.seed%628)/100;let best=null;
+  for(let k=0;k<60&&!best;k++){const a=a0+(k%2?1:-1)*floor((k+1)/2)*0.1,r=160+((((n+1)*0.618034+k*0.37)%1)*160),x=ws[0]+Math.cos(a)*r,z=ws[2]+Math.sin(a)*r;if(ok(x,z))best=[floor(x)+0.5,floor(z)+0.5]}
+  for(let r=160;r<=320&&!best;r+=12)for(let a=0;a<PI*2&&!best;a+=0.15){const x=ws[0]+Math.cos(a0+a)*r,z=ws[2]+Math.sin(a0+a)*r;if(ok(x,z))best=[floor(x)+0.5,floor(z)+0.5]}
+  if(!best)best=[floor(ws[0]+Math.cos(a0)*200)+0.5,floor(ws[2]+Math.sin(a0)*200)+0.5];
+  return S[key]={n:n+1,x:best[0],z:best[1],name:name||''}}
+// host: a guest's first player packet names it; its key is its device token, else its name
+function mpSpawnJoin(conn,d){if(!MP.host||!world||conn.pkey)return;const r=mpRemote(d.id,d.name);let base=String(d.tok||d.name||d.id||'p').replace(/[^a-z0-9 _#-]/gi,'').slice(0,40)||'p';if(/^(__proto__|constructor|prototype)$/.test(base))base='_'+base;
+  let key=base,k=1;while(MP.conns.some(c=>c!==conn&&c.open&&c.pkey===key))key=base+'#'+(++k);conn.pkey=key;
+  const dn=r?r.name:String(d.name||'Player'),sp=mpSpawnFor(key,dn);try{conn.send({t:'spawnpt',x:sp.x,z:sp.z,n:sp.n,ws:[game.worldSpawn[0],game.worldSpawn[2]]})}catch(e){}
+  const w=game.war;if(w&&w.players&&w.players[key]){w.players[key].id=d.id;w.players[key].name=dn;wmpChanged()}}
+function mpSpawnGo(){const s=game.mySpawn,p=player;if(!s||!world||world.dimKey!=='over')return false;ensureChunks(s[0],s[2],2);const spot=safeSpotNear(s[0],s[2]);p.x=spot[0];p.y=spot[1];p.z=spot[2];p.vx=p.vy=p.vz=0;p.fallDist=0;if(p.riding)p.riding.dismount();return true}
+function mpSpawnIn(d){const x=+d.x,z=+d.z;if(!isFinite(x)||!isFinite(z))return;game.mySpawn=[x,70,z];MP.spawnAck=true;const ws=Array.isArray(d.ws)?d.ws:[game.worldSpawn[0],game.worldSpawn[2]],p=player;
+  if(!game.mySpawnShown){game.mySpawnShown=true;const dx=x-ws[0],dz=z-ws[1];showMessage('Your spawn is '+floor(Math.hypot(dx,dz))+' blocks '+mpDirWord(dx,dz)+' of the world centre')}
+  if(world&&world.dimKey==='over'&&!p.dead&&Math.hypot(p.x-ws[0],p.z-ws[1])<48)mpSpawnGo()} // still standing at the shared spawn: go to your own
+// the host keeps the chunks round every guest alive so mobs and squads out there have ground under them
+function mpKeeps(c){if(!MP.active||!MP.host)return false;for(const r of MP.remote.values()){if(!r.hasTarget||r.hidden)continue;if(abs(c.cx-(floor(r.x)>>4))<=4&&abs(c.cz-(floor(r.z)>>4))<=4)return true}return false}
+function mpSpawnTick(dt){if(!MP.active||!MP.host||!world||world.dimKey!=='over')return;MP.gcT=(MP.gcT||0)-dt;if(MP.gcT>0)return;MP.gcT=0.2;let gen=0;
+  for(const r of MP.remote.values()){if(!r.hasTarget||r.hidden)continue;if(Math.hypot(r.x-player.x,r.z-player.z)<(opts.renderDist+2)*16)continue;const pcx=floor(r.x)>>4,pcz=floor(r.z)>>4;
+    for(let q=0;q<=3;q++)for(let dx=-q;dx<=q;dx++)for(let dz=-q;dz<=q;dz++){if(Math.max(abs(dx),abs(dz))!==q)continue;const c=world.getChunk(pcx+dx,pcz+dz);if(c&&c.generated)continue;populateChunk(world.generateChunk(pcx+dx,pcz+dz));if(++gen>=3)return}}}
+// --- who owns what ---
+function wmpPlayersSave(w){const o={};for(const k in (w.players||{})){const r=w.players[k];o[k]={name:r.name,id:r.id,home:r.home,owned:r.owned.slice(),lost:(r.lost||[]).slice(),score:r.score||0,battles:r.battles||0,ci:r.ci|0}}return o}
+function wmpPlayersNorm(w,src){w.players={};if(!src||typeof src!=='object')return;const ok=n=>typeof n==='string'&&!!wm.by[n];let c=0;
+  for(const k of Object.keys(src)){if(++c>40)break;const r=src[k];if(!r||typeof r!=='object')continue;const home=ok(r.home)?r.home:null,owned=(Array.isArray(r.owned)?r.owned:[]).filter((n,i,a)=>ok(n)&&a.indexOf(n)===i);if(home&&!owned.includes(home))owned.unshift(home);
+    w.players[k]={name:String(r.name||'Player').replace(/[^a-z0-9 _-]/gi,'').slice(0,16)||'Player',id:r.id?String(r.id).slice(0,64):null,home,owned,lost:(Array.isArray(r.lost)?r.lost:[]).filter(ok),score:+r.score||0,battles:+r.battles||0,ci:(r.ci|0)&1023}}}
+function wmpOwnerOf(n){const w=game.war;if(!w)return null;if(w.owned.includes(n))return 'host';for(const k in (w.players||{}))if(w.players[k].owned.includes(n))return k;return null}
+function wmpTaken(n){const w=game.war;return !!(w&&(w.home===n||wmpOwnerOf(n)))}
+function wmpMeKey(){if(!MP.active||MP.host)return 'host';const w=game.war;if(w)for(const k in (w.players||{}))if(w.players[k].id===MP.myId)return k;return null}
+function wmpMine(){const w=game.war,k=wmpMeKey();if(!w)return {home:null,owned:[],lost:[],score:0,battles:0};return k==='host'?w:((k&&w.players[k])||{home:null,owned:[],lost:[],score:0,battles:0})}
+function wmpRec(k){const w=game.war;return k==='host'?w:(w&&w.players&&w.players[k])||null}
+function wmpHomeOf(k){const r=wmpRec(k);return r?r.home:null}
+function wmpPName(k){if(k==='host'){if(!MP.active)return 'You';if(MP.host)return MP.public?publicAlias(MP.myId):(MP.name||'Host');const h=MP.remote.get(MP.hostId);return h?h.name:'Host'}const r=wmpRec(k);return r?r.name:'?'}
+function wmpPCol(k){if(k==='host')return WMP_ME;const r=wmpRec(k);return WMP_COLS[((r&&r.ci)|0)%WMP_COLS.length]}
+function wmpCol(n,def){const k=wmpOwnerOf(n);return k?wmpPCol(k):def}
+function wmpTargetsFor(r){if(!r||!r.home)return [];wmInit();const out=[];for(const o of wm.list)if(!r.owned.includes(o.name)&&wm.adj[o.name].some(x=>r.owned.includes(x)))out.push(o.name);return out}
+function wmpHeldTag(n){const k=wmpOwnerOf(n);return k?' - '+wmpPName(k):(wmpMine().home?' - enemy':'')}
+// take a country off every owner except keep; a lost home moves to the next country, or the player is out and picks again
+function wmpStrip(country,keep){const w=game.war;if(!w)return;for(const k of ['host'].concat(Object.keys(w.players||{}))){if(k===keep)continue;const r=wmpRec(k);if(!r||!r.owned.includes(country))continue;r.owned=r.owned.filter(n=>n!==country);if(!r.lost)r.lost=[];if(!r.lost.includes(country))r.lost.push(country);
+    if(r.home===country){r.home=r.owned[0]||null;if(k==='host'&&!r.home){wmAsk=true;w.won=false}}}}
+function wmpTransfer(country,toKey){const w=game.war,t=wmpRec(toKey);if(!w||!t)return;wmpStrip(country,toKey);if(!t.owned.includes(country))t.owned.push(country);t.lost=(t.lost||[]).filter(n=>n!==country);t.battles=(t.battles||0)+1;t.score=(t.score||0)+1}
+function wmpOtherMark(c,o,st,L){if(st==='own'||st==='home')return;const k=wmpOwnerOf(o.name);if(!k)return;c.strokeStyle=wmpPCol(k);c.lineWidth=(wmpHomeOf(k)===o.name?3.5:2)*L;c.stroke()}
+function wmpLabels(c){const w=game.war;if(!w)return;const L=1/wm.vz;const ks=(MP.active||Object.keys(w.players||{}).length?['host']:[]).concat(Object.keys(w.players||{}));
+  for(const k of ks){const h=wmpHomeOf(k);if(!h||!wm.by[h])continue;const o=wm.by[h],nm=wmpPName(k);c.font='bold '+11*L+'px sans-serif';c.textAlign='center';const tw=c.measureText(nm).width+10*L,x=o.px-tw/2,y=o.py-36*L,hh=15*L;
+    c.fillStyle=wmpPCol(k);c.fillRect(x,y,tw,hh);c.strokeStyle='#000';c.lineWidth=L;c.strokeRect(x,y,tw,hh);c.fillStyle='#000';c.fillText(nm,o.px,y+11.5*L)}}
+function wmpPlayersList(){const el=$('wmPlayers'),w=game.war;if(!el||!w)return;el.textContent='';const ks=(MP.active||Object.keys(w.players||{}).length?['host']:[]).concat(Object.keys(w.players||{}));
+  if(!ks.length){el.textContent='-';return}
+  for(const k of ks){const r=wmpRec(k);if(!r)continue;const row=document.createElement('div');row.style.cssText='display:flex;align-items:center;gap:5px;font-size:11px;font-weight:normal';const dot=document.createElement('i');dot.style.cssText='width:10px;height:10px;border-radius:50%;border:1px solid #000;flex:none;background:'+wmpPCol(k);
+    const t=document.createElement('span');t.textContent=wmpPName(k)+(k===wmpMeKey()?' (you)':'')+': '+(r.home||'choosing...')+(r.owned.length>1?' +'+(r.owned.length-1):'');row.appendChild(dot);row.appendChild(t);el.appendChild(row)}}
+// --- my current fight, whoever runs it ---
+function wmpMyB(){if(game.wmpBattle)return game.wmpBattle;if(MP.active&&!MP.host){const R=game.wmpRB;return R?{country:R.country,pvp:R.pvp,mobs:Array.from({length:R.left|0},()=>({hp:1})),t:0}:null}
+  const P=(game.wmpPvp||[]).find(P=>P.att.key==='host');return P?{country:P.country,pvp:true,mobs:[{hp:1}],t:0}:null}
+function wmpAfterIn(was){if(!MP.active||MP.host||!game.war)return;const now=wmpMine().home;
+  if(!was&&now){if(game.gui&&game.gui.type==='warmap')closeGui();showMessage('You lead '+now+'. Press M to open the map and attack your neighbours.')}else if(was&&!now)MP.wmAsked=false}
+// --- guest side: ask the host ---
+function wmpGuestPick(name){const w=game.war;if(!w||!wm.by[name])return false;const me=wmpMine();if(me.home){showMessage('You already lead '+me.home);return false}
+  if(wmpTaken(name)){showMessage(name+' is taken by '+wmpPName(wmpOwnerOf(name)||'host')+': choose another country');return false}mpSend({t:'wmpick',name});return false}
+function wmpGuestAttack(name){const w=game.war,me=wmpMine();if(!w||!me.home)return false;wmInit();if(wmpMyB()){showMessage('A battle is already underway');return false}
+  if(!wmpTargetsFor(me).includes(name)){showMessage(name+' is not within reach of your territory');return false}if(player.dead||world.dimKey!=='over'){showMessage('Battles are fought in the overworld');return false}
+  if(game.gui&&game.gui.type==='warmap')closeGui();mpSend({t:'wmatk',name});return true}
+function wmpGuestTick(dt){wmpHudTick(dt);if(!MP.active||MP.host||!game.war)return;
+  if(!MP.wmAsked&&!wmpMine().home&&!game.gui&&!game.paused&&!player.dead&&!game.cmdOpen){MP.wmAsked=true;openWarMap(true)}}
+// --- host side ---
+function wmpConn(id){return MP.conns.find(c=>c.mpId===id&&c.open)}
+function wmpTo(id,d){const c=wmpConn(id);if(c){try{c.send(d)}catch(e){}}}
+function wmpAlive(id){if(id===MP.myId)return !player.dead;const r=MP.remote.get(id);return !!(r&&r.hasTarget&&!r.deadP)}
+function wmpOnline(k){return k==='host'||MP.conns.some(c=>c.pkey===k&&c.open)}
+function wmpIdOf(k){if(k==='host')return MP.myId;const c=MP.conns.find(c=>c.pkey===k&&c.open);return c?c.mpId:null}
+function wmpSay(id,text,give){if(id===MP.myId){showMessage(text);if(give)giveItems(give[0],give[1])}else wmpTo(id,{t:'wmmsg',text,give})}
+function wmpSpawnOf(k){if(k==='host')return [game.worldSpawn[0],game.worldSpawn[2]];const s=game.spawns&&game.spawns[k];return s?[s.x,s.z]:null}
+function wmpPickReq(conn,name){wmInit();const w=game.war,id=conn.mpId;if(!w||!conn.pkey||!(game.mods&&game.mods.war)||typeof name!=='string'||!wm.by[name])return;
+  w.players=w.players||{};const old=w.players[conn.pkey];if(old&&old.home){wmpSay(id,'You already lead '+old.home);return}
+  if(wmpTaken(name)){wmpSay(id,name+' is already taken: choose another country');return}
+  const used=new Set(Object.keys(w.players).map(k=>w.players[k].ci));let ci=0;while(used.has(ci))ci++;const nm=(MP.remote.get(id)||{}).name||conn.pkey;
+  w.players[conn.pkey]=Object.assign({score:0,battles:0,ci},old||{},{name:nm,id,home:name,owned:[name],lost:[]});wmpChanged()}
+function wmpPvpTell(id,d){if(id===MP.myId)wmpPvpIn(d);else wmpTo(id,Object.assign({t:'wmpvp'},d))}
+function wmpPvpStart(key,id,name){ // true when a duel started or was refused, false when the normal squad battle goes ahead
+  const dk=wmpOwnerOf(name);if(!MP.active||!MP.host||!dk||dk===key||!wmpOnline(dk))return false;const pv=game.wmpPvp||(game.wmpPvp=[]),did=wmpIdOf(dk);
+  if(pv.some(P=>P.att.key===key)){wmpSay(id,'You are already attacking someone');return true}
+  if(pv.some(P=>P.def.key===dk)){wmpSay(id,wmpPName(dk)+' is already under attack');return true}
+  if(!wmpAlive(id)){wmpSay(id,'You cannot attack while dead');return true}
+  const P={country:name,att:{key,id},def:{key:dk,id:did},t:WMP_PVP_SECS};pv.push(P);if(id===MP.myId&&game.gui&&game.gui.type==='warmap')closeGui();const sp=wmpSpawnOf(dk);
+  wmpPvpTell(id,{role:'att',country:name,other:wmpPName(dk),secs:WMP_PVP_SECS,sx:sp&&sp[0],sz:sp&&sp[1]});wmpPvpTell(did,{role:'def',country:name,other:wmpPName(key),secs:WMP_PVP_SECS});return true}
+function wmpPvpIn(d){if(d.end){game.pvpHud=null;game.wmpRB=null;if(d.text)showMessage(String(d.text).slice(0,200));wmRefresh();return}
+  const H=game.pvpHud={role:d.role==='att'?'att':'def',country:String(d.country||'').slice(0,40),other:String(d.other||'').slice(0,24),end:game.time+(+d.secs||WMP_PVP_SECS),sx:d.sx==null?null:+d.sx,sz:d.sz==null?null:+d.sz};
+  if(H.role==='att'){showMessage('You are attacking '+H.country+', held by '+H.other+': kill them within 4 minutes. Their spawn is marked on your HUD.');if(!MP.host)game.wmpRB={country:H.country,left:1,pvp:1}}
+  else{showMessage(H.other+' is attacking your country '+H.country+': defend it!');playSound('explode',0.4,0.8)}wmRefresh()}
+function wmpPvpEnd(P,res){game.wmpPvp=(game.wmpPvp||[]).filter(x=>x!==P);const w=game.war,at=wmpPName(P.att.key),df=wmpPName(P.def.key),c=P.country;let ta,td;
+  if(res==='won'){wmpTransfer(c,P.att.key);ta='Victory! You defeated '+df+' and took '+c+'.';td=at+' defeated you and took '+c+'.';wmpSay(P.att.id,'+16 bullets',[463,16])}
+  else if(res==='held'){ta='Time is up: '+c+' stays with '+df+'.';td='You held '+c+' against '+at+'.'}
+  else if(res==='failed'){ta='Your attack on '+c+' failed: you fell.';td=at+' fell: '+c+' is safe.'}
+  else if(res==='retreat'){ta='You called off the attack on '+c+'.';td=at+' pulled back from '+c+'.'}
+  else{ta='The attack on '+c+' ended: a player left.';td=ta}
+  wmpPvpTell(P.att.id,{end:1,text:ta});wmpPvpTell(P.def.id,{end:1,text:td});if(w)wmpChanged()}
+function wmpOnKill(killer,victim,sure){if(!MP.active||!MP.host)return;
+  for(const P of (game.wmpPvp||[]).slice()){if(P.att.id===victim&&P.def.id===killer){wmpPvpEnd(P,'failed');continue}
+    if(P.att.id===killer&&P.def.id===victim){const h=MP.lastHit&&MP.lastHit[victim];if(sure||(h&&h.by===killer&&game.time-h.t<20))wmpPvpEnd(P,'won')}}}
+function wmpHitNote(d){if(!d||!d.to)return;(MP.lastHit||(MP.lastHit={}))[d.to]={by:d.by,t:game.time}}
+function wmpPvpRetreat(key){const P=(game.wmpPvp||[]).find(P=>P.att.key===key);if(!P)return false;wmpPvpEnd(P,'retreat');return true}
+function wmpAtkReq(conn,name){wmInit();const w=game.war,key=conn.pkey,rec=w&&w.players&&w.players[key],id=conn.mpId,no=t=>{wmpSay(id,t);return false};
+  if(!(game.mods&&game.mods.war)||!rec||!rec.home)return no('Choose your country first');if(typeof name!=='string'||!wm.by[name]||!wmpTargetsFor(rec).includes(name))return no(String(name).slice(0,24)+' is not within reach of your territory');
+  game.wmpPB=game.wmpPB||{};if(game.wmpPB[key]||(game.wmpPvp||[]).some(P=>P.att.key===key))return no('A battle is already underway');
+  if(!world||world.dimKey!=='over')return no('Battles are fought in the overworld: the host is in another dimension');if(!wmpAlive(id))return no('Wait until you have respawned');
+  if(wmpPvpStart(key,id,name))return true;
+  const r=MP.remote.get(id),sp=wmpSpawnOf(key),at=r&&r.hasTarget?{x:r.x,z:r.z}:{x:sp?sp[0]:0,z:sp?sp[1]:0};ensureChunks(at.x,at.z,2); // squad near the guest; the chunks must exist on the host
+  const str=wmpStrength(name),n=3+str,sq=wmpSpawn(n,name,at);if(!sq.mobs.length)return no('Could not deploy enemy troops here');
+  game.wmpPB[key]={key,id,country:name,str,n,mobs:sq.mobs,t:0,ut:0};wmpSay(id,'Battle for '+name+': defeat their soldiers');wmpTo(id,{t:'wmbat',country:name,left:n});return true}
+function wmpRetReq(conn){const B=game.wmpPB&&game.wmpPB[conn.pkey];if(B){wmpPBEnd(B,'retreat');return}wmpPvpRetreat(conn.pkey)}
+function wmpPBEnd(B,res){delete game.wmpPB[B.key];const w=game.war,r=w&&w.players&&w.players[B.key];if(res!=='won')for(const m of B.mobs)m.dead=true;
+  if(r&&res==='won'){wmpTransfer(B.country,B.key);r.score=(r.score||0)+B.str-1;const rw=8*B.str;wmpSay(B.id,'Victory! '+B.country+' is yours (+'+B.str+' score, +'+rw+' bullets)',[463,rw])}
+  else if(r&&res==='lost'){r.battles=(r.battles||0)+1;w.enemy[B.country]=Math.min(20,wmpStrength(B.country)+1);wmpSay(B.id,'Battle lost: '+B.country+' stays enemy and grows stronger')}
+  else if(res==='retreat')wmpSay(B.id,'You pulled back from '+B.country);
+  wmpTo(B.id,{t:'wmbat',end:1});wmpChanged()}
+function wmpPlayersTick(dt){if(!MP.active||!MP.host||!game.war)return;
+  for(const P of (game.wmpPvp||[]).slice()){P.t-=dt;
+    if(!wmpOnline(P.att.key)||!wmpOnline(P.def.key)){wmpPvpEnd(P,'gone');continue}
+    if(!wmpAlive(P.att.id)){wmpPvpEnd(P,'failed');continue}
+    if(P.t<=0)wmpPvpEnd(P,'held')}
+  const PB=game.wmpPB||{};for(const k of Object.keys(PB)){const B=PB[k];B.t+=dt;
+    if(!game.war.players[k]||!wmpConn(B.id)){wmpPBEnd(B,'gone');continue}
+    if(!wmpAlive(B.id)){wmpPBEnd(B,'lost');continue}
+    if(wmpDone(B.mobs)){wmpPBEnd(B,'won');continue}
+    B.ut-=dt;if(B.ut<=0){B.ut=1;wmpTo(B.id,{t:'wmbat',country:B.country,left:B.mobs.filter(m=>!(m.dead||m.dying||m.hp<=0)).length})}}}
+// the timer and the defender's spawn on the HUD
+const WMP_ARROWS=['↑','↖','←','↙','↓','↘','→','↗'];
+function wmpHudTick(dt){const el=$('pvpHud');if(!el)return;const H=game.pvpHud;
+  if(!H||game.state!=='playing'){if(el._t){el._t='';el.style.display='none'}return}
+  const left=Math.max(0,H.end-game.time);if(H.end-game.time<-8){game.pvpHud=null;return}
+  let txt=(H.role==='att'?'ATTACK ':'DEFEND ')+H.country+'  '+floor(left/60)+':'+('0'+floor(left%60)).slice(-2);
+  if(H.role==='att'&&H.sx!==undefined&&H.sx!==null){const dx=H.sx-player.x,dz=H.sz-player.z;let rel=Math.atan2(-dx,-dz)-player.yaw;rel=Math.atan2(Math.sin(rel),Math.cos(rel));
+    txt+='   '+H.other+"'s spawn "+WMP_ARROWS[((Math.round(rel/(PI/4))%8)+8)%8]+' '+floor(Math.hypot(dx,dz))+' m '+mpDirWord(dx,dz)}
+  if(el._t!==txt){el._t=txt;el.textContent=txt;el.style.display='block'}el.classList.toggle('def',H.role!=='att')}
 function warRespawn(){const p=player;if(!(game.mods&&game.mods.war))return;if(p.inv.every(x=>!x)&&p.armor.every(x=>!x)){warKit();showMessage('War kit issued')}}
 function warAttackHook(){const r=player.riding;return !!(r&&r.def&&r.def.ship)} // left click on a ship is the gun, never a pickaxe
 /* ---- /tp targets: ores and structures ---- */
@@ -7228,7 +7396,7 @@ function mpHostPrivate(code,seedStr){loadPeerJS().then(()=>{mpLeave(true);MP.nam
 function mpHost(room,seed,mods,worldId,isPublic,code,keepWorld){const peer=newPeer(room);MP.peer=peer;MP.room=room;MP.public=!!isPublic;MP.annT=1;MP.worldId=worldId;
   peer.on('open',id=>{MP.active=true;MP.host=true;MP.myId=id;MP.hostId=id;mpStatus('');if(keepWorld){game.noSave=!isPublic;for(const e of entities)if(e instanceof Mob){e.remote=false;e.ownerConn=null;e.owned=false}return}const list=worldList();let meta=list.find(w=>w.id===worldId);
     if(!meta){const pub=PUBLIC_SERVERS.find(s=>s.room===room);meta={id:worldId,name:pub?'Public: '+pub.name:'Room '+code.toUpperCase(),seed,mode:'survival',diff:2,drops:mods.random?'random':'normal',mods,room:isPublic?room:undefined,created:Date.now(),played:Date.now()};list.push(meta);localStorage.setItem('ic_worlds',JSON.stringify(list))}else if(isPublic&&!meta.room){meta.room=room;localStorage.setItem('ic_worlds',JSON.stringify(list))}
-    initAudio();loadWorld(meta);setTimeout(()=>showMessage(isPublic?'You are hosting a public world. Chat is disabled and a random alias is used.':'Hosting. Room code: '+code.toUpperCase()+' (friends type it under Join by Code). Press T to chat.'),1500)});
+    initAudio();loadWorld(meta);if(isPublic)setTimeout(mpChatHint,1700);setTimeout(()=>showMessage(isPublic?'You are hosting a public world. Names are random aliases and chat is on: be kind.':'Hosting. Room code: '+code.toUpperCase()+' (friends type it under Join by Code). Press T to chat.'),1500)});
   peer.on('connection',conn=>{conn.on('open',()=>{if(MP.peer!==peer){try{conn.close()}catch(e){}return}if(conn.metadata&&conn.metadata.probe){try{conn.send(mpInfo())}catch(e){}setTimeout(()=>{try{conn.close()}catch(e){}},1500);return}MP.conns.push(conn);conn.on('data',d=>{if(MP.conns.includes(conn))mpOnData(conn,d)});conn.on('close',()=>mpDrop(conn));conn.on('error',()=>mpDrop(conn));
     if(!world)return;conn.send({t:'hello',ch:CH,seed:game.seed,mods:game.mods,worldName:game.worldName,time:world.time,day:world.day,spawn:game.worldSpawn,blocks:mpCollectBlocks(),wx:mpWeatherState(),war:(typeof wmpSave==='function'?wmpSave():null),wave:game.ax?{wave:game.ax.wave,active:game.ax.active,next:game.ax.next,left:game.ax.left||0,roster:game.ax.roster}:null,hostId:MP.myId,hostName:MP.name,players:[...MP.remote.values()].map(r=>({id:r.pid,name:r.name})),items:mpItemList(),bents:mpBentList()})})});
   peer.on('error',err=>{if(err.type==='peer-unavailable')return;if(err.type==='unavailable-id'){mpStatus('Someone just opened this server: joining them...');setTimeout(()=>{if(!MP.active&&MP.room===room)mpJoin(room,String(seed),mods,worldId,isPublic)},800)}else mpStatus('Network error: '+err.type)})}
@@ -7248,7 +7416,7 @@ async function mpHello(d){initAudio();const pub=MP.worldId&&PUBLIC_SERVERS.find(
       else if(MP.worldId){const list=worldList();let meta=list.find(w=>w.id===MP.worldId);if(!meta){meta={id:MP.worldId,name:'Public: '+(pub?pub.name:(d.worldName||'world')),seed:d.seed,mode:'survival',diff:2,drops:d.mods&&d.mods.random?'random':'normal',mods:d.mods||{},room:MP.room,created:Date.now(),played:Date.now()};list.push(meta);localStorage.setItem('ic_worlds',JSON.stringify(list))}else if(!meta.room){meta.room=MP.room;localStorage.setItem('ic_worlds',JSON.stringify(list))}await loadWorld(meta);game.noSave=false}
       else{const meta={id:'mp-guest',name:'Multiplayer',seed:d.seed,mode:'survival',diff:2,drops:d.mods&&d.mods.random?'random':'normal',mods:d.mods||{}};startWorld(meta,null);game.noSave=true}
       MP.hostId=d.hostId;world.time=d.time;world.day=d.day;if(d.spawn)game.worldSpawn=d.spawn;if(!d.ch){d.blocks=oldLayoutMods(d.blocks||{});if(d.bents)d.bents=oldLayoutMods(d.bents)}mpApplyBlocks(d.blocks||{});if(d.bents)mpApplyBents(d.bents);if(d.items){for(const e of entities)if(e instanceof ItemEntity)e.dead=true;MP.pendingItems=[];for(const it of d.items)mpItemIn(it)}if(d.wx)mpApplyWeather(d.wx);if(d.war)wmpIn(d.war);if(d.wave&&game.ax){const A=game.ax;A.wave=d.wave.wave;A.next=d.wave.next;A.left=d.wave.left;if(d.wave.active){A.active=true;A.pendingRoster=d.wave.roster||waveRoster(d.wave.wave)}}
-      mpRemote(d.hostId,d.hostName);for(const pl of d.players||[])if(pl.id!==MP.myId)mpRemote(pl.id,pl.name);mpStatus('');setTimeout(()=>showMessage(MP.public?'Joined a public world. Chat is disabled and names use random aliases.':'Joined '+(d.hostName||'the host')+"'s private world. Press T to chat. Watch out: players can hurt each other here."),1500)}
+      mpRemote(d.hostId,d.hostName);for(const pl of d.players||[])if(pl.id!==MP.myId)mpRemote(pl.id,pl.name);mpStatus('');if(MP.public)setTimeout(mpChatHint,1700);setTimeout(()=>showMessage(MP.public?'Joined a public world. Names are random aliases. Be kind in chat.':'Joined '+(d.hostName||'the host')+"'s private world. Press T to chat. Watch out: players can hurt each other here."),1500)}
 function mpOnData(conn,d){if(!d||!d.t)return;
   switch(d.t){
     case 'hello':{mpHello(d).catch(e=>console.error('hello',e));break}
@@ -7256,10 +7424,10 @@ function mpOnData(conn,d){if(!d||!d.t)return;
     case 'mh':{if(!MP.host)break;const e=entities.find(e=>e.nid===d.nid);if(e&&!e.dead&&!e.dying){const src=d.src||{};src.by=conn.mpId;damageEntity(e,d.amount,src)}break}
     case 'mset':{const e=entities.find(e=>e.nid===d.nid);if(e&&e instanceof Mob)mpMobApplySet(e,d.set);if(MP.host)mpRelay(conn,d);break}
     case 'mrel':{if(!MP.host)break;const e=entities.find(e=>e.nid===d.nid);if(e&&e instanceof Mob){e.remote=false;e.ownerConn=null;e.x=d.x;e.y=d.y;e.z=d.z;e.vx=e.vy=e.vz=0;if(e.rider!==player)e.rider=null}break}
-    case 'p':{if(d.id===MP.myId)break;if(MP.host)conn.mpId=d.id;const r=mpRemote(d.id,d.name);r.setTarget(d);if(MP.host)mpRelay(conn,d);break}
+    case 'p':{if(d.id===MP.myId)break;if(MP.host)conn.mpId=d.id;const r=mpRemote(d.id,d.name);r.setTarget(d);r.deadP=!!d.dead;if(MP.host&&!conn.pkey)mpSpawnJoin(conn,d);if(MP.host)mpRelay(conn,d);break}
     // blocks from other players are applied silently: the sender runs the support checks and sends every knock-on change itself; running them here too deleted half-placed doors and echoed the deletion back
     case 'b':{if(!world||!BLOCKS[d.id])break;if(world.hasChunk(d.x,d.z))world.setBlock(d.x,d.y,d.z,d.id,d.meta,{remote:true,noDrop:true,silent:true});else{const k=(d.x>>4)+','+(d.z>>4);world.savedMods=world.savedMods||{};(world.savedMods[k]||(world.savedMods[k]=[])).push([cidx(d.x&15,d.y,d.z&15),d.id|(d.meta<<8)])}if(MP.host)mpRelay(conn,d);break}
-    case 'c':{if(MP.public)break;showMessage('<'+String(d.name||'Player').slice(0,16)+'> '+String(d.text||'').slice(0,120));if(MP.host)mpRelay(conn,d);break}
+    case 'c':{if(MP.public){mpPublicChatIn(conn,d);break}showMessage('<'+String(d.name||'Player').slice(0,16)+'> '+String(d.text||'').slice(0,120));if(MP.host)mpRelay(conn,d);break}
     case 'time':{if(!MP.host&&world){world.time=d.time;world.day=d.day}break}
     case 'wx':{if(!MP.host)mpApplyWeather(d);break}
     case 'wave':{const A=game.ax;if(MP.host||!A)break;if(d.ended&&A.active){for(const m of A.mobs)m.dead=true;A.mobs=[];showMessage('Wave '+d.wave+' cleared! Next wave in '+floor(d.next)+'s');playSound('levelup',0.8)}A.wave=d.wave;A.active=d.active;A.next=d.next;A.left=d.left;break}
@@ -7271,6 +7439,13 @@ function mpOnData(conn,d){if(!d||!d.t)return;
     case 'ic':{if(MP.host)mpRelay(conn,d);{const e=entities.find(e=>e.nid===d.nid);if(e&&e.stack)e.stack.count=d.count;const pi=MP.pendingItems.find(it=>it.nid===d.nid);if(pi)pi.s.count=d.count}break}
     case 'be':{if(MP.host)mpRelay(conn,d);mpApplyBE(d);break}
     case 'mods':{if(MP.host)break;applyModsLive(d.mods||{},true);break}
+    case 'spawnpt':{if(!MP.host)mpSpawnIn(d);break}
+    case 'wmpick':{if(MP.host)wmpPickReq(conn,d.name);break}
+    case 'wmatk':{if(MP.host)wmpAtkReq(conn,d.name);break}
+    case 'wmret':{if(MP.host)wmpRetReq(conn);break}
+    case 'wmmsg':{if(MP.host)break;showMessage(String(d.text||'').slice(0,200));if(Array.isArray(d.give)&&ITEMS[d.give[0]])giveItems(d.give[0],clamp(d.give[1]|0,1,64));break}
+    case 'wmbat':{if(MP.host)break;game.wmpRB=d.end?(game.wmpRB&&game.wmpRB.pvp?game.wmpRB:null):{country:String(d.country||'').slice(0,40),left:d.left|0,pvp:0};wmRefresh();break}
+    case 'wmpvp':{if(!MP.host)wmpPvpIn(d);break}
     case 'warmap':{if(MP.host)break;wmpIn(d.war);break}
     case 'seat':{seatNet(conn,d);break}
     case 'seats':{if(!MP.host)seatsIn(d);break}
@@ -7279,8 +7454,8 @@ function mpOnData(conn,d){if(!d||!d.t)return;
     case 'nukeT':{if(world&&typeof nukeTimerSet==='function')nukeTimerSet(d.x,d.y,d.z,d.s,true);if(MP.host)mpRelay(conn,d);break}
     case 'sw':{if(MP.host&&world)switchSet(d.x,d.y,d.z,!!d.on,d.hold||0);break}
     case 'nuke':{if(world&&typeof nukeExplode==='function')nukeExplode(d.x,d.y,d.z,true);if(MP.host)mpRelay(conn,d);break}
-    case 'hit':{if(MP.host)mpRelay(conn,d);if(d.to!==MP.myId||(!pvpOn()&&d.type!=='mob')||!world||player.dead)break;const was=player.hp;damageEntity(player,d.amount,{type:d.type==='mob'?'mob':'pvp',x:d.x,y:d.y,z:d.z,kb:d.kb,name:d.from,pid:d.by});if(d.type==='mob')break;if(player.dead&&was>0)mpSend({t:'killed',to:d.by,name:MP.name});break}
-    case 'killed':{if(MP.host)mpRelay(conn,d);if(d.to===MP.myId){showMessage('You killed '+d.name);playSound('levelup',0.8,1.2)}break}
+    case 'hit':{if(MP.host){mpRelay(conn,d);wmpHitNote(d)}if(d.to!==MP.myId||(!pvpOn()&&d.type!=='mob')||!world||player.dead)break;const was=player.hp;damageEntity(player,d.amount,{type:d.type==='mob'?'mob':'pvp',x:d.x,y:d.y,z:d.z,kb:d.kb,name:d.from,pid:d.by});if(d.type==='mob')break;if(player.dead&&was>0)mpSend({t:'killed',to:d.by,name:MP.name});break}
+    case 'killed':{if(MP.host){mpRelay(conn,d);wmpOnKill(d.to,conn.mpId)}if(d.to===MP.myId){showMessage('You killed '+d.name);playSound('levelup',0.8,1.2)}break}
     case 'leave':{mpRemove(d.id);if(MP.host)mpRelay(conn,d);break}}}
 // dropped items: spawn when the chunk (and dimension) is here, otherwise hold them until it is
 function mpItemIn(d){if(!d.s||!ITEMS[d.s.id])return;if(entities.some(e=>e.nid===d.nid)||MP.pendingItems.some(it=>it.nid===d.nid))return;if(world&&world.dimKey===(d.dim||'over')&&world.hasChunk(floor(d.x),floor(d.z)))spawnItem(d.x,d.y,d.z,d.s,[d.vx,d.vy,d.vz],d.d,{nid:d.nid});else MP.pendingItems.push(d)}
@@ -7337,7 +7512,7 @@ function mpSend(d){for(const c of MP.conns)if(c.open)c.send(d)}
 function mpRemote(id,name){if(!id)return null;if(MP.public)name=publicAlias(id);else name=String(name||'Player').replace(/[^a-z0-9 _-]/gi,'').slice(0,16)||'Player';let r=MP.remote.get(id);if(!r){r=new RemotePlayer(id,name);MP.remote.set(id,r);entities.push(r);if(game.state==='playing')showMessage(name+' joined')}else if(name)r.name=name;return r}
 function mpRemove(id){const r=MP.remote.get(id);if(!r)return;r.dead=true;MP.remote.delete(id);showMessage(r.name+' left');const el=$('nametags').querySelector('[data-id="'+id+'"]');if(el)el.remove()}
 function mpDrop(conn){const i=MP.conns.indexOf(conn);if(i>=0)MP.conns.splice(i,1);for(const e of entities)if(e instanceof Mob&&e.ownerConn===conn){e.remote=false;e.ownerConn=null;if(e.rider!==player)e.rider=null}if(conn.mpId){mpRemove(conn.mpId);mpSend({t:'leave',id:conn.mpId})}}
-function mpTick(dt){const p=player;MP.sendT-=dt;if(MP.sendT<=0){MP.sendT=0.1;const st=heldStack();mpSend({t:'p',id:MP.myId,name:MP.name,x:p.x,y:p.y,z:p.z,yaw:p.yaw,pitch:p.pitch,dim:world?world.dimKey:'over',held:st&&!ITEMS[st.id].custom?st.id:0,att:st&&st.att||undefined,sneak:!!p.sneaking,crawl:!!p.crawling,dead:!!p.dead,armor:p.armor.map(a=>a?a.id:0),sw:p.swing<0.9?1:0})}
+function mpTick(dt){const p=player;mpSpawnTick(dt);MP.sendT-=dt;if(MP.sendT<=0){MP.sendT=0.1;const st=heldStack();mpSend({t:'p',id:MP.myId,name:MP.name,tok:MP.host||MP.spawnAck?undefined:mpTok(),x:p.x,y:p.y,z:p.z,yaw:p.yaw,pitch:p.pitch,dim:world?world.dimKey:'over',held:st&&!ITEMS[st.id].custom?st.id:0,att:st&&st.att||undefined,sneak:!!p.sneaking,crawl:!!p.crawling,dead:!!p.dead,armor:p.armor.map(a=>a?a.id:0),sw:p.swing<0.9?1:0})}
   mpFlushItems();mpMobTick(dt);seatTick(dt);
   if(MP.host){MP.timeT-=dt;if(MP.timeT<=0){MP.timeT=5;mpSend({t:'time',time:world.time,day:world.day})}if(MP.public){MP.annT=(MP.annT||0)-dt;if(MP.annT<=0){MP.annT=8;beaconKeep()}}}
   for(const r of MP.remote.values()){if(r.dead)r.dead=false;if(!entities.includes(r))entities.push(r)}
@@ -7347,8 +7522,134 @@ function mpNameTags(){const box=$('nametags');const W=R.canvas.clientWidth,H=R.c
     if(r.hidden||!r.hasTarget){el.style.display='none';continue}const x=r.x,y=r.y+(r.crawl?1.0:2.2),z=r.z;const cw=m[3]*x+m[7]*y+m[11]*z+m[15];if(cw<=0.1){el.style.display='none';continue}
     const cx=(m[0]*x+m[4]*y+m[8]*z+m[12])/cw,cy=(m[1]*x+m[5]*y+m[9]*z+m[13])/cw;const d=Math.hypot(x-player.x,z-player.z);if(d>48||abs(cx)>1.1||abs(cy)>1.1){el.style.display='none';continue}
     el.style.display='block';el.textContent=r.name;el.style.left=((cx+1)/2*W)+'px';el.style.top=((1-cy)/2*H)+'px';el.style.fontSize=Math.max(9,16-d/4)+'px'}}
-function mpChat(text){if(MP.public){showMessage('Public chat is disabled. Use a private room with people you know.');return}text=String(text||'').replace(/[\u0000-\u001f\u007f]/g,'').slice(0,120);if(!text)return;showMessage('<'+MP.name+'> '+text);mpSend({t:'c',name:MP.name,text})}
-function mpLeave(quiet){beaconStop();MP.public=false;MP.pendingItems=[];const peer=MP.peer;if(peer){try{for(const e of entities)if(e instanceof Mob&&e.owned)mpMobRelease(e)}catch(e){}try{mpSend({t:'leave',id:MP.myId})}catch(e){}}
+function mpChat(text){if(MP.public){mpPublicChat(text);return}text=String(text||'').replace(/[\u0000-\u001f\u007f]/g,'').slice(0,120);if(!text)return;showMessage('<'+MP.name+'> '+text);mpSend({t:'c',name:MP.name,text})}
+/* ===================== LOBBY CHAT: a home-screen chat room over PeerJS ===================== */
+// Same idea as public servers: fixed ids (ironcraft-lobby-0..3). Whoever holds an id is a lobby host and relays chat; everyone else is a guest of one host.
+// Hosts link to each other (the lower id connects to the higher ones) so separate lobbies merge. It is chat only and never touches a world.
+const LOBBY_IDS=['ironcraft-lobby-0','ironcraft-lobby-1','ironcraft-lobby-2','ironcraft-lobby-3'];
+function lobbyClean(s,max){return String(s==null?'':s).replace(/<[^>]*>/g,'').replace(/[<>\u0000-\u001f\u007f]/g,'').replace(/\s+/g,' ').trim().slice(0,max)}
+function lobbyRid(){return Math.random().toString(36).slice(2,10)+Date.now().toString(36)}
+class LobbyChat{
+  constructor(o){o=o||{};this.name=lobbyClean(o.name,16)||'Player';this.world=o.world?lobbyClean(o.world,24):null;this.onUpdate=o.onUpdate||null;this.ids=o.ids||LOBBY_IDS;this.timeout=o.timeout||3000;this.retryMs=o.retryMs||[600,2100];this.mergeMs=o.mergeMs||10000;
+    this.status='Connecting…';this.lines=[];this.seen=new Set();this.users=[];this.guests=new Map();this.links=new Map();this.linking=new Set();this.timers=new Set();
+    this.stopped=true;this.isHost=false;this.up=null;this.conn=null;this.myId=null;this.myIdx=-1;this.gen=0;this.lastSend=0;this.pend=null;this.mergeT=null}
+  after(ms,fn){const t=setTimeout(()=>{this.timers.delete(t);try{fn()}catch(e){}},ms);this.timers.add(t);return t}
+  note(){if(this.onUpdate){try{this.onUpdate(this)}catch(e){}}}
+  setStatus(s){this.status=s;this.note()}
+  start(){if(!this.stopped)return;this.stopped=false;this.discover()}
+  stop(){this.stopped=true;this.gen++;this.teardown();this.users=[];this.setStatus('Disconnected')}
+  teardown(){for(const t of this.timers)clearTimeout(t);this.timers.clear();if(this.mergeT){clearInterval(this.mergeT);this.mergeT=null}
+    const up=this.up;this.up=null;this.conn=null;this.pend=null;this.isHost=false;this.guests.clear();this.links.clear();this.linking.clear();if(up){try{up.destroy()}catch(e){}}}
+  rawSend(c,m){try{if(c&&c.open!==false)c.send(m)}catch(e){}}
+  offline(gen){this.users=[];this.setStatus('Chat is offline');this.after(30000,()=>{if(gen===this.gen&&!this.stopped)this.discover()})}
+  openPeer(id){return new Promise((res,rej)=>{let p;try{p=newPeer(id)}catch(e){return rej({type:'error',message:String(e)})}let done=false;
+    const t=setTimeout(()=>{if(!done){done=true;try{p.destroy()}catch(e){}rej({type:'timeout'})}},10000);
+    p.on('open',()=>{if(!done){done=true;clearTimeout(t);res(p)}});
+    p.on('error',err=>{if(!done){done=true;clearTimeout(t);try{p.destroy()}catch(e){}rej(err||{type:'error'});return}if(err&&err.type==='peer-unavailable'){const f=this.pend;if(f)f()}})})}
+  // try to reach a lobby id: {conn} if a host answers, {free} if the id does not exist, {fail} if it exists but stayed silent
+  tryConnect(probe,id){return new Promise(res=>{let done=false,c=null;const fin=v=>{if(done)return;done=true;clearTimeout(t);this.pend=null;if(!v.conn&&c){try{c.close()}catch(e){}}res(v)};
+    const t=setTimeout(()=>fin({fail:true}),this.timeout);this.pend=()=>fin({free:true});
+    try{c=probe.connect(id,{reliable:true,metadata:{lobby:1}})}catch(e){return fin({fail:true})}
+    c.on('open',()=>fin({conn:c}));c.on('error',()=>fin({fail:true}));c.on('close',()=>fin({fail:true}))})}
+  async discover(){const gen=++this.gen;this.teardown();this.setStatus('Connecting…');
+    try{await loadPeerJS()}catch(e){if(gen===this.gen)this.offline(gen);return}
+    if(gen!==this.gen)return;
+    let probe;try{probe=await this.openPeer(null)}catch(e){if(gen===this.gen)this.offline(gen);return}
+    if(gen!==this.gen){try{probe.destroy()}catch(e){}return}
+    this.up=probe;
+    for(let n=0;n<this.ids.length;n++){const id=this.ids[n];let r=await this.tryConnect(probe,id);if(gen!==this.gen)return;
+      if(!r.conn){let hp=null,err=null;try{hp=await this.openPeer(id)}catch(e){err=e}
+        if(gen!==this.gen){if(hp){try{hp.destroy()}catch(e){}}return}
+        if(hp){this.becomeHost(hp,n,gen);return}
+        if(err&&err.type==='unavailable-id'){r=await this.tryConnect(probe,id);if(gen!==this.gen)return} // someone may have just claimed it: ask once more
+        else{this.offline(gen);return}}
+      if(r.conn){this.becomeGuest(probe,r.conn,gen);return}}
+    this.setStatus('Chat is busy. Retrying…');this.after(8000,()=>{if(gen===this.gen&&!this.stopped)this.discover()})}
+  ownList(){const a=[{id:this.myId,name:this.name,world:this.world}];for(const [id,g] of this.guests)a.push({id,name:g.name,world:g.world});return a}
+  fullList(){const a=this.ownList(),have=new Set(a.map(u=>u.id));for(const l of this.links.values())for(const u of l.users)if(!have.has(u.id)){have.add(u.id);a.push(u)}return a}
+  cleanList(list){return (Array.isArray(list)?list:[]).slice(0,200).filter(u=>u&&typeof u==='object').map(u=>({id:String(u.id||'').slice(0,64),name:lobbyClean(u.name,16)||'Player',world:u.world?lobbyClean(u.world,24):null}))}
+  history(){return this.lines.filter(l=>l.kind==='chat').slice(-50).map(l=>({id:l.id,name:l.name,text:l.text,ts:l.ts}))}
+  // toLinks: tell the other hosts about our own users (only on a local change, never in answer to another host, so it cannot ping-pong)
+  refresh(toLinks){if(this.isHost){const full=this.fullList();this.users=full;for(const g of this.guests.values())this.rawSend(g.conn,{t:'lwho',list:full});if(toLinks){const own=this.ownList();for(const l of this.links.values())this.rawSend(l.conn,{t:'lhw',users:own})}}
+    if(!this.stopped&&(this.isHost||this.conn))this.status='Connected: '+Math.max(1,this.users.length)+' online';this.note()}
+  becomeHost(hp,n,gen){const old=this.up;this.up=hp;if(old){try{old.destroy()}catch(e){}}this.isHost=true;this.myId=hp.id;this.myIdx=n;
+    hp.on('connection',c=>this.watch(c,gen));hp.on('disconnected',()=>{try{hp.reconnect()}catch(e){}});
+    this.after(400,()=>this.probeHosts(gen));this.mergeT=setInterval(()=>this.probeHosts(gen),this.mergeMs);this.refresh(true)}
+  becomeGuest(probe,conn,gen){this.up=probe;this.conn=conn;this.isHost=false;this.myId=probe.id;this.users=[{id:probe.id,name:this.name,world:this.world}];
+    conn.on('data',d=>{try{this.onData(conn,d)}catch(e){}});const lost=()=>this.hostLost(conn,gen);conn.on('close',lost);conn.on('error',lost);
+    probe.on('disconnected',()=>{try{probe.reconnect()}catch(e){}});
+    this.rawSend(conn,{t:'lhello',name:this.name,world:this.world});this.refresh(false)}
+  hostLost(conn,gen){if(this.stopped||gen!==this.gen||this.conn!==conn)return;this.conn=null;this.users=[];this.localSys('The lobby host left. Reconnecting…');this.setStatus('Reconnecting…');
+    this.after(this.retryMs[0]+Math.random()*(this.retryMs[1]-this.retryMs[0]),()=>{if(gen===this.gen&&!this.stopped)this.discover()})}
+  watch(c,gen){c.on('data',d=>{if(gen!==this.gen)return;try{this.onData(c,d)}catch(e){}});const drop=()=>this.dropConn(c);c.on('close',drop);c.on('error',drop)}
+  // the lower-numbered host connects to the higher ones, so every pair is linked exactly once
+  probeHosts(gen){if(gen!==this.gen||this.stopped||!this.isHost||!this.up)return;
+    for(let n=this.myIdx+1;n<this.ids.length;n++){const id=this.ids[n];if(this.links.has(id)||this.linking.has(id))continue;let c;this.linking.add(id);
+      try{c=this.up.connect(id,{reliable:true,metadata:{lobby:1}})}catch(e){this.linking.delete(id);continue}
+      this.after(this.timeout+2000,()=>{if(this.linking.delete(id)){try{c.close()}catch(e){}}});
+      c.on('data',d=>{if(gen!==this.gen)return;try{this.onData(c,d)}catch(e){}});
+      c.on('open',()=>{this.linking.delete(id);if(gen!==this.gen||this.stopped||!this.isHost){try{c.close()}catch(e){}return}
+        this.links.set(c.peer,{conn:c,users:[]});this.rawSend(c,{t:'lpeer',users:this.ownList()});this.rawSend(c,{t:'lhist',lines:this.history()});this.refresh(false)});
+      c.on('close',()=>{this.linking.delete(id);this.dropConn(c)});c.on('error',()=>{this.linking.delete(id);this.dropConn(c)})}}
+  dropConn(c){if(!this.isHost)return;const g=this.guests.get(c.peer);if(g&&g.conn===c){this.guests.delete(c.peer);this.sys(g.name+' left the lobby');this.refresh(true)}
+    const l=this.links.get(c.peer);if(l&&l.conn===c){this.links.delete(c.peer);this.refresh(false)}}
+  flood(m,except){if(!this.isHost)return;for(const g of this.guests.values())if(g.conn!==except)this.rawSend(g.conn,m);for(const l of this.links.values())if(l.conn!==except)this.rawSend(l.conn,m)}
+  addLine(m,old){if(this.seen.has(m.id))return false;this.seen.add(m.id);if(this.seen.size>800){const it=this.seen.values();for(let i=0;i<200;i++)this.seen.delete(it.next().value)}
+    let i=this.lines.length;if(old)while(i>0&&this.lines[i-1].ts>m.ts)i--;this.lines.splice(i,0,m);if(this.lines.length>200)this.lines.shift();this.note();return true}
+  sys(text){const m={kind:'sys',id:lobbyRid(),text:lobbyClean(text,80),ts:Date.now()};this.addLine(m);this.flood({t:'lsys',id:m.id,text:m.text},null)}
+  localSys(text){this.addLine({kind:'sys',id:lobbyRid(),text:lobbyClean(text,80),ts:Date.now()})}
+  cleanMsg(d){if(!d||typeof d.text!=='string')return null;const text=lobbyClean(d.text,160);if(!text)return null;const now=Date.now();let ts=+d.ts;if(!isFinite(ts)||ts>now+60000)ts=now;
+    const id=typeof d.id==='string'&&/^[\w-]{1,40}$/.test(d.id)?d.id:lobbyRid();return {kind:'chat',id,name:lobbyClean(d.name,16)||'Player',text,ts}}
+  onData(c,d){if(this.stopped||!d||typeof d!=='object')return;
+    switch(d.t){
+      case 'lhello':{if(!this.isHost)break;const name=lobbyClean(d.name,16)||'Player';const isNew=!this.guests.has(c.peer);this.guests.set(c.peer,{conn:c,name,world:d.world?lobbyClean(d.world,24):null,last:0});
+        this.rawSend(c,{t:'lhist',lines:this.history(),list:this.fullList()});if(isNew)this.sys(name+' joined the lobby');this.refresh(true);break}
+      case 'lname':{const g=this.guests.get(c.peer);if(!this.isHost||!g)break;const nn=lobbyClean(d.name,16);if(nn){g.name=nn;this.refresh(true)}break}
+      case 'lworld':{const g=this.guests.get(c.peer);if(!this.isHost||!g)break;g.world=d.world?lobbyClean(d.world,24):null;this.refresh(true);break}
+      case 'lchat':{const m=this.cleanMsg(d);if(!m)break;if(this.isHost){const g=this.guests.get(c.peer);if(g){const now=Date.now();if(now-g.last<700)break;g.last=now}else if(!this.links.has(c.peer))break}else if(c!==this.conn)break;
+        if(this.addLine(m))this.flood({t:'lchat',id:m.id,name:m.name,text:m.text,ts:m.ts},c);break}
+      case 'lsys':{if(this.isHost?!(this.links.has(c.peer)):c!==this.conn)break;const text=lobbyClean(d.text,80);const id=typeof d.id==='string'&&/^[\w-]{1,40}$/.test(d.id)?d.id:lobbyRid();if(text&&this.addLine({kind:'sys',id,text,ts:Date.now()}))this.flood({t:'lsys',id,text},c);break}
+      case 'lhist':{const lines=Array.isArray(d.lines)?d.lines.slice(-50):[];
+        if(this.isHost){if(!this.links.has(c.peer))break;for(const x of lines){const m=this.cleanMsg(x);if(m&&this.addLine(m,true))this.flood({t:'lchat',id:m.id,name:m.name,text:m.text,ts:m.ts},c)}}
+        else if(c===this.conn){for(const x of lines){const m=this.cleanMsg(x);if(m)this.addLine(m,true)}if(d.list){this.users=this.cleanList(d.list);this.refresh(false)}}break}
+      case 'lwho':{if(this.isHost||c!==this.conn)break;this.users=this.cleanList(d.list);this.refresh(false);break}
+      case 'lpeer':{if(!this.isHost)break;const first=!this.links.has(c.peer);this.links.set(c.peer,{conn:c,users:this.cleanList(d.users)});
+        if(first){this.rawSend(c,{t:'lpeer',users:this.ownList()});this.rawSend(c,{t:'lhist',lines:this.history()})}this.refresh(false);break}
+      case 'lhw':{const l=this.links.get(c.peer);if(!this.isHost||!l)break;l.users=this.cleanList(d.users);this.refresh(false);break}}}
+  send(text){text=lobbyClean(text,160);if(!text)return 'empty';if(this.stopped||!(this.isHost||this.conn))return 'offline';const now=Date.now();if(now-this.lastSend<1000)return 'rate';this.lastSend=now;
+    const m={kind:'chat',id:lobbyRid(),name:this.name,text,ts:now};this.addLine(m);const pk={t:'lchat',id:m.id,name:m.name,text:m.text,ts:m.ts};if(this.isHost)this.flood(pk,null);else this.rawSend(this.conn,pk);return 'ok'}
+  setName(n){n=lobbyClean(n,16);if(!n)return;this.name=n;if(this.isHost)this.refresh(true);else if(this.conn)this.rawSend(this.conn,{t:'lname',name:n})}
+  setWorld(w){this.world=w?lobbyClean(w,24):null;if(this.isHost)this.refresh(true);else if(this.conn)this.rawSend(this.conn,{t:'lworld',world:this.world})}
+}
+// ---- the Chat panel on the title screen (wrapped so a failure can only break the panel, never a world) ----
+let LOBBY=null,lobbyLeft=0,lobbyWatch=null;
+function lobbyDisplayName(){let n='';try{n=localStorage.getItem('ic_chatname')||''}catch(e){}n=lobbyClean(n||(typeof opts!=='undefined'&&opts.mpName)||'',16);if(!n){n=publicAlias(Math.random());try{localStorage.setItem('ic_chatname',n)}catch(e){}}return n}
+function lobbyRender(L){if(L!==LOBBY)return;try{const st=$('chatStatus');if(st)st.textContent=L.status;
+  const list=$('chatList');if(list){const near=list.scrollHeight-list.scrollTop-list.clientHeight<40;list.textContent='';
+    for(const l of L.lines.slice(-120)){const d=document.createElement('div');if(l.kind==='sys'){d.className='cl sys';d.textContent=l.text}else{d.className='cl';const b=document.createElement('b');b.className='cname';b.textContent=l.name;d.appendChild(b);d.appendChild(document.createTextNode(': '+l.text))}list.appendChild(d)}
+    if(near)list.scrollTop=list.scrollHeight}
+  const us=$('chatUsers');if(us){us.textContent='';for(const u of L.users.slice().sort((a,b)=>a.name.localeCompare(b.name))){const d=document.createElement('div');d.className='cu';const b=document.createElement('b');b.className='cname';b.textContent=u.name+(u.id===L.myId?' (you)':'');const sm=document.createElement('small');sm.textContent=u.world||'Lobby';d.appendChild(b);d.appendChild(sm);us.appendChild(d)}}}catch(e){}}
+function lobbyOpen(){showMenu('chatMenu');lobbyLeft=0;
+  try{if(!LOBBY||LOBBY.stopped){LOBBY=new LobbyChat({name:lobbyDisplayName(),onUpdate:lobbyRender});LOBBY.start()}
+    $('chatName').value=LOBBY.name;lobbyRender(LOBBY);if(!lobbyWatch)lobbyWatch=setInterval(lobbyWatchTick,1000)}catch(e){const st=$('chatStatus');if(st)st.textContent='Chat is offline'}}
+// keep the connection while the panel is open and for 30 s after leaving it; drop it once a world starts
+function lobbyWatchTick(){try{if(!LOBBY||LOBBY.stopped){clearInterval(lobbyWatch);lobbyWatch=null;return}
+  if(game.state==='playing'){LOBBY.stop();return}
+  if($('chatMenu').classList.contains('show'))lobbyLeft=0;else{if(!lobbyLeft)lobbyLeft=Date.now();if(Date.now()-lobbyLeft>30000)LOBBY.stop()}}catch(e){}}
+function lobbySend(){try{const inp=$('chatInput');const r=LOBBY?LOBBY.send(inp.value):'offline';if(r==='ok'||r==='empty')inp.value='';else if(r==='rate')LOBBY.localSys('Slow down: one message per second.');else if(LOBBY)LOBBY.localSys('Not connected yet.')}catch(e){}}
+function lobbySetup(){$('btnChat').onclick=lobbyOpen;$('btnChatBack').onclick=()=>{showMenu('titleMenu');lobbyLeft=Date.now()};$('btnChatSend').onclick=lobbySend;
+  $('chatInput').addEventListener('keydown',ev=>{ev.stopPropagation();if(ev.key==='Enter'){ev.preventDefault();lobbySend()}});
+  $('chatName').addEventListener('keydown',ev=>{ev.stopPropagation();if(ev.key==='Enter')ev.target.blur()});
+  $('chatName').addEventListener('change',()=>{try{const n=lobbyClean($('chatName').value,16);if(n){try{localStorage.setItem('ic_chatname',n)}catch(e){}if(LOBBY)LOBBY.setName(n)}$('chatName').value=n||(LOBBY?LOBBY.name:'')}catch(e){}})}
+// ---- chat inside a public server: plain messages go to everyone in the room (the host relays); names are the same aliases as the name tags ----
+const PCHAT={last:0};
+function chatLine(name,text){const c=$('chat');if(!c)return;const el=document.createElement('div');el.className='msg chatln';el.style.animationDuration='12s';const b=document.createElement('b');b.className='cname';b.textContent=name;el.appendChild(document.createTextNode('<'));el.appendChild(b);el.appendChild(document.createTextNode('> '+text));c.appendChild(el);while(c.children.length>8)c.removeChild(c.firstChild);setTimeout(()=>el.remove(),12000)}
+function mpChatHint(){const c=$('chat');if(!c)return;const el=document.createElement('div');el.className='msg chathint';el.style.animationDuration='5s';el.style.fontSize='12px';el.style.color='#9fd';el.textContent=matchMedia('(pointer:coarse)').matches?'Tap the chat button to chat':'Press T to chat';c.appendChild(el);while(c.children.length>8)c.removeChild(c.firstChild);setTimeout(()=>el.remove(),5000)}
+function mpPublicChat(text){text=lobbyClean(text,120);if(!text)return;const now=Date.now();if(now-PCHAT.last<1000){showMessage('Slow down: one message per second');return}PCHAT.last=now;chatLine(publicAlias(MP.myId),text);mpSend({t:'c',id:MP.myId,text})}
+function mpPublicChatIn(conn,d){if(!d||typeof d.text!=='string')return;const text=lobbyClean(d.text,120);if(!text)return;let id=String(d.id||'').slice(0,80);
+  if(MP.host){if(conn.mpId)id=conn.mpId;const now=Date.now();if(now-(conn.lastChat||0)<700)return;conn.lastChat=now}
+  if(!id||id===MP.myId)return;const r=MP.remote.get(id);chatLine(r?r.name:publicAlias(id),text);if(MP.host)mpRelay(conn,{t:'c',id,text})}
+function mpLeave(quiet){beaconStop();game.mySpawn=null;game.mySpawnShown=false;MP.spawnAck=false;MP.wmAsked=false;game.pvpHud=null;game.wmpRB=null;game.wmpPvp=[];game.wmpPB={};MP.public=false;MP.pendingItems=[];const peer=MP.peer;if(peer){try{for(const e of entities)if(e instanceof Mob&&e.owned)mpMobRelease(e)}catch(e){}try{mpSend({t:'leave',id:MP.myId})}catch(e){}}
   // clear our state before destroying the peer: destroy() fires the close handlers synchronously, and they must not mistake our own exit for the host leaving
   for(const r of MP.remote.values())r.dead=true;MP.remote.clear();MP.conns=[];MP.peer=null;MP.active=false;MP.host=false;MP.room=null;if(peer){try{peer.destroy()}catch(e){}}MP.mobSyncT=-99;for(const e of entities)if(e instanceof Mob){e.remote=false;e.ownerConn=null;e.owned=false}const nt=$('nametags');if(nt)nt.innerHTML='';if(!quiet)mpStatus('')}
 class RemotePlayer extends Entity{constructor(id,name){super(0,-100,0);this.pid=id;this.name=name;this.w=0.6;this.h=1.8;this.hurtT=0;this.invT=0;this.lastDmg=0;this.tx=0;this.ty=-100;this.tz=0;this.tyaw=0;this.walkT=0;this.walkAmp=0;this.held=0;this.sneak=false;this.remote=true;this.hasTarget=false;this.hidden=false;this.eyeHeight=1.62;this.onGround=true;this.sneaking=false;this.mode='survival';this.effects={};this.riding=null;this.inv=[];this.sel=0;this.dead=false}
@@ -8081,7 +8382,7 @@ function runCommand(line){const p=player;const raw=line.trim().replace(/^\/+/,''
     case 'kit':case 'kits':{const kn=(args[0]||'').toLowerCase().replace(/s$/,'');const key=KITS[kn]?kn:Object.keys(KITS).find(k=>k.startsWith(kn)&&kn.length>=2);const k=key&&KITS[key];if(k)args[0]=key;if(!k){say('Kits: '+Object.keys(KITS).map(k=>k+' ('+KITS[k].label+')').join(' | '));return}for(const [id,n] of k.items)giveItems(id,n);say('Kit '+args[0]+': '+k.label);return}
     case 'build':case 'place':case 'structure':{if((args[0]||'').toLowerCase().startsWith('ench')){if(buildEnchantingRoom()){giveItems(264,100);giveItems(378,8);say('Plus 100 lapis and 8 books in your inventory')}}else if(!spawnStructureAt(args.join('_'),say))say('Usage: /build <structure>: '+Object.keys(SPAWN_STRUCT).map(k=>k.replace(/_/g,' ')).join(', ')+', or /build enchanting. It appears where you are looking.');return}
     case 'tp':{if(args.length&&!(args.length===1&&(args[0]==='spawn'||args[0]==='home'))&&!/^[-~\d.]/.test(args[0])){if(!tpNamed(args.join('_'),say))say('Unknown place. You can /tp to any block (diamonds, chest, lava...), any mob (hisser, villager, dragon...), any biome (desert, jungle...), any structure (village, stronghold, end portal, mineshaft, mansion, temple, igloo, hut, portal, monument, shipwreck, jungle temple, dungeon, outpost, fortress, end city, trial chamber, ancient city) or nether / the end / overworld');return}
-      if(args[0]==='spawn'||args[0]==='home'){const s=(args[0]==='home'&&p.spawn)||game.worldSpawn;if(world.dimKey!=='over'){goHome()}ensureChunks(s[0],s[2],2);const bedHere=args[0]==='home'&&p.spawn&&(world.getBlock(floor(s[0]),floor(s[1]),floor(s[2]))===157||world.getBlock(floor(s[0]),floor(s[1]),floor(s[2]))===62||world.getBlock(floor(s[0]),floor(s[1])-1,floor(s[2]))===62);const spot=(bedHere&&spotByBed(s))||safeSpotNear(s[0],s[2]);p.x=spot[0];p.y=spot[1];p.z=spot[2];p.vx=p.vy=p.vz=0;p.fallDist=0;if(args[0]==='home'&&p.spawn&&!bedHere)say('Your bed is gone, so this is the world spawn')}
+      if(args[0]==='spawn'||args[0]==='home'){const s=(args[0]==='home'&&p.spawn)||game.mySpawn||game.worldSpawn;if(world.dimKey!=='over'){goHome()}ensureChunks(s[0],s[2],2);const bedHere=args[0]==='home'&&p.spawn&&(world.getBlock(floor(s[0]),floor(s[1]),floor(s[2]))===157||world.getBlock(floor(s[0]),floor(s[1]),floor(s[2]))===62||world.getBlock(floor(s[0]),floor(s[1])-1,floor(s[2]))===62);const spot=(bedHere&&spotByBed(s))||safeSpotNear(s[0],s[2]);p.x=spot[0];p.y=spot[1];p.z=spot[2];p.vx=p.vy=p.vz=0;p.fallDist=0;if(args[0]==='home'&&p.spawn&&!bedHere)say('Your bed is gone, so this is the world spawn')}
       else{const c=args.map(a=>a.startsWith('~')?null:parseFloat(a));if(args.length<3||c.some((v,i)=>v!==null&&isNaN(v))){say('Usage: /tp x y z (or ~ to keep)');return}p.x=c[0]===null?p.x:c[0]+0.5;p.y=c[1]===null?p.y:c[1];p.z=c[2]===null?p.z:c[2]+0.5;ensureChunks(p.x,p.z,2);if(c[1]===null||!BLOCKS[world.getBlock(floor(p.x),floor(p.y)-1,floor(p.z))].solid)p.y=findGround(p.x,p.z)+0.1}
       p.vx=p.vy=p.vz=0;p.fallDist=0;if(p.riding)p.riding.dismount();say('Teleported to '+floor(p.x)+' '+floor(p.y)+' '+floor(p.z));return}
     case 'time':{const a=(args[0]||'').toLowerCase();const t=a==='day'?1000:a==='noon'?6000:a==='night'?13000:a==='midnight'?18000:parseInt(a);if(isNaN(t)){say('Usage: /time day|night|<0-24000>');return}world.time=((t%24000)+24000)%24000;say('Time set to '+world.time);return}
@@ -8102,6 +8403,7 @@ function runCommand(line){const p=player;const raw=line.trim().replace(/^\/+/,''
     case 'tornado':{if(!game.wx){say('Tornadoes need the Weather fun mod on this world');return}if(MP.active&&!MP.host){say('Only the host can call a tornado');return}const ef=Math.min(5,Math.max(1,parseInt(args[0])||rollEF()));const W=game.wx;W.storm=true;W.I=Math.max(W.I,0.6);W.t=Math.max(W.t,60);const a=Math.random()*PI*2;W.tornado={x:p.x+Math.sin(a)*45,z:p.z+Math.cos(a)*45,y:p.y,dir:a+PI+(Math.random()-0.5)*0.4,life:(50+Math.random()*50)*EF[ef].life,spin:0,t:0,brk:0,ef};say(EF[ef].say);playSound('thunder',1,0.55-ef*0.05);return}
     case 'heal':p.hp=p.maxHp;p.hunger=20;p.sat=5;p.fireT=0;p.air=300;p.effects={};say('Healed');return;
     case 'xp':{const n=parseInt(args[0])||10;p.level=Math.max(0,p.level+n);p.xpFrac=0;say('Level '+p.level);updateHUD&&updateHUD();return}
+    case 'players':case 'online':{if(!MP.active){say('Only you are here (solo world)');return}const nm=[(MP.public?publicAlias(MP.myId):MP.name)+' (you)'];for(const r of MP.remote.values())nm.push(r.name);say('Online ('+nm.length+'): '+nm.join(', '));return}
     case 'seed':say('Seed: '+game.seed);return;
     case 'kill':{let n=0;for(const e of entities){if(e instanceof Mob&&!e.def.passive&&!e.dead&&!(e.type==='wolf'&&e.tamed)&&Math.hypot(e.x-p.x,e.z-p.z)<32){e.dead=true;n++}}say('Removed '+n+' hostile mobs nearby');return}
     default:say('Unknown command. Try /help')}}
