@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="ironcraft-build" content="20261027-220101">
+<meta name="ironcraft-build" content="20261027-221523">
 <meta name="viewport" content="width=device-width,initial-scale=1.0,viewport-fit=cover">
 <title>Ironcraft – Free Voxel Survival Sandbox in Your Browser | Iron Games</title>
 <meta name="description" content="Ironcraft is a free browser-based voxel survival sandbox with building, exploration, private or safety-limited public multiplayer, and optional weather, horror and survival challenges. By Daniele Bros.">
@@ -2609,7 +2609,7 @@ class Arrow extends Entity{constructor(x,y,z,vx,vy,vz,owner,dmg){super(x,y,z);th
     if(this.age>2&&(inB===8||inB===9)&&sqrt(this.vx*this.vx+this.vy*this.vy+this.vz*this.vz)<1.5&&!this.fireball){this.stuck=true;this.vx=this.vy=this.vz=0;return}
     const nx=this.x+this.vx*dt,ny=this.y+this.vy*dt,nz=this.z+this.vz*dt;
     // entity hit
-    if(this.bullet&&!this.shell)bulletNearMiss(this,nx,ny,nz);const targets=this.ghost?[]:this.owner&&this.owner.def&&this.owner.def.soldier?soldierTargets(this):this.owner==='player'?entities.filter(e=>(e instanceof Mob||e.hittable)&&!e.dead&&e!==this.skip&&!(this.bullet&&e.team==='player'&&e.def&&e.def.soldier)):(MP.active&&MP.host?[player,...[...MP.remote.values()].filter(r=>!r.hidden&&r.hasTarget)]:[player]);
+    if(this.bullet&&!this.shell)bulletNearMiss(this,nx,ny,nz);const targets=this.ghost?[]:this.owner&&this.owner.def&&(this.owner.def.soldier||this.owner.aiEnemy)?soldierTargets(this):this.owner==='player'?entities.filter(e=>(e instanceof Mob||e.hittable)&&!e.dead&&e!==this.skip&&!(this.bullet&&e.team==='player'&&e.def&&e.def.soldier)):(MP.active&&MP.host?[player,...[...MP.remote.values()].filter(r=>!r.hidden&&r.hasTarget)]:[player]);
     for(const t of targets){if(t.dead)continue;const w=t.w/2+0.1;const hit=t.def&&t.def.ship?shipSegHit(t,ox,oy,oz,nx,ny,nz):segAABB(ox,oy,oz,nx,ny,nz,t.x-w,t.y-0.1,t.z-w,t.x+w,t.y+t.h+0.1,t.z+w);if(hit){if(this.onImpact){this.x=nx;this.y=ny;this.z=nz;this.onImpact(t);this.dead=true;return}if(this.bullet&&this.volley&&t.lastVolley===this.volley)t.invT=0;if(this.bullet)t.lastVolley=this.volley;if(damageEntity(t,this.dmg*(this.vehMul&&t.def&&t.def.vehicle?this.vehMul:1),{x:ox,y:oy,z:oz,type:'arrow',shooter:this.owner,crit:this.crit,kb:this.kb||4,fromMob:this.owner!=='player'})){if(this.trident){if(this.channeling&&game.wx&&game.wx.storm)lightningStrike(t.x,t.z);if(this.loyalty){this.returning=true;this.x=nx;this.y=ny;this.z=nz;playSound('arrowhit');return}else{this.x=nx;this.y=ny;this.z=nz;this.stuck=true;this.vx=this.vy=this.vz=0;playSound('arrowhit');return}}if(this.effect&&t===player)player.effects[this.effect]=Math.max(player.effects[this.effect]||0,this.effectT);if(this.tipped&&t!==player)applyPotion(this.tipped,1,false,t);if(this.flame&&t!==player)t.fireT=Math.max(t.fireT||0,5)}this.dead=true;playSound('arrowhit');return}}
     // block hit
     const segLen=sqrt((nx-ox)**2+(ny-oy)**2+(nz-oz)**2);const bh=raycast(ox,oy,oz,nx-ox,ny-oy,nz-oz,segLen,false);
@@ -2666,7 +2666,7 @@ function warIgnite(ax,ay,az,bx,by,bz,b){if(b===28){world.setBlock(bx,by,bz,0,0,{
   if(!FLAMMABLE[b])return;const c=world.getBlock(ax,ay,az);if(c===0||(BLOCKS[c].replaceable&&c!==81))world.setBlock(ax,ay,az,81,0)}
 // flak shell: twin-barrel burst round. Bursts after 1.2 s, on touching a block or mob, or beside a crewed aircraft (proximity fuze); vehicles take 3x
 function flakCrewed(m){if(m.remoteRider)return true;if(m.riders){for(const r of m.riders)if(r&&r!==player)return true}return !!(m.rider&&m.rider!==player)}
-function flakHostile(m){return !!(m&&m.def&&(m.def.vehicle==='jet'||m.def.vehicle==='bomber')&&!m.dead&&!m.dying&&flakCrewed(m))}
+function flakHostile(m){return !!(m&&m.def&&(m.def.vehicle==='jet'||m.def.vehicle==='bomber'||(m.aiEnemy&&m.def.vehicle==='a10'))&&!m.dead&&!m.dying&&((m.aiEnemy&&!m.rider)||flakCrewed(m)))}
 class FlakShell extends Arrow{constructor(x,y,z,vx,vy,vz,gun){super(x,y,z,vx,vy,vz,'player',0);this.gun=gun;this.noGravity=true;this.w=0.25;this.h=0.25;this.kb=0;this.fuse=1.2;this.flak=true}
   burst(){if(this.boomed)return;this.boomed=true;this.dead=true;warBlast(this.x,this.y,this.z,1.2,3,this,[this.gun]);spawnParticles('flash',this.x,this.y,this.z,6);spawnParticles('smoke',this.x,this.y,this.z,6)}
   update(dt){if(this.dead)return;this.fuse-=dt;this.vy-=3*dt;
@@ -3594,6 +3594,7 @@ class Mob extends Entity{
     if(this.def.vehicle==='heli'){this.heliIdle(dt);return} // parked helicopter: rotor spins down, floats, falls
     if(this.def.vehicle==='flak')this.flakIdle(dt);
     if(this.def.ship){this.shipTick(dt);return}    if(this.def.vehicle==='sub'){this.parkSub(dt);return}
+if(this.aiEnemy&&this.def.vehicle&&!this.rider){this.aiPilotTick(dt);return} // enemy AI aircraft (War)
 if(this.def.vehicle){if(this.hurtT>0)this.hurtT-=dt;if(this.invT>0)this.invT-=dt;this.physics(dt,{friction:0.5,gravity:this.inWater?8:32,drag:1});if(this.inWater&&this.vy<2)this.vy+=20*dt;return} // parked: stay where it was left
     if(this.type==='guardian'){this.updateGuardian(dt);return}
     if(this.def.static){this.updateShulker(dt);return}
@@ -3940,7 +3941,7 @@ function bulletNearMiss(b,nx,ny,nz){if(b.nmN===undefined){b.nmN=0;b.nmx=b.x;b.nm
     if(dx*dx+dy*dy+dz*dz<6.25){if(sh)s.soldierAlert(sh.x,sh.z,sh,sh.y+(sh.h||1.8)*0.8);else s.soldierAlert(b.org[0],b.org[2],null,b.org[1])}}}
 function soldierTargets(b){const o=b.owner,out=[],p=player;
   if(o.team==='enemy'){if(!p.dead&&!playerHidden()&&!(p.riding&&p.riding.def&&p.riding.def.vehicle))out.push(p);if(MP.active&&MP.host)for(const r of MP.remote.values())if(!r.hidden&&r.hasTarget)out.push(r);
-    for(const e of entities)if(e instanceof Mob&&e!==o&&!e.dead&&!e.dying&&((e.def.soldier&&e.team==='player')||(e.def.vehicle&&!e.def.ship)))out.push(e)}
+    for(const e of entities)if(e instanceof Mob&&e!==o&&!e.dead&&!e.dying&&((e.def.soldier&&e.team==='player')||(e.def.vehicle&&!e.def.ship&&!e.aiEnemy)))out.push(e)}
   else for(const e of entities)if(e instanceof Mob&&e!==o&&!e.dead&&!e.dying&&((e.def.soldier&&e.team==='enemy')||soldierHostileMob(e)))out.push(e);
   return out}
 // ground height for a soldier at (x,z): -1 when the chunk is not loaded or the surface is water; leaves are skipped
@@ -3951,12 +3952,28 @@ function spawnWarSquad(team,n,x,z,opts){opts=opts||{};const sid=opts.squadId||++
   for(let i=0;i<n;i++){let gy=-1,gx=x,gz=z;for(let t=0;t<6&&gy<0;t++){const col=i%3,row=floor(i/3);gx=x+(col-1)*2.4+(Math.random()-0.5)*(1.2+t);gz=z+row*2.4-1.2+(Math.random()-0.5)*(1.2+t);gy=opts.y!==undefined?opts.y:soldierGround(gx,gz)}
     if(gy<0)continue;const m=new Mob('soldier',gx,gy+0.05,gz);m.soldierSetup(team,ks[i%ks.length],opts);m.squadId=sid;m.yaw=opts.yaw!==undefined?opts.yaw:Math.random()*PI*2;entities.push(m);out.push(m)}
   return out}
+// ---- enemy AI aircraft (War) ----
+// ground height under (x,z) for AI flight: never reads an unloaded column (findGround would say it is solid up to the ceiling)
+function aeGround(x,z,fb){if(!world.hasChunk(floor(x),floor(z)))return fb===undefined||fb===null?player.y:fb;return Math.max(findGround(x,z),SEA)}
+const AE_NAME={jet:'jet',a10:'A-10',bomber:'bomber'};
+// spawn one enemy aircraft 100 blocks from the player (toward the (x,z) hint when given, else a random side), 40 up, flying at the player
+function spawnEnemyAircraft(kind,x,z,opts){if(MP.active&&!MP.host)return null;if(!MOBDEF[kind]||!MOBDEF[kind].vehicle)return null;const p=player;opts=opts||{};
+  let a=(typeof x==='number'&&typeof z==='number'&&(x!==p.x||z!==p.z))?Math.atan2(z-p.z,x-p.x):Math.random()*PI*2;
+  const sx=p.x+Math.cos(a)*100,sz=p.z+Math.sin(a)*100,gy=aeGround(sx,sz,p.y),m=new Mob(kind,sx,gy+40,sz);
+  m.aiEnemy=true;m.team='enemy';m.yaw=Math.atan2(-(p.x-sx),-(p.z-sz));m.speed=kind==='bomber'?20:28;m.throttle=1;m.vx=-Math.sin(m.yaw)*m.speed;m.vz=-Math.cos(m.yaw)*m.speed;m.vy=0;
+  m.ai={m:'orbit',t:0,nx:3+Math.random()*3,dir:Math.random()<0.5?-1:1,R:60+Math.random()*30,alt:35+Math.random()*10,bombs:0,bt:0,ft:0,st:0,gt:0,g:gy,g1:gy,g2:gy,gp:p.y};
+  entities.push(m);if(!opts.quiet){const dir=SOLDIER_COMPASS[(Math.round(((Math.atan2(sx-p.x,-(sz-p.z))+PI*2)%(PI*2))/(PI/4)))%8];showMessage('Enemy '+AE_NAME[kind]+' inbound from the '+dir);playSound('horn',0.4,1)}return m}
+// every second enemy patrol brings a jet; from 3 wins sometimes an A-10 or a bomber instead
+function warPatrolAir(){game.warPatrolN=(game.warPatrolN|0)+1;if(game.warPatrolN%2)return;const w=game.warWins|0,r=Math.random();spawnEnemyAircraft(w>=3&&r<0.2?'bomber':w>=3&&r<0.5?'a10':'jet')}
+// /spawn enemy jet | enemy a10 | enemy bomber
+function enemyAirCmd(args,say){const t=args.filter(a=>!/^\d+$/.test(a)).join('_').toLowerCase().replace(/-/g,'_');const m=/^(?:enemy|hostile)_(jet|fighter|a_?10|warthog|a_?10_warthog|bomber|b_?27|b_?27_bomber)s?$/.exec(t);if(!m)return false;
+  const k=/jet|fighter/.test(m[1])?'jet':/bomber|b_?27/.test(m[1])?'bomber':'a10';if(!spawnEnemyAircraft(k)){say('Could not spawn an enemy '+AE_NAME[k]);return true}say('Spawned an enemy '+AE_NAME[k]);return true}
 const SOLDIER_COMPASS=['north','north-east','east','south-east','south','south-west','west','north-west'];
 function spawnWarPatrol(){const p=player,wins=game.warWins|0,n=clamp(3+floor(Math.random()*2)+floor(wins/2),3,6);
   const kinds=[];for(let i=0;i<n;i++){const r=Math.random();kinds.push(wins>=2&&r<0.15?'sniper':wins>=1&&r<0.2+wins*0.05?'heavy':'rifle')}
   for(let t=0;t<20;t++){const a=Math.random()*PI*2,dd=40+Math.random()*20,x=p.x+Math.sin(a)*dd,z=p.z-Math.cos(a)*dd;if(soldierGround(x,z)<0)continue;
     const mobs=spawnWarSquad('enemy',n,x,z,{nation:'enemy',kinds,elite:wins>=4&&Math.random()<0.5,march:true});if(!mobs.length)continue;
-    game.warPatrol={mobs,t:0};showMessage('Enemy patrol spotted to the '+SOLDIER_COMPASS[Math.round(a/(PI/4))%8]);playSound('horn',0.5,0.8);return mobs}
+    game.warPatrol={mobs,t:0};showMessage('Enemy patrol spotted to the '+SOLDIER_COMPASS[Math.round(a/(PI/4))%8]);playSound('horn',0.5,0.8);warPatrolAir();return mobs}
   return null}
 // War mod: an enemy patrol every 3-5 minutes (single player and host); the patrols grow as you beat them
 function soldierWarTick(dt){const g=game;if(!g.mods||!g.mods.war||!world||world.dimKey!=='over'||(MP.active&&!MP.host)||player.dead)return;
@@ -6199,7 +6216,7 @@ function finishLoad(){const p=player;if(!game.pendingMobs.length&&player.spawn==
 }
 function saveWorld(){if(!world||game.state!=='playing'||game.noSave)return;const p=player;const ridePos=p.riding?[p.x,p.y,p.z]:null;if(ridePos){p.y=p.riding.y}const mods={},bents={};if(world.nether&&player.spawnOver)void 0;
   const other=world.dimKey==='nether'?null:game.dims.nether;let netherSave=null;const endDim=world.end?{world,ents:entities}:game.dims.end;
-  const dimData=(w,ents)=>{for(const c of w.chunks.values()){const k=c.cx+','+c.cz;if(!w.savedMods)w.savedMods={};if(!w.savedBents)w.savedBents={};if(c.mods.size)w.savedMods[k]=Array.from(c.mods);if(c.bents.size)w.savedBents[k]=Array.from(c.bents)}return {mods:w.savedMods||{},bents:w.savedBents||{},pop:Array.from(w.populated),mobs:ents.filter(e=>(e instanceof Mob||e instanceof Wither)&&!e.dead&&!e.dying).slice(0,60).map(e=>({type:e instanceof Wither?'wither':e.type,x:e.x,y:e.y,z:e.z,hp:e.hp}))}};
+  const dimData=(w,ents)=>{for(const c of w.chunks.values()){const k=c.cx+','+c.cz;if(!w.savedMods)w.savedMods={};if(!w.savedBents)w.savedBents={};if(c.mods.size)w.savedMods[k]=Array.from(c.mods);if(c.bents.size)w.savedBents[k]=Array.from(c.bents)}return {mods:w.savedMods||{},bents:w.savedBents||{},pop:Array.from(w.populated),mobs:ents.filter(e=>(e instanceof Mob||e instanceof Wither)&&!e.dead&&!e.dying&&!e.aiEnemy).slice(0,60).map(e=>({type:e instanceof Wither?'wither':e.type,x:e.x,y:e.y,z:e.z,hp:e.hp}))}};
   if(world.nether)netherSave=dimData(world,entities);else if(other)netherSave=dimData(other.world,other.ents);
   const siftDim=world.sift?{world,ents:entities}:game.dims.sift;const siftSave=siftDim?dimData(siftDim.world,siftDim.ents):null;
   let endSave=null;if(endDim){endSave=dimData(endDim.world,endDim.ents);endSave.dragonDead=!!endDim.world.dragonDead;const dr=endDim.ents.find(e=>e instanceof Dragon&&!e.dead);endSave.dragonHp=dr?dr.hp:null;endSave.crystals=endDim.ents.filter(e=>e instanceof Crystal&&!e.dead).map(c=>[c.x,c.y,c.z])}
@@ -6680,6 +6697,36 @@ Object.assign(Mob.prototype,{
     if(this.rider)playSoundAt('flak',this.x,this.y,this.z,1,1);else playSoundAt('thump',this.x,this.y,this.z,1,1);
     if(this.rider===player)game.shake=Math.max(game.shake||0,0.25)},
   // unmanned: with the War mod on it tracks the nearest crewed jet or bomber within 60 blocks (not the local player's own) and fires; silent when nothing is there
+  // ---- enemy AI aircraft (War): kinematic flight, no rider. Modes: orbit the player at R, 'run' = attack run (jets/A-10 dive 25 deg and shoot, bomber flies over and drops 3 TNT), 'pull' = climb out straight ahead ----
+  aiPilotTick(dt){const p=player,wrap=a=>Math.atan2(Math.sin(a),Math.cos(a));
+    const A=this.ai||(this.ai={m:'orbit',t:0,nx:3+Math.random()*3,dir:Math.random()<0.5?-1:1,R:60+Math.random()*30,alt:35+Math.random()*10,bombs:0,bt:0,ft:0,st:0,gt:0,g:p.y,g1:p.y,g2:p.y,gp:p.y});
+    if(this.hurtT>0)this.hurtT-=dt;if(this.invT>0)this.invT-=dt;
+    const bm=this.def.vehicle==='bomber',sp=bm?20:28,vk=vehScale(this);
+    if(!this.wmpSquad&&this.age>360){this.dead=true;return} // patrol planes leave after a while; battle planes stay until shot down
+    const dx=p.x-this.x,dz=p.z-this.z,d=Math.sqrt(dx*dx+dz*dz);
+    A.gt-=dt;const hx=-Math.sin(this.yaw),hz=-Math.cos(this.yaw);
+    if(A.gt<=0){A.gt=0.1;A.g=aeGround(this.x,this.z,A.g);A.g1=aeGround(this.x+hx*15,this.z+hz*15,A.g);A.g2=aeGround(this.x+hx*30,this.z+hz*30,A.g);A.gp=aeGround(p.x,p.z,A.gp)}
+    A.t+=dt;let tx,tz,altT=A.g+A.alt,climb=12;
+    if(A.m==='orbit'){const ang=Math.atan2(this.z-p.z,this.x-p.x)+A.dir*0.6;tx=p.x+Math.cos(ang)*A.R;tz=p.z+Math.sin(ang)*A.R;
+      if(A.t>=A.nx&&d>50&&!p.dead){A.m='run';A.t=0;A.bombs=bm?3:0;A.bt=0;A.ft=0}}
+    else if(A.m==='run'){tx=p.x;tz=p.z;
+      if(bm){altT=A.gp+40;if(d<32&&A.bombs>0){A.bt-=dt;if(A.bt<=0){A.bt=0.5;A.bombs--;const t=new TNTEntity(this.x,this.y-0.7*vk,this.z);t.fuse=3;t.vx=this.vx*0.95;t.vy=-2;t.vz=this.vz*0.95;t.enemyBomb=true;entities.push(t);playSoundAt('fuse',this.x,this.y,this.z,1,0.8)}}
+        if((A.bombs<=0&&A.bt<=0)||A.t>14){A.m='pull';A.t=0}}
+      else{altT=A.gp+clamp(Math.tan(0.4363)*d,20,45); // 25 degree dive line to the player
+        if(d<100){A.ft-=dt;if(A.ft<=0){A.ft=0.12;this.aiFire(p)}}
+        if(d<=45||this.y-A.gp<=21||A.t>9){A.m='pull';A.t=0}}}
+    else{tx=this.x+hx*100;tz=this.z+hz*100;if(A.t>(bm?4:2.5)){A.m='orbit';A.t=0;A.nx=8+Math.random()*6;A.dir=Math.random()<0.5?-1:1;A.R=60+Math.random()*30}}
+    altT=Math.max(altT,A.g+22);const gA=Math.max(A.g1,A.g2);if(gA>this.y-10){altT=Math.max(altT,gA+30);climb=22} // terrain ahead: climb
+    const err=wrap(Math.atan2(-(tx-this.x),-(tz-this.z))-this.yaw);this.yaw=wrap(this.yaw+clamp(err,-1.2*dt,1.2*dt));
+    const want=clamp((altT-this.y)*(A.m==='run'?3:1.5),-14,climb);this.vy+=(want-this.vy)*Math.min(1,dt*4);
+    this.vx=-Math.sin(this.yaw)*sp;this.vz=-Math.cos(this.yaw)*sp;this.x+=this.vx*dt;this.y+=this.vy*dt;this.z+=this.vz*dt;
+    this.speed=sp;this.throttle=1;this.onGround=false;this.pitch+=(Math.atan2(this.vy,sp)-this.pitch)*Math.min(1,dt*4);this.bank+=(clamp(err,-1,1)*-0.9-this.bank)*Math.min(1,dt*2.5);
+    A.st-=dt;if(A.st<=0){A.st=0.3;playSoundAt('engine',this.x,this.y,this.z,bm?0.7:1.3,0.5)}},
+  aiFire(p){const vk=vehScale(this),cp=Math.cos(this.pitch),x=this.x+(-Math.sin(this.yaw)*cp)*3*vk,y=this.y+this.h*0.55+Math.sin(this.pitch)*3*vk,z=this.z+(-Math.cos(this.yaw)*cp)*3*vk;
+    let tx=p.x,ty=p.y+1,tz=p.z;const dd=Math.sqrt((tx-x)**2+(ty-y)**2+(tz-z)**2)||1,tof=dd/110;tx+=(p.vx||0)*tof;tz+=(p.vz||0)*tof;
+    let dx=tx-x,dy=ty-y,dz=tz-z;const l=Math.sqrt(dx*dx+dy*dy+dz*dz)||1;const sx=(Math.random()-0.5)*0.02,sy=(Math.random()-0.5)*0.02,sz=(Math.random()-0.5)*0.02;dx=dx/l+sx;dy=dy/l+sy;dz=dz/l+sz;
+    const b=new Arrow(x,y,z,dx*110,dy*110,dz*110,this,5);b.bullet=true;b.noGravity=true;b.kb=2;b.skip=this;b.volley=(game.volley=(game.volley||0)+1);b.enemyAir=true;entities.push(b);
+    spawnParticles('flash',x,y,z,2);playSoundAt('rifle',this.x,this.y,this.z,0.8+Math.random()*0.2,0.6)},
   flakIdle(dt){if(this.remote||(MP.active&&!MP.host))return;let fire=false;
     if(game.mods&&game.mods.war&&world.hasChunk(floor(this.x),floor(this.z))){
       this.scanT=(this.scanT||0)-dt;if(this.scanT<=0){this.scanT=0.2;let best=null,bd=3600;for(const e of entities){if(!(e instanceof Mob)||!flakHostile(e))continue;const dx=e.x-this.x,dy=e.y+e.h/2-(this.y+1.2),dz=e.z-this.z,d2=dx*dx+dy*dy+dz*dz;if(d2<bd){bd=d2;best=e}}
@@ -7101,6 +7148,7 @@ function wmpSquadPos(at){if(!at&&game.nsSquad){const q=game.nsSquad;game.nsSquad
 function wmpSpawn(n,name,at){const pos=wmpSquadPos(at);let arr=null,fb=false;
   if(typeof spawnWarSquad==='function'){try{arr=spawnWarSquad('enemy',n,pos[0],pos[1],{nation:name})}catch(e){arr=null}}
   if(!Array.isArray(arr)||!arr.length){fb=true;arr=[];for(let i=0;i<n;i++){const ox=pos[0]+(Math.random()-0.5)*10,oz=pos[1]+(Math.random()-0.5)*10;const m=new Mob('zombie',ox,findGround(ox,oz),oz);entities.push(m);arr.push(m)}}
+  try{const str=wmpStrength(name);if(!fb&&str>=6)for(const k of (str>=9?['jet','bomber']:['jet'])){const pl=spawnEnemyAircraft(k,pos[0],pos[1],{quiet:true});if(pl)arr.push(pl)}}catch(e){}
   for(const m of arr)m.wmpSquad=true;return {mobs:arr,fb}}
 function wmpDone(mobs){return mobs.every(m=>m.dead||m.dying||m.hp<=0)}
 function wmpAttack(name){const w=game.war;if(MP.active&&!MP.host)return wmpGuestAttack(name);if(!w||!w.home)return false;wmInit();
@@ -7513,12 +7561,12 @@ function mpItemList(){const out=[];for(const e of entities){if(!(e instanceof It
 const MOB_SET_KEYS=['sheared','tamed','sitting','loveT','baby','growT','angry','saddled','color','hp','woolId','temper','bay'];
 function mpMobPack(e){const o={n:e.nid,k:e.type,x:+e.x.toFixed(2),y:+e.y.toFixed(2),z:+e.z.toFixed(2),r:+e.yaw.toFixed(2),h:+e.hp.toFixed(1),m:e.maxHp,hy:+(e.headYaw||0).toFixed(2),hpi:+(e.headPitch||0).toFixed(2)};
   let f=0;if(e.baby)f|=1;if(e.sheared)f|=2;if(e.tamed)f|=4;if(e.sitting)f|=8;if(e.saddled)f|=16;if(e.angry)f|=32;if(e.dying)f|=64;if(e.fireT>0)f|=128;if(e.hurtT>0)f|=256;if(e.swell>0)f|=512;if(e.open>0.5)f|=1024;if(e.rider)f|=2048;if(e.loveT>0)f|=4096;if(e.drinking>0)f|=8192;o.f=f;
-  if(e.size)o.sz=e.size;if(e.woolId!==undefined)o.w=e.woolId;if(e.color!==undefined)o.c=e.color;if(e.prof)o.p=e.prof;if(e.hspeed)o.hs=e.hspeed;if(e.hjump)o.hj=e.hjump;if(e.rider&&e.rider!==player&&e.rider.pid)o.rp=e.rider.pid;if(e.def.vehicle){o.pt=+(e.pitch||0).toFixed(2);o.bk=+(e.bank||0).toFixed(2);o.th=+(e.throttle||0).toFixed(2);o.vs=[+(e.speed||0).toFixed(1),+(e.vx||0).toFixed(1),+(e.vy||0).toFixed(1),+(e.vz||0).toFixed(1),e.onGround?1:0];if(MP.host){seatInit(e);o.si=e.seatIds}}if(e.bay)o.by=e.bay;if(e.def.soldier)soldierPack(e,o);return o}
+  if(e.size)o.sz=e.size;if(e.woolId!==undefined)o.w=e.woolId;if(e.color!==undefined)o.c=e.color;if(e.prof)o.p=e.prof;if(e.hspeed)o.hs=e.hspeed;if(e.hjump)o.hj=e.hjump;if(e.rider&&e.rider!==player&&e.rider.pid)o.rp=e.rider.pid;if(e.def.vehicle){o.pt=+(e.pitch||0).toFixed(2);o.bk=+(e.bank||0).toFixed(2);o.th=+(e.throttle||0).toFixed(2);o.vs=[+(e.speed||0).toFixed(1),+(e.vx||0).toFixed(1),+(e.vy||0).toFixed(1),+(e.vz||0).toFixed(1),e.onGround?1:0];if(MP.host){seatInit(e);o.si=e.seatIds}}if(e.bay)o.by=e.bay;if(e.aiEnemy)o.ai=1;if(e.def.soldier)soldierPack(e,o);return o}
 function mpMobList(){const out=[];const ps=[player];for(const r of MP.remote.values())if(!r.hidden)ps.push(r);
   for(const e of entities){if(!(e instanceof Mob)||e.dead)continue;if(MP.host?(e.remote&&e.ownerConn):!e.owned)continue;if(!e.nid)e.nid=MP.myId+':'+(++MP.nidN);
     let near=false;for(const p of ps){const dx=e.x-p.x,dz=e.z-p.z;if(dx*dx+dz*dz<96*96){near=true;break}}if(!near)continue;out.push(mpMobPack(e))}return out}
 function mpMobApplySet(e,set){if(!set)return;for(const k of MOB_SET_KEYS)if(set[k]!==undefined)e[k]=set[k];if(set.tamed&&e.type==='wolf'){e.maxHp=20}}
-function mpMobUnpack(e,o){e.tx=o.x;e.ty=o.y;e.tz=o.z;e.tyaw=o.r;e.hp=o.h;e.maxHp=o.m;e.headYaw=o.hy;e.headPitch=o.hpi;const f=o.f||0;e.baby=!!(f&1);e.sheared=!!(f&2);e.tamed=!!(f&4);e.sitting=!!(f&8);e.saddled=!!(f&16);e.angry=!!(f&32);
+function mpMobUnpack(e,o){if(o.ai)e.aiEnemy=true;e.tx=o.x;e.ty=o.y;e.tz=o.z;e.tyaw=o.r;e.hp=o.h;e.maxHp=o.m;e.headYaw=o.hy;e.headPitch=o.hpi;const f=o.f||0;e.baby=!!(f&1);e.sheared=!!(f&2);e.tamed=!!(f&4);e.sitting=!!(f&8);e.saddled=!!(f&16);e.angry=!!(f&32);
   if((f&64)&&!e.dying){e.dying=true;e.deathT=0}e.fireT=(f&128)?1:0;if((f&256)&&!(e.hurtT>0))e.hurtT=0.5;e.swell=(f&512)?Math.max(e.swell||0,0.5):0;e.open=(f&1024)?1:0;e.loveT=(f&4096)?5:0;e.drinking=(f&8192)?1:0;e.remoteRidden=!!(f&2048);
   if(o.sz&&e.type==='slime'&&e.size!==o.sz)e.setSize(o.sz);if(o.w!==undefined)e.woolId=o.w;if(o.c!==undefined)e.color=o.c;if(o.p&&e.prof!==o.p&&PROFS[o.p]){e.prof=o.p;e.trades=villagerTrades(o.p)}if(o.hs)e.hspeed=o.hs;if(o.hj)e.hjump=o.hj;e.remoteRider=o.rp||null;if(o.tm!==undefined)soldierUnpack(e,o);if(o.by&&e.bay)e.bay=o.by.slice();if(o.pt!==undefined){e.pitch=o.pt;e.bank=o.bk||0;e.throttle=o.th||0;e.netS=o.vs||null}}
 function mpMobsIn(conn,d){if(!world||!d.ms)return;const fromHost=!MP.host;if(d.dim!==world.dimKey){if(MP.host)mpRelay(conn,d);return}
@@ -8441,7 +8489,7 @@ function runCommand(line){const p=player;const raw=line.trim().replace(/^\/+/,''
       say('- Real-size vehicles: car x1.8 (4.5 m), tank x2.5 (9 m), jet x3 (15 m) and B-27 bomber x3 (20 m), with matching seats, cameras and guns.');
       say('- Ships on water: Patrol Boat (12 blocks, driver + twin machine gun, 14 blocks/s) and Destroyer (50 blocks, captain, two deck guns with explosive shells and an anti-air cannon that aims up to 85 degrees, 6 blocks/s). V changes seat, left click fires. /spawn patrol boat or /spawn destroyer near water, or craft their eggs from iron blocks, planks and diamonds.');
       say('- Extra war-only guns and anti-aircraft guns.');return}
-    case 'spawn':case 'summon':{if(soldierCmd(args,say))return;if(/^(landmark|scene)s?$/i.test(args[0]||'')){nsCommand(args.slice(1),say);return}if(/portal/i.test(args.join('_'))){spawnNetherPortal(say,/sift/i.test(args.join('_'))?'sift':'nether');return}{const dn=(args[0]||'').toLowerCase().replace(/[\s-]+/g,'_');const dd=DISASTER_ALIAS[dn]||(DISASTER_NAMES.includes(dn)?dn:null);if(dd){startDisaster(dd,args[1],say);return}}const words=args.filter(a=>!/^\d+$/.test(a)),num=args.find(a=>/^\d+$/.test(a));const t=words.join('_');const type=t?mobTypeFromName(t):null;if(!type&&spawnStructureAt(t,say))return;if(!type){say('Mobs: '+MOB_TYPES.map(k=>mobLabel(k)).join(', '));say('Structures: '+Object.keys(SPAWN_STRUCT).map(k=>k.replace(/_/g,' ')).join(', ')+' (built where you are looking)');return}if(MOBDEF[type].ship){spawnShipCmd(type,say);return}const n=clamp(parseInt(num)||1,1,20);const d=eyeDir();for(let i=0;i<n;i++)entities.push(new Mob(type,p.x+d[0]*3+(Math.random()-0.5)*2,p.y+0.5,p.z+d[2]*3+(Math.random()-0.5)*2));say('Spawned '+n+' '+mobLabel(type));return}
+    case 'spawn':case 'summon':{if(enemyAirCmd(args,say))return;if(soldierCmd(args,say))return;if(/^(landmark|scene)s?$/i.test(args[0]||'')){nsCommand(args.slice(1),say);return}if(/portal/i.test(args.join('_'))){spawnNetherPortal(say,/sift/i.test(args.join('_'))?'sift':'nether');return}{const dn=(args[0]||'').toLowerCase().replace(/[\s-]+/g,'_');const dd=DISASTER_ALIAS[dn]||(DISASTER_NAMES.includes(dn)?dn:null);if(dd){startDisaster(dd,args[1],say);return}}const words=args.filter(a=>!/^\d+$/.test(a)),num=args.find(a=>/^\d+$/.test(a));const t=words.join('_');const type=t?mobTypeFromName(t):null;if(!type&&spawnStructureAt(t,say))return;if(!type){say('Mobs: '+MOB_TYPES.map(k=>mobLabel(k)).join(', '));say('Structures: '+Object.keys(SPAWN_STRUCT).map(k=>k.replace(/_/g,' ')).join(', ')+' (built where you are looking)');return}if(MOBDEF[type].ship){spawnShipCmd(type,say);return}const n=clamp(parseInt(num)||1,1,20);const d=eyeDir();for(let i=0;i<n;i++)entities.push(new Mob(type,p.x+d[0]*3+(Math.random()-0.5)*2,p.y+0.5,p.z+d[2]*3+(Math.random()-0.5)*2));say('Spawned '+n+' '+mobLabel(type));return}
     case 'landmark':case 'scene':nsCommand(args,say);return;
     case 'portal':spawnNetherPortal(say);return;
     case 'stop':case 'cancel':if(game.tpSearch)cancelBlockSearch();else say('Nothing to stop');return;
