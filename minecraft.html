@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="ironcraft-build" content="20261027-154804">
+<meta name="ironcraft-build" content="20261027-155752">
 <meta name="viewport" content="width=device-width,initial-scale=1.0,viewport-fit=cover">
 <title>Ironcraft – Free Voxel Survival Sandbox in Your Browser | Iron Games</title>
 <meta name="description" content="Ironcraft is a free browser-based voxel survival sandbox with building, exploration, private or safety-limited public multiplayer, and optional weather, horror and survival challenges. By Daniele Bros.">
@@ -2567,7 +2567,7 @@ class Arrow extends Entity{constructor(x,y,z,vx,vy,vz,owner,dmg){super(x,y,z);th
     if(this.age>2&&(inB===8||inB===9)&&sqrt(this.vx*this.vx+this.vy*this.vy+this.vz*this.vz)<1.5&&!this.fireball){this.stuck=true;this.vx=this.vy=this.vz=0;return}
     const nx=this.x+this.vx*dt,ny=this.y+this.vy*dt,nz=this.z+this.vz*dt;
     // entity hit
-    const targets=this.ghost?[]:this.owner==='player'?entities.filter(e=>(e instanceof Mob||e.hittable)&&!e.dead&&e!==this.skip):(MP.active&&MP.host?[player,...[...MP.remote.values()].filter(r=>!r.hidden&&r.hasTarget)]:[player]);
+    const targets=this.ghost?[]:this.owner&&this.owner.def&&this.owner.def.soldier?soldierTargets(this):this.owner==='player'?entities.filter(e=>(e instanceof Mob||e.hittable)&&!e.dead&&e!==this.skip&&!(this.bullet&&e.team==='player'&&e.def&&e.def.soldier)):(MP.active&&MP.host?[player,...[...MP.remote.values()].filter(r=>!r.hidden&&r.hasTarget)]:[player]);
     for(const t of targets){if(t.dead)continue;const w=t.w/2+0.1;const hit=t.def&&t.def.ship?shipSegHit(t,ox,oy,oz,nx,ny,nz):segAABB(ox,oy,oz,nx,ny,nz,t.x-w,t.y-0.1,t.z-w,t.x+w,t.y+t.h+0.1,t.z+w);if(hit){if(this.onImpact){this.x=nx;this.y=ny;this.z=nz;this.onImpact(t);this.dead=true;return}if(this.bullet&&this.volley&&t.lastVolley===this.volley)t.invT=0;if(this.bullet)t.lastVolley=this.volley;if(damageEntity(t,this.dmg*(this.vehMul&&t.def&&t.def.vehicle?this.vehMul:1),{x:ox,y:oy,z:oz,type:'arrow',crit:this.crit,kb:this.kb||4,fromMob:this.owner!=='player'})){if(this.trident){if(this.channeling&&game.wx&&game.wx.storm)lightningStrike(t.x,t.z);if(this.loyalty){this.returning=true;this.x=nx;this.y=ny;this.z=nz;playSound('arrowhit');return}else{this.x=nx;this.y=ny;this.z=nz;this.stuck=true;this.vx=this.vy=this.vz=0;playSound('arrowhit');return}}if(this.effect&&t===player)player.effects[this.effect]=Math.max(player.effects[this.effect]||0,this.effectT);if(this.tipped&&t!==player)applyPotion(this.tipped,1,false,t);if(this.flame&&t!==player)t.fireT=Math.max(t.fireT||0,5)}this.dead=true;playSound('arrowhit');return}}
     // block hit
     const segLen=sqrt((nx-ox)**2+(ny-oy)**2+(nz-oz)**2);const bh=raycast(ox,oy,oz,nx-ox,ny-oy,nz-oz,segLen,false);
@@ -2888,6 +2888,11 @@ MOB_TYPES.push('tank');MOB_LABEL.tank='Tank';MOB_BY_LABEL.tank='tank';
 // Flak Cannon: stationary one-seat vehicle (placed from block item 159, see flakUseHook); War mod unmanned auto-fire in Mob.flakIdle
 MOBDEF.flak={hp:150,w:1.7,h:1.7,speed:0,passive:true,vehicle:'flak',noDespawn:true,noBurn:true,fireproof:true,kbMul:0.1,drops:r=>[[159,1],[260,3]],xp:[0,0],sound:'none',food:[]};
 MOB_TYPES.push('flak');MOB_LABEL.flak='Flak Cannon';MOB_BY_LABEL.flak='flak';MOB_BY_LABEL.flak_cannon='flak';
+// ---- War soldiers: MOBDEF.soldier is driven by Mob.soldierTick (team 'player' follows and defends you, 'enemy' hunts you); kind rifle|heavy|sniper
+MOBDEF.soldier={hp:24,w:0.6,h:1.95,speed:3.6,soldier:true,noDespawn:true,noBurn:true,drops:(r,m)=>{const k=m&&m.kind;return [[463,2+floor(r()*4)],[r()<0.18?461:0,1],[k==='heavy'&&r()<0.25?517:0,1],[k==='sniper'&&r()<0.2?466:0,1]]},xp:[5,5],sound:'hurt',follow:40};
+MOB_TYPES.push('soldier');MOB_LABEL.soldier='Soldier';MOB_BY_LABEL.soldier='soldier';MOB_BY_LABEL.enemy_soldier='soldier';MOB_BY_LABEL.sniper='soldier';MOB_BY_LABEL.heavy_soldier='soldier';MOB_BY_LABEL.heavy='soldier';MOB_BY_LABEL.enemy_sniper='soldier';MOB_BY_LABEL.enemy_heavy_soldier='soldier';
+defItem(448,'recruit_soldier_egg',{label:'Recruit Soldier',icon:'egg',iconPal:['egg',{m:[72,106,56],l:[196,168,120]}],spawnMob:'soldier',soldierEgg:'player',stack:16});
+defItem(449,'enemy_soldier_egg',{label:'Enemy Soldier',icon:'egg',iconPal:['egg',{m:[156,138,100],l:[104,106,112]}],spawnMob:'soldier',soldierEgg:'enemy',stack:16});
 defItem(450,'tank_spawn_egg',{label:'Tank',icon:'egg',iconPal:['egg',{m:[84,104,52],l:[38,46,28]}],spawnMob:'tank',stack:4});
 // naval ships (War): drawn in 1/4-block units, so len/beam/draft are in blocks. They float on water and never leave it.
 MOBDEF.boat_pt={hp:120,w:3.6,h:3.4,speed:0,passive:true,vehicle:'boat_pt',ship:true,unit:0.25,len:12,beam:3.5,draft:0.75,maxSpeed:14,accel:1.2,thrUp:1.5,turn:1.3,noDespawn:true,noBurn:true,fireproof:true,dmgMul:0.6,kbMul:0.2,drops:r=>[[25,2],[260,6],[263,1]],xp:[0,0],sound:'none',food:[]};
@@ -3053,6 +3058,7 @@ class Mob extends Entity{
     if(d.vehicle){this.tamed=true;this.saddled=true;this.hspeed=0;this.hjump=0;this.buckT=1e9;this.jumpCd=0;this.pitch=0;this.bank=0;this.speed=0;this.throttle=0;this.engT=0;this.bombCd=0;this.gunCd=0;this.bayT=0;this.color=floor(Math.random()*6);if(d.vehicle==='bomber'){this.riders=[null,null,null,null];this.bay=[];this.gun=[{y:0,p:0,on:false},{y:0,p:0,on:false}]}else if(d.ship)shipInit(this);}
     if(type==='villager'){const r=Math.random();this.prof=r<0.1?'nitwit':PROF_NAMES[floor(Math.random()*(PROF_NAMES.length-1))];this.trades=villagerTrades(this.prof);this.vlevel=1;this.vxp=0;this.restockT=240+Math.random()*120}
     if(type==='cartoon_cat'){this.stretch=0;this.lastRoar=0}
+    if(type==='soldier')this.soldierInit();
     if(type==='iron_golem'){this.armT=0}
     if(type==='warden'){this.emergeT=3;this.born=game.time;this.lastVib=game.time;this.boomCd=4;this.sniffT=6}
     if(type==='sheep'){const r=Math.random();this.woolId=r<0.82?20:r<0.87?76:r<0.92?75:r<0.97?77:20;this.sheared=false}
@@ -3295,6 +3301,79 @@ class Mob extends Entity{
       if(!quiet){spawnParticles('portal',this.x,this.y+1.5,this.z,10);playSoundAt('enderman_tp',this.x,this.y,this.z)}this.x=x+0.5;this.y=y;this.z=z+0.5;this.vx=this.vy=this.vz=0;this.fallDist=0;this.fireT=0;if(!quiet){spawnParticles('portal',this.x,this.y+1.5,this.z,10);playSoundAt('enderman_tp',this.x,this.y,this.z)}return true}
     return false}
   get alive(){return !this.dying}
+  // ---- War soldiers ----
+  soldierInit(){this.team='enemy';this.nation='enemy';this.kind='rifle';this.gunId=461;this.sHp=this.hp;this.shotT=0;this.burstLeft=0;this.burstCd=0.6+Math.random()*0.8;this.shotCd=0;this.burstN=0;this.reloadT=0;this.coverT=0;this.coverCd=0;this.strafeDir=Math.random()<0.5?1:-1;this.strafeT=1+Math.random()*2;this.tgtT=Math.random()*0.4;this.rng=12;this.fol=6+Math.random()*4;this.following=false;this.tgt=null;this.reactT=0;this.flankT=0;this.aimOn=false;this.aimE=0;this.coverDir=null}
+  soldierSetup(team,kind,o){o=o||{};this.team=team==='player'?'player':'enemy';this.nation=o.nation||this.team;this.kind=kind==='heavy'||kind==='sniper'?kind:'rifle';
+    this.gunId=this.kind==='sniper'?466:this.kind==='heavy'?(Math.random()<0.5?517:520):461;this.rng=this.kind==='sniper'?23+Math.random()*3:this.kind==='heavy'?9+Math.random()*4:10+Math.random()*4;
+    if(o.elite){this.elite=true;this.hp=this.maxHp=Math.round(this.def.hp*1.6)}if(o.march)this.march=true;return this}
+  soldierPickTarget(){const me=this,en=this.team==='enemy';let best=null,bd=1600;const p=player;
+    const see=(e,ex,ey,ez)=>{const dx=ex-me.x,dz=ez-me.z,dy=(ey-me.y)*0.5;const d=dx*dx+dz*dz+dy*dy;if(d<bd){bd=d;best=e}};
+    if(en){if(game.difficulty>0&&!p.dead&&!playerHidden()&&!(p.riding&&p.riding.def&&p.riding.def.vehicle))see(p,p.x,p.y,p.z);
+      if(MP.active&&MP.host)for(const r of MP.remote.values())if(!r.hidden&&r.hasTarget)see(r,r.x,r.y,r.z)}
+    for(const e of entities){if(!(e instanceof Mob)||e===me||e.dead||e.dying)continue;const d=e.def;
+      if(en){if(d.soldier?e.team==='player':(d.vehicle&&!d.ship?(e.rider||e.remoteRider||Math.hypot(e.x-p.x,e.z-p.z)<30):false))see(e,e.x,e.y,e.z)}
+      else if(d.soldier?e.team==='enemy':soldierHostileMob(e)&&Math.hypot(e.x-p.x,e.z-p.z)<30)see(e,e.x,e.y,e.z)}
+    return best}
+  // step behind cover when hit: 2 blocks away from the shooter, preferring a spot the shooter cannot see
+  soldierCover(from){const ax=from?this.x-from[0]:Math.random()-0.5,az=from?this.z-from[2]:Math.random()-0.5;const base=Math.atan2(az,ax);let best=null,bs=-1;const by=floor(this.y+0.05);const sol=(x,y,z)=>BLOCKS[world.getBlock(x,y,z)].solid;
+    for(let i=0;i<7;i++){const a=base+(Math.random()-0.5)*2.4,ux=Math.cos(a),uz=Math.sin(a),cx=this.x+ux*2,cz=this.z+uz*2,bx=floor(cx),bz=floor(cz);
+      if(sol(bx,by,bz)||sol(bx,by+1,bz)||!(sol(bx,by-1,bz)||sol(bx,by-2,bz)))continue;if(world.getBlock(bx,by-1,bz)===8||world.getBlock(bx,by,bz)===8)continue;
+      let sc=1+Math.random()*0.5;if(from&&blockedLOS(cx,this.y+1.4,cz,from[0],from[1],from[2]))sc+=2;if(sc>bs){bs=sc;best=[ux,uz]}}
+    if(best){this.coverDir=best;this.coverT=0.55;this.burstLeft=0}}
+  soldierShoot(ap){const sn=this.kind==='sniper',gd=ITEMS[this.gunId],g=gd&&gd.gun;const ox=this.x,oy=this.y+1.45,oz=this.z;let dx=ap[0]-ox,dy=ap[1]-oy,dz=ap[2]-oz;const L=Math.hypot(dx,dy,dz)||1;dx/=L;dy/=L;dz/=L;
+    const spread=sn?0.02:0.06,sx=dx+(Math.random()-0.5)*spread*2,sy=dy+(Math.random()-0.5)*spread*2,sz=dz+(Math.random()-0.5)*spread*2,N=Math.hypot(sx,sy,sz),spd=sn?110:90;
+    const dm=(sn?14:4)*(this.team==='enemy'?[0,0.7,1,1.25][game.difficulty|0]||1:1);
+    const b=new Arrow(ox+dx*0.7,oy+dy*0.7-0.05,oz+dz*0.7,sx/N*spd,sy/N*spd,sz/N*spd,this,dm);b.bullet=true;b.noGravity=true;b.kb=2;b.skip=this;b.crit=false;entities.push(b);
+    spawnParticles('flash',ox+dx*1.1,oy+dy*1.1-0.1,oz+dz*1.1,3);playSoundAt(g?g.snd:'pop',this.x,this.y,this.z,0.9+Math.random()*0.25,sn?1:0.75);this.shotT=0.14}
+  soldierTick(dt){
+    if(this.hurtT>0)this.hurtT-=dt;if(this.invT>0)this.invT-=dt;
+    for(const k of ['shotT','shotCd','burstCd','reloadT','coverT','coverCd','strafeT','tgtT','reactT','flankT'])if(this[k]>0)this[k]-=dt;
+    const d=this.def,p=this.team==='player'&&MP.active&&MP.host?this.nearestPlayer():player;
+    // hit reaction: take cover
+    if(this.hp<this.sHp-0.01&&this.coverCd<=0&&this.coverT<=0&&Math.random()<0.8){this.coverCd=3;const t=this.tgt;this.soldierCover(t&&!t.dead?[t.x,t.y+1,t.z]:null)}this.sHp=this.hp;
+    if(this.tgtT<=0){this.tgtT=0.4+Math.random()*0.2;const had=!!this.tgt;this.tgt=this.soldierPickTarget();if(this.tgt&&!had){this.reactT=0.6+Math.random()*0.8;this.burstLeft=0}}
+    if(this.tgt&&(this.tgt.dead||this.tgt.dying))this.tgt=null;
+    let md=null,spd=d.speed,face=null;this.aimOn=false;
+    if(this.coverT>0&&this.coverDir){md=this.coverDir;spd*=1.5}
+    if(this.tgt){const t=this.tgt;const lead=t===player?0.1:0.08;const ap=[t.x+(t.vx||0)*lead,t.y+(t.h||1.8)*0.55,t.z+(t.vz||0)*lead];
+      const dx=ap[0]-this.x,dz=ap[2]-this.z,dist=Math.hypot(dx,dz)||0.01,los=!blockedLOS(this.x,this.y+1.45,this.z,ap[0],ap[1],ap[2]);
+      face=Math.atan2(-dx,-dz);this.aimE=Math.atan2(ap[1]-(this.y+1.45),dist);this.aimOn=true;
+      if(!md){const rg=this.rng;
+        if(!los||dist>rg+3){if(!los&&this.collidedH&&this.flankT<=0){this.flankT=1.2;this.strafeDir=-this.strafeDir}
+          const k=this.flankT>0?1:(los?0:0.35);md=[dx/dist-dz/dist*this.strafeDir*k,dz/dist+dx/dist*this.strafeDir*k];const l=Math.hypot(md[0],md[1])||1;md=[md[0]/l,md[1]/l];spd*=1.15}
+        else if(dist<rg-4){md=[-dx/dist,-dz/dist];spd*=0.9}
+        else{md=[-dz/dist*this.strafeDir,dx/dist*this.strafeDir];spd*=0.7}
+        if(this.strafeT<=0){this.strafeDir=-this.strafeDir;this.strafeT=1+Math.random()*2}}
+      // fire bursts: 3 rounds (heavy 6, sniper 1), 0.6 s apart, a 2 s reload every 4 bursts; never through blocks
+      if(!los||dist>46||this.coverT>0)this.burstLeft=0;
+      else if(this.reactT<=0&&this.reloadT<=0){
+        if(this.burstLeft>0){if(this.shotCd<=0){this.soldierShoot(ap);this.burstLeft--;this.shotCd=this.kind==='heavy'?0.07:0.1;
+          if(this.burstLeft<=0){this.burstCd=this.kind==='sniper'?2.5:0.6+Math.random()*0.2;if(++this.burstN>=4){this.burstN=0;this.reloadT=2}}}}
+        else if(this.burstCd<=0){this.burstLeft=this.kind==='sniper'?1:this.kind==='heavy'?6:3;this.shotCd=0}}}
+    else{this.burstLeft=0;
+      if(this.moveTo&&!md){const dx=this.moveTo[0]-this.x,dz=this.moveTo[1]-this.z,dd=Math.hypot(dx,dz);if(dd<2.5)this.moveTo=null;else md=[dx/dd,dz/dd]}
+      else if(this.team==='player'&&!md){if(!p.dead){const dx=p.x-this.x,dz=p.z-this.z,dist=Math.hypot(dx,dz)||0.01;
+          if(dist>10)this.following=true;else if(dist<this.fol)this.following=false;
+          if(dist>64&&p.onGround&&!p.riding)this.soldierJoin(p);
+          else if(this.following){md=[dx/dist,dz/dist];if(dist>16)spd*=1.5}}}
+      else if(this.team==='enemy'&&this.march&&!md&&!p.dead&&game.difficulty>0){const dx=p.x-this.x,dz=p.z-this.z,dist=Math.hypot(dx,dz)||0.01;if(dist>9&&dist<150){md=[dx/dist,dz/dist];spd*=0.9}}}
+    if(md&&face===null)face=Math.atan2(-md[0],-md[1]);
+    if(face!==null){let da=face-this.yaw;da=Math.atan2(Math.sin(da),Math.cos(da));this.yaw+=clamp(da,-10*dt,10*dt)}
+    this.moveDir=md;
+    if(md&&this.onGround){ // do not walk off cliffs or into water
+      const fx=this.x+md[0]*1.2,fz=this.z+md[1]*1.2;let drop=0;while(drop<4&&!BLOCKS[world.getBlockPhys(floor(fx),floor(this.y-1-drop),floor(fz))].solid)drop++;
+      if(drop>=3||world.getBlock(floor(fx),floor(this.y),floor(fz))===8||world.getBlock(floor(fx),floor(this.y),floor(fz))===9){this.moveDir=md=null;this.coverT=0}}
+    this.headYaw*=0.8;this.headPitch+=((this.aimOn?this.aimE:0)-this.headPitch)*Math.min(1,dt*8);
+    const inW=this.inWater;let mx=0,mz=0;if(md){mx=md[0]*spd;mz=md[1]*spd}
+    const acc=this.onGround?12:6;this.vx+=(mx-this.vx)*Math.min(1,acc*dt);this.vz+=(mz-this.vz)*Math.min(1,acc*dt);
+    if(md&&this.collidedH&&this.onGround)this.vy=9.4;
+    else if(md&&this.onGround&&!inW){const ax=this.x+md[0]*(this.w/2+0.2),az=this.z+md[1]*(this.w/2+0.2);const fy=floor(this.y+0.05);const ahead=world.getBlock(floor(ax),fy,floor(az));
+      if(ahead!==0&&BLOCKS[ahead].solid&&world.getBlock(floor(ax),fy+1,floor(az))===0&&world.getBlock(floor(ax),fy+2,floor(az))===0)this.vy=9.4}
+    if(inW){if(md||Math.random()<0.1)this.vy+=20*dt;if(this.vy>3)this.vy=3}
+    this.physics(dt,{step:0.6,friction:0.9,gravity:inW?8:32,airStep:!!md}); // light friction so they really walk at their speed
+    const hs=Math.hypot(this.vx,this.vz);this.walkAmp+=(Math.min(1,hs/2)-this.walkAmp)*Math.min(1,dt*8);this.walkT+=hs*dt*2.2}
+  // friendly soldiers that lost the player catch up by dropping in beside them
+  soldierJoin(p){for(let i=0;i<8;i++){const a=Math.random()*PI*2,x=p.x+Math.cos(a)*5,z=p.z+Math.sin(a)*5,gy=soldierGround(x,z);if(gy<0||Math.abs(gy-p.y)>8)continue;this.x=x;this.y=gy;this.z=z;this.vx=this.vy=this.vz=0;return}}
   nearestPlayer(){if(!MP.active||!MP.host||!MP.remote.size)return player;let best=player,bd=player.dead?1e18:(player.x-this.x)**2+(player.z-this.z)**2;for(const r of MP.remote.values()){if(r.hidden||!r.hasTarget)continue;const d=(r.x-this.x)**2+(r.z-this.z)**2;if(d<bd){bd=d;best=r}}return best}
   updateRemote(dt){if(this.hurtT>0)this.hurtT-=dt;if(this.invT>0)this.invT-=dt;if(!this.hasTarget)return;if(this.netS&&this.def.vehicle&&game.time-(this.lastSync||0)<0.4){this.tx+=this.netS[1]*dt;this.ty+=this.netS[2]*dt;this.tz+=this.netS[3]*dt}const k=Math.min(1,dt*10);const ox=this.x,oz=this.z;this.x+=(this.tx-this.x)*k;this.y+=(this.ty-this.y)*k;this.z+=(this.tz-this.z)*k;let dy=this.tyaw-this.yaw;dy=Math.atan2(Math.sin(dy),Math.cos(dy));this.yaw+=dy*k;
     const hs=Math.hypot(this.x-ox,this.z-oz)/Math.max(dt,1e-3);this.walkAmp+=(Math.min(1,hs/2)-this.walkAmp)*Math.min(1,dt*8);this.walkT+=hs*dt*2.2;this.vx=this.vy=this.vz=0;this.onGround=true;if(this.fireT>0&&Math.random()<dt*8)spawnParticles('fire',this.x+(Math.random()-0.5)*this.w,this.y+Math.random()*this.h,this.z+(Math.random()-0.5)*this.w,1);if(this.loveT>0&&Math.random()<dt*0.3)spawnParticles('heart',this.x,this.y+this.h+0.2,this.z,1)}
@@ -3309,6 +3388,7 @@ class Mob extends Entity{
 if(this.def.vehicle){if(this.hurtT>0)this.hurtT-=dt;if(this.invT>0)this.invT-=dt;this.physics(dt,{friction:0.5,gravity:this.inWater?8:32,drag:1});if(this.inWater&&this.vy<2)this.vy+=20*dt;return} // parked: stay where it was left
     if(this.type==='guardian'){this.updateGuardian(dt);return}
     if(this.def.static){this.updateShulker(dt);return}
+    if(this.def.soldier){this.soldierTick(dt);return}
     if(this.def.spec&&this.def.spec.fly&&this.def.spec.kind!=='vehicle'&&!this.rider)this.customFly(dt);
     const p=this.nearestPlayer();const dx=p.x-this.x,dz=p.z-this.z,dy=(p.y+1)-(this.y+this.h*0.8);const dist=sqrt(dx*dx+dz*dz),dist3=sqrt(dx*dx+dy*dy+dz*dz);
     if(this.hurtT>0)this.hurtT-=dt;if(this.invT>0)this.invT-=dt;if(this.atkCd>0)this.atkCd-=dt;if(this.panicT>0)this.panicT-=dt;if(this.loveT>0)this.loveT-=dt;
@@ -3500,6 +3580,7 @@ if(this.def.vehicle){if(this.hurtT>0)this.hurtT-=dt;if(this.invT>0)this.invT-=dt
         part([-4,0,-4,4,8,4],0,24,0,hp,hy,0,face(faceTex),skin);
         if(ws){part([-0.6,-9,-0.6,0.6,-2,0.6],4,22,-1.5,-0.5,0,0,W,[0.55,0.55,0.55]);part([-1.6,-2.5,-0.4,1.6,-1.5,0.4],4,22,-1.5,-0.5,0,0,W,[0.4,0.3,0.2])}else if(brute){part([-0.6,-10,-0.6,0.6,0,0.6],4,22,-1.5,-0.5,0,0,W,[0.35,0.25,0.15]);part([-1,-11,-3,1,-7,0.5],4,22,-1.5,-0.5,0,0,W,[0.95,0.8,0.25])}else if(pig){if(this.barterT>0)part([-1.5,-11,-1.5,1.5,-8,1.5],4,22,0,armR,0,0,W,[0.95,0.8,0.25]);else part([-0.6,-9,-0.6,0.6,-2,0.6],4,22,-1.5,-0.5,0,0,W,[0.92,0.76,0.22])}else if(sk){part([-1,-2,-8,1,2,6],4,22,0,0,0,0,W,[0.5,0.35,0.2])}if(st){part([-4.5,4,-4.5,4.5,8.5,4.5],0,24,0,hp,hy,0,N,[0.3,0.35,0.45])}
         break}
+      case 'soldier':{renderSoldier(this,EB,part,s,roll,ex,ey,ez,swing,hp,hy,l,W);break}
       case 'creeper':{const f=this.swell>0?1+Math.sin(this.swell*25)*0.4+this.swell*0.3:1;const c=[f,f,f];const sc=TEX.creeper_skin;
         for(const [lx,lz,sg] of [[-2,-4,1],[2,-4,-1],[-2,4,-1],[2,4,1]])part([lx-2,-6,lz-2,lx+2,0,lz+2],0,6,0,swing*sg*0.7,0,0,sc,c);
         part([-4,6,-2,4,18,2],0,0,0,0,0,0,sc,c);part([-4,0,-4,4,8,4],0,18,0,hp,hy,0,[sc,sc,sc,sc,sc,TEX.creeper_face],c);break}
@@ -3632,6 +3713,64 @@ class Fang extends Entity{constructor(x,y,z,delay){super(x,y,z);this.w=0.5;this.
   render(EB){if(this.age<this.delay)return;const l=lightAt(this.x,this.y,this.z);const k=Math.min(1,this.t/0.15)*(this.t>0.6?Math.max(0,1-(this.t-0.6)/0.3):1);const tf=makeTF(this.x,this.y,this.z,0,0,0,0,0,0,1);const c=[0.45,0.45,0.42];
     EB.box(tf,-0.3,0,-0.3,0.3,0.5*k,0.3,TEX.white,c,l,true);for(const [ox,oz] of [[-0.2,-0.2],[0.2,-0.2],[-0.2,0.2],[0.2,0.2]])EB.box(tf,ox-0.06,0.5*k,oz-0.06,ox+0.06,0.5*k+0.35*k,oz+0.06,TEX.white,[0.9,0.9,0.85],l,true)}}
 /* ---- damage ---- */
+/* ===================== WAR SOLDIERS ===================== */
+// hostile mob that friendly soldiers shoot at
+function soldierHostileMob(e){const d=e.def;return !!d&&!d.passive&&!d.animal&&!d.neutral&&!d.vehicle&&!d.soldier&&!d.static&&e.type!=='villager'}
+// what a soldier's bullet can hurt: enemy bullets hit you, your soldiers and your vehicles; friendly bullets hit enemy soldiers and hostile mobs
+function soldierTargets(b){const o=b.owner,out=[],p=player;
+  if(o.team==='enemy'){if(!p.dead&&!playerHidden()&&!(p.riding&&p.riding.def&&p.riding.def.vehicle))out.push(p);if(MP.active&&MP.host)for(const r of MP.remote.values())if(!r.hidden&&r.hasTarget)out.push(r);
+    for(const e of entities)if(e instanceof Mob&&e!==o&&!e.dead&&!e.dying&&((e.def.soldier&&e.team==='player')||(e.def.vehicle&&!e.def.ship)))out.push(e)}
+  else for(const e of entities)if(e instanceof Mob&&e!==o&&!e.dead&&!e.dying&&((e.def.soldier&&e.team==='enemy')||soldierHostileMob(e)))out.push(e);
+  return out}
+// ground height for a soldier at (x,z): -1 when the chunk is not loaded or the surface is water; leaves are skipped
+function soldierGround(x,z){const bx=floor(x),bz=floor(z);if(!world.hasChunk(bx,bz))return -1;for(let y=CH-1;y>0;y--){const id=world.getBlock(bx,y,bz);if(id===0)continue;const b=BLOCKS[id];if(b.liquid)return -1;if(b.solid&&!b.leaves)return y+1}return -1}
+// spawn n soldiers in a loose formation near (x,z). opts: nation (text), kinds (array of 'rifle'|'heavy'|'sniper', cycled), elite (more hp), march (enemy squad walks at the player), y (spawn at this height instead of the ground). Returns the mobs.
+function spawnWarSquad(team,n,x,z,opts){opts=opts||{};const out=[];if(MP.active&&!MP.host)return out;team=team==='player'?'player':'enemy';const ks=opts.kinds&&opts.kinds.length?opts.kinds:['rifle'];
+  for(let i=0;i<n;i++){let gy=-1,gx=x,gz=z;for(let t=0;t<6&&gy<0;t++){const col=i%3,row=floor(i/3);gx=x+(col-1)*2.4+(Math.random()-0.5)*(1.2+t);gz=z+row*2.4-1.2+(Math.random()-0.5)*(1.2+t);gy=opts.y!==undefined?opts.y:soldierGround(gx,gz)}
+    if(gy<0)continue;const m=new Mob('soldier',gx,gy+0.05,gz);m.soldierSetup(team,ks[i%ks.length],opts);m.yaw=opts.yaw!==undefined?opts.yaw:Math.random()*PI*2;entities.push(m);out.push(m)}
+  return out}
+const SOLDIER_COMPASS=['north','north-east','east','south-east','south','south-west','west','north-west'];
+function spawnWarPatrol(){const p=player,wins=game.warWins|0,n=clamp(3+floor(Math.random()*2)+floor(wins/2),3,6);
+  const kinds=[];for(let i=0;i<n;i++){const r=Math.random();kinds.push(wins>=2&&r<0.15?'sniper':wins>=1&&r<0.2+wins*0.05?'heavy':'rifle')}
+  for(let t=0;t<20;t++){const a=Math.random()*PI*2,dd=40+Math.random()*20,x=p.x+Math.sin(a)*dd,z=p.z-Math.cos(a)*dd;if(soldierGround(x,z)<0)continue;
+    const mobs=spawnWarSquad('enemy',n,x,z,{nation:'enemy',kinds,elite:wins>=4&&Math.random()<0.5,march:true});if(!mobs.length)continue;
+    game.warPatrol={mobs,t:0};showMessage('Enemy patrol spotted to the '+SOLDIER_COMPASS[Math.round(a/(PI/4))%8]);playSound('horn',0.5,0.8);return mobs}
+  return null}
+// War mod: an enemy patrol every 3-5 minutes (single player and host); the patrols grow as you beat them
+function soldierWarTick(dt){const g=game;if(!g.mods||!g.mods.war||!world||world.dimKey!=='over'||(MP.active&&!MP.host)||player.dead)return;
+  if(g.warWorld!==g.worldId){g.warWorld=g.worldId;g.warPatrolT=180+Math.random()*120;g.warPatrol=null;if(!g._warLoaded)g.warWins=0;g._warLoaded=false}
+  if(g.warPatrol&&g.warPatrol.mobs.every(m=>m.dead)){g.warPatrol=null;g.warWins=(g.warWins|0)+1;showMessage('Enemy patrol beaten ('+g.warWins+')')}
+  g.warPatrolT-=dt;if(g.warPatrolT>0)return;g.warPatrolT=180+Math.random()*120;if(g.difficulty===0||g.warPatrol)return;spawnWarPatrol()}
+// /spawn soldier | enemy soldier | sniper | heavy soldier (+ optional count); friendly unless the word enemy is given
+function soldierCmd(args,say){const t=args.filter(a=>!/^\d+$/.test(a)).join('_').toLowerCase().replace(/-/g,'_');const m=/^(enemy_|friendly_|player_|ally_)?(soldier|rifleman|sniper|heavy_soldier|heavy)s?$/.exec(t);if(!m)return false;
+  const team=m[1]==='enemy_'?'enemy':'player',kind=/sniper/.test(m[2])?'sniper':/heavy/.test(m[2])?'heavy':'rifle',num=args.find(a=>/^\d+$/.test(a)),n=clamp(parseInt(num)||1,1,20),d=eyeDir();
+  const mobs=spawnWarSquad(team,n,player.x+d[0]*6,player.z+d[2]*6,{kinds:[kind],y:player.y+0.1,yaw:player.yaw+PI});say('Spawned '+mobs.length+' '+(team==='enemy'?'enemy ':'friendly ')+(kind==='rifle'?'soldier':kind)+(mobs.length===1?'':'s'));return true}
+// right click with a soldier egg: Recruit Soldier = friendly, Enemy Soldier = enemy
+function soldierUseHook(st,hd,t){if(!hd||!hd.soldierEgg||!t||!t.block)return false;const n=FACE_DIR[t.face];const m=new Mob('soldier',t.bx+n[0]+0.5,t.by+(n[1]<0?-2:n[1]),t.bz+n[2]+0.5);m.soldierSetup(hd.soldierEgg,'rifle',{});m.yaw=player.yaw+PI;entities.push(m);consumeHeld();playSoundAt('pop',m.x,m.y,m.z);player.swing=0;return true}
+// multiplayer: the guest gets team/nation/kind/gun and the aim pose with every mob packet
+function soldierPack(e,o){o.tm=e.team==='player'?1:0;if(e.nation&&e.nation!==e.team)o.nt=e.nation;o.kd=e.kind==='heavy'?'h':e.kind==='sniper'?'s':'r';o.gn=e.gunId;if(e.elite)o.el=1;if(e.aimOn)o.sa=1;if(e.aimE)o.ae=+e.aimE.toFixed(2);if(e.shotT>0)o.sh=1}
+function soldierUnpack(e,o){e.team=o.tm?'player':'enemy';e.nation=o.nt||e.team;e.kind=o.kd==='h'?'heavy':o.kd==='s'?'sniper':'rifle';e.gunId=o.gn||461;e.elite=!!o.el;e.aimOn=!!o.sa;e.aimE=o.ae||0;if(o.sh)e.shotT=0.14}
+// world save: restore team/nation/kind from the mob record
+function soldierRestore(e,m){e.team=m.tm==='player'?'player':'enemy';e.nation=m.nt||e.team;e.kind=m.kd==='heavy'||m.kd==='sniper'?m.kd:'rifle';e.gunId=m.gn||(e.kind==='sniper'?466:e.kind==='heavy'?517:461);e.rng=e.kind==='sniper'?24:e.kind==='heavy'?11:12;if(m.el){e.elite=true;e.maxHp=Math.round(e.def.hp*1.6)}e.sHp=e.hp}
+// uniform: green + helmet for your side, tan/grey + helmet for the enemy; boxes in 1/16 block units like the zombie and skeleton
+function renderSoldier(m,EB,part,s,roll,ex,ey,ez,swing,hp,hy,l,W){
+  const en=m.team!=='player',hv=m.kind==='heavy',sn=m.kind==='sniper';
+  const skin=[0.95,0.8,0.68],tunic=en?[0.64,0.57,0.42]:[0.27,0.42,0.22],pants=en?[0.4,0.41,0.44]:[0.22,0.33,0.2],helm=en?[0.43,0.45,0.48]:[0.3,0.4,0.24],gear=en?[0.26,0.26,0.29]:[0.17,0.23,0.13],boot=[0.14,0.11,0.09],band=en?[0.75,0.12,0.1]:[0.95,0.95,0.9];
+  part([-2,-12,-2,2,0,2],-2,12,0,swing,0,0,W,pants);part([-2,-12,-2,2,0,2],2,12,0,-swing,0,0,W,pants);
+  part([-2.2,-12,-2.2,2.2,-8.5,2.2],-2,12,0,swing,0,0,W,boot);part([-2.2,-12,-2.2,2.2,-8.5,2.2],2,12,0,-swing,0,0,W,boot);
+  part([-4,12,-2,4,24,2],0,0,0,0,0,0,W,tunic);part([-4.2,12,-2.2,4.2,14,2.2],0,0,0,0,0,0,W,gear);
+  if(hv){part([-4.5,13.5,-2.5,4.5,23,2.5],0,0,0,0,0,0,W,gear);part([-6.5,21,-2.6,-3.8,24,2.6],0,0,0,0,0,0,W,gear);part([3.8,21,-2.6,6.5,24,2.6],0,0,0,0,0,0,W,gear)}
+  else part([-3.6,15,-2.6,3.6,19.5,2.6],0,0,0,0,0,0,W,gear);
+  const aim=m.aimOn?1:0,ae=(m.aimE||0)*aim,armR=0.55+0.9*aim+ae*0.9,armL=0.5+0.8*aim+ae*0.9,armLz=0.05+0.5*aim;
+  part([-2,-10,-2,2,2,2],-4,22,0,armL,0,armLz,W,tunic);part([-2.1,-10,-2.1,2.1,-7,2.1],-4,22,0,armL,0,armLz,W,skin);part([-2.2,-3,-2.2,2.2,-1,2.2],-4,22,0,armL,0,armLz,W,band);
+  part([-2,-10,-2,2,2,2],4,22,0,armR,0,-0.05,W,tunic);part([-2.1,-10,-2.1,2.1,-7,2.1],4,22,0,armR,0,-0.05,W,skin);
+  part([-4,0,-4,4,8,4],0,24,0,hp,hy,0,[W,W,W,W,W,TEX.player_face],skin);
+  const hh=(b,c)=>part(b,0,24,0,hp,hy,0,W,c||helm);
+  if(sn){hh([-7,5.2,-7,7,6.4,7],[0.36,0.4,0.22]);hh([-4.7,5.8,-4.7,4.7,9,4.7],[0.32,0.37,0.2])}
+  else{hh([-4.6,5.4,-4.6,4.6,8.8,4.6]);hh([-4.6,-0.6,2.6,4.6,8.8,4.6]);hh([-4.6,-0.6,-4.6,-2.6,8.8,4.6]);hh([2.6,-0.6,-4.6,4.6,8.8,4.6]);if(hv)hh([-4.9,8.4,-4.9,4.9,9.4,4.9],gear)}
+  if(m.elite)hh([-5.1,6.2,-5.1,5.1,7,5.1],[0.9,0.74,0.2]);
+  const gid=m.gunId||461;if(GUN_MODELS[gid]){const atf=partTF(ex,ey,ez,m.yaw,4,22,0,armR,0,-0.05,s,roll);const k=0.42;const gtf=(x,y,z)=>atf(x*k,z*k-9.5,-y*k-1.6);drawGun(EB,gtf,gid,l,m.shotT>0?1-m.shotT/0.14:1,null)}}
+
 function damageEntity(e,amount,src){if(e===player&&src&&src.type&&customArmorPerks().has({fire:'fireproof',lava:'fireproof',fall:'feather'}[src.type]))return false;if(e===player&&src&&(src.type==='fire'||src.type==='lava')&&player.effects&&player.effects.fire_res>0)return false;if(e instanceof Mob&&e.def&&e.def.neutral&&src&&(src.type==='player'||src.type==='arrow'||src.type==='bullet')&&!e.tamed)e.angry=true;
   if(e.dead||e.dying)return false;if(e.invT>0&&amount<=e.lastDmg)return false;src=src||{};
   if(e instanceof RemotePlayer){if((!pvpOn()&&src.type!=='mob'&&!src.fromMob)||e.hidden)return false;e.invT=0.5;e.lastDmg=amount;e.hurtT=0.5;mpSend({t:'hit',to:e.pid,by:MP.myId,from:MP.name,amount,type:src.fromMob?'mob':(src.type||'player'),x:src.x,y:src.y,z:src.z,kb:src.kb||4});playSoundAt('hurt',e.x,e.y,e.z,0.8);return true}
@@ -4083,6 +4222,7 @@ function tickPlates(dt){if(!world||(MP.active&&!MP.host))return;const P=game.pla
   for(const [k,st] of P){if(pressed.has(k)){st.t=0;continue}st.t+=dt;if(st.t<0.6)continue;const [x,y,z]=k.split(',').map(Number);for(const d of st.doors)setDoorOpen(d[0],d[1],d[2],false);const rid=world.getBlock(x,y,z);if(rid===146||rid===90){world.setMeta(x,y,z,0);mpSyncBlock(x,y,z)}P.delete(k)}}
 function useItem(){
   const p=player;if(p.dead||game.gui||game.paused||p.koT>0)return;const st=heldStack();const hd=st?ITEMS[st.id]:null;const t=p.target;const creative=p.mode==='creative';
+  if(typeof soldierUseHook==='function'&&soldierUseHook(st,hd,t))return;
   if(typeof warUseHook==='function'&&warUseHook(st,hd,t))return;
   if(typeof flakUseHook==='function'&&flakUseHook(st,hd,t))return;
   if(typeof a10UseHook==='function'&&a10UseHook(st,hd,t))return;if(typeof campUseHook==='function'&&campUseHook(st,hd,t))return;
@@ -4997,7 +5137,7 @@ for(const m of ['wood','stone','iron','diamond','gold','sift']){const id=n=>I[(m
 for(const m of ['leather','iron','gold','diamond','sift']){const mat={leather:289,iron:260,gold:262,diamond:263,sift:490}[m];const id=n=>I[(m==='gold'?'golden':m)+'_'+n];
   shaped(['###','# #'],{'#':mat},[id('helmet'),1]);shaped(['# #','###','###'],{'#':mat},[id('chestplate'),1]);shaped(['###','# #','# #'],{'#':mat},[id('leggings'),1]);shaped(['# #','# #'],{'#':mat},[id('boots'),1])}
 shaped(['WWW','###'],{W:WOOLS,'#':PLANKS},[62,1]);shaped(['###','###','###'],{'#':490},[126,1]);shapeless([126],[490,9]);shaped(['#O','O#'],{'#':490,O:31},[125,4]);shapeless([130],[5,4]);
-shaped(['##','##','##'],{'#':PLANKS},[54,3]);shaped(['##','##','##'],{'#':260},[152,3]);shaped(['##'],{'#':1},[90,1]);
+shaped(['##','##','##'],{'#':PLANKS},[54,3]);shaped(['##','##','##'],{'#':260},[152,3]);shaped(['##'],{'#':1},[90,1]);RECIPES.push({s:[260,289,272],out:[448,1],shaped:false,mod:'war'}); /* Recruit Soldier egg: iron ingot + leather + bread (the Enemy Soldier egg is creative only) */
 shaped(['BgB','dtd','BBB'],{B:25,g:17,d:263,t:28},[455,1]); /* submarine spawn egg: 5 iron blocks, glass, 2 diamonds, TNT */
 RECIPES.push({s:[28,260,260,265],out:[447,2],shaped:false}); /* 2 torpedoes: TNT + 2 iron ingots + redstone */
 RECIPES.push({p:['.d.','pBp','BBB'],k:{d:263,p:PLANKS,B:25},out:[445,1],shaped:true,mod:'war'});
@@ -5738,7 +5878,7 @@ function startWorld(meta,save){if(save)migrateSaveHeight(save);if(window.trackEv
   const p=player;p.mode=meta.mode;p.inv.fill(null);p.armor.fill(null);p.off[0]=null;p.sel=0;p.hp=20;p.absorb=0;p.absorbT=0;p.coldT=0;p.frozen=false;p.koT=0;$('koov').style.opacity=0;p.effLvl={};p.swimming=false;p.hunger=20;p.sat=5;p.exh=0;p.xp=0;p.level=0;p.dead=false;p.flying=false;p.effects={};p.spawn=null;p.fireT=0;p.air=300;p.vx=p.vy=p.vz=0;p.riding=null;
   if(save){if(game.ax&&save.apoc)game.ax.wave=save.apoc.wave||0;world.time=save.time;world.day=save.day||0;game.worldSpawn=save.spawn;world.savedMods={};for(const k in save.mods)world.savedMods[k]=save.mods[k];world.savedBents=save.bents||{};world.populated=new Set(save.pop||[]);
     const sp=save.player;if(sp.hp<=0)game.respawnOnLoad=true;Object.assign(p,{x:sp.x,y:sp.y,z:sp.z,yaw:sp.yaw,pitch:sp.pitch,hp:sp.hp,hunger:sp.hunger,sat:sp.sat,xp:sp.xp,level:sp.level,sel:sp.sel,spawn:sp.spawn,flying:sp.flying||false});p.off[0]=sp.offhand||null;for(let i=0;i<36;i++)p.inv[i]=sp.inv[i]||null;for(let i=0;i<4;i++)p.armor[i]=sp.armor[i]||null;
-    game.pendingMobs=save.mobs||[];game.pendingItems=save.items||[];nukeTimersLoad(save.nukeT);wmpLoad(save.war);
+    game.pendingMobs=save.mobs||[];game.pendingItems=save.items||[];nukeTimersLoad(save.nukeT);game.warWins=save.warWins|0;game._warLoaded=true;wmpLoad(save.war);
     if(save.nether){const nw=new World(meta.seed+1,true);nw.savedMods=save.nether.mods||{};nw.savedBents=save.nether.bents||{};nw.populated=new Set(save.nether.pop||[]);game.dims.nether={world:nw,ents:(save.nether.mobs||[]).filter(m=>m.type==='wither'||MOBDEF[m.type]).map(m=>{if(m.type==='wither'){const w=new Wither(m.x,m.y,m.z);w.hp=m.hp;w.state='hunt';return w}const e=new Mob(m.type,m.x,m.y,m.z);e.hp=m.hp;return e}),furn:new Map()}}
     if(save.end){const ew=new World(meta.seed+2,'end');ew.savedMods=save.end.mods||{};ew.savedBents=save.end.bents||{};ew.populated=new Set(save.end.pop||[]);ew.dragonDead=!!save.end.dragonDead;const ents=(save.end.mobs||[]).filter(m=>MOBDEF[m.type]).map(m=>{const e=new Mob(m.type,m.x,m.y,m.z);e.hp=m.hp;return e});
       if(!ew.dragonDead){const d=new Dragon(0,80,-30);if(save.end.dragonHp)d.hp=save.end.dragonHp;ents.push(d)}for(const c of (save.end.crystals||[]))ents.push(new Crystal(c[0],c[1],c[2]));ew.crystalsPlaced=true;game.dims.end={world:ew,ents,furn:new Map()}}
@@ -5757,7 +5897,7 @@ function finishLoad(){const p=player;if(!game.pendingMobs.length&&player.spawn==
   if(game.freshWorld){const s=findSurfaceSpawn(p.x,p.z);game.worldSpawn=s;p.x=s[0];p.y=s[1];p.z=s[2];game.freshWorld=false;
     for(const type of ['sheep','pig','cow','chicken','horse']){for(let t=0;t<12;t++){const a=Math.random()*PI*2,r=8+Math.random()*14;if(spawnPack(type,floor(s[0]+Math.cos(a)*r),floor(s[2]+Math.sin(a)*r),type==='chicken'?4:3,false)>0)break}}}else{const bx=floor(p.x),bz=floor(p.z);const inSolid=y=>{const b=world.getBlock(bx,y,bz);return b!==0&&BLOCKS[b].solid};let fy=floor(p.y),n=0;if(inSolid(fy)||inSolid(fy+1)){while(n<40&&(inSolid(fy)||inSolid(fy+1))){fy++;n++}p.y=fy+0.1}}
   if(game.respawnOnLoad){game.respawnOnLoad=false;respawn()}
-  for(const m of game.pendingMobs){if(m.type==='wither'){const w=new Wither(m.x,m.y,m.z);w.hp=m.hp;w.state='hunt';entities.push(w);continue}if(!MOBDEF[m.type])continue;const e=new Mob(m.type,m.x,m.y,m.z);e.hp=m.hp;e.baby=m.baby;e.growT=m.growT||0;if(m.sheared!==undefined)e.sheared=m.sheared;if(m.woolId)e.woolId=m.woolId;if(m.prof&&PROFS[m.prof]){e.prof=m.prof;e.trades=villagerTrades(m.prof);e.vlevel=m.vlevel||1;e.vxp=m.vxp||0;if(m.uses)m.uses.forEach((u,i)=>{if(e.trades[i])e.trades[i].uses=u});if(m.demand)m.demand.forEach((u,i)=>{if(e.trades[i])e.trades[i].demand=u});e.restocks=m.restocks||0}if(m.size&&e.type==='slime')e.setSize(m.size);if(m.tamed){e.tamed=true;if(e.type==='wolf')e.maxHp=20;e.sitting=!!m.sitting}if(e.type==='horse'){if(m.color!==undefined)e.color=m.color;if(m.hspeed)e.hspeed=m.hspeed;if(m.hjump)e.hjump=m.hjump;if(m.maxHp)e.maxHp=m.maxHp;e.saddled=!!m.saddled}if(e.def.vehicle&&m.color!==undefined)e.color=m.color;entities.push(e)}
+  for(const m of game.pendingMobs){if(m.type==='wither'){const w=new Wither(m.x,m.y,m.z);w.hp=m.hp;w.state='hunt';entities.push(w);continue}if(!MOBDEF[m.type])continue;const e=new Mob(m.type,m.x,m.y,m.z);e.hp=m.hp;e.baby=m.baby;e.growT=m.growT||0;if(m.sheared!==undefined)e.sheared=m.sheared;if(m.woolId)e.woolId=m.woolId;if(m.prof&&PROFS[m.prof]){e.prof=m.prof;e.trades=villagerTrades(m.prof);e.vlevel=m.vlevel||1;e.vxp=m.vxp||0;if(m.uses)m.uses.forEach((u,i)=>{if(e.trades[i])e.trades[i].uses=u});if(m.demand)m.demand.forEach((u,i)=>{if(e.trades[i])e.trades[i].demand=u});e.restocks=m.restocks||0}if(m.size&&e.type==='slime')e.setSize(m.size);if(m.tamed){e.tamed=true;if(e.type==='wolf')e.maxHp=20;e.sitting=!!m.sitting}if(e.type==='horse'){if(m.color!==undefined)e.color=m.color;if(m.hspeed)e.hspeed=m.hspeed;if(m.hjump)e.hjump=m.hjump;if(m.maxHp)e.maxHp=m.maxHp;e.saddled=!!m.saddled}if(e.def.vehicle&&m.color!==undefined)e.color=m.color;if(e.def.soldier&&m.kd)soldierRestore(e,m);entities.push(e)}
   for(const it of game.pendingItems)spawnItem(it.x,it.y,it.z,{id:it.id,count:it.count,dur:it.dur,ench:it.ench,items:it.items},null,undefined,{local:true});
   for(const c of world.chunks.values())for(const [i,be] of c.bents){const x=c.cx*16+(i>>12),y=i&255,z=c.cz*16+((i>>8)&15);if(be.burn>0)activateFurnace(x,y,z);if(be.brewing)activateBrew(x,y,z)}
   updateChunks(200);game.state='playing';game.paused=false;game.gui=null;hideMenus();$('hud').style.display='block';$('overlay').style.display='block';updateHUD();updateHotbar();lockPointer();game.lastSave=game.time;
@@ -5771,9 +5911,9 @@ function saveWorld(){if(!world||game.state!=='playing'||game.noSave)return;const
   let endSave=null;if(endDim){endSave=dimData(endDim.world,endDim.ents);endSave.dragonDead=!!endDim.world.dragonDead;const dr=endDim.ents.find(e=>e instanceof Dragon&&!e.dead);endSave.dragonHp=dr?dr.hp:null;endSave.crystals=endDim.ents.filter(e=>e instanceof Crystal&&!e.dead).map(c=>[c.x,c.y,c.z])}
   const overSaveWorld=world.dimKey==='over'?world:(game.dims.over?game.dims.over.world:null);
   if(overSaveWorld){for(const c of overSaveWorld.chunks.values()){const k=c.cx+','+c.cz;if(!overSaveWorld.savedMods)overSaveWorld.savedMods={};if(!overSaveWorld.savedBents)overSaveWorld.savedBents={};if(c.mods.size)overSaveWorld.savedMods[k]=Array.from(c.mods);if(c.bents.size)overSaveWorld.savedBents[k]=Array.from(c.bents)}Object.assign(mods,overSaveWorld.savedMods||{});Object.assign(bents,overSaveWorld.savedBents||{})}
-  const mobs=[],items=[];const overEnts=world.dimKey==='over'?entities:(game.dims.over?game.dims.over.ents:[]);for(const e of overEnts){if(e.dead)continue;if(e instanceof Wither&&!e.dying)mobs.push({type:'wither',x:e.x,y:e.y,z:e.z,hp:e.hp});else if(e instanceof Mob&&!e.dying)mobs.push({type:e.type,x:e.x,y:e.y,z:e.z,hp:e.hp,baby:e.baby,growT:e.growT,sheared:e.sheared,woolId:e.woolId,prof:e.prof,vlevel:e.vlevel,vxp:e.vxp,uses:e.trades?e.trades.map(t=>t.uses):undefined,tamed:e.tamed||undefined,sitting:e.sitting||undefined,color:e.color,hspeed:e.hspeed,hjump:e.hjump,saddled:e.saddled||undefined,maxHp:e.type==='horse'?e.maxHp:undefined,size:e.size,demand:e.trades?e.trades.map(t=>t.demand||0):undefined,restocks:e.restocks});else if(e instanceof ItemEntity)items.push({x:e.x,y:e.y,z:e.z,id:e.stack.id,count:e.stack.count,dur:e.stack.dur,ench:e.stack.ench,items:e.stack.items})}
+  const mobs=[],items=[];const overEnts=world.dimKey==='over'?entities:(game.dims.over?game.dims.over.ents:[]);for(const e of overEnts){if(e.dead)continue;if(e instanceof Wither&&!e.dying)mobs.push({type:'wither',x:e.x,y:e.y,z:e.z,hp:e.hp});else if(e instanceof Mob&&!e.dying)mobs.push({type:e.type,x:e.x,y:e.y,z:e.z,hp:e.hp,baby:e.baby,growT:e.growT,sheared:e.sheared,woolId:e.woolId,prof:e.prof,vlevel:e.vlevel,vxp:e.vxp,uses:e.trades?e.trades.map(t=>t.uses):undefined,tamed:e.tamed||undefined,sitting:e.sitting||undefined,color:e.color,hspeed:e.hspeed,hjump:e.hjump,saddled:e.saddled||undefined,maxHp:e.type==='horse'?e.maxHp:undefined,size:e.size,demand:e.trades?e.trades.map(t=>t.demand||0):undefined,restocks:e.restocks,tm:e.def.soldier?e.team:undefined,nt:e.def.soldier?e.nation:undefined,kd:e.def.soldier?e.kind:undefined,gn:e.def.soldier?e.gunId:undefined,el:e.elite||undefined});else if(e instanceof ItemEntity)items.push({x:e.x,y:e.y,z:e.z,id:e.stack.id,count:e.stack.count,dur:e.stack.dur,ench:e.stack.ench,items:e.stack.items})}
   const save={v:1,ch:CH,apoc:game.ax?{wave:game.ax.wave}:undefined,dim:world.dimKey,nether:netherSave,end:endSave,sift:siftSave,time:world.time,day:world.day,spawn:game.worldSpawn,player:{x:p.x,y:p.y,z:p.z,yaw:p.yaw,pitch:p.pitch,hp:p.hp,hunger:p.hunger,sat:p.sat,xp:p.xp,level:p.level,sel:p.sel,inv:p.inv,armor:p.armor,spawn:p.spawn,flying:p.flying,offhand:p.off[0]||null},mods,bents,mobs:mobs.slice(0,120),items:items.slice(0,100),pop:Array.from(overSaveWorld?overSaveWorld.populated:[])};
-  const wid=game.worldId;const nt=nukeTimersSave();if(nt)save.nukeT=nt;if(game.war)save.war=wmpSave();const packed=packSave(save);SaveDB.put('ic_world_'+wid,packed).then(ok=>{if(ok)return;let done=false;try{localStorage.setItem('ic_world_'+wid,JSON.stringify(save));done=true}catch(e){}if(!done&&game.time-saveFailT>60){saveFailT=game.time;showMessage('Save failed: the browser gave no room to save. Free space by removing old worlds from the world list.')}});
+  const wid=game.worldId;const nt=nukeTimersSave();if(nt)save.nukeT=nt;if(game.warWins)save.warWins=game.warWins;if(game.war)save.war=wmpSave();const packed=packSave(save);SaveDB.put('ic_world_'+wid,packed).then(ok=>{if(ok)return;let done=false;try{localStorage.setItem('ic_world_'+wid,JSON.stringify(save));done=true}catch(e){}if(!done&&game.time-saveFailT>60){saveFailT=game.time;showMessage('Save failed: the browser gave no room to save. Free space by removing old worlds from the world list.')}});
   try{const list=worldList();const m=list.find(w=>w.id===wid);if(m){m.played=Date.now();localStorage.setItem('ic_worlds',JSON.stringify(list))}}catch(e){}
   if(ridePos){p.y=ridePos[1]}game.lastSave=game.time;
 }
@@ -6460,6 +6600,7 @@ const KITS={
   builder:{label:'stacks of stone, cobblestone, planks, torches, bookshelves',items:[[1,64],[4,64],[5,64],[32,64],[29,64]]}};
 // War: the starting kit (also /kit war). Armour pieces are worn, the rest goes to the inventory.
 KITS.war={label:'rifle, shotgun, 128 bullets, 32 shells, iron armour, 16 TNT, car egg, jet egg, 8 steak',items:[[461,1],[462,1],[463,128],[464,32],[I.iron_helmet,1],[I.iron_chestplate,1],[I.iron_leggings,1],[I.iron_boots,1],[28,16],[I.car_spawn_egg,1],[I.jet_spawn_egg,1],[277,8]]};
+KITS.war.items.push([448,2]);KITS.war.label+=', 2 recruit soldier eggs';
 function warKit(){const p=player;for(const [id,n] of KITS.war.items){const def=ITEMS[id];if(!def)continue;
     if(def.armor!==undefined&&def.mat&&!p.armor[def.armor]){p.armor[def.armor]={id,count:1};continue}
     let left=n;while(left>0){const k=Math.min(left,def.stack||64);const rest=addToInventory({id,count:k});if(rest>0)spawnItem(p.x,p.y+1,p.z,{id,count:rest});left-=k}}
@@ -6928,14 +7069,14 @@ function mpItemList(){const out=[];for(const e of entities){if(!(e instanceof It
 const MOB_SET_KEYS=['sheared','tamed','sitting','loveT','baby','growT','angry','saddled','color','hp','woolId','temper','bay'];
 function mpMobPack(e){const o={n:e.nid,k:e.type,x:+e.x.toFixed(2),y:+e.y.toFixed(2),z:+e.z.toFixed(2),r:+e.yaw.toFixed(2),h:+e.hp.toFixed(1),m:e.maxHp,hy:+(e.headYaw||0).toFixed(2),hpi:+(e.headPitch||0).toFixed(2)};
   let f=0;if(e.baby)f|=1;if(e.sheared)f|=2;if(e.tamed)f|=4;if(e.sitting)f|=8;if(e.saddled)f|=16;if(e.angry)f|=32;if(e.dying)f|=64;if(e.fireT>0)f|=128;if(e.hurtT>0)f|=256;if(e.swell>0)f|=512;if(e.open>0.5)f|=1024;if(e.rider)f|=2048;if(e.loveT>0)f|=4096;if(e.drinking>0)f|=8192;o.f=f;
-  if(e.size)o.sz=e.size;if(e.woolId!==undefined)o.w=e.woolId;if(e.color!==undefined)o.c=e.color;if(e.prof)o.p=e.prof;if(e.hspeed)o.hs=e.hspeed;if(e.hjump)o.hj=e.hjump;if(e.rider&&e.rider!==player&&e.rider.pid)o.rp=e.rider.pid;if(e.def.vehicle){o.pt=+(e.pitch||0).toFixed(2);o.bk=+(e.bank||0).toFixed(2);o.th=+(e.throttle||0).toFixed(2);o.vs=[+(e.speed||0).toFixed(1),+(e.vx||0).toFixed(1),+(e.vy||0).toFixed(1),+(e.vz||0).toFixed(1),e.onGround?1:0];if(MP.host){seatInit(e);o.si=e.seatIds}}if(e.bay)o.by=e.bay;return o}
+  if(e.size)o.sz=e.size;if(e.woolId!==undefined)o.w=e.woolId;if(e.color!==undefined)o.c=e.color;if(e.prof)o.p=e.prof;if(e.hspeed)o.hs=e.hspeed;if(e.hjump)o.hj=e.hjump;if(e.rider&&e.rider!==player&&e.rider.pid)o.rp=e.rider.pid;if(e.def.vehicle){o.pt=+(e.pitch||0).toFixed(2);o.bk=+(e.bank||0).toFixed(2);o.th=+(e.throttle||0).toFixed(2);o.vs=[+(e.speed||0).toFixed(1),+(e.vx||0).toFixed(1),+(e.vy||0).toFixed(1),+(e.vz||0).toFixed(1),e.onGround?1:0];if(MP.host){seatInit(e);o.si=e.seatIds}}if(e.bay)o.by=e.bay;if(e.def.soldier)soldierPack(e,o);return o}
 function mpMobList(){const out=[];const ps=[player];for(const r of MP.remote.values())if(!r.hidden)ps.push(r);
   for(const e of entities){if(!(e instanceof Mob)||e.dead)continue;if(MP.host?(e.remote&&e.ownerConn):!e.owned)continue;if(!e.nid)e.nid=MP.myId+':'+(++MP.nidN);
     let near=false;for(const p of ps){const dx=e.x-p.x,dz=e.z-p.z;if(dx*dx+dz*dz<96*96){near=true;break}}if(!near)continue;out.push(mpMobPack(e))}return out}
 function mpMobApplySet(e,set){if(!set)return;for(const k of MOB_SET_KEYS)if(set[k]!==undefined)e[k]=set[k];if(set.tamed&&e.type==='wolf'){e.maxHp=20}}
 function mpMobUnpack(e,o){e.tx=o.x;e.ty=o.y;e.tz=o.z;e.tyaw=o.r;e.hp=o.h;e.maxHp=o.m;e.headYaw=o.hy;e.headPitch=o.hpi;const f=o.f||0;e.baby=!!(f&1);e.sheared=!!(f&2);e.tamed=!!(f&4);e.sitting=!!(f&8);e.saddled=!!(f&16);e.angry=!!(f&32);
   if((f&64)&&!e.dying){e.dying=true;e.deathT=0}e.fireT=(f&128)?1:0;if((f&256)&&!(e.hurtT>0))e.hurtT=0.5;e.swell=(f&512)?Math.max(e.swell||0,0.5):0;e.open=(f&1024)?1:0;e.loveT=(f&4096)?5:0;e.drinking=(f&8192)?1:0;e.remoteRidden=!!(f&2048);
-  if(o.sz&&e.type==='slime'&&e.size!==o.sz)e.setSize(o.sz);if(o.w!==undefined)e.woolId=o.w;if(o.c!==undefined)e.color=o.c;if(o.p&&e.prof!==o.p&&PROFS[o.p]){e.prof=o.p;e.trades=villagerTrades(o.p)}if(o.hs)e.hspeed=o.hs;if(o.hj)e.hjump=o.hj;e.remoteRider=o.rp||null;if(o.by&&e.bay)e.bay=o.by.slice();if(o.pt!==undefined){e.pitch=o.pt;e.bank=o.bk||0;e.throttle=o.th||0;e.netS=o.vs||null}}
+  if(o.sz&&e.type==='slime'&&e.size!==o.sz)e.setSize(o.sz);if(o.w!==undefined)e.woolId=o.w;if(o.c!==undefined)e.color=o.c;if(o.p&&e.prof!==o.p&&PROFS[o.p]){e.prof=o.p;e.trades=villagerTrades(o.p)}if(o.hs)e.hspeed=o.hs;if(o.hj)e.hjump=o.hj;e.remoteRider=o.rp||null;if(o.tm!==undefined)soldierUnpack(e,o);if(o.by&&e.bay)e.bay=o.by.slice();if(o.pt!==undefined){e.pitch=o.pt;e.bank=o.bk||0;e.throttle=o.th||0;e.netS=o.vs||null}}
 function mpMobsIn(conn,d){if(!world||!d.ms)return;const fromHost=!MP.host;if(d.dim!==world.dimKey){if(MP.host)mpRelay(conn,d);return}
   const byId=new Map();for(const e of entities)if(e instanceof Mob&&e.nid)byId.set(e.nid,e);
   for(const o of d.ms){if(!MOBDEF[o.k])continue;let e=byId.get(o.n);
@@ -7500,7 +7641,7 @@ function runCommand(line){const p=player;const raw=line.trim().replace(/^\/+/,''
       say('- Real-size vehicles: car x1.8 (4.5 m), tank x2.5 (9 m), jet x3 (15 m) and B-27 bomber x3 (20 m), with matching seats, cameras and guns.');
       say('- Ships on water: Patrol Boat (12 blocks, driver + twin machine gun, 14 blocks/s) and Destroyer (50 blocks, captain, two deck guns with explosive shells and an anti-air cannon that aims up to 85 degrees, 6 blocks/s). V changes seat, left click fires. /spawn patrol boat or /spawn destroyer near water, or craft their eggs from iron blocks, planks and diamonds.');
       say('- Extra war-only guns and anti-aircraft guns.');return}
-    case 'spawn':case 'summon':{if(/portal/i.test(args.join('_'))){spawnNetherPortal(say,/sift/i.test(args.join('_'))?'sift':'nether');return}{const dn=(args[0]||'').toLowerCase().replace(/[\s-]+/g,'_');const dd=DISASTER_ALIAS[dn]||(DISASTER_NAMES.includes(dn)?dn:null);if(dd){startDisaster(dd,args[1],say);return}}const words=args.filter(a=>!/^\d+$/.test(a)),num=args.find(a=>/^\d+$/.test(a));const t=words.join('_');const type=t?mobTypeFromName(t):null;if(!type&&spawnStructureAt(t,say))return;if(!type){say('Mobs: '+MOB_TYPES.map(k=>mobLabel(k)).join(', '));say('Structures: '+Object.keys(SPAWN_STRUCT).map(k=>k.replace(/_/g,' ')).join(', ')+' (built where you are looking)');return}if(MOBDEF[type].ship){spawnShipCmd(type,say);return}const n=clamp(parseInt(num)||1,1,20);const d=eyeDir();for(let i=0;i<n;i++)entities.push(new Mob(type,p.x+d[0]*3+(Math.random()-0.5)*2,p.y+0.5,p.z+d[2]*3+(Math.random()-0.5)*2));say('Spawned '+n+' '+mobLabel(type));return}
+    case 'spawn':case 'summon':{if(soldierCmd(args,say))return;if(/portal/i.test(args.join('_'))){spawnNetherPortal(say,/sift/i.test(args.join('_'))?'sift':'nether');return}{const dn=(args[0]||'').toLowerCase().replace(/[\s-]+/g,'_');const dd=DISASTER_ALIAS[dn]||(DISASTER_NAMES.includes(dn)?dn:null);if(dd){startDisaster(dd,args[1],say);return}}const words=args.filter(a=>!/^\d+$/.test(a)),num=args.find(a=>/^\d+$/.test(a));const t=words.join('_');const type=t?mobTypeFromName(t):null;if(!type&&spawnStructureAt(t,say))return;if(!type){say('Mobs: '+MOB_TYPES.map(k=>mobLabel(k)).join(', '));say('Structures: '+Object.keys(SPAWN_STRUCT).map(k=>k.replace(/_/g,' ')).join(', ')+' (built where you are looking)');return}if(MOBDEF[type].ship){spawnShipCmd(type,say);return}const n=clamp(parseInt(num)||1,1,20);const d=eyeDir();for(let i=0;i<n;i++)entities.push(new Mob(type,p.x+d[0]*3+(Math.random()-0.5)*2,p.y+0.5,p.z+d[2]*3+(Math.random()-0.5)*2));say('Spawned '+n+' '+mobLabel(type));return}
     case 'portal':spawnNetherPortal(say);return;
     case 'stop':case 'cancel':if(game.tpSearch)cancelBlockSearch();else say('Nothing to stop');return;
     case 'mods':case 'mod':{if(MP.active&&!MP.host){say('Only the host can change fun mods');return}const keys=Object.keys(MODN);if(!args.length){say('Fun mods: '+keys.map(k=>MODN[k]+' '+(game.mods[k]?'ON':'OFF')).join(', '));say('Usage: /mods <weather|horror|random|hardcore|structures|apocalypse|guns|hearts|nightvision|reallife|uncrafting> <on|off>');return}const k=keys.find(k=>k.startsWith(args[0].toLowerCase()))||(/^(storm|tornado)/i.test(args[0])?'weather':/^zombie|^wave/i.test(args[0])?'apocalypse':null);if(!k){say('Unknown mod. Mods: '+keys.join(', '));return}const on=args[1]?/^(on|1|true|yes)$/i.test(args[1]):!game.mods[k];const m=Object.assign({},game.mods);m[k]=on;applyModsLive(m);return}
@@ -7533,7 +7674,7 @@ function loop(now){
       if(game.tick%3===0)updateInfoHud();
       if(game.tick%200===0)saveWorld();
     }
-    tickPlates(dt);wmpTick(dt);a10Tick(dt);
+    tickPlates(dt);soldierWarTick(dt);wmpTick(dt);a10Tick(dt);
     mortarTick(dt);if(typeof tickCamp==='function')tickCamp(dt);tickNukeTimers(dt);tickFurnaces(dt);tickBrews(dt);tickSpawners(dt);tickTrials(dt);tickShriekers(dt);if(typeof beaconTick==='function')beaconTick();if(MP.active)mpTick(dt);
     updateMusic(dt);
     if(player.sleeping>0&&player.sleeping>2.2)$('sleepfade').style.opacity=1;
