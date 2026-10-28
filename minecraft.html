@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="ironcraft-build" content="20261027-222618">
+<meta name="ironcraft-build" content="20261028-154654">
 <meta name="viewport" content="width=device-width,initial-scale=1.0,viewport-fit=cover">
 <title>Ironcraft – Free Voxel Survival Sandbox in Your Browser | Iron Games</title>
 <meta name="description" content="Ironcraft is a free browser-based voxel survival sandbox with building, exploration, private or safety-limited public multiplayer, and optional weather, horror and survival challenges. By Daniele Bros.">
@@ -8063,6 +8063,7 @@ function tpToOutpost(say){const p=player;goDim('over');const skip=new Set();for(
 function tpNamed(name,say){const p=player;const n=name.toLowerCase().replace(/[\s-]+/g,'_');cancelBlockSearch(true);
   // dimensions
   for(const k in TP_DIM){if(TP_DIM[k].includes(n)){if(world.dimKey===k){say('You are already in the '+DIM_NAME[k]);return true}goDim(k);finishTp(say,'Teleported to the '+DIM_NAME[k]);return true}}
+  if(typeof tpNation==='function'&&tpNation(n,say))return true;
   if(n==='spawn_portal'||n==='start_portal'){goDim('over');const sp=world.spawnPortalSpot();if(!sp){say('No spawn portal in this world');return true}ensureChunks(sp.x,sp.z,2);const spot=safeSpotNear(sp.x,sp.z);p.x=spot[0];p.y=spot[1];p.z=spot[2];finishTp(say,'Teleported to the ruined portal by spawn');return true}
   if(n==='dungeon'||n==='spawner'||n==='monster_room'){if(world.end)goDim('over');startBlockSearch(86,'monster spawner',hit=>{landBeside(hit.x,hit.y,hit.z);finishTp(showMessage,'Teleported to the closest monster spawner')});return true}
   if(n==='outpost'||n==='pillager_outpost'||n==='pillagers'){tpToOutpost(say);return true}
@@ -8415,6 +8416,12 @@ function nsOnPick(name){ // the home country gets a landmark 40-60 blocks from t
     if(buildNationScene(name,x,0,z,{rot:nsTurns(p.x-x,p.z-z)})){const ang=Math.atan2(x-p.x,-(z-p.z));showMessage('The landmark of '+name+' stands '+NS_COMPASS[((Math.round(ang/(PI/4))%8)+8)%8]+' of you.')}
     return}}
 const NS_ALIAS={us:'USA',america:'USA',unitedstates:'USA',washington:'USA',washingtondc:'USA',britain:'UK',england:'UK',greatbritain:'UK',unitedkingdom:'UK',london:'UK',holland:'Netherlands',amsterdam:'Netherlands',korea:'South Korea',southkorea:'South Korea',skorea:'South Korea',saudi:'Saudi Arabia',southafrica:'South Africa',congo:'DR Congo',drcongo:'DR Congo',png:'Papua New Guinea',papua:'Papua New Guinea'};
+function nsCentroid(name){const n=WAR_NATIONS.find(w=>w[0]===name);if(!n)return null;const poly=n[4][0];let sx=0,sy=0,k=0;for(let i=0;i<poly.length;i+=2){sx+=poly[i];sy+=poly[i+1];k++}return [sx/k,sy/k]}
+function tpNation(arg,say){const name=nsResolve(arg);if(!name)return false;const p=player;if(world.dimKey!=='over')goDim('over');
+  const list=game.warScenes||(game.war&&game.war.scenes)||[];const sc=list.find(q=>q[2]===name);let x,z;
+  if(sc){x=sc[0];z=sc[1]}else{const c=nsCentroid(name);x=floor(c[0]*25);z=floor(-c[1]*25); // 25 blocks per degree: every country keeps its place on the globe, about 9000 blocks east to west
+    ensureChunks(x,z,3);if(!(MP.active&&!MP.host))buildNationScene(name,x,0,z,{rot:0,force:true})}
+  ensureChunks(x,z,2);const spot=safeSpotNear(x+6,z+18);p.x=spot[0];p.y=spot[1];p.z=spot[2];p.yaw=Math.atan2(-(x-p.x),-(z-p.z));finishTp(say,'Teleported to '+name+(sc?'':', where its landmark now stands'));return true}
 function nsResolve(s){const q=String(s||'').toLowerCase().replace(/[^a-z]/g,'');if(!q)return null;if(NS_ALIAS[q])return NS_ALIAS[q];if(q==='netherlands')return 'Netherlands';
   for(const n of WAR_NATIONS)if(n[0].toLowerCase().replace(/[^a-z]/g,'')===q||n[1].toLowerCase().replace(/[^a-z]/g,'')===q)return n[0];
   for(const n of WAR_NATIONS)if(q.length>=3&&n[0].toLowerCase().replace(/[^a-z]/g,'').startsWith(q))return n[0];return null}
