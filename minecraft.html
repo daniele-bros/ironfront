@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="ironcraft-build" content="20261029-214126">
+<meta name="ironcraft-build" content="20261029-214319">
 <meta name="viewport" content="width=device-width,initial-scale=1.0,viewport-fit=cover">
 <title>Ironcraft – Free Voxel Survival Sandbox in Your Browser | Iron Games</title>
 <meta name="description" content="Ironcraft is a free browser-based voxel survival sandbox with building, exploration, private or safety-limited public multiplayer, and optional weather, horror and survival challenges. By Daniele Bros.">
@@ -657,6 +657,7 @@ label.lb{font-size:13px;color:#a0a0a0;align-self:flex-start;margin-left:calc(50%
   <button class="btn" id="btnOptionsP">Options...</button>
   <button class="btn" id="btnModsP">Fun Mods...</button>
   <button class="btn" id="btnSkinP">Skin...</button>
+  <button class="btn" id="btnChatP">Chat...</button>
   <button class="btn" id="btnModeP">Game Mode: Survival</button>
   <button class="btn" id="btnGuideP">Crafting Guide...</button>
   <button class="btn" id="btnModMakerP">Mod Maker...</button>
@@ -6660,7 +6661,7 @@ function setupInput(){
   document.addEventListener('mousemove',ev=>{game.mousePos={x:ev.clientX,y:ev.clientY};if((document.pointerLockElement!==c&&!game.noLock)||game.gui||game.paused||player.koT>0)return;const s=opts.sens/100*0.0022;player.yaw-=ev.movementX*s;player.pitch-=ev.movementY*s;player.pitch=clamp(player.pitch,-PI/2+0.001,PI/2-0.001)});
   document.addEventListener('pointerlockerror',()=>{if(!game.noLock){game.noLock=true;if(!game.lockMsg){game.lockMsg=true;showMessage('Mouse lock unavailable: click the screen to try again, or move the mouse near a screen edge to turn')}}});
   document.addEventListener('pointerlockchange',()=>{if(document.pointerLockElement===c){clearTimeout(game.lockTimer);game.noLock=false}if(document.pointerLockElement!==c&&game.state==='playing'&&!game.gui&&!player.dead&&!game.paused&&!game.cmdOpen){pauseGame()}});
-  $('cmd').addEventListener('keydown',ev=>{if(ev.code==='Enter'||ev.code==='NumpadEnter'||ev.key==='Enter'){const v=$('cmd').value;closeCmd();if(v.trim()){const s=v.trim();if(squadChat(s)){}else if(MP.active&&!s.startsWith('/'))mpChat(s);else runCommand(s)}}else if(ev.code==='Escape'){closeCmd()}ev.stopPropagation()});
+  $('cmd').addEventListener('keydown',ev=>{if(ev.code==='Enter'||ev.code==='NumpadEnter'||ev.key==='Enter'){const v=$('cmd').value;closeCmd();if(v.trim()){const s=v.trim();if(squadChat(s)){}else if(MP.active&&!s.startsWith('/'))mpChat(s);else if(!s.startsWith('/'))lobbySay(s);else runCommand(s)}}else if(ev.code==='Escape'){closeCmd()}ev.stopPropagation()});
   document.addEventListener('wheel',ev=>{if(game.state!=='playing'||game.gui||game.paused)return;player.sel=(player.sel+(ev.deltaY>0?1:-1)+9)%9;updateHotbar()},{passive:true});
   document.addEventListener('keydown',ev=>{
     if(ev.target&&ev.target.tagName==='INPUT'&&ev.code!=='Escape'){return}
@@ -8472,12 +8473,20 @@ function lobbyBoot(){try{if(navigator.webdriver&&!window.IC_FORCE_LOBBY)return;
   setTimeout(()=>{try{if(!LOBBY||LOBBY.stopped)lobbyMake()}catch(e){}},1200)}catch(e){}}
 function lobbyLeaveNow(){try{if(LOBBY&&!LOBBY.stopped)LOBBY.stop()}catch(e){}}
 function lobbyDisplayName(){let n='';try{n=localStorage.getItem('ic_chatname')||''}catch(e){}n=lobbyClean(n||(typeof opts!=='undefined'&&opts.mpName)||'',16);if(!n){n=publicAlias(Math.random());try{localStorage.setItem('ic_chatname',n)}catch(e){}}return n}
-function lobbyRender(L){if(L!==LOBBY)return;lobbyBtn(L);try{modLobbyTick()}catch(e){}if(!lobbyChatShown()){try{const st=$('chatStatus');if(st)st.textContent=L.status}catch(e){}return}try{const st=$('chatStatus');if(st)st.textContent=L.status;
+// inside a world the lobby still talks: new lines land in the HUD chat as [Lobby] and plain text typed in the chat box (or /lobby on a server) answers them
+let lobbyHudN=0;
+function lobbyHudLines(L){const n=L.lines.length;if(lobbyHudN>n)lobbyHudN=0;if(game.state!=='playing'||lobbyChatShown()){lobbyHudN=n;return}
+  const from=Math.max(lobbyHudN,n-3);for(let i=from;i<n;i++){const l=L.lines[i];if(l.kind==='chat'&&typeof chatLine==='function')chatLine('[Lobby] '+l.name,l.text)}lobbyHudN=n}
+function lobbySay(text){text=String(text||'').trim();if(!text)return;if(!LOBBY||LOBBY.stopped){try{lobbyMake()}catch(e){}}if(!LOBBY){showMessage('Lobby chat is offline');return}
+  const r=LOBBY.send(text);if(r==='rate')showMessage('Slow down: one message per second');else if(r==='offline')showMessage('Lobby chat is connecting, try again in a moment');
+  else if(!game.lobbyHint){game.lobbyHint=true;showMessage('Sent to the lobby chat (everyone online). On a server, plain text goes to the server and /lobby to everyone')}}
+function lobbyRender(L){if(L!==LOBBY)return;lobbyBtn(L);try{modLobbyTick()}catch(e){}try{lobbyHudLines(L)}catch(e){}if(!lobbyChatShown()){try{const st=$('chatStatus');if(st)st.textContent=L.status}catch(e){}return}try{const st=$('chatStatus');if(st)st.textContent=L.status;
   const list=$('chatList');if(list){const near=list.scrollHeight-list.scrollTop-list.clientHeight<40;list.textContent='';
     for(const l of L.lines.slice(-120)){const d=document.createElement('div');if(l.kind==='sys'){d.className='cl sys';d.textContent=l.text}else{d.className='cl';const b=document.createElement('b');b.className='cname';b.textContent=l.name;d.appendChild(b);d.appendChild(document.createTextNode(': '+l.text))}list.appendChild(d)}
     if(near)list.scrollTop=list.scrollHeight}
   const us=$('chatUsers');if(us){us.textContent='';for(const u of L.users.slice().sort(lobbyUserSort)){const d=document.createElement('div');d.className='cu';const b=document.createElement('b');b.className='cname';b.textContent=u.name+(u.id===L.myId?' (you)':'');const sm=document.createElement('small');sm.textContent=lobbyPresText(u.st);d.appendChild(b);d.appendChild(sm);us.appendChild(d)}}}catch(e){}}
-function lobbyOpen(){showMenu('chatMenu');lobbyLeft=0;lobbyPresenceTick();
+let lobbyBack='titleMenu';
+function lobbyOpen(back){lobbyBack=back||'titleMenu';showMenu('chatMenu');lobbyLeft=0;lobbyPresenceTick();
   try{if(!LOBBY||LOBBY.stopped){lobbyMake()}
     $('chatName').value=LOBBY.name;lobbyRender(LOBBY);if(!lobbyWatch)lobbyWatch=setInterval(lobbyWatchTick,1000)}catch(e){const st=$('chatStatus');if(st)st.textContent='Chat is offline'}}
 // keep the connection while the panel is open and for 30 s after leaving it; drop it once a world starts
@@ -8485,7 +8494,7 @@ function lobbyWatchTick(){try{if(!LOBBY||LOBBY.stopped){clearInterval(lobbyWatch
   lobbyPresenceTick();
   if($('chatMenu').classList.contains('show')||modShareHold())lobbyLeft=0;else if(!lobbyLeft)lobbyLeft=Date.now()}catch(e){}}
 function lobbySend(){try{const inp=$('chatInput');const r=LOBBY?LOBBY.send(inp.value):'offline';if(r==='ok'||r==='empty')inp.value='';else if(r==='rate')LOBBY.localSys('Slow down: one message per second.');else if(LOBBY)LOBBY.localSys('Not connected yet.')}catch(e){}}
-function lobbySetup(){$('btnChat').onclick=lobbyOpen;$('btnChatBack').onclick=()=>{showMenu('titleMenu');lobbyLeft=Date.now();lobbyPresenceTick()};$('btnChatSend').onclick=lobbySend;
+function lobbySetup(){$('btnChat').onclick=()=>lobbyOpen('titleMenu');const cp=$('btnChatP');if(cp)cp.onclick=()=>lobbyOpen('pauseMenu');$('btnChatBack').onclick=()=>{showMenu(lobbyBack);lobbyLeft=Date.now();lobbyPresenceTick()};$('btnChatSend').onclick=lobbySend;
   $('chatInput').addEventListener('keydown',ev=>{ev.stopPropagation();if(ev.key==='Enter'){ev.preventDefault();lobbySend()}});
   $('chatName').addEventListener('keydown',ev=>{ev.stopPropagation();if(ev.key==='Enter')ev.target.blur()});
   $('chatName').addEventListener('change',()=>{try{const n=lobbyClean($('chatName').value,16);if(n){try{localStorage.setItem('ic_chatname',n)}catch(e){}if(LOBBY)LOBBY.setName(n)}$('chatName').value=n||(LOBBY?LOBBY.name:'')}catch(e){}})}
@@ -9558,6 +9567,7 @@ function runCommand(line){const p=player;const raw=line.trim().replace(/^\/+/,''
     case 'heal':p.hp=p.maxHp;p.hunger=20;p.sat=5;p.fireT=0;p.air=300;p.effects={};say('Healed');return;
     case 'xp':{const n=parseInt(args[0])||10;p.level=Math.max(0,p.level+n);p.xpFrac=0;say('Level '+p.level);updateHUD&&updateHUD();return}
     case 'squad':case 'soldiers':case 'soldier':case 'order':case 'orders':case 'troops':case 'men':{squadCmd(args,say);return}
+    case 'lobby':case 'l':{lobbySay(args.join(' '));return}
     case 'players':case 'online':{if(!MP.active){say('Only you are here (solo world)');return}const nm=[(MP.public?publicAlias(MP.myId):MP.name)+' (you)'];for(const r of MP.remote.values())nm.push(r.name);say('Online ('+nm.length+'): '+nm.join(', '));return}
     case 'seed':say('Seed: '+game.seed);return;
     case 'kill':{let n=0;for(const e of entities){if(e instanceof Mob&&!e.def.passive&&!e.dead&&!(e.type==='wolf'&&e.tamed)&&Math.hypot(e.x-p.x,e.z-p.z)<32){e.dead=true;n++}}say('Removed '+n+' hostile mobs nearby');return}
