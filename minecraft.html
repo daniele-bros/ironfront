@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="ironcraft-build" content="20261029-192820">
+<meta name="ironcraft-build" content="20261029-193057">
 <meta name="viewport" content="width=device-width,initial-scale=1.0,viewport-fit=cover">
 <title>Ironcraft – Free Voxel Survival Sandbox in Your Browser | Iron Games</title>
 <meta name="description" content="Ironcraft is a free browser-based voxel survival sandbox with building, exploration, private or safety-limited public multiplayer, and optional weather, horror and survival challenges. By Daniele Bros.">
@@ -1823,12 +1823,14 @@ class Chunk{
 const BIOMES=['ocean','beach','plains','forest','birch_forest','desert','taiga','snowy_taiga','mountains','deep_ocean','swamp','nether','jungle'];
 const BI={};BIOMES.forEach((b,i)=>BI[b]=i);
 const LIGHT_OPACITY=id=>{const d=BLOCKS[id];if(d.opaque)return 15;if(id===8)return 2;if(d.leaves)return 1;return 0};
+const GEN2_H=256,GEN2_SNOW=150; // generator version 2 (new worlds): Overworld terrain may reach y 250; snow settles above 150. Gen 1 keeps GH=128
 class World{
   constructor(seed,nether){
     this.nether=nether===true||nether==='nether';this.end=nether==='end';this.sift=nether==='sift';this.dimKey=this.end?'end':this.nether?'nether':this.sift?'sift':'over';this.seed=seed;this.nEnd=new Simplex((seed|0)+13);this.chunks=new Map();this.pending=new Map();this.populated=new Set();this.pendingLoot=new Map();this.spawners=new Map();this.trials=new Map();this.shriekers=new Map();this.warning=0;this.warningT=0;this.tickQueue=new Map();this.time=1000;this.day=0;
     const s=seed|0;this.nT=new Simplex(s);this.nH=new Simplex(s+1);this.nM=new Simplex(s+2);this.nD=new Simplex(s+3);this.nTemp=new Simplex(s+4);this.nHum=new Simplex(s+5);
     this.nC1=new Simplex(s+6);this.nC2=new Simplex(s+7);this.nC3=new Simplex(s+8);this.nC4=new Simplex(s+11);this.nC5=new Simplex(s+12);this.nVar=new Simplex(s+9);this.nR=new Simplex(s+10);
     this.dirtyLight=new Set();
+    this.gen=(this.nether||this.end||this.sift)?1:(game.gen||1);if(this.gen>=2)this.nP=new Simplex(s+14); // nP: ridged noise for the tall peaks of gen 2
   }
   getChunk(cx,cz){return this.chunks.get(chunkKey(cx,cz))}
   chunkAt(x,z){return this.chunks.get(chunkKey(x>>4,z>>4))}
@@ -1925,9 +1927,10 @@ class World{
     const cont=this.nT.fbm2(x/700,z/700,3),hills=this.nH.fbm2(x/140,z/140,4),mount=this.nM.n2(x/380,z/380),detail=this.nD.n2(x/24,z/24);
     const temp=this.nTemp.fbm2(x/900+100,z/900,2)-Math.max(0,mount-0.3)*0.8,hum=this.nHum.fbm2(x/600-50,z/600,2);
     let h=64+cont*16+hills*7+detail*2;
-    if(mount>0.25){const m=(mount-0.25)/0.75;h+=m*m*70+abs(hills)*m*20}
+    if(this.gen>=2){if(mount>0.15){const m=(mount-0.15)/0.85;h+=m*m*150+abs(hills)*m*40;const pn=this.nP.n2(x/190,z/190),rd=1-pn*pn*5;if(rd>0.78){const q=(rd-0.78)/0.22;h+=q*q*m*38}}} // gen 2: a wider band, higher ranges, and ridged peaks inside it
+    else if(mount>0.25){const m=(mount-0.25)/0.75;h+=m*m*70+abs(hills)*m*20}
     if(cont<-0.25)h-=(-0.25-cont)*45;
-    const height=clamp(floor(h),5,GH-6);
+    const height=clamp(floor(h),5,(this.gen>=2?GEN2_H:GH)-6);
     let biome;
     if(height<SEA-2)biome=height<44?BI.deep_ocean:BI.ocean;
     else if(height<=SEA+1)biome=BI.beach;
@@ -1948,7 +1951,9 @@ class World{
     if(this.nether)return this.generateNetherChunk(c);if(this.end)return this.generateEndChunk(c);if(this.sift)return this.generateSiftChunk(c);
     const bl=c.blocks,mt=c.meta;const wx=cx*16,wz=cz*16;const rng=mulberry32(hashInt(cx,cz,0,this.seed));
     // cave noise on a coarse grid (5x33x5) then trilinear interpolation
-    const G=4,GX=5,GY=GH/G+1;const cv1=new Float32Array(GX*GY*GX),cv2=new Float32Array(GX*GY*GX),cv3=new Float32Array(GX*GY*GX),cv4=new Float32Array(GX*GY*GX),cv5=new Float32Array(GX*GY*GX);
+    const g2=this.gen>=2,GHO=g2?GEN2_H:GH;const pre=[];let hmax=0; // gen 2: columns first, so the cave grid only spans the terrain that exists
+    if(g2)for(let x=0;x<16;x++)for(let z=0;z<16;z++){const inf=this.columnInfo(wx+x,wz+z);pre[x*16+z]=inf;if(inf.height>hmax)hmax=inf.height}
+    const G=4,GX=5,GY=g2?Math.min(GHO/G+1,(hmax>>2)+3):GH/G+1;const cv1=new Float32Array(GX*GY*GX),cv2=new Float32Array(GX*GY*GX),cv3=new Float32Array(GX*GY*GX),cv4=new Float32Array(GX*GY*GX),cv5=new Float32Array(GX*GY*GX);
     for(let gx=0;gx<GX;gx++)for(let gz=0;gz<GX;gz++)for(let gy=0;gy<GY;gy++){const X=wx+gx*G,Y=gy*G,Z=wz+gz*G;const i=(gx*GX+gz)*GY+gy;
       cv1[i]=this.nC1.n3(X/38,Y/22,Z/38);cv2[i]=this.nC2.n3(X/38+7,Y/22,Z/38+3);cv3[i]=this.nC3.n3(X/90,Y/45,Z/90);cv4[i]=this.nC4.n3(X/75,Y/40,Z/75);cv5[i]=this.nC5.n3(X/75+11,Y/40,Z/75+5)}
     const samp=(arr,x,y,z)=>{const fx=x/G,fy=y/G,fz=z/G;const x0=fx|0,y0=fy|0,z0=fz|0;const tx=fx-x0,ty=fy-y0,tz=fz-z0;const x1=Math.min(x0+1,GX-1),z1=Math.min(z0+1,GX-1),y1=Math.min(y0+1,GY-1);
@@ -1957,38 +1962,39 @@ class World{
       return (c00*(1-tz)+c10*tz)*(1-ty)+(c01*(1-tz)+c11*tz)*ty};
     const infos=[];
     for(let x=0;x<16;x++)for(let z=0;z<16;z++){
-      const info=this.columnInfo(wx+x,wz+z);infos[x*16+z]=info;const h=info.height,bi=info.biome;c.heights[x*16+z]=h;c.biomes[x*16+z]=bi;
+      const info=pre[x*16+z]||this.columnInfo(wx+x,wz+z);infos[x*16+z]=info;const h=info.height,bi=info.biome;c.heights[x*16+z]=h;c.biomes[x*16+z]=bi;
       const cold=bi===BI.snowy_taiga||(bi===BI.mountains&&(h>100||info.temp<-0.2));
       const sandy=bi===BI.desert||bi===BI.beach;const oceanFloor=bi===BI.ocean||bi===BI.deep_ocean;
       const varn=this.nVar.n2((wx+x)/9,(wz+z)/9);
-      for(let y=0;y<GH;y++){const i=cidx(x,y,z);let id=0;
+      for(let y=0;y<GHO;y++){const i=cidx(x,y,z);let id=0;
         if(y===0||(y<4&&rng()<0.5-y*0.12))id=7;
         else if(y<=h){
           if(y>h-4){
             if(sandy)id=y<=h-3?19:10;
             else if(oceanFloor)id=varn>0.3?11:varn<-0.4?43:10;
-            else if(bi===BI.mountains&&h>92&&varn>-0.2&&y>h-2)id=(y===h&&h<105&&varn>0.3)?2:1;
+            else if(bi===BI.mountains&&h>92&&(varn>-0.2||(g2&&h>130))&&y>h-2)id=(y===h&&h<105&&varn>0.3)?2:1;
             else if(y===h)id=cold?2:2;
             else id=3;
             if(id===2&&cold)mt[i]=1;
           } else id=1;
           // caves
-          if(id!==7&&y>3){const n1=samp(cv1,x,y,z),n2=samp(cv2,x,y,z);const depth=h-y;const deep=clamp((depth-1)/6,0,1);const wid=0.09+deep*(0.05+Math.max(0,1-y/60)*0.04);let cave=(abs(n1)<wid&&abs(n2)<wid);
-            if(!cave&&depth>3){const n4=samp(cv4,x,y,z),n5=samp(cv5,x,y,z);if(abs(n4)<0.16&&abs(n5)<0.16)cave=true}
-            if(!cave&&depth>5){const n3=samp(cv3,x,y,z);if(n3>0.40-Math.max(0,1-y/50)*0.1)cave=true}
+          if(id!==7&&y>3){const alt=g2&&y>70?Math.min(1,(y-70)/80):0;const n1=samp(cv1,x,y,z),n2=samp(cv2,x,y,z);const depth=h-y;const deep=clamp((depth-1)/6,0,1);const wid=(0.09+deep*(0.05+Math.max(0,1-y/60)*0.04))*(1-alt*0.85);let cave=(abs(n1)<wid&&abs(n2)<wid);
+            if(!cave&&depth>3){const n4=samp(cv4,x,y,z),n5=samp(cv5,x,y,z);if(abs(n4)<0.16*(1-alt*0.85)&&abs(n5)<0.16*(1-alt*0.85))cave=true}
+            if(!cave&&depth>5){const n3=samp(cv3,x,y,z);if(n3>0.40-Math.max(0,1-y/50)*0.1+alt*0.5)cave=true}
             if(cave&&(h>=SEA+2||y<h-8)){id=y<=10?9:0}}
         }
         else if(y<=SEA){id=8;if(y===SEA&&cold)id=41}
         bl[i]=id;
       }
-      if(cold&&h>SEA+1&&bl[cidx(x,h,z)]===2)bl[cidx(x,h+1,z)]=40; else if(bi===BI.mountains&&h>104&&bl[cidx(x,h,z)]!==0)bl[cidx(x,h+1,z)]=40;
+      if(cold&&h>SEA+1&&bl[cidx(x,h,z)]===2)bl[cidx(x,h+1,z)]=40; else if(bi===BI.mountains&&h>(g2?GEN2_SNOW:104)&&bl[cidx(x,h,z)]!==0)bl[cidx(x,h+1,z)]=40;
     }
     // stone variants & ores
     const veins=[[66,5,0,80,22],[67,5,0,80,22],[68,5,0,80,22],[3,4,0,GH,20],[11,4,0,GH,20],[14,20,5,GH,10],[13,20,1,70,7],[70,8,35,95,8],[12,4,1,32,6],[69,6,1,16,6],[18,2,1,32,5],[33,2,1,16,4]];
+    if(g2)veins.push([3,4,GH,GHO,18],[11,3,GH,GHO,18],[14,10,GH,GHO,10],[66,3,GH,GHO,22],[67,3,GH,GHO,22],[68,3,GH,GHO,22]); // gen 2: dirt, gravel, coal and rock variants up the tall mountains
     const stoneLike=id=>id===1||id===66||id===67||id===68;
     for(const [id,tries,ymin,ymax,size] of veins)for(let t=0;t<tries;t++){
       let x=floor(rng()*16),z=floor(rng()*16);let y=ymin+floor(rng()*(ymax-ymin));if(id===13||id===12||id===33||id===124){y=ymin+floor((rng()+rng())/2*(ymax-ymin))}
-      for(let s=0;s<size;s++){if(x>=0&&x<16&&z>=0&&z<16&&y>0&&y<GH){const i=cidx(x,y,z);if(stoneLike(bl[i]))bl[i]=id}const a=floor(rng()*3);const dd=rng()<0.5?-1:1;if(a===0)x+=dd;else if(a===1)y+=dd;else z+=dd}}
+      for(let s=0;s<size;s++){if(x>=0&&x<16&&z>=0&&z<16&&y>0&&y<GHO){const i=cidx(x,y,z);if(stoneLike(bl[i]))bl[i]=id}const a=floor(rng()*3);const dd=rng()<0.5?-1:1;if(a===0)x+=dd;else if(a===1)y+=dd;else z+=dd}}
     if(infos[0].biome===BI.mountains)for(let t=0;t<5;t++){const x=floor(rng()*16),z=floor(rng()*16),y=4+floor(rng()*28);const i=cidx(x,y,z);if(stoneLike(bl[i]))bl[i]=71}
     c.generated=true;
     // decorations
@@ -2487,7 +2493,7 @@ function drawSky(sc){const gl=R.gl;gl.disable(gl.DEPTH_TEST);gl.disable(gl.CULL_
   if(!world.end&&!world.sift){mk(sx,sy,0,10,TEX.sun,[1,1,1]);mk(-sx,-sy,0,7,TEX.moon,[1,1,1])}
   EBS.draw(R.progE,R.atlasTex,{fogStart:1e6,fogEnd:2e6,noLight:1});
   gl.enable(gl.DEPTH_TEST);gl.enable(gl.CULL_FACE);gl.disable(gl.BLEND)}
-function drawClouds(sc){const gl=R.gl;EBS.clear();const e=R.eye;const t=game.time*0.6;const cy=GH+14;const cell=12;const ox=floor((e[0]+t)/cell)*cell-t,oz=floor(e[2]/cell)*cell;const n=R.cloudNoise;
+function drawClouds(sc){const gl=R.gl;EBS.clear();const e=R.eye;const t=game.time*0.6;const cy=world.gen>=2?GEN2_H+16:GH+14;const cell=12;const ox=floor((e[0]+t)/cell)*cell-t,oz=floor(e[2]/cell)*cell;const n=R.cloudNoise;
   const l=[1,0,1];const col=[0.95,0.95,1];
   for(let i=-16;i<=16;i++)for(let j=-16;j<=16;j++){const x=ox+i*cell,z=oz+j*cell;const v=n.n2((x+t)/90,z/90)+0.5*n.n2((x+t)/35,z/35);if(v<0.35)continue;
     const uv=tileUVs(TEX.white,0,0,1,1);EBS.quad([[x,cy,z],[x,cy,z+cell],[x+cell,cy,z+cell],[x+cell,cy,z]],uv,[1,0,0.95],col);EBS.quad([[x,cy,z],[x+cell,cy,z],[x+cell,cy,z+cell],[x,cy,z+cell]],uv,[1,0,0.75],col)}
@@ -4610,7 +4616,7 @@ function siloColor(cx,cz){ // terrain colour of a chunk from the generator's own
   if(b===BI.beach)return [228,214,150];
   if(b===BI.desert)return [216,188,118].map(v=>v*sh);
   if(b===BI.snowy_taiga)return [238,244,250];
-  if(b===BI.mountains)return h>108?[240,242,248]:[0,1,2].map(()=>clamp(118+(h-95)*3,118,200));
+  if(b===BI.mountains){const g2=world.gen>=2;return h>(g2?GEN2_SNOW:108)?[240,242,248]:[0,1,2].map(()=>clamp(118+(h-95)*(g2?1.4:3),118,200))}
   if(b===BI.jungle)return [30,112,40].map(v=>v*sh);
   if(b===BI.forest)return [54,124,50].map(v=>v*sh);
   if(b===BI.birch_forest)return [88,146,68].map(v=>v*sh);
@@ -6430,8 +6436,8 @@ function applyModsLive(m,fromHost){if(!world||game.state!=='playing')return;cons
 function modsOf(meta){const m=Object.assign({weather:false,horror:false,random:false,hardcore:false,structures:false,apocalypse:false,guns:false,hearts:false,nightvision:false,reallife:false,uncrafting:false,leafdoors:false,notags:false,nukes:false,war:false,camping:false},meta.mods||{});if(!meta.mods&&meta.drops==='random')m.random=true;if(m.war)m.guns=true;return m}
 function newWorld(name,seedStr,mode,diff,mods){const drops=mods&&mods.random?'random':'normal';
   const seed=seedStr?(isNaN(+seedStr)?hashStr(seedStr):(+seedStr|0)):(Math.random()*2147483647|0);
-  const id='w'+Date.now().toString(36);const list=worldList();list.push({id,name,seed,mode,diff,drops,mods:mods||{},created:Date.now(),played:Date.now()});localStorage.setItem('ic_worlds',JSON.stringify(list));
-  startWorld({id,name,seed,mode,diff,drops,mods:mods||{}},null);
+  const id='w'+Date.now().toString(36);const list=worldList();list.push({id,name,seed,mode,diff,drops,mods:mods||{},gen:2,created:Date.now(),played:Date.now()});localStorage.setItem('ic_worlds',JSON.stringify(list));
+  startWorld({id,name,seed,mode,diff,drops,mods:mods||{},gen:2},null);
 }
 function worldList(){try{return JSON.parse(localStorage.getItem('ic_worlds')||'[]')}catch(e){return []}}
 /* ---- world save store: IndexedDB (hundreds of MB) instead of localStorage (about 5 MB) ---- */
@@ -6460,7 +6466,7 @@ function migrateSaveHeight(save){if(!save)return save;const f=idxMapFor(save.ch)
   save.ch=CH;return save}
 function startWorld(meta,save){if(typeof modsPending==='function')modsPending();if(save)migrateSaveHeight(save);if(window.trackEvent)trackEvent('game_start',{game:'Ironcraft',multiplayer:!!(MP&&MP.active),mods:Object.keys(modsOf(meta)).filter(k=>modsOf(meta)[k]).join(',')||'none'});
   game.mods=modsOf(meta);game.baseDiff=meta.diff;game.noSave=false;game.wx=game.mods.weather?{storm:false,I:0,t:30+Math.random()*60,lt:4,flash:0,tornado:null}:null;game.hx=game.mods.horror?{amb:15,beat:0}:null;game.ax=game.mods.apocalypse?{wave:0,next:75,active:false,mobs:[],warned:{},left:0}:null;
-  game.spawns={};game.mySpawn=null;game.mySpawnShown=false;game.wmpPvp=[];game.wmpPB={};game.pvpHud=null;game.wmpRB=null;game.war=null;game.wmpBattle=null;game.wmpCounter=null;wmAsk=false;wmCd=null;game.dims={over:null,nether:null,end:null,sift:null};world=new World(meta.seed);game.seed=meta.seed;game.worldId=meta.id;game.worldName=meta.name;game.difficulty=game.mods.hardcore?3:(game.mods.apocalypse?Math.max(1,meta.diff):meta.diff);game.randomDrops=game.mods.random;entities.length=0;particles.length=0;activeFurnaces.clear();game.plates=new Map();game.nukeTimers=new Map();game.nukeTimerDim=new Map();if(MP.active)for(const r of MP.remote.values()){r.dead=false;entities.push(r)}
+  game.spawns={};game.mySpawn=null;game.mySpawnShown=false;game.wmpPvp=[];game.wmpPB={};game.pvpHud=null;game.wmpRB=null;game.war=null;game.wmpBattle=null;game.wmpCounter=null;wmAsk=false;wmCd=null;game.dims={over:null,nether:null,end:null,sift:null};game.gen=meta.gen||(save&&save.gen)||1;world=new World(meta.seed);game.seed=meta.seed;game.worldId=meta.id;game.worldName=meta.name;game.difficulty=game.mods.hardcore?3:(game.mods.apocalypse?Math.max(1,meta.diff):meta.diff);game.randomDrops=game.mods.random;entities.length=0;particles.length=0;activeFurnaces.clear();game.plates=new Map();game.nukeTimers=new Map();game.nukeTimerDim=new Map();if(MP.active)for(const r of MP.remote.values()){r.dead=false;entities.push(r)}
   const p=player;p.mode=meta.mode;p.inv.fill(null);p.armor.fill(null);p.off[0]=null;p.sel=0;p.hp=20;p.absorb=0;p.absorbT=0;p.coldT=0;p.frozen=false;p.koT=0;$('koov').style.opacity=0;p.effLvl={};p.swimming=false;p.hunger=20;p.sat=5;p.exh=0;p.xp=0;p.level=0;p.dead=false;p.flying=false;p.effects={};p.spawn=null;p.fireT=0;p.air=300;p.vx=p.vy=p.vz=0;p.riding=null;
   if(save){if(game.ax&&save.apoc)game.ax.wave=save.apoc.wave||0;world.time=save.time;world.day=save.day||0;game.worldSpawn=save.spawn;world.savedMods={};for(const k in save.mods)world.savedMods[k]=save.mods[k];world.savedBents=save.bents||{};world.populated=new Set(save.pop||[]);
     const sp=save.player;if(sp.hp<=0)game.respawnOnLoad=true;Object.assign(p,{x:sp.x,y:sp.y,z:sp.z,yaw:sp.yaw,pitch:sp.pitch,hp:sp.hp,hunger:sp.hunger,sat:sp.sat,xp:sp.xp,level:sp.level,sel:sp.sel,spawn:sp.spawn,flying:sp.flying||false});p.off[0]=sp.offhand||null;for(let i=0;i<36;i++)p.inv[i]=sp.inv[i]||null;for(let i=0;i<4;i++)p.armor[i]=sp.armor[i]||null;
@@ -6498,7 +6504,7 @@ function saveWorld(){if(!world||game.state!=='playing'||game.noSave)return;const
   const overSaveWorld=world.dimKey==='over'?world:(game.dims.over?game.dims.over.world:null);
   if(overSaveWorld){for(const c of overSaveWorld.chunks.values()){const k=c.cx+','+c.cz;if(!overSaveWorld.savedMods)overSaveWorld.savedMods={};if(!overSaveWorld.savedBents)overSaveWorld.savedBents={};if(c.mods.size)overSaveWorld.savedMods[k]=Array.from(c.mods);if(c.bents.size)overSaveWorld.savedBents[k]=Array.from(c.bents)}Object.assign(mods,overSaveWorld.savedMods||{});Object.assign(bents,overSaveWorld.savedBents||{})}
   const mobs=[],items=[];const overEnts=world.dimKey==='over'?entities:(game.dims.over?game.dims.over.ents:[]);for(const e of overEnts){if(e.dead)continue;if(e instanceof Wither&&!e.dying)mobs.push({type:'wither',x:e.x,y:e.y,z:e.z,hp:e.hp});else if(e instanceof Mob&&!e.dying)mobs.push({type:e.type,x:e.x,y:e.y,z:e.z,hp:e.hp,baby:e.baby,growT:e.growT,sheared:e.sheared,woolId:e.woolId,prof:e.prof,vlevel:e.vlevel,vxp:e.vxp,uses:e.trades?e.trades.map(t=>t.uses):undefined,tamed:e.tamed||undefined,sitting:e.sitting||undefined,color:e.color,hspeed:e.hspeed,hjump:e.hjump,saddled:e.saddled||undefined,maxHp:e.type==='horse'?e.maxHp:undefined,size:e.size,demand:e.trades?e.trades.map(t=>t.demand||0):undefined,restocks:e.restocks,tm:e.def.soldier?e.team:undefined,nt:e.def.soldier?e.nation:undefined,kd:e.def.soldier?e.kind:undefined,gn:e.def.soldier?e.gunId:undefined,el:e.elite||undefined,od:e.def.soldier?e.order:undefined,op:e.def.soldier&&e.orderPos?e.orderPos:undefined});else if(e instanceof ItemEntity)items.push({x:e.x,y:e.y,z:e.z,id:e.stack.id,count:e.stack.count,dur:e.stack.dur,ench:e.stack.ench,items:e.stack.items})}
-  const save={v:1,ch:CH,apoc:game.ax?{wave:game.ax.wave}:undefined,dim:world.dimKey,nether:netherSave,end:endSave,sift:siftSave,time:world.time,day:world.day,spawn:game.worldSpawn,player:{x:p.x,y:p.y,z:p.z,yaw:p.yaw,pitch:p.pitch,hp:p.hp,hunger:p.hunger,sat:p.sat,xp:p.xp,level:p.level,sel:p.sel,inv:p.inv,armor:p.armor,spawn:p.spawn,flying:p.flying,offhand:p.off[0]||null},mods,bents,mobs:mobs.slice(0,120),items:items.slice(0,100),pop:Array.from(overSaveWorld?overSaveWorld.populated:[])};
+  const save={v:1,ch:CH,gen:game.gen||1,apoc:game.ax?{wave:game.ax.wave}:undefined,dim:world.dimKey,nether:netherSave,end:endSave,sift:siftSave,time:world.time,day:world.day,spawn:game.worldSpawn,player:{x:p.x,y:p.y,z:p.z,yaw:p.yaw,pitch:p.pitch,hp:p.hp,hunger:p.hunger,sat:p.sat,xp:p.xp,level:p.level,sel:p.sel,inv:p.inv,armor:p.armor,spawn:p.spawn,flying:p.flying,offhand:p.off[0]||null},mods,bents,mobs:mobs.slice(0,120),items:items.slice(0,100),pop:Array.from(overSaveWorld?overSaveWorld.populated:[])};
   const wid=game.worldId;const nt=nukeTimersSave();if(nt)save.nukeT=nt;if(game.warWins)save.warWins=game.warWins;if(game.war)save.war=wmpSave();if(game.spawns&&Object.keys(game.spawns).length)save.spawns=game.spawns;const packed=packSave(save);SaveDB.put('ic_world_'+wid,packed).then(ok=>{if(ok)return;let done=false;try{localStorage.setItem('ic_world_'+wid,JSON.stringify(save));done=true}catch(e){}if(!done&&game.time-saveFailT>60){saveFailT=game.time;showMessage('Save failed: the browser gave no room to save. Free space by removing old worlds from the world list.')}});
   try{const list=worldList();const m=list.find(w=>w.id===wid);if(m){m.played=Date.now();localStorage.setItem('ic_worlds',JSON.stringify(list))}}catch(e){}
   if(ridePos){p.y=ridePos[1]}game.lastSave=game.time;
@@ -8080,15 +8086,15 @@ function beaconStop(){if(MP.beacon){try{MP.beacon.destroy()}catch(e){}MP.beacon=
 function beaconKeep(){if(MP.active&&MP.host&&MP.public&&!MP.beacon)beaconStart()}
 function mpCreatePublic(name,seedStr,mode,diff,mods){loadPeerJS().then(()=>{mpLeave(true);MP.public=true;MP.name=mpName(true);name=publicWorldLabel('community-'+Date.now()+Math.random());const seed=seedStr?(isNaN(+seedStr)?hashStr(seedStr):(+seedStr|0)):(Math.random()*2147483647|0);
   const room='ironcraft-pub-'+name.toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/^-|-$/g,'').slice(0,20)+'-'+Math.random().toString(36).slice(2,6);const worldId='pub-'+room.replace(/[^a-z0-9]/gi,'');
-  const meta={id:worldId,name,seed,mode,diff,drops:mods.random?'random':'normal',mods,room,created:Date.now(),played:Date.now()};const list=worldList();list.push(meta);localStorage.setItem('ic_worlds',JSON.stringify(list));
+  const meta={id:worldId,name,seed,mode,diff,drops:mods.random?'random':'normal',mods,room,gen:2,created:Date.now(),played:Date.now()};const list=worldList();list.push(meta);localStorage.setItem('ic_worlds',JSON.stringify(list));
   mpStatus('Opening your public world...');showMenu('mpMenu');mpHost(room,seed,mods,worldId,true)}).catch(e=>mpStatus(e.message))}
 function mpHostPrivate(code,seedStr){loadPeerJS().then(()=>{mpLeave(true);MP.name=mpName(false);mpStatus('Starting your world...');const seed=seedStr?mpSeed(seedStr):(Math.random()*2147483647)|0;mpHost('ironcraft-room-'+code,seed,{},'room-'+code,false,code)}).catch(e=>mpStatus(e.message))}
 function mpHost(room,seed,mods,worldId,isPublic,code,keepWorld){const peer=newPeer(room);MP.peer=peer;MP.room=room;MP.public=!!isPublic;MP.annT=1;MP.worldId=worldId;
   peer.on('open',id=>{MP.active=true;MP.host=true;MP.myId=id;MP.hostId=id;mpStatus('');if(keepWorld){game.noSave=!isPublic;for(const e of entities)if(e instanceof Mob){e.remote=false;e.ownerConn=null;e.owned=false}return}const list=worldList();let meta=list.find(w=>w.id===worldId);
-    if(!meta){const pub=PUBLIC_SERVERS.find(s=>s.room===room);meta={id:worldId,name:pub?'Public: '+pub.name:'Room '+code.toUpperCase(),seed,mode:'survival',diff:2,drops:mods.random?'random':'normal',mods,room:isPublic?room:undefined,created:Date.now(),played:Date.now()};list.push(meta);localStorage.setItem('ic_worlds',JSON.stringify(list))}else if(isPublic&&!meta.room){meta.room=room;localStorage.setItem('ic_worlds',JSON.stringify(list))}
+    if(!meta){const pub=PUBLIC_SERVERS.find(s=>s.room===room);meta={id:worldId,name:pub?'Public: '+pub.name:'Room '+code.toUpperCase(),seed,mode:'survival',diff:2,drops:mods.random?'random':'normal',mods,room:isPublic?room:undefined,gen:2,created:Date.now(),played:Date.now()};list.push(meta);localStorage.setItem('ic_worlds',JSON.stringify(list))}else if(isPublic&&!meta.room){meta.room=room;localStorage.setItem('ic_worlds',JSON.stringify(list))}
     initAudio();loadWorld(meta);if(isPublic)setTimeout(mpChatHint,1700);setTimeout(()=>showMessage(isPublic?'You are hosting a public world. Names are random aliases and chat is on: be kind.':'Hosting. Room code: '+code.toUpperCase()+' (friends type it under Join by Code). Press T to chat.'),1500)});
   peer.on('connection',conn=>{conn.on('open',()=>{if(MP.peer!==peer){try{conn.close()}catch(e){}return}if(conn.metadata&&conn.metadata.probe){try{conn.send(mpInfo())}catch(e){}setTimeout(()=>{try{conn.close()}catch(e){}},1500);return}MP.conns.push(conn);conn.on('data',d=>{if(MP.conns.includes(conn))mpOnData(conn,d)});conn.on('close',()=>mpDrop(conn));conn.on('error',()=>mpDrop(conn));
-    if(!world)return;conn.send({t:'hello',ch:CH,seed:game.seed,mods:game.mods,worldName:game.worldName,time:world.time,day:world.day,spawn:game.worldSpawn,blocks:mpCollectBlocks(),wx:mpWeatherState(),war:(typeof wmpSave==='function'?wmpSave():null),wave:game.ax?{wave:game.ax.wave,active:game.ax.active,next:game.ax.next,left:game.ax.left||0,roster:game.ax.roster}:null,hostId:MP.myId,hostName:MP.name,players:[...MP.remote.values()].map(r=>({id:r.pid,name:r.name})),items:mpItemList(),bents:mpBentList()})})});
+    if(!world)return;conn.send({t:'hello',ch:CH,gen:game.gen||1,seed:game.seed,mods:game.mods,worldName:game.worldName,time:world.time,day:world.day,spawn:game.worldSpawn,blocks:mpCollectBlocks(),wx:mpWeatherState(),war:(typeof wmpSave==='function'?wmpSave():null),wave:game.ax?{wave:game.ax.wave,active:game.ax.active,next:game.ax.next,left:game.ax.left||0,roster:game.ax.roster}:null,hostId:MP.myId,hostName:MP.name,players:[...MP.remote.values()].map(r=>({id:r.pid,name:r.name})),items:mpItemList(),bents:mpBentList()})})});
   peer.on('error',err=>{if(err.type==='peer-unavailable')return;if(err.type==='unavailable-id'){mpStatus('Someone just opened this server: joining them...');setTimeout(()=>{if(!MP.active&&MP.room===room)mpJoin(room,String(seed),mods,worldId,isPublic)},800)}else mpStatus('Network error: '+err.type)})}
 function mpBecomeGuest(peer,conn,worldId){MP.peer=peer;MP.conns=[conn];MP.worldId=worldId;MP.public=!!worldId;MP.host=false;MP.myId=peer.id;MP.active=true;mpStatus('Connected! Receiving the world...');
   conn.on('data',d=>{if(MP.conns.includes(conn))mpOnData(conn,d)});conn.on('close',()=>{if(MP.active&&!MP.host&&MP.conns.includes(conn))mpHostLost()});conn.on('error',()=>{})}
@@ -8101,10 +8107,10 @@ function mpApplyWeather(d){const W=game.wx;if(!W||d.off||(MP.active&&MP.host))re
 function mpCollectBlocks(){const out={};const src=world.savedMods||{};for(const k in src)out[k]=src[k];for(const c of world.chunks.values()){if(c.mods.size)out[c.cx+','+c.cz]=Array.from(c.mods)}return out}
 function mpApplyBlocks(blocks){world.savedMods=world.savedMods||{};for(const k in blocks){world.savedMods[k]=blocks[k];const [cx,cz]=k.split(',').map(Number);const c=world.getChunk(cx,cz);if(c&&c.generated){for(const [i,v] of blocks[k]){world.setBlock(cx*16+(i>>13),i&511,cz*16+((i>>9)&15),v&255,v>>8,{remote:true,silent:true})}}}}
 async function mpHello(d){initAudio();const pub=MP.worldId&&PUBLIC_SERVERS.find(sv=>sv.room===MP.room);
-      const keep=world&&game.state==='playing'&&game.seed===d.seed&&(game.worldId===MP.worldId||game.worldId==='mp-guest');
+      const keep=world&&game.state==='playing'&&game.seed===d.seed&&(game.gen||1)===(d.gen||1)&&(game.worldId===MP.worldId||game.worldId==='mp-guest');
       if(keep){game.noSave=!MP.worldId;for(const r of MP.remote.values())r.dead=true;MP.remote.clear()}
-      else if(MP.worldId){const list=worldList();let meta=list.find(w=>w.id===MP.worldId);if(!meta){meta={id:MP.worldId,name:'Public: '+(pub?pub.name:(d.worldName||'world')),seed:d.seed,mode:'survival',diff:2,drops:d.mods&&d.mods.random?'random':'normal',mods:d.mods||{},room:MP.room,created:Date.now(),played:Date.now()};list.push(meta);localStorage.setItem('ic_worlds',JSON.stringify(list))}else if(!meta.room){meta.room=MP.room;localStorage.setItem('ic_worlds',JSON.stringify(list))}await loadWorld(meta);game.noSave=false}
-      else{const meta={id:'mp-guest',name:'Multiplayer',seed:d.seed,mode:'survival',diff:2,drops:d.mods&&d.mods.random?'random':'normal',mods:d.mods||{}};startWorld(meta,null);game.noSave=true}
+      else if(MP.worldId){const list=worldList();let meta=list.find(w=>w.id===MP.worldId);if(!meta){meta={id:MP.worldId,name:'Public: '+(pub?pub.name:(d.worldName||'world')),seed:d.seed,mode:'survival',diff:2,drops:d.mods&&d.mods.random?'random':'normal',mods:d.mods||{},room:MP.room,gen:d.gen||1,created:Date.now(),played:Date.now()};list.push(meta);localStorage.setItem('ic_worlds',JSON.stringify(list))}else if(!meta.room){meta.room=MP.room;localStorage.setItem('ic_worlds',JSON.stringify(list))}meta.gen=d.gen||1;await loadWorld(meta);game.noSave=false}
+      else{const meta={id:'mp-guest',name:'Multiplayer',seed:d.seed,mode:'survival',diff:2,drops:d.mods&&d.mods.random?'random':'normal',mods:d.mods||{},gen:d.gen||1};startWorld(meta,null);game.noSave=true}
       MP.hostId=d.hostId;world.time=d.time;world.day=d.day;if(d.spawn)game.worldSpawn=d.spawn;{const f=idxMapFor(d.ch);if(f){d.blocks=oldLayoutMods(d.blocks||{},f);if(d.bents)d.bents=oldLayoutMods(d.bents,f)}}mpApplyBlocks(d.blocks||{});if(d.bents)mpApplyBents(d.bents);if(d.items){for(const e of entities)if(e instanceof ItemEntity)e.dead=true;MP.pendingItems=[];for(const it of d.items)mpItemIn(it)}if(d.wx)mpApplyWeather(d.wx);if(d.war)wmpIn(d.war);if(d.wave&&game.ax){const A=game.ax;A.wave=d.wave.wave;A.next=d.wave.next;A.left=d.wave.left;if(d.wave.active){A.active=true;A.pendingRoster=d.wave.roster||waveRoster(d.wave.wave)}}
       mpRemote(d.hostId,d.hostName);for(const pl of d.players||[])if(pl.id!==MP.myId)mpRemote(pl.id,pl.name);mpStatus('');if(MP.public)setTimeout(mpChatHint,1700);setTimeout(()=>showMessage(MP.public?'Joined a public world. Names are random aliases. Be kind in chat.':'Joined '+(d.hostName||'the host')+"'s private world. Press T to chat. Watch out: players can hurt each other here."),1500)}
 function mpOnData(conn,d){if(!d||!d.t)return;
