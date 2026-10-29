@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="ironcraft-build" content="20261029-202311">
+<meta name="ironcraft-build" content="20261029-204423">
 <meta name="viewport" content="width=device-width,initial-scale=1.0,viewport-fit=cover">
 <title>Ironcraft – Free Voxel Survival Sandbox in Your Browser | Iron Games</title>
 <meta name="description" content="Ironcraft is a free browser-based voxel survival sandbox with building, exploration, private or safety-limited public multiplayer, and optional weather, horror and survival challenges. By Daniele Bros.">
@@ -122,6 +122,20 @@ canvas#gl{position:absolute;inset:0;width:100%;height:100%;display:block;image-r
 #tooltip small{display:block;color:#aaa;font-weight:400;}
 .menu{position:absolute;inset:0;display:none;flex-direction:column;align-items:center;justify-content:center;gap:6px;overflow-y:auto;overflow-x:hidden;padding:10px 0;box-sizing:border-box;}
 .menu.tall{justify-content:flex-start}
+#skinWrap{display:flex;gap:18px;align-items:flex-start;justify-content:center;max-width:96vw}
+#skinLeft{display:flex;flex-direction:column;align-items:center;gap:8px}
+#skinCv{width:220px;height:300px;border:1px solid #d39a33;border-radius:6px;background:#10181d;touch-action:none;cursor:grab}
+#skinCtl{width:min(620px,92vw);display:grid;grid-template-columns:1fr 1fr;gap:7px 18px;text-align:left}
+.sksec.wide{grid-column:1/3}
+.skh{font-size:12px;letter-spacing:1px;text-transform:uppercase;color:#e1b65f;margin-bottom:3px}
+.skrow{display:flex;flex-wrap:wrap;gap:5px;align-items:center}
+.skchip{background:linear-gradient(180deg,#21303a,#111a20);border:1px solid #5b4a2a;color:#f4e6c4;font:inherit;font-size:12px;padding:5px 9px;border-radius:4px;cursor:pointer;text-transform:capitalize}
+.skchip.on,.sksw.on,.skface.on{border-color:#ffd34a;box-shadow:0 0 0 2px rgba(255,211,74,.5)}
+.sksw{width:24px;height:24px;border-radius:50%;border:2px solid #000;cursor:pointer;padding:0}
+.skface{width:42px;height:42px;padding:0;border:2px solid #000;background:#000;cursor:pointer}
+.skface canvas{width:100%;height:100%;image-rendering:pixelated;display:block}
+input.skcol{width:30px;height:28px;padding:0;border:2px solid #000;background:none;cursor:pointer}
+@media (max-width:700px){#skinWrap{flex-direction:column;align-items:center}#skinCv{width:180px;height:246px}#skinCtl{grid-template-columns:1fr}.sksec.wide{grid-column:auto}}
 .menu>*{flex-shrink:0} /* a menu taller than the screen scrolls from its top instead of losing its title above the fold */
 
 .menu.show{display:flex;}
@@ -432,6 +446,7 @@ label.lb{font-size:13px;color:#a0a0a0;align-self:flex-start;margin-left:calc(50%
   <button class="btn" id="btnOptionsT">Game Settings</button>
   <button class="btn" id="btnChat">Chat</button>
   <button class="btn" id="btnMods">Mods</button>
+  <button class="btn" id="btnSkin">Skin</button>
   <button class="btn" id="btnControls">How to Play</button>
   <button class="btn" id="btnModMaker">Mod Maker</button>
   <p id="titleAbout" style="position:absolute;bottom:43px;left:0;right:0;text-align:center;font-size:12px;font-weight:400;color:#ddd;text-shadow:1px 1px 0 #000;margin:0;padding:0 14px;pointer-events:none;">A free voxel survival sandbox by Daniele Bros. Public rooms use random aliases. Chat is open to everyone there: be kind.</p>
@@ -621,11 +636,23 @@ label.lb{font-size:13px;color:#a0a0a0;align-self:flex-start;margin-left:calc(50%
   <button class="btn" id="btnControlsBack" style="margin-top:14px">Done</button>
 </div>
 
+<div id="skinMenu" class="menu dirtbg">
+  <h2 class="sh">Skin</h2>
+  <div id="skinWrap">
+    <div id="skinLeft"><canvas id="skinCv" width="220" height="300"></canvas>
+      <div class="btnrow"><button class="skchip" id="btnSkinWalk">Walk</button><button class="skchip" id="btnSkinRandom">Random</button><button class="skchip" id="btnSkinReset">Reset</button></div>
+      <div class="hint" style="font-size:12px;color:#aaa">Drag the preview to turn it</div></div>
+    <div id="skinCtl"></div>
+  </div>
+  <button class="btn" id="btnSkinBack" style="margin-top:8px">Done</button>
+</div>
+
 <div id="pauseMenu" class="menu" style="background:rgba(0,0,0,.5)">
   <h2 class="sh">Game menu</h2>
   <button class="btn" id="btnResume">Back to Game</button>
   <button class="btn" id="btnOptionsP">Options...</button>
   <button class="btn" id="btnModsP">Fun Mods...</button>
+  <button class="btn" id="btnSkinP">Skin...</button>
   <button class="btn" id="btnModeP">Game Mode: Survival</button>
   <button class="btn" id="btnGuideP">Crafting Guide...</button>
   <button class="btn" id="btnModMakerP">Mod Maker...</button>
@@ -1277,6 +1304,15 @@ defTex('villager_face',p=>{p.noise(200,160,120,6);p.rect(2,3,12,1,104,66,38);p.r
 defTex('sheep_wool',p=>{for(let y=0;y<16;y+=2)for(let x=0;x<16;x+=2){const v=226+floor(p.rng()*28);p.rect(x,y,2,2,v,v,v);p.px(x+1,y+1,v-18,v-18,v-18)}p.speckle(8,250,250,250);shade(p,0.1)});
 
 for(let i=0;i<48;i++)defTex('custom'+i,p=>{p.noise(196,72,196,10);p.rect(0,0,16,1,120,20,120);p.rect(0,15,16,1,120,20,120)}); // Mod Maker slots: filled from photos at runtime
+// skin customiser tiles: 16 face slots (repainted at runtime), skin tones, hair strands and shirt prints (tinted by the shirt colour)
+for(let i=0;i<16;i++)defTex('pface'+i,p=>{p.d.set(skinFaceBytes(SKIN_DEF))});
+defTex('pface_def',p=>{p.d.set(skinFaceBytes(SKIN_DEF))});
+for(let i=0;i<8;i++)defTex('ptone'+i,p=>{const t=SKIN_TONES[i];p.noise(t[0]*240,t[1]*240,t[2]*240,6)});
+defTex('phair',p=>{p.noise(235,235,235,14);for(let x=0;x<16;x+=2)p.rect(x,0,1,16,205,205,205);p.speckle(14,255,255,255)});
+defTex('pshirt_stripe',p=>{p.noise(244,244,244,6);for(let y=1;y<16;y+=4)p.rect(0,y,16,2,150,150,150)});
+defTex('pshirt_stripe2',p=>{p.noise(244,244,244,6);for(let x=1;x<16;x+=4)p.rect(x,0,2,16,150,150,150)}); // same bands turned 90 degrees: the side and back faces are mapped sideways
+defTex('pshirt_hoodie',p=>{p.noise(238,238,238,6);p.rect(3,9,10,5,205,205,205);p.rect(3,9,10,1,165,165,165);p.rect(6,1,1,6,255,255,255);p.rect(9,1,1,6,255,255,255);p.rect(2,0,12,1,200,200,200)});
+defTex('pshirt_jacket',p=>{p.noise(238,238,238,6);p.rect(7,0,2,16,80,80,80);p.rect(2,9,4,1,165,165,165);p.rect(10,9,4,1,165,165,165);p.rect(2,0,5,2,200,200,200);p.rect(9,0,5,2,200,200,200)});
 const ATLAS_W=16; // tiles per row
 let atlasCanvas=null,atlasSize=256;
 function buildAtlas(){
@@ -2583,7 +2619,7 @@ function drawHand(dt){const gl=R.gl;const p=player;const st=p.inv[p.sel];const i
   // off-hand item on the left; a shield is big, and swings up to cover the view while blocking
   {const os=p.off[0];if(os){const od=ITEMS[os.id];if(od.shield){const tf=makeTF(-0.62+ba*0.32+bob,-0.55+ba*0.3+bob,-0.85+ba*0.1,-0.25-ba*0.1,0.55-ba*0.35,0.25-ba*0.2,0,0,0,1);flat(os.id,tf,1.1)}else{const tf=makeTF(-0.6+bob,-0.5+bob,-0.9,-0.35,-0.5,-0.4,0,0,0,1);flat(os.id,tf,0.5)}}}
   if(st&&def.shield){const tf=makeTF(0.62-ba*0.32+bob,-0.55+ba*0.3+swingY*0.3+bob,-0.85+ba*0.1,-0.25-ba*0.1,-0.55+ba*0.35,-0.25+ba*0.2,0,0,0,1);flat(id,tf,1.1);return}
-  if(!st){EB.clear();const tf=makeTF(0.75+bob,-0.7+swingY+bob,-0.85,-0.55+swingR*0.5,swingR*0.6+0.9,0.35,0,0,0,1);EB.box(tf,-0.11,-0.6,-0.11,0.11,0.2,0.11,TEX.steve_arm,[1,1,1],l,true);EB.draw(R.progE,R.atlasTex,{vp:proj,fogStart:100,fogEnd:200});return}
+  if(!st){EB.clear();const tf=makeTF(0.75+bob,-0.7+swingY+bob,-0.85,-0.55+swingR*0.5,swingR*0.6+0.9,0.35,0,0,0,1);skinHand(EB,tf,l);EB.draw(R.progE,R.atlasTex,{vp:proj,fogStart:100,fogEnd:200});return}
   if(def.gun&&GUN_MODELS[id]){if(p.scoped)return;const fp=GUN_FP[id];const kick=Math.pow(1-sw,2)*(def.gun.recoil*5+0.2);EB.clear();
     const tf=makeTF(fp[1]+bob,fp[2]+bob*0.7-kick*0.015,fp[3]+kick*0.07,0.13-kick*0.03,kick*0.2,0.03,0,0,0,fp[0]);drawGun(EB,tf,id,l,sw,st&&st.att);EB.draw(R.progE,R.atlasTex,{vp:proj,fogStart:100,fogEnd:200});return}
   if(wpnModel(id)){if(p.scoped)return;const fp=WPN_FP[id],ch=Math.min(1,p.bowCharge||0),th=Math.sin(sw*PI);EB.clear();let tf;
@@ -6578,7 +6614,7 @@ function setupMenus(){
   $('btnPlay').onclick=()=>{const w=worldList().find(w=>w.id===selWorld);if(w){initAudio();openWorld(w)}};
   $('btnDelete').onclick=()=>{if(!selWorld)return;if(!confirm('Delete this world? This cannot be undone.'))return;deleteWorldSave(selWorld);localStorage.setItem('ic_worlds',JSON.stringify(worldList().filter(w=>w.id!==selWorld)));selWorld=null;refreshWorldList()};
   let optBack='titleMenu';$('btnOptionsT').onclick=()=>{optBack='titleMenu';showMenu('optionsMenu');showOptSeed()};$('btnOptionsP').onclick=()=>{optBack='pauseMenu';showMenu('optionsMenu');showOptSeed()};$('btnOptionsBack').onclick=()=>{saveOpts();showMenu(optBack)};
-  $('btnControls').onclick=()=>showMenu('controlsMenu');$('btnControlsBack').onclick=()=>showMenu('titleMenu');try{lobbySetup()}catch(e){}try{modShareSetup()}catch(e){}
+  $('btnControls').onclick=()=>showMenu('controlsMenu');$('btnControlsBack').onclick=()=>showMenu('titleMenu');try{lobbySetup()}catch(e){}try{modShareSetup()}catch(e){}try{skinSetup()}catch(e){console.error(e)}
   $('btnResume').onclick=()=>resumeGame();$('pauseMenu').addEventListener('mousedown',ev=>{if(ev.target===ev.currentTarget&&game.paused&&game.state==='playing')resumeGame()});$('btnSaveQuit').onclick=()=>quitToTitle();
   $('btnGuideP').onclick=()=>{resumeGame();openGui('guide')};$('btnGuideInv').onclick=ev=>{ev.stopPropagation();closeGui();openGui('guide')};$('btnGuideClose').onclick=()=>closeGui();$('guideSearch').addEventListener('input',renderGuide);$('guideSearch').addEventListener('keydown',ev=>{ev.stopPropagation();if(ev.key==='Escape')closeGui()});$('guideCat').addEventListener('change',renderGuide);
   $('btnModeP').onclick=()=>{if(onPublicServer()){showMessage('Game mode cannot be changed on a public server');return}if(MP.active&&!MP.host){showMessage('Only the host can change the game mode');return}const p=player;p.mode=p.mode==='creative'?'survival':'creative';if(p.mode==='survival')p.flying=false;refreshModeBtn();updateHUD();updateHotbar();showMessage('Game mode: '+p.mode)};
@@ -8240,7 +8276,7 @@ function mpSend(d){for(const c of MP.conns)if(c.open)c.send(d)}
 function mpRemote(id,name){if(!id)return null;if(MP.public)name=publicAlias(id);else name=String(name||'Player').replace(/[^a-z0-9 _-]/gi,'').slice(0,16)||'Player';let r=MP.remote.get(id);if(!r){r=new RemotePlayer(id,name);MP.remote.set(id,r);entities.push(r);if(game.state==='playing')showMessage(name+' joined')}else if(name)r.name=name;return r}
 function mpRemove(id){const r=MP.remote.get(id);if(!r)return;r.dead=true;MP.remote.delete(id);showMessage(r.name+' left');const el=$('nametags').querySelector('[data-id="'+id+'"]');if(el)el.remove()}
 function mpDrop(conn){const i=MP.conns.indexOf(conn);if(i>=0)MP.conns.splice(i,1);for(const e of entities)if(e instanceof Mob&&e.ownerConn===conn){e.remote=false;e.ownerConn=null;if(e.rider!==player)e.rider=null}if(conn.mpId){mpRemove(conn.mpId);mpSend({t:'leave',id:conn.mpId})}}
-function mpTick(dt){const p=player;mpSpawnTick(dt);MP.sendT-=dt;if(MP.sendT<=0){MP.sendT=0.1;const st=heldStack();mpSend({t:'p',id:MP.myId,name:MP.name,tok:MP.host||MP.spawnAck?undefined:mpTok(),x:p.x,y:p.y,z:p.z,yaw:p.yaw,pitch:p.pitch,dim:world?world.dimKey:'over',held:st&&!ITEMS[st.id].custom?st.id:0,att:st&&st.att||undefined,sneak:!!p.sneaking,crawl:!!p.crawling,dead:!!p.dead,armor:p.armor.map(a=>a?a.id:0),sw:p.swing<0.9?1:0})}
+function mpTick(dt){const p=player;mpSpawnTick(dt);MP.sendT-=dt;if(MP.sendT<=0){MP.sendT=0.1;const st=heldStack();mpSend({t:'p',id:MP.myId,name:MP.name,sk:skinPacketField(),tok:MP.host||MP.spawnAck?undefined:mpTok(),x:p.x,y:p.y,z:p.z,yaw:p.yaw,pitch:p.pitch,dim:world?world.dimKey:'over',held:st&&!ITEMS[st.id].custom?st.id:0,att:st&&st.att||undefined,sneak:!!p.sneaking,crawl:!!p.crawling,dead:!!p.dead,armor:p.armor.map(a=>a?a.id:0),sw:p.swing<0.9?1:0})}
   mpFlushItems();mpMobTick(dt);seatTick(dt);
   if(MP.host){MP.timeT-=dt;if(MP.timeT<=0){MP.timeT=5;mpSend({t:'time',time:world.time,day:world.day})}if(MP.public){MP.annT=(MP.annT||0)-dt;if(MP.annT<=0){MP.annT=8;beaconKeep()}}}
   for(const r of MP.remote.values()){if(r.dead)r.dead=false;if(!entities.includes(r))entities.push(r)}
@@ -8562,24 +8598,170 @@ function mpPublicChatIn(conn,d){if(!d||typeof d.text!=='string')return;const tex
 function mpLeave(quiet){beaconStop();game.mySpawn=null;game.mySpawnShown=false;MP.spawnAck=false;MP.wmAsked=false;game.pvpHud=null;game.wmpRB=null;game.wmpPvp=[];game.wmpPB={};MP.public=false;MP.pendingItems=[];const peer=MP.peer;if(peer){try{for(const e of entities)if(e instanceof Mob&&e.owned)mpMobRelease(e)}catch(e){}try{mpSend({t:'leave',id:MP.myId})}catch(e){}}
   // clear our state before destroying the peer: destroy() fires the close handlers synchronously, and they must not mistake our own exit for the host leaving
   for(const r of MP.remote.values())r.dead=true;MP.remote.clear();MP.conns=[];MP.peer=null;MP.active=false;MP.host=false;MP.room=null;if(peer){try{peer.destroy()}catch(e){}}MP.mobSyncT=-99;for(const e of entities)if(e instanceof Mob){e.remote=false;e.ownerConn=null;e.owned=false}const nt=$('nametags');if(nt)nt.innerHTML='';if(!quiet)mpStatus('')}
+/* ===================== SKIN CUSTOMISER: faces, hair, body, clothes (opts.skin) ===================== */
+const SKIN_TONES=[[0.98,0.84,0.74],[0.93,0.75,0.60],[0.85,0.66,0.52],[0.76,0.55,0.38],[0.60,0.40,0.26],[0.42,0.28,0.19],[0.55,0.78,0.48],[0.55,0.72,0.95]];
+const SKIN_EYES=[[90,55,30],[50,110,200],[60,150,80],[120,130,140],[130,70,170],[25,25,30]];
+const SKIN_HAIRS=['none','short','long','pony','mohawk','cap','hood'],SKIN_BODIES=['classic','slim'],SKIN_HEIGHTS=['small','normal','tall'],SKIN_SHIRTS=['plain','stripe','hoodie','jacket','dress','tank'],SKIN_PANTS=['long','shorts','skirt'];
+const SKIN_HEIGHT_K={small:0.86,normal:1,tall:1.12};
+const SKIN_FACES=[{n:'Classic',e:'round',b:'thin',m:'neutral'},{n:'Smile',e:'round',b:'thin',m:'smile'},{n:'Grin',e:'big',b:'thick',m:'grin'},{n:'Freckles',e:'round',b:'thin',m:'smile',x:['freckles']},
+ {n:'Beard',e:'round',b:'thick',m:'neutral',x:['beard']},{n:'Moustache',e:'round',b:'thick',m:'smile',x:['stache']},{n:'Glasses',e:'round',b:'thin',m:'smile',x:['glasses']},{n:'Cool',e:'shades',b:'thin',m:'smirk'},
+ {n:'Sleepy',e:'sleepy',b:'thin',m:'neutral'},{n:'Surprised',e:'big',b:'raised',m:'open'},{n:'Angry',e:'round',b:'angry',m:'frown'},{n:'Happy',e:'happy',b:'thin',m:'grin',x:['blush']},
+ {n:'Wink',e:'wink',b:'thin',m:'smirk'},{n:'Scarred',e:'narrow',b:'thick',m:'neutral',x:['scar']},{n:'Goatee',e:'round',b:'thin',m:'smile',x:['goatee']},{n:'Lashes',e:'big',b:'thin',m:'smile',x:['lashes','blush']}];
+const SKIN_HAIR_COLS=[[24,20,20],[70,45,25],[110,72,40],[140,60,35],[190,90,40],[225,190,100],[240,232,200],[150,150,155],[60,110,200],[230,110,170],[80,170,90],[140,80,190]];
+const SKIN_CLOTH_COLS=[[200,50,50],[230,120,40],[235,200,50],[130,200,60],[40,150,70],[40,160,160],[51,158,217],[50,80,190],[130,70,180],[220,100,160],[245,245,245],[140,140,145],[40,40,45],[110,70,40]];
+const SKIN_SHOE_COLS=[[70,70,76],[30,30,34],[245,245,245],[110,72,40],[200,50,50],[50,80,190],[235,200,50],[40,150,70]];
+const SKIN_DEF={face:0,eye:0,tone:2,hair:'short',hairCol:[70,45,25],body:'classic',height:'normal',shirt:'plain',shirtCol:[51,158,217],pants:'long',pantsCol:[64,77,153],shoes:[70,70,76]};
+// every value is checked on its way in (saved options and network packets alike): numbers clamped, names from fixed lists
+function skinInt(v,lo,hi,d){v=Math.round(Number(v));return Number.isFinite(v)?Math.min(hi,Math.max(lo,v)):d}
+function skinCol(v,d){return Array.isArray(v)&&v.length>=3?[0,1,2].map(i=>skinInt(v[i],0,255,d[i])):d.slice()}
+function skinPick(v,list,d){return typeof v==='string'&&list.includes(v)?v:d}
+function skinNorm(r){r=r&&typeof r==='object'?r:{};const D=SKIN_DEF;return {face:skinInt(r.face,0,SKIN_FACES.length-1,D.face),eye:skinInt(r.eye,0,SKIN_EYES.length-1,D.eye),tone:skinInt(r.tone,0,SKIN_TONES.length-1,D.tone),hair:skinPick(r.hair,SKIN_HAIRS,D.hair),hairCol:skinCol(r.hairCol,D.hairCol),
+ body:skinPick(r.body,SKIN_BODIES,D.body),height:skinPick(r.height,SKIN_HEIGHTS,D.height),shirt:skinPick(r.shirt,SKIN_SHIRTS,D.shirt),shirtCol:skinCol(r.shirtCol,D.shirtCol),pants:skinPick(r.pants,SKIN_PANTS,D.pants),pantsCol:skinCol(r.pantsCol,D.pantsCol),shoes:skinCol(r.shoes,D.shoes)}}
+// network form: 20 small integers (list indices and 0-255 colours)
+function skinWire(k){return [k.face,k.tone,k.eye,SKIN_HAIRS.indexOf(k.hair),...k.hairCol,SKIN_BODIES.indexOf(k.body),SKIN_HEIGHTS.indexOf(k.height),SKIN_SHIRTS.indexOf(k.shirt),...k.shirtCol,SKIN_PANTS.indexOf(k.pants),...k.pantsCol,...k.shoes]}
+function skinFromWire(a){if(!Array.isArray(a)||a.length!==20)return null;const n=(i,hi)=>skinInt(a[i],0,hi,0),c=i=>[n(i,255),n(i+1,255),n(i+2,255)];
+ return skinNorm({face:n(0,SKIN_FACES.length-1),tone:n(1,SKIN_TONES.length-1),eye:n(2,SKIN_EYES.length-1),hair:SKIN_HAIRS[n(3,SKIN_HAIRS.length-1)],hairCol:c(4),body:SKIN_BODIES[n(7,SKIN_BODIES.length-1)],height:SKIN_HEIGHTS[n(8,SKIN_HEIGHTS.length-1)],shirt:SKIN_SHIRTS[n(9,SKIN_SHIRTS.length-1)],shirtCol:c(10),pants:SKIN_PANTS[n(13,SKIN_PANTS.length-1)],pantsCol:c(14),shoes:c(17)})}
+let SKIN_CUR=null,SKIN_LR=null,SKIN_DEFR=null,SKIN_SENT='',SKIN_SENTT=0;
+function skinNow(){if(!SKIN_CUR)SKIN_CUR=skinNorm(opts.skin);return SKIN_CUR}
+function skinSet(key,val){const n=Object.assign({},skinNow());n[key]=val;skinStore(skinNorm(n))}
+function skinStore(k){if(k)opts.skin=k;else delete opts.skin;SKIN_CUR=null;SKIN_LR=null;try{saveOpts()}catch(e){}if(typeof skinUiRefresh==='function')skinUiRefresh()}
+// the 16x16 face tile: skin base, nose, extras, mouth, eyes, brows, glasses, then the hair fringe on top
+function skinFaceBytes(sk){const T=SKIN_TONES[sk.tone],sr=T[0]*240,sg=T[1]*240,sb=T[2]*240;const p=new Painter(mulberry32(31+sk.tone*7));p.noise(sr,sg,sb,5);
+ const F=SKIN_FACES[sk.face],X=F.x||[],ec=SKIN_EYES[sk.eye],hc=sk.hairCol,hasHair=['short','long','pony','mohawk'].includes(sk.hair);
+ const R=(x,y,w,h,c)=>p.rect(x,y,w,h,c[0],c[1],c[2]),P=(x,y,c)=>p.px(x,y,c[0],c[1],c[2]);
+ const bc=hasHair?hc.map(v=>v*0.75):[70,48,30],bd=hasHair?hc:[70,48,30],ink=[40,26,26],wh=[246,246,246],mc=[150,70,70];
+ R(7,9,2,2,[sr*0.86,sg*0.86,sb*0.86]);
+ if(X.includes('freckles')){const fc=[sr*0.7,sg*0.55,sb*0.45];for(const q of [[3,10],[5,10],[4,11],[10,10],[12,10],[11,11],[2,9],[13,9]])P(q[0],q[1],fc)}
+ if(X.includes('blush')){const bl=[Math.min(255,sr+15),sg*0.72,sb*0.72];R(2,10,3,2,bl);R(11,10,3,2,bl)}
+ if(X.includes('beard')){R(2,10,12,6,bd);R(2,7,2,3,bd);R(12,7,2,3,bd)}
+ if(X.includes('goatee'))R(6,13,4,3,bd);
+ if(X.includes('stache')){R(4,10,8,1,bd);P(4,11,bd);P(11,11,bd)}
+ const my=X.includes('beard')||X.includes('stache')?1:0;
+ switch(F.m){case 'neutral':R(6,11+my,4,1,mc);break;case 'smile':R(6,12+my,4,1,mc);P(5,11+my,mc);P(10,11+my,mc);break;
+  case 'grin':R(5,11+my,6,1,mc);R(5,12+my,6,1,wh);R(6,13+my,4,1,mc);break;case 'open':R(6,11+my,4,3,[90,30,35]);R(7,13+my,2,1,[200,80,90]);break;
+  case 'frown':R(6,11+my,4,1,mc);P(5,12+my,mc);P(10,12+my,mc);break;case 'smirk':R(6,12+my,3,1,mc);P(9,11+my,mc);P(10,11+my,mc);break}
+ const eye=(x0,mir,type)=>{const cells=mir?['i','w','w']:['w','w','i'];const ys=type==='big'?[6,7,8]:type==='narrow'?[8]:[7,8];
+  if(type==='happy'){P(x0,8,ink);P(x0+1,7,ink);P(x0+2,8,ink);return}
+  if(type==='line'){R(x0,8,3,1,ink);return}
+  ys.forEach((y,yi)=>cells.forEach((c,ci)=>{P(x0+ci,y,c==='w'?wh:(yi===ys.length-1?ec.map(v=>v*0.55):ec))}));
+  if(type==='sleepy')R(x0,7,3,1,[sr*0.78,sg*0.74,sb*0.74])};
+ const et=F.e;if(et==='shades'){R(2,6,5,3,[22,22,28]);R(9,6,5,3,[22,22,28]);R(7,7,2,1,[22,22,28]);P(3,7,[110,120,140]);P(10,7,[110,120,140]);R(0,7,2,1,[22,22,28]);R(14,7,2,1,[22,22,28])}
+ else{eye(3,false,et==='wink'?'round':et);eye(10,true,et==='wink'?'line':et)}
+ const by=et==='big'?4:5;
+ if(F.b==='thin'){R(3,by,3,1,bc);R(10,by,3,1,bc)}else if(F.b==='thick'){R(2,by,4,1,bc);R(10,by,4,1,bc);R(3,by+1,2,1,bc);R(11,by+1,2,1,bc)}
+ else if(F.b==='angry'){P(3,5,bc);P(4,5,bc);P(5,6,bc);P(4,6,bc);P(12,5,bc);P(11,5,bc);P(10,6,bc);P(11,6,bc)}else if(F.b==='raised'){R(3,3,3,1,bc);R(10,3,3,1,bc)}
+ if(X.includes('glasses')){const g=[35,35,45];R(2,6,5,1,g);R(2,9,5,1,g);R(2,6,1,4,g);R(6,6,1,4,g);R(9,6,5,1,g);R(9,9,5,1,g);R(9,6,1,4,g);R(13,6,1,4,g);R(7,7,2,1,g);R(0,7,2,1,g);R(14,7,2,1,g)}
+ if(X.includes('scar')){for(const q of [[12,3],[12,4],[11,5],[11,6],[11,7],[10,8],[10,9]])P(q[0],q[1],[190,90,95])}
+ if(X.includes('lashes')){for(const q of [[2,6],[2,7],[13,6],[13,7],[3,6],[12,6]])P(q[0],q[1],ink)}
+ const hh=sk.hair;
+ if(hh==='short'||hh==='pony'){R(0,0,16,2,hc);R(0,2,4,3,hc);R(12,2,4,3,hc);P(5,2,hc);P(6,2,hc);P(10,2,hc);p.shadeRect(0,1,16,1,0.9)}
+ else if(hh==='long'){R(0,0,16,3,hc);R(0,3,3,13,hc);R(13,3,3,13,hc);P(5,3,hc);P(10,3,hc);p.shadeRect(0,1,16,1,0.9)}
+ else if(hh==='mohawk'){R(6,0,4,2,hc)}
+ return p.d}
+// tile pool: slot 0 is the local player, 1-15 go to remote players (recycled when they leave), pface_def is the fallback
+const SKIN_POOL=[],SKIN_PAINTED={};
+function skinPaint(idx,sk){const key=skinWire(sk).join(',');if(SKIN_PAINTED[idx]===key)return;SKIN_PAINTED[idx]=key;const b=skinFaceBytes(sk);TEXDATA[idx]=b;
+ if(typeof atlasCanvas!=='undefined'&&atlasCanvas){atlasCanvas.getContext('2d').putImageData(new ImageData(new Uint8ClampedArray(b),16,16),(idx%ATLAS_W)*16,floor(idx/ATLAS_W)*16);uploadAtlas()}}
+function skinTileFor(r){const live=o=>o&&MP.remote.get(o.pid)===o;
+ if(r.skinTileI&&SKIN_POOL[r.skinTileI]===r)return TEX['pface'+r.skinTileI];
+ for(let pass=0;pass<2;pass++){for(let i=1;i<16;i++)if(!SKIN_POOL[i]){SKIN_POOL[i]=r;r.skinTileI=i;return TEX['pface'+i]}for(let i=1;i<16;i++)if(!live(SKIN_POOL[i]))SKIN_POOL[i]=null}
+ return TEX.pface_def}
+function skinBuild(sk,tile){if(tile!==TEX.pface_def)skinPaint(tile,sk);const c3=a=>[a[0]/255,a[1]/255,a[2]/255],N=TEX.noise,tt=TEX['ptone'+sk.tone],sh=sk.shirt;
+ const ft=sh==='stripe'?TEX.pshirt_stripe:sh==='hoodie'?TEX.pshirt_hoodie:sh==='jacket'?TEX.pshirt_jacket:N;const sc=c3(sk.shirtCol),f2=TEX.pshirt_stripe2;
+ return {sk,tile,k:SKIN_HEIGHT_K[sk.height],skin:SKIN_TONES[sk.tone].slice(),shirt:sc,shirt2:sc.map(v=>v*0.72),pants:c3(sk.pantsCol),shoe:c3(sk.shoes),hair:c3(sk.hairCol),slim:sk.body==='slim',sleeved:sh!=='tank'&&sh!=='dress',
+  head:[tt,tt,tt,tt,tt,tile],torso:sh==='stripe'?[f2,f2,N,N,f2,ft]:(sh==='hoodie'||sh==='jacket')?[N,N,N,N,N,ft]:N,arm:sh==='stripe'?[f2,f2,N,N,f2,ft]:N}}
+function skinDraw(r){
+ if(!r||r.skinLocal||r===game.avatar){if(!SKIN_LR)SKIN_LR=skinBuild(skinNow(),TEX.pface0);return SKIN_LR}
+ if(r.skinR&&r.skinR.tile===TEX.pface_def&&r.skinD&&performance.now()>(r.skinRetry||0)){r.skinRetry=performance.now()+3000;r.skinR=null}
+ if(!r.skinR){if(r.skinD)r.skinR=skinBuild(r.skinD,skinTileFor(r));else r.skinR=SKIN_DEFR||(SKIN_DEFR=skinBuild(SKIN_DEF,TEX.pface_def))}
+ return r.skinR}
+function skinRemoteApply(r,a){const k=skinFromWire(a);if(!k)return;const key=skinWire(k).join(',');if(r.skinKey===key)return;r.skinKey=key;r.skinD=k;r.skinR=null}
+// goes into the position packet only when the look changed or every 5 s, so late joiners still get it
+function skinPacketField(){const w=skinWire(skinNow()),key=w.join(','),now=performance.now();if(key===SKIN_SENT&&now-SKIN_SENTT<5000)return undefined;SKIN_SENT=key;SKIN_SENTT=now;return w}
+// ---- model parts (called from RemotePlayer.render with its part() helper) ----
+function skinLegs(part,S,lsw,rsw){const t=2,N=TEX.noise,st=S.sk.pants;
+ for(const [x,sw] of [[-2,lsw],[2,rsw]]){
+  if(st==='long')part([-t,-12,-t,t,0,t],x,12,0,sw,0,0,N,S.pants);
+  else{part([-t,-12,-t,t,0,t],x,12,0,sw,0,0,N,S.skin);if(st==='shorts')part([-t-0.15,-5.2,-t-0.15,t+0.15,0.05,t+0.15],x,12,0,sw,0,0,N,S.pants)}
+  part([-t-0.12,-12.05,-t-1.4,t+0.12,-9.2,t+0.12],x,12,0,sw,0,0,N,S.shoe)}
+ if(S.sk.pants==='skirt')part([-4.3,3.5,-2.5,4.3,12.2,2.5],0,0,0,0,0,0,N,S.pants)}
+function skinTorso(part,S,rot){const N=TEX.noise,sh=S.sk.shirt;part([-4,12,-2,4,24,2],0,0,0,rot,0,0,S.torso,S.shirt);
+ if(sh==='hoodie')part([-3.4,17.5,1.9,3.4,24.4,3.7],0,0,0,rot,0,0,N,S.shirt2);
+ if(sh==='jacket')part([-4.25,21.6,-2.25,4.25,24,2.25],0,0,0,rot,0,0,N,S.shirt2);
+ if(sh==='dress'){part([-4.5,2.8,-2.6,4.5,12.4,2.6],0,0,0,0,0,0,N,S.shirt);part([-4.6,2.8,-2.7,4.6,4.2,2.7],0,0,0,0,0,0,N,S.shirt2)}}
+function skinArms(part,S,armL,armLz,armR){const ta=S.slim?1.5:2,N=TEX.noise;
+ for(const [x,rot,rz] of [[-4,armL,armLz],[4,armR,-0.05]]){
+  if(S.sleeved){part([-ta,-7.4,-ta,ta,2,ta],x,22,0,rot,0,rz,S.arm,S.shirt);part([-ta,-10,-ta,ta,-7.4,ta],x,22,0,rot,0,rz,N,S.skin)}
+  else part([-ta,-10,-ta,ta,2,ta],x,22,0,rot,0,rz,N,S.skin)}}
+function skinHair(part,S,pr){const h=S.sk.hair;if(h==='none')return;const H=TEX.phair,c=S.hair,hp=(b,col)=>part(b,0,24,0,pr,0,0,H,col||c);
+ if(h==='mohawk'){hp([-1,8,-4.4,1,11.6,4.4]);hp([-4.2,7.6,-4.2,4.2,8.2,4.2],c.map(v=>v*0.6))}
+ else if(h==='cap'){hp([-4.5,6,-4.5,4.5,9.2,4.5]);hp([-4.5,6,-7.8,4.5,7,-4.4]);hp([-0.8,9.2,-0.8,0.8,10,0.8],c.map(v=>v*0.7))}
+ else if(h==='hood'){hp([-4.7,7,-4.7,4.7,8.9,4.7]);hp([-4.7,-3,2.4,4.7,8.9,4.7]);hp([-4.7,-3,-4.7,-3.6,8.9,4.7]);hp([3.6,-3,-4.7,4.7,8.9,4.7]);hp([-4.9,-4,-3.2,4.9,-1,3.2],c.map(v=>v*0.8))}
+ else{hp([-4.4,7.2,-4.4,4.4,8.6,4.4]);hp([-4.4,2.5,3.2,4.4,8.5,4.4]);hp([-4.4,4,-4.4,-3.3,8.5,4.4]);hp([3.3,4,-4.4,4.4,8.5,4.4]);
+  if(h==='long'){hp([-4.4,-9,2.6,4.4,8.5,4.4]);hp([-4.4,-3,-1,-3.3,8.5,4.4]);hp([3.3,-3,-1,4.4,8.5,4.4])}
+  if(h==='pony'){hp([-1.2,-6,4.3,1.2,3,6.2]);hp([-1.5,3,4.2,1.5,4.6,6.4],[0.9,0.25,0.35])}}}
+// first-person arm: skin tone hand, sleeve in the shirt colour (bare for tank tops and dresses)
+function skinHand(EB,tf,l){const S=skinDraw(null),N=TEX.noise,w=S.slim?0.085:0.11;
+ if(S.sleeved){EB.box(tf,-w,-0.6,-w,w,-0.12,w,N,S.skin,l,true);EB.box(tf,-w,-0.12,-w,w,0.2,w,N,S.shirt,l,true)}else EB.box(tf,-w,-0.6,-w,w,0.2,w,N,S.skin,l,true)}
+// ---- Skin page: live 3D preview (the real player model drawn with the main GL context, copied into a 2D canvas) + controls ----
+const SKIN_PV={on:false,yaw:Math.PI,t:0,walk:false,drag:false,a:null,eb:null,ebi:null};
+let skinBack='titleMenu';
+function skinOpen(back){skinBack=back;showMenu('skinMenu');skinUiRefresh();if(!SKIN_PV.on&&R.gl){SKIN_PV.on=true;SKIN_PV.t=performance.now();requestAnimationFrame(skinPvLoop)}}
+function skinPvLoop(now){const m=$('skinMenu');if(!m||!m.classList.contains('show')||!R.gl){SKIN_PV.on=false;return}requestAnimationFrame(skinPvLoop);
+ const dt=Math.min(0.1,Math.max(0,(now-SKIN_PV.t)/1000));SKIN_PV.t=now;try{skinPvDraw(dt)}catch(e){SKIN_PV.on=false;console.error(e)}}
+function skinPvDraw(dt){const cv=$('skinCv'),pw=cv.width,ph=cv.height,c=R.canvas,gl=R.gl;if(c.width<pw)c.width=pw;if(c.height<ph)c.height=ph;
+ const V=SKIN_PV;if(!V.a){const a=V.a=new RemotePlayer('prev','');a.skinLocal=true;a.hasTarget=true;a.fixL=[1,0.12];a.armor=[0,0,0,0];V.eb=new EBatch();V.ebi=new EBatch()}
+ const a=V.a;if(!V.drag)V.yaw+=dt*0.6;a.yaw=V.yaw;a.x=a.y=a.z=0;a.walkAmp=V.walk?0.9:0;a.walkT+=dt*(V.walk?7:0);
+ const sv=[R.eye,R.day,R.gamma,R.fogColor,R.fogStart,R.fogEnd,R.ambient];
+ R.eye=[0,1.1,4.0];R.day=1;R.gamma=(opts.brightness||50)/100;R.fogColor=[0.1,0.14,0.17];R.ambient=0.3;
+ const vp=m4mul(m4perspective(40*PI/180,pw/ph,0.1,60),m4trans(0,-1.05,-4.0));
+ gl.viewport(0,0,pw,ph);gl.enable(gl.SCISSOR_TEST);gl.scissor(0,0,pw,ph);gl.depthMask(true);gl.clearColor(0.09,0.13,0.16,1);gl.clear(gl.COLOR_BUFFER_BIT|gl.DEPTH_BUFFER_BIT);
+ const eb=V.eb,ebi=V.ebi;eb.clear();ebi.clear();a.render(eb,ebi);
+ const id=(x,y,z)=>[x,y,z],g=TEX.grass_top,d=TEX.dirt;eb.box(id,-1,-0.25,-1,1,0,1,[d,d,g,d,d,d],[1,1,1],[1,0.12],true);
+ gl.enable(gl.BLEND);gl.blendFunc(gl.SRC_ALPHA,gl.ONE_MINUS_SRC_ALPHA);eb.draw(R.progE,R.atlasTex,{vp,fogStart:100,fogEnd:200});
+ const x=cv.getContext('2d');x.clearRect(0,0,pw,ph);x.drawImage(c,0,c.height-ph,pw,ph,0,0,pw,ph);
+ gl.disable(gl.SCISSOR_TEST);[R.eye,R.day,R.gamma,R.fogColor,R.fogStart,R.fogEnd,R.ambient]=sv}
+function skinUiRefresh(){const root=$('skinCtl');if(!root||!root.firstChild)return;const sk=skinNow();
+ for(const b of root.querySelectorAll('[data-k]')){const cur=sk[b.dataset.k];b.classList.toggle('on',b.dataset.v===(Array.isArray(cur)?cur.join(','):String(cur)))}
+ const hex=c=>'#'+c.map(v=>v.toString(16).padStart(2,'0')).join('');for(const i of root.querySelectorAll('input[data-ck]'))i.value=hex(sk[i.dataset.ck]);
+ for(const cv of root.querySelectorAll('canvas[data-face]')){const k=Object.assign({},sk,{face:+cv.dataset.face});cv.getContext('2d').putImageData(new ImageData(new Uint8ClampedArray(skinFaceBytes(k)),16,16),0,0)}}
+function skinSetup(){const ctl=$('skinCtl');if(!ctl)return;const mk=(tag,cls,txt)=>{const e=document.createElement(tag);if(cls)e.className=cls;if(txt!==undefined)e.textContent=txt;return e};
+ const sec=(t,wide)=>{const d=mk('div','sksec'+(wide?' wide':''));d.appendChild(mk('div','skh',t));const r=mk('div','skrow');d.appendChild(r);ctl.appendChild(d);return r};
+ const chips=(t,key,list,wide)=>{const r=sec(t,wide);for(const v of list){const b=mk('button','skchip',v);b.dataset.k=key;b.dataset.v=v;b.onclick=()=>skinSet(key,v);r.appendChild(b)}};
+ const idxSw=(t,key,cols,scale)=>{const r=sec(t);cols.forEach((c,i)=>{const b=mk('button','sksw');b.style.background='rgb('+c.map(v=>Math.round(v*scale)).join(',')+')';b.dataset.k=key;b.dataset.v=String(i);b.onclick=()=>skinSet(key,i);r.appendChild(b)})};
+ const colSw=(t,key,cols,narrow)=>{const r=sec(t,!narrow);for(const c of cols){const b=mk('button','sksw');b.style.background='rgb('+c.join(',')+')';b.dataset.k=key;b.dataset.v=c.join(',');b.onclick=()=>skinSet(key,c.slice());r.appendChild(b)}
+  const i=mk('input','skcol');i.type='color';i.dataset.ck=key;i.title='Pick any colour';i.oninput=()=>{const h=i.value;skinSet(key,[1,3,5].map(o=>parseInt(h.substr(o,2),16)))};r.appendChild(i)};
+ {const r=sec('Face',true);SKIN_FACES.forEach((f,i)=>{const b=mk('button','skface');b.title=f.n;b.dataset.k='face';b.dataset.v=String(i);const cv=mk('canvas');cv.width=cv.height=16;cv.dataset.face=String(i);b.appendChild(cv);b.onclick=()=>skinSet('face',i);r.appendChild(b)})}
+ idxSw('Eye colour','eye',SKIN_EYES,1);idxSw('Skin tone','tone',SKIN_TONES,255);chips('Hair','hair',SKIN_HAIRS,true);colSw('Hair colour (also cap and hood)','hairCol',SKIN_HAIR_COLS);
+ chips('Body','body',SKIN_BODIES);chips('Height','height',SKIN_HEIGHTS);chips('Shirt','shirt',SKIN_SHIRTS,true);colSw('Shirt colour','shirtCol',SKIN_CLOTH_COLS);
+ chips('Legs','pants',SKIN_PANTS);colSw('Shoes','shoes',SKIN_SHOE_COLS,true);colSw('Pants and skirt colour','pantsCol',SKIN_CLOTH_COLS);
+ const pick=a=>a[floor(Math.random()*a.length)];
+ $('btnSkinRandom').onclick=()=>skinStore(skinNorm({face:floor(Math.random()*SKIN_FACES.length),eye:floor(Math.random()*SKIN_EYES.length),tone:floor(Math.random()*SKIN_TONES.length),hair:pick(SKIN_HAIRS),hairCol:pick(SKIN_HAIR_COLS),body:pick(SKIN_BODIES),height:pick(SKIN_HEIGHTS),shirt:pick(SKIN_SHIRTS),shirtCol:pick(SKIN_CLOTH_COLS),pants:pick(SKIN_PANTS),pantsCol:pick(SKIN_CLOTH_COLS),shoes:pick(SKIN_SHOE_COLS)}));
+ $('btnSkinReset').onclick=()=>skinStore(null);
+ $('btnSkinWalk').onclick=()=>{SKIN_PV.walk=!SKIN_PV.walk;$('btnSkinWalk').classList.toggle('on',SKIN_PV.walk)};
+ $('btnSkin').onclick=()=>skinOpen('titleMenu');$('btnSkinP').onclick=()=>skinOpen('pauseMenu');$('btnSkinBack').onclick=()=>showMenu(skinBack);
+ const cv=$('skinCv');cv.addEventListener('pointerdown',e=>{SKIN_PV.drag=true;SKIN_PV.lx=e.clientX;try{cv.setPointerCapture(e.pointerId)}catch(x){}});
+ cv.addEventListener('pointermove',e=>{if(!SKIN_PV.drag)return;SKIN_PV.yaw+=(e.clientX-SKIN_PV.lx)*0.012;SKIN_PV.lx=e.clientX});
+ const up=()=>{SKIN_PV.drag=false};cv.addEventListener('pointerup',up);cv.addEventListener('pointercancel',up);
+ skinUiRefresh()}
 class RemotePlayer extends Entity{constructor(id,name){super(0,-100,0);this.pid=id;this.name=name;this.w=0.6;this.h=1.8;this.hurtT=0;this.invT=0;this.lastDmg=0;this.tx=0;this.ty=-100;this.tz=0;this.tyaw=0;this.walkT=0;this.walkAmp=0;this.held=0;this.sneak=false;this.remote=true;this.hasTarget=false;this.hidden=false;this.eyeHeight=1.62;this.onGround=true;this.sneaking=false;this.mode='survival';this.effects={};this.riding=null;this.inv=[];this.sel=0;this.dead=false}
-  setTarget(d){if(!this.hasTarget||Math.hypot(d.x-this.x,d.y-this.y,d.z-this.z)>8){this.x=d.x;this.y=d.y;this.z=d.z;this.yaw=d.yaw;this.hasTarget=true}this.tx=d.x;this.ty=d.y;this.tz=d.z;this.tyaw=d.yaw;this.pitch=d.pitch||0;this.att=d.att;this.held=d.held||0;this.sneak=!!d.sneak;this.sneaking=!!d.sneak;this.crawling=this.crawl=!!d.crawl;this.h=this.crawl?0.6:1.8;if(d.name)this.name=d.name;this.hidden=!!d.dead||(!!d.dim&&!!world&&d.dim!==world.dimKey);this.armor=d.armor||[0,0,0,0];if(d.sw&&!this.swPrev)this.swingT=0.4;this.swPrev=!!d.sw}
+  setTarget(d){if(d.sk!==undefined)skinRemoteApply(this,d.sk);if(!this.hasTarget||Math.hypot(d.x-this.x,d.y-this.y,d.z-this.z)>8){this.x=d.x;this.y=d.y;this.z=d.z;this.yaw=d.yaw;this.hasTarget=true}this.tx=d.x;this.ty=d.y;this.tz=d.z;this.tyaw=d.yaw;this.pitch=d.pitch||0;this.att=d.att;this.held=d.held||0;this.sneak=!!d.sneak;this.sneaking=!!d.sneak;this.crawling=this.crawl=!!d.crawl;this.h=this.crawl?0.6:1.8;if(d.name)this.name=d.name;this.hidden=!!d.dead||(!!d.dim&&!!world&&d.dim!==world.dimKey);this.armor=d.armor||[0,0,0,0];if(d.sw&&!this.swPrev)this.swingT=0.4;this.swPrev=!!d.sw}
   interact(){return false}
   get hittable(){return pvpOn()&&!this.hidden}
   update(dt){this.age+=dt;if(this.hurtT>0)this.hurtT-=dt;if(this.invT>0)this.invT-=dt;if(!this.hasTarget)return;const k=Math.min(1,dt*12);const ox=this.x,oz=this.z;this.x+=(this.tx-this.x)*k;this.y+=(this.ty-this.y)*k;this.z+=(this.tz-this.z)*k;let dy=this.tyaw-this.yaw;dy=Math.atan2(Math.sin(dy),Math.cos(dy));this.yaw+=dy*k;
     const hs=Math.hypot(this.x-ox,this.z-oz)/Math.max(dt,1e-3);this.walkAmp+=(Math.min(1,hs/3)-this.walkAmp)*Math.min(1,dt*8);this.walkT+=hs*dt*1.6;if(this.swingT>0)this.swingT-=dt;if(this.seatM)seatPlace(this)}
-  render(EB,EBI){if(this.hidden||!this.hasTarget)return;if(this.seatM)seatPlace(this);const l=lightAt(this.x,this.y+1,this.z);const s=1/16;const N=TEX.noise;const hurt=this.hurtT>0;const part=(b,px,py,pz,rx,ry,rz,tiles,col)=>{const tf=partTF(this.x,this.y,this.z,this.yaw,px,py,pz,rx,ry,rz,s,0);EB.box(tf,b[0],b[1],b[2],b[3],b[4],b[5],tiles,hurt?[Math.min(1,col[0]+0.5),col[1]*0.4,col[2]*0.4]:col,l,true)};
-    const swing=Math.sin(this.walkT)*this.walkAmp*0.9;const sit=!!this.seated,lsw=sit?1.45:swing,rsw=sit?1.45:-swing;const skin=[0.85,0.66,0.52],shirt=[0.2,0.62,0.85],pants=[0.25,0.3,0.6];const t=2;
+  render(EB,EBI){if(this.hidden||!this.hasTarget)return;if(this.seatM)seatPlace(this);const l=this.fixL||lightAt(this.x,this.y+1,this.z);const SK=skinDraw(this);const s=SK.k/16;const N=TEX.noise;const hurt=this.hurtT>0;const part=(b,px,py,pz,rx,ry,rz,tiles,col)=>{const tf=partTF(this.x,this.y,this.z,this.yaw,px,py,pz,rx,ry,rz,s,0);EB.box(tf,b[0],b[1],b[2],b[3],b[4],b[5],tiles,hurt?[Math.min(1,col[0]+0.5),col[1]*0.4,col[2]*0.4]:col,l,true)};
+    const swing=Math.sin(this.walkT)*this.walkAmp*0.9;const sit=!!this.seated,lsw=sit?1.45:swing,rsw=sit?1.45:-swing;const skin=SK.skin,shirt=SK.shirt,pants=SK.pants;const t=2;
     if(this.crawl){ // flat on the belly, head forward, arms ahead, legs behind; in a ghillie suit the whole lump is leaves
       const gh=wearsGhillie(this);const T=gh?TEX.ghillie:N;const cs=gh?[1,1,1]:skin,cb=gh?[1,1,1]:shirt,cp=gh?[1,1,1]:pants;const crawlSwing=Math.sin(this.walkT)*this.walkAmp*0.5;const o=gh?0.6:0;
       part([-4-o,-2-o,-2-o,4+o,12+o,2+o],0,3,0,-PI/2,0,0,T,cb);part([-4-o,-o,-4-o,4+o,8+o,4+o],0,2.5,-13,-PI/2+0.75,0,0,T,gh?cs:skin);
       part([-t-o,-10-o,-t-o,t+o,2+o,t+o],-5.5,2,-6,PI/2,0,crawlSwing*0.4,T,cs);part([-t-o,-10-o,-t-o,t+o,2+o,t+o],5.5,2,-6,PI/2,0,-crawlSwing*0.4,T,cs);
       part([-t-o,-12-o,-t-o,t+o,0,t+o],-2,2,0,-PI/2+crawlSwing*0.3,0,0,T,cp);part([-t-o,-12-o,-t-o,t+o,0,t+o],2,2,0,-PI/2-crawlSwing*0.3,0,0,T,cp);return}
-    part([-t,-12,-t,t,0,t],-2,12,0,lsw,0,0,N,pants);part([-t,-12,-t,t,0,t],2,12,0,rsw,0,0,N,pants);
-    part([-4,12,-2,4,24,2],0,0,0,this.sneak?0.35:0,0,0,N,shirt);
+    skinLegs(part,SK,lsw,rsw);
+    skinTorso(part,SK,this.sneak?0.35:0);
     const hit=this.swingT>0?Math.sin(this.swingT/0.4*PI)*1.6:0;const gunH=!!(this.held&&ITEMS[this.held]&&ITEMS[this.held].gun&&GUN_MODELS[this.held]),wpnH=!!(this.held&&wpnModel(this.held)),aimH=gunH||wpnH;const armR=sit?1.15:aimH?1.45+this.pitch*0.9-hit*0.1:swing-hit;const armL=sit?1.15:aimH?1.3+this.pitch*0.9:-swing,armLz=aimH?0.55:0.05;
-    part([-t,-10,-t,t,2,t],-4,22,0,armL,0,armLz,N,shirt);part([-t,-10,-t,t,2,t],4,22,0,armR,0,-0.05,N,shirt);
-    part([-4,0,-4,4,8,4],0,24,0,this.pitch,0,0,[N,N,N,N,N,TEX.player_face],skin);
+    skinArms(part,SK,armL,armLz,armR);
+    part([-4,0,-4,4,8,4],0,24,0,this.pitch,0,0,SK.head,[1,1,1]);skinHair(part,SK,this.pitch);
     // armor: coloured shells over the body parts, by material
     const gh=!!(A1=>A1&&ITEMS[A1]&&ITEMS[A1].ghillie)((this.armor||[])[1]);const W=gh?TEX.ghillie:TEX.white,A=this.armor||[0,0,0,0];const ac=i=>{if(gh)return [1,1,1];const d=A[i]?ITEMS[A[i]]:null;if(!d||d.elytra)return null;const c=ARMOR[d.mat]&&ARMOR[d.mat].color;return c?[c[0]/255,c[1]/255,c[2]/255]:[0.7,0.7,0.7]};
     const hc=ac(0),cc=ac(1),lc=ac(2),bc=ac(3),o=gh?0.9:0.55; // the ghillie suit covers everything, head to boots, in leaves
