@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="ironcraft-build" content="20261029-193057">
+<meta name="ironcraft-build" content="20261029-200649">
 <meta name="viewport" content="width=device-width,initial-scale=1.0,viewport-fit=cover">
 <title>Ironcraft – Free Voxel Survival Sandbox in Your Browser | Iron Games</title>
 <meta name="description" content="Ironcraft is a free browser-based voxel survival sandbox with building, exploration, private or safety-limited public multiplayer, and optional weather, horror and survival challenges. By Daniele Bros.">
@@ -1158,6 +1158,29 @@ defTex('carved_pumpkin_front',p=>{p.noise(214,118,30,10);for(const x of [1,5,9,1
 defTex('sift_ore',p=>{p.noise(74,92,94,7);p.speckle(10,96,128,126);for(let i=0;i<5;i++){const x=floor(p.rng()*14),y=floor(p.rng()*14);p.rect(x,y,2,2,225,30,45);p.px(x,y,255,90,100);p.px(x+1,y+1,150,10,25)}});
 defTex('sift_stone',p=>{p.noise(74,92,94,7);p.speckle(14,96,128,126);p.rect(0,0,16,1,52,66,68);p.rect(0,8,16,1,52,66,68);p.rect(7,0,1,8,52,66,68);p.rect(3,8,1,8,52,66,68);p.rect(11,8,1,8,52,66,68);p.px(5,4,170,20,40);p.px(12,12,170,20,40)});
 defTex('sift_crystal_block',p=>{p.noise(96,40,60,8);for(let i=0;i<6;i++){const x=floor(p.rng()*13),y=floor(p.rng()*13);p.rect(x,y,3,3,200,25,45);p.rect(x+1,y+1,1,1,255,120,130)}});
+// bow and trident drawn as box models like the guns: the bow's limbs curve back toward the archer and its string pulls with the charge; the trident is a long shaft with three teal prongs
+const WPN_FP={301:[0.026,0.4,-0.14,-0.72],468:[0.03,0.5,-0.3,-0.58]}; // first person: scale, then x,y,z of the grip in view space
+function wpnModel(id){return id===301||id===468}
+function drawWeapon(EB,tf,id,light,charge,arrow){
+  const W='gun_wood',D='gun_dark',S='gun_steel',G='gun_grip',T=[0.5,1.3,1.25],GOLD=[1.6,1.3,0.5];
+  const box=(t,x0,y0,z0,x1,y1,z1,tex,col)=>gunBox(EB,t,x0,y0,z0,x1,y1,z1,tex,col||[1,1,1],light);
+  const rot=(rx,py,pz)=>{const c=Math.cos(rx),sn=Math.sin(rx);return (x,y,z)=>{y-=py;z-=pz;return tf(x,y*c-z*sn+py,y*sn+z*c+pz)}};
+  const seg=(y0,z0,y1,z1,w,th,tex,col)=>{const dy=y1-y0,dz=z1-z0,L=Math.hypot(dy,dz);if(L<0.01)return;box(rot(Math.atan2(dz,dy),y0,z0),-w/2,y0,z0-th/2,w/2,y0+L,z0+th/2,tex,col)}; // a bar from (y0,z0) to (y1,z1) in the bow's plane
+  if(id===301){const pull=Math.min(1,charge||0);
+    box(tf,-1,-3,-1.2,1,3,1.2,G);box(tf,-0.9,3,-1,0.9,4.5,1,W);box(tf,-0.9,-4.5,-1,0.9,-3,1,W); // riser with a wrapped grip
+    let tipY=0,tipZ=0;
+    for(const sg of [1,-1]){let y=4.5*sg,z=0;for(let k=0;k<4;k++){const a=(0.12+k*0.2)*(1+pull*0.9),len=3.2;const ny=y+Math.cos(a)*len*sg,nz=z+Math.sin(a)*len;seg(y,z,ny,nz,1.3-k*0.22,1.2-k*0.2,W);y=ny;z=nz} // four tapering segments bend back toward the archer, more when drawn
+      box(tf,-0.45,Math.min(y,y+sg*0.9),z-0.35,0.45,Math.max(y,y+sg*0.9),z+0.35,S);if(sg>0){tipY=y;tipZ=z}}
+    const zN=tipZ+1.2+pull*9;seg(tipY,tipZ,0,zN,0.25,0.25,S,[1.1,1.1,1]);seg(-tipY,tipZ,0,zN,0.25,0.25,S,[1.1,1.1,1]); // the string meets at the nock, drawn back with the charge
+    if(arrow&&pull>0){box(tf,-0.3,-0.3,zN-21,0.3,0.3,zN-0.6,W,[0.95,0.85,0.6]);box(tf,-0.5,-0.5,zN-23.6,0.5,0.5,zN-21,S);box(tf,-1.2,-0.1,zN-5.5,1.2,0.1,zN-1.2,'white',[0.92,0.92,0.95]);box(tf,-0.1,-1.2,zN-5.5,0.1,1.2,zN-1.2,'white',[0.92,0.92,0.95])}
+    return}
+  if(id===468){
+    box(tf,-0.55,-0.55,-16,0.55,0.55,14,D);box(tf,-0.7,-0.7,2,0.7,0.7,8,G);box(tf,-0.7,-0.7,-15.6,0.7,0.7,-14,S,GOLD);box(tf,-0.7,-0.7,9,0.7,0.7,10.4,S,GOLD);box(tf,-0.8,-0.8,13,0.8,0.8,14.6,S,T); // shaft, grip wrap, gold bands, capped butt
+    box(tf,-0.6,-3.4,-17.6,0.6,3.4,-16,S,T); // crossbar, tines spread up and down so the head reads from the side
+    box(tf,-0.55,-0.55,-26,0.55,0.55,-17.6,S,T);box(tf,-0.3,-0.3,-28.2,0.3,0.3,-26,S,T); // centre prong and point
+    for(const sg of [1,-1]){box(tf,-0.5,sg>0?2.3:-3.3,-24,0.5,sg>0?3.3:-2.3,-17.6,S,T);box(tf,-0.4,sg>0?1.7:-2.7,-25.8,0.4,sg>0?2.7:-1.7,-24,S,T);box(tf,-0.25,sg>0?1.3:-2.1,-27,0.25,sg>0?2.1:-1.3,-25.8,S,T)} // side tines step inward to their points
+    return}
+}
 function siftSoil(p){p.noise(150,54,80,12);p.speckle(16,184,84,106);p.speckle(8,112,36,62)}
 defTex('sift_grass_top',p=>{p.noise(238,112,122,12);p.speckle(26,252,150,160);p.speckle(10,208,86,98)});
 defTex('sift_grass_side',p=>{siftSoil(p);for(let x=0;x<16;x++){const h=3+(p.rng()<.5?0:1)+(p.rng()<.2?1:0);for(let y=0;y<h;y++){const f=0.88+p.rng()*.24;p.px(x,y,238*f,112*f,122*f)}}});
@@ -2563,6 +2586,10 @@ function drawHand(dt){const gl=R.gl;const p=player;const st=p.inv[p.sel];const i
   if(!st){EB.clear();const tf=makeTF(0.75+bob,-0.7+swingY+bob,-0.85,-0.55+swingR*0.5,swingR*0.6+0.9,0.35,0,0,0,1);EB.box(tf,-0.11,-0.6,-0.11,0.11,0.2,0.11,TEX.steve_arm,[1,1,1],l,true);EB.draw(R.progE,R.atlasTex,{vp:proj,fogStart:100,fogEnd:200});return}
   if(def.gun&&GUN_MODELS[id]){if(p.scoped)return;const fp=GUN_FP[id];const kick=Math.pow(1-sw,2)*(def.gun.recoil*5+0.2);EB.clear();
     const tf=makeTF(fp[1]+bob,fp[2]+bob*0.7-kick*0.015,fp[3]+kick*0.07,0.13-kick*0.03,kick*0.2,0.03,0,0,0,fp[0]);drawGun(EB,tf,id,l,sw,st&&st.att);EB.draw(R.progE,R.atlasTex,{vp:proj,fogStart:100,fogEnd:200});return}
+  if(wpnModel(id)){if(p.scoped)return;const fp=WPN_FP[id],ch=Math.min(1,p.bowCharge||0),th=Math.sin(sw*PI);EB.clear();let tf;
+    if(id===301)tf=makeTF(fp[1]-ch*0.22+bob+swingY*0.3,fp[2]+ch*0.06+bob*0.7,fp[3]+ch*0.1,0.5-ch*0.3+swingR*0.25,0.05,-0.35+ch*0.25,0,0,0,fp[0]); // upright on the right, canted, drawn in toward the eye as it is pulled
+    else tf=makeTF(fp[1]+bob,fp[2]+bob*0.7+ch*0.22-th*0.05,fp[3]+ch*0.28-th*0.35,0.72+swingR*0.15,0.22-ch*0.5,0.1,0,0,0,fp[0]); // trident: couched by the eye, cocked back as it charges, thrust forward on a swing
+    drawWeapon(EB,tf,id,l,ch,id===301&&ch>0&&hasArrow());EB.draw(R.progE,R.atlasTex,{vp:proj,fogStart:100,fogEnd:200});return}
   if(def.isBlock&&(def.model==='cube'||def.model==='slab'||def.model==='stairs'||def.model==='chest'||def.model==='fence'||def.model==='cactus'||def.model==='snow'||def.model==='farmland'||def.model==='liquid')){
     EB.clear();const tf=makeTF(0.55+bob,-0.62+swingY+bob-eat,-0.9,-0.6+swingR*0.4,swingR*0.4,0,0.5,0.5,0.5,0.4);
     const rb=renderBoxes(id,def.facing?0:0,0,0,0);for(const b of rb)EB.box(tf,b[0],b[1],b[2],b[3],b[4],b[5],b[6],b[8]?[b[8][0]/255,b[8][1]/255,b[8][2]/255]:[1,1,1],l,false);
@@ -3709,6 +3736,8 @@ if(this.def.vehicle){if(this.hurtT>0)this.hurtT-=dt;if(this.invT>0)this.invT-=dt
       // staring: only the eyes count (a narrow cone on the head, not the body), and it takes two full seconds of eye contact; glancing away resets quickly
       if(p===player&&!p.dead&&dist3<64&&!this.angry){const e=[p.x,p.y+p.eyeHeight,p.z];const dir=eyeDir();const hx=this.x-e[0],hy=(this.y+this.h-0.25)-e[1],hz=this.z-e[2];const l=sqrt(hx*hx+hy*hy+hz*hz)||1;const cos=(hx*dir[0]+hy*dir[1]+hz*dir[2])/l;
         if(cos>Math.cos(Math.atan2(0.45,l))){const bh=raycast(e[0],e[1],e[2],hx,hy,hz,l-0.3,false);if(!bh||!bh.block){this.stareT+=dt;if(this.stareT>2){this.angry=true;playSoundAt('enderman',this.x,this.y,this.z,1,1.2);this.screamT=1.2}}}else this.stareT=Math.max(0,this.stareT-dt*3)}
+      // a temper of its own: near a player it can see, one now and then turns hostile without being stared at (more often on harder difficulties)
+      if(!this.angry&&p===player&&!p.dead&&dist3<20&&game.difficulty>0&&Math.random()<dt*(game.difficulty>=3?0.04:game.difficulty===2?0.025:0.012)&&this.canSee(p)){this.angry=true;this.stareT=0;playSoundAt('enderman',this.x,this.y,this.z,1,1.2);this.screamT=1.2}
       if(this.screamT>0)this.screamT-=dt;
       if(this.inWater||(this.fireT>0)){this.teleport(false)}
       this.tpT-=dt;if(this.tpT<=0){this.tpT=2+Math.random()*5;if(this.angry&&!p.dead&&dist3>4&&(dist3>10||this.collidedH||Math.random()<0.3))this.teleport(true);else if(!this.angry&&Math.random()<0.3)this.teleport(false)}
@@ -8548,7 +8577,7 @@ class RemotePlayer extends Entity{constructor(id,name){super(0,-100,0);this.pid=
       part([-t-o,-12-o,-t-o,t+o,0,t+o],-2,2,0,-PI/2+crawlSwing*0.3,0,0,T,cp);part([-t-o,-12-o,-t-o,t+o,0,t+o],2,2,0,-PI/2-crawlSwing*0.3,0,0,T,cp);return}
     part([-t,-12,-t,t,0,t],-2,12,0,lsw,0,0,N,pants);part([-t,-12,-t,t,0,t],2,12,0,rsw,0,0,N,pants);
     part([-4,12,-2,4,24,2],0,0,0,this.sneak?0.35:0,0,0,N,shirt);
-    const hit=this.swingT>0?Math.sin(this.swingT/0.4*PI)*1.6:0;const gunH=!!(this.held&&ITEMS[this.held]&&ITEMS[this.held].gun&&GUN_MODELS[this.held]);const armR=sit?1.15:gunH?1.45-this.pitch*0.9-hit*0.1:swing-hit;const armL=sit?1.15:gunH?1.3-this.pitch*0.9:-swing,armLz=gunH?0.55:0.05;
+    const hit=this.swingT>0?Math.sin(this.swingT/0.4*PI)*1.6:0;const gunH=!!(this.held&&ITEMS[this.held]&&ITEMS[this.held].gun&&GUN_MODELS[this.held]),wpnH=!!(this.held&&wpnModel(this.held)),aimH=gunH||wpnH;const armR=sit?1.15:aimH?1.45-this.pitch*0.9-hit*0.1:swing-hit;const armL=sit?1.15:aimH?1.3-this.pitch*0.9:-swing,armLz=aimH?0.55:0.05;
     part([-t,-10,-t,t,2,t],-4,22,0,armL,0,armLz,N,shirt);part([-t,-10,-t,t,2,t],4,22,0,armR,0,-0.05,N,shirt);
     part([-4,0,-4,4,8,4],0,24,0,-this.pitch,0,0,[N,N,N,N,N,TEX.player_face],skin);
     // armor: coloured shells over the body parts, by material
@@ -8562,6 +8591,7 @@ class RemotePlayer extends Entity{constructor(id,name){super(0,-100,0);this.pid=
     // held item in the right hand: blocks as a small cube, everything else as its icon
     if(this.held&&ITEMS[this.held]){const def=ITEMS[this.held];const atf=partTF(this.x,this.y,this.z,this.yaw,4,22,0,armR,0,-0.05,s,0);
       if(gunH){const k=0.42;const gtf=(x,y,z)=>atf(x*k,z*k-9.5,-y*k-1.6);drawGun(EB,gtf,this.held,l,this.swingT>0?1-this.swingT/0.4:1,this.att)}
+      else if(wpnH){const k=0.42;const gtf=(x,y,z)=>atf(x*k,z*k-9.5,-y*k-1.6);drawWeapon(EB,gtf,this.held,l,0,false)}
       else if(def.isBlock&&ITEMTILE[this.held]===undefined){const rb=renderBoxes(this.held,0,0,0,0);for(const b of rb)EB.box(atf,b[0]*6-3,b[1]*6-14,b[2]*6-9,b[3]*6-3,b[4]*6-14,b[5]*6-9,b[6],b[8]?[b[8][0]/255,b[8][1]/255,b[8][2]/255]:[1,1,1],l,false)}
       else if(EBI&&ITEMTILE[this.held]!==undefined){const tile=ITEMTILE[this.held];const uv=[[(tile%32)/32,floor(tile/32)/32],[(tile%32+1)/32,floor(tile/32)/32],[(tile%32+1)/32,(floor(tile/32)+1)/32],[(tile%32)/32,(floor(tile/32)+1)/32]];
         const rx=Math.sin(0.8)*10,rz=-Math.cos(0.8)*10;const P=[atf(0,-3,-1),atf(rx,-3,-1+rz),atf(rx,-13,-1+rz),atf(0,-13,-1)];EBI.quad(P,uv,[l[0],l[1],1],[1,1,1]);EBI.quad([P[3],P[2],P[1],P[0]],[uv[3],uv[2],uv[1],uv[0]],[l[0],l[1],1],[1,1,1])}}}}
