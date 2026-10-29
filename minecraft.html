@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="ironcraft-build" content="20261029-151459">
+<meta name="ironcraft-build" content="20261029-192820">
 <meta name="viewport" content="width=device-width,initial-scale=1.0,viewport-fit=cover">
 <title>Ironcraft – Free Voxel Survival Sandbox in Your Browser | Iron Games</title>
 <meta name="description" content="Ironcraft is a free browser-based voxel survival sandbox with building, exploration, private or safety-limited public multiplayer, and optional weather, horror and survival challenges. By Daniele Bros.">
@@ -8222,8 +8222,14 @@ function mpChat(text){if(MP.public){mpPublicChat(text);return}text=String(text||
 const LOBBY_IDS=['ironcraft-lobby-0','ironcraft-lobby-1','ironcraft-lobby-2','ironcraft-lobby-3'];
 function lobbyClean(s,max){return String(s==null?'':s).replace(/<[^>]*>/g,'').replace(/[<>\u0000-\u001f\u007f]/g,'').replace(/\s+/g,' ').trim().slice(0,max)}
 function lobbyRid(){return Math.random().toString(36).slice(2,10)+Date.now().toString(36)}
+// presence: where a player is. k = title | chat | world (n = world name) | server (public, c = players) | room (private, c = players)
+const LOBBY_PRES=['title','chat','world','server','room'];
+function lobbyPresSame(a,b){return !!a&&!!b&&a.k===b.k&&a.n===b.n&&a.c===b.c}
+function lobbyPresText(st){const k=st&&st.k,n=st&&st.n,c=st&&st.c;const cnt=c>1?' ('+c+' playing)':'';
+  return k==='chat'?'in chat':k==='world'?(n?'in a world: '+n:'in a world'):k==='server'?'on a public server'+cnt:k==='room'?'in a private room'+cnt:'on the title screen'}
+function lobbyUserSort(a,b){const ca=a.st&&a.st.k==='chat'?0:1,cb=b.st&&b.st.k==='chat'?0:1;return ca-cb||a.name.localeCompare(b.name)}
 class LobbyChat{
-  constructor(o){o=o||{};this.name=lobbyClean(o.name,16)||'Player';this.world=o.world?lobbyClean(o.world,24):null;this.onUpdate=o.onUpdate||null;this.ids=o.ids||LOBBY_IDS;this.timeout=o.timeout||3000;this.retryMs=o.retryMs||[600,2100];this.mergeMs=o.mergeMs||10000;
+  constructor(o){o=o||{};this.name=lobbyClean(o.name,16)||'Player';this.world=o.world?lobbyClean(o.world,24):null;this.pres=this.cleanPres(o.pres||(this.world?{k:'world',n:this.world}:{k:'title'}));this.hbMs=o.hbMs||20000;this.staleMs=o.staleMs||75000;this.offlineMs=o.offlineMs||30000;this.fails=0;this.sweepT=null;this.hbT=null;this.onUpdate=o.onUpdate||null;this.ids=o.ids||LOBBY_IDS;this.timeout=o.timeout||3000;this.retryMs=o.retryMs||[600,2100];this.mergeMs=o.mergeMs||10000;
     this.status='Connecting…';this.lines=[];this.seen=new Set();this.users=[];this.guests=new Map();this.links=new Map();this.linking=new Set();this.timers=new Set();
     this.stopped=true;this.isHost=false;this.up=null;this.conn=null;this.myId=null;this.myIdx=-1;this.gen=0;this.lastSend=0;this.pend=null;this.mergeT=null;this.modInit(o)}
   after(ms,fn){const t=setTimeout(()=>{this.timers.delete(t);try{fn()}catch(e){}},ms);this.timers.add(t);return t}
@@ -8231,10 +8237,11 @@ class LobbyChat{
   setStatus(s){this.status=s;this.note()}
   start(){if(!this.stopped)return;this.stopped=false;this.discover()}
   stop(){this.stopped=true;this.gen++;this.teardown();this.users=[];this.setStatus('Disconnected')}
-  teardown(){for(const t of this.timers)clearTimeout(t);this.timers.clear();if(this.mergeT){clearInterval(this.mergeT);this.mergeT=null}
+  teardown(){for(const t of this.timers)clearTimeout(t);this.timers.clear();if(this.mergeT){clearInterval(this.mergeT);this.mergeT=null}if(this.sweepT){clearInterval(this.sweepT);this.sweepT=null}if(this.hbT){clearInterval(this.hbT);this.hbT=null}
     const up=this.up;this.up=null;this.conn=null;this.pend=null;this.isHost=false;this.guests.clear();this.links.clear();this.linking.clear();if(up){try{up.destroy()}catch(e){}}}
   rawSend(c,m){try{if(c&&c.open!==false)c.send(m)}catch(e){}}
-  offline(gen){this.users=[];this.setStatus('Chat is offline');this.after(30000,()=>{if(gen===this.gen&&!this.stopped)this.discover()})}
+  backoff(base,cap){return Math.min(cap,base*Math.pow(2,Math.min(this.fails++,4)))}
+  offline(gen){this.users=[];this.setStatus('Chat is offline');this.after(this.backoff(this.offlineMs,300000),()=>{if(gen===this.gen&&!this.stopped)this.discover()})}
   openPeer(id){return new Promise((res,rej)=>{let p;try{p=newPeer(id)}catch(e){return rej({type:'error',message:String(e)})}let done=false;
     const t=setTimeout(()=>{if(!done){done=true;try{p.destroy()}catch(e){}rej({type:'timeout'})}},10000);
     p.on('open',()=>{if(!done){done=true;clearTimeout(t);res(p)}});
@@ -8257,21 +8264,23 @@ class LobbyChat{
         if(err&&err.type==='unavailable-id'){r=await this.tryConnect(probe,id);if(gen!==this.gen)return} // someone may have just claimed it: ask once more
         else{this.offline(gen);return}}
       if(r.conn){this.becomeGuest(probe,r.conn,gen);return}}
-    this.setStatus('Chat is busy. Retrying…');this.after(8000,()=>{if(gen===this.gen&&!this.stopped)this.discover()})}
-  ownList(){const a=[{id:this.myId,name:this.name,world:this.world}];for(const [id,g] of this.guests)a.push({id,name:g.name,world:g.world});return a}
+    this.setStatus('Chat is busy. Retrying…');this.after(this.backoff(8000,120000),()=>{if(gen===this.gen&&!this.stopped)this.discover()})}
+  ownList(){const a=[{id:this.myId,name:this.name,st:this.pres}];for(const [id,g] of this.guests)a.push({id,name:g.name,st:g.st});return a}
   fullList(){const a=this.ownList(),have=new Set(a.map(u=>u.id));for(const l of this.links.values())for(const u of l.users)if(!have.has(u.id)){have.add(u.id);a.push(u)}return a}
-  cleanList(list){return (Array.isArray(list)?list:[]).slice(0,200).filter(u=>u&&typeof u==='object').map(u=>({id:String(u.id||'').slice(0,64),name:lobbyClean(u.name,16)||'Player',world:u.world?lobbyClean(u.world,24):null}))}
+  cleanList(list){return (Array.isArray(list)?list:[]).slice(0,200).filter(u=>u&&typeof u==='object').map(u=>({id:String(u.id||'').slice(0,64),name:lobbyClean(u.name,16)||'Player',st:this.cleanPres(u.st||(u.world?{k:'world',n:u.world}:null))}))}
+  // a status from the wire is rebuilt from known parts only: a known kind, a cleaned name for worlds, a small count for servers and rooms
+  cleanPres(s){s=s&&typeof s==='object'?s:{};const k=LOBBY_PRES.includes(s.k)?s.k:'title';const n=k==='world'&&typeof s.n==='string'?lobbyClean(s.n,24):'';const c=(k==='server'||k==='room')&&typeof s.c==='number'&&isFinite(s.c)?Math.max(1,Math.min(999,Math.floor(s.c))):null;return {k,n:n||null,c}}
   history(){return this.lines.filter(l=>l.kind==='chat').slice(-50).map(l=>({id:l.id,name:l.name,text:l.text,ts:l.ts}))}
   // toLinks: tell the other hosts about our own users (only on a local change, never in answer to another host, so it cannot ping-pong)
   refresh(toLinks){if(this.isHost){const full=this.fullList();this.users=full;for(const g of this.guests.values())this.rawSend(g.conn,{t:'lwho',list:full});if(toLinks){const own=this.ownList();for(const l of this.links.values())this.rawSend(l.conn,{t:'lhw',users:own})}}
-    if(!this.stopped&&(this.isHost||this.conn))this.status='Connected: '+Math.max(1,this.users.length)+' online';this.note()}
+    if(!this.stopped&&(this.isHost||this.conn))this.status='Connected: '+Math.max(1,this.users.length)+' online';this.fails=0;this.note()}
   becomeHost(hp,n,gen){const old=this.up;this.up=hp;if(old){try{old.destroy()}catch(e){}}this.isHost=true;this.myId=hp.id;this.myIdx=n;
     hp.on('connection',c=>this.watch(c,gen));hp.on('disconnected',()=>{try{hp.reconnect()}catch(e){}});
-    this.after(400,()=>this.probeHosts(gen));this.mergeT=setInterval(()=>this.probeHosts(gen),this.mergeMs);this.refresh(true);this.modJoined()}
-  becomeGuest(probe,conn,gen){this.up=probe;this.conn=conn;this.isHost=false;this.myId=probe.id;this.users=[{id:probe.id,name:this.name,world:this.world}];
+    this.after(400,()=>this.probeHosts(gen));this.mergeT=setInterval(()=>this.probeHosts(gen),this.mergeMs);this.sweepT=setInterval(()=>this.sweep(),Math.min(this.hbMs,20000));this.refresh(true);this.modJoined()}
+  becomeGuest(probe,conn,gen){this.up=probe;this.conn=conn;this.isHost=false;this.myId=probe.id;this.users=[{id:probe.id,name:this.name,st:this.pres}];
     conn.on('data',d=>{try{this.onData(conn,d)}catch(e){}});const lost=()=>this.hostLost(conn,gen);conn.on('close',lost);conn.on('error',lost);
     probe.on('disconnected',()=>{try{probe.reconnect()}catch(e){}});
-    this.rawSend(conn,{t:'lhello',name:this.name,world:this.world});this.refresh(false);this.modJoined()}
+    this.rawSend(conn,{t:'lhello',name:this.name,st:this.pres});this.hbT=setInterval(()=>{if(gen===this.gen&&this.conn===conn)this.rawSend(conn,{t:'lpres',st:this.pres})},this.hbMs);this.refresh(false);this.modJoined()}
   hostLost(conn,gen){if(this.stopped||gen!==this.gen||this.conn!==conn)return;this.conn=null;this.users=[];this.localSys('The lobby host left. Reconnecting…');this.setStatus('Reconnecting…');
     this.after(this.retryMs[0]+Math.random()*(this.retryMs[1]-this.retryMs[0]),()=>{if(gen===this.gen&&!this.stopped)this.discover()})}
   watch(c,gen){c.on('data',d=>{if(gen!==this.gen)return;try{this.onData(c,d)}catch(e){}});const drop=()=>this.dropConn(c);c.on('close',drop);c.on('error',drop)}
@@ -8295,10 +8304,11 @@ class LobbyChat{
     const id=typeof d.id==='string'&&/^[\w-]{1,40}$/.test(d.id)?d.id:lobbyRid();return {kind:'chat',id,name:lobbyClean(d.name,16)||'Player',text,ts}}
   onData(c,d){if(this.stopped||!d||typeof d!=='object')return;
     switch(d.t){
-      case 'lhello':{if(!this.isHost)break;const name=lobbyClean(d.name,16)||'Player';const isNew=!this.guests.has(c.peer);this.guests.set(c.peer,{conn:c,name,world:d.world?lobbyClean(d.world,24):null,last:0});
+      case 'lhello':{if(!this.isHost)break;const name=lobbyClean(d.name,16)||'Player';const isNew=!this.guests.has(c.peer);this.guests.set(c.peer,{conn:c,name,st:this.cleanPres(d.st||(d.world?{k:'world',n:d.world}:null)),last:0,seen:Date.now(),pT:0,hb:false});
         this.rawSend(c,{t:'lhist',lines:this.history(),list:this.fullList()});this.modHello(c);if(isNew)this.sys(name+' joined the lobby');this.refresh(true);break}
       case 'lname':{const g=this.guests.get(c.peer);if(!this.isHost||!g)break;const nn=lobbyClean(d.name,16);if(nn){g.name=nn;this.refresh(true)}break}
-      case 'lworld':{const g=this.guests.get(c.peer);if(!this.isHost||!g)break;g.world=d.world?lobbyClean(d.world,24):null;this.refresh(true);break}
+      case 'lpres':{const g=this.guests.get(c.peer);if(!this.isHost||!g)break;const now=Date.now();g.seen=now;g.hb=true;const st=this.cleanPres(d.st);if(lobbyPresSame(st,g.st)||now-g.pT<400)break;g.pT=now;g.st=st;this.refresh(true);break} // unknown senders have no guest entry and are ignored; the heartbeat repeats a status that was rate-limited
+      case 'lworld':{const g=this.guests.get(c.peer);if(!this.isHost||!g)break;g.st=this.cleanPres(d.world?{k:'world',n:d.world}:null);g.seen=Date.now();this.refresh(true);break}
       case 'lchat':{const m=this.cleanMsg(d);if(!m)break;if(this.isHost){const g=this.guests.get(c.peer);if(g){const now=Date.now();if(now-g.last<700)break;g.last=now}else if(!this.links.has(c.peer))break}else if(c!==this.conn)break;
         if(this.addLine(m))this.flood({t:'lchat',id:m.id,name:m.name,text:m.text,ts:m.ts},c);break}
       case 'lsys':{if(this.isHost?!(this.links.has(c.peer)):c!==this.conn)break;const text=lobbyClean(d.text,80);const id=typeof d.id==='string'&&/^[\w-]{1,40}$/.test(d.id)?d.id:lobbyRid();if(text&&this.addLine({kind:'sys',id,text,ts:Date.now()}))this.flood({t:'lsys',id,text},c);break}
@@ -8363,25 +8373,44 @@ class LobbyChat{
     this.lastShare=now;const id=lobbyRid();if(!names)modPubAdd(this.pubKey,{id,ts:now,piece:pc});this.sendMod({id,to:names||null,piece:pc,ts:now});return 'ok'}
   getMod(id){if(this.stopped||!(this.isHost||this.conn))return false;this.gets.add(id);if(this.isHost){const e=this.catalog.find(x=>x.id===id);if(e)this.recvMod({id,from:e.from,piece:e.piece,got:1});else{this.gets.delete(id);this.gotRes({id,ok:false,reason:'gone'})}}else this.rawSend(this.conn,{t:'lmodget',id});return true}
   setName(n){n=lobbyClean(n,16);if(!n)return;this.name=n;if(this.isHost)this.refresh(true);else if(this.conn)this.rawSend(this.conn,{t:'lname',name:n})}
-  setWorld(w){this.world=w?lobbyClean(w,24):null;if(this.isHost)this.refresh(true);else if(this.conn)this.rawSend(this.conn,{t:'lworld',world:this.world})}
+  setPresence(k,n,c){const p=this.cleanPres({k,n,c});if(lobbyPresSame(p,this.pres))return false;this.pres=p;this.world=p.k==='world'?p.n:null;if(this.isHost)this.refresh(true);else if(this.conn)this.rawSend(this.conn,{t:'lpres',st:p});return true}
+  setWorld(w){this.setPresence(w?'world':'title',w,null)}
+  // guests that sent heartbeats and then went silent (closed laptop, dead tab) are dropped; older clients without a heartbeat are left to the connection close
+  sweep(){if(!this.isHost||this.stopped)return;const now=Date.now();for(const g of [...this.guests.values()])if(g.hb&&now-g.seen>this.staleMs){try{g.conn.close()}catch(e){}this.dropConn(g.conn)}}
 }
 // ---- the Chat panel on the title screen (wrapped so a failure can only break the panel, never a world) ----
 let LOBBY=null,lobbyLeft=0,lobbyWatch=null;
+// where am I right now (read by the 1 s watcher and sent only when it changes)
+function lobbyPresenceNow(){try{if(game.state==='playing'||game.state==='loading'){if(MP.active)return {k:MP.public?'server':'room',n:null,c:MP.remote?MP.remote.size+1:null};return {k:'world',n:game.worldName||null,c:null}}
+  if($('chatMenu').classList.contains('show'))return {k:'chat',n:null,c:null}}catch(e){}return {k:'title',n:null,c:null}}
+function lobbyPresenceTick(){try{const L=LOBBY;if(!L||L.stopped)return;const p=lobbyPresenceNow();L.setPresence(p.k,p.n,p.c)}catch(e){}}
+// the chat lines and the Online list are only drawn on the Chat page; the title screen just shows how many are online
+function lobbyChatShown(){try{return $('chatMenu').classList.contains('show')}catch(e){return false}}
+function lobbyBtn(L){try{const b=$('btnChat');if(b)b.textContent=!L.stopped&&(L.isHost||L.conn)&&L.users.length?'Chat ('+L.users.length+' online)':'Chat'}catch(e){}}
+function lobbyMake(){LOBBY=new LobbyChat({name:lobbyDisplayName(),onUpdate:lobbyRender,pres:lobbyPresenceNow()});LOBBY.start();if(!lobbyWatch)lobbyWatch=setInterval(lobbyWatchTick,1000);return LOBBY}
+// started once when the page is ready and kept for the whole session (the lobby uses its own PeerJS peers, so worlds and servers neither stop it nor depend on it);
+// automated browsers stay out of the public lobby unless IC_FORCE_LOBBY is set
+function lobbyBoot(){try{if(navigator.webdriver&&!window.IC_FORCE_LOBBY)return;
+  window.addEventListener('pagehide',lobbyLeaveNow);window.addEventListener('beforeunload',lobbyLeaveNow);
+  window.addEventListener('pageshow',ev=>{if(ev.persisted&&(!LOBBY||LOBBY.stopped))lobbyMake()});
+  window.addEventListener('online',()=>{const L=LOBBY;if(L&&!L.stopped&&!L.isHost&&!L.conn&&L.fails){L.fails=0;L.discover()}});
+  setTimeout(()=>{try{if(!LOBBY||LOBBY.stopped)lobbyMake()}catch(e){}},1200)}catch(e){}}
+function lobbyLeaveNow(){try{if(LOBBY&&!LOBBY.stopped)LOBBY.stop()}catch(e){}}
 function lobbyDisplayName(){let n='';try{n=localStorage.getItem('ic_chatname')||''}catch(e){}n=lobbyClean(n||(typeof opts!=='undefined'&&opts.mpName)||'',16);if(!n){n=publicAlias(Math.random());try{localStorage.setItem('ic_chatname',n)}catch(e){}}return n}
-function lobbyRender(L){if(L!==LOBBY)return;try{modLobbyTick()}catch(e){}try{const st=$('chatStatus');if(st)st.textContent=L.status;
+function lobbyRender(L){if(L!==LOBBY)return;lobbyBtn(L);try{modLobbyTick()}catch(e){}if(!lobbyChatShown()){try{const st=$('chatStatus');if(st)st.textContent=L.status}catch(e){}return}try{const st=$('chatStatus');if(st)st.textContent=L.status;
   const list=$('chatList');if(list){const near=list.scrollHeight-list.scrollTop-list.clientHeight<40;list.textContent='';
     for(const l of L.lines.slice(-120)){const d=document.createElement('div');if(l.kind==='sys'){d.className='cl sys';d.textContent=l.text}else{d.className='cl';const b=document.createElement('b');b.className='cname';b.textContent=l.name;d.appendChild(b);d.appendChild(document.createTextNode(': '+l.text))}list.appendChild(d)}
     if(near)list.scrollTop=list.scrollHeight}
-  const us=$('chatUsers');if(us){us.textContent='';for(const u of L.users.slice().sort((a,b)=>a.name.localeCompare(b.name))){const d=document.createElement('div');d.className='cu';const b=document.createElement('b');b.className='cname';b.textContent=u.name+(u.id===L.myId?' (you)':'');const sm=document.createElement('small');sm.textContent=u.world||'Lobby';d.appendChild(b);d.appendChild(sm);us.appendChild(d)}}}catch(e){}}
-function lobbyOpen(){showMenu('chatMenu');lobbyLeft=0;
-  try{if(!LOBBY||LOBBY.stopped){LOBBY=new LobbyChat({name:lobbyDisplayName(),onUpdate:lobbyRender});LOBBY.start()}
+  const us=$('chatUsers');if(us){us.textContent='';for(const u of L.users.slice().sort(lobbyUserSort)){const d=document.createElement('div');d.className='cu';const b=document.createElement('b');b.className='cname';b.textContent=u.name+(u.id===L.myId?' (you)':'');const sm=document.createElement('small');sm.textContent=lobbyPresText(u.st);d.appendChild(b);d.appendChild(sm);us.appendChild(d)}}}catch(e){}}
+function lobbyOpen(){showMenu('chatMenu');lobbyLeft=0;lobbyPresenceTick();
+  try{if(!LOBBY||LOBBY.stopped){lobbyMake()}
     $('chatName').value=LOBBY.name;lobbyRender(LOBBY);if(!lobbyWatch)lobbyWatch=setInterval(lobbyWatchTick,1000)}catch(e){const st=$('chatStatus');if(st)st.textContent='Chat is offline'}}
 // keep the connection while the panel is open and for 30 s after leaving it; drop it once a world starts
 function lobbyWatchTick(){try{if(!LOBBY||LOBBY.stopped){clearInterval(lobbyWatch);lobbyWatch=null;return}
-  if(game.state==='playing'&&!modShareHold()){LOBBY.stop();return}
-  if($('chatMenu').classList.contains('show')||modShareHold())lobbyLeft=0;else{if(!lobbyLeft)lobbyLeft=Date.now();if(Date.now()-lobbyLeft>30000)LOBBY.stop()}}catch(e){}}
+  lobbyPresenceTick();
+  if($('chatMenu').classList.contains('show')||modShareHold())lobbyLeft=0;else if(!lobbyLeft)lobbyLeft=Date.now()}catch(e){}}
 function lobbySend(){try{const inp=$('chatInput');const r=LOBBY?LOBBY.send(inp.value):'offline';if(r==='ok'||r==='empty')inp.value='';else if(r==='rate')LOBBY.localSys('Slow down: one message per second.');else if(LOBBY)LOBBY.localSys('Not connected yet.')}catch(e){}}
-function lobbySetup(){$('btnChat').onclick=lobbyOpen;$('btnChatBack').onclick=()=>{showMenu('titleMenu');lobbyLeft=Date.now()};$('btnChatSend').onclick=lobbySend;
+function lobbySetup(){$('btnChat').onclick=lobbyOpen;$('btnChatBack').onclick=()=>{showMenu('titleMenu');lobbyLeft=Date.now();lobbyPresenceTick()};$('btnChatSend').onclick=lobbySend;
   $('chatInput').addEventListener('keydown',ev=>{ev.stopPropagation();if(ev.key==='Enter'){ev.preventDefault();lobbySend()}});
   $('chatName').addEventListener('keydown',ev=>{ev.stopPropagation();if(ev.key==='Enter')ev.target.blur()});
   $('chatName').addEventListener('change',()=>{try{const n=lobbyClean($('chatName').value,16);if(n){try{localStorage.setItem('ic_chatname',n)}catch(e){}if(LOBBY)LOBBY.setName(n)}$('chatName').value=n||(LOBBY?LOBBY.name:'')}catch(e){}})}
@@ -8429,7 +8458,7 @@ function modApplyNow(){if(game.state==='playing')customDirty=true;else{try{apply
 function modShareHold(){try{return !!MS.dlg||$('modShareMenu').classList.contains('show')}catch(e){return false}}
 function modToast(text){let t=$('modToast');if(!t){t=document.createElement('div');t.id='modToast';document.body.appendChild(t)}t.textContent=text;t.classList.add('show');clearTimeout(MS.tt);MS.tt=setTimeout(()=>t.classList.remove('show'),7000)}
 function modSay(text){for(const id of ['msStatus','funModsMsg']){const e=$(id);if(e)e.textContent=text}}
-function lobbyEnsure(){try{if(!LOBBY||LOBBY.stopped){LOBBY=new LobbyChat({name:lobbyDisplayName(),onUpdate:lobbyRender});LOBBY.start()}lobbyLeft=0;if(!lobbyWatch)lobbyWatch=setInterval(lobbyWatchTick,1000)}catch(e){}return LOBBY}
+function lobbyEnsure(){try{if(!LOBBY||LOBBY.stopped){lobbyMake()}lobbyLeft=0;if(!lobbyWatch)lobbyWatch=setInterval(lobbyWatchTick,1000)}catch(e){}return LOBBY}
 const MS_KIND={block:'Block',item:'Item',creature:'Creature',vehicle:'Vehicle',armor:'Armour',weapon:'Weapon',food:'Food',tool:'Tool',gun:'Gun',structure:'Structure',recipe:'Recipe',rules:'World rules'};
 // a 32x32 preview of a piece's texture; a described piece is painted into its slot and the slot's old texture is put back
 function modThumb(pc,k){const cv=document.createElement('canvas');cv.width=cv.height=32;cv.className='msth';const cx=cv.getContext('2d');cx.imageSmoothingEnabled=false;
@@ -9351,7 +9380,7 @@ function boot(){
   document.documentElement.style.setProperty('--dirt','url('+tileCanvas(TEX.dirt).toDataURL()+')');
   $('overlay').style.display='none';
   window.game=game;window.player=player;window.getWorld=()=>world;window.dbg={key:(k,v)=>{keys[k]=v},mouse:(l,r)=>{mouseL=l;mouseR=r},entities,spawnMob:(t,x,y,z)=>{const m=new Mob(t,x,y,z);entities.push(m);return m},openGui,closeGui,craft2,craft3,craftOut,updateCraftOutput,slotClick,saveWorld,addToInventory,breakBlock};
-  requestAnimationFrame(loop);
+  requestAnimationFrame(loop);try{lobbyBoot()}catch(e){}
 }
 boot();
 </script>
