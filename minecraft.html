@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="ironcraft-build" content="20261029-134746">
+<meta name="ironcraft-build" content="20261029-145203">
 <meta name="viewport" content="width=device-width,initial-scale=1.0,viewport-fit=cover">
 <title>Ironcraft – Free Voxel Survival Sandbox in Your Browser | Iron Games</title>
 <meta name="description" content="Ironcraft is a free browser-based voxel survival sandbox with building, exploration, private or safety-limited public multiplayer, and optional weather, horror and survival challenges. By Daniele Bros.">
@@ -3982,7 +3982,9 @@ class ShulkerBullet extends Entity{constructor(x,y,z,owner){super(x,y,z);this.w=
   render(EB){const tf=makeTF(this.x,this.y,this.z,this.age*4,this.age*2,0,0,0,0,1);EB.box(tf,-0.15,-0.15,-0.15,0.15,0.15,0.15,TEX.white,[0.9,0.85,0.95],[1,1],true);EB.box(tf,-0.05,-0.25,-0.05,0.05,0.25,0.05,TEX.white,[0.5,0.2,0.6],[1,1],true)}}
 function windBurst(x,y,z,byPlayer,skipPlayer){playSoundAt('wind',x,y,z,1,0.8);for(let i=0;i<14;i++)spawnParticles('bolt',x+(Math.random()-0.5)*2.5,y+(Math.random()-0.5)*2,z+(Math.random()-0.5)*2.5,1);spawnParticles('smoke',x,y,z,6);
   const push=(e,isP)=>{const dx=e.x-x,dy=(e.y+0.5)-y,dz=e.z-z;const d=sqrt(dx*dx+dy*dy+dz*dz);if(d>3.2)return;const k=1-d/3.2;const h=sqrt(dx*dx+dz*dz)||1;e.vx+=dx/h*7*k;e.vz+=dz/h*7*k;e.vy=Math.max(e.vy,0)+(isP?10:8)*k+3;if(isP){e.onGround=false;e.fallDist=0;if(!byPlayer&&e.mode!=='creative')damageEntity(e,1,{type:'mob'})}};
-  for(const e of entities){if(!(e instanceof Mob)||e.dead||e.dying)continue;push(e,false)}if(!player.dead&&!player.riding&&!skipPlayer)push(player,true)}
+  for(const e of entities){if(!(e instanceof Mob)||e.dead||e.dying)continue;push(e,false)}if(!player.dead&&!player.riding&&!skipPlayer)push(player,true)
+  // a thrown Void Pearl caught in the gust goes off where it is: the player blinks to it in mid-air
+  for(const e of entities){if(!(e instanceof Arrow)||e.thrown!==312||e.dead||e.stuck)continue;const dx=e.x-x,dy=e.y-y,dz=e.z-z;if(dx*dx+dy*dy+dz*dz>3.2*3.2)continue;e.stuck=true;e.vx=e.vy=e.vz=0;e.windHit=true;spawnParticles('portal',e.x,e.y,e.z,8)}}
 function shootWindCharge(b,p){const ex=b.x,ey=b.y+b.h*0.7,ez=b.z;let ax=p.x-ex,ay=(p.y+1)-ey,az=p.z-ez;const n=sqrt(ax*ax+ay*ay+az*az)||1;const sp=22;
   const w=new Arrow(ex,ey,ez,ax/n*sp,ay/n*sp,az/n*sp,'mob',0);w.wind=true;w.noGravity=true;
   w.render=function(EB){const l=[1,1];const t=this.age*12;EB.box((x,y,z)=>[this.x+x,this.y+y,this.z+z],-0.14,-0.14,-0.14,0.14,0.14,0.14,TEX.white,[0.85,0.92,1],l,true);EB.box((x,y,z)=>[this.x+x*Math.cos(t)-z*Math.sin(t),this.y+y,this.z+x*Math.sin(t)+z*Math.cos(t)],-0.28,-0.04,-0.04,0.28,0.04,0.04,TEX.white,[0.6,0.75,0.95],l,true)};
