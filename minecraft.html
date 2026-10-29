@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="ironcraft-build" content="20261029-204423">
+<meta name="ironcraft-build" content="20261029-214126">
 <meta name="viewport" content="width=device-width,initial-scale=1.0,viewport-fit=cover">
 <title>Ironcraft – Free Voxel Survival Sandbox in Your Browser | Iron Games</title>
 <meta name="description" content="Ironcraft is a free browser-based voxel survival sandbox with building, exploration, private or safety-limited public multiplayer, and optional weather, horror and survival challenges. By Daniele Bros.">
@@ -443,12 +443,8 @@ label.lb{font-size:13px;color:#a0a0a0;align-self:flex-start;margin-left:calc(50%
   <h1 class="title">IRONCRAFT<span class="splash" id="splash">BUILD YOUR OWN LEGEND</span></h1>
   <button class="btn" id="btnSingle">Solo Worlds</button>
   <button class="btn" id="btnMulti">Play Together</button>
-  <button class="btn" id="btnOptionsT">Game Settings</button>
   <button class="btn" id="btnChat">Chat</button>
-  <button class="btn" id="btnMods">Mods</button>
-  <button class="btn" id="btnSkin">Skin</button>
-  <button class="btn" id="btnControls">How to Play</button>
-  <button class="btn" id="btnModMaker">Mod Maker</button>
+  <div class="btnrow"><button class="btn half" id="btnOptionsT">Game Settings</button><button class="btn half" id="btnMore">More</button></div>
   <p id="titleAbout" style="position:absolute;bottom:43px;left:0;right:0;text-align:center;font-size:12px;font-weight:400;color:#ddd;text-shadow:1px 1px 0 #000;margin:0;padding:0 14px;pointer-events:none;">A free voxel survival sandbox by Daniele Bros. Public rooms use random aliases. Chat is open to everyone there: be kind.</p>
   <p id="legalNote" style="position:absolute;bottom:22px;left:0;right:0;text-align:center;font-size:10px;font-weight:500;color:#e1b65f;margin:0;padding:0 14px;pointer-events:none;">NOT AN OFFICIAL MINECRAFT PRODUCT. NOT APPROVED BY OR ASSOCIATED WITH MOJANG OR MICROSOFT.</p>
   <div id="versionNote" style="position:absolute;bottom:6px;left:8px;font-size:12px;font-weight:400;color:#aaa">Ironcraft 1.0 &mdash; a browser voxel survival game</div>
@@ -620,6 +616,14 @@ label.lb{font-size:13px;color:#a0a0a0;align-self:flex-start;margin-left:calc(50%
   <button class="btn" id="btnOptionsBack" style="margin-top:14px">Done</button>
 </div>
 
+<div id="moreMenu" class="menu dirtbg">
+  <h2 class="sh">More</h2>
+  <button class="btn" id="btnSkin">Skin</button>
+  <button class="btn" id="btnMods">Mods</button>
+  <button class="btn" id="btnModMaker">Mod Maker</button>
+  <button class="btn" id="btnControls">How to Play</button>
+  <button class="btn" id="btnMoreBack" style="margin-top:14px">Back</button>
+</div>
 <div id="controlsMenu" class="menu dirtbg">
   <h2 class="sh">Controls</h2>
   <div class="ctl">
@@ -6614,12 +6618,12 @@ function setupMenus(){
   $('btnPlay').onclick=()=>{const w=worldList().find(w=>w.id===selWorld);if(w){initAudio();openWorld(w)}};
   $('btnDelete').onclick=()=>{if(!selWorld)return;if(!confirm('Delete this world? This cannot be undone.'))return;deleteWorldSave(selWorld);localStorage.setItem('ic_worlds',JSON.stringify(worldList().filter(w=>w.id!==selWorld)));selWorld=null;refreshWorldList()};
   let optBack='titleMenu';$('btnOptionsT').onclick=()=>{optBack='titleMenu';showMenu('optionsMenu');showOptSeed()};$('btnOptionsP').onclick=()=>{optBack='pauseMenu';showMenu('optionsMenu');showOptSeed()};$('btnOptionsBack').onclick=()=>{saveOpts();showMenu(optBack)};
-  $('btnControls').onclick=()=>showMenu('controlsMenu');$('btnControlsBack').onclick=()=>showMenu('titleMenu');try{lobbySetup()}catch(e){}try{modShareSetup()}catch(e){}try{skinSetup()}catch(e){console.error(e)}
+  $('btnControls').onclick=()=>showMenu('controlsMenu');$('btnControlsBack').onclick=()=>showMenu('moreMenu');$('btnMore').onclick=()=>showMenu('moreMenu');$('btnMoreBack').onclick=()=>showMenu('titleMenu');try{lobbySetup()}catch(e){}try{modShareSetup()}catch(e){}try{skinSetup()}catch(e){console.error(e)}
   $('btnResume').onclick=()=>resumeGame();$('pauseMenu').addEventListener('mousedown',ev=>{if(ev.target===ev.currentTarget&&game.paused&&game.state==='playing')resumeGame()});$('btnSaveQuit').onclick=()=>quitToTitle();
   $('btnGuideP').onclick=()=>{resumeGame();openGui('guide')};$('btnGuideInv').onclick=ev=>{ev.stopPropagation();closeGui();openGui('guide')};$('btnGuideClose').onclick=()=>closeGui();$('guideSearch').addEventListener('input',renderGuide);$('guideSearch').addEventListener('keydown',ev=>{ev.stopPropagation();if(ev.key==='Escape')closeGui()});$('guideCat').addEventListener('change',renderGuide);
   $('btnModeP').onclick=()=>{if(onPublicServer()){showMessage('Game mode cannot be changed on a public server');return}if(MP.active&&!MP.host){showMessage('Only the host can change the game mode');return}const p=player;p.mode=p.mode==='creative'?'survival':'creative';if(p.mode==='survival')p.flying=false;refreshModeBtn();updateHUD();updateHotbar();showMessage('Game mode: '+p.mode)};
   migrateOldSaves();checkForUpdate();setInterval(checkForUpdate,5*60*1000);$('updateBanner').onclick=()=>{location.href=location.pathname+'?v='+Date.now()};
-  $('btnModMaker').onclick=()=>openModMaker('titleMenu');$('btnModMakerP').onclick=()=>openModMaker('pauseMenu');setupModMaker();
+  $('btnModMaker').onclick=()=>openModMaker('moreMenu');$('btnModMakerP').onclick=()=>openModMaker('pauseMenu');setupModMaker();
   $('btnRespawn').onclick=()=>{respawn();lockPointer()};$('btnDeathQuit').onclick=()=>{if(game.mods&&game.mods.hardcore){$('deathScreen').classList.remove('show');quitToTitle()}else{respawn();quitToTitle()}};
   const sl=(id,key,fmt,cb)=>{const inp=$(id);const box=inp.parentElement;const span=box.querySelector('span'),knob=box.querySelector('.knob');const upd=()=>{span.textContent=fmt(opts[key]);const f=(opts[key]-inp.min)/(inp.max-inp.min);knob.style.left='calc('+(f*100)+'% - '+(f*16)+'px)'};inp.value=opts[key];upd();inp.addEventListener('input',()=>{opts[key]=+inp.value;upd();if(cb)cb()})};
   sl('optRender','renderDist',v=>'Render Distance: '+v+' chunks');sl('optFov','fov',v=>'FOV: '+(v===70?'Normal':v));sl('optSens','sens',v=>'Sensitivity: '+v+'%');sl('optBright','brightness',v=>'Brightness: '+(v===0?'Moody':v===100?'Bright':v+'%'));
@@ -8586,7 +8590,7 @@ function modDlgRender(){const D=MS.dlg;if(!D)return;const L=LOBBY;const live=!!(
     if(!live)msEmpty(D.list,'Connecting...');else if(!us.length)msEmpty(D.list,'Nobody else is online right now.');
     for(const u of us){const lb=document.createElement('label');lb.className='sdp';const cb=document.createElement('input');cb.type='checkbox';cb.checked=D.sel.has(u.id);cb.onchange=()=>{if(cb.checked)D.sel.add(u.id);else D.sel.delete(u.id)};const sp=document.createElement('span');sp.textContent=u.name;lb.appendChild(cb);lb.appendChild(sp);D.list.appendChild(lb)}}
   D.send.disabled=!live;if(!live)D.msg.textContent=L&&L.status&&L.status!=='Disconnected'?L.status:'Connecting...';else if(/^(Connecting|Reconnecting|Chat is)/.test(D.msg.textContent))D.msg.textContent=''}
-function modShareSetup(){$('btnMods').onclick=()=>showMenu('modShareMenu');$('btnModsBack').onclick=()=>{modShareClose();showMenu('titleMenu')};$('btnModsMaker').onclick=()=>openModMaker('modShareMenu')}
+function modShareSetup(){$('btnMods').onclick=()=>showMenu('modShareMenu');$('btnModsBack').onclick=()=>{modShareClose();showMenu('moreMenu')};$('btnModsMaker').onclick=()=>openModMaker('modShareMenu')}
 // ---- chat inside a public server: plain messages go to everyone in the room (the host relays); names are the same aliases as the name tags ----
 const PCHAT={last:0};
 function chatLine(name,text){const c=$('chat');if(!c)return;const el=document.createElement('div');el.className='msg chatln';el.style.animationDuration='12s';const b=document.createElement('b');b.className='cname';b.textContent=name;el.appendChild(document.createTextNode('<'));el.appendChild(b);el.appendChild(document.createTextNode('> '+text));c.appendChild(el);while(c.children.length>8)c.removeChild(c.firstChild);setTimeout(()=>el.remove(),12000)}
@@ -8739,7 +8743,7 @@ function skinSetup(){const ctl=$('skinCtl');if(!ctl)return;const mk=(tag,cls,txt
  $('btnSkinRandom').onclick=()=>skinStore(skinNorm({face:floor(Math.random()*SKIN_FACES.length),eye:floor(Math.random()*SKIN_EYES.length),tone:floor(Math.random()*SKIN_TONES.length),hair:pick(SKIN_HAIRS),hairCol:pick(SKIN_HAIR_COLS),body:pick(SKIN_BODIES),height:pick(SKIN_HEIGHTS),shirt:pick(SKIN_SHIRTS),shirtCol:pick(SKIN_CLOTH_COLS),pants:pick(SKIN_PANTS),pantsCol:pick(SKIN_CLOTH_COLS),shoes:pick(SKIN_SHOE_COLS)}));
  $('btnSkinReset').onclick=()=>skinStore(null);
  $('btnSkinWalk').onclick=()=>{SKIN_PV.walk=!SKIN_PV.walk;$('btnSkinWalk').classList.toggle('on',SKIN_PV.walk)};
- $('btnSkin').onclick=()=>skinOpen('titleMenu');$('btnSkinP').onclick=()=>skinOpen('pauseMenu');$('btnSkinBack').onclick=()=>showMenu(skinBack);
+ $('btnSkin').onclick=()=>skinOpen('moreMenu');$('btnSkinP').onclick=()=>skinOpen('pauseMenu');$('btnSkinBack').onclick=()=>showMenu(skinBack);
  const cv=$('skinCv');cv.addEventListener('pointerdown',e=>{SKIN_PV.drag=true;SKIN_PV.lx=e.clientX;try{cv.setPointerCapture(e.pointerId)}catch(x){}});
  cv.addEventListener('pointermove',e=>{if(!SKIN_PV.drag)return;SKIN_PV.yaw+=(e.clientX-SKIN_PV.lx)*0.012;SKIN_PV.lx=e.clientX});
  const up=()=>{SKIN_PV.drag=false};cv.addEventListener('pointerup',up);cv.addEventListener('pointercancel',up);
