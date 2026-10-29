@@ -1,0 +1,307 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0,viewport-fit=cover,user-scalable=no">
+<title>Iron Hammer – Free Mining, Blacksmith and Medieval Battle Game | Iron Games</title>
+<meta name="description" content="Iron Hammer is a free browser game: dig for coal, iron, gold and gems in a deep mine, smelt and hammer them into swords and armour at the forge, level up from apprentice to master smith, then join the king's army and fight medieval battles with the gear you made. No download.">
+<meta name="robots" content="index,follow,max-snippet:-1,max-image-preview:large">
+<link rel="canonical" href="https://irongames.win/ironhammer.html">
+<link rel="icon" href="favicon.svg" type="image/svg+xml">
+<link rel="manifest" href="site.webmanifest">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="Iron Games">
+<meta property="og:title" content="Iron Hammer – Mine, Forge, Fight | Iron Games">
+<meta property="og:description" content="Dig iron in a deep mine, hammer it into swords at the forge, level up and march into medieval battles with the gear you made. Free in your browser, no download.">
+<meta property="og:url" content="https://irongames.win/ironhammer.html">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="Iron Hammer – Mine, Forge, Fight | Iron Games">
+<meta name="twitter:description" content="Dig iron, forge swords, level up and fight medieval battles. Free in your browser, no download.">
+<script type="application/ld+json">{"@context":"https://schema.org","@graph":[{"@type":"VideoGame","name":"Iron Hammer","url":"https://irongames.win/ironhammer.html","genre":["Adventure","Crafting","Action","RPG"],"gamePlatform":"Web browser","applicationCategory":"Game","operatingSystem":"Any","isAccessibleForFree":true,"offers":{"@type":"Offer","price":"0","priceCurrency":"USD"},"author":{"@type":"Organization","name":"Daniele Bros","url":"https://irongames.win/"},"description":"A mining, blacksmithing and medieval battle game: dig ore in a deep mine, smelt and hammer it into swords, shields and armour, level up from apprentice to master smith, then fight in the king's army with the gear you forged."},{"@type":"BreadcrumbList","itemListElement":[{"@type":"ListItem","position":1,"name":"Iron Games","item":"https://irongames.win/"},{"@type":"ListItem","position":2,"name":"Iron Hammer","item":"https://irongames.win/ironhammer.html"}]}]}</script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Oswald:wght@500;700&family=Share+Tech+Mono&display=swap" rel="stylesheet">
+<style>
+:root{--gold:#e8c84a;--cream:#e6dcc0;--dim:#9a8a60;--panel:rgba(14,10,6,.94);--border:#5a4420;--red:#e83030;--green:#8ff0a0;}
+*{box-sizing:border-box;margin:0;padding:0;}
+html,body{width:100%;height:100%;overflow:hidden;background:#07050a;}
+body{font-family:'Share Tech Mono','Courier New',monospace;color:var(--cream);user-select:none;-webkit-user-select:none;touch-action:none;}
+#wrap{position:absolute;inset:0;display:grid;grid-template-columns:1fr 300px;grid-template-rows:1fr;}
+#main{position:relative;overflow:hidden;background:#000;}
+canvas#c{width:100%;height:100%;display:block;}
+#side{background:var(--panel);border-left:1px solid var(--border);display:flex;flex-direction:column;padding:12px;gap:7px;overflow-y:auto;}
+.back{position:absolute;top:10px;left:10px;z-index:30;background:rgba(14,10,6,.85);color:var(--dim);font-family:'Oswald',sans-serif;font-size:12px;letter-spacing:3px;padding:7px 12px;border:1px solid var(--border);text-decoration:none;border-radius:2px;}
+.back:hover{color:var(--gold);border-color:var(--gold);}
+h2.t{font-family:'Oswald',sans-serif;font-size:22px;letter-spacing:6px;color:var(--gold);}
+.stat{display:flex;justify-content:space-between;font-size:12px;letter-spacing:1px;border-bottom:1px dashed #3a2c14;padding:3px 0;}
+.stat b{color:var(--gold);}
+.bar{height:8px;background:#2a1c0a;border:1px solid #5a4420;}
+.bar i{display:block;height:100%;background:var(--green);}
+.tabs{display:flex;gap:4px;}
+.btn{display:block;width:100%;background:#2b1d0a;border:1px solid var(--border);color:var(--cream);font-family:'Oswald',sans-serif;font-size:13px;letter-spacing:2px;padding:8px 8px;cursor:pointer;text-align:center;border-radius:2px;}
+.btn:hover{border-color:var(--gold);color:var(--gold);}
+.btn.on{background:#4a2f0c;border-color:#b08a2a;color:var(--gold);}
+.btn:disabled{opacity:.4;cursor:default;}
+.row{display:flex;gap:6px;}
+.row .btn{flex:1;}
+#panel{flex:1;min-height:120px;overflow-y:auto;font-size:12px;line-height:1.5;border:1px solid var(--border);padding:8px;background:rgba(0,0,0,.35);}
+#panel h4{font-family:'Oswald',sans-serif;letter-spacing:3px;color:var(--gold);font-size:13px;margin:4px 0 6px;}
+#panel .it{display:flex;justify-content:space-between;align-items:center;gap:6px;padding:4px 0;border-bottom:1px solid #2a1c0a;}
+#panel .it small{color:var(--dim);display:block;}
+#panel .it button{background:#2b1d0a;border:1px solid var(--border);color:var(--gold);font-family:'Oswald',sans-serif;font-size:11px;letter-spacing:2px;padding:5px 8px;cursor:pointer;white-space:nowrap;}
+#panel .it button:disabled{opacity:.35;cursor:default;}
+#log{max-height:90px;overflow-y:auto;font-size:11px;line-height:1.5;color:#c9bb98;border-top:1px solid var(--border);padding-top:4px;}
+#log p.bad{color:#ff8a70;}#log p.good{color:var(--green);}
+#overlay{position:absolute;inset:0;display:none;align-items:center;justify-content:center;background:rgba(0,0,0,.6);z-index:20;padding:16px;}
+#overlay.on{display:flex;}
+.modal{background:var(--panel);border:2px solid #7a5c22;border-radius:4px;padding:18px 20px;max-width:560px;width:100%;max-height:100%;overflow:auto;}
+.modal h3{font-family:'Oswald',sans-serif;letter-spacing:5px;color:var(--gold);font-size:20px;margin-bottom:10px;}
+.modal p{font-size:13px;line-height:1.6;margin-bottom:10px;color:#d8ccaa;}
+.title h1{font-family:'Oswald',sans-serif;font-size:44px;letter-spacing:12px;color:var(--gold);text-shadow:0 0 24px rgba(232,200,74,.35);text-align:center;}
+.title .tag{font-size:12px;letter-spacing:4px;color:var(--dim);margin:6px 0 16px;text-align:center;}
+#touch{position:absolute;left:0;right:0;bottom:0;height:130px;display:none;z-index:15;justify-content:space-between;padding:0 12px 12px;pointer-events:none;}
+#touch div{display:flex;gap:8px;align-items:flex-end;}
+.tb{width:56px;height:56px;border-radius:8px;border:2px solid rgba(232,200,74,.6);background:rgba(43,29,10,.6);color:var(--gold);font-size:22px;display:flex;align-items:center;justify-content:center;pointer-events:auto;}
+.tb.big{width:72px;height:72px;}
+@media (pointer:coarse){#touch{display:flex;}}
+@media (max-width:760px){#wrap{grid-template-columns:1fr;grid-template-rows:52% 48%;}#side{border-left:none;border-top:1px solid var(--border);}.title h1{font-size:30px;letter-spacing:6px;}}
+</style>
+</head>
+<body>
+<a class="back" href="/" title="Back to Iron Games">◀ IRON GAMES</a>
+<div id="wrap">
+  <div id="main">
+    <canvas id="c"></canvas>
+    <div id="touch"><div><div class="tb" data-k="left">◀</div><div class="tb" data-k="right">▶</div></div><div><div class="tb" data-k="up">▲</div><div class="tb" data-k="down">▼</div><div class="tb big" data-k="action">●</div></div></div>
+    <div id="overlay"></div>
+  </div>
+  <div id="side">
+    <h2 class="t">IRON HAMMER</h2>
+    <div class="stat"><span id="sRank">Apprentice</span><b id="sLvl">Level 1</b></div>
+    <div class="bar"><i id="xpBar" style="width:0%"></i></div>
+    <div class="stat"><span>Coins</span><b id="sCoins">0</b></div>
+    <div class="stat"><span>Stamina</span><b id="sStam">100</b></div>
+    <div class="bar"><i id="stamBar" style="width:100%;background:#e8c84a"></i></div>
+    <div class="stat"><span>Ore: coal · iron · gold · gem</span><b id="sOre">0 · 0 · 0 · 0</b></div>
+    <div class="stat"><span>Ingots: iron · steel · gold</span><b id="sIng">0 · 0 · 0</b></div>
+    <div class="stat"><span>Equipped</span><b id="sEquip">bare hands</b></div>
+    <div class="tabs"><button class="btn on" id="tMine">MINE</button><button class="btn" id="tForge">FORGE</button><button class="btn" id="tArmy">ARMY</button></div>
+    <div id="panel"></div>
+    <div id="log"></div>
+    <input id="cmd" placeholder="/ commands (type /help)" autocomplete="off" spellcheck="false" style="width:100%;background:#1a1208;color:#e6dcc0;border:1px solid #5a4420;font-family:inherit;font-size:12px;padding:6px">
+  </div>
+</div>
+<script>
+'use strict';
+const $=id=>document.getElementById(id);const clamp=(v,a,b)=>v<a?a:v>b?b:v;const rnd=(a,b)=>a+Math.random()*(b-a);const ri=(a,b)=>Math.floor(rnd(a,b+1));
+/* ===================== DATA ===================== */
+const RANKS=['Apprentice','Journeyman','Blacksmith','Master Smith','Recruit','Man-at-Arms','Sergeant','Knight','Captain','Champion of the Realm'];
+const ARMY_LEVEL=4; // the king's levy comes for you at this level
+const xpFor=l=>Math.round(120*Math.pow(l,1.6));
+const BLOCK={0:{n:'air'},1:{n:'dirt',h:1,c:'#6b4a2a'},2:{n:'stone',h:2,c:'#6e6e6e'},3:{n:'coal',h:2,c:'#555',ore:'coal'},4:{n:'iron ore',h:3,c:'#a58a6a',ore:'iron'},5:{n:'gold ore',h:4,c:'#b89a40',ore:'gold'},6:{n:'gem',h:5,c:'#4a9ad0',ore:'gem'},7:{n:'bedrock',h:99,c:'#222'},8:{n:'hard rock',h:4,c:'#4a4a52'}};
+const ITEMS=[
+  {k:'dagger',n:'Dagger',slot:'weapon',lvl:1,cost:{iron:1},atk:3,price:12},
+  {k:'sword',n:'Short Sword',slot:'weapon',lvl:1,cost:{iron:2},atk:6,price:28},
+  {k:'buckler',n:'Buckler',slot:'shield',lvl:1,cost:{iron:1},def:2,price:14},
+  {k:'longsword',n:'Longsword',slot:'weapon',lvl:2,cost:{iron:3},atk:9,price:48},
+  {k:'chain',n:'Chain Mail',slot:'armor',lvl:2,cost:{iron:4},def:5,price:70},
+  {k:'kite',n:'Kite Shield',slot:'shield',lvl:2,cost:{iron:3},def:4,price:44},
+  {k:'steelsword',n:'Steel Sword',slot:'weapon',lvl:3,cost:{steel:3},atk:13,price:120},
+  {k:'steelshield',n:'Steel Shield',slot:'shield',lvl:3,cost:{steel:3},def:7,price:110},
+  {k:'greatsword',n:'Greatsword',slot:'weapon',lvl:4,cost:{steel:5},atk:18,price:220},
+  {k:'plate',n:'Plate Armour',slot:'armor',lvl:4,cost:{steel:6},def:11,price:300},
+  {k:'goldblade',n:'Gold-hilted Blade',slot:'weapon',lvl:5,cost:{steel:3,gold:1},atk:22,price:420},
+  {k:'gemblade',n:'Gem Blade',slot:'weapon',lvl:6,cost:{steel:4,gem:1},atk:28,price:800},
+  {k:'gemplate',n:'Gem-set Plate',slot:'armor',lvl:7,cost:{steel:6,gem:2},def:16,price:1200}];
+const QUAL={crude:{m:0.8,l:'Crude'},fine:{m:1,l:'Fine'},master:{m:1.3,l:'Masterwork'}};
+const UPGRADES=[{k:'pick',n:'Pickaxe',max:4,price:l=>60*l*l,desc:l=>'Digs faster; tier '+(l+1)+' breaks '+(l>=1?'gold':'iron')+(l>=2?' and gems':'')},{k:'lamp',n:'Lamp',max:3,price:l=>40*l*l,desc:l=>'See further in the dark'},{k:'bag',n:'Ore bag',max:4,price:l=>50*l*l,desc:l=>'Carry '+(12+(l+1)*8)+' ore'},{k:'boots',n:'Miner\'s stamina',max:4,price:l=>45*l*l,desc:l=>'Stamina '+(100+(l+1)*40)}];
+const ENEMIES={peasant:{n:'Rebel Peasant',hp:18,atk:4,sp:50,w:16,col:'#8a6a4a',xp:8,coin:3},bandit:{n:'Bandit',hp:30,atk:7,sp:70,w:16,col:'#4a3a3a',xp:14,coin:6},footman:{n:'Footman',hp:55,atk:10,sp:55,w:18,col:'#5a6a7a',xp:22,coin:9},archer:{n:'Archer',hp:28,atk:9,sp:40,w:14,col:'#4a6a3a',xp:20,coin:8,ranged:true},knight:{n:'Black Knight',hp:100,atk:15,sp:45,w:20,col:'#2a2a30',xp:45,coin:20},lord:{n:'Rebel Lord',hp:240,atk:22,sp:40,w:26,col:'#6a1a1a',xp:150,coin:90,boss:true}};
+const BATTLES=[
+  {n:'Skirmish at the mill',w:[['peasant',10]]},
+  {n:'Bandits on the king\'s road',w:[['peasant',6],['bandit',7]]},
+  {n:'The bridge at Ashford',w:[['bandit',7],['footman',6],['archer',4]]},
+  {n:'Siege of Greywall',w:[['footman',9],['archer',5],['bandit',6],['knight',1]]},
+  {n:'The Black Knight\'s company',w:[['footman',8],['archer',6],['knight',4]]},
+  {n:'Battle of Redmoor',w:[['footman',10],['archer',7],['knight',5]]},
+  {n:'The Rebel Lord\'s stand',w:[['knight',7],['archer',7],['footman',8],['lord',1]]}];
+const HORSE_PRICE=300;
+/* ===================== STATE ===================== */
+let S=null,mine=null,battle=null,forge=null,scene='mine';const keys={},touch={};
+function newState(){return {lvl:1,xp:0,coins:20,ore:{coal:0,iron:0,gold:0,gem:0},ing:{iron:0,steel:0,gold:0},items:[],equip:{weapon:null,shield:null,armor:null},up:{pick:0,lamp:0,bag:0,boots:0},horse:false,stam:100,won:0,battleIdx:0,hp:100,seed:ri(1,1e9)}}
+function save(){try{localStorage.setItem('ih_save',JSON.stringify(S))}catch(e){}}
+function load(){try{const s=JSON.parse(localStorage.getItem('ih_save'));if(s&&s.ore)return Object.assign(newState(),s)}catch(e){}return null}
+const stamMax=()=>100+S.up.boots*40;const bagMax=()=>12+S.up.bag*8;const oreCount=()=>S.ore.coal+S.ore.iron+S.ore.gold+S.ore.gem;
+const rankOf=st=>RANKS[Math.min(RANKS.length-1,st.lvl<ARMY_LEVEL?st.lvl-1:ARMY_LEVEL+Math.min(5,Math.floor((st.won||0)/2)))];const rank=()=>rankOf(S);
+function atk(){const w=S.equip.weapon;return 2+(w?Math.round(w.atk*QUAL[w.q].m):0)+Math.floor(S.lvl/2)}
+function def(){let d=0;for(const k of ['shield','armor']){const it=S.equip[k];if(it)d+=Math.round(it.def*QUAL[it.q].m)}return d}
+function addXp(n){S.xp+=n;let up=false;while(S.xp>=xpFor(S.lvl)){S.xp-=xpFor(S.lvl);S.lvl++;up=true;log('Level '+S.lvl+': you are now '+rank()+'.','good');if(S.lvl===ARMY_LEVEL)show('<h3>THE KING\'S LEVY</h3><p>A rider in royal colours stops at the forge. Rebels are burning the villages, and the king needs every smith who can swing what he makes. You are called to the army. Use the ARMY tab to march, bring your best sword and armour, and win battles to rise through the ranks.</p><button class="btn" id="ok">FOR THE KING</button>').then(()=>{});}if(up)refresh()}
+function log(t,cls){const el=document.createElement('p');if(cls)el.className=cls;el.textContent=t;$('log').appendChild(el);while($('log').children.length>8)$('log').removeChild($('log').firstChild);$('log').scrollTop=$('log').scrollHeight}
+function show(html){return new Promise(res=>{$('overlay').innerHTML='<div class="modal">'+html+'</div>';$('overlay').classList.add('on');const b=$('ok');if(b)b.onclick=()=>{hide();res()}})}
+function hide(){$('overlay').classList.remove('on');$('overlay').innerHTML=''}
+function refresh(){$('sRank').textContent=rank();$('sLvl').textContent='Level '+S.lvl;$('xpBar').style.width=(100*S.xp/xpFor(S.lvl))+'%';$('sCoins').textContent=S.coins;$('sStam').textContent=Math.round(S.stam)+' / '+stamMax();$('stamBar').style.width=(100*S.stam/stamMax())+'%';$('sOre').textContent=S.ore.coal+' · '+S.ore.iron+' · '+S.ore.gold+' · '+S.ore.gem+'  ('+oreCount()+'/'+bagMax()+')';$('sIng').textContent=S.ing.iron+' · '+S.ing.steel+' · '+S.ing.gold;
+  const e=['weapon','shield','armor'].map(k=>S.equip[k]?S.equip[k].n:null).filter(Boolean);$('sEquip').textContent=(e.length?e.join(', '):'bare hands')+' · ATK '+atk()+' DEF '+def();
+  for(const [id,sc] of [['tMine','mine'],['tForge','forge'],['tArmy','battle']])$(id).classList.toggle('on',scene===sc);$('tArmy').disabled=S.lvl<ARMY_LEVEL;$('tArmy').textContent=S.lvl<ARMY_LEVEL?'ARMY (LVL '+ARMY_LEVEL+')':'ARMY';save()}
+/* ===================== MINE ===================== */
+const MW=36,MH=140,CELL=28;
+function mulberry(a){return function(){a|=0;a=a+0x6D2B79F5|0;let t=Math.imul(a^a>>>15,1|a);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296}}
+function genMine(){const r=mulberry(S.seed);const g=new Array(MH);for(let y=0;y<MH;y++){g[y]=new Array(MW);for(let x=0;x<MW;x++){let b;if(y===0)b=0;else if(y<4)b=1;else if(y>=MH-1)b=7;else{const d=y/MH;const q=r();b=q<0.06+d*0.04?3:q<0.09+d*0.12?4:(d>0.3&&q<0.12+d*0.16)?5:(d>0.55&&q<0.13+d*0.17)?6:(d>0.4&&q<0.2+d*0.15)?8:2;if(y<10&&(b===5||b===6))b=4}g[y][x]=b}}
+  for(let y=1;y<4;y++)g[y][MW>>1]=0; // shaft
+  for(let i=0;i<18;i++){const cx=ri(2,MW-3),cy=ri(12,MH-6),rr=ri(1,3);for(let y=cy-rr;y<=cy+rr;y++)for(let x=cx-rr;x<=cx+rr;x++)if(y>3&&y<MH-1&&(x-cx)**2+(y-cy)**2<=rr*rr)g[y][x]=0} // caves
+  return g}
+function startMine(){if(!mine)mine={g:genMine(),x:(MW>>1)-1,y:0,px:(MW>>1)-1,py:0,dig:null,t:0,face:1,hauled:0};scene='mine';refresh();renderPanel()}
+function cellOk(x,y){return x>=0&&x<MW&&y>=0&&y<MH}
+function mineInput(dt){const m=mine;if(m.dig){m.dig.t-=dt;if(m.dig.t<=0){const {x,y}=m.dig;const b=m.g[y][x];const def=BLOCK[b];if(def.ore){S.ore[def.ore]++;if(def.ore==='gem')log('A gem! Worth a fortune at the forge.','good')}m.g[y][x]=0;m.dig=null;S.stam=Math.max(0,S.stam-def.h*1.2);if(S.stam<=0)haul();refresh()}return}
+  if(Math.abs(m.px-m.x)>0.01||Math.abs(m.py-m.y)>0.01){const sp=7*dt;m.px+=clamp(m.x-m.px,-sp,sp);m.py+=clamp(m.y-m.py,-sp,sp);return}
+  // gravity
+  if(m.y<MH-1&&m.g[m.y+1][m.x]===0&&!(keys.ArrowUp||keys.KeyW||touch.up)){m.y++;return}
+  let dx=0,dy=0;if(keys.ArrowLeft||keys.KeyA||touch.left)dx=-1;else if(keys.ArrowRight||keys.KeyD||touch.right)dx=1;else if(keys.ArrowDown||keys.KeyS||touch.down)dy=1;else if(keys.ArrowUp||keys.KeyW||touch.up)dy=-1;
+  if(!dx&&!dy)return;if(dx)m.face=dx;const nx=m.x+dx,ny=m.y+dy;if(!cellOk(nx,ny))return;const b=m.g[ny][nx];
+  if(b===0){if(dy<0&&m.y===0)return;m.x=nx;m.y=ny;S.stam=Math.max(0,S.stam-0.15);if(S.stam<=0)haul();return}
+  const def=BLOCK[b];if(b===7)return;const tier=S.up.pick;if((b===5&&tier<1)||(b===6&&tier<2)||(b===8&&tier<1)){flash('Your pickaxe is too weak for '+def.n+'. Upgrade it at the forge.');return}
+  if(def.ore&&oreCount()>=bagMax()){flash('Your ore bag is full. Climb up and go to the forge.');return}
+  m.dig={x:nx,y:ny,t:def.h*0.45/(1+tier*0.35),tot:def.h*0.45/(1+tier*0.35)}}
+let flashT=0,flashMsg='';function flash(t){if(flashMsg===t&&flashT>0)return;flashMsg=t;flashT=2.5}
+function haul(){const m=mine;const lost={};for(const k in S.ore){const l=Math.floor(S.ore[k]/2);S.ore[k]-=l;if(l)lost[k]=l}m.x=(MW>>1)-1;m.y=0;m.px=m.x;m.py=0;m.dig=null;S.stam=stamMax()*0.5;log('You collapsed from exhaustion. The other miners hauled you up, but half your ore was lost on the way.','bad');refresh()}
+function surfaceReturn(){if(mine.y!==0){flash('Climb back up to the surface first.');return}S.stam=stamMax();log('Rested at the mine head: stamina restored.','good');refresh()}
+function shade(hex,f){const n=parseInt(hex.slice(1),16);const r=clamp(Math.round(((n>>16)&255)*f),0,255),g=clamp(Math.round(((n>>8)&255)*f),0,255),b=clamp(Math.round((n&255)*f),0,255);return 'rgb('+r+','+g+','+b+')'}
+function box3(x,y,w,h,d,col){ctx.fillStyle=col;ctx.fillRect(x,y,w,h);ctx.fillStyle=shade(col,1.3);ctx.beginPath();ctx.moveTo(x,y);ctx.lineTo(x+d,y-d*0.6);ctx.lineTo(x+w+d,y-d*0.6);ctx.lineTo(x+w,y);ctx.closePath();ctx.fill();ctx.fillStyle=shade(col,0.6);ctx.beginPath();ctx.moveTo(x+w,y);ctx.lineTo(x+w+d,y-d*0.6);ctx.lineTo(x+w+d,y+h-d*0.6);ctx.lineTo(x+w,y+h);ctx.closePath();ctx.fill()}
+function drawMine(){const m=mine;const g=m.g;const camX=m.px*CELL-W/2+CELL/2,camY=Math.max(-H*0.35,m.py*CELL-H/2+CELL/2);
+  // sky and ground
+  const sky=ctx.createLinearGradient(0,0,0,H);sky.addColorStop(0,'#5f8fc8');sky.addColorStop(1,'#9fc3e6');ctx.fillStyle=sky;ctx.fillRect(0,0,W,H);
+  const x0=Math.max(0,Math.floor(camX/CELL)-1),x1=Math.min(MW-1,Math.ceil((camX+W)/CELL)+1),y0=Math.max(0,Math.floor(camY/CELL)-1),y1=Math.min(MH-1,Math.ceil((camY+H)/CELL)+1);
+  const lampR=4+S.up.lamp*2.5;
+  for(let y=y0;y<=y1;y++)for(let x=x0;x<=x1;x++){const b=g[y][x];const sx=x*CELL-camX,sy=y*CELL-camY;if(y===0){continue}
+    const d=Math.hypot(x-m.px,y-m.py);let light=y<3?1:clamp(1.15-d/lampR,0,1);if(light<=0.02){ctx.fillStyle='#000';ctx.fillRect(sx,sy,CELL,CELL);continue}
+    if(b===0){ctx.fillStyle='#16110d';ctx.fillRect(sx,sy,CELL,CELL)}else{const col=BLOCK[b].c;ctx.fillStyle=col;ctx.fillRect(sx,sy,CELL,CELL);
+      const D=7;const upAir=y>0&&g[y-1][x]===0,rightAir=x<MW-1&&g[y][x+1]===0;
+      if(upAir){ctx.fillStyle=shade(col,1.35);ctx.beginPath();ctx.moveTo(sx,sy);ctx.lineTo(sx+D,sy-D);ctx.lineTo(sx+CELL+D,sy-D);ctx.lineTo(sx+CELL,sy);ctx.closePath();ctx.fill()}
+      if(rightAir){ctx.fillStyle=shade(col,0.62);ctx.beginPath();ctx.moveTo(sx+CELL,sy);ctx.lineTo(sx+CELL+D,sy-D);ctx.lineTo(sx+CELL+D,sy+CELL-D);ctx.lineTo(sx+CELL,sy+CELL);ctx.closePath();ctx.fill()}
+      ctx.fillStyle='rgba(0,0,0,0.22)';ctx.fillRect(sx,sy+CELL-3,CELL,3);
+      if(b>=3&&b<=6){ctx.fillStyle=b===3?'#111':b===4?'#d8a070':b===5?'#ffe070':'#9ae0ff';for(const [ox,oy] of [[5,6],[14,4],[9,15],[18,17],[22,9]])ctx.fillRect(sx+ox,sy+oy,4,4);ctx.fillStyle='rgba(255,255,255,0.5)';for(const [ox,oy] of [[5,6],[14,4],[9,15],[18,17],[22,9]])ctx.fillRect(sx+ox,sy+oy,2,1)}
+      if(b===8){ctx.fillStyle='rgba(255,255,255,0.08)';ctx.fillRect(sx+4,sy+4,CELL-8,CELL-8)}}
+    if(light<1){ctx.fillStyle='rgba(0,0,0,'+(1-light)+')';ctx.fillRect(sx,sy,CELL,CELL)}}
+  // surface: grass, mine head, forge hut
+  const gy=0*CELL-camY;const grass=ctx.createLinearGradient(0,gy+CELL-16,0,gy+CELL);grass.addColorStop(0,'#6fae4c');grass.addColorStop(1,'#3e6e2c');ctx.fillStyle=grass;ctx.fillRect(0,gy+CELL-16,W,16);ctx.fillStyle='rgba(255,255,255,0.08)';for(let i=0;i<W;i+=40)ctx.fillRect(i-(camX%40),gy+CELL-16,20,2);
+  const hx=(MW>>1)*CELL-camX;box3(hx-18,gy-30,CELL+36,8,10,'#5a3e1e');box3(hx-16,gy-30,6,54,8,'#5a3e1e');box3(hx+CELL+10,gy-30,6,54,8,'#5a3e1e');box3(hx-6,gy-46,CELL+12,16,10,'#8a6a3a');
+  box3(hx-150,gy-40,70,62,22,'#6b4a22');ctx.fillStyle='#3a2a14';ctx.beginPath();ctx.moveTo(hx-158,gy-40);ctx.lineTo(hx-115,gy-70);ctx.lineTo(hx-72,gy-40);ctx.fill();ctx.fillStyle='#2a1c0e';ctx.beginPath();ctx.moveTo(hx-72,gy-40);ctx.lineTo(hx-115,gy-70);ctx.lineTo(hx-93,gy-78);ctx.lineTo(hx-50,gy-48);ctx.fill();ctx.fillStyle='#ff9a3a';ctx.fillRect(hx-128,gy-10,20,24);ctx.fillStyle='#e8c84a';ctx.font='bold 11px Oswald, sans-serif';ctx.textAlign='center';ctx.fillText('FORGE',hx-115,gy-46);ctx.fillText('MINE',hx+CELL/2,gy-50);
+  // miner, with a shadow on the floor beneath
+  const px=m.px*CELL-camX,py=m.py*CELL-camY;ctx.fillStyle='rgba(0,0,0,0.35)';ctx.beginPath();ctx.ellipse(px+CELL/2,py+CELL-1,11,3,0,0,7);ctx.fill();ctx.save();ctx.translate(px+CELL/2,py+CELL/2);ctx.scale(m.face,1);ctx.fillStyle='#3a2a1a';ctx.fillRect(-6,-2,12,12);ctx.fillStyle='#e0b090';ctx.fillRect(-5,-12,10,10);ctx.fillStyle='#e8c84a';ctx.fillRect(-6,-14,12,4);ctx.fillRect(2,-12,3,3);ctx.fillStyle='#2a2a2a';ctx.fillRect(-6,10,5,4);ctx.fillRect(1,10,5,4);
+  const sw=m.dig?Math.sin(performance.now()/60)*0.8:0;ctx.rotate(-0.6+sw);ctx.fillStyle='#8a6a3a';ctx.fillRect(4,-4,14,3);ctx.fillStyle='#9a9aa0';ctx.fillRect(14,-8,6,10);ctx.restore();
+  if(m.dig){const f=1-m.dig.t/m.dig.tot;const sx=m.dig.x*CELL-camX,sy=m.dig.y*CELL-camY;ctx.strokeStyle='rgba(255,255,255,0.8)';ctx.lineWidth=2;ctx.strokeRect(sx+2,sy+2,CELL-4,CELL-4);ctx.fillStyle='rgba(255,255,255,0.35)';ctx.fillRect(sx+2,sy+CELL-6,(CELL-4)*f,4)}
+  // depth and hints
+  ctx.fillStyle='rgba(0,0,0,0.45)';ctx.fillRect(0,0,W,24);ctx.fillStyle='#e8c84a';ctx.font='bold 12px Oswald, sans-serif';ctx.textAlign='left';ctx.fillText('DEPTH '+m.y*3+' FT',150,16);ctx.textAlign='right';ctx.fillText(m.y===0?'ARROWS / WASD TO WALK, DIG INTO ROCK · E OR ● AT THE MINE HEAD TO REST':'DIG DOWN FOR IRON, GOLD AND GEMS · CLIMB BACK UP TO RETURN',W-12,16);
+  if(flashT>0){ctx.fillStyle='rgba(0,0,0,0.6)';ctx.fillRect(W/2-220,H*0.3,440,28);ctx.fillStyle='#ffd27a';ctx.textAlign='center';ctx.fillText(flashMsg,W/2,H*0.3+18)}}
+/* ===================== FORGE ===================== */
+function startForge(){if(mine&&mine.y!==0){flash('Climb back up to the surface first.');return}scene='forge';forge={anvil:null};refresh();renderPanel()}
+function smelt(kind){if(kind==='iron'){if(S.ore.iron<1||S.ore.coal<1)return;S.ore.iron--;S.ore.coal--;S.ing.iron++;addXp(4)}else if(kind==='steel'){if(S.ing.iron<2||S.ore.coal<2)return;S.ing.iron-=2;S.ore.coal-=2;S.ing.steel++;addXp(10)}else if(kind==='gold'){if(S.ore.gold<1||S.ore.coal<1)return;S.ore.gold--;S.ore.coal--;S.ing.gold++;addXp(8)}beep(220,0.15,'sawtooth');refresh();renderPanel()}
+function canCraft(it){if(S.lvl<it.lvl)return false;for(const k in it.cost)if((k==='gem'?S.ore.gem:S.ing[k])<it.cost[k])return false;return true}
+function startCraft(it){if(!canCraft(it))return;for(const k in it.cost){if(k==='gem')S.ore.gem-=it.cost[k];else S.ing[k]-=it.cost[k]}forge.anvil={it,hits:0,need:4+Math.floor(it.lvl/3),pos:0,dir:1,speed:0.62+Math.min(it.lvl,7)*0.045,score:0,flash:0,done:false};refresh();renderPanel()}
+function hammer(){const a=forge&&forge.anvil;if(!a||a.done)return;const d=Math.abs(a.pos-0.5);const s=d<0.06?3:d<0.14?2:d<0.25?1:0;a.score+=s;a.hits++;a.flash=0.25;beep(s===3?900:s===2?600:300,0.12,'square');spark(s);if(a.hits>=a.need){a.done=true;const q=a.score>=a.need*3-1?'master':a.score>=a.need*1.75?'fine':'crude';const it=a.it;const item={k:it.k,n:QUAL[q].l+' '+it.n,q,slot:it.slot,atk:it.atk,def:it.def,price:Math.round(it.price*QUAL[q].m)};S.items.push(item);const xp=Math.round(Object.values(it.cost).reduce((p,c)=>p+c,0)*12*QUAL[q].m);addXp(xp);log('Forged a '+item.n+' (+'+xp+' xp).','good');setTimeout(()=>{forge.anvil=null;refresh();renderPanel()},700)}}
+let sparks=[];function spark(n){for(let i=0;i<8+n*6;i++)sparks.push({x:W/2+rnd(-10,10),y:H*0.55,vx:rnd(-140,140),vy:rnd(-260,-60),t:rnd(0.3,0.7)})}
+function equip(i){const it=S.items[i];S.equip[it.slot]=it;log('Equipped the '+it.n+'.');refresh();renderPanel()}
+function sell(i){const it=S.items[i];S.coins+=it.price;for(const k in S.equip)if(S.equip[k]===it)S.equip[k]=null;S.items.splice(i,1);log('Sold the '+it.n+' for '+it.price+' coins.');refresh();renderPanel()}
+function buyHorse(){if(S.horse||S.coins<HORSE_PRICE)return;S.coins-=HORSE_PRICE;S.horse=true;log('You bought a warhorse. Ride it into battle with H.','good');refresh();renderPanel()}
+function toggleMount(){const b=battle;if(!b||b.over||!S.horse)return;if(!b.mounted&&b.horseHp<=0){flash('Your horse is down for this battle.');return}b.mounted=!b.mounted;log(b.mounted?'You swing into the saddle.':'You dismount.')}
+function buyUp(k){const u=UPGRADES.find(u=>u.k===k);const l=S.up[k];if(l>=u.max)return;const p=u.price(l+1);if(S.coins<p)return;S.coins-=p;S.up[k]++;if(k==='boots')S.stam=stamMax();log(u.n+' upgraded to level '+(l+1)+'.','good');refresh();renderPanel()}
+function drawForge(){const hor=H*0.42;const wall=ctx.createLinearGradient(0,0,0,hor);wall.addColorStop(0,'#0e0906');wall.addColorStop(1,'#2a1c10');ctx.fillStyle=wall;ctx.fillRect(0,0,W,hor);ctx.fillStyle='rgba(255,255,255,0.03)';for(let i=0;i<40;i++)ctx.fillRect((i*97)%W,(i*53)%hor,30,3);
+  const floor=ctx.createLinearGradient(0,hor,0,H);floor.addColorStop(0,'#3a2a1a');floor.addColorStop(1,'#1a120a');ctx.fillStyle=floor;ctx.fillRect(0,hor,W,H-hor);
+  ctx.strokeStyle='rgba(0,0,0,0.35)';ctx.lineWidth=1;for(let i=-8;i<=8;i++){ctx.beginPath();ctx.moveTo(W/2+i*40,hor);ctx.lineTo(W/2+i*220,H);ctx.stroke()}for(let k=0;k<7;k++){const y=hor+(H-hor)*Math.pow(k/7,1.8);ctx.beginPath();ctx.moveTo(0,y);ctx.lineTo(W,y);ctx.stroke()}
+  // hearth: a stone box with a fire inside
+  const hx=W*0.22,hy=H*0.5;box3(hx-80,hy-20,160,120,26,'#4a3a2a');ctx.fillStyle='#2a1a10';ctx.fillRect(hx-60,hy,120,50);const f=0.6+0.4*Math.sin(performance.now()/90);ctx.fillStyle='rgba(255,'+Math.round(120+60*f)+',40,0.9)';ctx.beginPath();ctx.moveTo(hx-40,hy+50);ctx.quadraticCurveTo(hx-30,hy-10-20*f,hx,hy+10-30*f);ctx.quadraticCurveTo(hx+30,hy-10-20*f,hx+40,hy+50);ctx.fill();ctx.fillStyle='#ffe070';ctx.beginPath();ctx.moveTo(hx-16,hy+50);ctx.quadraticCurveTo(hx,hy+5-18*f,hx+16,hy+50);ctx.fill();
+  // anvil on a stump
+  const ax=W/2,ay=H*0.55;ctx.fillStyle='rgba(0,0,0,0.35)';ctx.beginPath();ctx.ellipse(ax+10,ay+64,80,10,0,0,7);ctx.fill();box3(ax-30,ay+20,60,40,14,'#5a3e1e');box3(ax-60,ay,120,20,16,'#3a3a40');box3(ax-90,ay+2,40,10,10,'#3a3a40');ctx.fillStyle='rgba(255,255,255,0.12)';ctx.fillRect(ax-60,ay,120,3);
+  // smith
+  const a=forge.anvil;const swing=a&&a.flash>0?-1.2:Math.sin(performance.now()/300)*0.15-0.3;ctx.fillStyle='rgba(0,0,0,0.35)';ctx.beginPath();ctx.ellipse(ax+90,ay+36,22,6,0,0,7);ctx.fill();ctx.save();ctx.translate(ax+90,ay-10);ctx.fillStyle='#4a3020';ctx.fillRect(-14,-10,28,40);ctx.fillStyle='#e0b090';ctx.fillRect(-10,-34,20,22);ctx.fillStyle='#5a3a1a';ctx.fillRect(-12,-38,24,8);ctx.fillStyle='#2a2a2a';ctx.fillRect(-14,30,10,14);ctx.fillRect(4,30,10,14);ctx.rotate(swing);ctx.fillStyle='#8a6a3a';ctx.fillRect(-44,-14,44,5);ctx.fillStyle='#9a9aa0';ctx.fillRect(-54,-22,16,18);ctx.restore();
+  if(a){const glow=a.done?0.3:1;ctx.fillStyle='rgba(255,'+Math.round(140*glow)+',40,'+(0.5+0.5*glow)+')';ctx.fillRect(ax-26,ay-8,52,8);
+    // timing bar
+    const bw=Math.min(420,W*0.7),bx=W/2-bw/2,by=H*0.22;ctx.fillStyle='#2a1c0a';ctx.fillRect(bx,by,bw,22);ctx.fillStyle='#8a2a2a';ctx.fillRect(bx+bw*0.25,by,bw*0.5,22);ctx.fillStyle='#c8862a';ctx.fillRect(bx+bw*0.36,by,bw*0.28,22);ctx.fillStyle='#ffe070';ctx.fillRect(bx+bw*0.44,by,bw*0.12,22);ctx.fillStyle='#fff';ctx.fillRect(bx+a.pos*bw-2,by-4,4,30);
+    ctx.fillStyle='#e8c84a';ctx.font='bold 13px Oswald, sans-serif';ctx.textAlign='center';ctx.fillText('FORGING '+a.it.n.toUpperCase()+' — STRIKE '+Math.min(a.need,a.hits+1)+' OF '+a.need+' · SPACE, CLICK OR ● WHEN THE MARKER IS ON THE HOT METAL',W/2,by-10);ctx.fillText(a.done?'DONE: '+(a.score>=a.need*3-1?'MASTERWORK':a.score>=a.need*1.75?'FINE':'CRUDE'):'QUALITY SO FAR: '+a.score+' / '+(a.need*3)+'  (MASTERWORK NEEDS '+(a.need*3-1)+')',W/2,by+42)}
+  else{ctx.fillStyle='#e8c84a';ctx.font='bold 13px Oswald, sans-serif';ctx.textAlign='center';ctx.fillText('THE FORGE — SMELT ORE, CRAFT GEAR AND BUY UPGRADES IN THE PANEL',W/2,H*0.22)}
+  for(const s of sparks){ctx.fillStyle='rgba(255,'+ri(150,230)+',60,'+Math.min(1,s.t*2)+')';ctx.fillRect(s.x,s.y,3,3)}}
+/* ===================== BATTLE ===================== */
+function startBattle(){if(S.lvl<ARMY_LEVEL)return;scene='battle';const b=BATTLES[Math.min(S.battleIdx,BATTLES.length-1)];const idx=S.battleIdx;const scale=1+Math.max(0,idx-BATTLES.length+1)*0.35;
+  battle={name:b.n,idx,enemies:[],arrows:[],allies:[],t:0,spawnQ:[],px:120,py:0,vx:0,hp:100+S.lvl*12,hpMax:100+S.lvl*12,atkCd:0,block:false,swing:0,face:1,over:false,won:false,kills:0,shake:0,msgT:3};
+  for(const [k,n] of b.w)for(let i=0;i<n;i++)battle.spawnQ.push({k,delay:rnd(0.5,2)+i*rnd(0.7,1.6)+(ENEMIES[k].boss?14:0),scale});
+  battle.mounted=!!S.horse;battle.horseHp=S.horse?120+S.lvl*8:0;battle.horseMax=battle.horseHp;battle.trampleCd=0;
+  for(let i=0;i<3+Math.floor(S.lvl/2);i++)battle.allies.push({x:60-i*34,lane:Math.random(),hp:40+S.lvl*5,atk:5+S.lvl,cd:rnd(0,1),alive:true});
+  S.hp=battle.hp;refresh();renderPanel();log(b.n+' begins. '+battle.spawnQ.length+' enemies are coming.')}
+function spawnEnemy(k,scale){const d=ENEMIES[k];battle.enemies.push({k,d,x:W+rnd(20,120),lane:Math.random(),hp:Math.round(d.hp*scale),hpMax:Math.round(d.hp*scale),atk:Math.round(d.atk*scale),cd:rnd(0.5,1.5),alive:true,hit:0,face:-1})}
+function battleTick(dt){const b=battle;if(b.over)return;b.t+=dt;b.msgT=Math.max(0,b.msgT-dt);b.shake=Math.max(0,b.shake-dt);for(const q of b.spawnQ)q.delay-=dt;b.spawnQ=b.spawnQ.filter(q=>{if(q.delay<=0){spawnEnemy(q.k,q.scale);return false}return true});
+  // player
+  const left=keys.ArrowLeft||keys.KeyA||touch.left,right=keys.ArrowRight||keys.KeyD||touch.right;b.block=!!(keys.ShiftLeft||keys.ShiftRight||keys.ArrowDown||keys.KeyS||touch.down);const sp=b.block?60:b.mounted?270:150;
+  b.trampleCd-=dt;if(b.mounted&&(left||right)&&!b.block&&b.trampleCd<=0){for(const e of b.enemies){if(!e.alive)continue;const dx=e.x-b.px;if(Math.sign(dx)===b.face&&Math.abs(dx)<34){e.hp-=Math.round(atk()*0.6);e.hit=0.2;e.x+=b.face*26;b.trampleCd=0.35;if(e.hp<=0){e.alive=false;b.kills++;S.coins+=e.d.coin;addXp(e.d.xp)}}}}if(left){b.px-=sp*dt;b.face=-1}if(right){b.px+=sp*dt;b.face=1}b.px=clamp(b.px,20,W-20);b.atkCd-=dt;b.swing=Math.max(0,b.swing-dt);
+  if((keys.Space||touch.action||keys.KeyJ)&&b.atkCd<=0&&!b.block){b.atkCd=0.5;b.swing=0.22;const reach=48+(S.equip.weapon&&/great|gem/.test(S.equip.weapon.k)?18:0)+(b.mounted?22:0);let hitAny=false;for(const e of b.enemies){if(!e.alive)continue;const dx=e.x-b.px;if(Math.sign(dx)===b.face&&Math.abs(dx)<reach+e.d.w/2){e.hp-=atk()+ri(0,3);e.hit=0.2;e.x+=b.face*10;hitAny=true;if(e.hp<=0){e.alive=false;b.kills++;S.coins+=e.d.coin;addXp(e.d.xp)}}}beep(hitAny?500:260,0.08,hitAny?'square':'triangle')}
+  // enemies
+  for(const e of b.enemies){if(!e.alive)continue;e.hit=Math.max(0,e.hit-dt);const targets=[{x:b.px,isP:true}].concat(b.allies.filter(a=>a.alive).map(a=>({x:a.x,a})));let tg=targets[0],bd=1e9;for(const t of targets){const d=Math.abs(t.x-e.x);if(d<bd){bd=d;tg=t}}
+    const want=e.d.ranged?160:e.d.w/2+14;const dx=tg.x-e.x;e.face=Math.sign(dx)||-1;if(Math.abs(dx)>want)e.x+=Math.sign(dx)*e.d.sp*dt;else if(e.d.ranged&&Math.abs(dx)<90)e.x-=Math.sign(dx)*e.d.sp*0.6*dt;
+    e.cd-=dt;if(e.cd<=0&&Math.abs(dx)<=want+6){e.cd=e.d.boss?1.2:1.6;if(e.d.ranged){b.arrows.push({x:e.x,y:-30,vx:Math.sign(dx)*260,atk:e.atk,t:2});beep(700,0.05,'square')}else{if(tg.isP)hurtPlayer(e.atk,e.x);else{tg.a.hp-=e.atk;if(tg.a.hp<=0)tg.a.alive=false}}}}
+  for(const ar of b.arrows){ar.x+=ar.vx*dt;ar.t-=dt;if(ar.t>0&&Math.abs(ar.x-b.px)<10){hurtPlayer(ar.atk,ar.x);ar.t=0}}b.arrows=b.arrows.filter(a=>a.t>0);
+  // allies
+  for(const a of b.allies){if(!a.alive)continue;a.cd-=dt;let near=null,bd=1e9;for(const e of b.enemies){if(!e.alive)continue;const d=Math.abs(e.x-a.x);if(d<bd){bd=d;near=e}}if(!near){a.x+=clamp(b.px-40-a.x,-60*dt,60*dt);continue}if(bd>30)a.x+=Math.sign(near.x-a.x)*70*dt;else if(a.cd<=0){a.cd=1.1;near.hp-=a.atk;near.hit=0.15;if(near.hp<=0){near.alive=false;b.kills++;S.coins+=near.d.coin;addXp(Math.round(near.d.xp/2))}}}
+  if(b.spawnQ.length===0&&b.enemies.every(e=>!e.alive)){b.over=true;b.won=true;S.won++;const reward=40+b.idx*30;S.coins+=reward;const oreGift={coal:ri(2,5),iron:ri(2,4),gold:b.idx>=2?ri(0,2):0,gem:b.idx>=4?ri(0,1):0};for(const k in oreGift)S.ore[k]+=oreGift[k];S.battleIdx++;const promoted=rank();
+    show('<h3>VICTORY</h3><p>'+b.name+' is won. You struck down '+b.kills+' of the enemy and the quartermaster pays '+reward+' coins. Loot from the field: '+Object.entries(oreGift).filter(e=>e[1]).map(e=>e[1]+' '+e[0]).join(', ')+'.</p><p>Your rank: <b>'+promoted+'</b>.</p><button class="btn" id="ok">BACK TO THE FORGE</button>').then(()=>{scene='forge';forge={anvil:null};refresh();renderPanel()});refresh()}}
+function hurtPlayer(n,fromX){const b=battle;const facing=Math.sign(fromX-b.px)===b.face;let dmg=Math.max(1,n-Math.floor(def()*0.6));if(b.block&&facing)dmg=Math.max(0,Math.round(dmg*0.2));if(b.mounted&&dmg>0){const toHorse=Math.round(dmg*0.5);b.horseHp-=toHorse;dmg-=toHorse;if(b.horseHp<=0){b.horseHp=0;b.mounted=false;log('Your horse is down! You fight on foot.','bad')}}b.hp-=dmg;b.shake=0.25;beep(160,0.1,'sawtooth');if(b.hp<=0){b.over=true;b.hp=0;const lost=Math.min(S.coins,Math.round(S.coins*0.15));S.coins-=lost;show('<h3>CARRIED FROM THE FIELD</h3><p>You fell at '+b.name+'. Your comrades dragged you back to the baggage train'+(lost?' and the surgeon charged '+lost+' coins':'')+'. Forge better armour, upgrade your sword and try again.</p><button class="btn" id="ok">BACK TO THE FORGE</button>').then(()=>{scene='forge';forge={anvil:null};refresh();renderPanel()})}}
+function drawBattle(){const b=battle;ctx.save();if(b.shake>0)ctx.translate(rnd(-5,5)*b.shake,rnd(-5,5)*b.shake);const sky=ctx.createLinearGradient(0,0,0,H);sky.addColorStop(0,'#5a6a8a');sky.addColorStop(1,'#c8b090');ctx.fillStyle=sky;ctx.fillRect(-10,-10,W+20,H+20);
+  const hor=H*0.58,gy=H*0.72;ctx.fillStyle='#6a7a4a';for(let i=0;i<8;i++){ctx.beginPath();ctx.ellipse((i*W/4-b.t*8)%(W+200)-100,hor,140,40,0,Math.PI,0);ctx.fill()}
+  // castle on the ridge
+  box3(W*0.75,hor-110,110,110,18,'#4a4a5a');for(let i=0;i<6;i++)box3(W*0.75+i*20,hor-122,12,14,6,'#4a4a5a');box3(W*0.8,hor-160,30,50,10,'#55556a');
+  // the field falls away toward you: perspective ground with furrows
+  const ground=ctx.createLinearGradient(0,hor,0,H);ground.addColorStop(0,'#7a9a4a');ground.addColorStop(1,'#3e5a26');ctx.fillStyle=ground;ctx.fillRect(-10,hor,W+20,H-hor);
+  ctx.strokeStyle='rgba(0,0,0,0.18)';ctx.lineWidth=1;for(let k=1;k<9;k++){const y=hor+(H-hor)*Math.pow(k/9,1.6);ctx.beginPath();ctx.moveTo(-10,y);ctx.lineTo(W+10,y);ctx.stroke()}ctx.fillStyle='rgba(0,0,0,0.12)';for(let i=0;i<40;i++)ctx.fillRect((i*173-b.t*3)%W,gy+10+(i*37)%(H-gy-10),8,3);
+  const laneY=l=>gy-26+(l===undefined?26:l*52),laneS=l=>0.86+(l===undefined?0.5:l)*0.28;
+  const man=(x,col,face,w,swing,shield,helm,lane)=>{const yy=laneY(lane),sc=laneS(lane);ctx.fillStyle='rgba(0,0,0,0.35)';ctx.beginPath();ctx.ellipse(x,yy,14*sc,4*sc,0,0,7);ctx.fill();ctx.save();ctx.translate(x,yy);ctx.scale(face*sc,sc);ctx.fillStyle=col;ctx.fillRect(-w/2,-34,w,24);ctx.fillStyle='#e0b090';ctx.fillRect(-6,-48,12,13);if(helm){ctx.fillStyle='#8a8a92';ctx.fillRect(-7,-50,14,8)}ctx.fillStyle='#2a2a2a';ctx.fillRect(-w/2,-10,w/2-1,10);ctx.fillRect(1,-10,w/2-1,10);if(shield){ctx.fillStyle='#8a2a2a';ctx.fillRect(-w/2-8,-32,8,18)}ctx.save();ctx.translate(w/2,-28);ctx.rotate(swing);ctx.fillStyle='#c8c8d0';ctx.fillRect(0,-3,26,4);ctx.fillStyle='#6a4a2a';ctx.fillRect(-6,-4,8,6);ctx.restore();ctx.restore()};
+  const units=[];for(const a of b.allies)if(a.alive)units.push({lane:a.lane,draw:()=>man(a.x,'#6a5a9a',1,16,Math.sin(b.t*6+a.x)*0.2-0.5,false,true,a.lane)});
+  for(const e of b.enemies){if(!e.alive)continue;units.push({lane:e.lane,draw:()=>{man(e.x,e.hit>0?'#ff8080':e.d.col,e.face,e.d.w,e.cd<0.2?-1.1:-0.4,e.d.k==='knight'||e.d.boss,e.k!=='peasant',e.lane);const yy=laneY(e.lane);ctx.fillStyle='#300';ctx.fillRect(e.x-14,yy-58,28,4);ctx.fillStyle='#e33';ctx.fillRect(e.x-14,yy-58,28*e.hp/e.hpMax,4);if(e.d.boss){ctx.fillStyle='#e8c84a';ctx.font='bold 11px Oswald, sans-serif';ctx.textAlign='center';ctx.fillText(e.d.n.toUpperCase(),e.x,yy-64)}}})}
+  units.push({lane:0.5,draw:drawPlayer});units.sort((p,q)=>p.lane-q.lane);for(const u of units)u.draw();
+  function drawPlayer(){
+  ctx.fillStyle='#3a2a1a';for(const ar of b.arrows)ctx.fillRect(ar.x-8,gy-30,16,2);ctx.fillStyle='#e8e8e8';for(const ar of b.arrows)ctx.fillRect(ar.x+(ar.vx>0?6:-8),gy-31,2,4);
+  if(b.mounted){ctx.fillStyle='rgba(0,0,0,0.35)';ctx.beginPath();ctx.ellipse(b.px,gy,34,6,0,0,7);ctx.fill();ctx.save();ctx.translate(b.px,gy);ctx.scale(b.face,1);const gait=Math.sin(b.t*14)*((keys.ArrowLeft||keys.ArrowRight||keys.KeyA||keys.KeyD||touch.left||touch.right)?6:1);ctx.fillStyle='#6a3a1a';ctx.fillRect(-26,-30,52,18);ctx.fillRect(18,-44,16,22);ctx.fillRect(28,-50,12,10);ctx.fillStyle='#3a2010';ctx.fillRect(-28,-36,14,10);ctx.fillRect(-24,-12,6,12+gait);ctx.fillRect(-12,-12,6,12-gait);ctx.fillRect(8,-12,6,12-gait);ctx.fillRect(18,-12,6,12+gait);ctx.fillStyle='#e8c84a';ctx.fillRect(-8,-32,30,4);ctx.restore()}
+  const w=S.equip.weapon,sw=b.swing>0?-1.3+((0.22-b.swing)/0.22)*1.6:b.block?0.6:-0.4;if(b.mounted){ctx.save();ctx.translate(0,-26)}man(b.px,S.equip.armor?(S.equip.armor.k==='plate'||S.equip.armor.k==='gemplate'?'#b0b0c0':'#7a7a8a'):'#4a3020',b.face,18,sw,!!S.equip.shield&&b.block,true,0.5);if(b.mounted)ctx.restore()}
+  // hud
+  ctx.fillStyle='rgba(0,0,0,0.45)';ctx.fillRect(0,0,W,26);ctx.fillStyle='#e8c84a';ctx.font='bold 13px Oswald, sans-serif';ctx.textAlign='left';ctx.fillText(b.name.toUpperCase(),150,17);ctx.textAlign='right';ctx.fillText('ENEMIES '+(b.enemies.filter(e=>e.alive).length+b.spawnQ.length)+' · KILLS '+b.kills,W-12,17);
+  ctx.fillStyle='#300';ctx.fillRect(12,H-26,220,12);ctx.fillStyle='#e33';ctx.fillRect(12,H-26,220*b.hp/b.hpMax,12);ctx.fillStyle='#fff';ctx.font='11px Share Tech Mono, monospace';ctx.textAlign='left';ctx.fillText('HP '+Math.round(b.hp)+' / '+b.hpMax+(b.block?'  · BLOCKING':'')+(S.horse?'  · HORSE '+Math.round(b.horseHp)+(b.mounted?' (RIDING)':''):''),14,H-30);
+  if(b.msgT>0){ctx.fillStyle='rgba(0,0,0,0.55)';ctx.fillRect(W/2-260,H*0.35,520,44);ctx.fillStyle='#ffd27a';ctx.font='bold 13px Oswald, sans-serif';ctx.textAlign='center';ctx.fillText('← → MOVE · SPACE / ● SWING · SHIFT, ↓ OR HOLD ▼ TO BLOCK'+(S.horse?' · H TO MOUNT':''),W/2,H*0.35+18);ctx.fillText('YOUR ATTACK '+atk()+' · DEFENCE '+def()+' · '+b.allies.length+' MEN-AT-ARMS AT YOUR SIDE',W/2,H*0.35+36)}
+  ctx.restore()}
+/* ===================== PANEL ===================== */
+function renderPanel(){const p=$('panel');if(scene==='mine'){p.innerHTML='<h4>THE MINE</h4><p>Walk with the arrow keys or WASD and push into rock to dig it. Coal and iron are near the top; gold, gems and hard rock lie deeper. Every swing costs stamina, and if it runs out the other miners haul you up and half your ore is lost. Climb back through your tunnels to the surface.</p><div class="it"><span>Mine head<small>Rest here to refill stamina (E or ●)</small></span><button id="pRest">REST</button></div><div class="it"><span>Dig a fresh mine<small>Keeps your ore, new tunnels and ore seams</small></span><button id="pNew">NEW SHAFT</button></div>';$('pRest').onclick=surfaceReturn;$('pNew').onclick=()=>{if(mine&&mine.y!==0){flash('Climb back up first.');return}S.seed=ri(1,1e9);mine=null;startMine();log('A new shaft is sunk beside the old one.')}}
+  else if(scene==='forge'){let h='<h4>SMELTER</h4>';h+=row('Iron ingot','1 iron ore + 1 coal',S.ore.iron>=1&&S.ore.coal>=1,'SMELT','smelt:iron');h+=row('Steel ingot','2 iron ingots + 2 coal',S.ing.iron>=2&&S.ore.coal>=2,'SMELT','smelt:steel');h+=row('Gold ingot','1 gold ore + 1 coal',S.ore.gold>=1&&S.ore.coal>=1,'SMELT','smelt:gold');
+    h+='<h4>ANVIL</h4>';for(const it of ITEMS){const cost=Object.entries(it.cost).map(e=>e[1]+' '+e[0]).join(' + ');h+=row(it.n+(it.atk?' · ATK '+it.atk:' · DEF '+it.def),(S.lvl<it.lvl?'Level '+it.lvl+' · ':'')+cost,canCraft(it)&&!forge.anvil,'FORGE','craft:'+it.k)}
+    h+='<h4>ARMOURY</h4>';if(!S.items.length)h+='<p>Nothing forged yet.</p>';S.items.forEach((it,i)=>{const eq=Object.values(S.equip).includes(it);h+='<div class="it"><span>'+it.n+(eq?' ✔':'')+'<small>'+(it.atk?'ATK '+Math.round(it.atk*QUAL[it.q].m):'DEF '+Math.round(it.def*QUAL[it.q].m))+' · sells for '+it.price+'</small></span><span><button data-a="equip:'+i+'" '+(eq?'disabled':'')+'>EQUIP</button> <button data-a="sell:'+i+'">SELL</button></span></div>'});
+    h+='<h4>STABLE</h4>'+(S.horse?'<div class="it"><span>Warhorse<small>Yours. Press H in battle to ride.</small></span><button disabled>OWNED</button></div>':row('Warhorse','Ride into battle: faster, longer reach, tramples enemies, soaks half your hits · '+HORSE_PRICE+' coins',S.coins>=HORSE_PRICE,'BUY','horse:1'));
+    h+='<h4>MINING UPGRADES</h4>';for(const u of UPGRADES){const l=S.up[u.k];h+=row(u.n+' '+(l>=u.max?'(max)':'lvl '+l+' → '+(l+1)),l>=u.max?'':u.desc(l)+' · '+u.price(l+1)+' coins',l<u.max&&S.coins>=u.price(l+1),'BUY','up:'+u.k)}
+    p.innerHTML=h;for(const b of p.querySelectorAll('button[data-a]'))b.onclick=()=>{const [a,v]=b.dataset.a.split(':');if(a==='smelt')smelt(v);else if(a==='craft')startCraft(ITEMS.find(i=>i.k===v));else if(a==='equip')equip(+v);else if(a==='sell')sell(+v);else if(a==='up')buyUp(v);else if(a==='horse')buyHorse()}}
+  else{const b=battle;p.innerHTML='<h4>'+b.name.toUpperCase()+'</h4><p>Battle '+(b.idx+1)+'. Move with ← →, swing with SPACE, block with SHIFT or ↓. Blocking only works facing the enemy, and a shield makes it far better. Allies fight beside you. Rise in rank with every two victories.</p><p>ATK '+atk()+' · DEF '+def()+' · HP '+b.hpMax+(S.horse?' · HORSE '+Math.round(b.horseHp)+'/'+b.horseMax:'')+'</p>'+(S.horse?'<div class="it"><span>Warhorse<small>H to mount or dismount. Riding is faster, reaches further and tramples; the horse takes half your hits.</small></span><button id="pMount">'+(b.mounted?'DISMOUNT':'MOUNT')+'</button></div>':'')+'<div class="it"><span>Retreat<small>Leave the field now</small></span><button id="pRetreat">RETREAT</button></div>';if(S.horse)$('pMount').onclick=()=>{toggleMount();renderPanel()};$('pRetreat').onclick=()=>{if(battle&&!battle.over){battle.over=true;scene='forge';forge={anvil:null};log('You withdrew from '+battle.name+'.');refresh();renderPanel()}}}}
+function row(name,sub,ok,label,action){return '<div class="it"><span>'+name+'<small>'+sub+'</small></span><button data-a="'+action+'" '+(ok?'':'disabled')+'>'+label+'</button></div>'}
+/* ===================== CANVAS / LOOP ===================== */
+const cv=$('c'),ctx=cv.getContext('2d');let W=800,H=450,last=0;
+function resize(){const r=cv.getBoundingClientRect();W=Math.max(320,Math.floor(r.width));H=Math.max(200,Math.floor(r.height));cv.width=W;cv.height=H}addEventListener('resize',resize);resize();
+function frame(now){requestAnimationFrame(frame);const dt=Math.min(0.05,(now-last)/1000||0);last=now;if(!S)return;flashT=Math.max(0,flashT-dt);for(const s of sparks){s.x+=s.vx*dt;s.y+=s.vy*dt;s.vy+=500*dt;s.t-=dt}sparks=sparks.filter(s=>s.t>0);
+  if(scene==='mine'){mineInput(dt);drawMine()}else if(scene==='forge'){const a=forge.anvil;if(a&&!a.done){a.pos+=a.dir*a.speed*dt;if(a.pos>1){a.pos=1;a.dir=-1}if(a.pos<0){a.pos=0;a.dir=1}a.flash=Math.max(0,a.flash-dt)}drawForge()}else if(scene==='battle'){battleTick(dt);drawBattle()}}
+/* ===================== SOUND ===================== */
+let AC=null;function ac(){if(!AC){try{AC=new (window.AudioContext||window.webkitAudioContext)()}catch(e){}}if(AC&&AC.state==='suspended')AC.resume();return AC}
+function beep(f,d,type){const a=ac();if(!a)return;const o=a.createOscillator(),g=a.createGain();o.type=type||'square';o.frequency.value=f;g.gain.value=0.05;g.gain.exponentialRampToValueAtTime(0.0001,a.currentTime+d);o.connect(g);g.connect(a.destination);o.start();o.stop(a.currentTime+d)}
+/* ===================== CONSOLE ===================== */
+const CHEAT_PW='9991999';let cheatsOn=false;try{cheatsOn=sessionStorage.getItem('ih_cheats')==='1'}catch(e){}
+function runCmd(line){line=line.trim();if(!line)return;const [c,...a]=line.replace(/^\//,'').toLowerCase().split(/\s+/);
+  if(c==='help'){log('/password <code> unlocks the cheats. /give <coal|iron|gold|gem|ironingot|steel|goldingot|coins|xp> [amount]. /level <n>.');return}
+  if(c==='password'||c==='pw'){if(a[0]===CHEAT_PW){cheatsOn=true;try{sessionStorage.setItem('ih_cheats','1')}catch(e){}log('Password accepted: /give and /level are unlocked.','good')}else log('Wrong password.','bad');return}
+  if(c==='give'||c==='level'||c==='lvl'){if(!cheatsOn){log('Locked. Enter the password first: /password <code>','bad');return}
+    if(c!=='give'){const n=clamp(parseInt(a[0])||1,1,50);S.lvl=n;S.xp=0;log('Level set to '+n+'.','good');refresh();renderPanel();return}
+    const what=(a[0]||'').replace(/[^a-z]/g,''),n=Math.max(1,parseInt(a[1])||10);const map={coal:['ore','coal'],iron:['ore','iron'],ironore:['ore','iron'],gold:['ore','gold'],goldore:['ore','gold'],gem:['ore','gem'],gems:['ore','gem'],ironingot:['ing','iron'],ingot:['ing','iron'],steel:['ing','steel'],steelingot:['ing','steel'],goldingot:['ing','gold']};
+    if(map[what]){const [g,k]=map[what];S[g][k]+=n;log('Gave '+n+' '+(g==='ing'?k+' ingots':k+' ore')+'.','good')}else if(what==='coins'||what==='coin'||what==='gold'){S.coins+=n;log('Gave '+n+' coins.','good')}else if(what==='xp'){addXp(n);log('Gave '+n+' xp.','good')}else{log('Unknown item. Try coal, iron, gold, gem, ironingot, steel, goldingot, coins or xp.','bad');return}
+    refresh();renderPanel();return}
+  log('Unknown command. Type /help.','bad')}
+$('cmd').addEventListener('keydown',e=>{e.stopPropagation();if(e.code==='Enter'){runCmd($('cmd').value);$('cmd').value=''}});$('cmd').addEventListener('keyup',e=>e.stopPropagation());
+/* ===================== INPUT / START ===================== */
+function action(){if(scene==='mine'){if(mine.y===0&&Math.abs(mine.x-(MW>>1))<=2)surfaceReturn()}else if(scene==='forge')hammer()}
+addEventListener('keydown',e=>{keys[e.code]=true;if(['Space','ArrowUp','ArrowDown','ArrowLeft','ArrowRight'].includes(e.code))e.preventDefault();if(!S)return;if(e.code==='KeyE'&&scene==='mine')action();if(e.code==='Space'&&scene==='forge'&&!e.repeat)hammer();if(e.code==='KeyH'&&scene==='battle')toggleMount();if(e.code==='Digit1')startMine();if(e.code==='Digit2')startForge();if(e.code==='Digit3')startBattle()});
+addEventListener('keyup',e=>{keys[e.code]=false});
+cv.addEventListener('mousedown',()=>{ac();if(scene==='forge')hammer()});
+for(const b of document.querySelectorAll('.tb')){const k=b.dataset.k;const on=e=>{e.preventDefault();ac();touch[k]=true;if(k==='action')action()};const off=e=>{e.preventDefault();touch[k]=false};b.addEventListener('touchstart',on,{passive:false});b.addEventListener('touchend',off);b.addEventListener('touchcancel',off);b.addEventListener('mousedown',on);b.addEventListener('mouseup',off)}
+$('tMine').onclick=()=>{ac();if(scene==='battle'&&battle&&!battle.over)return;startMine()};$('tForge').onclick=()=>{ac();if(scene==='battle'&&battle&&!battle.over)return;startForge()};$('tArmy').onclick=()=>{ac();if(scene==='battle')return;if(mine&&mine.y!==0){flash('Climb back up to the surface first.');return}startBattle()};
+function titleScreen(){const saved=load();$('overlay').innerHTML='<div class="modal title"><h1>IRON HAMMER</h1><div class="tag">MINE · FORGE · FIGHT</div><p>Dig coal and iron from a deep mine, smelt it and hammer it into swords, shields and armour. Every blade you forge makes you a better smith, until the day the king\'s levy rides up to the forge and you march to war with the gear you made yourself.</p>'+(saved?'<button class="btn on" id="cont">CONTINUE — LEVEL '+saved.lvl+' '+rankOf(saved).toUpperCase()+'</button>':'')+'<button class="btn" id="new" style="margin-top:6px">NEW GAME</button><p style="margin-top:10px;font-size:11px;color:#9a8a60">Keys 1, 2, 3 switch between mine, forge and army. On touch screens use the buttons at the bottom.</p></div>';$('overlay').classList.add('on');
+  const begin=st=>{S=st;mine=null;hide();startMine();log('Welcome to the mine, apprentice. Dig iron and coal, then take them to the forge.')};if(saved)$('cont').onclick=()=>begin(saved);$('new').onclick=()=>begin(newState())}
+titleScreen();requestAnimationFrame(frame);
+</script>
+</body>
+</html>

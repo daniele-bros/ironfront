@@ -1,0 +1,184 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0,viewport-fit=cover,user-scalable=no">
+<title>Iron Bakery – Free Cake Shop and Cooking Game in Your Browser | Iron Games</title>
+<meta name="description" content="Iron Bakery is a free browser cooking game: bake cookies, cupcakes, cakes and pies, ice and decorate them to order, serve customers before their patience runs out, earn coins and upgrade your shop day by day. No download.">
+<meta name="robots" content="index,follow,max-snippet:-1,max-image-preview:large">
+<link rel="canonical" href="https://irongames.win/ironbakery.html">
+<link rel="icon" href="favicon.svg" type="image/svg+xml">
+<link rel="manifest" href="site.webmanifest">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="Iron Games">
+<meta property="og:title" content="Iron Bakery – Cake Shop Game | Iron Games">
+<meta property="og:description" content="Bake, ice and decorate treats to order, serve customers in time and grow your bakery. Free in your browser, no download.">
+<meta property="og:url" content="https://irongames.win/ironbakery.html">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="Iron Bakery – Cake Shop Game | Iron Games">
+<meta name="twitter:description" content="Bake, ice and decorate treats to order and grow your bakery. Free in your browser, no download.">
+<script type="application/ld+json">{"@context":"https://schema.org","@graph":[{"@type":"VideoGame","name":"Iron Bakery","url":"https://irongames.win/ironbakery.html","genre":["Casual","Time management","Cooking","Family"],"gamePlatform":"Web browser","applicationCategory":"Game","operatingSystem":"Any","isAccessibleForFree":true,"offers":{"@type":"Offer","price":"0","priceCurrency":"USD"},"author":{"@type":"Organization","name":"Daniele Bros","url":"https://irongames.win/"},"description":"A cake shop time-management game: bake cookies, cupcakes, cakes and pies, ice them in the right colour, add the right topping and serve each customer before their patience runs out, then spend the day's coins on ovens, recipes and decorations."},{"@type":"BreadcrumbList","itemListElement":[{"@type":"ListItem","position":1,"name":"Iron Games","item":"https://irongames.win/"},{"@type":"ListItem","position":2,"name":"Iron Bakery","item":"https://irongames.win/ironbakery.html"}]}]}</script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Oswald:wght@500;700&family=Share+Tech+Mono&display=swap" rel="stylesheet">
+<style>
+:root{--gold:#e8c84a;--cream:#fff8f0;--dim:#c09a80;--panel:rgba(60,30,20,.94);--border:#8a5a40;--pink:#ff8fb8;--green:#8ff0a0;}
+*{box-sizing:border-box;margin:0;padding:0;}
+html,body{width:100%;height:100%;overflow:hidden;background:#2e1a12;}
+body{font-family:'Share Tech Mono','Courier New',monospace;color:var(--cream);user-select:none;-webkit-user-select:none;touch-action:none;}
+#wrap{position:absolute;inset:0;display:grid;grid-template-columns:1fr 300px;grid-template-rows:1fr;}
+#main{position:relative;overflow:hidden;background:#000;}
+canvas#c{width:100%;height:100%;display:block;}
+#side{background:var(--panel);border-left:1px solid var(--border);display:flex;flex-direction:column;padding:12px;gap:7px;overflow-y:auto;}
+.back{position:absolute;top:10px;left:10px;z-index:30;background:rgba(60,30,20,.85);color:var(--dim);font-family:'Oswald',sans-serif;font-size:12px;letter-spacing:3px;padding:7px 12px;border:1px solid var(--border);text-decoration:none;border-radius:2px;}
+.back:hover{color:var(--gold);border-color:var(--gold);}
+h2.t{font-family:'Oswald',sans-serif;font-size:22px;letter-spacing:6px;color:var(--pink);}
+.stat{display:flex;justify-content:space-between;font-size:12px;letter-spacing:1px;padding:2px 0;border-bottom:1px dashed #5a3a2a;}
+.stat b{color:var(--gold);}
+.btn{display:block;width:100%;background:#5a3020;border:1px solid var(--border);color:var(--cream);font-family:'Oswald',sans-serif;font-size:13px;letter-spacing:2px;padding:8px 6px;cursor:pointer;text-align:center;border-radius:6px;}
+.btn:hover{border-color:var(--pink);color:var(--pink);}
+.btn.on{background:#8a3a4a;border-color:var(--pink);color:#fff;}
+.btn:disabled{opacity:.4;cursor:default;}
+.row{display:flex;gap:6px;}
+.row .btn{flex:1;}
+.sw{display:inline-block;width:14px;height:14px;border-radius:50%;vertical-align:middle;border:1px solid #fff;margin-right:4px;}
+#panel{flex:1;min-height:100px;overflow-y:auto;font-size:12px;line-height:1.5;border:1px solid var(--border);padding:8px;background:rgba(0,0,0,.3);border-radius:6px;}
+#panel h4{font-family:'Oswald',sans-serif;letter-spacing:3px;color:var(--pink);font-size:13px;margin:4px 0 6px;}
+#panel .it{display:flex;justify-content:space-between;align-items:center;gap:6px;padding:4px 0;border-bottom:1px solid #4a2a1a;}
+#panel .it small{color:var(--dim);display:block;}
+#panel .it button{background:#5a3020;border:1px solid var(--border);color:var(--gold);font-family:'Oswald',sans-serif;font-size:11px;letter-spacing:2px;padding:5px 8px;cursor:pointer;white-space:nowrap;border-radius:4px;}
+#panel .it button:disabled{opacity:.35;cursor:default;}
+#overlay{position:absolute;inset:0;display:none;align-items:center;justify-content:center;background:rgba(0,0,0,.55);z-index:20;padding:16px;}
+#overlay.on{display:flex;}
+.modal{background:var(--panel);border:2px solid var(--pink);border-radius:10px;padding:18px 20px;max-width:540px;width:100%;max-height:100%;overflow:auto;}
+.modal h3{font-family:'Oswald',sans-serif;letter-spacing:5px;color:var(--pink);font-size:20px;margin-bottom:10px;}
+.modal p{font-size:13px;line-height:1.6;margin-bottom:10px;}
+.title h1{font-family:'Oswald',sans-serif;font-size:44px;letter-spacing:12px;color:var(--pink);text-shadow:0 0 24px rgba(255,143,184,.4);text-align:center;}
+.title .tag{font-size:12px;letter-spacing:4px;color:var(--dim);margin:6px 0 16px;text-align:center;}
+.lbl{font-size:10px;letter-spacing:2px;color:var(--dim);margin-top:2px;}
+@media (max-width:760px){#wrap{grid-template-columns:1fr;grid-template-rows:50% 50%;}#side{border-left:none;border-top:1px solid var(--border);}.title h1{font-size:30px;letter-spacing:6px;}}
+</style>
+</head>
+<body>
+<a class="back" href="/" title="Back to Iron Games">◀ IRON GAMES</a>
+<div id="wrap">
+  <div id="main"><canvas id="c"></canvas><div id="overlay"></div></div>
+  <div id="side">
+    <h2 class="t">IRON BAKERY</h2>
+    <div class="stat"><span id="sDay">Day 1</span><b id="sTime">0:00</b></div>
+    <div class="stat"><span>Coins today · total</span><b id="sCoins">0 · 0</b></div>
+    <div class="stat"><span>Served · lost</span><b id="sServed">0 · 0</b></div>
+    <div class="lbl">1 · BAKE</div>
+    <div class="row" id="bakeRow"></div>
+    <div class="lbl">2 · ICING</div>
+    <div class="row" id="iceRow"></div>
+    <div class="lbl">3 · TOPPING</div>
+    <div class="row" id="topRow"></div>
+    <div class="lbl">DRINKS &amp; PLATE</div>
+    <div class="row"><button class="btn" id="bTea">TEA</button><button class="btn" id="bCocoa">COCOA</button><button class="btn" id="bBin">BIN PLATE</button></div>
+    <div id="panel"></div>
+  </div>
+</div>
+<script>
+'use strict';
+const $=id=>document.getElementById(id);const clamp=(v,a,b)=>v<a?a:v>b?b:v;const rnd=(a,b)=>a+Math.random()*(b-a);const ri=(a,b)=>Math.floor(rnd(a,b+1));const pick=a=>a[Math.floor(Math.random()*a.length)];
+const BASES={cookie:{n:'Cookie',t:3,price:6,day:1,col:'#d9a35c'},cupcake:{n:'Cupcake',t:4,price:9,day:1,col:'#e8c08a'},cake:{n:'Cake',t:6,price:16,day:2,col:'#f0d0a0'},pie:{n:'Pie',t:5,price:13,day:3,col:'#d8a060'},donut:{n:'Donut',t:3,price:8,day:4,col:'#e0b070'}};
+const ICINGS={none:{n:'Plain',col:null},pink:{n:'Pink',col:'#ff9ac0'},choc:{n:'Chocolate',col:'#6a3a1a'},mint:{n:'Mint',col:'#9ae0b0'},lemon:{n:'Lemon',col:'#ffe070',day:2},blue:{n:'Blueberry',col:'#8ab0ff',day:3}};
+const TOPS={none:{n:'None'},sprinkles:{n:'Sprinkles'},cherry:{n:'Cherry'},strawberry:{n:'Strawberry',day:2},choc:{n:'Choc chips',day:3},star:{n:'Sugar star',day:4}};
+const DRINKS={tea:{n:'Tea',price:4},cocoa:{n:'Cocoa',price:5,day:2}};
+const HAIR=['#2a1a10','#e0c070','#8a4a20','#d04040','#3a3a5a','#f0f0f0','#a060c0'];const SKIN=['#f8d8c0','#e8b890','#c08860','#8a5a3a','#f0c8b0'];
+const UPGRADES=[{k:'oven',n:'Second oven',max:2,price:l=>120*(l+1),desc:'Bake two things at once'},{k:'fast',n:'Hotter oven',max:3,price:l=>80+70*l,desc:'Everything bakes faster'},{k:'chairs',n:'Comfy chairs',max:3,price:l=>90+60*l,desc:'Customers wait longer'},{k:'sign',n:'Pretty sign',max:3,price:l=>100+80*l,desc:'More customers and bigger tips'},{k:'deco',n:'Flowers and bunting',max:3,price:l=>60+60*l,desc:'A prettier shop: extra tip on every order'}];
+const DAY_LEN=90;
+let S=null,D=null,last=0;
+function newState(){return {day:1,coins:0,best:0,up:{oven:0,fast:0,chairs:0,sign:0,deco:0},stars:[]}}
+function save(){try{localStorage.setItem('ib_save',JSON.stringify(S))}catch(e){}}
+function load(){try{const s=JSON.parse(localStorage.getItem('ib_save'));if(s&&s.up)return s}catch(e){}return null}
+const avail=o=>Object.keys(o).filter(k=>!(o[k].day>S.day));
+function startDay(){D={t:DAY_LEN,customers:[],ovens:[],plate:null,coins:0,served:0,lost:0,spawnT:1.5,over:false,msg:'',msgT:0,puffs:[]};renderControls();refresh();renderPanel()}
+function randomOrder(){const base=pick(avail(BASES));const icingKeys=avail(ICINGS);const icing=base==='pie'?'none':pick(icingKeys);const topKeys=avail(TOPS);const top=base==='cookie'||base==='pie'?pick(['none','none',pick(topKeys)]):pick(topKeys);const drink=Math.random()<0.35?pick(avail(DRINKS)):null;return {base,icing,top,drink}}
+function spawnCustomer(){if(D.customers.length>=4)return;const o=randomOrder();D.customers.push({o,patience:1,maxWait:34+S.up.chairs*8,hair:pick(HAIR),skin:pick(SKIN),shirt:pick(['#ff8fb8','#8ab0ff','#9ae0b0','#ffe070','#c090e0','#ff9a60']),x:0,mood:1})}
+function price(o){let p=BASES[o.base].price+(o.icing!=='none'?3:0)+(o.top!=='none'?3:0)+(o.drink?DRINKS[o.drink].price:0);return p}
+/* ---- actions ---- */
+function bake(k){if(D.over)return;const slots=1+S.up.oven;if(D.ovens.length>=slots){flash('The oven is full.');return}D.ovens.push({k,t:BASES[k].t/(1+S.up.fast*0.3),tot:BASES[k].t/(1+S.up.fast*0.3)});beep(300,0.08)}
+function takeBaked(i){const o=D.ovens[i];if(o.t>0)return;if(D.plate&&D.plate.base){flash('The plate already has something on it. Serve it or bin it.');return}D.ovens.splice(i,1);D.plate=Object.assign(D.plate||{},{base:o.k,icing:'none',top:'none'});beep(500,0.08);renderPanel()}
+function ice(k){if(!D.plate||!D.plate.base){flash('Bake something first.');return}if(D.plate.base==='pie'){flash('Pies are not iced.');return}D.plate.icing=k;beep(600,0.06);renderPanel()}
+function topping(k){if(!D.plate||!D.plate.base){flash('Bake something first.');return}D.plate.top=k;beep(650,0.06);renderPanel()}
+function drink(k){if(!D.plate)D.plate={};D.plate.drink=k;beep(450,0.06);renderPanel()}
+function bin(){D.plate=null;beep(200,0.1,'sawtooth');renderPanel()}
+function serve(i){const c=D.customers[i];const p=D.plate;if(!p||(!p.base&&!p.drink)){flash('The plate is empty.');return}const o=c.o;const okBase=p.base===o.base,okIce=(p.icing||'none')===o.icing,okTop=(p.top||'none')===o.top,okDrink=(p.drink||null)===(o.drink||null);
+  if(okBase&&okIce&&okTop&&okDrink){const tip=Math.round(price(o)*(0.2+c.patience*0.5+S.up.sign*0.1+S.up.deco*0.1));const earn=price(o)+tip;D.coins+=earn;D.served++;D.customers.splice(i,1);D.plate=null;D.puffs.push({x:0,y:0,t:1,text:'+'+earn});beep(900,0.15,'triangle');flash('Perfect! +'+earn+' coins ('+tip+' tip)')}
+  else{const wrong=[];if(!okBase)wrong.push('wrong bake');if(!okIce)wrong.push('wrong icing');if(!okTop)wrong.push('wrong topping');if(!okDrink)wrong.push(o.drink?'missing '+DRINKS[o.drink].n.toLowerCase():'no drink was ordered');c.patience=Math.max(0.05,c.patience-0.25);c.mood=0.4;flash('Not right: '+wrong.join(', ')+'.');beep(220,0.2,'sawtooth')}
+  renderPanel();refresh()}
+let flashT=0,flashMsg='';function flash(t){flashMsg=t;flashT=2.2}
+/* ---- simulation ---- */
+function tick(dt){if(!D||D.over)return;D.t-=dt;flashT=Math.max(0,flashT-dt);for(const o of D.ovens)o.t=Math.max(0,o.t-dt);D.spawnT-=dt;const rate=Math.max(5,13-S.day*0.8-S.up.sign*1.2);if(D.spawnT<=0){D.spawnT=rnd(rate*0.6,rate);spawnCustomer()}
+  for(let i=D.customers.length-1;i>=0;i--){const c=D.customers[i];c.patience-=dt/c.maxWait;c.mood=Math.min(1,c.mood+dt*0.3);if(c.patience<=0){D.customers.splice(i,1);D.lost++;flash('A customer left without their order.');beep(150,0.3,'sawtooth')}}
+  for(const p of D.puffs)p.t-=dt;D.puffs=D.puffs.filter(p=>p.t>0);
+  if(D.t<=0){D.over=true;endDay()}}
+function endDay(){S.coins+=D.coins;const target=40+S.day*25;const stars=D.coins>=target*1.6?3:D.coins>=target?2:D.coins>=target*0.5?1:0;S.stars[S.day-1]=stars;S.best=Math.max(S.best,D.coins);const passed=stars>=1;
+  let h='<h3>DAY '+S.day+' IS OVER</h3><p>You served '+D.served+' customer'+(D.served===1?'':'s')+(D.lost?' and lost '+D.lost:'')+', earning <b>'+D.coins+' coins</b> against a target of '+target+'. '+'★'.repeat(stars)+'☆'.repeat(3-stars)+'</p>';
+  if(passed){h+='<p>'+(stars===3?'A perfect day! The whole town is talking about your bakery.':stars===2?'A good day. The regulars are happy.':'Just enough to keep the lights on.')+(S.day+1===2?' Tomorrow: cakes, cocoa, lemon icing and strawberries join the menu.':S.day+1===3?' Tomorrow: pies, blueberry icing and choc chips.':S.day+1===4?' Tomorrow: donuts and sugar stars.':'')+'</p>';S.day++}else h+='<p>Not enough to pay the rent. Try the same day again, and spend some coins on upgrades first.</p>';
+  h+='<h4 style="font-family:Oswald,sans-serif;letter-spacing:3px;color:#ff8fb8;margin:8px 0 6px">SHOP · '+S.coins+' COINS</h4>';for(const u of UPGRADES){const l=S.up[u.k];h+='<div class="row" style="margin-bottom:6px"><button class="btn" data-u="'+u.k+'" '+(l>=u.max||S.coins<u.price(l)?'disabled':'')+'>'+u.n.toUpperCase()+' '+(l>=u.max?'(MAX)':l+'/'+u.max+' · '+u.price(l)+' COINS')+'<br><span style="font-size:10px;color:#c09a80;letter-spacing:1px">'+u.desc+'</span></button></div>'}
+  h+='<button class="btn on" id="next" style="margin-top:8px">'+(passed?'OPEN DAY '+S.day:'TRY DAY '+S.day+' AGAIN')+'</button>';$('overlay').innerHTML='<div class="modal">'+h+'</div>';$('overlay').classList.add('on');
+  const wire=()=>{for(const b of document.querySelectorAll('button[data-u]'))b.onclick=()=>{const u=UPGRADES.find(x=>x.k===b.dataset.u);const l=S.up[u.k];if(l>=u.max||S.coins<u.price(l))return;S.coins-=u.price(l);S.up[u.k]++;save();endDayRefresh()}};const endDayRefresh=()=>{const h4=document.querySelector('.modal h4');h4.textContent='SHOP · '+S.coins+' COINS';for(const b of document.querySelectorAll('button[data-u]')){const u=UPGRADES.find(x=>x.k===b.dataset.u);const l=S.up[u.k];b.disabled=l>=u.max||S.coins<u.price(l);b.innerHTML=u.n.toUpperCase()+' '+(l>=u.max?'(MAX)':l+'/'+u.max+' · '+u.price(l)+' COINS')+'<br><span style="font-size:10px;color:#c09a80;letter-spacing:1px">'+u.desc+'</span>'}};wire();
+  $('next').onclick=()=>{$('overlay').classList.remove('on');save();startDay()};save()}
+/* ---- ui ---- */
+function renderControls(){$('bakeRow').innerHTML=avail(BASES).map(k=>'<button class="btn" data-b="'+k+'">'+BASES[k].n.toUpperCase()+'</button>').join('');for(const b of $('bakeRow').children)b.onclick=()=>bake(b.dataset.b);
+  $('iceRow').innerHTML=avail(ICINGS).map(k=>'<button class="btn" data-i="'+k+'" title="'+ICINGS[k].n+'">'+(ICINGS[k].col?'<span class="sw" style="background:'+ICINGS[k].col+'"></span>':'')+(k==='none'?'PLAIN':ICINGS[k].n.toUpperCase().slice(0,5))+'</button>').join('');for(const b of $('iceRow').children)b.onclick=()=>ice(b.dataset.i);
+  $('topRow').innerHTML=avail(TOPS).map(k=>'<button class="btn" data-t="'+k+'">'+TOPS[k].n.toUpperCase().slice(0,7)+'</button>').join('');for(const b of $('topRow').children)b.onclick=()=>topping(b.dataset.t);
+  $('bCocoa').disabled=!!(DRINKS.cocoa.day>S.day)}
+function refresh(){if(!S||!D)return;$('sDay').textContent='Day '+S.day+' · target '+(40+S.day*25);$('sTime').textContent=Math.floor(Math.max(0,D.t)/60)+':'+String(Math.floor(Math.max(0,D.t)%60)).padStart(2,'0');$('sCoins').textContent=D.coins+' · '+S.coins;$('sServed').textContent=D.served+' · '+D.lost}
+function renderPanel(){const p=D&&D.plate;$('panel').innerHTML='<h4>ON THE PLATE</h4><p>'+(p&&(p.base||p.drink)?[(p.base?BASES[p.base].n:''),(p.icing&&p.icing!=='none'?ICINGS[p.icing].n+' icing':''),(p.top&&p.top!=='none'?TOPS[p.top].n:''),(p.drink?DRINKS[p.drink].n:'')].filter(Boolean).join(' · '):'Nothing yet. Bake, ice, top, then click the customer who ordered it.')+'</p><h4>HOW TO PLAY</h4><p>Customers queue at the counter with an order card. Press a BAKE button, wait for the oven, click the finished bake to plate it, pick the icing and topping shown on the card, add a drink if they asked for one, then click that customer. Fast, correct orders earn tips. Wrong plates make them grumpy and slow orders make them leave.</p>'}
+/* ---- drawing ---- */
+const cv=$('c'),ctx=cv.getContext('2d');let W=800,H=450;
+function resize(){const r=cv.getBoundingClientRect();W=Math.max(300,Math.floor(r.width));H=Math.max(200,Math.floor(r.height));cv.width=W;cv.height=H}addEventListener('resize',resize);resize();
+function draw(){const g=ctx.createLinearGradient(0,0,0,H);g.addColorStop(0,'#ffe3ec');g.addColorStop(1,'#ffd0dc');ctx.fillStyle=g;ctx.fillRect(0,0,W,H);
+  // wall stripes, bunting, shelves
+  ctx.fillStyle='rgba(255,255,255,0.35)';for(let i=0;i<W;i+=48)ctx.fillRect(i,0,24,H*0.5);
+  if(S&&S.up.deco>0){for(let i=0;i<12;i++){ctx.fillStyle=['#ff8fb8','#8ab0ff','#ffe070','#9ae0b0'][i%4];const x=i*(W/11),y=28+Math.sin(i*1.2)*8;ctx.beginPath();ctx.moveTo(x,y);ctx.lineTo(x+W/22,y);ctx.lineTo(x+W/44,y+22);ctx.fill()}}
+  if(S&&S.up.deco>1){ctx.fillStyle='#ff6a9a';for(let i=0;i<5;i++){ctx.beginPath();ctx.arc(W*0.1+i*18,H*0.2,6,0,7);ctx.fill()}ctx.fillStyle='#40a050';ctx.fillRect(W*0.1-8,H*0.2+8,110,8)}
+  // counter
+  const cy=H*0.52;ctx.fillStyle='#c48a5a';ctx.fillRect(0,cy,W,H*0.14);ctx.fillStyle='#e8b080';ctx.fillRect(0,cy,W,10);ctx.fillStyle='#8a5a3a';ctx.fillRect(0,cy+H*0.14,W,H);
+  // customers behind the counter (they stand in front of the wall)
+  if(D){D.customers.forEach((c,i)=>{const cx=W*0.12+i*W*0.2;c.x=cx;drawCustomer(c,cx,cy-6);drawOrderCard(c,cx,cy-H*0.42)})}
+  // ovens on the right of the work surface
+  const wy=cy+H*0.16;ctx.fillStyle='#5a4a4a';const slots=S?1+S.up.oven:1;for(let s=0;s<slots;s++){const ox=W*0.62+s*120,oy=wy+8;ctx.fillStyle='#6a5a5a';ctx.fillRect(ox,oy,100,H*0.22);ctx.fillStyle='#2a1a1a';ctx.fillRect(ox+10,oy+12,80,H*0.12);const o=D&&D.ovens[s];if(o){const f=1-o.t/o.tot;ctx.fillStyle=o.t>0?'rgba(255,140,40,'+(0.3+0.4*Math.sin(performance.now()/120))+')':'rgba(255,220,120,0.6)';ctx.fillRect(ox+10,oy+12,80,H*0.12);drawTreat({base:o.k,icing:'none',top:'none'},ox+50,oy+12+H*0.06,0.8);ctx.fillStyle='#fff';ctx.fillRect(ox+10,oy+H*0.12+16,80*f,5);if(o.t<=0){ctx.fillStyle='#ffd040';ctx.font='bold 11px Oswald, sans-serif';ctx.textAlign='center';ctx.fillText('CLICK TO PLATE',ox+50,oy+H*0.12+34)}}else{ctx.fillStyle='#8a7a7a';ctx.font='bold 11px Oswald, sans-serif';ctx.textAlign='center';ctx.fillText('OVEN '+(s+1),ox+50,oy+H*0.12+34)}}
+  // plate
+  const px=W*0.3,py=wy+H*0.12;ctx.fillStyle='#fff';ctx.beginPath();ctx.ellipse(px,py+16,80,22,0,0,7);ctx.fill();ctx.fillStyle='#e8e0f0';ctx.beginPath();ctx.ellipse(px,py+16,60,14,0,0,7);ctx.fill();if(D&&D.plate){if(D.plate.base)drawTreat(D.plate,px,py,1.2);if(D.plate.drink)drawDrink(D.plate.drink,px+90,py+6)}
+  ctx.fillStyle='#6a3a2a';ctx.font='bold 12px Oswald, sans-serif';ctx.textAlign='center';ctx.fillText('YOUR PLATE · CLICK A CUSTOMER TO SERVE',px,py+52);
+  for(const p of D?D.puffs:[]){ctx.fillStyle='rgba(60,160,80,'+p.t+')';ctx.font='bold 18px Oswald, sans-serif';ctx.fillText(p.text,px,py-30-(1-p.t)*30)}
+  ctx.fillStyle='rgba(60,20,30,0.55)';ctx.fillRect(0,0,W,26);ctx.fillStyle='#ffd0e0';ctx.font='bold 13px Oswald, sans-serif';ctx.textAlign='left';ctx.fillText(D?(flashT>0?flashMsg.toUpperCase():'DAY '+S.day+' · SERVE EVERY ORDER BEFORE THE PATIENCE BAR RUNS OUT'):'',150,17)}
+function drawCustomer(c,x,y){ctx.fillStyle=c.shirt;ctx.beginPath();ctx.ellipse(x,y-30,30,40,0,0,7);ctx.fill();ctx.fillStyle=c.skin;ctx.beginPath();ctx.arc(x,y-80,22,0,7);ctx.fill();ctx.fillStyle=c.hair;ctx.beginPath();ctx.arc(x,y-88,22,Math.PI,0);ctx.fill();ctx.fillRect(x-22,y-88,8,22);ctx.fillRect(x+14,y-88,8,22);
+  ctx.fillStyle='#2a1a1a';ctx.fillRect(x-9,y-82,4,4);ctx.fillRect(x+5,y-82,4,4);ctx.strokeStyle='#2a1a1a';ctx.lineWidth=1.5;ctx.beginPath();if(c.mood>0.7&&c.patience>0.35)ctx.arc(x,y-72,6,0.2,Math.PI-0.2);else ctx.arc(x,y-64,6,Math.PI+0.2,-0.2);ctx.stroke();
+  ctx.fillStyle='#3a1a2a';ctx.fillRect(x-30,y+2,60,6);ctx.fillStyle=c.patience>0.5?'#8ff0a0':c.patience>0.25?'#ffd27a':'#ff6a6a';ctx.fillRect(x-30,y+2,60*clamp(c.patience,0,1),6)}
+function drawOrderCard(c,x,y){const o=c.o;ctx.fillStyle='#fffaf0';ctx.fillRect(x-48,y-34,96,64);ctx.strokeStyle='#d0a080';ctx.lineWidth=2;ctx.strokeRect(x-48,y-34,96,64);drawTreat(o,x-18,y-4,0.75);if(o.drink)drawDrink(o.drink,x+24,y-2,0.8);ctx.fillStyle='#6a3a2a';ctx.font='bold 9px Oswald, sans-serif';ctx.textAlign='center';ctx.fillText((BASES[o.base].n+(o.icing!=='none'?' · '+ICINGS[o.icing].n:'')+(o.top!=='none'?' · '+TOPS[o.top].n:'')).toUpperCase(),x,y+24);ctx.fillText('$'+price(o),x+36,y-24)}
+function drawTreat(o,x,y,s){ctx.save();ctx.translate(x,y);ctx.scale(s,s);const b=BASES[o.base];ctx.fillStyle=b.col;
+  if(o.base==='cookie'){ctx.beginPath();ctx.arc(0,0,22,0,7);ctx.fill();ctx.fillStyle='#5a3a1a';for(const [dx,dy] of [[-8,-6],[6,-9],[9,6],[-5,8],[0,0]])ctx.fillRect(dx,dy,4,4)}
+  else if(o.base==='cupcake'){ctx.fillStyle='#e07aa8';ctx.beginPath();ctx.moveTo(-18,0);ctx.lineTo(18,0);ctx.lineTo(14,22);ctx.lineTo(-14,22);ctx.fill();ctx.fillStyle=b.col;ctx.beginPath();ctx.arc(0,-4,20,Math.PI,0);ctx.fill()}
+  else if(o.base==='cake'){ctx.fillRect(-28,-6,56,26);ctx.fillStyle='#e8a070';ctx.fillRect(-28,4,56,4)}
+  else if(o.base==='pie'){ctx.beginPath();ctx.ellipse(0,8,30,12,0,0,7);ctx.fill();ctx.fillStyle='#c84040';ctx.beginPath();ctx.ellipse(0,4,22,8,0,0,7);ctx.fill();ctx.fillStyle=b.col;for(let i=-16;i<=16;i+=8){ctx.fillRect(i,-4,3,16)}}
+  else if(o.base==='donut'){ctx.beginPath();ctx.arc(0,4,22,0,7);ctx.fill();ctx.fillStyle='#f0e0d0';ctx.beginPath();ctx.arc(0,4,8,0,7);ctx.fill()}
+  const ic=ICINGS[o.icing||'none'];if(ic&&ic.col&&o.base!=='pie'){ctx.fillStyle=ic.col;if(o.base==='cookie'){ctx.beginPath();ctx.arc(0,0,16,0,7);ctx.fill()}else if(o.base==='cupcake'){ctx.beginPath();ctx.arc(0,-8,18,Math.PI,0);ctx.arc(-8,-14,8,0,7);ctx.arc(8,-14,8,0,7);ctx.arc(0,-22,7,0,7);ctx.fill()}else if(o.base==='cake'){ctx.fillRect(-28,-10,56,10);for(let i=-24;i<=24;i+=12){ctx.beginPath();ctx.arc(i,0,6,0,Math.PI);ctx.fill()}}else if(o.base==='donut'){ctx.beginPath();ctx.arc(0,2,22,Math.PI,0);ctx.fill();ctx.fillStyle='#f0e0d0';ctx.beginPath();ctx.arc(0,4,8,0,7);ctx.fill()}}
+  const tp=o.top||'none';const ty=o.base==='cupcake'?-24:o.base==='cake'?-14:-6;if(tp==='sprinkles'){for(let i=0;i<8;i++){ctx.fillStyle=['#ff4060','#40c0ff','#ffd040','#60e080'][i%4];ctx.save();ctx.translate(-14+i*4,ty+((i*7)%9));ctx.rotate(i);ctx.fillRect(-3,-1,6,2);ctx.restore()}}
+  else if(tp==='cherry'){ctx.fillStyle='#d02040';ctx.beginPath();ctx.arc(0,ty-2,6,0,7);ctx.fill();ctx.strokeStyle='#406020';ctx.lineWidth=2;ctx.beginPath();ctx.moveTo(0,ty-8);ctx.lineTo(4,ty-18);ctx.stroke()}
+  else if(tp==='strawberry'){ctx.fillStyle='#e03050';ctx.beginPath();ctx.moveTo(-7,ty-6);ctx.lineTo(7,ty-6);ctx.lineTo(0,ty+6);ctx.fill();ctx.fillStyle='#40a050';ctx.fillRect(-6,ty-9,12,4);ctx.fillStyle='#ffe0a0';for(const [dx,dy] of [[-3,-2],[2,-3],[0,2]])ctx.fillRect(dx,ty+dy,1.5,1.5)}
+  else if(tp==='choc'){ctx.fillStyle='#4a2a10';for(const [dx,dy] of [[-10,-2],[-2,-5],[6,-1],[2,4],[-7,5]])ctx.fillRect(dx,ty+dy,4,4)}
+  else if(tp==='star'){ctx.fillStyle='#ffd040';ctx.beginPath();for(let i=0;i<10;i++){const r=i%2?4:9,a=i*Math.PI/5-Math.PI/2;ctx.lineTo(Math.cos(a)*r,ty-2+Math.sin(a)*r)}ctx.closePath();ctx.fill()}
+  ctx.restore()}
+function drawDrink(k,x,y,s){s=s||1;ctx.save();ctx.translate(x,y);ctx.scale(s,s);ctx.fillStyle=k==='tea'?'#f0f0f0':'#e8dcd0';ctx.fillRect(-12,-10,24,24);ctx.fillStyle=k==='tea'?'#c08040':'#6a3a1a';ctx.fillRect(-10,-8,20,6);ctx.strokeStyle=k==='tea'?'#f0f0f0':'#e8dcd0';ctx.lineWidth=3;ctx.beginPath();ctx.arc(14,2,6,-1.2,1.2);ctx.stroke();ctx.fillStyle='rgba(255,255,255,0.6)';ctx.fillRect(-4,-22+Math.sin(performance.now()/300)*2,2,8);ctx.fillRect(2,-20,2,6);ctx.restore()}
+function frame(now){requestAnimationFrame(frame);const dt=Math.min(0.1,(now-last)/1000||0);last=now;if(D){tick(dt);refresh()}draw()}
+/* ---- input ---- */
+function tap(x,y){if(!D||D.over)return;ac();const cy=H*0.52,wy=cy+H*0.16;const slots=1+S.up.oven;for(let s=0;s<slots;s++){const ox=W*0.62+s*120,oy=wy+8;if(x>=ox&&x<=ox+100&&y>=oy&&y<=oy+H*0.22){if(D.ovens[s])takeBaked(s);return}}
+  for(let i=0;i<D.customers.length;i++){const c=D.customers[i];if(Math.abs(x-c.x)<50&&y<cy+10){serve(i);return}}}
+cv.addEventListener('mousedown',e=>{const r=cv.getBoundingClientRect();tap((e.clientX-r.left)*W/r.width,(e.clientY-r.top)*H/r.height)});
+cv.addEventListener('touchstart',e=>{const t=e.touches[0];const r=cv.getBoundingClientRect();tap((t.clientX-r.left)*W/r.width,(t.clientY-r.top)*H/r.height);e.preventDefault()},{passive:false});
+$('bTea').onclick=()=>drink('tea');$('bCocoa').onclick=()=>drink('cocoa');$('bBin').onclick=bin;
+addEventListener('keydown',e=>{if(!D)return;const n=parseInt(e.key);if(n>=1&&n<=5){const k=avail(BASES)[n-1];if(k)bake(k)}if(e.key==='b')bin()});
+let AC=null;function ac(){if(!AC){try{AC=new (window.AudioContext||window.webkitAudioContext)()}catch(e){}}if(AC&&AC.state==='suspended')AC.resume();return AC}
+function beep(f,d,type){const a=ac();if(!a)return;const o=a.createOscillator(),g=a.createGain();o.type=type||'sine';o.frequency.value=f;g.gain.value=0.05;g.gain.exponentialRampToValueAtTime(0.0001,a.currentTime+d);o.connect(g);g.connect(a.destination);o.start();o.stop(a.currentTime+d)}
+function titleScreen(){const saved=load();$('overlay').innerHTML='<div class="modal title"><h1>IRON BAKERY</h1><div class="tag">BAKE · ICE · DECORATE · SERVE</div><p>Run a little cake shop. Customers line up with an order card: bake the right thing, ice it the right colour, add the right topping, pour a drink if they asked, and serve it before their patience runs out. Earn coins each day to buy a second oven, comfier chairs, prettier decorations and new recipes.</p>'+(saved?'<button class="btn on" id="cont">CONTINUE — DAY '+saved.day+' · '+saved.coins+' COINS</button>':'')+'<button class="btn" id="new" style="margin-top:6px">NEW BAKERY</button></div>';$('overlay').classList.add('on');
+  const begin=st=>{S=st;$('overlay').classList.remove('on');ac();startDay()};if(saved)$('cont').onclick=()=>begin(saved);$('new').onclick=()=>begin(newState())}
+titleScreen();requestAnimationFrame(frame);
+</script>
+</body>
+</html>

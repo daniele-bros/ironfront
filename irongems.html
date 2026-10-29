@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0,viewport-fit=cover,user-scalable=no">
+<title>Iron Gems – Free Match-3 Puzzle Game in Your Browser | Iron Games</title>
+<meta name="description" content="Iron Gems is a free browser match-3 game: swap sparkling gems to line up three or more, set off chains and cascades, beat each level's score target in a limited number of moves and keep climbing. Best level saved. No download.">
+<meta name="robots" content="index,follow,max-snippet:-1,max-image-preview:large">
+<link rel="canonical" href="https://irongames.win/irongems.html">
+<link rel="icon" href="favicon.svg" type="image/svg+xml"><link rel="manifest" href="site.webmanifest">
+<meta property="og:type" content="website"><meta property="og:site_name" content="Iron Games"><meta property="og:title" content="Iron Gems – Match-3 | Iron Games"><meta property="og:description" content="Swap gems, make matches, beat the target. Free in your browser, no download."><meta property="og:url" content="https://irongames.win/irongems.html"><meta name="twitter:card" content="summary">
+<script type="application/ld+json">{"@context":"https://schema.org","@graph":[{"@type":"VideoGame","name":"Iron Gems","url":"https://irongames.win/irongems.html","genre":["Puzzle","Casual","Match-3","Family"],"gamePlatform":"Web browser","applicationCategory":"Game","operatingSystem":"Any","isAccessibleForFree":true,"offers":{"@type":"Offer","price":"0","priceCurrency":"USD"},"author":{"@type":"Organization","name":"Daniele Bros","url":"https://irongames.win/"},"description":"A match-3 puzzle game: swap adjacent gems to make lines of three or more, with cascades, level score targets, limited moves and saved progress."},{"@type":"BreadcrumbList","itemListElement":[{"@type":"ListItem","position":1,"name":"Iron Games","item":"https://irongames.win/"},{"@type":"ListItem","position":2,"name":"Iron Gems","item":"https://irongames.win/irongems.html"}]}]}</script>
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link href="https://fonts.googleapis.com/css2?family=Oswald:wght@500;700&family=Share+Tech+Mono&display=swap" rel="stylesheet">
+<style>
+:root{--gold:#e8c84a;--cream:#fff8ff;--dim:#b090c0;--panel:rgba(36,20,48,.94);--border:#6a3a8a;--accent:#ff9ae0;}
+*{box-sizing:border-box;margin:0;padding:0;}html,body{width:100%;height:100%;overflow:hidden;background:#1c1028;}
+body{font-family:'Share Tech Mono','Courier New',monospace;color:var(--cream);user-select:none;-webkit-user-select:none;touch-action:none;}
+#wrap{position:absolute;inset:0;display:grid;grid-template-columns:1fr 270px;}#main{position:relative;overflow:hidden;}canvas#c{width:100%;height:100%;display:block;}
+#side{background:var(--panel);border-left:1px solid var(--border);display:flex;flex-direction:column;padding:12px;gap:7px;overflow-y:auto;}
+.back{position:absolute;top:10px;left:10px;z-index:30;background:rgba(36,20,48,.85);color:var(--dim);font-family:'Oswald',sans-serif;font-size:12px;letter-spacing:3px;padding:7px 12px;border:1px solid var(--border);text-decoration:none;border-radius:2px;}.back:hover{color:var(--gold);border-color:var(--gold);}
+h2.t{font-family:'Oswald',sans-serif;font-size:22px;letter-spacing:6px;color:var(--accent);}
+.stat{display:flex;justify-content:space-between;font-size:12px;letter-spacing:1px;padding:2px 0;border-bottom:1px dashed #4a2a5a;}.stat b{color:var(--gold);}
+.bar{height:10px;background:#2a1a3a;border:1px solid var(--border);border-radius:5px;overflow:hidden;}.bar i{display:block;height:100%;background:linear-gradient(90deg,#ff9ae0,#ffd27a);transition:width .3s;}
+.btn{display:block;width:100%;background:#3e2458;border:1px solid var(--border);color:var(--cream);font-family:'Oswald',sans-serif;font-size:12px;letter-spacing:2px;padding:7px 6px;cursor:pointer;text-align:center;border-radius:6px;}.btn:hover{border-color:var(--accent);color:var(--accent);}.btn.on{background:#8a3a9a;border-color:var(--accent);color:#fff;}
+.row{display:flex;gap:5px;flex-wrap:wrap;}.row .btn{flex:1;min-width:58px;}
+#panel{flex:1;min-height:60px;overflow-y:auto;font-size:12px;line-height:1.5;border:1px solid var(--border);padding:8px;background:rgba(0,0,0,.3);border-radius:6px;}
+#panel h4{font-family:'Oswald',sans-serif;letter-spacing:3px;color:var(--accent);font-size:13px;margin:4px 0 6px;}
+#overlay{position:absolute;inset:0;display:none;align-items:center;justify-content:center;background:rgba(0,0,0,.55);z-index:20;padding:16px;}#overlay.on{display:flex;}
+.modal{background:var(--panel);border:2px solid var(--accent);border-radius:10px;padding:18px 20px;max-width:520px;width:100%;max-height:100%;overflow:auto;}.modal h3{font-family:'Oswald',sans-serif;letter-spacing:5px;color:var(--accent);font-size:20px;margin-bottom:10px;}.modal p{font-size:13px;line-height:1.6;margin-bottom:10px;}
+.title h1{font-family:'Oswald',sans-serif;font-size:44px;letter-spacing:12px;color:var(--accent);text-align:center;text-shadow:0 0 24px rgba(255,154,224,.35);}.title .tag{font-size:12px;letter-spacing:4px;color:var(--dim);margin:6px 0 16px;text-align:center;}
+@media (max-width:760px){#wrap{grid-template-columns:1fr;grid-template-rows:64% 36%;}#side{border-left:none;border-top:1px solid var(--border);}.title h1{font-size:30px;letter-spacing:6px;}}
+</style></head>
+<body>
+<a class="back" href="/" title="Back to Iron Games">◀ IRON GAMES</a>
+<div id="wrap">
+  <div id="main"><canvas id="c"></canvas><div id="overlay"></div></div>
+  <div id="side">
+    <h2 class="t">IRON GEMS</h2>
+    <div class="stat"><span id="sLvl">Level 1</span><b id="sMoves">20 moves</b></div>
+    <div class="stat"><span>Score · target</span><b id="sScore">0 · 500</b></div>
+    <div class="bar"><i id="bar" style="width:0%"></i></div>
+    <div class="row"><button class="btn" id="bHint">HINT</button><button class="btn" id="bRestart">RESTART LEVEL</button></div>
+    <div id="panel"></div>
+  </div>
+</div>
+<script>
+'use strict';
+const $=id=>document.getElementById(id);const N=8;const GEMS=['#ff4a6a','#ffb030','#ffe050','#50e080','#50b0ff','#c070ff'];
+let G=null,sel=null,anim=[],hintT=0,hintPair=null,last=0,busy=false,best=1;
+try{best=parseInt(localStorage.getItem('igm_best')||'1')}catch(e){}
+function target(l){return 400+l*180+l*l*20}function movesFor(l){return Math.max(12,24-Math.floor(l/2))}
+function newLevel(l){G={lvl:l,score:0,moves:movesFor(l),target:target(l),grid:[],kinds:Math.min(6,4+Math.floor(l/3)),over:false};for(let y=0;y<N;y++){G.grid[y]=[];for(let x=0;x<N;x++){let k;do{k=Math.floor(Math.random()*G.kinds)}while((x>=2&&G.grid[y][x-1]===k&&G.grid[y][x-2]===k)||(y>=2&&G.grid[y-1][x]===k&&G.grid[y-2][x]===k));G.grid[y][x]=k}}if(!findMove())newLevel(l);refresh();renderPanel()}
+function matches(g){const m=[];for(let y=0;y<N;y++)for(let x=0;x<N;x++){const k=g[y][x];if(k<0)continue;if(x<=N-3&&g[y][x+1]===k&&g[y][x+2]===k){let e=x+2;while(e+1<N&&g[y][e+1]===k)e++;for(let i=x;i<=e;i++)m.push([i,y]);x=e}}for(let x=0;x<N;x++)for(let y=0;y<N;y++){const k=g[y][x];if(k<0)continue;if(y<=N-3&&g[y+1][x]===k&&g[y+2][x]===k){let e=y+2;while(e+1<N&&g[e+1][x]===k)e++;for(let i=y;i<=e;i++)m.push([x,i]);y=e}}return m}
+function findMove(){const g=G.grid;for(let y=0;y<N;y++)for(let x=0;x<N;x++)for(const [dx,dy] of [[1,0],[0,1]]){const nx=x+dx,ny=y+dy;if(nx>=N||ny>=N)continue;swap(g,x,y,nx,ny);const ok=matches(g).length>0;swap(g,x,y,nx,ny);if(ok)return [[x,y],[nx,ny]]}return null}
+function swap(g,x1,y1,x2,y2){const t=g[y1][x1];g[y1][x1]=g[y2][x2];g[y2][x2]=t}
+async function trySwap(a,b){if(busy||G.over)return;if(Math.abs(a[0]-b[0])+Math.abs(a[1]-b[1])!==1)return;busy=true;const g=G.grid;swap(g,a[0],a[1],b[0],b[1]);anim=[{x:a[0],y:a[1],t:0.2},{x:b[0],y:b[1],t:0.2}];await wait(160);
+  if(!matches(g).length){swap(g,a[0],a[1],b[0],b[1]);beep(200,0.15,'sawtooth');busy=false;return}
+  G.moves--;let chain=0;while(true){const m=matches(g);if(!m.length)break;chain++;const uniq=[...new Set(m.map(p=>p[0]+','+p[1]))];const pts=uniq.length*10*chain;G.score+=pts;for(const u of uniq){const [x,y]=u.split(',').map(Number);anim.push({x,y,t:0.25,pop:true});g[y][x]=-1}beep(500+chain*120,0.1,'triangle');refresh();await wait(220);
+    for(let x=0;x<N;x++){let w=N-1;for(let y=N-1;y>=0;y--){if(g[y][x]>=0){g[w][x]=g[y][x];if(w!==y)g[y][x]=-1;w--}}for(let y=w;y>=0;y--)g[y][x]=Math.floor(Math.random()*G.kinds)}await wait(120)}
+  if(G.score>=G.target){G.over=true;if(G.lvl+1>best){best=G.lvl+1;try{localStorage.setItem('igm_best',String(best))}catch(e){}}show('<h3>LEVEL '+G.lvl+' CLEAR</h3><p>'+G.score+' points with '+G.moves+' moves to spare. On to level '+(G.lvl+1)+'!</p><button class="btn on" id="ok">NEXT LEVEL</button>').then(()=>newLevel(G.lvl+1))}
+  else if(G.moves<=0){G.over=true;show('<h3>OUT OF MOVES</h3><p>'+G.score+' of '+G.target+' points. Try the level again: look for swaps that set off chains.</p><button class="btn on" id="ok">TRY AGAIN</button>').then(()=>newLevel(G.lvl))}
+  else if(!findMove()){newLevel(G.lvl);flash('No moves left: the board was reshuffled.')}
+  busy=false;refresh()}
+const wait=ms=>new Promise(r=>setTimeout(r,ms));
+let flashT=0,flashMsg='';function flash(t){flashMsg=t;flashT=2}
+function show(html){return new Promise(res=>{$('overlay').innerHTML='<div class="modal">'+html+'</div>';$('overlay').classList.add('on');$('ok').onclick=()=>{$('overlay').classList.remove('on');res()}})}
+function refresh(){$('sLvl').textContent='Level '+G.lvl+' · best '+best;$('sMoves').textContent=G.moves+' moves';$('sScore').textContent=G.score+' · '+G.target;$('bar').style.width=Math.min(100,G.score/G.target*100)+'%'}
+function renderPanel(){$('panel').innerHTML='<h4>HOW TO PLAY</h4><p>Tap a gem, then tap the one next to it to swap them. A swap only works if it lines up three or more of the same gem. Matched gems vanish, the rest fall and new ones drop in, and chains score double, triple and more. Reach the target before the moves run out.</p>'}
+const cv=$('c'),ctx=cv.getContext('2d');let W=800,H=450;
+function resize(){const r=cv.getBoundingClientRect();W=Math.max(300,Math.floor(r.width));H=Math.max(200,Math.floor(r.height));cv.width=W;cv.height=H}addEventListener('resize',resize);resize();
+function cell(){const s=Math.floor(Math.min(W,H)*0.9/N);return [(W-s*N)/2,(H-s*N)/2,s]}
+function draw(){const t=performance.now()/1000;const g=ctx.createLinearGradient(0,0,0,H);g.addColorStop(0,'#2a1a40');g.addColorStop(1,'#1c1028');ctx.fillStyle=g;ctx.fillRect(0,0,W,H);ctx.fillStyle='rgba(255,255,255,0.05)';for(let i=0;i<40;i++)ctx.fillRect((i*197)%W,(i*131+t*20)%H,2,2);if(!G)return;const [ox,oy,s]=cell();ctx.fillStyle='rgba(0,0,0,0.35)';ctx.fillRect(ox-6,oy-6,s*N+12,s*N+12);
+  for(let y=0;y<N;y++)for(let x=0;x<N;x++){const k=G.grid[y][x];const px=ox+x*s,py=oy+y*s;ctx.fillStyle=(x+y)%2?'rgba(255,255,255,0.05)':'rgba(255,255,255,0.09)';ctx.fillRect(px,py,s,s);if(k<0)continue;const a=anim.find(q=>q.x===x&&q.y===y);let sc=1;if(a&&a.pop)sc=Math.max(0.1,a.t/0.25);else if(a)sc=1+Math.sin((0.2-a.t)*15)*0.12;const isSel=sel&&sel[0]===x&&sel[1]===y;const isHint=hintPair&&hintPair.some(p=>p[0]===x&&p[1]===y);drawGem(k,px+s/2,py+s/2,s*0.38*sc*(isSel?1.15:1),isSel||isHint,t)}
+  ctx.fillStyle='rgba(36,20,48,0.55)';ctx.fillRect(0,0,W,26);ctx.fillStyle='#ffd0f0';ctx.font='bold 13px Oswald, sans-serif';ctx.textAlign='left';ctx.fillText(flashT>0?flashMsg.toUpperCase():'LEVEL '+G.lvl+' · MATCH 3 OR MORE · '+G.moves+' MOVES LEFT',150,17)}
+function drawGem(k,x,y,r,glow,t){ctx.save();ctx.translate(x,y);if(glow){ctx.shadowColor='#fff';ctx.shadowBlur=18}ctx.fillStyle=GEMS[k];ctx.beginPath();if(k===0){for(let i=0;i<6;i++){const a=i/6*Math.PI*2;ctx.lineTo(Math.cos(a)*r,Math.sin(a)*r)}}else if(k===1){ctx.moveTo(0,-r);ctx.lineTo(r,0);ctx.lineTo(0,r);ctx.lineTo(-r,0)}else if(k===2){ctx.rect(-r*0.8,-r*0.8,r*1.6,r*1.6)}else if(k===3){ctx.moveTo(0,-r);ctx.lineTo(r*0.9,r*0.7);ctx.lineTo(-r*0.9,r*0.7)}else if(k===4){ctx.arc(0,0,r,0,7)}else{for(let i=0;i<10;i++){const rr=i%2?r*0.5:r,a=i*Math.PI/5-Math.PI/2;ctx.lineTo(Math.cos(a)*rr,Math.sin(a)*rr)}}ctx.closePath();ctx.fill();ctx.shadowBlur=0;ctx.fillStyle='rgba(255,255,255,0.45)';ctx.beginPath();ctx.ellipse(-r*0.3,-r*0.35,r*0.28,r*0.18,-0.6,0,7);ctx.fill();ctx.fillStyle='rgba(0,0,0,0.18)';ctx.beginPath();ctx.ellipse(r*0.2,r*0.4,r*0.4,r*0.2,0.4,0,7);ctx.fill();ctx.restore()}
+function frame(now){requestAnimationFrame(frame);const dt=Math.min(0.1,(now-last)/1000||0);last=now;for(const a of anim)a.t-=dt;anim=anim.filter(a=>a.t>0);flashT=Math.max(0,flashT-dt);if(hintT>0){hintT-=dt;if(hintT<=0)hintPair=null}draw()}
+function tap(x,y){if(!G||busy||G.over)return;ac();const [ox,oy,s]=cell();const gx=Math.floor((x-ox)/s),gy=Math.floor((y-oy)/s);if(gx<0||gy<0||gx>=N||gy>=N){sel=null;return}if(!sel){sel=[gx,gy];beep(600,0.04);return}const a=sel;sel=null;if(a[0]===gx&&a[1]===gy)return;if(Math.abs(a[0]-gx)+Math.abs(a[1]-gy)!==1){sel=[gx,gy];return}trySwap(a,[gx,gy])}
+cv.addEventListener('mousedown',e=>{const r=cv.getBoundingClientRect();tap((e.clientX-r.left)*W/r.width,(e.clientY-r.top)*H/r.height)});cv.addEventListener('touchstart',e=>{const t=e.touches[0];const r=cv.getBoundingClientRect();tap((t.clientX-r.left)*W/r.width,(t.clientY-r.top)*H/r.height);e.preventDefault()},{passive:false});
+$('bHint').onclick=()=>{if(!G)return;hintPair=findMove();hintT=2};$('bRestart').onclick=()=>{if(G)newLevel(G.lvl)};
+let AC=null;function ac(){if(!AC){try{AC=new (window.AudioContext||window.webkitAudioContext)()}catch(e){}}if(AC&&AC.state==='suspended')AC.resume();return AC}
+function beep(f,d,type){const a=ac();if(!a)return;const o=a.createOscillator(),g=a.createGain();o.type=type||'sine';o.frequency.value=f;g.gain.value=0.05;g.gain.exponentialRampToValueAtTime(0.0001,a.currentTime+d);o.connect(g);g.connect(a.destination);o.start();o.stop(a.currentTime+d)}
+$('overlay').innerHTML='<div class="modal title"><h1>IRON GEMS</h1><div class="tag">MATCH THREE, THEN MORE</div><p>Swap neighbouring gems to line up three or more of a kind. Matches vanish, gems tumble down and chains score big. Each level has a score target and a handful of moves, and the gems get trickier as you climb. Best level: '+best+'.</p><div class="row"><button class="btn on" id="go">LEVEL 1</button>'+(best>1?'<button class="btn" id="goBest">LEVEL '+best+'</button>':'')+'</div></div>';$('overlay').classList.add('on');$('go').onclick=()=>{$('overlay').classList.remove('on');newLevel(1)};if(best>1)$('goBest').onclick=()=>{$('overlay').classList.remove('on');newLevel(best)};
+requestAnimationFrame(frame);
+</script></body></html>
