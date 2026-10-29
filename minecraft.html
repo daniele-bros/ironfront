@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="ironcraft-build" content="20261029-145203">
+<meta name="ironcraft-build" content="20261029-151459">
 <meta name="viewport" content="width=device-width,initial-scale=1.0,viewport-fit=cover">
 <title>Ironcraft – Free Voxel Survival Sandbox in Your Browser | Iron Games</title>
 <meta name="description" content="Ironcraft is a free browser-based voxel survival sandbox with building, exploration, private or safety-limited public multiplayer, and optional weather, horror and survival challenges. By Daniele Bros.">
@@ -1811,9 +1811,9 @@ function hudIcon(kind,state){
   return c.toDataURL();
 }
 /* ===================== WORLD: CHUNKS, GENERATION, LIGHTING ===================== */
-const CS=16,CH=228,GH=128,SEA=62;const CELLS=CS*CS*256,RT_N=Math.ceil(24*CH/GH); // CH: build limit. GH: the old height, kept for terrain generation so the land is unchanged. CELLS: y gets 8 bits in cidx. RT_N: random ticks per chunk, scaled so each row is ticked as often as before
-const cidx=(x,y,z)=>(x<<12)|(z<<8)|y;
-function chunkTop(c,fresh){if(fresh||c.topY===undefined){const bl=c.blocks;let t=0;for(let col=0;col<256;col++){const base=((col>>4)<<12)|((col&15)<<8);for(let y=CH-1;y>t;y--)if(bl[base+y]){t=y;break}}c.topY=t}return c.topY}
+const CS=16,CH=320,GH=128,SEA=62;const CELLS=CS*CS*512,RT_N=Math.ceil(24*CH/GH); // CH: build limit. GH: the old height, kept for terrain generation so the land is unchanged. CELLS: y gets 9 bits in cidx. RT_N: random ticks per chunk, scaled so each row is ticked as often as before
+const cidx=(x,y,z)=>(x<<13)|(z<<9)|y;
+function chunkTop(c,fresh){if(fresh||c.topY===undefined){const bl=c.blocks;let t=0;for(let col=0;col<256;col++){const base=((col>>4)<<13)|((col&15)<<9);for(let y=CH-1;y>t;y--)if(bl[base+y]){t=y;break}}c.topY=t}return c.topY}
 function lightTop(w,c){let t=chunkTop(c,true);for(let dx=-1;dx<=1;dx++)for(let dz=-1;dz<=1;dz++){if(!dx&&!dz)continue;const n=w.getChunk(c.cx+dx,c.cz+dz);if(n&&n.generated){const m=chunkTop(n);if(m>t)t=m}}return Math.min(CH,t+3)} // topmost row that needs hand lighting
 const chunkKey=(cx,cz)=>(cx+32768)*65536+(cz+32768);
 class Chunk{
@@ -4909,7 +4909,7 @@ function campfireCook(t,st,hd){const out=hd.toastable?457:(hd.smelt&&ITEMS[hd.sm
 function tickCamp(dt){if(!world)return;const G=game,p=player;
   if(G.campWorld!==world){G.campWorld=world;G.campfires=new Map();G.campCook=[];G.campScan=0;G.campTok={}}
   G.campScan-=dt;if(G.campScan<=0){G.campScan=0.5;let n=0; // pick up campfires in chunks that just loaded
-    for(const c of world.chunks.values()){if(!c.generated||c._cf===G.campTok)continue;c._cf=G.campTok;let i=c.blocks.indexOf(156);while(i>=0){const x=c.cx*16+(i>>12),z=c.cz*16+((i>>8)&15),y=i&255;G.campfires.set(x+','+y+','+z,[x,y,z]);i=c.blocks.indexOf(156,i+1)}if(++n>=4)break}}
+    for(const c of world.chunks.values()){if(!c.generated||c._cf===G.campTok)continue;c._cf=G.campTok;let i=c.blocks.indexOf(156);while(i>=0){const x=c.cx*16+(i>>13),z=c.cz*16+((i>>9)&15),y=i&511;G.campfires.set(x+','+y+','+z,[x,y,z]);i=c.blocks.indexOf(156,i+1)}if(++n>=4)break}}
   for(const [k,a] of G.campfires){const dx=a[0]+0.5-p.x,dz=a[2]+0.5-p.z;if(dx*dx+dz*dz>576)continue;if(world.getBlock(a[0],a[1],a[2])!==156){G.campfires.delete(k);continue}
     if(Math.random()<dt*3)spawnParticles('fire',a[0]+0.5+(Math.random()-0.5)*0.4,a[1]+0.35,a[2]+0.5+(Math.random()-0.5)*0.4,1);
     if(Math.random()<dt*1.5)spawnParticles('smoke',a[0]+0.5,a[1]+0.9,a[2]+0.5,1);
@@ -5057,7 +5057,7 @@ Object.assign(World.prototype,{
   setChest(x,y,z,facing,table,rng,n){this.setGen(x,y,z,39,facing,false);const items=lootRich(table,rng,n,x,y,z);const c=this.getChunk(x>>4,z>>4);
     if(c&&c.generated){c.bents.set(cidx(x&15,y,z&15),{items})}else{const k=chunkKey(x>>4,z>>4);let l=this.pendingLoot.get(k);if(!l){l=[];this.pendingLoot.set(k,l)}l.push([x&15,y,z&15,items])}},
   applyPendingLoot(c){const k=chunkKey(c.cx,c.cz);const l=this.pendingLoot.get(k);if(!l)return;for(const [lx,ly,lz,items] of l){const i=cidx(lx,ly,lz);if(c.blocks[i]===39&&!c.bents.has(i))c.bents.set(i,{items:items.map(s=>s?{id:s.id,count:s.count}:null)})}},
-  registerSpawners(c){const bl=c.blocks;for(let i=0;i<bl.length;i++){if(bl[i]===86){const x=c.cx*16+(i>>12),y=i&255,z=c.cz*16+((i>>8)&15);this.spawners.set(x+','+y+','+z,{x,y,z,type:c.meta[i]&3,t:5+Math.random()*10})}else if(bl[i]===111){const x=c.cx*16+(i>>12),y=i&255,z=c.cz*16+((i>>8)&15);if(!this.trials.has(x+','+y+','+z))this.trials.set(x+','+y+','+z,{x,y,z,kind:c.meta[i]&3,state:'idle',mobs:[],total:0,cd:0,t:0})}else if(bl[i]===119){const x=c.cx*16+(i>>12),y=i&255,z=c.cz*16+((i>>8)&15);if(!this.shriekers.has(x+','+y+','+z))this.shriekers.set(x+','+y+','+z,{x,y,z,cd:0})}}},
+  registerSpawners(c){const bl=c.blocks;for(let i=0;i<bl.length;i++){if(bl[i]===86){const x=c.cx*16+(i>>13),y=i&511,z=c.cz*16+((i>>9)&15);this.spawners.set(x+','+y+','+z,{x,y,z,type:c.meta[i]&3,t:5+Math.random()*10})}else if(bl[i]===111){const x=c.cx*16+(i>>13),y=i&511,z=c.cz*16+((i>>9)&15);if(!this.trials.has(x+','+y+','+z))this.trials.set(x+','+y+','+z,{x,y,z,kind:c.meta[i]&3,state:'idle',mobs:[],total:0,cd:0,t:0})}else if(bl[i]===119){const x=c.cx*16+(i>>13),y=i&511,z=c.cz*16+((i>>9)&15);if(!this.shriekers.has(x+','+y+','+z))this.shriekers.set(x+','+y+','+z,{x,y,z,cd:0})}}},
   fill(x0,y0,z0,x1,y1,z1,id,meta=0){for(let x=x0;x<=x1;x++)for(let y=y0;y<=y1;y++)for(let z=z0;z<=z1;z++)this.setGen(x,y,z,id,meta,false)},
   regionOrigin(cx,cz,size,salt){const rx=Math.floor(cx/size),rz=Math.floor(cz/size);const r=mulberry32(hashInt(rx,rz,salt,this.seed));const ox=rx*size+floor(r()*size),oz=rz*size+floor(r()*size);return ox===cx&&oz===cz?r:null},
   surfaceY(x,z){return this.flatY!==undefined?this.flatY:this.columnInfo(x,z).height},
@@ -5842,7 +5842,7 @@ function hopperPushSlots(id,be,st){const d=BLOCKS[id];if(!d||!d.gui||!be)return 
   if(d.gui==='brew')return null;return [...Array(be.items.length).keys()]}
 function tickHoppers(){if(!world||(MP.active&&!MP.host))return;const pcx=floor(player.x)>>4,pcz=floor(player.z)>>4;
   for(const c of world.chunks.values()){const dx=c.cx-pcx,dz=c.cz-pcz;if(dx*dx+dz*dz>16)continue;
-    for(const [i,be] of c.bents){if(c.blocks[i]!==147||!be.items)continue;const x=c.cx*16+(i>>12),y=i&255,z=c.cz*16+((i>>8)&15);const meta=c.meta[i];let changed=false;
+    for(const [i,be] of c.bents){if(c.blocks[i]!==147||!be.items)continue;const x=c.cx*16+(i>>13),y=i&511,z=c.cz*16+((i>>9)&15);const meta=c.meta[i];let changed=false;
       // items dropped onto the rim fall in
       for(const e of entities){if(!(e instanceof ItemEntity)||e.dead||!e.stack)continue;if(abs(e.x-x-0.5)<0.7&&abs(e.z-z-0.5)<0.7&&e.y>y+0.4&&e.y<y+1.6){while(e.stack.count>0&&hopperInsert(be.items,e.stack,[0,1,2,3,4])){e.stack.count--;changed=true}if(e.stack.count<=0){e.dead=true;if(e.nid&&MP.active)mpSend({t:'ir',nid:e.nid})}else if(changed&&e.nid&&MP.active)mpSend({t:'ic',nid:e.nid,count:e.stack.count})}}
       // pull one item from the container above
@@ -6335,7 +6335,7 @@ function switchDimension(homeOnly){
 function ensureChunks(x,z,r){const cx=floor(x)>>4,cz=floor(z)>>4;for(let dx=-r;dx<=r;dx++)for(let dz=-r;dz<=r;dz++)populateChunk(world.generateChunk(cx+dx,cz+dz))}
 function findPortal(tx,tz,rad,P=82,skip=null){let best=null;const cx0=floor(tx)>>4,cz0=floor(tz)>>4;const cr=Math.ceil(rad/16);
   for(let dx=-cr;dx<=cr;dx++)for(let dz=-cr;dz<=cr;dz++){const c=world.getChunk(cx0+dx,cz0+dz);if(!c||!c.generated)continue;const bl=c.blocks;
-    for(let i=0;i<bl.length;i++){if(bl[i]!==P)continue;const y=i&255;if(bl[i^1]!==P&&y>0&&bl[i-1]===P)continue;const x=c.cx*16+(i>>12),z=c.cz*16+((i>>8)&15);if(world.getBlock(x,y-1,z)===P)continue;const d=(x-tx)**2+(z-tz)**2;if(d>rad*rad)continue;if(skip&&skip(x,y,z))continue;if(!best||d<best.d)best={d,x,y,z}}}
+    for(let i=0;i<bl.length;i++){if(bl[i]!==P)continue;const y=i&511;if(bl[i^1]!==P&&y>0&&bl[i-1]===P)continue;const x=c.cx*16+(i>>13),z=c.cz*16+((i>>9)&15);if(world.getBlock(x,y-1,z)===P)continue;const d=(x-tx)**2+(z-tz)**2;if(d>rad*rad)continue;if(skip&&skip(x,y,z))continue;if(!best||d<best.d)best={d,x,y,z}}}
   return best?[best.x+0.5,best.y,best.z+0.5]:null}
 function buildPortal(tx,tz,kind){
   const bx=floor(tx),bz=floor(tz);let by=-1;const F=kind==='sift'?125:31,P=kind==='sift'?134:82;
@@ -6440,8 +6440,8 @@ const SaveDB={p:null,open(){if(this.p)return this.p;this.p=new Promise(res=>{try
   async put(id,val){const db=await this.open();if(!db)return false;return new Promise(res=>{try{const tx=db.transaction('worlds','readwrite');tx.objectStore('worlds').put(val,id);tx.oncomplete=()=>res(true);tx.onerror=()=>res(false);tx.onabort=()=>res(false)}catch(e){res(false)}})},
   async del(id){const db=await this.open();if(!db)return false;return new Promise(res=>{try{const tx=db.transaction('worlds','readwrite');tx.objectStore('worlds').delete(id);tx.oncomplete=()=>res(true);tx.onerror=()=>res(false)}catch(e){res(false)}})}};
 // block edits travel as one Uint32 per change (chunk index << 16 | block id | meta << 8): a quarter of the JSON size
-function packMods(mods){const out={};for(const k in mods){const a=mods[k];if(!a)continue;if(a instanceof Uint32Array){out[k]=a;continue}const u=new Uint32Array(a.length);for(let i=0;i<a.length;i++)u[i]=((a[i][0]&0xffff)<<16|(a[i][1]&0xffff))>>>0;out[k]=u}return out}
-function unpackMods(mods){if(!mods)return {};const out={};for(const k in mods){const a=mods[k];if(!a)continue;if(a instanceof Uint32Array||(a&&a.buffer&&a.BYTES_PER_ELEMENT===4)){const arr=new Array(a.length);for(let i=0;i<a.length;i++)arr[i]=[a[i]>>>16,a[i]&0xffff];out[k]=arr}else out[k]=a}return out}
+function packMods(mods){const out={};for(const k in mods){const a=mods[k];if(!a)continue;if(a instanceof Uint32Array||a instanceof Float64Array){out[k]=a;continue}const u=new Float64Array(a.length);for(let i=0;i<a.length;i++)u[i]=a[i][0]*65536+(a[i][1]&0xffff);out[k]=u}return out} // index*65536+value: the index needs 17 bits since the world grew to 320
+function unpackMods(mods){if(!mods)return {};const out={};for(const k in mods){const a=mods[k];if(!a)continue;if(a instanceof Uint32Array||(a&&a.buffer&&a.BYTES_PER_ELEMENT===4)){const arr=new Array(a.length);for(let i=0;i<a.length;i++)arr[i]=[a[i]>>>16,a[i]&0xffff];out[k]=arr}else if(a instanceof Float64Array||(a&&a.buffer&&a.BYTES_PER_ELEMENT===8)){const arr=new Array(a.length);for(let i=0;i<a.length;i++){const v=a[i];arr[i]=[Math.floor(v/65536),v%65536]}out[k]=arr}else out[k]=a}return out}
 function packSave(save){const c=Object.assign({},save);c.mods=packMods(save.mods||{});for(const d of ['nether','end','sift'])if(save[d])c[d]=Object.assign({},save[d],{mods:packMods(save[d].mods||{})});return c}
 function unpackSave(save){if(!save)return save;save.mods=unpackMods(save.mods);for(const d of ['nether','end','sift'])if(save[d])save[d].mods=unpackMods(save[d].mods);return save}
 let saveFailT=0;
@@ -6449,12 +6449,14 @@ function deleteWorldSave(id){try{localStorage.removeItem('ic_world_'+id)}catch(e
 async function readWorldSave(id){const key='ic_world_'+id;let save=await SaveDB.get(key);if(save===undefined||save===null){let ls=null;try{ls=localStorage.getItem(key)}catch(e){}if(ls){try{save=JSON.parse(ls)}catch(e){save=null}if(save){const ok=await SaveDB.put(key,packSave(save));if(ok){try{localStorage.removeItem(key)}catch(e){}}}}}return unpackSave(save||null)}
 async function migrateOldSaves(){const db=await SaveDB.open();if(!db)return;let n=0;for(const w of worldList()){const key='ic_world_'+w.id;let ls=null;try{ls=localStorage.getItem(key)}catch(e){}if(!ls)continue;try{const save=JSON.parse(ls);const ok=await SaveDB.put(key,packSave(save));if(ok){localStorage.removeItem(key);n++}}catch(e){}}if(n)console.log('Moved '+n+' world save(s) into IndexedDB')}
 
-// worlds saved when the world was 128 high index chunk edits as x<<11|z<<7|y; they are remapped to x<<12|z<<8|y on load
-function oldIdx(i){i=+i;return ((i>>11)<<12)|(((i>>7)&15)<<8)|(i&127)}
-function oldLayoutMods(m){if(!m)return m;m=unpackMods(m);const out={};for(const k in m){const a=m[k];out[k]=a&&a.map?a.map(e=>[oldIdx(e[0]),e[1]]):a}return out}
-function migrateSaveHeight(save){if(!save||(save.ch&&save.ch!==128))return save;
-  save.mods=oldLayoutMods(save.mods);save.bents=oldLayoutMods(save.bents);
-  for(const d of ['nether','end','sift'])if(save[d]){save[d].mods=oldLayoutMods(save[d].mods);save[d].bents=oldLayoutMods(save[d].bents)}
+// chunk edits are keyed by cell index, whose layout grew with the build height: 128-high worlds used x<<11|z<<7|y, 228-high ones x<<12|z<<8|y; both are remapped to x<<13|z<<9|y on load
+function oldIdx(i){i=+i;return ((i>>11)<<13)|(((i>>7)&15)<<9)|(i&127)}
+function idx228(i){i=+i;return ((i>>12)<<13)|(((i>>8)&15)<<9)|(i&255)}
+function idxMapFor(ch){return !ch||ch===128?oldIdx:ch===228?idx228:null}
+function oldLayoutMods(m,f){if(!m)return m;f=f||oldIdx;m=unpackMods(m);const out={};for(const k in m){const a=m[k];out[k]=a&&a.map?a.map(e=>[f(e[0]),e[1]]):a}return out}
+function migrateSaveHeight(save){if(!save)return save;const f=idxMapFor(save.ch);if(!f)return save;
+  save.mods=oldLayoutMods(save.mods,f);save.bents=oldLayoutMods(save.bents,f);
+  for(const d of ['nether','end','sift'])if(save[d]){save[d].mods=oldLayoutMods(save[d].mods,f);save[d].bents=oldLayoutMods(save[d].bents,f)}
   save.ch=CH;return save}
 function startWorld(meta,save){if(typeof modsPending==='function')modsPending();if(save)migrateSaveHeight(save);if(window.trackEvent)trackEvent('game_start',{game:'Ironcraft',multiplayer:!!(MP&&MP.active),mods:Object.keys(modsOf(meta)).filter(k=>modsOf(meta)[k]).join(',')||'none'});
   game.mods=modsOf(meta);game.baseDiff=meta.diff;game.noSave=false;game.wx=game.mods.weather?{storm:false,I:0,t:30+Math.random()*60,lt:4,flash:0,tornado:null}:null;game.hx=game.mods.horror?{amb:15,beat:0}:null;game.ax=game.mods.apocalypse?{wave:0,next:75,active:false,mobs:[],warned:{},left:0}:null;
@@ -6483,7 +6485,7 @@ function finishLoad(){const p=player;if(!game.pendingMobs.length&&player.spawn==
   if(game.respawnOnLoad){game.respawnOnLoad=false;respawn()}
   for(const m of game.pendingMobs){if(m.type==='wither'){const w=new Wither(m.x,m.y,m.z);w.hp=m.hp;w.state='hunt';entities.push(w);continue}if(!MOBDEF[m.type])continue;const e=new Mob(m.type,m.x,m.y,m.z);e.hp=m.hp;e.baby=m.baby;e.growT=m.growT||0;if(m.sheared!==undefined)e.sheared=m.sheared;if(m.woolId)e.woolId=m.woolId;if(m.prof&&PROFS[m.prof]){e.prof=m.prof;e.trades=villagerTrades(m.prof);e.vlevel=m.vlevel||1;e.vxp=m.vxp||0;if(m.uses)m.uses.forEach((u,i)=>{if(e.trades[i])e.trades[i].uses=u});if(m.demand)m.demand.forEach((u,i)=>{if(e.trades[i])e.trades[i].demand=u});e.restocks=m.restocks||0}if(m.size&&e.type==='slime')e.setSize(m.size);if(m.tamed){e.tamed=true;if(e.type==='wolf')e.maxHp=20;e.sitting=!!m.sitting}if(e.type==='horse'){if(m.color!==undefined)e.color=m.color;if(m.hspeed)e.hspeed=m.hspeed;if(m.hjump)e.hjump=m.hjump;if(m.maxHp)e.maxHp=m.maxHp;e.saddled=!!m.saddled}if(e.def.vehicle&&m.color!==undefined)e.color=m.color;if(e.def.soldier&&m.kd)soldierRestore(e,m);entities.push(e)}
   for(const it of game.pendingItems)spawnItem(it.x,it.y,it.z,{id:it.id,count:it.count,dur:it.dur,ench:it.ench,items:it.items},null,undefined,{local:true});
-  for(const c of world.chunks.values())for(const [i,be] of c.bents){const x=c.cx*16+(i>>12),y=i&255,z=c.cz*16+((i>>8)&15);if(be.burn>0)activateFurnace(x,y,z);if(be.brewing)activateBrew(x,y,z)}
+  for(const c of world.chunks.values())for(const [i,be] of c.bents){const x=c.cx*16+(i>>13),y=i&511,z=c.cz*16+((i>>9)&15);if(be.burn>0)activateFurnace(x,y,z);if(be.brewing)activateBrew(x,y,z)}
   updateChunks(200);game.state='playing';game.paused=false;game.gui=null;hideMenus();$('hud').style.display='block';$('overlay').style.display='block';updateHUD();updateHotbar();lockPointer();game.lastSave=game.time;
   if(!game.loadedOnce){showMessage('Welcome to Ironcraft! Gather materials and build a shelter.');game.loadedOnce=true}
 }
@@ -7979,7 +7981,7 @@ function stepBlockSearch(){const S=game.tpSearch;if(!S)return;if(S.world!==world
     if(S.i>=S.cells.length){if(S.best){game.tpSearch=null;S.onFound(S.best);return}S.R++;S.cells=null;continue}
     const [dx,dz]=S.cells[S.i++];const cx=S.pcx+dx,cz=S.pcz+dz;const key=chunkKey(cx,cz);const was=world.chunks.get(key);const had=!!(was&&was.generated);
     const c=world.generateChunk(cx,cz);const bl=c.blocks;let hit=null;
-    for(let i=0;i<bl.length;i++){if(bl[i]!==S.id)continue;const x=cx*16+(i>>12),y=i&255,z=cz*16+((i>>8)&15);const d=(x-S.px)*(x-S.px)+(y-S.py)*(y-S.py)+(z-S.pz)*(z-S.pz);if(!hit||d<hit.d)hit={x,y,z,d}}
+    for(let i=0;i<bl.length;i++){if(bl[i]!==S.id)continue;const x=cx*16+(i>>13),y=i&511,z=cz*16+((i>>9)&15);const d=(x-S.px)*(x-S.px)+(y-S.py)*(y-S.py)+(z-S.pz)*(z-S.pz);if(!hit||d<hit.d)hit={x,y,z,d}}
     if(hit){if(!S.best||hit.d<S.best.d)S.best=hit}else if(!had)world.chunks.delete(key)}
   if(performance.now()-S.lastMsg>4000){S.lastMsg=performance.now();showMessage('Still searching for '+S.label+'... '+(S.R*16)+' blocks out so far (/stop to cancel)')}}
 function tpOreName(name){const n=name.toLowerCase().replace(/[\s-]+/g,'_');const base=n.replace(/s$/,'').replace(/_ores?$/,'');const cands=[n,n+'_ore',base,base+'_ore','nether_'+base+'_ore',/debris/.test(n)?'ancient_debris':base];
@@ -8097,13 +8099,13 @@ function mpWeatherState(){const W=game.wx;if(!W)return {t:'wx',off:true};return 
 function mpApplyWeather(d){const W=game.wx;if(!W||d.off||(MP.active&&MP.host))return;if(d.storm&&!W.storm)showMessage('Dark clouds gather... a thunderstorm rolls in');if(!d.storm&&W.storm)showMessage('The storm passes.');W.storm=d.storm;W.I=d.I;
   if(d.tornado){if(!W.tornado){W.tornado={x:d.tornado.x,z:d.tornado.z,y:player.y,dir:d.tornado.dir,life:d.tornado.life,spin:d.tornado.spin,t:1,brk:0,ef:d.tornado.ef||1};showMessage(EF[W.tornado.ef].say);playSound('thunder',1,0.55)}else Object.assign(W.tornado,d.tornado)}else if(W.tornado){W.tornado=null;showMessage('The tornado dissipates.')}}
 function mpCollectBlocks(){const out={};const src=world.savedMods||{};for(const k in src)out[k]=src[k];for(const c of world.chunks.values()){if(c.mods.size)out[c.cx+','+c.cz]=Array.from(c.mods)}return out}
-function mpApplyBlocks(blocks){world.savedMods=world.savedMods||{};for(const k in blocks){world.savedMods[k]=blocks[k];const [cx,cz]=k.split(',').map(Number);const c=world.getChunk(cx,cz);if(c&&c.generated){for(const [i,v] of blocks[k]){world.setBlock(cx*16+(i>>12),i&255,cz*16+((i>>8)&15),v&255,v>>8,{remote:true,silent:true})}}}}
+function mpApplyBlocks(blocks){world.savedMods=world.savedMods||{};for(const k in blocks){world.savedMods[k]=blocks[k];const [cx,cz]=k.split(',').map(Number);const c=world.getChunk(cx,cz);if(c&&c.generated){for(const [i,v] of blocks[k]){world.setBlock(cx*16+(i>>13),i&511,cz*16+((i>>9)&15),v&255,v>>8,{remote:true,silent:true})}}}}
 async function mpHello(d){initAudio();const pub=MP.worldId&&PUBLIC_SERVERS.find(sv=>sv.room===MP.room);
       const keep=world&&game.state==='playing'&&game.seed===d.seed&&(game.worldId===MP.worldId||game.worldId==='mp-guest');
       if(keep){game.noSave=!MP.worldId;for(const r of MP.remote.values())r.dead=true;MP.remote.clear()}
       else if(MP.worldId){const list=worldList();let meta=list.find(w=>w.id===MP.worldId);if(!meta){meta={id:MP.worldId,name:'Public: '+(pub?pub.name:(d.worldName||'world')),seed:d.seed,mode:'survival',diff:2,drops:d.mods&&d.mods.random?'random':'normal',mods:d.mods||{},room:MP.room,created:Date.now(),played:Date.now()};list.push(meta);localStorage.setItem('ic_worlds',JSON.stringify(list))}else if(!meta.room){meta.room=MP.room;localStorage.setItem('ic_worlds',JSON.stringify(list))}await loadWorld(meta);game.noSave=false}
       else{const meta={id:'mp-guest',name:'Multiplayer',seed:d.seed,mode:'survival',diff:2,drops:d.mods&&d.mods.random?'random':'normal',mods:d.mods||{}};startWorld(meta,null);game.noSave=true}
-      MP.hostId=d.hostId;world.time=d.time;world.day=d.day;if(d.spawn)game.worldSpawn=d.spawn;if(!d.ch){d.blocks=oldLayoutMods(d.blocks||{});if(d.bents)d.bents=oldLayoutMods(d.bents)}mpApplyBlocks(d.blocks||{});if(d.bents)mpApplyBents(d.bents);if(d.items){for(const e of entities)if(e instanceof ItemEntity)e.dead=true;MP.pendingItems=[];for(const it of d.items)mpItemIn(it)}if(d.wx)mpApplyWeather(d.wx);if(d.war)wmpIn(d.war);if(d.wave&&game.ax){const A=game.ax;A.wave=d.wave.wave;A.next=d.wave.next;A.left=d.wave.left;if(d.wave.active){A.active=true;A.pendingRoster=d.wave.roster||waveRoster(d.wave.wave)}}
+      MP.hostId=d.hostId;world.time=d.time;world.day=d.day;if(d.spawn)game.worldSpawn=d.spawn;{const f=idxMapFor(d.ch);if(f){d.blocks=oldLayoutMods(d.blocks||{},f);if(d.bents)d.bents=oldLayoutMods(d.bents,f)}}mpApplyBlocks(d.blocks||{});if(d.bents)mpApplyBents(d.bents);if(d.items){for(const e of entities)if(e instanceof ItemEntity)e.dead=true;MP.pendingItems=[];for(const it of d.items)mpItemIn(it)}if(d.wx)mpApplyWeather(d.wx);if(d.war)wmpIn(d.war);if(d.wave&&game.ax){const A=game.ax;A.wave=d.wave.wave;A.next=d.wave.next;A.left=d.wave.left;if(d.wave.active){A.active=true;A.pendingRoster=d.wave.roster||waveRoster(d.wave.wave)}}
       mpRemote(d.hostId,d.hostName);for(const pl of d.players||[])if(pl.id!==MP.myId)mpRemote(pl.id,pl.name);mpStatus('');if(MP.public)setTimeout(mpChatHint,1700);setTimeout(()=>showMessage(MP.public?'Joined a public world. Names are random aliases. Be kind in chat.':'Joined '+(d.hostName||'the host')+"'s private world. Press T to chat. Watch out: players can hurt each other here."),1500)}
 function mpOnData(conn,d){if(!d||!d.t)return;
   switch(d.t){
@@ -8192,7 +8194,7 @@ function mpApplyBE(d){if(!world||world.dimKey!==(d.dim||'over'))return;const src
     const g=game.gui;if(g&&g.be===be)renderAllSlots()}
   else{world.savedBents=world.savedBents||{};const k=(d.x>>4)+','+(d.z>>4);const l=world.savedBents[k]||(world.savedBents[k]=[]);const i=cidx(d.x&15,d.y,d.z&15);const j=l.findIndex(e=>+e[0]===i);const be={items:src.items||[]};if(j>=0)l[j]=[i,be];else l.push([i,be])}}
 function mpBentList(){const out={};const src=world.savedBents||{};for(const k in src)out[k]=src[k];for(const c of world.chunks.values()){if(c.bents.size)out[c.cx+','+c.cz]=Array.from(c.bents)}return out}
-function mpApplyBents(bents){for(const k in bents){const [cx,cz]=k.split(',').map(Number);for(const [i,be] of bents[k]){const x=cx*16+((+i)>>12),y=(+i)&255,z=cz*16+(((+i)>>8)&15);mpApplyBE({x,y,z,dim:world.dimKey,be})}}}
+function mpApplyBents(bents){for(const k in bents){const [cx,cz]=k.split(',').map(Number);for(const [i,be] of bents[k]){const x=cx*16+((+i)>>13),y=(+i)&511,z=cz*16+(((+i)>>9)&15);mpApplyBE({x,y,z,dim:world.dimKey,be})}}}
 // Player versus player is on in public servers only; private rooms stay peaceful
 function pvpOn(){return !!MP.active} // every multiplayer world is player-versus-player, private rooms included
 function mpMobsFromHost(){return MP.active&&!MP.host&&game.time-(MP.mobSyncT||-99)<3&&mpHostNear(player.x,player.z,96)}
