@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="ironcraft-build" content="20261029-004234">
+<meta name="ironcraft-build" content="20261029-005047">
 <meta name="viewport" content="width=device-width,initial-scale=1.0,viewport-fit=cover">
 <title>Ironcraft – Free Voxel Survival Sandbox in Your Browser | Iron Games</title>
 <meta name="description" content="Ironcraft is a free browser-based voxel survival sandbox with building, exploration, private or safety-limited public multiplayer, and optional weather, horror and survival challenges. By Daniele Bros.">
@@ -7989,14 +7989,14 @@ function landBeside(x,y,z){const p=player;let sx=null,sz=null;
   const top=world.getBlock(x,y+1,z);if(top!==0&&top!==32)world.setBlock(x,y+1,z,0,0,{silent:true});if(world.getBlock(x,y+1,z)===0&&BLOCKS[world.getBlock(x,y,z)].opaque)world.setBlock(x,y+1,z,32,0,{silent:true});
   p.x=sx+0.5;p.y=y+0.1;p.z=sz+0.5;p.yaw=Math.atan2(-(x-sx),-(z-sz));p.pitch=-0.25}
 // a lit nether portal three blocks ahead of the player, its face turned toward them
-function spawnNetherPortal(say,kind){const F=kind==='sift'?125:31,P=kind==='sift'?134:82;const p=player;let fx=Math.round(-Math.sin(p.yaw)),fz=Math.round(-Math.cos(p.yaw));if(abs(fx)>=abs(fz)){fz=0;fx=fx<0?-1:1}else{fx=0;fz=fz<0?-1:1}
+function spawnNetherPortal(say,kind,at){if(MP.active&&!MP.host&&!at){guestSpawnReq('portal',kind==='sift'?'sift':'nether',say);return}const F=kind==='sift'?125:31,P=kind==='sift'?134:82;const p=at||player;ensureChunks(p.x,p.z,2);let fx=Math.round(-Math.sin(p.yaw)),fz=Math.round(-Math.cos(p.yaw));if(abs(fx)>=abs(fz)){fz=0;fx=fx<0?-1:1}else{fx=0;fz=fz<0?-1:1}
   const tx=floor(p.x)+fx*3,tz=floor(p.z)+fz*3,ty=floor(p.y);const axis=fz!==0?0:1;
   for(let i=0;i<=2;i++)for(const w of [0,1]){const wx=floor(p.x)+fx*i+(fz?w:0),wz=floor(p.z)+fz*i+(fx?w:0);const g=world.getBlock(wx,ty-1,wz);if(!BLOCKS[g].solid||BLOCKS[g].liquid)world.setBlock(wx,ty-1,wz,F,0,{silent:true});for(const yy of [ty,ty+1]){const bb=world.getBlock(wx,yy,wz);if(bb!==0&&bb!==P&&!BLOCKS[bb].liquid)world.setBlock(wx,yy,wz,0,0,{silent:true})}} // level walkway from you to the frame // axis 0: frame runs along x (you face it when walking along z)
   const ax=axis?0:1,az=axis?1:0;const sx=axis?0:1,sz=axis?1:0; // ax/az: along the frame, sx/sz: through it
   for(let i=-1;i<=2;i++)for(let dy=-1;dy<=3;dy++){const edge=i===-1||i===2||dy===-1||dy===3;const bx=tx+ax*i,bz=tz+az*i,by=ty+dy;
     world.setBlock(bx,by,bz,edge?F:P,edge?0:axis,{silent:true});
     for(const o of [-1,1]){const ox=bx+sx*o,oz=bz+sz*o;if(dy===-1)world.setBlock(ox,by,oz,F,0,{silent:true});else if(!edge){const b=world.getBlock(ox,by,oz);if(b!==0&&b!==P)world.setBlock(ox,by,oz,0,0,{silent:true})}}}
-  playSound&&playSound('enchant');say(kind==='sift'?(world.sift?'Sift portal built: walk in to return to the Overworld':'Sift portal built ahead of you: walk in to go to the Sift'):world.nether?'Nether portal built: walk in to return to the overworld':'Nether portal built ahead of you: walk in to go to the Nether')}
+  if(!at)playSound&&playSound('enchant');say(kind==='sift'?(world.sift?'Sift portal built: walk in to return to the Overworld':'Sift portal built ahead of you: walk in to go to the Sift'):world.nether?'Nether portal built: walk in to return to the overworld':'Nether portal built ahead of you: walk in to go to the Nether')}
 function finishTp(say,msg){const p=player;p.vx=p.vy=p.vz=0;p.fallDist=0;if(p.riding)p.riding.dismount();ensureChunks(p.x,p.z,2);say(msg+' ('+floor(p.x)+' '+floor(p.y)+' '+floor(p.z)+')')}
 /* ===================== MULTIPLAYER: peer-to-peer rooms over PeerJS ===================== */
 // No game server exists: one player hosts the world in their browser and others connect directly to it.
@@ -8123,6 +8123,8 @@ function mpOnData(conn,d){if(!d||!d.t)return;
     case 'ic':{if(MP.host)mpRelay(conn,d);{const e=entities.find(e=>e.nid===d.nid);if(e&&e.stack)e.stack.count=d.count;const pi=MP.pendingItems.find(it=>it.nid===d.nid);if(pi)pi.s.count=d.count}break}
     case 'be':{if(MP.host)mpRelay(conn,d);mpApplyBE(d);break}
     case 'mods':{if(MP.host)break;applyModsLive(d.mods||{},true);break}
+    case 'gspawn':{if(MP.host)gspawnIn(conn,d);break}
+    case 'gspawnr':{if(MP.host)break;showMessage(String(d.msg||'').slice(0,200));if(d.ok&&d.k!=='mob'){setTimeout(gspawnUnbury,1200);setTimeout(gspawnUnbury,3500)}break}
     case 'supply':{if(MP.host)break;supplyRemote(d);break}
     case 'spawnpt':{if(!MP.host)mpSpawnIn(d);break}
     case 'wmpick':{if(MP.host)wmpPickReq(conn,d.name);break}
@@ -9085,14 +9087,15 @@ function nsResolve(s){const q=String(s||'').toLowerCase().replace(/[^a-z]/g,'');
   for(const n of WAR_NATIONS)if(q.length>=3&&n[0].toLowerCase().replace(/[^a-z]/g,'').startsWith(q))return n[0];return null}
 function nsCommand(args,say){ // /landmark <country> [force]: builds that country's scene where you are looking, its front towards you
   if(onPublicServer()){say('Cheats are off on public servers: no /landmark here.');return}
-  if(MP.active&&!MP.host){say('Only the host can build landmarks');return}
+  if(MP.active&&!MP.host){const gf=args.length>1&&/^force$/i.test(args[args.length-1]);const gn=nsResolve((gf?args.slice(0,-1):args).join(' '));if(!gn){say('Usage: /landmark <country> [force]   e.g. /landmark japan, /landmark france, /landmark usa');return}guestSpawnReq('landmark',gn,say,gf?1:0);return}
   if(world.dimKey!=='over'){say('Landmarks are built in the overworld');return}
   const force=args.length>1&&/^force$/i.test(args[args.length-1]);const name=nsResolve((force?args.slice(0,-1):args).join(' '));
   if(!name){say('Usage: /landmark <country> [force]   e.g. /landmark japan, /landmark france, /landmark usa. Countries: '+WAR_NATIONS.map(n=>n[0]).join(', ')+', Netherlands');return}
   const p=player,t=p.target;let x,y,z;if(t&&t.block){x=t.bx;y=t.by;z=t.bz}else{const d=eyeDir();x=floor(p.x+d[0]*16);z=floor(p.z+d[2]*16);ensureChunks(x,z,2);y=findGround(x,z)-1}
-  const k=nsTurns(p.x-x,p.z-z),f=[[0,1],[1,0],[0,-1],[-1,0]][k];ensureChunks(x,z,2);
-  if(!buildNationScene(name,x+f[0]*4,y,z+f[1]*4,{rot:k,force})){say('A landmark scene already stands within 40 blocks. Add "force" to build anyway: /landmark '+name.toLowerCase()+' force');return}
-  playSound('place_stone',1,0.6);say('Built '+(NS_LM[name]||NS_LM._generic)[0]+' ('+name+') where you were looking')}
+  return nsBuildAt(name,force,x,y,z,p.x,p.z,say,true)}
+function nsBuildAt(name,force,x,y,z,px,pz,say,own){const k=nsTurns(px-x,pz-z),f=[[0,1],[1,0],[0,-1],[-1,0]][k];ensureChunks(x,z,2);
+  if(!buildNationScene(name,x+f[0]*4,y,z+f[1]*4,{rot:k,force})){say('A landmark scene already stands within 40 blocks. Add "force" to build anyway: /landmark '+name.toLowerCase()+' force');return false}
+  if(own)playSound('place_stone',1,0.6);say('Built '+(NS_LM[name]||NS_LM._generic)[0]+' ('+name+') where you were looking');return true}
 /* ---- military structures for /spawn: airfield, military base, bunker, missile base ---- */
 function milPad(x0,z0,x1,z1,y,surf,hi){for(let x=x0;x<=x1;x++)for(let z=z0;z<=z1;z++)for(let yy=y-1;yy>=y-24;yy--){const b=world.getBlock(x,yy,z);if(b!==0&&BLOCKS[b].solid&&!BLOCKS[b].plant&&!BLOCKS[b].leaves&&!BLOCKS[b].log&&b!==8&&b!==9)break;baseSet(x,yy,z,yy<y-3?1:3)}
   baseFill(x0,y+1,z0,x1,y+hi,z1,0);baseFill(x0,y,z0,x1,y,z1,surf)} // level the ground to y: fill dips (up to 24 deep, so a runway never floats over a ravine), clear above, lay the surface
@@ -9206,20 +9209,67 @@ function midAt(x,z,y){const m=Object.assign({},world.sift?world.siftInfo(x,z):wo
 SPAWN_STRUCT.supply_drop=['Supply Drop',(x,y,z,r)=>{supplyDropAt(x+0.5,z+0.5,{cmd:true})}];SPAWN_STRUCT_ALIAS.supply=SPAWN_STRUCT_ALIAS.supplydrop=SPAWN_STRUCT_ALIAS.airdrop=SPAWN_STRUCT_ALIAS.air_drop='supply_drop';
 function structKeyFromName(n){n=String(n||'').toLowerCase().replace(/[\s-]+/g,'_');if(SPAWN_STRUCT[n])return n;if(SPAWN_STRUCT_ALIAS[n])return SPAWN_STRUCT_ALIAS[n];for(const k in SPAWN_STRUCT)if(n.length>=3&&k.startsWith(n))return k;return null}
 function spawnStructureAt(name,say){const key=structKeyFromName(name);if(!key)return false;const p=player;
-  if(MP.active&&!MP.host){say('Only the host can build structures');return true}
+  if(MP.active&&!MP.host){guestSpawnReq('struct',name,say);return true}
   const t=p.target;let x,y,z;if(t&&t.block){x=t.bx;y=t.by;z=t.bz}else{const d=eyeDir();x=floor(p.x+d[0]*8);z=floor(p.z+d[2]*8);y=findGround(x,z)-1}
-  ensureChunks(x,z,4);const rng=mulberry32(hashInt(x,y,z,(Date.now()&0xffff)^world.seed));
+  return buildStructureAt(key,x,y,z,say,p)}
+function buildStructureAt(key,x,y,z,say,p){ensureChunks(x,z,4);const rng=mulberry32(hashInt(x,y,z,(Date.now()&0xffff)^world.seed));
   world.liveBuild=true;world.forceMobs=true;world.anywhere=true;world.flatY=y;const before=entities.length;
   try{SPAWN_STRUCT[key][1](x,y,z,rng)}catch(e){console.error('structure build failed',e)}finally{world.liveBuild=false;world.forceMobs=false;world.anywhere=false;world.flatY=undefined}
   // never leave the player buried inside the new build
-  {const bx=floor(p.x),bz=floor(p.z);const bad=yy=>{const b=world.getBlock(bx,yy,bz);return b!==0&&(BLOCKS[b].solid||b===8||b===9)};let fy=floor(p.y),n=0;if(bad(fy)||bad(fy+1)){while(n<80&&(bad(fy)||bad(fy+1)))fy++,n++;p.y=fy+0.1;p.vy=0;p.fallDist=0}}
-  const mobs=entities.length-before;playSound('place_stone',1,0.6);say('Built a '+SPAWN_STRUCT[key][0]+' where you were looking'+(mobs>0?' ('+mobs+' residents)':''));if(key==='base_bunker')say('Somewhere inside is a secret room. Not every bookshelf is what it seems...');return true}
+  if(p){const bx=floor(p.x),bz=floor(p.z);const bad=yy=>{const b=world.getBlock(bx,yy,bz);return b!==0&&(BLOCKS[b].solid||b===8||b===9)};let fy=floor(p.y),n=0;if(bad(fy)||bad(fy+1)){while(n<80&&(bad(fy)||bad(fy+1)))fy++,n++;p.y=fy+0.1;p.vy=0;p.fallDist=0}}
+  const mobs=entities.length-before;if(p)playSound('place_stone',1,0.6);say('Built a '+SPAWN_STRUCT[key][0]+' where you were looking'+(mobs>0?' ('+mobs+' residents)':''));if(key==='base_bunker')say('Somewhere inside is a secret room. Not every bookshelf is what it seems...');return true}
 // cheats are off on public servers, for guests and the host alike: items, kits, structures, teleports, time, game mode, mob and disaster spawning, healing and xp
 const PUBLIC_BLOCKED=new Set(['modcapture','give','kit','build','place','structure','tp','time','gamemode','gm','spawn','summon','portal','disaster','disasters','tornado','heal','xp','kill']);
+/* ---- guests spawning on a private server: the guest sends {t:'gspawn',k:'struct'|'landmark'|'mob'|'portal',name,x,y,z,g,yaw,n,f}; the host checks it and builds at the guest's spot, then answers {t:'gspawnr',k,ok,msg} ---- */
+const GSPAWN_RANGE=96,GSPAWN_GAP=2000,GSPAWN_MOBS=20,GSPAWN_MOBCAP=300;
+function gspawnAim(dist){const p=player,t=p.target;if(t&&t.block)return {x:t.bx,y:t.by,z:t.bz,g:0};const d=eyeDir();return {x:floor(p.x+d[0]*dist),y:floor(p.y),z:floor(p.z+d[2]*dist),g:1}} // g: no block aimed at, the host finds the ground itself
+function guestSpawnReq(k,name,say,extra){
+  if(onPublicServer()){say('Structures and mobs are host-only on public servers');return}
+  const p=player,pk={t:'gspawn',k,name:String(name||'').slice(0,40),yaw:+p.yaw.toFixed(3)};
+  if(k==='struct'||k==='landmark'){Object.assign(pk,gspawnAim(k==='landmark'?16:8));if(k==='landmark')pk.f=extra?1:0}
+  else if(k==='mob'){const d=eyeDir();pk.x=p.x+d[0]*3;pk.y=p.y;pk.z=p.z+d[2]*3;pk.n=extra|0}
+  else{pk.x=p.x;pk.y=p.y;pk.z=p.z}
+  mpSend(pk)}
+// a guest's /spawn <mob|structure>: true when the guest path handled it
+function guestSpawnCmd(args,say){if(!MP.active||MP.host)return false;
+  if(/^(landmark|scene)s?$/i.test(args[0]||'')||/portal/i.test(args.join('_')))return false; // nsCommand / spawnNetherPortal forward these themselves
+  const dn=(args[0]||'').toLowerCase().replace(/[\s-]+/g,'_');if(DISASTER_ALIAS[dn]||DISASTER_NAMES.includes(dn))return false;
+  const t0=args.filter(a=>!/^\d+$/.test(a)).join('_').toLowerCase().replace(/-/g,'_');
+  if(/^(?:enemy|hostile)_(jet|fighter|a_?10|warthog|a_?10_warthog|bomber|b_?27|b_?27_bomber)s?$/.test(t0)||/^(enemy_|friendly_|player_|ally_)?(soldier|rifleman|sniper|heavy_soldier|heavy)s?$/.test(t0)){say('Only the host can spawn soldiers and aircraft');return true}
+  const num=args.find(a=>/^\d+$/.test(a)),type=t0?mobTypeFromName(t0):null;
+  if(type){guestSpawnReq('mob',type,say,clamp(parseInt(num)||1,1,GSPAWN_MOBS));return true}
+  if(t0&&structKeyFromName(t0)){guestSpawnReq('struct',t0,say);return true}
+  return false}
+// after a build lands the guest may be standing inside it: lift them out (the host does the same for itself)
+function gspawnUnbury(){const p=player;if(!p||p.dead||!world||game.state!=='playing')return;const bx=floor(p.x),bz=floor(p.z);const bad=yy=>{const b=world.getBlock(bx,yy,bz);return b!==0&&(BLOCKS[b].solid||b===8||b===9)};let fy=floor(p.y),n=0;if(bad(fy)||bad(fy+1)){while(n<80&&(bad(fy)||bad(fy+1)))fy++,n++;p.y=fy+0.1;p.vy=0;p.fallDist=0}}
+// host side
+function gspawnIn(conn,d){if(!MP.active||!MP.host||!world||!d)return;
+  const k=String(d.k||''),reply=(ok,msg)=>{try{if(conn.open)conn.send({t:'gspawnr',k,ok:!!ok,msg:String(msg).slice(0,200)})}catch(e){}return ok};
+  if(MP.public)return reply(false,'Structures and mobs are host-only on public servers');
+  const r=conn.mpId&&MP.remote.get(conn.mpId);
+  if(!r||!r.hasTarget)return reply(false,'The host does not know where you are yet');
+  if(r.deadP)return reply(false,'You cannot spawn things while dead');
+  if(r.hidden)return reply(false,'Spawning only works while you are in the same dimension as the host');
+  const now=Date.now();if(now-(conn.gsT||0)<GSPAWN_GAP)return reply(false,'Slow down: one spawn every 2 seconds');conn.gsT=now;
+  if(!(k==='struct'||k==='landmark'||k==='mob'||k==='portal'))return reply(false,'Unknown spawn request');
+  let x=+d.x,y=+d.y,z=+d.z;if(![x,y,z].every(Number.isFinite)||Math.abs(x)>3e7||Math.abs(z)>3e7)return reply(false,'Bad position');
+  if(Math.hypot(x-r.tx,z-r.tz)>GSPAWN_RANGE||Math.abs(y-r.ty)>64||y<1||y>=CH-1)return reply(false,'Too far away: spawn within '+GSPAWN_RANGE+' blocks of where you stand');
+  const name=String(d.name||'').slice(0,40),yaw=Number.isFinite(+d.yaw)?+d.yaw:0,msgs=[],say=m=>msgs.push(String(m)),who=r.name||'A player';
+  let ok=false;
+  try{
+    if(k==='struct'||k==='landmark'){x=floor(x);z=floor(z);y=floor(y);if(d.g){ensureChunks(x,z,4);y=findGround(x,z)-1}}
+    if(k==='struct'){const key=structKeyFromName(name);if(!key)return reply(false,'Unknown structure: '+name);ok=buildStructureAt(key,x,y,z,say,null)}
+    else if(k==='landmark'){if(world.dimKey!=='over')return reply(false,'Landmarks are built in the overworld');const nm=nsResolve(name);if(!nm)return reply(false,'Unknown country: '+name);ok=nsBuildAt(nm,!!d.f,x,y,z,r.tx,r.tz,say,false)}
+    else if(k==='portal'){spawnNetherPortal(say,name==='sift'?'sift':'nether',{x,y,z,yaw});ok=true}
+    else{const type=mobTypeFromName(name);if(!type||!MOBDEF[type])return reply(false,'Unknown mob: '+name);const n=clamp(d.n|0||1,1,GSPAWN_MOBS);let live=0;for(const e of entities)if(e instanceof Mob&&!e.dead)live++;if(live+n>GSPAWN_MOBCAP)return reply(false,'Too many mobs in the world already');
+      if(MOBDEF[type].ship){const m=shipSpawn(type,x,floor(y),z,say,yaw);ok=!!m;if(m)say('Spawned '+mobLabel(type))}
+      else{for(let i=0;i<n;i++)entities.push(new Mob(type,x+(Math.random()-0.5)*2,y+0.5,z+(Math.random()-0.5)*2));say('Spawned '+n+' '+mobLabel(type));ok=true}}
+  }catch(e){console.error('guest spawn failed',e);return reply(false,'That did not work')}
+  const msg=msgs.join(' ')||(ok?'Done':'Could not build that here');if(ok)showMessage(who+': '+msg);return reply(ok,msg)}
 function onPublicServer(){return !!(MP.active&&MP.public)}
 function publicCheatBlocked(cmd,args){if(!onPublicServer()||!PUBLIC_BLOCKED.has(cmd))return false;if(cmd==='tp'&&args.length===1&&(args[0]==='spawn'||args[0]==='home'))return false;if(cmd==='kill'&&!args.length)return false;return true}
 function runCommand(line){const p=player;const raw=line.trim().replace(/^\/+/,'');const parts=raw.split(/\s+/);const cmd=(parts[0]||'').toLowerCase();const args=parts.slice(1);const say=showMessage;
-  if(publicCheatBlocked(cmd,args)){say('Cheats are off on public servers: no /'+cmd+' here. You can still /tp spawn, /tp home and /seed. Host a private room or play solo to use cheats.');playSound('hurt',0.4,0.7);return}
+  if(publicCheatBlocked(cmd,args)){say('Cheats are off on public servers: no /'+cmd+' here'+(/^(spawn|summon|build|place|structure|portal)$/.test(cmd)?' (structures and mobs are host-only on public servers)':'')+'. You can still /tp spawn, /tp home and /seed. Host a private room or play solo to use cheats.');playSound('hurt',0.4,0.7);return}
   switch(cmd){
     case 'help':if(onPublicServer())say('This is a public server: cheat commands are off (no /give, /kit, /spawn, /build, /tp to places, /time, /gamemode, /disaster, /tornado, /heal, /xp). /tp spawn, /tp home and /seed still work.');say('/give <item> [count] [enchant:lvl ...]  /kit <'+Object.keys(KITS).join('|')+'>  /build enchanting');say('/tp <x y z|spawn|home|any block|any mob|any biome|any structure|nether|the end|the sift|overworld>  e.g. /tp diamonds, /tp hisser, /tp jungle, /tp end city, /tp sift   /spawn nether portal   /spawn sift portal   /build <village|mansion|outpost|stronghold|...> builds it where you look   /stop');say('/time <day|night|n>  /gamemode <survival|creative>  /spawn <mob>  /heal  /xp <levels>  /seed  /kill  /tornado <1-5> (weather mod)  /disaster <earthquake|meteor|flood|tsunami|volcano|wildfire|blizzard|sinkhole|storm|lightning|tornado|random>');return;
     case 'give':{if(args.length>=2&&/^(@[aprse]|me|self|you|play\w*|steve|alex)$/i.test(args[0]))args.shift();if(!args.length){say('Usage: /give [player] <item> [count] [enchant:lvl ...]   e.g. /give player anvil, /give @p netherite 5');return}const isEnch=a=>/[:=]/.test(a)||!!Object.keys(ENCH).find(k=>k===a.toLowerCase()||(a.length>=4&&k.startsWith(a.toLowerCase())));const nm=[args[0]||''];let i=1;while(i<args.length&&!/^\d+$/.test(args[i])&&!isEnch(args[i])){nm.push(args[i]);i++}
@@ -9241,7 +9291,7 @@ function runCommand(line){const p=player;const raw=line.trim().replace(/^\/+/,''
       say('- Ships on water: Patrol Boat (12 blocks, driver + twin machine gun, 14 blocks/s) and Destroyer (50 blocks, captain, two deck guns with explosive shells and an anti-air cannon that aims up to 85 degrees, 6 blocks/s). V changes seat, left click fires. /spawn patrol boat or /spawn destroyer near water, or craft their eggs from iron blocks, planks and diamonds.');
       say('- Extra war-only guns and anti-aircraft guns.');return}
     case 'modcapture':{modCaptureCmd(args,say);return}
-    case 'spawn':case 'summon':{if(enemyAirCmd(args,say))return;if(soldierCmd(args,say))return;if(/^(landmark|scene)s?$/i.test(args[0]||'')){nsCommand(args.slice(1),say);return}if(/portal/i.test(args.join('_'))){spawnNetherPortal(say,/sift/i.test(args.join('_'))?'sift':'nether');return}{const dn=(args[0]||'').toLowerCase().replace(/[\s-]+/g,'_');const dd=DISASTER_ALIAS[dn]||(DISASTER_NAMES.includes(dn)?dn:null);if(dd){startDisaster(dd,args[1],say);return}}const words=args.filter(a=>!/^\d+$/.test(a)),num=args.find(a=>/^\d+$/.test(a));const t=words.join('_');const type=t?mobTypeFromName(t):null;if(!type&&spawnStructureAt(t,say))return;if(!type){say('Mobs: '+MOB_TYPES.map(k=>mobLabel(k)).join(', '));say('Structures: '+Object.keys(SPAWN_STRUCT).map(k=>k.replace(/_/g,' ')).join(', ')+' (built where you are looking)');return}if(MOBDEF[type].ship){spawnShipCmd(type,say);return}const n=clamp(parseInt(num)||1,1,20);const d=eyeDir();for(let i=0;i<n;i++)entities.push(new Mob(type,p.x+d[0]*3+(Math.random()-0.5)*2,p.y+0.5,p.z+d[2]*3+(Math.random()-0.5)*2));say('Spawned '+n+' '+mobLabel(type));return}
+    case 'spawn':case 'summon':{if(guestSpawnCmd(args,say))return;if(enemyAirCmd(args,say))return;if(soldierCmd(args,say))return;if(/^(landmark|scene)s?$/i.test(args[0]||'')){nsCommand(args.slice(1),say);return}if(/portal/i.test(args.join('_'))){spawnNetherPortal(say,/sift/i.test(args.join('_'))?'sift':'nether');return}{const dn=(args[0]||'').toLowerCase().replace(/[\s-]+/g,'_');const dd=DISASTER_ALIAS[dn]||(DISASTER_NAMES.includes(dn)?dn:null);if(dd){startDisaster(dd,args[1],say);return}}const words=args.filter(a=>!/^\d+$/.test(a)),num=args.find(a=>/^\d+$/.test(a));const t=words.join('_');const type=t?mobTypeFromName(t):null;if(!type&&spawnStructureAt(t,say))return;if(!type){say('Mobs: '+MOB_TYPES.map(k=>mobLabel(k)).join(', '));say('Structures: '+Object.keys(SPAWN_STRUCT).map(k=>k.replace(/_/g,' ')).join(', ')+' (built where you are looking)');return}if(MOBDEF[type].ship){spawnShipCmd(type,say);return}const n=clamp(parseInt(num)||1,1,20);const d=eyeDir();for(let i=0;i<n;i++)entities.push(new Mob(type,p.x+d[0]*3+(Math.random()-0.5)*2,p.y+0.5,p.z+d[2]*3+(Math.random()-0.5)*2));say('Spawned '+n+' '+mobLabel(type));return}
     case 'landmark':case 'scene':nsCommand(args,say);return;
     case 'portal':spawnNetherPortal(say);return;
     case 'stop':case 'cancel':if(game.tpSearch)cancelBlockSearch();else say('Nothing to stop');return;
