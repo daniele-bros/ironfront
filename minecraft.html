@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="ironcraft-build" content="20261029-200649">
+<meta name="ironcraft-build" content="20261029-202311">
 <meta name="viewport" content="width=device-width,initial-scale=1.0,viewport-fit=cover">
 <title>Ironcraft – Free Voxel Survival Sandbox in Your Browser | Iron Games</title>
 <meta name="description" content="Ironcraft is a free browser-based voxel survival sandbox with building, exploration, private or safety-limited public multiplayer, and optional weather, horror and survival challenges. By Daniele Bros.">
@@ -8577,9 +8577,9 @@ class RemotePlayer extends Entity{constructor(id,name){super(0,-100,0);this.pid=
       part([-t-o,-12-o,-t-o,t+o,0,t+o],-2,2,0,-PI/2+crawlSwing*0.3,0,0,T,cp);part([-t-o,-12-o,-t-o,t+o,0,t+o],2,2,0,-PI/2-crawlSwing*0.3,0,0,T,cp);return}
     part([-t,-12,-t,t,0,t],-2,12,0,lsw,0,0,N,pants);part([-t,-12,-t,t,0,t],2,12,0,rsw,0,0,N,pants);
     part([-4,12,-2,4,24,2],0,0,0,this.sneak?0.35:0,0,0,N,shirt);
-    const hit=this.swingT>0?Math.sin(this.swingT/0.4*PI)*1.6:0;const gunH=!!(this.held&&ITEMS[this.held]&&ITEMS[this.held].gun&&GUN_MODELS[this.held]),wpnH=!!(this.held&&wpnModel(this.held)),aimH=gunH||wpnH;const armR=sit?1.15:aimH?1.45-this.pitch*0.9-hit*0.1:swing-hit;const armL=sit?1.15:aimH?1.3-this.pitch*0.9:-swing,armLz=aimH?0.55:0.05;
+    const hit=this.swingT>0?Math.sin(this.swingT/0.4*PI)*1.6:0;const gunH=!!(this.held&&ITEMS[this.held]&&ITEMS[this.held].gun&&GUN_MODELS[this.held]),wpnH=!!(this.held&&wpnModel(this.held)),aimH=gunH||wpnH;const armR=sit?1.15:aimH?1.45+this.pitch*0.9-hit*0.1:swing-hit;const armL=sit?1.15:aimH?1.3+this.pitch*0.9:-swing,armLz=aimH?0.55:0.05;
     part([-t,-10,-t,t,2,t],-4,22,0,armL,0,armLz,N,shirt);part([-t,-10,-t,t,2,t],4,22,0,armR,0,-0.05,N,shirt);
-    part([-4,0,-4,4,8,4],0,24,0,-this.pitch,0,0,[N,N,N,N,N,TEX.player_face],skin);
+    part([-4,0,-4,4,8,4],0,24,0,this.pitch,0,0,[N,N,N,N,N,TEX.player_face],skin);
     // armor: coloured shells over the body parts, by material
     const gh=!!(A1=>A1&&ITEMS[A1]&&ITEMS[A1].ghillie)((this.armor||[])[1]);const W=gh?TEX.ghillie:TEX.white,A=this.armor||[0,0,0,0];const ac=i=>{if(gh)return [1,1,1];const d=A[i]?ITEMS[A[i]]:null;if(!d||d.elytra)return null;const c=ARMOR[d.mat]&&ARMOR[d.mat].color;return c?[c[0]/255,c[1]/255,c[2]/255]:[0.7,0.7,0.7]};
     const hc=ac(0),cc=ac(1),lc=ac(2),bc=ac(3),o=gh?0.9:0.55; // the ghillie suit covers everything, head to boots, in leaves
@@ -8587,7 +8587,7 @@ class RemotePlayer extends Entity{constructor(id,name){super(0,-100,0);this.pid=
     if(lc){const lo=o-0.15;part([-t-lo,bc?-7:-12-lo,-t-lo,t+lo,0.5,t+lo],-2,12,0,lsw,0,0,W,lc);part([-t-lo,bc?-7:-12-lo,-t-lo,t+lo,0.5,t+lo],2,12,0,rsw,0,0,W,lc);part([-4-lo,12-lo,-2-lo,4+lo,16,2+lo],0,0,0,0,0,0,W,lc)}
     if(cc){part([-4-o,lc?16:12-o,-2-o,4+o,24+o,2+o],0,0,0,this.sneak?0.35:0,0,0,W,cc);part([-t-o,-10-o,-t-o,t+o,2+o,t+o],-4,22,0,armL,0,armLz,W,cc);part([-t-o,-10-o,-t-o,t+o,2+o,t+o],4,22,0,armR,0,-0.05,W,cc)}
     if(A[1]&&ITEMS[A[1]]&&ITEMS[A[1]].elytra){const wc=[0.36,0.32,0.42];part([-7,-13,0,-0.5,0,1],-1,24,2.5,-0.25,0,0.4,W,wc);part([0.5,-13,0,7,0,1],1,24,2.5,-0.25,0,-0.4,W,wc)}
-    if(hc){const hp=(b)=>part(b,0,24,0,-this.pitch,0,0,W,hc);if(gh)hp([-4-o,-o,-4-o,4+o,8+o,4+o]);else{hp([-4-o,5.5,-4-o,4+o,8+o,4+o]);hp([-4-o,-o,2.5,4+o,8+o,4+o]);hp([-4-o,-o,-4-o,-2.5,8+o,4+o]);hp([2.5,-o,-4-o,4+o,8+o,4+o])}} // helmets are open-faced so you can still see who it is; a ghillie hood hides the face
+    if(hc){const hp=(b)=>part(b,0,24,0,this.pitch,0,0,W,hc);if(gh)hp([-4-o,-o,-4-o,4+o,8+o,4+o]);else{hp([-4-o,5.5,-4-o,4+o,8+o,4+o]);hp([-4-o,-o,2.5,4+o,8+o,4+o]);hp([-4-o,-o,-4-o,-2.5,8+o,4+o]);hp([2.5,-o,-4-o,4+o,8+o,4+o])}} // helmets are open-faced so you can still see who it is; a ghillie hood hides the face
     // held item in the right hand: blocks as a small cube, everything else as its icon
     if(this.held&&ITEMS[this.held]){const def=ITEMS[this.held];const atf=partTF(this.x,this.y,this.z,this.yaw,4,22,0,armR,0,-0.05,s,0);
       if(gunH){const k=0.42;const gtf=(x,y,z)=>atf(x*k,z*k-9.5,-y*k-1.6);drawGun(EB,gtf,this.held,l,this.swingT>0?1-this.swingT/0.4:1,this.att)}
