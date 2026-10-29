@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="ironcraft-build" content="20261029-001404">
+<meta name="ironcraft-build" content="20261029-004234">
 <meta name="viewport" content="width=device-width,initial-scale=1.0,viewport-fit=cover">
 <title>Ironcraft – Free Voxel Survival Sandbox in Your Browser | Iron Games</title>
 <meta name="description" content="Ironcraft is a free browser-based voxel survival sandbox with building, exploration, private or safety-limited public multiplayer, and optional weather, horror and survival challenges. By Daniele Bros.">
@@ -393,6 +393,15 @@ label.lb{font-size:13px;color:#a0a0a0;align-self:flex-start;margin-left:calc(50%
       <button class="btn" id="wmClose">CLOSE</button>
     </div>
   </div>
+</div></div>
+<div id="squadGui" class="gui"><div class="panel" style="text-align:center;min-width:300px;max-width:92vw;box-sizing:border-box">
+  <style>#squadGui .sqrow{display:flex;flex-wrap:wrap;gap:8px;justify-content:center;margin:8px 0}#squadGui .sqrow .btn{width:128px;height:44px;font-size:14px}</style>
+  <h3>Squad orders</h3>
+  <div class="hint" id="sqInfo"></div>
+  <div class="sqrow"><button class="btn" data-o="follow">Follow</button><button class="btn" data-o="hold">Hold here</button><button class="btn" data-o="attack">Attack</button></div>
+  <div class="sqrow"><button class="btn" data-o="mark">Go to marker</button><button class="btn" data-o="come">Come here</button><button class="btn" data-o="regroup">Regroup</button></div>
+  <div class="hint"><label><input type="checkbox" id="sqOnly"> Only this soldier</label></div>
+  <div class="sqrow"><button class="btn" id="sqClose">Close</button></div>
 </div></div>
 <div id="attachGui" class="gui"><div class="panel">
   <h3>Attachment Table</h3>
@@ -3570,11 +3579,11 @@ class Mob extends Entity{
   soldierTick(dt){
     if(this.hurtT>0)this.hurtT-=dt;if(this.invT>0)this.invT-=dt;
     for(const k of ['shotT','shotCd','burstCd','reloadT','coverT','coverCd','strafeT','tgtT','reactT','flankT','alertT','alertHold','alertTurn','boundPause','squadCd'])if(this[k]>0)this[k]-=dt;
-    const d=this.def,p=this.team==='player'&&MP.active&&MP.host?this.nearestPlayer():player;
+    const d=this.def,p=this.team==='player'&&MP.active&&MP.host?this.nearestPlayer():player;if(this.order)this.soldierOrderStep(dt);
     // hit reaction: take cover
     if(this.hp<this.sHp-0.01&&this.coverCd<=0&&this.coverT<=0&&Math.random()<0.8){this.coverCd=3;const t=this.tgt;this.soldierCover(this.alertT>0&&this.alertFrom?this.alertFrom:t&&!t.dead?[t.x,t.y+1,t.z]:null)}this.sHp=this.hp;
-    if(this.tgtT<=0){this.tgtT=0.4+Math.random()*0.2;const had=!!this.tgt;this.tgt=this.soldierKeepAlert(this.soldierPickTarget());if(this.tgt&&!had){this.reactT=0.6+Math.random()*0.8;this.burstLeft=0}}
-    if(this.tgt&&(this.tgt.dead||this.tgt.dying))this.tgt=null;
+    if(this.tgtT<=0){this.tgtT=0.4+Math.random()*0.2;const had=!!this.tgt;this.tgt=this.soldierKeepAlert(this.soldierPickTarget()||this.soldierPickFar());if(this.tgt&&!had){this.reactT=0.6+Math.random()*0.8;this.burstLeft=0}}
+    if(this.tgt&&(this.tgt.dead||this.tgt.dying))this.tgt=null;if(this.retreatT>0)this.tgt=null;
     let md=null,spd=this.kind==='sniper'?2.0:d.speed,face=null;this.aimOn=false;
     if(this.coverT>0&&this.coverDir){md=this.coverDir;spd*=1.3}
     if(this.tgt){const t=this.tgt;const lead=t===player?0.1:0.08;let ap=[t.x+(t.vx||0)*lead,t.y+(t.h||1.8)*0.55,t.z+(t.vz||0)*lead];
@@ -3584,13 +3593,13 @@ class Mob extends Entity{
           if(this.unseenT>=3&&!this.alertCovered&&this.coverCd<=0&&this.coverT<=0){this.alertCovered=true;this.coverCd=3;this.soldierCover(this.alertFrom||ap)}}}
       const dx=ap[0]-this.x,dz=ap[2]-this.z,dist=Math.hypot(dx,dz)||0.01,los=seen&&!srch;
       face=Math.atan2(-dx,-dz);const yErr=Math.atan2(Math.sin(face-this.yaw),Math.cos(face-this.yaw));this.aimE+=(Math.atan2(ap[1]-(this.y+1.45),dist)-this.aimE)*Math.min(1,dt*10);this.aimOn=true;
-      if(!md){const rg=this.rng;
+      if(!md){const rg=this.order==='attack'?this.rng*0.6:this.rng;
         if(!los||dist>rg+3){if(!los&&this.collidedH&&this.flankT<=0){this.flankT=1.2;this.strafeDir=-this.strafeDir}
-          const k=this.flankT>0?1:(los?0:0.35);md=[dx/dist-dz/dist*this.strafeDir*k,dz/dist+dx/dist*this.strafeDir*k];const l=Math.hypot(md[0],md[1])||1;md=[md[0]/l,md[1]/l];spd*=1}
+          const k=this.flankT>0?1:(los?0:0.35);md=[dx/dist-dz/dist*this.strafeDir*k,dz/dist+dx/dist*this.strafeDir*k];const l=Math.hypot(md[0],md[1])||1;md=[md[0]/l,md[1]/l];spd*=1;{const nv=this.soldierNav(ap[0],ap[2],dt);if(nv)md=nv}}
         else if(dist<rg-4){md=[-dx/dist,-dz/dist];spd*=0.9}
         else{md=[-dz/dist*this.strafeDir,dx/dist*this.strafeDir];spd*=0.667}
         if(this.strafeT<=0){this.strafeDir=-this.strafeDir;this.strafeT=1+Math.random()*2}}
-      if(srch&&md&&this.coverT<=0)md=this.soldierBound(md,dt);
+      if(this.coverT<=0&&this.soldierOrderHolds())md=this.soldierOrderTgt(md,dt);if(srch&&md&&this.coverT<=0)md=this.soldierBound(md,dt);
       // fire bursts: 3 rounds (heavy 6, sniper 1), 0.6 s apart, a 2 s reload every 4 bursts; never through blocks
       if(!los||dist>46||this.coverT>0||Math.abs(yErr)>0.8)this.burstLeft=0;
       else if(this.reactT<=0&&this.reloadT<=0){
@@ -3598,21 +3607,21 @@ class Mob extends Entity{
           if(this.burstLeft<=0){this.burstCd=this.kind==='sniper'?2.5:0.6+Math.random()*0.2;if(++this.burstN>=4){this.burstN=0;this.reloadT=2}}}}
         else if(this.burstCd<=0){this.burstLeft=this.kind==='sniper'?1:this.kind==='heavy'?6:3;this.shotCd=0}}}
     else{this.burstLeft=0;
-      if(this.moveTo&&!md){const dx=this.moveTo[0]-this.x,dz=this.moveTo[1]-this.z,dd=Math.hypot(dx,dz);if(dd<2.5)this.moveTo=null;else md=[dx/dd,dz/dd]}
-      else if(this.team==='player'&&!md){if(!p.dead){const dx=p.x-this.x,dz=p.z-this.z,dist=Math.hypot(dx,dz)||0.01;
+      if(!md&&this.soldierOrderHolds())md=this.soldierOrderMove(dt);if(this.moveTo&&!md){const dx=this.moveTo[0]-this.x,dz=this.moveTo[1]-this.z,dd=Math.hypot(dx,dz);if(dd<2.5)this.moveTo=null;else md=[dx/dd,dz/dd]}
+      else if(this.team==='player'&&!md&&!this.soldierOrderHolds()){if(!p.dead){const dx=p.x-this.x,dz=p.z-this.z,dist=Math.hypot(dx,dz)||0.01;
           if(dist>10)this.following=true;else if(dist<this.fol)this.following=false;
           if(dist>64&&p.onGround&&!p.riding)this.soldierJoin(p);
-          else if(this.following){md=[dx/dist,dz/dist];if(dist>20)spd*=1.42}}}
+          else if(this.following){md=[dx/dist,dz/dist];const nv=this.soldierNav(p.x,p.z,dt);if(nv)md=nv;if(dist>20)spd*=1.42}}}
       else if(this.team==='enemy'&&this.march&&!md&&!p.dead&&game.difficulty>0){const dx=p.x-this.x,dz=p.z-this.z,dist=Math.hypot(dx,dz)||0.01;if(dist>9&&dist<150){md=[dx/dist,dz/dist];spd*=0.9}}}
     if(face===null&&this.alertT>0&&this.alertFrom){const af=this.alertFrom;face=Math.atan2(-(af[0]-this.x),-(af[2]-this.z));this.aimOn=true;this.aimE+=(Math.atan2(af[1]-(this.y+1.45),Math.hypot(af[0]-this.x,af[2]-this.z)||1)-this.aimE)*Math.min(1,dt*10);if(!this.tgt&&this.alertTurn>0&&this.coverT<=0)md=null}
     if(md&&face===null)face=Math.atan2(-md[0],-md[1]);
     if(face!==null){let da=face-this.yaw;da=Math.atan2(Math.sin(da),Math.cos(da));const rt=this.alertTurn>0?8.5:3;this.yaw+=clamp(da,-rt*dt,rt*dt)}
-    this.moveDir=md;
+    this.moveDir=md;this.soldierDoor(md,dt);
     if(md&&this.onGround){ // do not walk off cliffs or into water
       const fx=this.x+md[0]*1.2,fz=this.z+md[1]*1.2;let drop=0;while(drop<4&&!BLOCKS[world.getBlockPhys(floor(fx),floor(this.y-1-drop),floor(fz))].solid)drop++;
       if(drop>=3||world.getBlock(floor(fx),floor(this.y),floor(fz))===8||world.getBlock(floor(fx),floor(this.y),floor(fz))===9){this.moveDir=md=null;this.coverT=0}}
     this.headYaw*=0.8;this.headPitch+=((this.aimOn?this.aimE:0)-this.headPitch)*Math.min(1,dt*8);
-    const inW=this.inWater;let mx=0,mz=0;if(md){mx=md[0]*spd;mz=md[1]*spd}
+    const inW=this.inWater;let mx=0,mz=0;if(md){const sm=this.retreatT>0?1.35:1;mx=md[0]*spd*sm;mz=md[1]*spd*sm}
     const acc=this.onGround?12:6;this.vx+=(mx-this.vx)*Math.min(1,acc*dt);this.vz+=(mz-this.vz)*Math.min(1,acc*dt);
     if(md&&this.collidedH&&this.onGround)this.vy=9.4;
     else if(md&&this.onGround&&!inW){const ax=this.x+md[0]*(this.w/2+0.2),az=this.z+md[1]*(this.w/2+0.2);const fy=floor(this.y+0.05);const ahead=world.getBlock(floor(ax),fy,floor(az));
@@ -3621,6 +3630,42 @@ class Mob extends Entity{
     this.physics(dt,{step:0.6,friction:1,gravity:inW?8:32,airStep:!!md}); // light friction so they really walk at their speed
     const hs=Math.hypot(this.vx,this.vz);this.walkAmp+=(Math.min(1,hs/2)-this.walkAmp)*Math.min(1,dt*8);this.walkT+=hs*dt*2.2}
   // friendly soldiers that lost the player catch up by dropping in beside them
+  // ---- orders + navigation (see squadOrder / soldierPath) ----
+  soldierOrderHolds(){return this.team==='player'&&(this.order==='hold'||this.order==='go')&&!!this.orderPos}
+  soldierOrderStep(dt){if(this.retreatT>0)this.retreatT-=dt;if(this.order==='go')this.goT=(this.goT||0)+dt;if(this.sayT>0)this.sayT-=dt}
+  // attack order: nearest enemy soldier / hostile mob / enemy aircraft within 80 blocks, seen or not
+  soldierPickFar(){if(this.order!=='attack'||this.team!=='player')return null;let best=null,bd=6400;
+    for(const e of entities){if(!(e instanceof Mob)||e.dead||e.dying||e===this||!e.def)continue;const d=e.def;if(!(d.soldier?e.team==='enemy':(d.vehicle&&e.aiEnemy)||soldierHostileMob(e)))continue;
+      const dd=(e.x-this.x)*(e.x-this.x)+(e.z-this.z)*(e.z-this.z)+(e.y-this.y)*(e.y-this.y)*0.25;if(dd<bd){bd=dd;best=e}}return best}
+  // no target: hold stays within 3 blocks of orderPos, go walks there (then holds, or follows after a regroup)
+  soldierOrderMove(dt){const op=this.orderPos;if(!op)return null;const dx=op[0]-this.x,dz=op[2]-this.z,dd=Math.hypot(dx,dz);
+    if(this.order==='go'){if(dd<1.8||this.goT>45){this.goT=0;this.path=null;if(this.after==='follow'){this.order='follow';this.orderPos=null;this.following=true}else this.order='hold';this.after=null;return null}
+      return this.soldierNav(op[0],op[2],dt)||[dx/(dd||1),dz/(dd||1)]}
+    if(dd>3)this.ordBack=true;if(this.ordBack){if(dd<1.2){this.ordBack=false;this.path=null;return null}return this.soldierNav(op[0],op[2],dt)||[dx/dd,dz/dd]}return null}
+  // with a target: go keeps walking to its post while shooting; hold only moves inside its 3 block circle
+  soldierOrderTgt(md,dt){const op=this.orderPos;if(!op)return md;if(this.order==='go')return this.soldierOrderMove(dt);
+    const dx=op[0]-this.x,dz=op[2]-this.z,dd=Math.hypot(dx,dz);if(dd>3||this.ordBack)return this.soldierOrderMove(dt);
+    if(md){const nx=this.x+md[0]*0.7,nz=this.z+md[1]*0.7;if(Math.hypot(nx-op[0],nz-op[2])>3)return null}return md}
+  // direction to (tx,tz): null when the straight walk is clear (or there is no path), else toward the next A* waypoint
+  soldierNav(tx,tz,dt){const dist=Math.hypot(tx-this.x,tz-this.z);if(dist<1.2){this.path=null;return null}const now=game.time;
+    if(!(now>=this.clrAt)){this.clrAt=now+0.2+Math.random()*0.1;this.clr=sqDirect(this,tx,tz);
+      if(!this.clr&&this.path){const P=this.path;for(let j=Math.min(P.length-1,this.pathI+4);j>this.pathI;j--)if(sqDirect(this,P[j][0],P[j][1])){this.pathI=j;break}}}
+    if(this.clr){this.path=null;return null}
+    const g=this.pathGoal,moved=!!g&&Math.hypot(tx-g[0],tz-g[1])>4;let need=!this.path||this.pathI>=this.path.length;
+    if(!need&&g&&(moved||now-this.pathAt>4||this.stuckT>0.6))need=true;
+    if(need&&now-(this.pathAt===undefined?-9:this.pathAt)>=(moved&&this.path?0.5:1.5)&&sqBudget()){this.pathAt=now;this.stuckT=0;this.path=soldierPath(this,tx,tz)||null;this.pathGoal=[tx,tz]}
+    const P=this.path;if(!P)return null;
+    for(;this.pathI<P.length;this.pathI++){const q=P[this.pathI],dq=Math.hypot(q[0]-this.x,q[1]-this.z);
+      if(q[3]){const xa=q[3]==='x',ad=(xa?q[0]-this.x:q[1]-this.z)*q[5],ce=q[4]-(xa?this.z:this.x);if((ad<=0.05&&Math.abs(ce)<0.5)||dq<0.3)continue;break}
+      if(dq>=0.8)break}
+    if(this.pathI>=P.length){this.path=null;return null}const w=P[this.pathI];
+    if(w[3]){ // rail through a door: line up with the free stretch, then go straight through
+      const xa=w[3]==='x',s=w[5],ad=(xa?w[0]-this.x:w[1]-this.z)*s,ce=w[4]-(xa?this.z:this.x);
+      if(ad<1.2&&Math.abs(ce)<0.5){const al=Math.max(0.1,1-Math.abs(ce)*4),cr=clamp(ce*5,-1,1),l=Math.hypot(al,cr);return xa?[s*al/l,cr/l]:[cr/l,s*al/l]}}
+    const wx=w[0]-this.x,wz=w[1]-this.z,wl=Math.hypot(wx,wz)||1;return [wx/wl,wz/wl]}
+  // stuck timer + open wood/leaf doors in the way
+  soldierDoor(md,dt){this.stuckT=(md&&this.collidedH)?(this.stuckT||0)+dt:0;if(!md)return;const fy=floor(this.y+0.05);
+    for(const r of [0.8,1.4]){const bx=floor(this.x+md[0]*r),bz=floor(this.z+md[1]*r);for(let dy=0;dy<2;dy++){const id=world.getBlock(bx,fy+dy,bz);if(id&&BLOCKS[id].door&&!BLOCKS[id].iron&&setDoorOpen(bx,fy+dy,bz,true))return}}}
   soldierJoin(p){for(let i=0;i<8;i++){const a=Math.random()*PI*2,x=p.x+Math.cos(a)*5,z=p.z+Math.sin(a)*5,gy=soldierGround(x,z);if(gy<0||Math.abs(gy-p.y)>8)continue;this.x=x;this.y=gy;this.z=z;this.vx=this.vy=this.vz=0;return}}
   nearestPlayer(){if(!MP.active||!MP.host||!MP.remote.size)return player;let best=player,bd=player.dead?1e18:(player.x-this.x)**2+(player.z-this.z)**2;for(const r of MP.remote.values()){if(r.hidden||!r.hasTarget)continue;const d=(r.x-this.x)**2+(r.z-this.z)**2;if(d<bd){bd=d;best=r}}return best}
   updateRemote(dt){if(this.hurtT>0)this.hurtT-=dt;if(this.invT>0)this.invT-=dt;if(!this.hasTarget)return;if(this.netS&&this.def.vehicle&&game.time-(this.lastSync||0)<0.4){this.tx+=this.netS[1]*dt;this.ty+=this.netS[2]*dt;this.tz+=this.netS[3]*dt}const k=Math.min(1,dt*10);const ox=this.x,oz=this.z;this.x+=(this.tx-this.x)*k;this.y+=(this.ty-this.y)*k;this.z+=(this.tz-this.z)*k;let dy=this.tyaw-this.yaw;dy=Math.atan2(Math.sin(dy),Math.cos(dy));this.yaw+=dy*k;
@@ -4024,12 +4069,117 @@ function soldierCmd(args,say){const t=args.filter(a=>!/^\d+$/.test(a)).join('_')
   const team=m[1]==='enemy_'?'enemy':'player',kind=/sniper/.test(m[2])?'sniper':/heavy/.test(m[2])?'heavy':'rifle',num=args.find(a=>/^\d+$/.test(a)),n=clamp(parseInt(num)||1,1,20),d=eyeDir();
   const mobs=spawnWarSquad(team,n,player.x+d[0]*6,player.z+d[2]*6,{kinds:[kind],y:player.y+0.1,yaw:player.yaw+PI});say('Spawned '+mobs.length+' '+(team==='enemy'?'enemy ':'friendly ')+(kind==='rifle'?'soldier':kind)+(mobs.length===1?'':'s'));return true}
 // right click with a soldier egg: Recruit Soldier = friendly, Enemy Soldier = enemy
+// ---- Squad orders (talk to your soldiers) and soldier path finding (walk round buildings instead of into them) ----
+const SQ={t:-1,n:0,mark:null,mt:0,used:false,names:['Miller','Reyes','Kowalski','Tanaka','Dubois','Novak','Okafor','Jensen','Silva','Hart','Ivanov','Moreau']};
+const SQ_W=49,SQ_N=SQ_W*SQ_W,SQ_G=new Float32Array(SQ_N),SQ_PAR=new Int32Array(SQ_N),SQ_Y=new Int16Array(SQ_N),SQ_ST=new Uint32Array(SQ_N),SQ_CL=new Uint8Array(SQ_N),SQ_HK=new Float32Array(20000),SQ_HI=new Int32Array(20000);let SQ_STAMP=0;
+const SQ_NB=[[1,0],[-1,0],[0,1],[0,-1],[1,1],[1,-1],[-1,1],[-1,-1]];
+function sqBudget(){if(SQ.t!==game.time){SQ.t=game.time;SQ.n=0}if(SQ.n>=2)return false;SQ.n++;return true} // at most 2 A* runs per frame
+// can a soldier's body occupy this cell? doors count as passable (wood and leaf doors get opened on the way; iron only when open)
+function sqPass(x,y,z){const id=world.getBlockPhys(x,y,z);if(id===0)return true;const b=BLOCKS[id];if(b.liquid)return false;
+  if(b.door){if(!b.iron)return true;const m=world.getMeta(x,y,z);return (world.getMeta(x,(m&8)?y-1:y,z)&4)>0}return !b.solid}
+function sqGround(id){if(id===0)return false;const b=BLOCKS[id];return !!b.solid&&!b.liquid&&!b.door&&b.model!=='fence'&&b.model!=='wall'}
+function sqStand(x,y,z){return y>=1&&sqGround(world.getBlockPhys(x,y-1,z))&&sqPass(x,y,z)&&sqPass(x,y+1,z)}
+// doors: base y of a door in the cell where a soldier stands at feet y (or -1), and the axis a soldier has to walk along to get through ('z' for even facings)
+function sqDoorY(x,y,z){for(let d=0;d<2;d++){const id=world.getBlock(x,y+d,z);if(id&&BLOCKS[id].door)return (world.getMeta(x,y+d,z)&8)?y+d-1:y+d}return -1}
+function sqDoorAxis(x,y,z){const y0=sqDoorY(x,y,z);return y0<0?null:(world.getMeta(x,y0,z)&1)?'x':'z'}
+// from standing cell (cx,cy,cz) to column (nx,nz): same level, 1 step up, or a drop of at most 2; returns the new feet y or null
+function sqStep(cx,cy,cz,nx,nz){if(sqStand(nx,cy,nz))return cy;if(sqPass(cx,cy+2,cz)&&sqStand(nx,cy+1,nz))return cy+1;
+  if(sqPass(nx,cy,nz)&&sqPass(nx,cy+1,nz)){for(let d=1;d<=2;d++){if(sqStand(nx,cy-d,nz))return cy-d;if(!sqPass(nx,cy-d,nz))break}}return null}
+// horizontal walkability probe along a line (half-block steps, up to lim blocks)
+function sqLine(mob,ox,oz,tx,tz,lim){const dx=tx-ox,dz=tz-oz,L=Math.hypot(dx,dz);if(L<0.3)return true;const ux=dx/L,uz=dz/L,n=Math.ceil(Math.min(L,lim)*2);let cx=floor(mob.x),cz=floor(mob.z),cy=floor(mob.y+0.05);if(sqDoorY(cx,cy,cz)>=0)return false;
+  for(let i=1;i<=n;i++){const bx=floor(ox+ux*0.5*i),bz=floor(oz+uz*0.5*i);if(bx===cx&&bz===cz)continue;
+    if(bx!==cx&&bz!==cz&&!(sqPass(bx,cy,cz)&&sqPass(bx,cy+1,cz)&&sqPass(cx,cy,bz)&&sqPass(cx,cy+1,bz)))return false;
+    const ny=sqStep(cx,cy,cz,bx,bz);if(ny===null||sqDoorY(bx,ny,bz)>=0)return false;cx=bx;cz=bz;cy=ny}return true}
+function sqDirect(mob,tx,tz,lim){lim=lim||14;const dx=tx-mob.x,dz=tz-mob.z,L=Math.hypot(dx,dz)||1,px=-dz/L*0.3,pz=dx/L*0.3;
+  return sqLine(mob,mob.x,mob.z,tx,tz,lim)&&sqLine(mob,mob.x+px,mob.z+pz,tx+px,tz+pz,lim)&&sqLine(mob,mob.x-px,mob.z-pz,tx-px,tz-pz,lim)}
+// A* over the (x,z) grid with a y per cell: 8 neighbours, 1500 nodes, a 49x49 window shifted toward the goal; a goal outside the window or unreachable gives the path to the closest node found
+function soldierPath(mob,tx,tz){const t0=performance.now(),W=SQ_W;const sx=floor(mob.x),sz=floor(mob.z),sy=floor(mob.y+0.05),gx=floor(tx),gz=floor(tz);
+  const dist=Math.hypot(tx-mob.x,tz-mob.z),k=Math.min(0.5,12/Math.max(dist,0.01));const ox=floor(mob.x+(tx-mob.x)*k)-24,oz=floor(mob.z+(tz-mob.z)*k)-24;
+  if(sx-ox<0||sx-ox>=W||sz-oz<0||sz-oz>=W)return null;
+  const stamp=++SQ_STAMP;let hn=0;const H=(x,z)=>{const a=Math.abs(x-gx),b=Math.abs(z-gz);return Math.max(a,b)+0.414*Math.min(a,b)};
+  const push=(f,i)=>{let c=hn++;while(c>0){const p=(c-1)>>1;if(SQ_HK[p]<=f)break;SQ_HK[c]=SQ_HK[p];SQ_HI[c]=SQ_HI[p];c=p}SQ_HK[c]=f;SQ_HI[c]=i};
+  const pop=()=>{const r=SQ_HI[0];hn--;if(hn>0){const f=SQ_HK[hn],i=SQ_HI[hn];let c=0;for(;;){let l=2*c+1;if(l>=hn)break;if(l+1<hn&&SQ_HK[l+1]<SQ_HK[l])l++;if(SQ_HK[l]>=f)break;SQ_HK[c]=SQ_HK[l];SQ_HI[c]=SQ_HI[l];c=l}SQ_HK[c]=f;SQ_HI[c]=i}return r};
+  const s0=(sx-ox)+(sz-oz)*W;SQ_ST[s0]=stamp;SQ_G[s0]=0;SQ_PAR[s0]=-1;SQ_Y[s0]=sy;SQ_CL[s0]=0;push(H(sx,sz),s0);
+  let best=s0,bh=H(sx,sz),goal=-1,exp=0;
+  while(hn>0&&exp<1500&&hn<19980){const cur=pop();if(SQ_CL[cur])continue;SQ_CL[cur]=1;exp++;
+    const cx=ox+cur%W,cz=oz+((cur/W)|0),cy=SQ_Y[cur];const ca=sqDoorAxis(cx,cy,cz),h=H(cx,cz);if(h<bh-1e-6){bh=h;best=cur}
+    if((cx-gx)*(cx-gx)+(cz-gz)*(cz-gz)<=2){goal=cur;break}
+    if((exp&63)===0&&performance.now()-t0>8)break;
+    for(let d=0;d<8;d++){const ddx=SQ_NB[d][0],ddz=SQ_NB[d][1],nx=cx+ddx,nz=cz+ddz,lx=nx-ox,lz=nz-oz;if(lx<0||lx>=W||lz<0||lz>=W)continue;const ni=lx+lz*W;if(SQ_ST[ni]===stamp&&SQ_CL[ni])continue;
+      let ny;if(d>=4){if(!(sqPass(nx,cy,cz)&&sqPass(nx,cy+1,cz)&&sqPass(cx,cy,nz)&&sqPass(cx,cy+1,nz)))continue;ny=sqStand(nx,cy,nz)?cy:null}else ny=sqStep(cx,cy,cz,nx,nz);
+      if(ny===null)continue;const da=sqDoorAxis(nx,ny,nz);if((ca||da)&&(d>=4||(ca&&(ca==='x')!==(ddx!==0))||(da&&(da==='x')!==(ddx!==0))))continue; // doors only along their own axis, never diagonally
+     const ng=SQ_G[cur]+(d>=4?1.414:1)+(ny>cy?0.6:ny<cy?0.3:0);
+      if(SQ_ST[ni]!==stamp||ng<SQ_G[ni]){SQ_ST[ni]=stamp;SQ_CL[ni]=0;SQ_G[ni]=ng;SQ_PAR[ni]=cur;SQ_Y[ni]=ny;push(ng+H(nx,nz),ni)}}}
+  const end=goal>=0?goal:best;if(end===s0)return null;const pts=[];for(let i=end;i!==s0&&i>=0;i=SQ_PAR[i])pts.push([ox+i%W+0.5,oz+((i/W)|0)+0.5,SQ_Y[i]]);pts.reverse();
+  // narrow gaps: a door cell (and the cells just before/after it) is crossed on a rail through the middle of the stretch the open leaf leaves free
+  for(let i=0;i<pts.length;i++){const p=pts[i],cx=floor(p[0]),cz=floor(p[1]),da=sqDoorAxis(cx,p[2],cz);if(!da)continue;const y0=sqDoorY(cx,p[2],cz),m=world.getMeta(cx,y0,cz);
+    let iv=[[0,1]];for(const b of blockBoxes(world.getBlock(cx,y0,cz),(m&~8)|4,'c',cx,y0,cz)){const b0=da==='z'?b[0]:b[2],b1=da==='z'?b[3]:b[5],nv=[];for(const v of iv){if(b1<=v[0]||b0>=v[1]){nv.push(v);continue}if(b0>v[0])nv.push([v[0],b0]);if(b1<v[1])nv.push([b1,v[1]])}iv=nv}
+    let bs=null;for(const v of iv)if(!bs||v[1]-v[0]>bs[1]-bs[0])bs=v;if(!bs||bs[1]-bs[0]<0.62)continue;
+    const xa=da==='x',cross=(xa?cz:cx)+(bs[0]+bs[1])/2,a=j=>xa?pts[j][0]:pts[j][1];let s=0;
+    if(i>0&&i<pts.length-1)s=Math.sign(a(i+1)-a(i-1));else if(i>0)s=Math.sign(a(i)-a(i-1));else if(pts.length>1)s=Math.sign(a(1)-a(0));if(!s)continue;
+    for(let j=Math.max(0,i-1);j<=Math.min(pts.length-1,i+1);j++){const q=pts[j];if(floor(xa?q[1]:q[0])!==(xa?cz:cx))continue;if(xa)q[1]=cross;else q[0]=cross;q[3]=da;q[4]=cross;q[5]=s}}
+  mob.path=pts;mob.pathI=0;mob.pathGoal=[tx,tz];mob.pathFull=goal>=0;return pts}
+// ---- orders ----
+function squadList(r,only){if(only)return only.dead||only.dying?[]:[only];const out=[];for(const e of entities){if(e instanceof Mob&&e.def&&e.def.soldier&&e.team==='player'&&!e.dead&&!e.dying&&!e.remote&&Math.hypot(e.x-player.x,e.z-player.z)<=(r||100))out.push(e)}return out}
+function squadName(m){if(!m.cs)m.cs=(m.kind==='sniper'?'Sniper ':m.kind==='heavy'?'Gunner ':'Pvt. ')+SQ.names[floor(Math.random()*SQ.names.length)];return m.cs}
+function squadLookPoint(maxD){const p=player,d=eyeDir();const h=raycast(p.x,p.y+p.eyeHeight,p.z,d[0],d[1],d[2],maxD||80,false);
+  if(h&&h.block){const n=FACE_DIR[h.face]||[0,1,0];const x=h.bx+n[0]+0.5,z=h.bz+n[2]+0.5;return [x,h.by+n[1],z]}
+  const hl=Math.hypot(d[0],d[2]);if(hl<0.05)return null;const x=p.x+d[0]/hl*40,z=p.z+d[2]/hl*40,g=soldierGround(x,z);return g<0?null:[x,g,z]}
+function squadRing(cx,cy,cz,r,i,n,off){const a=(i/Math.max(1,n))*Math.PI*2+(off||0),x=cx+Math.cos(a)*r,z=cz+Math.sin(a)*r,g=soldierGround(x,z);return [x,g>=0&&Math.abs(g-cy)<6?g:cy,z]}
+const SQ_SAY={follow:'following you',hold:'holding position',attack:'attacking!',go:'moving out',come:'on our way!',spread:'spreading out',regroup:'regrouping on you',retreat:'falling back!'};
+const SQ_ACK={follow:['Copy, on your six!','Right behind you!','Sticking close!'],hold:['Holding!','Copy, holding here!','Dug in!'],attack:['Moving to engage!','Contact, attacking!','Going in!'],go:['Moving!','On the way!','Copy, moving out!'],come:['Coming!','On our way!','Copy!'],spread:['Spreading out!','Fanning out!','Copy, wide spacing!'],regroup:['Regrouping!','Falling in!','On you!'],retreat:['Falling back!','Pulling out!','Retreating!']};
+// kind: follow|hold|attack|go (to where you look, o.pos overrides)|come (to you)|spread|regroup|retreat; o.only = a single soldier, o.r = radius (default 100)
+function squadOrder(kind,o){o=o||{};if(MP.active&&!MP.host){showMessage('Only the host can command soldiers');return 0}SQ.used=true;
+  const L=squadList(o.r||100,o.only);if(!L.length){showMessage('No friendly soldiers within '+(o.r||100)+' blocks (try /spawn friendly soldier)');return 0}
+  const p=player;let tgt=null;if(kind==='go'){tgt=o.pos||squadLookPoint(80);if(!tgt){showMessage('Soldiers: look at the spot you want them to go to');return 0}}
+  L.forEach((m,i)=>{m.path=null;m.goT=0;m.retreatT=0;m.after=null;m.ordBack=false;m.kindOrder=kind;
+    if(kind==='follow'){m.order='follow';m.orderPos=null;m.following=true}
+    else if(kind==='hold'){m.order='hold';m.orderPos=[m.x,m.y,m.z]}
+    else if(kind==='attack'){m.order='attack';m.orderPos=null}
+    else if(kind==='go'){m.order='go';m.orderPos=L.length>1?squadRing(tgt[0],tgt[1],tgt[2],Math.min(3,0.8+L.length*0.35),i,L.length,0.5):tgt.slice()}
+    else if(kind==='come'){m.order='go';m.orderPos=squadRing(p.x,p.y,p.z,2.2+L.length*0.15,i,L.length,p.yaw)}
+    else if(kind==='spread'){m.order='go';m.orderPos=squadRing(p.x,p.y,p.z,7,i,L.length,0)}
+    else if(kind==='regroup'||kind==='retreat'){m.order='go';m.orderPos=squadRing(p.x,p.y,p.z,3,i,L.length,p.yaw+PI);m.after='follow';if(kind==='retreat'){m.retreatT=8;m.tgt=null;m.alertHold=0}}
+    m.sayT=3;m.sayTxt=(SQ_ACK[kind]||['Copy!'])[floor(Math.random()*3)]});
+  const n=L.length;showMessage(n+' soldier'+(n>1?'s':'')+': '+(SQ_SAY[kind]||kind));const r=L[floor(Math.random()*n)];showMessage(squadName(r)+': '+r.sayTxt);playSoundAt('click',r.x,r.y,r.z,0.6,0.5);return n}
+function squadStatus(){const L=squadList(100);if(!L.length){showMessage('No friendly soldiers within 100 blocks');return 0}const c={};for(const m of L){const o=m.order||'follow';c[o]=(c[o]||0)+1}
+  let foe=1e9;for(const e of entities){if(!(e instanceof Mob)||e.dead||e.dying||!e.def)continue;if(e.def.soldier?e.team==='enemy':soldierHostileMob(e))foe=Math.min(foe,Math.hypot(e.x-player.x,e.z-player.z))}
+  showMessage(L.length+' soldier'+(L.length>1?'s':'')+': '+Object.keys(c).map(k=>c[k]+' '+(k==='follow'?'following':k==='hold'?'holding':k==='go'?'moving':'attacking')).join(', ')+(foe<1e8?'; nearest hostile '+floor(foe)+' blocks away':'; no hostiles near'));return L.length}
+function squadParse(t){t=' '+String(t).toLowerCase().replace(/[^a-z' ]+/g,' ')+' ';const has=r=>r.test(t);
+  if(has(/ (status|report|sitrep|count|roll call|how many|how are you) /))return 'status';
+  if(has(/ (spread|scatter|disperse|fan out) /))return 'spread';
+  if(has(/ (retreat|fall back|withdraw|pull back|run away|flee) /))return 'retreat';
+  if(has(/ (regroup|rally|assemble|form up|fall in|group up|reform) /))return 'regroup';
+  if(has(/ (follow|with me|stay close|stick|escort|behind me|tag along) /))return 'follow';
+  if(has(/ (hold|stay|wait|stop|halt|stand|guard|defend|freeze|cease|dig in) /))return has(/ (there|that|marker|yonder) /)?'go':'hold';
+  if(has(/ (attack|fight|charge|engage|assault|advance|hunt|kill|destroy|clear) /))return 'attack';
+  if(has(/ (come|here|to me|over here|get over|join me) /))return 'come';
+  if(has(/ (go|move|march|head|there|over there|take position|position|push|proceed|deploy) /))return 'go';
+  return null}
+function squadDo(k){return k==='status'?squadStatus():squadOrder(k)}
+// plain-language chat: "soldiers hold here", "squad go there", "troops follow me" ...
+function squadChat(s){const m=/^\s*(?:(?:hey|ok|okay|all|alright|listen up)[\s,]+)?(?:soldiers?|squad|troops?|men|guys|boys|team|platoon|sergeant|privates?)\b[\s,:!.\-]*(.*)$/i.exec(s);if(!m)return false;
+  const k=squadParse(m[1]||'');if(!k){if(MP.active)return false;showMessage('Soldiers: try follow, hold, attack, go there, come here, spread out, regroup, retreat or status');return true}
+  if(MP.active&&!MP.host)return false;squadDo(k);return true}
+function squadCmd(args,say){const k=squadParse(args.join(' '));if(!k){say('Usage: /squad follow | hold | attack | go (where you look) | come | spread | regroup | retreat | status   (or type "soldiers hold here"; Y cycles follow/hold/attack)');return}
+  if(MP.active&&!MP.host){say('Only the host can command soldiers');return}squadDo(k)}
+// Y: follow -> hold -> attack -> follow for the soldiers within 60 blocks
+function squadKey(){if(player.dead||(MP.active&&!MP.host))return false;const L=squadList(60);if(!L.length)return false;let near=L[0],bd=1e9;for(const m of L){const d=Math.hypot(m.x-player.x,m.z-player.z);if(d<bd){bd=d;near=m}}
+  const seq=['follow','hold','attack'],cur=near.order==='go'?'hold':(near.order||'follow');squadOrder(seq[(Math.max(0,seq.indexOf(cur))+1)%3],{r:60});return true}
+// remember the last spot you looked at (not through a soldier) for the menu's "Go to marker"
+function squadTick(dt){SQ.mt-=dt;if(SQ.mt>0)return;SQ.mt=0.25;if(!(SQ.used||(game.mods&&game.mods.war))||game.gui||player.dead)return;const te=player.targetEntity;if(te&&te.def&&te.def.soldier)return;const pt=squadLookPoint(80);if(pt)SQ.mark=pt}
+// right-click a friendly soldier with an empty hand (or sneaking): the order menu
+function squadUseHook(st,hd,t){const p=player,te=p.targetEntity;if(!te||!(te instanceof Mob)||!te.def||!te.def.soldier||te.team!=='player'||te.dead||te.dying)return false;if(st&&!p.sneaking)return false;if(MP.active&&!MP.host)return false;squadMenuOpen(te);return true}
+function squadMenuOpen(m){SQ.used=true;openGui('squad');const n=squadList(100).length;$('sqInfo').textContent=squadName(m)+(n>1?' + '+(n-1)+' more soldier'+(n>2?'s':''):'');
+  for(const b of $('squadGui').querySelectorAll('[data-o]'))b.onclick=()=>{const k=b.dataset.o,only=$('sqOnly').checked?m:null;closeGui();
+    if(k==='mark'){if(!SQ.mark){showMessage('Soldiers: look at a spot first');return}squadOrder('go',{pos:SQ.mark.slice(),only})}else squadOrder(k,{only})};
+  $('sqClose').onclick=()=>closeGui()}
 function soldierUseHook(st,hd,t){if(!hd||!hd.soldierEgg||!t||!t.block)return false;const n=FACE_DIR[t.face];const m=new Mob('soldier',t.bx+n[0]+0.5,t.by+(n[1]<0?-2:n[1]),t.bz+n[2]+0.5);m.soldierSetup(hd.soldierEgg,'rifle',{});m.yaw=player.yaw+PI;entities.push(m);consumeHeld();playSoundAt('pop',m.x,m.y,m.z);player.swing=0;return true}
 // multiplayer: the guest gets team/nation/kind/gun and the aim pose with every mob packet
 function soldierPack(e,o){o.tm=e.team==='player'?1:0;if(e.nation&&e.nation!==e.team)o.nt=e.nation;o.kd=e.kind==='heavy'?'h':e.kind==='sniper'?'s':'r';o.gn=e.gunId;if(e.elite)o.el=1;if(e.aimOn)o.sa=1;if(e.aimE)o.ae=+e.aimE.toFixed(2);if(e.shotT>0)o.sh=1;if(e.coverT>0)o.cv=1}
 function soldierUnpack(e,o){e.team=o.tm?'player':'enemy';e.nation=o.nt||e.team;e.kind=o.kd==='h'?'heavy':o.kd==='s'?'sniper':'rifle';e.gunId=o.gn||461;e.elite=!!o.el;e.aimOn=!!o.sa;e.aimE=o.ae||0;if(o.sh)e.shotT=0.14;e.coverT=o.cv?0.3:0}
 // world save: restore team/nation/kind from the mob record
-function soldierRestore(e,m){e.team=m.tm==='player'?'player':'enemy';e.nation=m.nt||e.team;e.kind=m.kd==='heavy'||m.kd==='sniper'?m.kd:'rifle';e.gunId=m.gn||(e.kind==='sniper'?466:e.kind==='heavy'?517:461);e.rng=e.kind==='sniper'?24:e.kind==='heavy'?11:12;if(m.el){e.elite=true;e.maxHp=Math.round(e.def.hp*1.6)}e.sHp=e.hp}
+function soldierRestore(e,m){e.team=m.tm==='player'?'player':'enemy';e.nation=m.nt||e.team;e.kind=m.kd==='heavy'||m.kd==='sniper'?m.kd:'rifle';e.gunId=m.gn||(e.kind==='sniper'?466:e.kind==='heavy'?517:461);e.rng=e.kind==='sniper'?24:e.kind==='heavy'?11:12;if(m.el){e.elite=true;e.maxHp=Math.round(e.def.hp*1.6)}e.sHp=e.hp;if(m.od&&m.od!=='follow'){e.order=m.od;e.orderPos=m.op||null}}
 // soldier look: camo uniform per nation/team, plate carrier, helmet, boots, kit; two-handed gun held at the shoulder (the arms are solved to the grip and fore-end, so the muzzle follows the aim yaw/pitch); boxes in 1/16 block units like the player avatar
 const SOLDIER_CAMO={USA:{tex:'sol_camo_coyote',vest:[0.34,0.28,0.18]},Russia:{tex:'sol_camo_ru',vest:[0.12,0.17,0.1]},China:{tex:'sol_camo_cn',vest:[0.12,0.2,0.1],flash:[0.9,0.1,0.08]},UK:{tex:'sol_camo_uk',vest:[0.22,0.2,0.13]},Germany:{tex:'sol_camo_de',vest:[0.15,0.18,0.11]},France:{tex:'sol_camo_fr',vest:[0.14,0.17,0.25]}};
 const SOLDIER_CAMO_TEAM={player:{tex:'sol_camo_wood',vest:[0.12,0.18,0.1]},enemy:{tex:'sol_camo_desert',vest:[0.36,0.3,0.2]}};
@@ -4627,7 +4777,7 @@ function useItem(){
   const p=player;if(p.dead||game.gui||game.paused||p.koT>0)return;const st=heldStack();const hd=st?ITEMS[st.id]:null;const t=p.target;const creative=p.mode==='creative';
   if(typeof lootUseHook==='function'&&lootUseHook(st,hd,t))return;
   if(typeof howUseHook==='function'&&howUseHook(st,hd,t))return;
-  if(typeof soldierUseHook==='function'&&soldierUseHook(st,hd,t))return;
+  if(typeof soldierUseHook==='function'&&soldierUseHook(st,hd,t))return;if(typeof squadUseHook==='function'&&squadUseHook(st,hd,t))return;
   if(typeof warUseHook==='function'&&warUseHook(st,hd,t))return;
   if(typeof flakUseHook==='function'&&flakUseHook(st,hd,t))return;
   if(typeof a10UseHook==='function'&&a10UseHook(st,hd,t))return;if(typeof campUseHook==='function'&&campUseHook(st,hd,t))return;
@@ -5807,7 +5957,7 @@ function openGui(type,x,y,z,station){const g={type,x,y,z,station:station||null};
   if(type==='chest'){g.be=world.getBlockEntity(x,y,z,()=>({items:new Array(27).fill(null)}));if(!$('chestGrid')._done){mkSlots($('chestGrid'),g.be.items,0,27);$('chestGrid')._done=true}else{const els=$('chestGrid').children;for(let i=0;i<27;i++)els[i]._slot.arr=g.be.items}playSoundAt('chest',x,y,z)}
   if(type==='enchant'){if(!$('enchItem')._done){mkSlots($('enchItem'),enchSlots,0,1,'ench');mkSlots($('enchLapis'),enchSlots,1,1,'lapis');mkSlots($('enchMain'),player.inv,9,27);mkSlots($('enchHot'),player.inv,0,9);$('enchItem')._done=true}game.enchSeed=game.enchSeed||floor(Math.random()*1e9)}
   if(type==='anvil'){if(!$('anvilA')._done){mkSlots($('anvilA'),anvilSlots,0,1,'anvil');mkSlots($('anvilB'),anvilSlots,1,1,'anvil');mkSlots($('anvilOut'),anvilSlots,2,1,'aout','out');mkSlots($('anvilMain'),player.inv,9,27);mkSlots($('anvilHot'),player.inv,0,9);$('anvilA')._done=true}}
-  game.gui=g;$({inv:'invGui',table:'tableGui',furnace:'furnGui',chest:'chestGui',hopper:'hopperGui',enchant:'enchantGui',anvil:'anvilGui',brew:'brewGui',guide:'guideGui',uncraft:'uncraftGui',attach:'attachGui',warmap:'warMapGui',backpack:'backpackGui',silo:'siloGui',nukeTimer:'nukeTimerGui'}[type]).classList.add('show');document.exitPointerLock&&document.exitPointerLock();mouseL=false;mouseR=false;
+  game.gui=g;$({inv:'invGui',table:'tableGui',furnace:'furnGui',chest:'chestGui',hopper:'hopperGui',enchant:'enchantGui',anvil:'anvilGui',brew:'brewGui',guide:'guideGui',uncraft:'uncraftGui',attach:'attachGui',squad:'squadGui',warmap:'warMapGui',backpack:'backpackGui',silo:'siloGui',nukeTimer:'nukeTimerGui'}[type]).classList.add('show');document.exitPointerLock&&document.exitPointerLock();mouseL=false;mouseR=false;
   updateCraftOutput();renderAllSlots();if(type==='table'||type==='attach')renderRecipeBook();if(type==='inv')renderPalette();if(type==='enchant')renderEnchant();if(type==='anvil')updateAnvil();$('hud').style.display='none';syncMobileControls()}
 function closeGui(){const g=game.gui;if(!g)return;returnGrid(craft2);returnGrid(craft3);returnGrid(enchSlots);returnGrid(uncraftSlots);uncraftOut.fill(null);anvilSlots[2]=null;returnGrid(anvilSlots);attachSlots[2]=null;returnGrid(attachSlots);if(cursor){if(addToInventory(cursor))spawnItem(player.x,player.y+1,player.z,cursor);cursor=null}
   if(g.type==='chest')playSoundAt('chest',g.x,g.y,g.z);for(const el of document.querySelectorAll('.gui'))el.classList.remove('show');$('invGui').classList.remove('full');game.gui=null;hideTip();renderAllSlots();$('hud').style.display='block';syncMobileControls();if(!game.paused)lockPointer()}
@@ -6343,7 +6493,7 @@ function saveWorld(){if(!world||game.state!=='playing'||game.noSave)return;const
   let endSave=null;if(endDim){endSave=dimData(endDim.world,endDim.ents);endSave.dragonDead=!!endDim.world.dragonDead;const dr=endDim.ents.find(e=>e instanceof Dragon&&!e.dead);endSave.dragonHp=dr?dr.hp:null;endSave.crystals=endDim.ents.filter(e=>e instanceof Crystal&&!e.dead).map(c=>[c.x,c.y,c.z])}
   const overSaveWorld=world.dimKey==='over'?world:(game.dims.over?game.dims.over.world:null);
   if(overSaveWorld){for(const c of overSaveWorld.chunks.values()){const k=c.cx+','+c.cz;if(!overSaveWorld.savedMods)overSaveWorld.savedMods={};if(!overSaveWorld.savedBents)overSaveWorld.savedBents={};if(c.mods.size)overSaveWorld.savedMods[k]=Array.from(c.mods);if(c.bents.size)overSaveWorld.savedBents[k]=Array.from(c.bents)}Object.assign(mods,overSaveWorld.savedMods||{});Object.assign(bents,overSaveWorld.savedBents||{})}
-  const mobs=[],items=[];const overEnts=world.dimKey==='over'?entities:(game.dims.over?game.dims.over.ents:[]);for(const e of overEnts){if(e.dead)continue;if(e instanceof Wither&&!e.dying)mobs.push({type:'wither',x:e.x,y:e.y,z:e.z,hp:e.hp});else if(e instanceof Mob&&!e.dying)mobs.push({type:e.type,x:e.x,y:e.y,z:e.z,hp:e.hp,baby:e.baby,growT:e.growT,sheared:e.sheared,woolId:e.woolId,prof:e.prof,vlevel:e.vlevel,vxp:e.vxp,uses:e.trades?e.trades.map(t=>t.uses):undefined,tamed:e.tamed||undefined,sitting:e.sitting||undefined,color:e.color,hspeed:e.hspeed,hjump:e.hjump,saddled:e.saddled||undefined,maxHp:e.type==='horse'?e.maxHp:undefined,size:e.size,demand:e.trades?e.trades.map(t=>t.demand||0):undefined,restocks:e.restocks,tm:e.def.soldier?e.team:undefined,nt:e.def.soldier?e.nation:undefined,kd:e.def.soldier?e.kind:undefined,gn:e.def.soldier?e.gunId:undefined,el:e.elite||undefined});else if(e instanceof ItemEntity)items.push({x:e.x,y:e.y,z:e.z,id:e.stack.id,count:e.stack.count,dur:e.stack.dur,ench:e.stack.ench,items:e.stack.items})}
+  const mobs=[],items=[];const overEnts=world.dimKey==='over'?entities:(game.dims.over?game.dims.over.ents:[]);for(const e of overEnts){if(e.dead)continue;if(e instanceof Wither&&!e.dying)mobs.push({type:'wither',x:e.x,y:e.y,z:e.z,hp:e.hp});else if(e instanceof Mob&&!e.dying)mobs.push({type:e.type,x:e.x,y:e.y,z:e.z,hp:e.hp,baby:e.baby,growT:e.growT,sheared:e.sheared,woolId:e.woolId,prof:e.prof,vlevel:e.vlevel,vxp:e.vxp,uses:e.trades?e.trades.map(t=>t.uses):undefined,tamed:e.tamed||undefined,sitting:e.sitting||undefined,color:e.color,hspeed:e.hspeed,hjump:e.hjump,saddled:e.saddled||undefined,maxHp:e.type==='horse'?e.maxHp:undefined,size:e.size,demand:e.trades?e.trades.map(t=>t.demand||0):undefined,restocks:e.restocks,tm:e.def.soldier?e.team:undefined,nt:e.def.soldier?e.nation:undefined,kd:e.def.soldier?e.kind:undefined,gn:e.def.soldier?e.gunId:undefined,el:e.elite||undefined,od:e.def.soldier?e.order:undefined,op:e.def.soldier&&e.orderPos?e.orderPos:undefined});else if(e instanceof ItemEntity)items.push({x:e.x,y:e.y,z:e.z,id:e.stack.id,count:e.stack.count,dur:e.stack.dur,ench:e.stack.ench,items:e.stack.items})}
   const save={v:1,ch:CH,apoc:game.ax?{wave:game.ax.wave}:undefined,dim:world.dimKey,nether:netherSave,end:endSave,sift:siftSave,time:world.time,day:world.day,spawn:game.worldSpawn,player:{x:p.x,y:p.y,z:p.z,yaw:p.yaw,pitch:p.pitch,hp:p.hp,hunger:p.hunger,sat:p.sat,xp:p.xp,level:p.level,sel:p.sel,inv:p.inv,armor:p.armor,spawn:p.spawn,flying:p.flying,offhand:p.off[0]||null},mods,bents,mobs:mobs.slice(0,120),items:items.slice(0,100),pop:Array.from(overSaveWorld?overSaveWorld.populated:[])};
   const wid=game.worldId;const nt=nukeTimersSave();if(nt)save.nukeT=nt;if(game.warWins)save.warWins=game.warWins;if(game.war)save.war=wmpSave();if(game.spawns&&Object.keys(game.spawns).length)save.spawns=game.spawns;const packed=packSave(save);SaveDB.put('ic_world_'+wid,packed).then(ok=>{if(ok)return;let done=false;try{localStorage.setItem('ic_world_'+wid,JSON.stringify(save));done=true}catch(e){}if(!done&&game.time-saveFailT>60){saveFailT=game.time;showMessage('Save failed: the browser gave no room to save. Free space by removing old worlds from the world list.')}});
   try{const list=worldList();const m=list.find(w=>w.id===wid);if(m){m.played=Date.now();localStorage.setItem('ic_worlds',JSON.stringify(list))}}catch(e){}
@@ -6431,7 +6581,7 @@ function setupInput(){
   document.addEventListener('mousemove',ev=>{game.mousePos={x:ev.clientX,y:ev.clientY};if((document.pointerLockElement!==c&&!game.noLock)||game.gui||game.paused||player.koT>0)return;const s=opts.sens/100*0.0022;player.yaw-=ev.movementX*s;player.pitch-=ev.movementY*s;player.pitch=clamp(player.pitch,-PI/2+0.001,PI/2-0.001)});
   document.addEventListener('pointerlockerror',()=>{if(!game.noLock){game.noLock=true;if(!game.lockMsg){game.lockMsg=true;showMessage('Mouse lock unavailable: click the screen to try again, or move the mouse near a screen edge to turn')}}});
   document.addEventListener('pointerlockchange',()=>{if(document.pointerLockElement===c){clearTimeout(game.lockTimer);game.noLock=false}if(document.pointerLockElement!==c&&game.state==='playing'&&!game.gui&&!player.dead&&!game.paused&&!game.cmdOpen){pauseGame()}});
-  $('cmd').addEventListener('keydown',ev=>{if(ev.code==='Enter'||ev.code==='NumpadEnter'||ev.key==='Enter'){const v=$('cmd').value;closeCmd();if(v.trim()){const s=v.trim();if(MP.active&&!s.startsWith('/'))mpChat(s);else runCommand(s)}}else if(ev.code==='Escape'){closeCmd()}ev.stopPropagation()});
+  $('cmd').addEventListener('keydown',ev=>{if(ev.code==='Enter'||ev.code==='NumpadEnter'||ev.key==='Enter'){const v=$('cmd').value;closeCmd();if(v.trim()){const s=v.trim();if(squadChat(s)){}else if(MP.active&&!s.startsWith('/'))mpChat(s);else runCommand(s)}}else if(ev.code==='Escape'){closeCmd()}ev.stopPropagation()});
   document.addEventListener('wheel',ev=>{if(game.state!=='playing'||game.gui||game.paused)return;player.sel=(player.sel+(ev.deltaY>0?1:-1)+9)%9;updateHotbar()},{passive:true});
   document.addEventListener('keydown',ev=>{
     if(ev.target&&ev.target.tagName==='INPUT'&&ev.code!=='Escape'){return}
@@ -6442,6 +6592,7 @@ function setupInput(){
     if(ev.code==='KeyE'){if(game.gui)closeGui();else if(!player.dead)openGui('inv');ev.preventDefault();return}
     if(ev.code==='KeyM'&&!ev.ctrlKey&&!ev.metaKey&&wmpKey()){ev.preventDefault();return}
     if(ev.code==='KeyP'&&!game.gui){cycleCamera();ev.preventDefault();return}
+    if(ev.code==='KeyY'&&!game.gui&&!ev.ctrlKey&&!ev.metaKey&&squadKey()){ev.preventDefault();return}
     if(ev.code==='KeyV'&&!game.gui&&cycleSeat()){ev.preventDefault();return}
     if(game.gui)return;
     if((ev.code==='Slash'||ev.code==='KeyT')&&!player.dead){openCmd(ev.code==='Slash'?'/':'');ev.preventDefault();return}
@@ -9099,6 +9250,7 @@ function runCommand(line){const p=player;const raw=line.trim().replace(/^\/+/,''
     case 'tornado':{if(!game.wx){say('Tornadoes need the Weather fun mod on this world');return}if(MP.active&&!MP.host){say('Only the host can call a tornado');return}const ef=Math.min(5,Math.max(1,parseInt(args[0])||rollEF()));const W=game.wx;W.storm=true;W.I=Math.max(W.I,0.6);W.t=Math.max(W.t,60);const a=Math.random()*PI*2;W.tornado={x:p.x+Math.sin(a)*45,z:p.z+Math.cos(a)*45,y:p.y,dir:a+PI+(Math.random()-0.5)*0.4,life:(50+Math.random()*50)*EF[ef].life,spin:0,t:0,brk:0,ef};say(EF[ef].say);playSound('thunder',1,0.55-ef*0.05);return}
     case 'heal':p.hp=p.maxHp;p.hunger=20;p.sat=5;p.fireT=0;p.air=300;p.effects={};say('Healed');return;
     case 'xp':{const n=parseInt(args[0])||10;p.level=Math.max(0,p.level+n);p.xpFrac=0;say('Level '+p.level);updateHUD&&updateHUD();return}
+    case 'squad':case 'soldiers':case 'soldier':case 'order':case 'orders':case 'troops':case 'men':{squadCmd(args,say);return}
     case 'players':case 'online':{if(!MP.active){say('Only you are here (solo world)');return}const nm=[(MP.public?publicAlias(MP.myId):MP.name)+' (you)'];for(const r of MP.remote.values())nm.push(r.name);say('Online ('+nm.length+'): '+nm.join(', '));return}
     case 'seed':say('Seed: '+game.seed);return;
     case 'kill':{let n=0;for(const e of entities){if(e instanceof Mob&&!e.def.passive&&!e.dead&&!(e.type==='wolf'&&e.tamed)&&Math.hypot(e.x-p.x,e.z-p.z)<32){e.dead=true;n++}}say('Removed '+n+' hostile mobs nearby');return}
@@ -9125,7 +9277,7 @@ function loop(now){
       if(game.tick%3===0)updateInfoHud();
       if(game.tick%200===0)saveWorld();
     }
-    tickPlates(dt);tickModKinds(dt);
+    tickPlates(dt);squadTick(dt);tickModKinds(dt);
     supplyTick(dt);
     howTick(dt);soldierWarTick(dt);wmpTick(dt);a10Tick(dt);
     mortarTick(dt);if(typeof tickCamp==='function')tickCamp(dt);tickNukeTimers(dt);tickFurnaces(dt);tickBrews(dt);tickSpawners(dt);tickTrials(dt);tickShriekers(dt);if(typeof beaconTick==='function')beaconTick();if(MP.active)mpTick(dt);
