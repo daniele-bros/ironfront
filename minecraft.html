@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="ironcraft-build" content="20261028-154654">
+<meta name="ironcraft-build" content="20261029-001404">
 <meta name="viewport" content="width=device-width,initial-scale=1.0,viewport-fit=cover">
 <title>Ironcraft – Free Voxel Survival Sandbox in Your Browser | Iron Games</title>
 <meta name="description" content="Ironcraft is a free browser-based voxel survival sandbox with building, exploration, private or safety-limited public multiplayer, and optional weather, horror and survival challenges. By Daniele Bros.">
@@ -422,6 +422,7 @@ label.lb{font-size:13px;color:#a0a0a0;align-self:flex-start;margin-left:calc(50%
   <button class="btn" id="btnMulti">Play Together</button>
   <button class="btn" id="btnOptionsT">Game Settings</button>
   <button class="btn" id="btnChat">Chat</button>
+  <button class="btn" id="btnMods">Mods</button>
   <button class="btn" id="btnControls">How to Play</button>
   <button class="btn" id="btnModMaker">Mod Maker</button>
   <p id="titleAbout" style="position:absolute;bottom:43px;left:0;right:0;text-align:center;font-size:12px;font-weight:400;color:#ddd;text-shadow:1px 1px 0 #000;margin:0;padding:0 14px;pointer-events:none;">A free voxel survival sandbox by Daniele Bros. Public rooms use random aliases. Chat is open to everyone there: be kind.</p>
@@ -465,6 +466,7 @@ label.lb{font-size:13px;color:#a0a0a0;align-self:flex-start;margin-left:calc(50%
         <div id="modOkRow" style="margin-top:6px"><label><input type="checkbox" id="modOk"> This photo is family friendly</label></div></div></div>
     <div class="btnrow" style="margin-top:8px;width:100%"><button class="btn half" id="btnModAdd">Add to my mod</button><button class="btn half" id="btnModCancel">Cancel</button></div>
   </div>
+  <div id="mkBox" style="width:min(92vw,520px);background:rgba(0,0,0,.35);border:1px solid #d39a33;border-radius:8px;padding:8px;color:#f4e6c4;font-size:13px;text-align:left"><button class="btn" id="mkNew" style="width:100%;height:36px;font-size:13px">New mod: food, tools, armour, guns, vehicles, creatures, structures, recipes, world rules</button><div id="mkPicker" style="display:none;margin-top:8px"></div><div id="mkFormBox" style="display:none;margin-top:8px"></div></div>
   <div id="modStatus" class="sh" style="font-size:12px;color:#ff6;min-height:16px"></div>
   <div class="btnrow"><button class="btn half" id="btnModClear">Remove All</button><button class="btn half" id="btnModBack">Return</button></div>
 </div>
@@ -490,9 +492,44 @@ label.lb{font-size:13px;color:#a0a0a0;align-self:flex-start;margin-left:calc(50%
   <div class="hint" id="mpStatus" style="color:#ff6;width:440px;margin-top:8px;min-height:18px"></div>
 </div>
 
+<style>
+#modToast{position:fixed;left:50%;bottom:16px;transform:translateX(-50%);max-width:min(92vw,560px);background:#172128;border:2px solid #d39a33;color:#f4e6c4;padding:8px 14px;font-size:14px;font-weight:400;z-index:3000;display:none;pointer-events:none;text-align:center}
+#modToast.show{display:block}
+.msw{width:min(92vw,560px)}#funMods{width:min(92vw,440px)}
+.msh{margin:6px 0 2px;font-size:12px;letter-spacing:1px;text-transform:uppercase;color:#e1b65f;text-align:left}
+.msnote{margin:0 0 3px;color:#aaa;text-align:left}
+.msbox{width:100%;max-height:170px;overflow-y:auto;background:rgba(0,0,0,.45);border:1px solid #d39a33;padding:3px;box-sizing:border-box}
+.msrow{display:flex;align-items:center;gap:8px;padding:3px 4px;border-bottom:1px solid rgba(255,255,255,.08)}
+.msth{width:32px;height:32px;image-rendering:pixelated;border:1px solid #888;flex-shrink:0;background:#222}
+.mst{flex:1;min-width:0;text-align:left;font-size:14px;color:#fff;word-break:break-word}
+.mst small{display:block;color:#9ab;font-size:11px;font-weight:400}
+.btn.msb{width:auto;min-width:54px;height:28px;font-size:11px;padding:0 10px;letter-spacing:.5px;flex-shrink:0}
+.btn.msb.on,.sdmodes .btn.on{color:#8f8;border-color:#6c6}
+.msempty{padding:6px;color:#aaa;font-size:12px;font-weight:400;text-align:left}
+#shareDlg{position:fixed;inset:0;z-index:2500;background:rgba(0,0,0,.65);display:flex;align-items:center;justify-content:center}
+.sdbox{width:min(92vw,420px);background:#172128;border:2px solid #d39a33;padding:14px;color:#f4e6c4;display:flex;flex-direction:column;gap:8px;max-height:90vh;overflow-y:auto;box-sizing:border-box;font-weight:400}
+.sdbox h3{margin:0;font-size:16px;font-weight:700;word-break:break-word}
+.sdbox .btn{width:auto}
+.sdmodes{display:flex;gap:6px}.sdmodes .btn{flex:1;height:34px;font-size:12px}
+.sdhelp{font-size:12px;color:#aab}
+#sdPlayers{max-height:180px;overflow-y:auto;background:rgba(0,0,0,.4);border:1px solid #556;padding:4px}
+.sdp{display:flex;gap:8px;align-items:center;padding:3px;font-size:14px;cursor:pointer}
+#sdMsg{min-height:16px;font-size:13px;color:#ff6}
+.sdrow{display:flex;gap:8px;justify-content:flex-end}.sdrow .btn{height:34px;min-width:90px}
+</style>
+<div id="modShareMenu" class="menu dirtbg">
+  <h2 class="sh">Mods</h2>
+  <div class="hint msw" style="color:#aaa;margin:0">Share the mods you made with other players and install theirs. Installed mods take effect when a world starts. In multiplayer, custom blocks you place are not sent to the other players.</div>
+  <div class="hint msw" id="msNet" style="color:#ff6;min-height:16px;margin:0">Connecting&hellip;</div>
+  <div class="hint msw" id="msStatus" style="color:#8f8;min-height:16px;margin:0"></div>
+  <div id="msRoot" class="msw"></div>
+  <div class="btnrow"><button class="btn half" id="btnModsMaker">Mod Maker</button><button class="btn half" id="btnModsBack">Back</button></div>
+</div>
+
 <div id="funMenu" class="menu dirtbg">
   <h2 class="sh">Fun Mods</h2>
   <div class="hint" id="funHint" style="color:#aaa;width:440px;margin-bottom:6px">Mix and match. You can change them later from the pause menu.</div>
+  <div id="funMods"></div><div class="hint" id="funModsMsg" style="color:#8f8;width:min(92vw,440px);min-height:14px;margin:2px 0 6px"></div>
   <button class="btn modbtn" data-mod="weather">Weather: OFF</button>
   <div class="hint" style="color:#aaa;width:440px;margin:0 0 4px">Thunderstorms roll in with rain and lightning strikes, and tornadoes tear across the land ripping up blocks and throwing you into the sky.</div>
   <button class="btn modbtn" data-mod="horror">Horror: OFF</button>
@@ -2555,7 +2592,7 @@ class Entity{
   constructor(x,y,z){this.x=x;this.y=y;this.z=z;this.vx=0;this.vy=0;this.vz=0;this.w=0.5;this.h=0.5;this.onGround=false;this.dead=false;this.age=0;this.yaw=0;this.pitch=0;this.fallDist=0;this.solidBody=false;this.id=Entity.nextId++}
   physics(dt,opt={}){
     const inWater=entityInWater(this),inLava=entityInLava(this);this.inWater=inWater;this.inLava=inLava;
-    const g=this.noGravity?0:(opt.gravity!==undefined?opt.gravity:32);const drag=opt.drag||0.98;
+    const g=this.noGravity?0:(opt.gravity!==undefined?opt.gravity:32)*(MOD_RULES.grav||1);const drag=opt.drag||0.98;
     if(inWater||inLava){this.vy-=g*0.12*dt;this.vy*=Math.pow(0.8,dt*20);this.vx*=Math.pow(0.8,dt*20);this.vz*=Math.pow(0.8,dt*20);this.fallDist=0}
     else{this.vy-=g*dt;this.vy*=Math.pow(drag,dt*20);const f=this.onGround?Math.pow(opt.friction||0.6,dt*20):Math.pow(0.91,dt*20);this.vx*=f;this.vz*=f}
     if(this.vy<0&&!this.onGround)this.fallDist-=this.vy*dt;
@@ -3276,7 +3313,7 @@ class Mob extends Entity{
     const touch=collectBoxes(this.x-w,this.y-0.1,this.z-w,this.x+w,this.y,this.z+w).some(b=>b[4]>this.y-0.07&&b[4]<this.y+0.12);
     if(lift){const vt=vin>0?8:vin<0?-7:0;this.vy+=(vt-this.vy)*Math.min(1,dt*(vin?3:18))} // no vertical input: hold altitude
     else{const wt=this.heliWater();if(wt!==null)this.vy+=((wt-1.2-this.y)*6-this.vy)*Math.min(1,dt*4);else this.vy-=32*(1-r/0.97)*dt} // not up to speed: gravity (or float)
-    const lim=touch?0.25:1,tf=lift?(fwd>0?fwd*22:fwd*8)*lim:0,ts=lift?strafe*10*lim:0;let al=this.vx*fx+this.vz*fz,sd=this.vx*rx+this.vz*rz;
+    const lim=touch?0.25:1,tf=lift?(fwd>0?fwd*22*(this.def.spdMul||1):fwd*8*(this.def.spdMul||1))*lim:0,ts=lift?strafe*10*lim:0;let al=this.vx*fx+this.vz*fz,sd=this.vx*rx+this.vz*rz;
     al+=(tf-al)*Math.min(1,dt*1.5);sd+=(ts-sd)*Math.min(1,dt*2);this.vx=fx*al+rx*sd;this.vz=fz*al+rz*sd;
     const sp0=Math.hypot(this.vx,this.vz),vy0=this.vy;this.inWater=entityInWater(this);moveEntity(this,this.vx*dt,this.vy*dt,this.vz*dt,0);
     const sp1=Math.hypot(this.vx,this.vz);this.speed=sp1;this.fallDist=0;this.walkT+=dt*r*30;
@@ -3362,7 +3399,7 @@ class Mob extends Entity{
     else{const ymax=S-1.3;this.inWater=true;
       p.yaw-=strafe*0.9*dt; // A/D swing the view, and the boat follows it
       const want=wrap(p.yaw-this.yaw),rate=0.3+0.3*Math.min(1,Math.abs(this.speed)/6);this.yaw+=clamp(want,-rate*dt,rate*dt);this.bank+=(clamp(want,-1,1)*0.7-this.bank)*Math.min(1,dt*4);
-      const tgt=fwd>0?9:fwd<0?-4:0;this.speed+=clamp(tgt-this.speed,-dt*3,dt*(fwd?2.5:3));
+      const tgt=(fwd>0?9:fwd<0?-4:0)*(this.def.spdMul||1);this.speed+=clamp(tgt-this.speed,-dt*3,dt*(fwd?2.5:3));
       const vt=sprint?-4:(!sprint&&keys.Space)?4:0;this.vy+=(vt-this.vy)*Math.min(1,dt*3.5); // Ctrl dives, Space surfaces
       const pt=clamp(this.vy/4,-1,1)*0.22*(0.4+0.6*Math.min(1,Math.abs(this.speed)/5));this.pitch+=(pt-this.pitch)*Math.min(1,dt*2);
       const fx=-Math.sin(this.yaw),fz=-Math.cos(this.yaw);let dy=this.vy*dt;if(dy>0)dy=Math.max(0,Math.min(dy,ymax-this.y));
@@ -3760,7 +3797,7 @@ if(this.def.vehicle){if(this.hurtT>0)this.hurtT-=dt;if(this.invT>0)this.invT-=dt
     const part=(b,px,py,pz,rx,ry,rz,tiles,col)=>{const tf=partTF(ex,ey,ez,this.yaw,px,py,pz,rx,ry,rz,s,roll);EB.box(tf,b[0],b[1],b[2],b[3],b[4],b[5],tiles,[col[0]*hurt[0],col[1]*hurt[1],col[2]*hurt[2]],l,true)};
     const W=TEX.white,N=TEX[MOB_SKIN_NAMES[this.type]]||TEX.noise;const face=(t)=>[N,N,N,N,N,t];
     if(this.def.spec){renderCustomMob(this,part,swing,hp,hy,W,N,face)}
-    if(this.def.vehicle)renderVehicle(this,part,W,N);
+    if(this.def.vehicle)renderVehicle(this,part,W,N,undefined,this.def.tint);
     switch(this.type){
       case 'hopling':{const c=[0.42,0.70,0.94];const hop=this.walkAmp>0.1?Math.abs(Math.sin(this.walkT*2))*3:0;for(const [lx,lz,sg] of [[-2,-3,1],[2,-3,-1],[-2,3,-1],[2,3,1]])part([lx-1,-3,lz-1,lx+1,0,lz+1],0,3+hop,0,swing*sg*0.6,0,0,N,c);
         part([-4,3,-5,4,9,5],0,hop,0,0,0,0,N,c);part([-3,-1,-5,3,5,0],0,6+hop,-4,hp,hy,0,face(TEX.hopling_face),c);part([-3,0,-1,-1,6,0],0,11+hop,-6,hp,hy,0,N,[0.36,0.6,0.9]);part([1,0,-1,3,6,0],0,11+hop,-6,hp,hy,0,N,[0.36,0.6,0.9]);part([-2,2,-5,2,4,-4],0,2+hop,5,0,0,0,W,[0.75,0.88,1]);break}
@@ -4080,7 +4117,7 @@ function renderSoldier(m,EB,part,s,roll,ex,ey,ez,swing,hp,hy,l,W){
     if(kick>0){const f=0.55+0.45*kick,mz=GB.zn,fc=[1.9,1.55,0.7],lt=[1,1]; // muzzle flash: core, two crossed blades and a hot centre
       EB.box(gt,-1.4,3.5,mz-13*f,1.4,6.1,mz-0.5,W,fc,lt,true);EB.box(gt,-6*f,4.5,mz-7*f,6*f,4.9,mz-0.5,W,fc,lt,true);EB.box(gt,-0.25,0.5,mz-7*f,0.25,8.8,mz-0.5,W,fc,lt,true);EB.box(gt,-2,3.1,mz-3,2,6.5,mz+0.5,W,[2,2,1.6],lt,true)}}}
 
-function damageEntity(e,amount,src){if(e===player&&src&&src.type&&customArmorPerks().has({fire:'fireproof',lava:'fireproof',fall:'feather'}[src.type]))return false;if(e===player&&src&&(src.type==='fire'||src.type==='lava')&&player.effects&&player.effects.fire_res>0)return false;if(e instanceof Mob&&e.def&&e.def.neutral&&src&&(src.type==='player'||src.type==='arrow'||src.type==='bullet')&&!e.tamed)e.angry=true;
+function damageEntity(e,amount,src){if(e===player&&MOD_RULES.noFall&&src&&src.type==='fall')return false;if(e===player&&src&&src.type&&customArmorPerks().has({fire:'fireproof',lava:'fireproof',fall:'feather'}[src.type]))return false;if(e===player&&src&&(src.type==='fire'||src.type==='lava')&&player.effects&&player.effects.fire_res>0)return false;if(e instanceof Mob&&e.def&&e.def.neutral&&src&&(src.type==='player'||src.type==='arrow'||src.type==='bullet')&&!e.tamed)e.angry=true;
   if(e.dead||e.dying)return false;if(e.invT>0&&amount<=e.lastDmg)return false;src=src||{};
   if(e instanceof RemotePlayer){if((!pvpOn()&&src.type!=='mob'&&!src.fromMob)||e.hidden)return false;e.invT=0.5;e.lastDmg=amount;e.hurtT=0.5;wmpHitNote({to:e.pid,by:MP.myId});mpSend({t:'hit',to:e.pid,by:MP.myId,from:MP.name,amount,type:src.fromMob?'mob':(src.type||'player'),x:src.x,y:src.y,z:src.z,kb:src.kb||4});playSoundAt('hurt',e.x,e.y,e.z,0.8);return true}
   if(e instanceof Mob&&e.remote&&MP.active){if(src.type==='fire'||src.type==='fall'||src.type==='dry'||src.type==='fade')return false;e.invT=0.5;e.lastDmg=amount;e.hurtT=0.5;if(src.type==='player'&&!(e.type==='wolf'&&e.tamed)){game.petTarget=e;game.petTargetT=game.time}mpSend({t:'mh',nid:e.nid,amount,src:{type:src.type||'player',x:src.x,y:src.y,z:src.z,kb:src.kb,loot:src.loot}});playSoundAt(e.def?e.def.sound+'_hurt':'hurt',e.x,e.y,e.z);return true}
@@ -4161,7 +4198,7 @@ function updatePlayer(dt){
   const canSprint=fwd>0&&(p.hunger>6||creative)&&!p.sneaking&&!p.crawling&&!guiOpen;
   if(canSprint&&(keys.ControlLeft||p.sprintReq))p.sprinting=true;if(!canSprint||(p.collidedH&&!p.flying&&fwd>0&&p.onGround&&false))p.sprinting=false;if(!canSprint)p.sprintReq=false;
   if(p.blocking&&!shieldInHands())p.blocking=false;
-  let speed=creative&&p.flying?10.8:p.crawling?0.9:p.sneaking?1.295*(1+0.5*enchLevel(p.armor[2],'swift_sneak')):p.blocking?1.6:p.sprinting?5.612:4.317;if(p.flying&&p.sprinting)speed*=2;
+  let speed=creative&&p.flying?10.8:p.crawling?0.9:p.sneaking?1.295*(1+0.5*enchLevel(p.armor[2],'swift_sneak')):p.blocking?1.6:p.sprinting?5.612:4.317;if(p.flying&&p.sprinting)speed*=2;speed*=MOD_RULES.speed||1;
   if(p.effects.slow)speed*=0.7;if(p.effects.speed>0)speed*=1+0.2*effLvl('speed');if(p.beaconT>0)speed*=1.25;if(!p.flying&&BLOCKS[world.getBlock(floor(p.x),floor(p.y-0.05),floor(p.z))].slow){const ss=enchLevel(p.armor[3],'soul_speed');speed*=ss?1.3+0.15*ss:0.4}
   const inFluid=(inWater||inLava)&&!p.flying;const fastSwim=p.swimming&&inWater&&(p.hunger>6||creative);if(inFluid){speed*=inLava?0.35:fastSwim?1.3:0.55;if(inWater)speed*=1+enchLevel(p.armor[3],'depth_strider')/3}else if(p.swimming)speed=Math.min(speed,1.3);
   if(!creative&&p.onGround&&!p.flying){const fw=enchLevel(p.armor[3],'frost_walker');if(fw){const r=fw+1;const by=floor(p.y)-1;for(let dx=-r;dx<=r;dx++)for(let dz=-r;dz<=r;dz++){const bx=floor(p.x)+dx,bz=floor(p.z)+dz;if(dx*dx+dz*dz>r*r)continue;if(world.getBlock(bx,by,bz)===8&&world.getMeta(bx,by,bz)===0&&world.getBlock(bx,by+1,bz)===0)world.setBlock(bx,by,bz,41,0,{silent:true})}}}
@@ -4186,8 +4223,8 @@ function updatePlayer(dt){
       const d=eyeDir();let s=Math.hypot(p.vx,p.vy,p.vz);s+=(-d[1]*22-2.5)*dt;s=clamp(s,3,42);const k=Math.min(1,dt*3);
       p.vx+=(d[0]*s-p.vx)*k;p.vy+=(d[1]*s-p.vy)*k;p.vz+=(d[2]*s-p.vz)*k;const hs=Math.hypot(p.vx,p.vz);p.vy-=Math.max(0,9-hs*0.55)*dt;p.fallDist=0;p.glideSpeed=s;
       p.glideT=(p.glideT||0)+dt;if(p.glideT>1){p.glideT=0;if(p.armor[1])damageItem(p.armor[1],1)}if(Math.random()<dt*2)spawnParticles('smoke',p.x,p.y+1,p.z,1)}
-    else{p.vy-=32*dt;p.vy*=Math.pow(0.98,dt*20);
-      if(jumpHeld&&p.onGround&&p.jumpCd<=0){p.vy=8.9+(p.effects.jump>0?1.8*effLvl('jump'):0);p.jumpCd=0.1;p.exh+=p.sprinting?0.2:0.05;if(p.sprinting){p.vx+=-sy*3;p.vz+=-cy*3}}
+    else{p.vy-=32*(MOD_RULES.grav||1)*dt;p.vy*=Math.pow(0.98,dt*20);
+      if(jumpHeld&&p.onGround&&p.jumpCd<=0){p.vy=8.9*(MOD_RULES.jumpV||1)+(p.effects.jump>0?1.8*effLvl('jump'):0);p.jumpCd=0.1;p.exh+=p.sprinting?0.2:0.05;if(p.sprinting){p.vx+=-sy*3;p.vz+=-cy*3}}
     }
     if(p.jumpCd>0)p.jumpCd-=dt;else p.jumpCd=0;
     if(p.vy<0&&!p.onGround&&!inFluid)p.fallDist-=p.vy*dt;
@@ -4230,7 +4267,7 @@ function updatePlayer(dt){
     const w=p.w/2+0.02;let cac=false;for(let x=floor(p.x-w);x<=floor(p.x+w)&&!cac;x++)for(let y=floor(p.y);y<=floor(p.y+p.h)&&!cac;y++)for(let z=floor(p.z-w);z<=floor(p.z+w);z++)if(world.getBlock(x,y,z)===42){cac=true;break}
     if(cac&&p.invT<=0)damageEntity(p,1,{type:'cactus'});
     // air
-    if(headWater&&!(p.effects.water_breathing>0)){p.air-=dt*20/(1+enchLevel(p.armor[0],'respiration'));if(p.air<=-20){p.air=0;damageEntity(p,2,{type:'drown'})}if(Math.random()<dt*2)spawnParticles('bubble',p.x,p.y+p.eyeHeight,p.z,1)}else p.air=Math.min(300,p.air+dt*80);
+    if(headWater&&!(p.effects.water_breathing>0)&&!MOD_RULES.waterBreath){p.air-=dt*20/(1+enchLevel(p.armor[0],'respiration'));if(p.air<=-20){p.air=0;damageEntity(p,2,{type:'drown'})}if(Math.random()<dt*2)spawnParticles('bubble',p.x,p.y+p.eyeHeight,p.z,1)}else p.air=Math.min(300,p.air+dt*80);
     // hunger
     if(game.difficulty===0){p.hunger=Math.min(20,p.hunger+dt*0.5);p.regenT+=dt;if(p.regenT>=1){p.regenT=0;p.hp=Math.min(p.maxHp,p.hp+1)}}
     else{
@@ -4241,7 +4278,7 @@ function updatePlayer(dt){
       {const feetB=world.getBlock(floor(p.x),floor(p.y),floor(p.z));const outSnow=game.wx&&game.wx.snow&&game.wx.I>0.5&&world.getSky(floor(p.x),floor(p.y+1),floor(p.z))>=14;const cold=(feetB===40||outSnow)&&p.fireT<=0&&!(p.armor[1]&&ITEMS[p.armor[1].id].mat==='leather');p.coldT=clamp((p.coldT||0)+(cold?dt/6:-dt/3),0,1);if(p.coldT>=1)p.frozen=true;else if(p.coldT<=0.35)p.frozen=false}
       if(p.effects.wither>0){p.effects.wither-=dt;p.witherT=(p.witherT||0)+dt;if(p.witherT>=2){p.witherT=0;damageEntity(p,1,{type:'wither'})}}
       if(p.effects.poison>0){p.effects.poison-=dt;p.poisonT=(p.poisonT||0)+dt;if(p.poisonT>=1.25){p.poisonT=0;if(p.hp>1)damageEntity(p,1,{type:'poison'})}}
-      while(p.exh>=4){p.exh-=4;if(p.sat>0)p.sat=Math.max(0,p.sat-1);else p.hunger=Math.max(0,p.hunger-1)}
+      while(p.exh>=4){p.exh-=4;if(MOD_RULES.noHunger)continue;if(p.sat>0)p.sat=Math.max(0,p.sat-1);else p.hunger=Math.max(0,p.hunger-1)}
       if(p.totemT>0){p.totemT-=dt;p.totemRegenT=(p.totemRegenT||0)+dt;if(p.totemRegenT>=1.25){p.totemRegenT=0;p.hp=Math.min(p.maxHp,p.hp+1)}}
       if(p.hunger>=14&&p.hp<p.maxHp){p.regenT+=dt;const fast=p.hunger>=20&&p.sat>0;if(p.regenT>=(fast?0.5:3)){p.regenT=0;p.hp=Math.min(p.maxHp,p.hp+1);p.exh+=fast?Math.min(3,p.sat):3}}else p.regenT=0;
       if(p.hunger<=0){p.starveT+=dt;if(p.starveT>=4){p.starveT=0;const min=game.difficulty===1?10:game.difficulty===2?1:0;if(p.hp>min)damageEntity(p,1,{type:'starve'})}}
@@ -4275,7 +4312,7 @@ function updatePlayer(dt){
 }
 function blockSoundUnder(){const id=world.getBlock(floor(player.x),floor(player.y-0.2),floor(player.z));return id?BLOCKS[id].sound:'stone'}
 function eatFood(st,hd){const p=player;if(hd.potion){applyPotion(hd.potion,st.lvl||1,!!st.ext);playSound('burp');if(p.mode!=='creative'){st.count--;if(st.count<=0)p.inv[p.sel]=null;addToInventory({id:474,count:1})}updateHotbar();return}p.hunger=Math.min(20,p.hunger+hd.food[0]);p.sat=Math.min(p.hunger,p.sat+hd.food[1]);playSound('burp');
-  if(hd.regenSec){p.effects.regen=Math.max(p.effects.regen||0,hd.regenSec)}if(hd.hungerEffect&&Math.random()<hd.hungerEffect)p.effects.hunger=30;if(hd.poison)p.effects.poison=4;if(hd.golden){p.hp=Math.min(p.maxHp,p.hp+4);p.absorb=Math.max(p.absorb||0,4);p.absorbT=120}
+  if(hd.regenSec){p.effects.regen=Math.max(p.effects.regen||0,hd.regenSec)}if(hd.hungerEffect&&Math.random()<hd.hungerEffect)p.effects.hunger=30;if(hd.foodFx)for(const f of hd.foodFx){p.effects[f.k]=Math.max(p.effects[f.k]||0,f.s);showMessage((EFFECT_NAMES[f.k]||f.k)+' for '+f.s+'s')}if(hd.poison)p.effects.poison=4;if(hd.golden){p.hp=Math.min(p.maxHp,p.hp+4);p.absorb=Math.max(p.absorb||0,4);p.absorbT=120}
   if(p.mode!=='creative'){st.count--;if(st.count<=0)p.inv[p.sel]=null;if(hd.container)addToInventory({id:hd.container,count:1})}updateHotbar()}
 /* ---- potion effects ---- */
 const EFFECT_NAMES={speed:'Swiftness',strength:'Strength',regen:'Regeneration',fire_res:'Fire Resistance',water_breathing:'Water Breathing',night_vision:'Night Vision',jump:'Leaping',invisibility:'Invisibility',poison:'Poison',wither:'Wither',slow:'Slowness',hunger:'Hunger',levitation:'Levitation'};
@@ -4330,7 +4367,7 @@ function shootBow(){const p=player;const c=Math.min(1,p.bowCharge/1);if(p.bowCha
   const st=heldStack();let dmg=Math.ceil(f*f*7+(f>=1&&Math.random()<0.25?3:0))+1;const pw=enchLevel(st,'power');if(pw)dmg=Math.ceil(dmg*(1+0.25*(pw+1)));
   const am=findArrow();const tipped=am?ITEMS[am.stack.id].tipped||null:null;if(p.mode!=='creative'&&am&&(tipped||!enchLevel(st,'infinity'))){am.stack.count--;if(am.stack.count<=0){if(am.off)p.off[0]=null;else p.inv[am.i]=null}updateHotbar()}if(st&&st.id===301)damageItem(st,1);
   const ar=new Arrow(e[0]+d[0]*0.5,e[1]+d[1]*0.5-0.1,e[2]+d[2]*0.5,d[0]*sp,d[1]*sp,d[2]*sp,'player',dmg);ar.tipped=tipped;ar.kb=4+enchLevel(st,'punch')*4;if(enchLevel(st,'flame'))ar.flame=true;entities.push(ar);playSound('bow');p.exh+=0.1}
-function fireGun(st,hd){const p=player;const g=hd.gun;if(g.kind&&warFire(st,hd,g))return;if(p.gunCd>0)return;if(!g.auto&&p.gunHeld)return;
+function fireGun(st,hd){const p=player;const g=hd.gun;if(g.needGuns&&!(game.mods&&game.mods.guns)){if(!p.gunHeld){showMessage('This gun needs the Guns mod');p.gunHeld=true}return}if(g.kind&&warFire(st,hd,g))return;if(p.gunCd>0)return;if(!g.auto&&p.gunHeld)return;
   if(p.mode!=='creative'&&!hasItem(g.ammo)){if(!p.gunHeld){showMessage('Out of '+ITEMS[g.ammo].label+'s');playSound('pop',0.4,0.5)}p.gunHeld=true;return}
   p.gunHeld=true;p.gunCd=g.rate;const volley=(game.volley=(game.volley||0)+1);if(p.mode!=='creative'&&!(st.att&&st.att.extmag&&volley%2))removeItem(g.ammo,1);damageItem(st,1);
   const e=[p.x,p.y+p.eyeHeight,p.z];const d=eyeDir();
@@ -4753,7 +4790,7 @@ function playerDie(src){const p=player;p.dead=true;p.hp=0;playSound('death');if(
   if(t==='fall')msg='Player fell from a high place';else if(t==='pvp')msg='Player was slain by '+(src.name||'another player');else if(t==='mob')msg='Player was slain by a monster';else if(t==='arrow')msg='Player was shot by a Bonewalker';else if(t==='explosion')msg='Player was blown up';else if(t==='lava')msg='Player tried to swim in lava';else if(t==='fire')msg='Player burned to death';else if(t==='drown')msg='Player drowned';else if(t==='starve')msg='Player starved to death';else if(t==='cactus')msg='Player was pricked to death';else if(t==='lightning')msg='Player was struck by lightning';else if(t==='tornado')msg='Player was swept away by a tornado';else if(t==='sonic')msg='Player was obliterated by a sonically-charged shriek';else if(t==='breath')msg='Player was dissolved by dragon breath';
   if(p.riding)p.riding.dismount();
   for(let i=0;i<36;i++)if(p.inv[i]&&enchLevel(p.inv[i],'vanishing_curse'))p.inv[i]=null;for(let i=0;i<4;i++)if(p.armor[i]&&enchLevel(p.armor[i],'vanishing_curse'))p.armor[i]=null;
-  const dropAll=onPublicServer()||!opts.keepInv; // public servers always drop: whoever gets there first can take the loot
+  const dropAll=onPublicServer()||!(opts.keepInv||MOD_RULES.keepInv); // public servers always drop: whoever gets there first can take the loot
   if(dropAll){if(p.off[0]){spawnItem(p.x,p.y+1,p.z,p.off[0]);p.off[0]=null}for(let i=0;i<36;i++){if(p.inv[i]){spawnItem(p.x,p.y+1,p.z,p.inv[i]);p.inv[i]=null}}for(let i=0;i<4;i++){if(p.armor[i]){spawnItem(p.x,p.y+1,p.z,p.armor[i]);p.armor[i]=null}}
     spawnXP(p.x,p.y+1,p.z,Math.min(100,p.level*7));showMessage('Your items dropped at X '+floor(p.x)+' Y '+floor(p.y)+' Z '+floor(p.z)+(onPublicServer()?' and anyone can pick them up':'')+' (they vanish after 5 minutes)')}
   else showMessage('You died at X '+floor(p.x)+' Y '+floor(p.y)+' Z '+floor(p.z));
@@ -6168,10 +6205,10 @@ function placePortalFrame(x,y,z,F=31,P=82){ // frame along x axis: obsidian at x
 const ANIMAL_BIOMES=new Set([2,3,4,6,7,8,10,12]);
 function surfaceSpot(x,z){let y=findGround(x,z);if(y<=SEA||y>=CH-2)return -1;if(world.getBlock(x,y-1,z)!==2)return -1;if(world.getBlock(x,y,z)!==0||world.getBlock(x,y+1,z)!==0)return -1;return y}
 function spawnPack(type,x,z,n,baby){let placed=0;for(let t=0;t<n*4&&placed<n;t++){const ox=x+floor(Math.random()*7)-3,oz=z+floor(Math.random()*7)-3;const y=surfaceSpot(ox,oz);if(y<0)continue;const m=new Mob(type,ox+0.5,y,oz+0.5);if(baby&&placed===n-1&&n>1){m.baby=true;m.growT=120}entities.push(m);placed++}return placed}
-function populateChunk(c){if(!c||typeof Mob==='undefined')return;const k=c.cx+','+c.cz;if(world.populated.has(k))return;world.populated.add(k);
+function populateChunk(c){if(!c||typeof Mob==='undefined')return;const k=c.cx+','+c.cz;if(world.populated.has(k))return;world.populated.add(k);modPopulateStructs(c);
   if(world.sift){const rng=mulberry32(hashInt(c.cx,c.cz,78,world.seed));if(rng()<0.09){const x=c.cx*16+floor(rng()*16),z=c.cz*16+floor(rng()*16);const h=world.siftInfo(x,z).height;if(world.getBlock(x,h,z)===127){const n=2+floor(rng()*2);for(let i=0;i<n;i++){const ox=x+floor(rng()*5)-2,oz=z+floor(rng()*5)-2;const hy=world.siftInfo(ox,oz).height;if(world.getBlock(ox,hy,oz)!==127)continue;entities.push(new Mob(rng()<0.65?'hopling':'sprig',ox+0.5,hy+1,oz+0.5))}}}return}
   const bi=c.biomes[8*16+8];if(!ANIMAL_BIOMES.has(bi))return;const rng=mulberry32(hashInt(c.cx,c.cz,77,world.seed));if(rng()>0.3)return;
-  const types=bi===6||bi===7?['sheep','sheep','pig','cow','chicken','wolf','wolf']:bi===3?['pig','cow','sheep','chicken','wolf']:bi===2?['pig','cow','sheep','chicken','horse','horse']:['pig','cow','sheep','chicken'];let type=types[floor(rng()*types.length)];if(CUSTOM_WILD.passive.length&&rng()<0.12)type=CUSTOM_WILD.passive[floor(rng()*CUSTOM_WILD.passive.length)];
+  const types=bi===6||bi===7?['sheep','sheep','pig','cow','chicken','wolf','wolf']:bi===3?['pig','cow','sheep','chicken','wolf']:bi===2?['pig','cow','sheep','chicken','horse','horse']:['pig','cow','sheep','chicken'];let type=types[floor(rng()*types.length)];if(CUSTOM_WILD.passive.length&&rng()<0.12)type=modWildPick(CUSTOM_WILD.passive,type,bi,rng);
   spawnPack(type,c.cx*16+floor(rng()*16),c.cz*16+floor(rng()*16),type==='chicken'||type==='wolf'?4:2+floor(rng()*3),type!=='wolf')}
 /* ---- mob spawning ---- */
 function isSlimeChunk(cx,cz){return (hashInt(cx,cz,987,world.seed)>>>0)%10===0}
@@ -6191,7 +6228,7 @@ function spawnSpotsIn(x,z){const out=[];let below=world.getBlock(x,1,z),here=wor
 function trySpawnMobs(){
   if(!player||player.dead||mpMobsFromHost())return;const p=player;let hostile=0,passive=0;for(const e of entities){if(!(e instanceof Mob)||e.dead)continue;const dx=e.x-p.x,dz=e.z-p.z;if(dx*dx+dz*dz>128*128)continue;if(e.def.passive||e.def.animal)passive++;else hostile++}
   const day=R.day;
-  const night=day<0.35;const horror=!!(game.mods&&game.mods.horror);for(let attempt=0;attempt<(night?32:16)*(horror?2:1);attempt++){
+  const night=day<0.35;const horror=!!(game.mods&&game.mods.horror);for(let attempt=0;attempt<Math.round((night?32:16)*(horror?2:1)*(MOD_RULES.mobs===undefined?1:MOD_RULES.mobs));attempt++){
     const cx=(floor(p.x)>>4)+floor(Math.random()*13)-6,cz=(floor(p.z)>>4)+floor(Math.random()*13)-6;const c=world.getChunk(cx,cz);if(!c||!c.generated)continue;
     const x=cx*16+floor(Math.random()*16),z=cz*16+floor(Math.random()*16);const dayF=clamp((day-0.25)/0.5,0,1);
     let spots=spawnSpotsIn(x,z);if(!spots.length)continue;
@@ -6211,11 +6248,11 @@ function trySpawnMobs(){
       continue}
     if(world.end){if(hostile<40&&game.difficulty>0&&Math.random()<0.5){const n=1+floor(Math.random()*3);for(let i=0;i<n;i++){const ox=x+floor(Math.random()*5)-2,oz=z+floor(Math.random()*5)-2;if(world.getBlock(ox,y,oz)!==0||world.getBlock(ox,y+1,oz)!==0||world.getBlock(ox,y+2,oz)!==0||world.getBlock(ox,y-1,oz)!==99)continue;entities.push(new Mob('enderman',ox+0.5,y,oz+0.5));hostile++}}continue}
     if(world.nether){if(hostile<24&&game.difficulty>0&&Math.random()<0.5){const nearFort=world.getBlock(x,y-1,z)===88||world.getBlock(x,y-2,z)===88;const type=nearFort&&Math.random()<0.6?'wither_skeleton':nearFort&&Math.random()<0.3?'blaze':Math.random()<0.45?'piglin':'zombified_piglin';const n=type==='blaze'?1:2+floor(Math.random()*3);for(let i=0;i<n;i++){const ox=x+floor(Math.random()*5)-2,oz=z+floor(Math.random()*5)-2;if(world.getBlock(ox,y,oz)!==0||world.getBlock(ox,y+1,oz)!==0||!BLOCKS[world.getBlock(ox,y-1,oz)].opaque)continue;entities.push(new Mob(type,ox+0.5,y,oz+0.5));hostile++}}continue}
-    if(bl<=3&&effSky<1&&hostile<(night?75:45)*(horror?1.5:1)&&game.difficulty>0){let type=pickHostile(c,x,y,z);if(!type)continue;if(CUSTOM_WILD.hostile.length&&Math.random()<0.12)type=CUSTOM_WILD.hostile[floor(Math.random()*CUSTOM_WILD.hostile.length)];if(horror&&night&&Math.random()<0.15&&!entities.some(e=>e instanceof Mob&&e.type==='stalker'&&!e.dead))type='stalker';else if(horror&&night&&Math.random()<0.05&&!entities.some(e=>e instanceof Mob&&e.type==='cartoon_cat'&&!e.dead))type='cartoon_cat';const n=(type==='spider'||type==='slime'||type==='witch'||type==='stalker'||type==='cartoon_cat')?1:type==='enderman'?1+floor(Math.random()*2):1+floor(Math.random()*3);
+    if(bl<=3&&effSky<1&&hostile<(night?75:45)*(horror?1.5:1)&&game.difficulty>0){let type=pickHostile(c,x,y,z);if(!type)continue;if(CUSTOM_WILD.hostile.length&&Math.random()<0.12)type=modWildPick(CUSTOM_WILD.hostile,type,c.biomes[(x&15)*16+(z&15)]);if(horror&&night&&Math.random()<0.15&&!entities.some(e=>e instanceof Mob&&e.type==='stalker'&&!e.dead))type='stalker';else if(horror&&night&&Math.random()<0.05&&!entities.some(e=>e instanceof Mob&&e.type==='cartoon_cat'&&!e.dead))type='cartoon_cat';const n=(type==='spider'||type==='slime'||type==='witch'||type==='stalker'||type==='cartoon_cat')?1:type==='enderman'?1+floor(Math.random()*2):1+floor(Math.random()*3);
       for(let i=0;i<n;i++){const ox=x+floor(Math.random()*5)-2,oz=z+floor(Math.random()*5)-2;if(world.getBlock(ox,y,oz)!==0||world.getBlock(ox,y+1,oz)!==0||!BLOCKS[world.getBlock(ox,y-1,oz)].opaque)continue;if(MOBDEF[type].tall&&world.getBlock(ox,y+2,oz)!==0)continue;const m=new Mob(type,ox+0.5,y,oz+0.5);if(type==='slime'&&y<40&&Math.random()<0.5)m.setSize(3);if(boxesOverlapEntity(m.x-m.w/2,m.y,m.z-m.w/2,m.x+m.w/2,m.y+m.h,m.z+m.w/2))continue;entities.push(m);hostile++}}
   }
   // passive animals: surface only, daylight, grass
-  if(passive<14&&day>0.5&&Math.random()<0.25){const cx=(floor(p.x)>>4)+floor(Math.random()*11)-5,cz=(floor(p.z)>>4)+floor(Math.random()*11)-5;const c=world.getChunk(cx,cz);if(c&&c.generated){const x=cx*16+floor(Math.random()*16),z=cz*16+floor(Math.random()*16);const y=surfaceSpot(x,z);
+  if(passive<14&&day>0.5&&Math.random()<0.25*(MOD_RULES.mobs===undefined?1:MOD_RULES.mobs)){const cx=(floor(p.x)>>4)+floor(Math.random()*11)-5,cz=(floor(p.z)>>4)+floor(Math.random()*11)-5;const c=world.getChunk(cx,cz);if(c&&c.generated){const x=cx*16+floor(Math.random()*16),z=cz*16+floor(Math.random()*16);const y=surfaceSpot(x,z);
     if(y>0){const dx=x-p.x,dz=z-p.z;if(dx*dx+dz*dz>=24*24&&world.getSky(x,y,z)>=9){const bi=c.biomes[(x&15)*16+(z&15)];const type=(bi===6||bi===7||bi===3)&&Math.random()<0.2?'wolf':bi===2&&Math.random()<0.3?'horse':['pig','cow','sheep','chicken'][floor(Math.random()*4)];spawnPack(type,x,z,type==='wolf'?4:2+floor(Math.random()*3),false)}}}}
 }
 /* ---- random drops mode: each block type, mob type and chest slot maps to a surprise item, shuffled per world ---- */
@@ -6267,7 +6304,7 @@ function migrateSaveHeight(save){if(!save||(save.ch&&save.ch!==128))return save;
   save.mods=oldLayoutMods(save.mods);save.bents=oldLayoutMods(save.bents);
   for(const d of ['nether','end','sift'])if(save[d]){save[d].mods=oldLayoutMods(save[d].mods);save[d].bents=oldLayoutMods(save[d].bents)}
   save.ch=CH;return save}
-function startWorld(meta,save){if(save)migrateSaveHeight(save);if(window.trackEvent)trackEvent('game_start',{game:'Ironcraft',multiplayer:!!(MP&&MP.active),mods:Object.keys(modsOf(meta)).filter(k=>modsOf(meta)[k]).join(',')||'none'});
+function startWorld(meta,save){if(typeof modsPending==='function')modsPending();if(save)migrateSaveHeight(save);if(window.trackEvent)trackEvent('game_start',{game:'Ironcraft',multiplayer:!!(MP&&MP.active),mods:Object.keys(modsOf(meta)).filter(k=>modsOf(meta)[k]).join(',')||'none'});
   game.mods=modsOf(meta);game.baseDiff=meta.diff;game.noSave=false;game.wx=game.mods.weather?{storm:false,I:0,t:30+Math.random()*60,lt:4,flash:0,tornado:null}:null;game.hx=game.mods.horror?{amb:15,beat:0}:null;game.ax=game.mods.apocalypse?{wave:0,next:75,active:false,mobs:[],warned:{},left:0}:null;
   game.spawns={};game.mySpawn=null;game.mySpawnShown=false;game.wmpPvp=[];game.wmpPB={};game.pvpHud=null;game.wmpRB=null;game.war=null;game.wmpBattle=null;game.wmpCounter=null;wmAsk=false;wmCd=null;game.dims={over:null,nether:null,end:null,sift:null};world=new World(meta.seed);game.seed=meta.seed;game.worldId=meta.id;game.worldName=meta.name;game.difficulty=game.mods.hardcore?3:(game.mods.apocalypse?Math.max(1,meta.diff):meta.diff);game.randomDrops=game.mods.random;entities.length=0;particles.length=0;activeFurnaces.clear();game.plates=new Map();game.nukeTimers=new Map();game.nukeTimerDim=new Map();if(MP.active)for(const r of MP.remote.values()){r.dead=false;entities.push(r)}
   const p=player;p.mode=meta.mode;p.inv.fill(null);p.armor.fill(null);p.off[0]=null;p.sel=0;p.hp=20;p.absorb=0;p.absorbT=0;p.coldT=0;p.frozen=false;p.koT=0;$('koov').style.opacity=0;p.effLvl={};p.swimming=false;p.hunger=20;p.sat=5;p.exh=0;p.xp=0;p.level=0;p.dead=false;p.flying=false;p.effects={};p.spawn=null;p.fireT=0;p.air=300;p.vx=p.vy=p.vz=0;p.riding=null;
@@ -6323,7 +6360,7 @@ async function checkForUpdate(){if(!GAME_BUILD||GAME_BUILD==='dev'||location.pro
     // on the title screen just reload: the page cache keeps an old build for up to ten minutes, and everyone in a world should run the same build
     if(game.state!=='playing'&&sessionStorage.getItem('ic_reloaded')!==m[1]){sessionStorage.setItem('ic_reloaded',m[1]);location.replace(location.pathname+'?v='+m[1]+location.hash);return}
     if(game.state==='playing')showMessage('A new Ironcraft update is ready: save, then reload the page to get it')}}catch(e){}}
-function showMenu(id){for(const m of document.querySelectorAll('.menu'))m.classList.remove('show');if(id){$(id).classList.add('show');fitMenu()}}
+function showMenu(id){for(const m of document.querySelectorAll('.menu'))m.classList.remove('show');if(id){$(id).classList.add('show');fitMenu();if(typeof modShareShown==='function')modShareShown(id)}}
 // a menu taller than the screen aligns to the top and scrolls; a short one stays centred
 function fitMenu(){const m=document.querySelector('.menu.show');if(!m)return;m.classList.remove('tall');if(m.scrollHeight>m.clientHeight+1)m.classList.add('tall')}
 addEventListener('resize',fitMenu);
@@ -6352,7 +6389,7 @@ function setupMenus(){
   $('btnPlay').onclick=()=>{const w=worldList().find(w=>w.id===selWorld);if(w){initAudio();openWorld(w)}};
   $('btnDelete').onclick=()=>{if(!selWorld)return;if(!confirm('Delete this world? This cannot be undone.'))return;deleteWorldSave(selWorld);localStorage.setItem('ic_worlds',JSON.stringify(worldList().filter(w=>w.id!==selWorld)));selWorld=null;refreshWorldList()};
   let optBack='titleMenu';$('btnOptionsT').onclick=()=>{optBack='titleMenu';showMenu('optionsMenu');showOptSeed()};$('btnOptionsP').onclick=()=>{optBack='pauseMenu';showMenu('optionsMenu');showOptSeed()};$('btnOptionsBack').onclick=()=>{saveOpts();showMenu(optBack)};
-  $('btnControls').onclick=()=>showMenu('controlsMenu');$('btnControlsBack').onclick=()=>showMenu('titleMenu');try{lobbySetup()}catch(e){}
+  $('btnControls').onclick=()=>showMenu('controlsMenu');$('btnControlsBack').onclick=()=>showMenu('titleMenu');try{lobbySetup()}catch(e){}try{modShareSetup()}catch(e){}
   $('btnResume').onclick=()=>resumeGame();$('pauseMenu').addEventListener('mousedown',ev=>{if(ev.target===ev.currentTarget&&game.paused&&game.state==='playing')resumeGame()});$('btnSaveQuit').onclick=()=>quitToTitle();
   $('btnGuideP').onclick=()=>{resumeGame();openGui('guide')};$('btnGuideInv').onclick=ev=>{ev.stopPropagation();closeGui();openGui('guide')};$('btnGuideClose').onclick=()=>closeGui();$('guideSearch').addEventListener('input',renderGuide);$('guideSearch').addEventListener('keydown',ev=>{ev.stopPropagation();if(ev.key==='Escape')closeGui()});$('guideCat').addEventListener('change',renderGuide);
   $('btnModeP').onclick=()=>{if(onPublicServer()){showMessage('Game mode cannot be changed on a public server');return}if(MP.active&&!MP.host){showMessage('Only the host can change the game mode');return}const p=player;p.mode=p.mode==='creative'?'survival':'creative';if(p.mode==='survival')p.flying=false;refreshModeBtn();updateHUD();updateHotbar();showMessage('Game mode: '+p.mode)};
@@ -6472,11 +6509,11 @@ function bytesToB64(a){let r='';for(let i=0;i<a.length;i++)r+=String.fromCharCod
 function setCustomTexture(k,rgba){const idx=TEX['custom'+k];if(idx===undefined)return;TEXDATA[idx]=rgba;if(typeof atlasCanvas!=='undefined'&&atlasCanvas)atlasCanvas.getContext('2d').putImageData(new ImageData(new Uint8ClampedArray(rgba),16,16),(idx%ATLAS_W)*16,floor(idx/ATLAS_W)*16)}
 function uploadAtlas(){if(!R.gl||!R.atlasTex)return;const gl=R.gl;gl.bindTexture(gl.TEXTURE_2D,R.atlasTex);gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL,false);gl.texImage2D(gl.TEXTURE_2D,0,gl.RGBA,gl.RGBA,gl.UNSIGNED_BYTE,atlasCanvas);gl.generateMipmap(gl.TEXTURE_2D)}
 function customKeyFor(k){return I[CUSTOM_KEYS[k%CUSTOM_KEYS.length]]}
-function applyCustomMods(){const m=loadCustomMods();const pieces=m.pieces.slice(0,CUSTOM_SLOTS);
+function applyCustomMods(){const m=loadCustomMods();const pieces=m.pieces.slice(0,CUSTOM_SLOTS);modKindsReset();
   for(const t in customOrig.faces)TEX[t+'_face']=customOrig.faces[t];
   for(let i=RECIPES.length-1;i>=0;i--)if(RECIPES[i].custom)RECIPES.splice(i,1);
   CUSTOM_WILD.hostile.length=0;CUSTOM_WILD.passive.length=0;for(const k in MOBDEF)if(k.startsWith('custom_mob_')){delete MOBDEF[k];delete MOB_LABEL[k]}for(const k in MOB_BY_LABEL)if(MOB_BY_LABEL[k].startsWith('custom_mob_'))delete MOB_BY_LABEL[k];
-  for(let k=0;k<CUSTOM_SLOTS;k++){const pc=pieces[k];const bid=CUSTOM_BLOCK0+k,iid=CUSTOM_ITEM0+k,tex='custom'+k;
+  for(let k=0;k<CUSTOM_SLOTS;k++){const pc=pieces[k]&&pieces[k].enabled===false?null:pieces[k];const bid=CUSTOM_BLOCK0+k,iid=CUSTOM_ITEM0+k,tex='custom'+k;
     if(pc&&pc.px){try{setCustomTexture(k,b64ToBytes(pc.px))}catch(e){}}
     const blk=!!(pc&&pc.kind==='block'),it=!!(pc&&pc.kind==='item');
     // every slot keeps a safe definition, so a world that still holds a removed piece never breaks
@@ -6484,7 +6521,8 @@ function applyCustomMods(){const m=loadCustomMods();const pieces=m.pieces.slice(
     defItem(iid,'custom_item_'+k,{label:it?pc.name:'Removed mod item',iconTile:TEX[tex],custom:true,hidden:!it});
     if(pc&&pc.kind==='creature'&&CUSTOM_TARGETS.includes(pc.target)){const fk=pc.target+'_face';if(customOrig.faces[pc.target]===undefined)customOrig.faces[pc.target]=TEX[fk];TEX[fk]=TEX[tex]}
     const key=customKeyFor(k);if((blk||it)&&key!==undefined){shapeless([4,key],[blk?bid:iid,blk?4:2]);RECIPES[RECIPES.length-1].custom=true}
-    if(pc&&pc.spec)applySpecPiece(k,pc,key)}
+    if(pc&&pc.spec)applySpecPiece(k,pc,key);modKindsSlot(k,pc,key)}
+  modKindsFinish();
   if(R.gl){uploadAtlas();buildIcons();R.itemTex=mkTex(R.gl,itemAtlas,false);if(game.state==='playing'){updateHotbar();if(game.gui)renderAllSlots()}}}
 function pixelateFile(file){return new Promise((res,rej)=>{const img=new Image();const url=URL.createObjectURL(file);img.onload=()=>{URL.revokeObjectURL(url);const sq=Math.min(img.width,img.height);const sx=(img.width-sq)/2,sy=(img.height-sq)/2;
     const mid=document.createElement('canvas');mid.width=mid.height=64;const mc=mid.getContext('2d');mc.imageSmoothingEnabled=true;mc.drawImage(img,sx,sy,sq,sq,0,0,64,64);
@@ -6495,13 +6533,13 @@ async function moderateCustomImage(review,name,kind){if(!MOD_AI_ENDPOINT)return 
   try{const r=await fetch(MOD_AI_ENDPOINT,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({image:review,name,kind})});if(!r.ok)throw new Error('HTTP '+r.status);const j=await r.json();return {allowed:!!j.allowed,reason:j.reason||'',name:j.name||'',description:j.description||''}}
   catch(e){return {allowed:false,reason:'The photo check is not available right now. Try again in a minute.'}}}
 let modReturnTo='titleMenu',modPending=null;
-function openModMaker(from){modReturnTo=from||'titleMenu';showMenu('modMenu');renderModList();$('modNote').textContent=MOD_AI_ENDPOINT?'Drop a photo and it becomes pixel art in your mod. Every photo is checked by Claude first: anything that is not family friendly is refused.':'Drop a photo and it becomes 16x16 pixel art in your mod: a block, an item or a creature face. Photos never leave this device and other players never see your pieces. Family-friendly photos only.';$('modStatus').textContent=''}
+function openModMaker(from){modReturnTo=from||'titleMenu';if(typeof modKindsInit==='function')modKindsInit();showMenu('modMenu');renderModList();$('modNote').textContent=MOD_AI_ENDPOINT?'Drop a photo and it becomes pixel art in your mod. Every photo is checked by Claude first: anything that is not family friendly is refused.':'Drop a photo and it becomes 16x16 pixel art in your mod: a block, an item or a creature face. Photos stay on this device unless you press Share on a piece. Family-friendly photos only.';$('modStatus').textContent=''}
 function pieceIconURL(pc,k){const c=document.createElement('canvas');c.width=c.height=16;try{const px=pc.px?b64ToBytes(pc.px):new Uint8ClampedArray(TEXDATA[TEX['custom'+Math.max(0,k|0)]]);c.getContext('2d').putImageData(new ImageData(px,16,16),0,0)}catch(e){}return c.toDataURL()}
 function renderModList(){const m=loadCustomMods();const l=$('modList');l.innerHTML='';if(!m.pieces.length){l.innerHTML='<div class="witem" style="opacity:.8">No pieces yet. Drop a photo below to make your first one.</div>';return}
   m.pieces.forEach((pc,k)=>{const el=document.createElement('div');el.className='witem';el.style.display='flex';el.style.alignItems='center';el.style.gap='10px';const key=customKeyFor(k);const keyName=key!==undefined?ITEMS[key].label:'';
-    const how=pc.spec?specSummary(pc.spec).replace(/<[^>]*>/g,'')+' Key item: '+keyName+'.':pc.kind==='creature'?'face of every '+(MOB_LABEL[pc.target]||pc.target):pc.kind==='block'?'block, craft 4 from cobblestone + '+keyName+(pc.glow?', glows':''):'item, craft 2 from cobblestone + '+keyName;
-    el.innerHTML='<img src="'+pieceIconURL(pc,k)+'" width="32" height="32" style="image-rendering:pixelated;border:1px solid #888"><div style="flex:1"><b>'+escapeHtml(pc.name)+'</b><div style="font-size:11px;opacity:.85">'+escapeHtml(how)+'</div></div><button class="btn" style="width:auto;height:30px;font-size:11px;padding:0 10px">Edit</button><button class="btn" style="width:auto;height:30px;font-size:11px;padding:0 10px">Remove</button>';
-    const bs=el.querySelectorAll('button');bs[0].onclick=()=>{if(window.startEditPiece)startEditPiece(k)};bs[1].onclick=()=>{const mm=loadCustomMods();mm.pieces.splice(k,1);saveCustomMods(mm);applyCustomMods();renderModList();$('modStatus').textContent='Removed '+pc.name};l.appendChild(el)})}
+    const how=pc.data?modDataSummary(pc,k):pc.spec?specSummary(pc.spec).replace(/<[^>]*>/g,'')+' Key item: '+keyName+'.':pc.kind==='creature'?'face of every '+(MOB_LABEL[pc.target]||pc.target):pc.kind==='block'?'block, craft 4 from cobblestone + '+keyName+(pc.glow?', glows':''):'item, craft 2 from cobblestone + '+keyName;
+    el.innerHTML='<img src="'+pieceIconURL(pc,k)+'" width="32" height="32" style="image-rendering:pixelated;border:1px solid #888"><div style="flex:1"><b>'+escapeHtml(pc.name)+'</b>'+modKindBadge(pc)+'<div style="font-size:11px;opacity:.85">'+escapeHtml(how)+'</div></div><button class="btn" style="width:auto;height:30px;font-size:11px;padding:0 10px">Edit</button><button class="btn" style="width:auto;height:30px;font-size:11px;padding:0 10px">Remove</button><button class="btn" style="width:auto;height:30px;font-size:11px;padding:0 10px">Share</button>';
+    const bs=el.querySelectorAll('button');bs[0].onclick=()=>{if(window.startEditPiece)startEditPiece(k)};bs[2].onclick=()=>{try{modShareOpen(k)}catch(e){}};bs[1].onclick=()=>{const mm=loadCustomMods();mm.pieces.splice(k,1);saveCustomMods(mm);applyCustomMods();renderModList();$('modStatus').textContent='Removed '+pc.name};l.appendChild(el)})}
 function escapeHtml(t){return String(t).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]))}
 function setupModMaker(){const drop=$('modDrop'),file=$('modFile');if(!drop)return;
   const sel=$('modTarget');sel.innerHTML=CUSTOM_TARGETS.map(t=>'<option value="'+t+'">'+(MOB_LABEL[t]||t)+'</option>').join('');
@@ -6626,6 +6664,322 @@ function applySpecPiece(k,pc,key){const sp=pc.spec;if(!sp)return;paintSpecTextur
     const base=sp.dmg>=15?263:sp.dmg>=9?260:4;const shape={sword:[base,base,256],spear:[base,256,256],axe:[base,base,base,256],pickaxe:[base,base,base,256,256]}[tt]||[base,base,256];if(key!==undefined){shapeless(shape.concat([key]),[id,1]);RECIPES[RECIPES.length-1].custom=true}}}
 function customArmorPerks(){const set=new Set();if(!player||!player.armor)return set;for(const a of player.armor){if(!a)continue;const d=ITEMS[a.id];if(d&&d.perks)for(const x of d.perks)set.add(x)}return set}
 function tickCustomArmor(dt){const p=player;if(p.dead)return;const perks=customArmorPerks();if(!perks.size)return;if(perks.has('fireproof')&&p.fireT>0)p.fireT=0;if(perks.has('regen')){p.regenT=(p.regenT||0)+dt;if(p.regenT>2.5){p.regenT=0;if(p.hp<p.maxHp){p.hp=Math.min(p.maxHp,p.hp+1);updateHUD()}}}}
+/* ---- Mod kinds: food, tools, armour, guns, vehicles, creatures, structures, recipes and world rules ----
+   Every piece is plain data (kind + data object, optional 16x16 photo in px). Nothing is ever stored or run as code, so a shared piece is safe:
+   MOD_SCHEMA[kind] is the one table that builds the Mod Maker form, fills defaults and validates (modPieceValid). */
+const MOD_RULES={}; // world rules from enabled rules pieces; read by the physics, move, clock, spawner, death, damage and hunger code
+const MOD_ITEM0=1100,MOD_NAME_RE=/^[\p{L}\p{N}][\p{L}\p{N} '.,!?&()+\-]{0,23}$/u,MOD_REF_RE=/^[A-Za-z0-9_ '\-]{1,32}$/,MOD_PX_RE=/^[A-Za-z0-9+\/]{1366}==$/;
+const MI=(k,i)=>MOD_ITEM0+k*4+(i|0); // item ids of slot k: 4 per slot (an armour set uses all four)
+const MOD_EFFECTS=['none','regen','speed','strength','fire_res','night_vision','poison','jump','water_breathing'];
+const MOD_BIOMES=['plains','forest','birch_forest','desert','taiga','snowy_taiga','mountains','swamp','jungle','beach','ocean','deep_ocean'];
+const MOD_SOUNDS=['pig','cow','sheep','chicken','zombie','skeleton','wolf','spider','blaze','golem','slime','villager_no'];
+const MOD_TOOLS=['sword','axe','pickaxe','shovel','hoe','spear'];
+const MOD_BASES=['car','jet','bomber','tank','heli','sub','boat','a10'];
+const MOD_GUNS={pistol:{id:460,ammo:'bullets',snd:'gun'},rifle:{id:461,ammo:'bullets',snd:'rifle'},shotgun:{id:462,ammo:'shells',snd:'shotgun'},smg:{id:478,ammo:'bullets',snd:'gun'},sniper:{id:466,ammo:'bullets',snd:'sniper'},lmg:{id:520,ammo:'bullets',snd:'rifle'},launcher:{id:451,ammo:'rockets',snd:'explode'}};
+const MOD_AMMO={bullets:463,shells:464,rockets:452,grenades:527};
+const mkI=(min,max,def,label)=>({t:'int',min,max,def,label}),mkN=(min,max,def,label,step)=>({t:'num',min,max,def,label,step}),mkB=(def,label)=>({t:'bool',def,label}),mkE=(opts,def,label)=>({t:'enum',opts,def,label}),mkC=(def,label)=>({t:'color',def,label});
+const MOD_DROP_ROW={item:{t:'item',def:'',label:'Item'},min:mkI(0,8,1,'Min'),max:mkI(0,8,1,'Max'),chance:mkN(0,1,1,'Chance',0.05)};
+const MOD_SCHEMA={
+  food:{label:'Food',help:'Something to eat: restores hunger, can give an effect for a while.',tex:true,fields:{hunger:mkI(1,20,6,'Hunger restored (1-20)'),sat:mkN(0,20,4,'Saturation (0-20)',0.5),effect:mkE(MOD_EFFECTS,'none','Effect'),dur:mkI(1,600,30,'Effect seconds'),color:mkC([200,90,60],'Colour (no photo)')}},
+  tool:{label:'Tool / weapon',help:'A sword, axe, pickaxe, shovel, hoe or spear with your own numbers.',tex:true,fields:{type:mkE(MOD_TOOLS,'sword','Type'),dmg:mkN(1,40,7,'Damage',0.5),spd:mkN(0.4,3,1.6,'Attack speed',0.1),mine:mkN(1,20,6,'Mining speed',0.5),dur:mkI(20,6000,500,'Durability'),tier:mkI(0,4,2,'Tier (0 wood to 4 sift)'),color:mkC([180,185,195],'Colour (no photo)')}},
+  armor:{label:'Armour',help:'A whole set or a single piece, with an optional perk.',tex:true,fields:{slot:mkE(['set','helmet','chestplate','leggings','boots'],'set','Pieces'),p0:mkI(0,10,2,'Helmet protection'),p1:mkI(0,12,6,'Chestplate protection'),p2:mkI(0,10,5,'Leggings protection'),p3:mkI(0,10,2,'Boots protection'),dur:mkI(20,6000,240,'Durability (chestplate)'),perk:mkE(['none','fireproof','regen','feather'],'none','Perk'),color:mkC([200,200,205],'Colour (no photo)')}},
+  gun:{label:'Gun',help:'Pick a model, tune the numbers, tint it. It reuses the model of the preset.',tex:true,fields:{model:mkE(Object.keys(MOD_GUNS),'rifle','Model'),dmg:mkN(1,100,8,'Damage',0.5),rate:mkN(0.03,3,0.15,'Seconds between shots',0.01),speed:mkN(20,300,120,'Bullet speed',5),spread:mkN(0,0.2,0.02,'Spread',0.005),pellets:mkI(1,12,1,'Pellets per shot'),ammo:mkE(Object.keys(MOD_AMMO),'bullets','Ammo'),auto:mkB(true,'Automatic'),scope:mkB(false,'Scope (aim to zoom)'),recoil:mkN(0,0.3,0.02,'Recoil',0.005),dur:mkI(50,5000,800,'Durability'),needMod:mkB(false,'Only works with the Guns mod on'),color:mkC([120,130,150],'Tint')}},
+  vehicle:{label:'Vehicle',help:'A copy of a real vehicle with its own colour, hit points and speed, with a spawn egg.',tex:false,fields:{base:mkE(MOD_BASES,'car','Based on'),hp:mkI(10,1000,100,'Hit points'),spd:mkN(0.5,3,1,'Speed multiplier',0.1),color:mkC([200,50,50],'Colour')}},
+  creature:{label:'Creature',help:'A real mob with a spawn egg. A photo (optional) becomes its face.',tex:true,fields:{behaviour:mkE(['passive','hostile','neutral','flying','swimming'],'passive','Behaviour'),shape:mkE(['biped','quadruped','flyer','serpent','blob'],'quadruped','Body'),hp:mkI(1,500,20,'Health'),speed:mkN(0.5,8,3,'Speed',0.1),dmg:mkN(0,30,3,'Damage',0.5),size:mkN(0.4,3,1,'Size',0.1),color:mkC([140,140,150],'Colour'),color2:mkC([80,80,90],'Trim colour'),sound:mkE(MOD_SOUNDS,'pig','Sound'),wild:mkB(true,'Spawns in the wild'),biomes:{t:'multi',opts:MOD_BIOMES,def:[],label:'Only in (none ticked = anywhere)'},light:mkE(['any','day','night'],'any','Spawns when'),drops:{t:'rows',max:3,row:MOD_DROP_ROW,def:[],label:'Drops'}}},
+  structure:{label:'Structure',help:'Captured from a world with /modcapture. Spawn it with /spawn <name>; optionally it also appears in new terrain.',tex:false,fields:{rarity:mkE(['off','rare','uncommon','common'],'off','Natural generation'),w:Object.assign(mkI(1,48,1,'Width'),{ui:false}),h:Object.assign(mkI(1,48,1,'Height'),{ui:false}),d:Object.assign(mkI(1,48,1,'Depth'),{ui:false}),pal:{t:'strs',max:255,def:[],ui:false},rle:{t:'ints',max:120000,def:[],ui:false}}},
+  recipe:{label:'Recipe',help:'A new crafting recipe for any item, including your other pieces (type a name).',tex:false,fields:{out:{t:'item',def:'',label:'Makes'},count:mkI(1,64,1,'How many'),shaped:mkB(true,'Shaped (keep the grid layout)'),grid:{t:'items',len:9,max:9,def:['','','','','','','','',''],label:'Ingredients (3 x 3)'}}},
+  rules:{label:'World rules',help:'Changes how the world works while this piece is on: gravity, days, speed, hunger and more.',tex:false,fields:{enabled:mkB(true,'On'),dayLen:mkN(0.25,8,1,'Day length x',0.25),grav:mkN(0.1,3,1,'Gravity x',0.1),speed:mkN(0.3,3,1,'Walking speed x',0.1),jump:mkN(0.3,3,1,'Jump height x',0.1),mobs:mkN(0,4,1,'Mob spawn rate x',0.25),keepInv:mkB(false,'Keep inventory when you die'),time:mkE(['normal','day','night'],'normal','Time'),fall:mkB(true,'Fall damage'),hunger:mkB(true,'Hunger drains'),water:mkB(false,'Breathe underwater')}}
+};
+const MOD_LEGACY=['block','item','weapon'];
+const MOD_KINDS=[...new Set([...MOD_LEGACY,'creature','armor','vehicle',...Object.keys(MOD_SCHEMA)])];
+/* ---- validation (one table drives it) ---- */
+function modFieldWhy(f,v){
+  switch(f.t){
+    case 'int':return Number.isInteger(v)&&v>=f.min&&v<=f.max?'':'must be a whole number from '+f.min+' to '+f.max;
+    case 'num':return typeof v==='number'&&isFinite(v)&&v>=f.min&&v<=f.max?'':'must be a number from '+f.min+' to '+f.max;
+    case 'bool':return typeof v==='boolean'?'':'must be on or off';
+    case 'enum':return typeof v==='string'&&f.opts.includes(v)?'':'is not one of the choices';
+    case 'color':return Array.isArray(v)&&v.length===3&&v.every(x=>Number.isInteger(x)&&x>=0&&x<=255)?'':'must be a colour';
+    case 'item':return typeof v==='string'&&(v===''||MOD_REF_RE.test(v))?'':'is not a plain item name';
+    case 'multi':return Array.isArray(v)&&v.length<=f.opts.length&&v.every(x=>typeof x==='string'&&f.opts.includes(x))&&new Set(v).size===v.length?'':'is not a list of choices';
+    case 'items':return Array.isArray(v)&&v.length<=f.max&&v.every(x=>typeof x==='string'&&(x===''||MOD_REF_RE.test(x)))?'':'is not a list of item names';
+    case 'strs':return Array.isArray(v)&&v.length<=f.max&&v.every(x=>typeof x==='string'&&(/^[a-z0-9_]{1,40}$/.test(x)||(x[0]==='@'&&MOD_NAME_RE.test(x.slice(1)))))?'':'is not a block list';
+    case 'ints':return Array.isArray(v)&&v.length<=f.max&&v.every(x=>Number.isInteger(x)&&x>=0&&x<=65535)?'':'is not a number list';
+    case 'rows':{if(!Array.isArray(v)||v.length>f.max)return 'is not a short list';for(const r of v){const w=modObjWhy(r,f.row);if(w)return w;if(r.min!==undefined&&r.max!==undefined&&r.min>r.max)return 'min is above max'}return ''}
+  }
+  return 'is not allowed'}
+function modObjWhy(o,fields){
+  if(!o||typeof o!=='object'||Array.isArray(o))return 'must be an object';
+  for(const k of Object.keys(o)){if(!Object.prototype.hasOwnProperty.call(fields,k))return 'unknown field '+k;const w=modFieldWhy(fields[k],o[k]);if(w)return k+' '+w}
+  return ''}
+function modStructWhy(d){
+  const w=d.w||1,h=d.h||1,dd=d.d||1;if(!d.pal||!d.rle)return 'structure has no blocks';if(d.rle.length%3)return 'structure data is cut off';
+  let n=0;for(let i=0;i<d.rle.length;i+=3){if(d.rle[i]>=d.pal.length||d.rle[i+1]>255||d.rle[i+2]<1)return 'structure data is broken';n+=d.rle[i+2]}
+  return n===w*h*dd?'':'structure size does not match its blocks'}
+const MOD_SPEC_KEYS={kind:1,name:1,desc:1,shape:1,size:1,main:1,second:1,eye:1,features:1,hostile:1,neutral:1,hp:1,dmg:1,speed:1,ranged:1,fly:1,drops:1,tier:1,points:1,dur:1,perks:1,tool:1,fire:1};
+function modSpecWhy(sp){
+  if(!sp||typeof sp!=='object'||Array.isArray(sp))return 'spec must be an object';
+  for(const k of Object.keys(sp))if(!MOD_SPEC_KEYS[k])return 'unknown spec field '+k;
+  if(!['creature','vehicle','armor','weapon'].includes(sp.kind))return 'bad spec kind';
+  if(typeof sp.name!=='string'||!MOD_NAME_RE.test(sp.name))return 'bad spec name';
+  if(sp.desc!==undefined&&(typeof sp.desc!=='string'||sp.desc.length>200||/[<>`${}\\]/.test(sp.desc)))return 'bad description';
+  const col=c=>Array.isArray(c)&&c.length===3&&c.every(x=>Number.isInteger(x)&&x>=0&&x<=255);
+  for(const k of ['main','second','eye'])if(sp[k]!==undefined&&!col(sp[k]))return 'bad colour';
+  if(sp.shape!==undefined&&!['biped','quadruped','flyer','serpent','blob','heli','plane','car','tank','boat','ufo'].includes(sp.shape))return 'bad shape';
+  if(sp.size!==undefined&&!(typeof sp.size==='number'&&sp.size>=0.3&&sp.size<=4))return 'bad size';
+  if(sp.features!==undefined&&!(Array.isArray(sp.features)&&sp.features.length<=10&&sp.features.every(x=>['horns','wings','spikes','tail','halo','crown','armor','glow','crest'].includes(x))))return 'bad features';
+  for(const k of ['hostile','neutral','fly','fire'])if(sp[k]!==undefined&&typeof sp[k]!=='boolean')return 'bad flag';
+  for(const [k,lo,hi] of [['hp',1,1000],['dmg',0,100],['speed',0,40]])if(sp[k]!==undefined&&!(typeof sp[k]==='number'&&sp[k]>=lo&&sp[k]<=hi))return 'bad '+k;
+  if(sp.ranged!==undefined&&sp.ranged!==null&&!['fireball','arrow'].includes(sp.ranged))return 'bad attack';
+  if(sp.drops!==undefined&&!(Array.isArray(sp.drops)&&sp.drops.length<=6&&sp.drops.every(d=>Array.isArray(d)&&d.length===2&&typeof d[0]==='string'&&MOD_REF_RE.test(d[0])&&Number.isInteger(d[1])&&d[1]>=0&&d[1]<=16)))return 'bad drops';
+  if(sp.tier!==undefined&&!(typeof sp.tier==='string'&&Object.prototype.hasOwnProperty.call(ARMOR_BASE,sp.tier)))return 'bad tier';
+  if(sp.points!==undefined&&!(Array.isArray(sp.points)&&sp.points.length===4&&sp.points.every(x=>Number.isInteger(x)&&x>=0&&x<=12)))return 'bad armour points';
+  if(sp.dur!==undefined&&!(Array.isArray(sp.dur)&&sp.dur.length>=1&&sp.dur.length<=4&&sp.dur.every(x=>Number.isInteger(x)&&x>=1&&x<=6000)))return 'bad durability';
+  if(sp.perks!==undefined&&!(Array.isArray(sp.perks)&&sp.perks.length<=3&&sp.perks.every(x=>['fireproof','regen','feather'].includes(x))))return 'bad perks';
+  if(sp.tool!==undefined&&!['sword','axe','pickaxe','shovel','hoe','spear'].includes(sp.tool))return 'bad tool';
+  return ''}
+// returns '' when the piece is fine, else the reason; modPieceValid is the yes/no form the sharing code uses
+function modPieceWhy(pc){
+  if(!pc||typeof pc!=='object'||Array.isArray(pc))return 'not a piece';
+  const ok=['id','name','kind','data','px','desc','target','glow','hard','spec','enabled'];
+  for(const k of Object.keys(pc))if(!ok.includes(k))return 'unknown field '+k;
+  if(!MOD_KINDS.includes(pc.kind))return 'unknown kind';
+  if(typeof pc.name!=='string'||!MOD_NAME_RE.test(pc.name))return 'the name has letters, numbers and simple punctuation only (24 max)';
+  if(pc.id!==undefined&&!(typeof pc.id==='number'&&isFinite(pc.id)&&Math.abs(pc.id)<1e15))return 'bad id';
+  if(pc.px!==undefined&&!(typeof pc.px==='string'&&MOD_PX_RE.test(pc.px)))return 'bad picture';
+  if(pc.desc!==undefined&&(typeof pc.desc!=='string'||pc.desc.length>200||/[<>`${}\\]/.test(pc.desc)))return 'bad description';
+  if(pc.data!==undefined){
+    if(pc.spec!==undefined)return 'a piece is data or a spec, not both';
+    const S=MOD_SCHEMA[pc.kind];if(!S)return 'this kind has no data form';
+    const w=modObjWhy(pc.data,S.fields);if(w)return w;
+    if(pc.kind==='structure'){const w2=modStructWhy(pc.data);if(w2)return w2}
+    if(pc.kind==='recipe'){const d=modNorm('recipe',pc.data);if(!d.out)return 'pick what the recipe makes';if(!d.grid.some(x=>x))return 'add at least one ingredient'}
+    return ''}
+  if(pc.spec!==undefined){if(!['creature','vehicle','armor','weapon'].includes(pc.kind))return 'bad kind for a spec';return modSpecWhy(pc.spec)}
+  if(!['block','item','creature'].includes(pc.kind))return 'this kind needs its data';
+  if(pc.px===undefined)return 'missing picture';
+  if(pc.kind==='creature'&&!CUSTOM_TARGETS.includes(pc.target))return 'bad creature target';
+  if(pc.glow!==undefined&&typeof pc.glow!=='boolean')return 'bad glow';
+  if(pc.hard!==undefined&&!['0.6','1.5','5'].includes(String(pc.hard)))return 'bad hardness';
+  return ''}
+function modPieceValid(pc){return modPieceWhy(pc)===''}
+function modNorm(kind,data){const S=MOD_SCHEMA[kind],o={};if(!S)return o;for(const k in S.fields){const f=S.fields[k];let v=data?data[k]:undefined;if(v===undefined||v===null)v=f.def;o[k]=Array.isArray(v)?JSON.parse(JSON.stringify(v)):v}return o}
+/* ---- applying pieces ---- */
+const MOD_STRUCT_KEYS=[],MOD_NATURAL=[],MOD_LATE=[];
+function modKindsReset(){for(const k in MOD_RULES)delete MOD_RULES[k];for(const k of MOD_STRUCT_KEYS)delete SPAWN_STRUCT[k];MOD_STRUCT_KEYS.length=0;MOD_NATURAL.length=0;MOD_LATE.length=0;CUSTOM_WILD.swim=[]}
+function modItemRef(s){if(!s)return null;const id=findItemId(String(s));return id===null||id===undefined||!ITEMS[id]?null:id}
+function modTint(c){return c.map(v=>0.45+1.1*v/255)}
+function modPaintTex(k,pc,d){ // photo-less pieces get a plain painted tile (list icon, food sprite)
+  if(pc.px)return;const c=d.color||d.color2||[200,200,205];const p=new Painter(mulberry32(hashStr(pc.name+k)));
+  if(pc.kind==='food'){p.blob(8,9,5,c[0],c[1],c[2]);p.rect(7,2,2,3,100,70,40);p.speckle(5,Math.min(255,c[0]+50),Math.min(255,c[1]+50),Math.min(255,c[2]+50))}
+  else{p.noise(c[0],c[1],c[2],10);p.rect(0,0,16,1,c[0]*0.6,c[1]*0.6,c[2]*0.6);p.rect(0,15,16,1,c[0]*0.6,c[1]*0.6,c[2]*0.6);p.speckle(8,Math.min(255,c[0]+40),Math.min(255,c[1]+40),Math.min(255,c[2]+40))}
+  setCustomTexture(k,new Uint8ClampedArray(p.d))}
+function modSlug(n){return String(n).toLowerCase().replace(/[^a-z0-9]+/g,'_').replace(/^_+|_+$/g,'')}
+function modKindsSlot(k,pc,key){
+  const used=new Set();
+  if(pc&&pc.data&&MOD_SCHEMA[pc.kind]){try{modApplyPiece(k,pc,key,used)}catch(e){console.error('mod piece failed',pc.kind,e)}}
+  for(let i=0;i<4;i++)if(!used.has(i))defItem(MI(k,i),'mod_item_'+k+'_'+i,{label:'Removed mod item',iconTile:TEX['custom'+k],custom:true,hidden:true})}
+function modApplyPiece(k,pc,key,used){
+  const d=modNorm(pc.kind,pc.data),tex='custom'+k,name=pc.name;modPaintTex(k,pc,d);const own=(i,id)=>{used.add(i);return id};
+  const tile=pc.px?{iconTile:TEX[tex]}:{};const rec=(ins,out,extra)=>{if(key===undefined)return;shapeless(ins.concat([key]),out);Object.assign(RECIPES[RECIPES.length-1],{custom:true},extra||{})};
+  switch(pc.kind){
+    case 'food':{defItem(own(0,MI(k,0)),'mod_food_'+k,Object.assign({label:name,iconTile:TEX[tex],food:[d.hunger,d.sat],custom:true,stack:64},d.effect!=='none'?{foodFx:[{k:d.effect,s:d.dur}]}:{}));rec([I.wheat],[MI(k,0),2]);break}
+    case 'tool':{const mat='mod_'+k,t=d.type;MAT[mat]={tier:d.tier,speed:d.mine,dur:d.dur,color:d.color,name};TOOL_DMG[t][mat]=d.dmg;TOOL_SPD[t][mat]=d.spd;
+      defItem(own(0,MI(k,0)),mat+'_'+t,Object.assign({label:name,icon:t,mat,stack:1,tool:t,tier:d.tier,speed:t==='spear'?1:d.mine,dur:d.dur,dmg:d.dmg,atkSpd:d.spd,fuel:0,custom:true},tile));
+      const base=[4,4,260,263,263][d.tier];const shape={sword:[base,base,256],spear:[base,256,256],axe:[base,base,base,256],pickaxe:[base,base,base,256,256],shovel:[base,256,256],hoe:[base,base,256,256]}[t];rec(shape,[MI(k,0),1]);break}
+    case 'armor':{const mat='mod_'+k,names=['helmet','chestplate','leggings','boots'],pts=[d.p0,d.p1,d.p2,d.p3],durs=[0.69,1,0.94,0.81].map(f=>Math.max(1,Math.round(d.dur*f)));ARMOR[mat]={helmet:d.p0,chestplate:d.p1,leggings:d.p2,boots:d.p3,dur:durs,color:d.color,name};
+      const avg=(d.p0+d.p1+d.p2+d.p3)/4,base=avg>=4.5?263:avg>=2.5?260:289,counts=[5,8,7,4];
+      names.forEach((sl,i)=>{if(d.slot!=='set'&&d.slot!==sl)return;const id=MI(k,i);defItem(own(i,id),mat+'_'+sl,Object.assign({label:name+(d.slot==='set'?' '+(sl==='chestplate'?'Chestplate':label(sl)):''),icon:sl,mat,stack:1,armor:i,points:pts[i],dur:durs[i],perks:d.perk==='none'?[]:[d.perk],custom:true},tile));
+        const ins=[];for(let n=0;n<counts[i];n++)ins.push(base);rec(ins,[id,1])});break}
+    case 'gun':{const P=MOD_GUNS[d.model];let model=P.id,ammo=d.ammo,extra={};
+      if(d.model==='launcher'){if(ammo==='grenades'){model=522;extra={kind:'grenade'}}else{ammo='rockets';extra={rocket:true}}}else if(ammo!=='shells'&&ammo!=='bullets')ammo=P.ammo;
+      const g=Object.assign({dmg:d.dmg,rate:d.rate,speed:d.speed,spread:d.spread,pellets:d.pellets,ammo:MOD_AMMO[ammo],auto:d.auto,snd:P.snd,recoil:d.recoil},d.scope?{scope:true,hipSpread:Math.max(d.spread*6,0.02)}:{},d.needMod?{needGuns:true}:{},extra);if(extra.rocket)g.dmg=0;
+      const bd=ITEMS[model]||ITEMS[P.id],id=MI(k,0),tn=modTint(d.color);let ip=bd&&(bd.iconPal||(bd.icon&&ICONDEF[bd.icon]));
+      if(ip){const pal={};for(const c in ip[1]){const v=ip[1][c];pal[c]=Array.isArray(v)&&'mhdgGwWvstSLpr'.includes(c)?v.map((x,i)=>Math.min(255,Math.round(x*tn[i]))):v}ip=[ip[0],pal]}
+      defItem(own(0,id),'mod_gun_'+k,Object.assign({label:name,icon:bd?bd.icon:'rifle',stack:1,dur:d.dur,gun:g,custom:true},ip&&!pc.px?{iconPal:ip}:{},tile));
+      if(GUN_MODELS[model])GUN_MODELS[id]=GUN_MODELS[model].map(b=>{const o=Object.assign({},b[7]||{}),c=o.col||[1,1,1];o.col=[c[0]*tn[0],c[1]*tn[1],c[2]*tn[2]];return b.slice(0,7).concat([o])});
+      GUN_FP[id]=GUN_FP[model]||GUN_FP[461];if(GUN_ATT[model])GUN_ATT[id]=GUN_ATT[model];
+      const w=(ins)=>{shapeless(ins.concat(key!==undefined?[key]:[]),[id,1]);Object.assign(RECIPES[RECIPES.length-1],{custom:true,guns:true,station:'gun'})};w([260,260,260,285]);break}
+    case 'vehicle':{const bk=d.base==='boat'?'boat_pt':d.base,bd=MOBDEF[bk];if(!bd)break;const type='custom_mob_'+k,def=Object.assign({},bd,{hp:d.hp,spdMul:d.spd,tint:d.color.map(v=>v/255),custom:true});if(bd.maxSpeed)def.maxSpeed=bd.maxSpeed*d.spd;
+      MOBDEF[type]=def;MOB_LABEL[type]=name;MOB_BY_LABEL[modSlug(name)]=type;const cl=d.color.map(v=>Math.round(v*0.55));
+      defItem(CUSTOM_ITEM0+k,'custom_item_'+k,{label:name,icon:'egg',iconPal:['egg',{m:d.color,l:cl}],spawnMob:type,stack:4,custom:true});
+      if(key!==undefined){shapeless([454,260,260,key],[CUSTOM_ITEM0+k,1]);RECIPES[RECIPES.length-1].custom=true}break}
+    case 'creature':{const b=d.behaviour,sp={kind:'creature',name,desc:'',shape:b==='flying'?'flyer':b==='swimming'?'serpent':d.shape,size:d.size,main:d.color,second:d.color2,eye:[240,240,240],features:[],hostile:b==='hostile',neutral:b==='neutral',hp:d.hp,dmg:d.dmg,speed:d.speed,ranged:null,fly:b==='flying',drops:[]};
+      if(b==='flying'&&!sp.features.includes('wings'))sp.features.push('wings');
+      applySpecPiece(k,{spec:sp},key);const type='custom_mob_'+k,md=MOBDEF[type];if(!md)break;
+      md.passive=b==='passive'||b==='flying'||b==='swimming';md.neutral=b==='neutral';md.sound=d.sound;md.custom=true;if(b==='flying')md.flying=true;if(b==='swimming')md.swimmer=true
+      md.wildBiomes=d.biomes.map(n=>BI[n]).filter(x=>x!==undefined);md.wildLight=d.light;const rows=d.drops;
+      md.drops=r=>{const out=[];for(const row of rows){const id=modItemRef(row.item);if(!id||r()>row.chance)continue;const n=row.min+Math.floor(r()*(row.max-row.min+1));if(n>0)out.push([id,n])}return out};
+      for(const L of [CUSTOM_WILD.hostile,CUSTOM_WILD.passive]){const i=L.indexOf(type);if(i>=0)L.splice(i,1)}
+      if(d.wild){if(b==='swimming')CUSTOM_WILD.swim.push(type);else if(b==='hostile')CUSTOM_WILD.hostile.push(type);else CUSTOM_WILD.passive.push(type)}
+      if(pc.px)setCustomTexture(k,b64ToBytes(pc.px));break}
+    case 'structure':{let sk=modSlug(name);if(!sk)sk='structure_'+k;if(SPAWN_STRUCT[sk])sk='mod_'+sk;let n=2;while(SPAWN_STRUCT[sk])sk='mod_'+modSlug(name)+'_'+n++;
+      const data=d;SPAWN_STRUCT[sk]=[name,(x,y,z,r)=>modStructPlace(data,x,y,z,false)];MOD_STRUCT_KEYS.push(sk);if(d.rarity!=='off')MOD_NATURAL.push({key:sk,data,rarity:d.rarity,n:MOD_NATURAL.length});break}
+    case 'recipe':{MOD_LATE.push(()=>modApplyRecipe(d));break}
+    case 'rules':{if(!d.enabled)break;const R0=MOD_RULES;R0.dayLen=(R0.dayLen||1)*d.dayLen;R0.grav=(R0.grav||1)*d.grav;R0.speed=(R0.speed||1)*d.speed;R0.jumpV=(R0.jumpV||1)*Math.sqrt(d.jump);R0.mobs=(R0.mobs===undefined?1:R0.mobs)*d.mobs;
+      if(d.keepInv)R0.keepInv=true;if(d.time==='day')R0.alwaysDay=true;if(d.time==='night')R0.alwaysNight=true;if(!d.fall)R0.noFall=true;if(!d.hunger)R0.noHunger=true;if(d.water)R0.waterBreath=true;break}
+  }}
+function modApplyRecipe(d){
+  const out=modItemRef(d.out);if(!out)return;const ids=d.grid.map(s=>modItemRef(s));
+  if(d.shaped){const cells=ids.map((id,i)=>id?[i%3,Math.floor(i/3),id]:null).filter(Boolean);if(!cells.length)return;
+    const x0=Math.min(...cells.map(c=>c[0])),x1=Math.max(...cells.map(c=>c[0])),y0=Math.min(...cells.map(c=>c[1])),y1=Math.max(...cells.map(c=>c[1]));const keys={},ch={};let nxt=0;const L='ABCDEFGHI';
+    const p=[];for(let y=y0;y<=y1;y++){let row='';for(let x=x0;x<=x1;x++){const id=ids[y*3+x];if(!id){row+='.';continue}if(!ch[id]){ch[id]=L[nxt++];keys[ch[id]]=id}row+=ch[id]}p.push(row)}
+    shaped(p,keys,[out,d.count])}
+  else{const s=ids.filter(Boolean);if(!s.length)return;shapeless(s,[out,d.count])}
+  RECIPES[RECIPES.length-1].custom=true}
+function modKindsFinish(){for(const f of MOD_LATE){try{f()}catch(e){console.error('mod recipe failed',e)}}MOD_LATE.length=0}
+/* ---- rules: clock ---- */
+function modAdvanceTime(){const R0=MOD_RULES;if(R0.alwaysDay){world.time=6000;return}if(R0.alwaysNight){world.time=18000;return}
+  if(!R0.dayLen||R0.dayLen===1){world.time=(world.time+1)%24000;if(world.time===0)world.day++;return}
+  R0._acc=(R0._acc||0)+1/R0.dayLen;const n=Math.floor(R0._acc);R0._acc-=n;world.time+=n;while(world.time>=24000){world.time-=24000;world.day++}}
+/* ---- wild spawns: biome and light limits for mod creatures ---- */
+function modWildOk(t,bi){const d=MOBDEF[t];if(!d)return false;if(d.wildBiomes&&d.wildBiomes.length&&!d.wildBiomes.includes(bi))return false;const night=R.day<0.35;if(d.wildLight==='day'&&night)return false;if(d.wildLight==='night'&&!night)return false;return true}
+function modWildPick(list,fallback,bi,rng){const ok=list.filter(t=>modWildOk(t,bi));if(!ok.length)return fallback;return ok[Math.floor((rng||Math.random)()*ok.length)]}
+/* ---- structures: capture, RLE, placement ---- */
+function modBlockKey(id){const d=BLOCKS[id];if(!d)return 'air';if(d.custom)return '@'+String(d.label||'').replace(/[^\p{L}\p{N} '.,!?&()+\-]/gu,'').slice(0,24);return d.name}
+function modBlockId(key){if(key[0]==='@'){const lb=key.slice(1);for(let i=0;i<CUSTOM_SLOTS;i++){const b=BLOCKS[CUSTOM_BLOCK0+i];if(b&&!b.hidden&&b.label===lb)return CUSTOM_BLOCK0+i}return 0}const id=B[key];return id===undefined?0:id}
+function modCaptureRegion(x0,y0,z0,x1,y1,z1){
+  const w=x1-x0+1,h=y1-y0+1,d=z1-z0+1;for(let cx=x0>>4;cx<=x1>>4;cx++)for(let cz=z0>>4;cz<=z1>>4;cz++)populateChunk(world.generateChunk(cx,cz));
+  const pal=[],pidx={},rle=[];let cp=-1,cm=-1,run=0;
+  const flush=()=>{if(run>0)rle.push(cp,cm,run)};
+  for(let y=y0;y<=y1;y++)for(let z=z0;z<=z1;z++)for(let x=x0;x<=x1;x++){const id=world.getBlock(x,y,z),m=world.getMeta(x,y,z),kk=modBlockKey(id);let pi=pidx[kk];if(pi===undefined){pi=pal.length;pidx[kk]=pi;pal.push(kk)}
+    if(pi===cp&&m===cm)run++;else{flush();cp=pi;cm=m;run=1}}
+  flush();return {rarity:'off',w,h,d,pal,rle}}
+function modStructPlace(data,x,y,z,natural){
+  const pal=data.pal.map(modBlockId),w=data.w,h=data.h,d=data.d;const ox=x-(w>>1),oy=y+1,oz=z-(d>>1);let i=0,placed=0;
+  const opt={silent:true,noDrop:true,noLight:true};
+  for(let r=0;r<data.rle.length;r+=3){const id=pal[data.rle[r]],m=data.rle[r+1];for(let n=data.rle[r+2];n>0;n--,i++){
+      if(natural&&id===0)continue;const lx=i%w,lz=Math.floor(i/w)%d,ly=Math.floor(i/(w*d));if(world.setBlock(ox+lx,oy+ly,oz+lz,id,m,opt))placed++}}
+  world.relightDirty();return placed}
+function modCaptureCmd(args,say){
+  const p=player,a=args.slice();let A,B,words=[];const usage='Usage: /modcapture x1 y1 z1 x2 y2 z2 [name]  or stand at a corner and type /modcapture here twice (up to 48 x 48 x 48)';
+  if((a[0]||'').toLowerCase()==='here'){const pos=[Math.floor(p.x),Math.floor(p.y),Math.floor(p.z)];if(!game.modCapA){game.modCapA=pos;say('Corner 1 set at '+pos.join(' ')+'. Go to the opposite corner and type /modcapture here again');return}A=game.modCapA;B=pos;game.modCapA=null;words=a.slice(1)}
+  else if(a.length>=6){const v=[Math.floor(p.x),Math.floor(p.y),Math.floor(p.z)];const n=[0,1,2,3,4,5].map(i=>{const s=a[i];if(s[0]==='~')return s.length>1?v[i%3]+parseInt(s.slice(1)):v[i%3];return parseInt(s)});if(n.some(isNaN)){say(usage);return}A=n.slice(0,3);B=n.slice(3,6);words=a.slice(6)}
+  else{say(usage);return}
+  const x0=Math.min(A[0],B[0]),x1=Math.max(A[0],B[0]),y0=Math.max(0,Math.min(A[1],B[1])),y1=Math.min(CH-1,Math.max(A[1],B[1])),z0=Math.min(A[2],B[2]),z1=Math.max(A[2],B[2]);
+  if(x1-x0>=48||y1-y0>=48||z1-z0>=48){say('That region is too big: 48 x 48 x 48 blocks at most');return}
+  const m=loadCustomMods();if(m.pieces.length>=CUSTOM_SLOTS){say('Your mod is full ('+CUSTOM_SLOTS+' pieces). Remove one in the Mod Maker first');return}
+  let name=words.join(' ').replace(/[^\p{L}\p{N} '.,!?&()+\-]/gu,'').trim().slice(0,24);if(!MOD_NAME_RE.test(name))name='Structure '+(m.pieces.filter(q=>q.kind==='structure').length+1);
+  const data=modCaptureRegion(x0,y0,z0,x1,y1,z1);if(data.rle.length>60000){say('That region is too detailed to store ('+(data.rle.length/3|0)+' runs). Try a smaller one');return}
+  const pc={id:Date.now(),name,kind:'structure',data};const why=modPieceWhy(pc);if(why){say('Could not capture: '+why);return}
+  m.pieces.push(pc);saveCustomMods(m);applyCustomMods();if($('modMenu')&&$('modMenu').classList.contains('show'))renderModList();
+  say('Captured '+data.w+' x '+data.h+' x '+data.d+' as "'+name+'". Build it anywhere with /spawn '+name.toLowerCase()+' (you can set natural generation in the Mod Maker)')}
+/* natural generation: queue a placement for a fresh chunk, build it once every chunk under it exists */
+const MOD_QUEUE=[];const MOD_RARITY={rare:1/160,uncommon:1/60,common:1/25};
+function modPopulateStructs(c){
+  if(!MOD_NATURAL.length||!world||world.dimKey!=='over'||MP.active&&!MP.host)return;
+  for(const s of MOD_NATURAL){const rng=mulberry32(hashInt(c.cx,c.cz,4242+s.n,world.seed));if(rng()>=MOD_RARITY[s.rarity])continue;
+    const x=c.cx*16+4+Math.floor(rng()*8),z=c.cz*16+4+Math.floor(rng()*8),bi=c.biomes[(x&15)*16+(z&15)];if(bi===0||bi===9||bi===11)continue;
+    const ws=game.worldSpawn;if(ws&&Math.hypot(x-ws[0],z-ws[2])<30)continue;MOD_QUEUE.push({s,x,z,t:0})}}
+function modQueueTick(dt){
+  for(let i=MOD_QUEUE.length-1;i>=0;i--){const q=MOD_QUEUE[i];q.t+=dt;if(q.t>90){MOD_QUEUE.splice(i,1);continue}
+    const d=q.s.data,x0=q.x-(d.w>>1),z0=q.z-(d.d>>1);let ready=true;
+    for(let cx=x0>>4;cx<=(x0+d.w)>>4&&ready;cx++)for(let cz=z0>>4;cz<=(z0+d.d)>>4;cz++){const c=world.getChunk(cx,cz);if(!c||!c.generated){ready=false;break}}
+    if(!ready)continue;MOD_QUEUE.splice(i,1);
+    // ground level: the median of a few columns under it; land lower than that gets a stone foundation
+    const ys=[];for(const [fx,fz] of [[0,0],[1,0],[0,1],[1,1],[0.5,0.5]]){const wx=Math.floor(x0+fx*(d.w-1)),wz=Math.floor(z0+fz*(d.d-1));let y=CH-2;while(y>1&&(world.getBlock(wx,y,wz)===0||BLOCKS[world.getBlock(wx,y,wz)].replaceable||BLOCKS[world.getBlock(wx,y,wz)].leaves||BLOCKS[world.getBlock(wx,y,wz)].log))y--;ys.push(y)}
+    ys.sort((a,b)=>a-b);const gy=ys[2];if(gy<=SEA-1)continue;
+    world.liveBuild=true;try{for(let x=x0;x<x0+d.w;x++)for(let z=z0;z<z0+d.d;z++){let y=gy;for(let n=0;n<10&&(world.getBlock(x,y,z)===0||BLOCKS[world.getBlock(x,y,z)].replaceable);n++){world.setBlock(x,y,z,1,0,{silent:true,noDrop:true,noLight:true});y--}}
+      modStructPlace(d,x0+(d.w>>1),gy,z0+(d.d>>1),true)}catch(e){console.error('natural structure failed',e)}finally{world.liveBuild=false}}}
+/* swimming creatures: keep them in the water column and spawn them over deep water */
+function modSwimTick(dt){
+  for(const e of entities){if(!(e instanceof Mob)||e.dead||!e.def.swimmer||!e.inWater)continue;e.swimT=(e.swimT||0)-dt;
+    if(e.swimT<=0||e.swimY===undefined){e.swimT=3+Math.random()*4;let top=Math.floor(e.y);while(BLOCKS[world.getBlock(Math.floor(e.x),top+1,Math.floor(e.z))].liquid&&top<CH-2)top++;let bot=Math.floor(e.y);while(bot>2&&BLOCKS[world.getBlock(Math.floor(e.x),bot-1,Math.floor(e.z))].liquid)bot--;e.swimY=bot+0.3+Math.random()*Math.max(0.1,top-bot-1)}
+    e.vy+=((e.swimY-e.y)*1.2-e.vy)*Math.min(1,dt*3);e.vy=Math.max(-1.5,Math.min(1.5,e.vy));e.fallDist=0}
+  game.modSwimT=(game.modSwimT||0)-dt;if(game.modSwimT>0||!CUSTOM_WILD.swim.length||!player||player.dead||(MP.active&&!MP.host)||!world||world.dimKey!=='over')return;game.modSwimT=6;
+  let n=0;for(const e of entities)if(e instanceof Mob&&!e.dead&&e.def.swimmer)n++;if(n>=5)return;
+  for(let t=0;t<10;t++){const a=Math.random()*PI*2,r=12+Math.random()*24,x=Math.floor(player.x+Math.cos(a)*r),z=Math.floor(player.z+Math.sin(a)*r),c=world.getChunk(x>>4,z>>4);if(!c||!c.generated)continue;
+    const y=SEA-2;if(!(BLOCKS[world.getBlock(x,y,z)].liquid&&BLOCKS[world.getBlock(x,y-1,z)].liquid&&BLOCKS[world.getBlock(x,y-2,z)].liquid))continue;
+    const bi=c.biomes[(x&15)*16+(z&15)];const type=modWildPick(CUSTOM_WILD.swim,null,bi);if(!type)continue;entities.push(new Mob(type,x+0.5,y,z+0.5));return}}
+function tickModKinds(dt){if(!world||game.state!=='playing')return;game.modQT=(game.modQT||0)+dt;if(game.modQT>0.4){game.modQT=0;if(MOD_QUEUE.length)modQueueTick(0.4)}modSwimTick(dt)}
+/* ---- list display ---- */
+function modKindBadge(pc){const L={block:'BLOCK',item:'ITEM',creature:pc.data||pc.spec?'CREATURE':'CREATURE FACE',armor:'ARMOR',weapon:'WEAPON',vehicle:'VEHICLE',food:'FOOD',tool:'TOOL',gun:'GUN',structure:'STRUCTURE',recipe:'RECIPE',rules:'RULES'}[pc.kind]||String(pc.kind).toUpperCase();
+  const col={food:'#c8742c',tool:'#7a8aa0',armor:'#5a8ac0',gun:'#b04040',vehicle:'#4a9a70',creature:'#9a5ab0',structure:'#a08a40',recipe:'#6a9a3a',rules:'#c05a9a'}[pc.kind]||'#777';
+  return ' <span class="mkbadge" style="font-size:9px;letter-spacing:.5px;padding:1px 5px;border-radius:3px;background:'+col+';color:#fff;vertical-align:middle">'+escapeHtml(L)+'</span>'}
+function modDataSummary(pc,k){
+  const d=modNorm(pc.kind,pc.data),key=customKeyFor(k),kn=key!==undefined&&ITEMS[key]?' Key item: '+ITEMS[key].label+'.':'';
+  switch(pc.kind){
+    case 'food':return d.hunger+' hunger, '+d.sat+' saturation'+(d.effect!=='none'?', '+d.effect.replace('_',' ')+' for '+d.dur+'s':'')+'.'+kn;
+    case 'tool':return d.type+', '+d.dmg+' damage, '+d.dur+' uses, tier '+d.tier+'.'+kn;
+    case 'armor':return (d.slot==='set'?'full set':d.slot)+', protection '+(d.slot==='set'?[d.p0,d.p1,d.p2,d.p3].join('/'):[d.p0,d.p1,d.p2,d.p3][['helmet','chestplate','leggings','boots'].indexOf(d.slot)])+(d.perk!=='none'?', '+d.perk:'')+'.'+kn;
+    case 'gun':return d.model+', '+d.dmg+' damage, '+d.ammo+(d.needMod?', needs the Guns mod':'')+'. Craft at a Gun Table with 3 iron, gunpowder and the key item.';
+    case 'vehicle':return 'a '+d.base+' with '+d.hp+' hp, speed x'+d.spd+'. Spawn egg; /spawn works too.';
+    case 'creature':return d.behaviour+' '+d.shape+', '+d.hp+' hp, size '+d.size+'. Spawn egg; /spawn '+pc.name.toLowerCase()+'.';
+    case 'structure':return d.w+' x '+d.h+' x '+d.d+' blocks; /spawn '+pc.name.toLowerCase()+(d.rarity!=='off'?'; also generates ('+d.rarity+')':'')+'.';
+    case 'recipe':return 'makes '+d.count+' x '+d.out+' ('+(d.shaped?'shaped':'shapeless')+').';
+    case 'rules':{const bits=[];if(d.dayLen!==1)bits.push('days x'+d.dayLen);if(d.grav!==1)bits.push('gravity x'+d.grav);if(d.speed!==1)bits.push('speed x'+d.speed);if(d.jump!==1)bits.push('jump x'+d.jump);if(d.mobs!==1)bits.push('mobs x'+d.mobs);if(d.keepInv)bits.push('keep inventory');if(d.time!=='normal')bits.push('always '+d.time);if(!d.fall)bits.push('no fall damage');if(!d.hunger)bits.push('no hunger');if(d.water)bits.push('water breathing');return (d.enabled?'ON: ':'OFF: ')+(bits.join(', ')||'no changes')}
+  }return ''}
+/* ---- Mod Maker forms (generated from MOD_SCHEMA) ---- */
+let mkInited=false,mkEditK=null,mkCur=null,mkPx=null,mkPxNew=false,mkReview=null;
+const mkHex=c=>'#'+c.map(v=>Math.max(0,Math.min(255,Math.round(v))).toString(16).padStart(2,'0')).join(''),mkRgb=h=>[parseInt(h.slice(1,3),16),parseInt(h.slice(3,5),16),parseInt(h.slice(5,7),16)];
+function mkFieldHTML(key,f){
+  const id='mkf_'+key,lab='<span style="display:inline-block;min-width:170px">'+escapeHtml(f.label||key)+'</span>',row=(inner,extra)=>'<label class="mkrow" style="display:flex;align-items:center;gap:6px;margin:4px 0;flex-wrap:wrap;'+(extra||'')+'">'+lab+inner+'</label>';
+  switch(f.t){
+    case 'int':case 'num':return row('<input type="number" id="'+id+'" min="'+f.min+'" max="'+f.max+'" step="'+(f.step||(f.t==='int'?1:0.01))+'" value="'+f.def+'" style="width:90px">');
+    case 'bool':return '<label class="mkrow" style="display:flex;align-items:center;gap:6px;margin:4px 0"><input type="checkbox" id="'+id+'"'+(f.def?' checked':'')+'> '+escapeHtml(f.label||key)+'</label>';
+    case 'enum':return row('<select id="'+id+'">'+f.opts.map(o=>'<option value="'+o+'"'+(o===f.def?' selected':'')+'>'+escapeHtml(label(o))+'</option>').join('')+'</select>');
+    case 'color':return row('<input type="color" id="'+id+'" value="'+mkHex(f.def)+'">');
+    case 'item':return row('<input class="tx" id="'+id+'" list="mkItemList" maxlength="32" placeholder="type an item name" style="margin:0;width:200px">');
+    case 'multi':return '<div class="mkrow" style="margin:4px 0">'+escapeHtml(f.label)+'<div style="display:flex;flex-wrap:wrap;gap:2px 10px;margin-top:2px">'+f.opts.map(o=>'<label><input type="checkbox" id="'+id+'_'+o+'"> '+escapeHtml(label(o))+'</label>').join('')+'</div></div>';
+    case 'items':return '<div class="mkrow" style="margin:4px 0">'+escapeHtml(f.label)+'<div style="display:grid;grid-template-columns:repeat(3,1fr);gap:4px;margin-top:3px">'+Array.from({length:f.len},(_,i)=>'<input class="tx" id="'+id+'_'+i+'" list="mkItemList" maxlength="32" placeholder="empty" style="margin:0;width:100%">').join('')+'</div></div>';
+    case 'rows':return '<div class="mkrow" style="margin:4px 0">'+escapeHtml(f.label)+Array.from({length:f.max},(_,i)=>'<div style="display:flex;gap:4px;margin-top:3px;align-items:center"><input class="tx" id="'+id+'_'+i+'_item" list="mkItemList" maxlength="32" placeholder="item" style="margin:0;flex:1;min-width:0"><input type="number" id="'+id+'_'+i+'_min" min="0" max="8" value="1" style="width:46px" title="min"><input type="number" id="'+id+'_'+i+'_max" min="0" max="8" value="1" style="width:46px" title="max"><input type="number" id="'+id+'_'+i+'_chance" min="0" max="1" step="0.05" value="1" style="width:56px" title="chance"></div>').join('')+'</div>';
+  }return ''}
+function mkRead(kind,base){
+  const S=MOD_SCHEMA[kind],d=Object.assign({},base||{});
+  for(const key in S.fields){const f=S.fields[key];if(f.ui===false)continue;const id='mkf_'+key,el=$(id);
+    switch(f.t){
+      case 'int':d[key]=parseInt($(id).value);break;case 'num':d[key]=parseFloat($(id).value);break;case 'bool':d[key]=$(id).checked;break;case 'enum':d[key]=$(id).value;break;
+      case 'color':d[key]=mkRgb($(id).value);break;case 'item':d[key]=$(id).value.trim();break;
+      case 'multi':d[key]=f.opts.filter(o=>$(id+'_'+o).checked);break;
+      case 'items':d[key]=Array.from({length:f.len},(_,i)=>$(id+'_'+i).value.trim());break;
+      case 'rows':d[key]=[];for(let i=0;i<f.max;i++){const it=$(id+'_'+i+'_item').value.trim();if(!it)continue;d[key].push({item:it,min:parseInt($(id+'_'+i+'_min').value),max:parseInt($(id+'_'+i+'_max').value),chance:parseFloat($(id+'_'+i+'_chance').value)})}break}}
+  return d}
+function mkFill(kind,data){
+  const S=MOD_SCHEMA[kind],d=modNorm(kind,data);
+  for(const key in S.fields){const f=S.fields[key];if(f.ui===false)continue;const id='mkf_'+key,v=d[key];
+    switch(f.t){
+      case 'int':case 'num':case 'enum':case 'item':$(id).value=v;break;case 'bool':$(id).checked=!!v;break;case 'color':$(id).value=mkHex(v);break;
+      case 'multi':for(const o of f.opts)$(id+'_'+o).checked=v.includes(o);break;
+      case 'items':for(let i=0;i<f.len;i++)$(id+'_'+i).value=v[i]||'';break;
+      case 'rows':for(let i=0;i<f.max;i++){const r=v[i];$(id+'_'+i+'_item').value=r?r.item:'';$(id+'_'+i+'_min').value=r?r.min:1;$(id+'_'+i+'_max').value=r?r.max:1;$(id+'_'+i+'_chance').value=r?r.chance:1}break}}}
+function mkPreview(){const cv=$('mkf_prev');if(!cv)return;const cx=cv.getContext('2d');cx.imageSmoothingEnabled=false;cx.clearRect(0,0,64,64);if(!mkPx)return;const t=document.createElement('canvas');t.width=t.height=16;t.getContext('2d').putImageData(new ImageData(new Uint8ClampedArray(mkPx),16,16),0,0);cx.drawImage(t,0,0,64,64)}
+function mkShow(which){$('mkPicker').style.display=which==='picker'?'block':'none';$('mkFormBox').style.display=which==='form'?'block':'none'}
+function mkOpenForm(kind,editK){
+  const S=MOD_SCHEMA[kind];if(!S)return;mkCur=kind;mkEditK=editK===undefined?null:editK;mkPx=null;mkPxNew=false;mkReview=null;
+  const m=loadCustomMods(),pc=mkEditK!==null?m.pieces[mkEditK]:null;
+  const items=[];for(const def of ITEMS)if(def&&def.label&&!def.hidden&&def.id)items.push(def.label);
+  let h='<datalist id="mkItemList">'+[...new Set(items)].map(l=>'<option value="'+escapeHtml(l)+'">').join('')+'</datalist>';
+  h+='<div style="display:flex;justify-content:space-between;align-items:center"><b>'+(pc?'Edit ':'New ')+escapeHtml(S.label.toLowerCase())+'</b><span style="font-size:11px;opacity:.8">'+escapeHtml(S.help)+'</span></div>';
+  h+='<label class="mkrow" style="display:flex;gap:6px;align-items:center;margin:6px 0"><span style="min-width:170px">Name</span><input class="tx" id="mkf_name" maxlength="24" placeholder="Name it" style="margin:0;flex:1"></label>';
+  if(S.tex)h+='<div id="mkTexRow" style="display:flex;gap:8px;align-items:center;margin:4px 0;flex-wrap:wrap"><canvas id="mkf_prev" width="64" height="64" style="image-rendering:pixelated;border:2px solid #fff;background:#000"></canvas><div style="flex:1;min-width:180px;font-size:12px">Photo (optional): it becomes the 16x16 picture.<br><input type="file" id="mkf_file" accept="image/*"> <button class="btn" id="mkf_clr" style="width:auto;height:26px;font-size:11px;padding:0 8px">No photo</button><div id="mkf_okrow" style="display:none;margin-top:3px"><label><input type="checkbox" id="mkf_ok"> This photo is family friendly</label></div></div></div>';
+  if(kind==='structure'&&!pc)h+='<div style="font-size:12px;margin:6px 0;line-height:1.5">Structures are captured from a world. Stand in a world and type <b>/modcapture x1 y1 z1 x2 y2 z2 [name]</b>, or stand at one corner and type <b>/modcapture here</b>, walk to the opposite corner and type it again (up to 48 x 48 x 48). Then come back here to set its name and natural generation, and build it anywhere with <b>/spawn name</b>.</div>';
+  else for(const key in S.fields)if(S.fields[key].ui!==false)h+=mkFieldHTML(key,S.fields[key]);
+  h+='<div class="btnrow" style="margin-top:8px;width:100%">'+((kind==='structure'&&!pc)?'':'<button class="btn half" id="mkf_save">'+(pc?'Save changes':'Add to my mod')+'</button>')+'<button class="btn half" id="mkf_cancel">Cancel</button></div><div id="mkf_status" style="font-size:12px;color:#ff6;min-height:16px;margin-top:4px"></div>';
+  $('mkFormBox').innerHTML=h;mkShow('form');
+  if(!(kind==='structure'&&!pc)){mkFill(kind,pc?pc.data:null);$('mkf_name').value=pc?pc.name:'';}
+  if(pc&&pc.px){mkPx=b64ToBytes(pc.px)}
+  if(S.tex){mkPreview();$('mkf_file').onchange=async()=>{const f=$('mkf_file').files[0];if(!f)return;try{const r=await pixelateFile(f);mkPx=r.px;mkReview=r.review;mkPxNew=true;mkPreview();$('mkf_okrow').style.display=MOD_AI_ENDPOINT?'none':'block';$('mkf_ok').checked=false;if(!$('mkf_name').value)$('mkf_name').value=(f.name||'').replace(/\.[^.]+$/,'').replace(/[^\p{L}\p{N} ]+/gu,' ').trim().slice(0,24)}catch(e){$('mkf_status').textContent=e.message||'Could not read that photo'}};
+    $('mkf_clr').onclick=()=>{mkPx=null;mkPxNew=false;mkReview=null;$('mkf_file').value='';$('mkf_okrow').style.display='none';mkPreview()}}
+  $('mkf_cancel').onclick=()=>{mkShow('picker')};
+  if($('mkf_save'))$('mkf_save').onclick=mkSave;
+  $('mkFormBox').scrollIntoView&&$('mkFormBox').scrollIntoView({block:'nearest'})}
+async function mkSave(){
+  const kind=mkCur,S=MOD_SCHEMA[kind],st=$('mkf_status'),m=loadCustomMods(),old=mkEditK!==null?m.pieces[mkEditK]:null;
+  const name=$('mkf_name').value.trim();const data=mkRead(kind,old?old.data:null);const pc={id:old?old.id:Date.now(),name,kind,data};
+  if(S.tex&&mkPx)pc.px=bytesToB64(mkPx);
+  let why=modPieceWhy(pc);if(why){st.textContent='Check the form: '+why;return}
+  if(!old&&m.pieces.length>=CUSTOM_SLOTS){st.textContent='Your mod is full ('+CUSTOM_SLOTS+' pieces). Remove one first.';return}
+  if(S.tex&&mkPxNew&&mkPx){if(!MOD_AI_ENDPOINT&&!$('mkf_ok').checked){st.textContent='Tick the box to confirm the photo is family friendly';return}
+    if(MOD_AI_ENDPOINT){$('mkf_save').disabled=true;st.textContent='Checking the photo...';const chk=await moderateCustomImage(mkReview,name,kind);$('mkf_save').disabled=false;if(!chk.allowed){st.textContent='Not allowed: '+(chk.reason||'that photo is not suitable for Ironcraft');return}}}
+  if(old)m.pieces[mkEditK]=pc;else m.pieces.push(pc);saveCustomMods(m);applyCustomMods();renderModList();mkShow('picker');
+  $('modStatus').textContent=(old?'Saved ':'Added ')+name+' ('+S.label.toLowerCase()+'). '+(kind==='vehicle'||kind==='creature'?'Use its spawn egg in creative, or type /spawn '+name.toLowerCase():kind==='rules'?'It applies in every world while it is on.':kind==='recipe'?'Craft it on a table.':'Find it in the creative inventory, or type /give '+name.toLowerCase())}
+function modKindsInit(){
+  if(mkInited||!$('mkBox'))return;mkInited=true;
+  const order=['food','tool','armor','gun','vehicle','creature','structure','recipe','rules'];
+  $('mkPicker').innerHTML='<div style="font-size:12px;margin-bottom:4px">What are you making? (Blocks, items and creature faces from a photo: use the photo box below.)</div><div id="mkKinds" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:6px">'+order.map(k=>'<button class="btn mkkind" data-kind="'+k+'" style="width:auto;height:auto;min-height:44px;padding:6px 8px;font-size:12px;text-align:left"><b>'+escapeHtml(MOD_SCHEMA[k].label)+'</b><br><span style="font-size:10px;opacity:.8">'+escapeHtml(MOD_SCHEMA[k].help.split('.')[0])+'</span></button>').join('')+'</div><div class="btnrow" style="margin-top:6px"><button class="btn half" id="mkPickClose">Close</button></div>';
+  $('mkNew').onclick=()=>{mkShow('picker')};$('mkPickClose').onclick=()=>{$('mkPicker').style.display='none'};
+  for(const b of document.querySelectorAll('#mkKinds .mkkind'))b.onclick=()=>mkOpenForm(b.dataset.kind);
+  const orig=window.startEditPiece;window.startEditPiece=k=>{const pc=loadCustomMods().pieces[k];if(pc&&pc.data&&MOD_SCHEMA[pc.kind]){mkOpenForm(pc.kind,k);return}if(orig)orig(k)}}
 const CAR_COLS=[[0.85,0.1,0.1],[0.12,0.35,0.85],[0.95,0.8,0.1],[0.92,0.92,0.95],[0.09,0.09,0.11],[0.1,0.6,0.3]];
 // vehicle models: every box is given in 1/16ths relative to the ground under the vehicle; the whole body banks together
 // B-27 crew seats. Positions are model units (1/16 block): origin on the plane's centre line, -z is forward.
@@ -6638,7 +6992,7 @@ const WAR_SCALE={car:1.8,tank:2.5,jet:3,bomber:3};
 const WAR_SPD={car:1.25,tank:1.15,jet:1.5,bomber:1.4}; // faster hulls so a 15 m jet does not look parked in the sky
 function vehScaleK(k){return (game.mods&&game.mods.war&&WAR_SCALE[k])||1}
 function vehScale(m){return vehScaleK(m&&m.def&&m.def.vehicle)}
-function vehSpd(m){return (game.mods&&game.mods.war&&WAR_SPD[m.def.vehicle])||1}
+function vehSpd(m){return ((game.mods&&game.mods.war&&WAR_SPD[m.def.vehicle])||1)*(m.def.spdMul||1)}
 function vehCamK(){const r=player.riding;if(!r||!r.def||!r.def.vehicle)return 1;return r.def.ship?r.def.len/6:vehScale(r)}
 // seat tables per vehicle: eye position in model units (1/16 block, ships 1/4 block) and the role name
 const SEATS={bomber:BSEAT_NAME.map((n,i)=>({n,e:BSEAT_EYE[i]})),
@@ -7712,7 +8066,7 @@ function lobbyRid(){return Math.random().toString(36).slice(2,10)+Date.now().toS
 class LobbyChat{
   constructor(o){o=o||{};this.name=lobbyClean(o.name,16)||'Player';this.world=o.world?lobbyClean(o.world,24):null;this.onUpdate=o.onUpdate||null;this.ids=o.ids||LOBBY_IDS;this.timeout=o.timeout||3000;this.retryMs=o.retryMs||[600,2100];this.mergeMs=o.mergeMs||10000;
     this.status='Connecting…';this.lines=[];this.seen=new Set();this.users=[];this.guests=new Map();this.links=new Map();this.linking=new Set();this.timers=new Set();
-    this.stopped=true;this.isHost=false;this.up=null;this.conn=null;this.myId=null;this.myIdx=-1;this.gen=0;this.lastSend=0;this.pend=null;this.mergeT=null}
+    this.stopped=true;this.isHost=false;this.up=null;this.conn=null;this.myId=null;this.myIdx=-1;this.gen=0;this.lastSend=0;this.pend=null;this.mergeT=null;this.modInit(o)}
   after(ms,fn){const t=setTimeout(()=>{this.timers.delete(t);try{fn()}catch(e){}},ms);this.timers.add(t);return t}
   note(){if(this.onUpdate){try{this.onUpdate(this)}catch(e){}}}
   setStatus(s){this.status=s;this.note()}
@@ -7754,11 +8108,11 @@ class LobbyChat{
     if(!this.stopped&&(this.isHost||this.conn))this.status='Connected: '+Math.max(1,this.users.length)+' online';this.note()}
   becomeHost(hp,n,gen){const old=this.up;this.up=hp;if(old){try{old.destroy()}catch(e){}}this.isHost=true;this.myId=hp.id;this.myIdx=n;
     hp.on('connection',c=>this.watch(c,gen));hp.on('disconnected',()=>{try{hp.reconnect()}catch(e){}});
-    this.after(400,()=>this.probeHosts(gen));this.mergeT=setInterval(()=>this.probeHosts(gen),this.mergeMs);this.refresh(true)}
+    this.after(400,()=>this.probeHosts(gen));this.mergeT=setInterval(()=>this.probeHosts(gen),this.mergeMs);this.refresh(true);this.modJoined()}
   becomeGuest(probe,conn,gen){this.up=probe;this.conn=conn;this.isHost=false;this.myId=probe.id;this.users=[{id:probe.id,name:this.name,world:this.world}];
     conn.on('data',d=>{try{this.onData(conn,d)}catch(e){}});const lost=()=>this.hostLost(conn,gen);conn.on('close',lost);conn.on('error',lost);
     probe.on('disconnected',()=>{try{probe.reconnect()}catch(e){}});
-    this.rawSend(conn,{t:'lhello',name:this.name,world:this.world});this.refresh(false)}
+    this.rawSend(conn,{t:'lhello',name:this.name,world:this.world});this.refresh(false);this.modJoined()}
   hostLost(conn,gen){if(this.stopped||gen!==this.gen||this.conn!==conn)return;this.conn=null;this.users=[];this.localSys('The lobby host left. Reconnecting…');this.setStatus('Reconnecting…');
     this.after(this.retryMs[0]+Math.random()*(this.retryMs[1]-this.retryMs[0]),()=>{if(gen===this.gen&&!this.stopped)this.discover()})}
   watch(c,gen){c.on('data',d=>{if(gen!==this.gen)return;try{this.onData(c,d)}catch(e){}});const drop=()=>this.dropConn(c);c.on('close',drop);c.on('error',drop)}
@@ -7769,7 +8123,7 @@ class LobbyChat{
       this.after(this.timeout+2000,()=>{if(this.linking.delete(id)){try{c.close()}catch(e){}}});
       c.on('data',d=>{if(gen!==this.gen)return;try{this.onData(c,d)}catch(e){}});
       c.on('open',()=>{this.linking.delete(id);if(gen!==this.gen||this.stopped||!this.isHost){try{c.close()}catch(e){}return}
-        this.links.set(c.peer,{conn:c,users:[]});this.rawSend(c,{t:'lpeer',users:this.ownList()});this.rawSend(c,{t:'lhist',lines:this.history()});this.refresh(false)});
+        this.links.set(c.peer,{conn:c,users:[]});this.rawSend(c,{t:'lpeer',users:this.ownList()});this.rawSend(c,{t:'lhist',lines:this.history()});this.modSyncLink(c);this.refresh(false)});
       c.on('close',()=>{this.linking.delete(id);this.dropConn(c)});c.on('error',()=>{this.linking.delete(id);this.dropConn(c)})}}
   dropConn(c){if(!this.isHost)return;const g=this.guests.get(c.peer);if(g&&g.conn===c){this.guests.delete(c.peer);this.sys(g.name+' left the lobby');this.refresh(true)}
     const l=this.links.get(c.peer);if(l&&l.conn===c){this.links.delete(c.peer);this.refresh(false)}}
@@ -7783,7 +8137,7 @@ class LobbyChat{
   onData(c,d){if(this.stopped||!d||typeof d!=='object')return;
     switch(d.t){
       case 'lhello':{if(!this.isHost)break;const name=lobbyClean(d.name,16)||'Player';const isNew=!this.guests.has(c.peer);this.guests.set(c.peer,{conn:c,name,world:d.world?lobbyClean(d.world,24):null,last:0});
-        this.rawSend(c,{t:'lhist',lines:this.history(),list:this.fullList()});if(isNew)this.sys(name+' joined the lobby');this.refresh(true);break}
+        this.rawSend(c,{t:'lhist',lines:this.history(),list:this.fullList()});this.modHello(c);if(isNew)this.sys(name+' joined the lobby');this.refresh(true);break}
       case 'lname':{const g=this.guests.get(c.peer);if(!this.isHost||!g)break;const nn=lobbyClean(d.name,16);if(nn){g.name=nn;this.refresh(true)}break}
       case 'lworld':{const g=this.guests.get(c.peer);if(!this.isHost||!g)break;g.world=d.world?lobbyClean(d.world,24):null;this.refresh(true);break}
       case 'lchat':{const m=this.cleanMsg(d);if(!m)break;if(this.isHost){const g=this.guests.get(c.peer);if(g){const now=Date.now();if(now-g.last<700)break;g.last=now}else if(!this.links.has(c.peer))break}else if(c!==this.conn)break;
@@ -7794,17 +8148,68 @@ class LobbyChat{
         else if(c===this.conn){for(const x of lines){const m=this.cleanMsg(x);if(m)this.addLine(m,true)}if(d.list){this.users=this.cleanList(d.list);this.refresh(false)}}break}
       case 'lwho':{if(this.isHost||c!==this.conn)break;this.users=this.cleanList(d.list);this.refresh(false);break}
       case 'lpeer':{if(!this.isHost)break;const first=!this.links.has(c.peer);this.links.set(c.peer,{conn:c,users:this.cleanList(d.users)});
-        if(first){this.rawSend(c,{t:'lpeer',users:this.ownList()});this.rawSend(c,{t:'lhist',lines:this.history()})}this.refresh(false);break}
-      case 'lhw':{const l=this.links.get(c.peer);if(!this.isHost||!l)break;l.users=this.cleanList(d.users);this.refresh(false);break}}}
+        if(first){this.rawSend(c,{t:'lpeer',users:this.ownList()});this.rawSend(c,{t:'lhist',lines:this.history()});this.modSyncLink(c)}this.refresh(false);break}
+      case 'lhw':{const l=this.links.get(c.peer);if(!this.isHost||!l)break;l.users=this.cleanList(d.users);this.refresh(false);break}
+      // shared mods: lmod (a share, or a requested public mod), lmods (public catalog metadata), lmodget (ask for one), lmodres (result of your share)
+      case 'lmod':{if(this.isHost)this.hostMod(c,d);else if(c===this.conn)this.recvMod(d);break}
+      case 'lmods':{if(this.isHost||c!==this.conn)break;this.pubList=modCleanMeta(d.list);this.modUI('Mods',null);break}
+      case 'lmodget':{const g=this.guests.get(c.peer);if(!this.isHost||!g)break;const now=Date.now();if(now-(g.lastGet||0)<250)break;g.lastGet=now;const e=typeof d.id==='string'?this.catalog.find(x=>x.id===d.id):null;
+        this.rawSend(c,e?{t:'lmod',id:e.id,from:e.from,piece:e.piece,got:1}:{t:'lmodres',id:String(d.id||'').slice(0,40),ok:false,reason:'gone',n:0});break}
+      case 'lmodres':{if(this.isHost||c!==this.conn)break;this.gotRes({id:String(d.id||'').slice(0,40),ok:!!d.ok,reason:lobbyClean(d.reason,16),n:d.n|0});break}}}
   send(text){text=lobbyClean(text,160);if(!text)return 'empty';if(this.stopped||!(this.isHost||this.conn))return 'offline';const now=Date.now();if(now-this.lastSend<1000)return 'rate';this.lastSend=now;
     const m={kind:'chat',id:lobbyRid(),name:this.name,text,ts:now};this.addLine(m);const pk={t:'lchat',id:m.id,name:m.name,text:m.text,ts:m.ts};if(this.isHost)this.flood(pk,null);else this.rawSend(this.conn,pk);return 'ok'}
+  // ---- shared mods: a direct share goes to named players, a public one to the host's catalog (last 30, 600 KB); nothing received is ever run, only validated data ----
+  modInit(o){this.sharedKey=o.sharedKey||'ic_shared_mods';this.pubKey=o.pubKey||'ic_published';this.onToast=o.onToast||null;this.onMod=o.onMod||null;this.onModRes=o.onModRes||null;this.onMods=o.onMods||null;
+    this.catalog=[];this.pubList=[];this.lastShare=0;this.recent=new Set();this.gets=new Set()}
+  modUI(kind,a){try{const f=this['on'+kind];if(f){f(this,a);return}if(this!==LOBBY)return;if(kind==='Mods')modShareNote(this);else if(kind==='ModRes')modResUI(a);else if(kind==='Mod')modGotUI(this,a)}catch(e){}}
+  pubMeta(){return this.catalog.map(e=>({id:e.id,from:e.from,name:e.name,kind:e.kind,size:e.size,ts:e.ts}))}
+  pubBroadcast(){const list=this.pubMeta();for(const g of this.guests.values())this.rawSend(g.conn,{t:'lmods',list});this.pubList=list;this.modUI('Mods',null)}
+  // a new host starts with an empty catalog and every client re-publishes its own public mods (from ic_published), oldest first
+  modJoined(){this.catalog=[];this.pubList=[];this.gets.clear();const gen=this.gen;this.after(300,()=>{if(gen!==this.gen||this.stopped)return;for(const e of modPubLoad(this.pubKey))this.sendMod({id:e.id,to:null,piece:e.piece,ts:e.ts,re:1})});this.modUI('Mods',null)}
+  modHello(c){this.rawSend(c,{t:'lmods',list:this.pubMeta()})}
+  modSyncLink(c){if(!this.isHost)return;for(const e of this.catalog.slice().reverse())this.rawSend(c,{t:'lmod',id:e.id,from:e.from,sid:'',to:null,piece:e.piece,ts:e.ts,fw:1})}
+  sendMod(o){const pk={t:'lmod',id:o.id,from:this.name,to:o.to||null,piece:o.piece,ts:o.ts};if(o.re)pk.re=1;if(this.isHost)this.hostMod(null,pk);else this.rawSend(this.conn,pk)}
+  // c = the connection it came from (null: our own share); fw: forwarded by a linked host that already checked it
+  hostMod(c,d){if(!d||typeof d.id!=='string'||!/^[\w-]{1,40}$/.test(d.id))return;const g=c?this.guests.get(c.peer):null,lk=c?this.links.get(c.peer):null;if(c&&!g&&!lk)return;const fw=!!lk&&d.fw===1;if(lk&&!fw)return;
+    const id=d.id,now=Date.now(),re=!!d.re&&!fw;const reply=(ok,reason,n)=>{if(fw)return;const r={t:'lmodres',id,ok,reason:reason||'',n:n|0};if(c)this.rawSend(c,r);else this.gotRes(r)};
+    if(this.recent.has(id)||(d.to==null&&this.catalog.some(e=>e.id===id)))return; // a replay or a re-publish we already hold
+    if(g){if(re){if(now-(g.reT||0)>60000){g.reT=now;g.reN=0}if(++g.reN>40)return}else{if(now-(g.lastMod||0)<5000){reply(false,'rate');return}g.lastMod=now}}
+    let pc=null;try{if(JSON.stringify(d.piece).length<=65536)pc=modSanitize(d.piece)}catch(e){}
+    if(!pc){reply(false,'bad');return}
+    const from=g?g.name:fw?(lobbyClean(d.from,16)||'Player'):this.name,sid=g?c.peer:fw?String(d.sid||'').slice(0,64):this.myId;
+    this.recent.add(id);if(this.recent.size>400){const it=this.recent.values();for(let i=0;i<100;i++)this.recent.delete(it.next().value)}
+    if(Array.isArray(d.to)){ // direct: match by display name, deliver here, and pass it on to the hosts that have the other names
+      const names=d.to.slice(0,30).map(n=>lobbyClean(n,16).toLowerCase()).filter(Boolean);if(!names.length){reply(false,'bad');return}
+      const hit=this.fullList().filter(u=>u.id!==sid&&names.includes(u.name.toLowerCase()));let n=0;const via=new Set();
+      for(const u of hit){const gg=this.guests.get(u.id);
+        if(u.id===this.myId){n++;this.recvMod({id,from,piece:pc,direct:1})}
+        else if(gg){n++;this.rawSend(gg.conn,{t:'lmod',id,from,piece:pc,direct:1})}
+        else if(!fw){for(const [lid,l] of this.links)if(l.users.some(x=>x.id===u.id)){n++;via.add(lid)}}}
+      if(!fw)for(const lid of via)this.rawSend(this.links.get(lid).conn,{t:'lmod',id,from,sid,to:names,piece:pc,fw:1});
+      reply(n>0,n>0?'':'nobody',n);return}
+    if(d.to!=null){reply(false,'bad');return}
+    let ts=+d.ts;if(!(re||fw)||!isFinite(ts)||ts>now)ts=now;
+    this.catalog.push({id,from,name:pc.name,kind:pc.kind,size:JSON.stringify(pc).length,ts,piece:pc});this.catalog.sort((a,b)=>b.ts-a.ts);
+    let tot=0;const keep=[];for(const x of this.catalog){if(keep.length>=30||tot+x.size>600000)break;keep.push(x);tot+=x.size}this.catalog=keep; // newest first; the oldest are dropped
+    this.pubBroadcast();if(!fw)for(const l of this.links.values())this.rawSend(l.conn,{t:'lmod',id,from,sid,to:null,piece:pc,ts,fw:1});
+    reply(true,'',0)}
+  // our own copy of a mod that came from the host: a direct share (stored + toast) or one we asked for with getMod
+  recvMod(d){let pc=null;try{if(JSON.stringify(d.piece).length<=65536)pc=modSanitize(d.piece)}catch(e){}if(!pc||typeof d.id!=='string'||!/^[\w-]{1,40}$/.test(d.id))return;const from=lobbyClean(d.from,16)||'Player';
+    if(d.got){if(!this.gets.delete(d.id))return;this.modUI('Mod',{id:d.id,from,piece:pc,got:true});return}
+    if(!modSharedAdd(this.sharedKey,{id:d.id,from,ts:Date.now(),piece:pc}))return;
+    const msg=from+' shared the mod "'+pc.name+'" with you: see Mods on the title screen';if(this.onToast)this.onToast(msg);else if(this===LOBBY)modToast(msg);this.modUI('Mods',null)}
+  gotRes(r){if(!r.ok)modPubDrop(this.pubKey,r.id);this.modUI('ModRes',r)}
+  // names = array of display names, or null for everybody; returns ok | offline | rate | bad
+  shareMod(piece,names){if(this.stopped||!(this.isHost||this.conn))return 'offline';const now=Date.now();if(now-this.lastShare<5000)return 'rate';const pc=modSanitize(piece);if(!pc||JSON.stringify(pc).length>65536)return 'bad';
+    this.lastShare=now;const id=lobbyRid();if(!names)modPubAdd(this.pubKey,{id,ts:now,piece:pc});this.sendMod({id,to:names||null,piece:pc,ts:now});return 'ok'}
+  getMod(id){if(this.stopped||!(this.isHost||this.conn))return false;this.gets.add(id);if(this.isHost){const e=this.catalog.find(x=>x.id===id);if(e)this.recvMod({id,from:e.from,piece:e.piece,got:1});else{this.gets.delete(id);this.gotRes({id,ok:false,reason:'gone'})}}else this.rawSend(this.conn,{t:'lmodget',id});return true}
   setName(n){n=lobbyClean(n,16);if(!n)return;this.name=n;if(this.isHost)this.refresh(true);else if(this.conn)this.rawSend(this.conn,{t:'lname',name:n})}
   setWorld(w){this.world=w?lobbyClean(w,24):null;if(this.isHost)this.refresh(true);else if(this.conn)this.rawSend(this.conn,{t:'lworld',world:this.world})}
 }
 // ---- the Chat panel on the title screen (wrapped so a failure can only break the panel, never a world) ----
 let LOBBY=null,lobbyLeft=0,lobbyWatch=null;
 function lobbyDisplayName(){let n='';try{n=localStorage.getItem('ic_chatname')||''}catch(e){}n=lobbyClean(n||(typeof opts!=='undefined'&&opts.mpName)||'',16);if(!n){n=publicAlias(Math.random());try{localStorage.setItem('ic_chatname',n)}catch(e){}}return n}
-function lobbyRender(L){if(L!==LOBBY)return;try{const st=$('chatStatus');if(st)st.textContent=L.status;
+function lobbyRender(L){if(L!==LOBBY)return;try{modLobbyTick()}catch(e){}try{const st=$('chatStatus');if(st)st.textContent=L.status;
   const list=$('chatList');if(list){const near=list.scrollHeight-list.scrollTop-list.clientHeight<40;list.textContent='';
     for(const l of L.lines.slice(-120)){const d=document.createElement('div');if(l.kind==='sys'){d.className='cl sys';d.textContent=l.text}else{d.className='cl';const b=document.createElement('b');b.className='cname';b.textContent=l.name;d.appendChild(b);d.appendChild(document.createTextNode(': '+l.text))}list.appendChild(d)}
     if(near)list.scrollTop=list.scrollHeight}
@@ -7814,13 +8219,115 @@ function lobbyOpen(){showMenu('chatMenu');lobbyLeft=0;
     $('chatName').value=LOBBY.name;lobbyRender(LOBBY);if(!lobbyWatch)lobbyWatch=setInterval(lobbyWatchTick,1000)}catch(e){const st=$('chatStatus');if(st)st.textContent='Chat is offline'}}
 // keep the connection while the panel is open and for 30 s after leaving it; drop it once a world starts
 function lobbyWatchTick(){try{if(!LOBBY||LOBBY.stopped){clearInterval(lobbyWatch);lobbyWatch=null;return}
-  if(game.state==='playing'){LOBBY.stop();return}
-  if($('chatMenu').classList.contains('show'))lobbyLeft=0;else{if(!lobbyLeft)lobbyLeft=Date.now();if(Date.now()-lobbyLeft>30000)LOBBY.stop()}}catch(e){}}
+  if(game.state==='playing'&&!modShareHold()){LOBBY.stop();return}
+  if($('chatMenu').classList.contains('show')||modShareHold())lobbyLeft=0;else{if(!lobbyLeft)lobbyLeft=Date.now();if(Date.now()-lobbyLeft>30000)LOBBY.stop()}}catch(e){}}
 function lobbySend(){try{const inp=$('chatInput');const r=LOBBY?LOBBY.send(inp.value):'offline';if(r==='ok'||r==='empty')inp.value='';else if(r==='rate')LOBBY.localSys('Slow down: one message per second.');else if(LOBBY)LOBBY.localSys('Not connected yet.')}catch(e){}}
 function lobbySetup(){$('btnChat').onclick=lobbyOpen;$('btnChatBack').onclick=()=>{showMenu('titleMenu');lobbyLeft=Date.now()};$('btnChatSend').onclick=lobbySend;
   $('chatInput').addEventListener('keydown',ev=>{ev.stopPropagation();if(ev.key==='Enter'){ev.preventDefault();lobbySend()}});
   $('chatName').addEventListener('keydown',ev=>{ev.stopPropagation();if(ev.key==='Enter')ev.target.blur()});
   $('chatName').addEventListener('change',()=>{try{const n=lobbyClean($('chatName').value,16);if(n){try{localStorage.setItem('ic_chatname',n)}catch(e){}if(LOBBY)LOBBY.setName(n)}$('chatName').value=n||(LOBBY?LOBBY.name:'')}catch(e){}})}
+/* ---- Shared mods: validation, storage and the Mods page (all received data is validated and rebuilt, never run) ---- */
+const MOD_FEATS=['horns','wings','spikes','tail','halo','crown','armor','glow','crest'],MOD_PERKS=['fireproof','regen','feather'],MOD_TIERS=['god','military','diamond','gold','leather','steel','netherite','iron'],MOD_SPEC_TOOLS=['sword','spear','axe','pickaxe'];
+const MOD_SHAPES={creature:['biped','quadruped','flyer','serpent','blob'],vehicle:['heli','plane','car','tank','boat','ufo']};
+function modNum(v,lo,hi,def){if(v===undefined||v===null){if(def===undefined)throw new Error('missing');return def}if(typeof v!=='number'||!isFinite(v))throw new Error('not a number');return Math.min(hi,Math.max(lo,v))}
+function modNumList(a,n,lo,hi,def){if(a===undefined||a===null)return def.slice();if(!Array.isArray(a)||a.length<1||a.length>n)throw new Error('bad list');const r=a.map(v=>modNum(v,lo,hi));while(r.length<n)r.push(def[r.length]);return r}
+// returns a clean copy of a piece, or null if it is malformed: name string, known kind, a 16x16 texture (base64, 1024 bytes) or a spec of plain numbers/flags/known words
+function modSanitize(raw){try{
+  if(!raw||typeof raw!=='object'||Array.isArray(raw)||typeof raw.name!=='string'||!MOD_KINDS.includes(raw.kind))return null;
+  const name=lobbyClean(raw.name,24);if(!name)return null;const pc={name,kind:raw.kind,desc:typeof raw.desc==='string'?lobbyClean(raw.desc,200):''};
+  if(raw.data!==undefined&&raw.data!==null){ // a form-made piece (food, tool, gun, vehicle, structure, recipe, rules...): the schema validator decides, then a copy with only known fields is kept
+    if(!MOD_SCHEMA[raw.kind]||typeof raw.data!=='object'||Array.isArray(raw.data))return null;const t={name,kind:raw.kind,data:raw.data};if(pc.desc)t.desc=pc.desc;
+    if(typeof raw.px==='string'&&raw.px.length<=1400&&/^[A-Za-z0-9+\/]+={0,2}$/.test(raw.px)&&atob(raw.px).length===1024)t.px=raw.px;
+    if(modPieceWhy(t)!=='')return null;pc.data=modNorm(raw.kind,raw.data);if(t.px)pc.px=t.px;return pc}
+  const hasPx=raw.px!==undefined&&raw.px!==null,hasSpec=raw.spec!==undefined&&raw.spec!==null;if(hasPx===hasSpec)return null;
+  if(hasPx){if(raw.kind!=='block'&&raw.kind!=='item'&&raw.kind!=='creature')return null;
+    if(typeof raw.px!=='string'||raw.px.length>1400||!/^[A-Za-z0-9+\/]+={0,2}$/.test(raw.px)||atob(raw.px).length!==1024)return null;pc.px=raw.px;
+    if(raw.kind==='block'){pc.glow=raw.glow===true;const hv=typeof raw.hard==='string'&&raw.hard.trim()!==''?+raw.hard:raw.hard;const h=modNum(hv,0.1,60,1.5);pc.hard=String([0.6,1.5,5].reduce((a,b)=>Math.abs(b-h)<Math.abs(a-h)?b:a))}
+    if(raw.kind==='creature'){if(!CUSTOM_TARGETS.includes(raw.target))return null;pc.target=raw.target}
+    return pc}
+  const sp=raw.spec;if(typeof sp!=='object'||Array.isArray(sp)||raw.kind==='block'||raw.kind==='item'||sp.kind!==raw.kind)return null;const k=raw.kind;
+  const col=(a,d)=>modNumList(a,3,0,255,d).map(Math.round);
+  const s={kind:k,name,desc:typeof sp.desc==='string'?lobbyClean(sp.desc,200):pc.desc,main:col(sp.main,[140,140,150]),second:col(sp.second,[80,80,90]),eye:col(sp.eye,[240,240,240]),
+    shape:MOD_SHAPES[k]?(MOD_SHAPES[k].includes(sp.shape)?sp.shape:MOD_SHAPES[k][k==='vehicle'?2:0]):'biped',size:modNum(sp.size,0.3,4,1),
+    features:[...new Set((Array.isArray(sp.features)?sp.features:[]).filter(f=>MOD_FEATS.includes(f)))],hostile:sp.hostile===true,neutral:sp.neutral===true,fly:sp.fly===true,fire:sp.fire===true,
+    hp:Math.round(modNum(sp.hp,1,2000,20)),dmg:modNum(sp.dmg,0,200,k==='weapon'?6:3),speed:modNum(sp.speed,0,60,3),ranged:sp.ranged==='fireball'||sp.ranged==='arrow'?sp.ranged:null,
+    drops:(Array.isArray(sp.drops)?sp.drops:[]).slice(0,6).map(d=>Array.isArray(d)&&typeof d[0]==='string'&&/^[a-z0-9_]{1,40}$/.test(d[0])&&Object.prototype.hasOwnProperty.call(I,d[0])?[d[0],Math.round(modNum(d[1],1,64,1))]:null).filter(Boolean),
+    tier:MOD_TIERS.includes(sp.tier)?sp.tier:'iron',points:modNumList(sp.points,4,0,20,[2,6,5,2]).map(Math.round),dur:modNumList(sp.dur,4,1,10000,k==='weapon'?[600,600,600,600]:[165,240,225,195]).map(Math.round),
+    perks:[...new Set((Array.isArray(sp.perks)?sp.perks:[]).filter(f=>MOD_PERKS.includes(f)))],tool:MOD_SPEC_TOOLS.includes(sp.tool)?sp.tool:'sword'};
+  pc.spec=s;return pc}catch(e){return null}}
+function modCleanMeta(list){return (Array.isArray(list)?list:[]).slice(0,30).map(u=>!u||typeof u!=='object'||typeof u.id!=='string'||!/^[\w-]{1,40}$/.test(u.id)||!MOD_KINDS.includes(u.kind)?null:{id:u.id,from:lobbyClean(u.from,16)||'Player',name:lobbyClean(u.name,24),kind:u.kind,size:Math.max(0,Math.min(70000,+u.size||0)),ts:isFinite(+u.ts)?+u.ts:0}).filter(u=>u&&u.name)}
+// received mods (ic_shared_mods: newest 40, at most ~300 KB) and our own public mods (ic_published: re-sent when a new lobby host takes over)
+function modSharedLoad(key){try{const a=JSON.parse(localStorage.getItem(key||'ic_shared_mods')||'[]');return Array.isArray(a)?a.filter(e=>e&&typeof e.id==='string'&&e.piece&&typeof e.piece==='object'):[]}catch(e){return []}}
+function modSharedSave(key,a){a=a.slice(-40);let t=JSON.stringify(a);while(t.length>300000&&a.length){a.shift();t=JSON.stringify(a)}try{localStorage.setItem(key||'ic_shared_mods',t);return true}catch(e){return false}}
+function modSharedAdd(key,e){const a=modSharedLoad(key);if(a.some(x=>x.id===e.id))return false;a.push(e);return modSharedSave(key,a)}
+function modPubLoad(key){try{const a=JSON.parse(localStorage.getItem(key||'ic_published')||'[]');return Array.isArray(a)?a.filter(e=>e&&typeof e.id==='string'&&e.piece):[]}catch(e){return []}}
+function modPubSave(key,a){a=a.slice(-30);let t=JSON.stringify(a);while(t.length>600000&&a.length){a.shift();t=JSON.stringify(a)}try{localStorage.setItem(key||'ic_published',t)}catch(e){}}
+function modPubAdd(key,e){const a=modPubLoad(key).filter(x=>x.id!==e.id);a.push(e);modPubSave(key,a)}
+function modPubDrop(key,id){const a=modPubLoad(key),b=a.filter(x=>x.id!==id);if(b.length!==a.length)modPubSave(key,b)}
+const MS={dlg:null,tt:0};let customDirty=false;
+function modsPending(){if(customDirty){customDirty=false;try{applyCustomMods()}catch(e){}}} // a toggle or install made inside a world waits for the next world
+function modApplyNow(){if(game.state==='playing')customDirty=true;else{try{applyCustomMods()}catch(e){}}}
+function modShareHold(){try{return !!MS.dlg||$('modShareMenu').classList.contains('show')}catch(e){return false}}
+function modToast(text){let t=$('modToast');if(!t){t=document.createElement('div');t.id='modToast';document.body.appendChild(t)}t.textContent=text;t.classList.add('show');clearTimeout(MS.tt);MS.tt=setTimeout(()=>t.classList.remove('show'),7000)}
+function modSay(text){for(const id of ['msStatus','funModsMsg']){const e=$(id);if(e)e.textContent=text}}
+function lobbyEnsure(){try{if(!LOBBY||LOBBY.stopped){LOBBY=new LobbyChat({name:lobbyDisplayName(),onUpdate:lobbyRender});LOBBY.start()}lobbyLeft=0;if(!lobbyWatch)lobbyWatch=setInterval(lobbyWatchTick,1000)}catch(e){}return LOBBY}
+const MS_KIND={block:'Block',item:'Item',creature:'Creature',vehicle:'Vehicle',armor:'Armour',weapon:'Weapon',food:'Food',tool:'Tool',gun:'Gun',structure:'Structure',recipe:'Recipe',rules:'World rules'};
+// a 32x32 preview of a piece's texture; a described piece is painted into its slot and the slot's old texture is put back
+function modThumb(pc,k){const cv=document.createElement('canvas');cv.width=cv.height=32;cv.className='msth';const cx=cv.getContext('2d');cx.imageSmoothingEnabled=false;
+  try{let px=null;if(pc.px)px=b64ToBytes(pc.px);else if(pc.spec){const slot=Math.min(Math.max(k|0,0),CUSTOM_SLOTS-1),idx=TEX['custom'+slot];const keep=new Uint8ClampedArray(TEXDATA[idx]);try{paintSpecTexture(slot,pc.spec);px=new Uint8ClampedArray(TEXDATA[idx])}finally{setCustomTexture(slot,keep)}}
+    if(px&&px.length===1024){const t=document.createElement('canvas');t.width=t.height=16;t.getContext('2d').putImageData(new ImageData(px,16,16),0,0);cx.drawImage(t,0,0,32,32)}}catch(e){}
+  return cv}
+function modLetter(kind){const cv=document.createElement('canvas');cv.width=cv.height=32;cv.className='msth';const cx=cv.getContext('2d');cx.fillStyle='#1a2630';cx.fillRect(0,0,32,32);cx.fillStyle='#e1b65f';cx.font='bold 20px sans-serif';cx.textAlign='center';cx.textBaseline='middle';cx.fillText((MS_KIND[kind]||'?')[0],16,17);return cv}
+function msBtn(text,cls,fn){const b=document.createElement('button');b.className='btn msb '+cls;b.textContent=text;b.onclick=ev=>{ev.stopPropagation();try{fn()}catch(e){}};return b}
+function msRow(thumb,title,sub,btns){const r=document.createElement('div');r.className='msrow';r.appendChild(thumb);const t=document.createElement('div');t.className='mst';const b=document.createElement('b');b.textContent=title;const sm=document.createElement('small');sm.textContent=sub;t.appendChild(b);t.appendChild(sm);r.appendChild(t);for(const x of btns)r.appendChild(x);return r}
+function msSection(root,id,title,hint,compact){const h=document.createElement('h3');h.className='msh';h.textContent=title;root.appendChild(h);if(hint&&!compact){const d=document.createElement('div');d.className='hint msnote';d.textContent=hint;root.appendChild(d)}const box=document.createElement('div');box.className='msbox';box.id=id;root.appendChild(box);return box}
+function msEmpty(box,text){const d=document.createElement('div');d.className='msempty';d.textContent=text;box.appendChild(d)}
+function modToggle(k){const m=loadCustomMods();const pc=m.pieces[k];if(!pc)return;pc.enabled=pc.enabled===false;saveCustomMods(m);modApplyNow();modSharesRefresh();modSay('"'+pc.name+'" is '+(pc.enabled?'ON':'OFF')+' for the next world you start.')}
+// install a received piece as one of our own (next free slot); the slot ids are the same ones Mod Maker pieces use
+function modInstall(piece,from){const pc=modSanitize(piece);if(!pc)return {ok:false,msg:'That mod is damaged and cannot be installed.'};const m=loadCustomMods();const n=m.pieces.length;
+  if(n>=CUSTOM_SLOTS)return {ok:false,msg:'Your mod is full ('+CUSTOM_SLOTS+' pieces). Remove one in the Mod Maker to make room.'};
+  pc.id=Date.now()+Math.floor(Math.random()*1000);pc.enabled=true;if(from)pc.from=lobbyClean(from,16);m.pieces.push(pc);saveCustomMods(m);
+  if(loadCustomMods().pieces.length!==n+1)return {ok:false,msg:'Could not install it: storage is full.'};modApplyNow();return {ok:true,msg:'Installed "'+pc.name+'". It takes effect when a world starts.'}}
+function modGotUI(L,a){const r=modInstall(a.piece,a.from);modSay(r.msg);modSharesRefresh()}
+function modSectionsRender(root,compact){root.textContent='';
+  const m=loadCustomMods();const mine=msSection(root,compact?'fmMine':'msMine','Your mods ('+m.pieces.length+')','Switch a piece OFF to leave it out of the next world you start. Share sends it to other players.',compact);
+  if(!m.pieces.length)msEmpty(mine,'No pieces yet. Make one in the Mod Maker.');
+  m.pieces.forEach((pc,k)=>{const on=pc.enabled!==false;const r=msRow(modThumb(pc,k),String(pc.name),(MS_KIND[pc.kind]||String(pc.kind))+(on?'':' (off)'),[msBtn(on?'ON':'OFF','tog'+(on?' on':''),()=>modToggle(k)),msBtn('Share','shr',()=>modShareOpen(k))]);r.dataset.k=k;mine.appendChild(r)});
+  const sh=modSharedLoad('ic_shared_mods').slice().reverse();const got=msSection(root,compact?'fmShared':'msShared','Shared with you ('+sh.length+')','Mods other players sent you. Install adds one to your own pieces.',compact);
+  if(!sh.length)msEmpty(got,'Nothing yet. When a player shares a mod with you it shows up here.');
+  sh.forEach(e=>{const pc=e.piece;const r=msRow(modThumb(pc,m.pieces.length),String(pc.name),'from '+lobbyClean(e.from,16)+' - '+(MS_KIND[pc.kind]||String(pc.kind)),[msBtn('Install','inst',()=>{const x=modInstall(e.piece,e.from);modSay(x.msg);modSharesRefresh()}),msBtn('Remove','rem',()=>{modSharedSave('ic_shared_mods',modSharedLoad('ic_shared_mods').filter(y=>y.id!==e.id));modSharesRefresh()})]);r.dataset.id=e.id;got.appendChild(r)});
+  if(compact)return;
+  const L=LOBBY;const live=!!(L&&!L.stopped&&(L.isHost||L.conn));const pub=msSection(root,'msPublic','Public mods ('+(live?L.pubList.length:0)+')','Mods players shared with everybody (the newest 30). Install downloads one.',false);
+  if(!live)msEmpty(pub,L&&L.stopped?'Not connected.':'Connecting to the lobby...');else if(!L.pubList.length)msEmpty(pub,'Nobody has shared a mod with everybody yet.');
+  if(live)for(const e of L.pubList){const r=msRow(modLetter(e.kind),e.name,'by '+e.from+' - '+(MS_KIND[e.kind]||e.kind)+' - '+Math.max(1,Math.round(e.size/1024))+' KB',[msBtn('Install','inst',()=>{if(!L.getMod(e.id))modSay('Not connected yet.');else modSay('Downloading "'+e.name+'"...')})]);r.dataset.id=e.id;pub.appendChild(r)}}
+function modSharesRefresh(){try{const f=$('funMods');if(f&&$('funMenu').classList.contains('show'))modSectionsRender(f,true);const p=$('msRoot');if(p&&$('modShareMenu').classList.contains('show'))modSectionsRender(p,false);modDlgRender()}catch(e){}}
+function modShareNote(L){if(L===LOBBY)modSharesRefresh()}
+function modLobbyTick(){modDlgRender();const n=$('msNet');if(n&&LOBBY)n.textContent=LOBBY.status}
+function modShareShown(id){try{if(id==='modShareMenu'){lobbyEnsure();modLobbyTick()}if(id==='modShareMenu'||id==='funMenu')modSharesRefresh()}catch(e){}}
+function modResUI(r){const D=MS.dlg;const why={rate:'Slow down: one share every 5 seconds.',bad:'The lobby refused this mod (damaged or too big).',nobody:'Those players are not online any more.',gone:'That mod is no longer shared.'};
+  const text=r.ok?(D&&D.mode==='some'?'Sent to '+r.n+' player'+(r.n===1?'':'s')+'.':'Shared with everybody. It is in the public Mods list now.'):(why[r.reason]||'Could not share it.');if(D)D.msg.textContent=text;else modSay(text);if(!r.ok&&!D&&r.reason==='gone')modSharesRefresh()}
+// ---- the Share dialog ----
+function modShareClose(){const D=MS.dlg;MS.dlg=null;if(D&&D.ov.parentNode)D.ov.parentNode.removeChild(D.ov)}
+function modShareOpen(k){const pc=loadCustomMods().pieces[k];if(!pc)return;modShareClose();lobbyEnsure();
+  const ov=document.createElement('div');ov.id='shareDlg';const box=document.createElement('div');box.className='sdbox';ov.appendChild(box);
+  const mk=(tag,id,text,cls)=>{const e=document.createElement(tag);if(id)e.id=id;if(text!=null)e.textContent=text;if(cls)e.className=cls;return e};
+  const h=mk('h3',null,'Share "'+String(pc.name)+'" with:');const modes=mk('div',null,null,'sdmodes');const all=mk('button','sdAll','Everybody','btn'),some=mk('button','sdSome','Chosen players','btn');modes.appendChild(all);modes.appendChild(some);
+  const help=mk('div','sdHelp','','sdhelp'),list=mk('div','sdPlayers'),msg=mk('div','sdMsg','');const row=mk('div',null,null,'sdrow');const send=mk('button','sdSend','Send','btn'),close=mk('button','sdClose','Close','btn');row.appendChild(send);row.appendChild(close);
+  for(const e of [h,modes,help,list,msg,row])box.appendChild(e);
+  const D=MS.dlg={ov,piece:JSON.parse(JSON.stringify(pc)),mode:'all',sel:new Set(),all,some,help,list,msg,send};
+  all.onclick=()=>{D.mode='all';msg.textContent='';modDlgRender()};some.onclick=()=>{D.mode='some';msg.textContent='';modDlgRender()};close.onclick=modShareClose;ov.addEventListener('mousedown',ev=>{if(ev.target===ov)modShareClose()});
+  ov.addEventListener('keydown',ev=>{ev.stopPropagation();if(ev.key==='Escape')modShareClose()});
+  send.onclick=()=>{const L=LOBBY;let names=null;if(D.mode==='some'){names=(L?L.users:[]).filter(u=>D.sel.has(u.id)).map(u=>u.name);if(!names.length){msg.textContent='Tick at least one player first.';return}}
+    const r=L?L.shareMod(D.piece,names):'offline';msg.textContent={ok:'Sending...',offline:'Not connected yet. Try again in a moment.',rate:'Wait a few seconds: you can share once every 5 seconds.',bad:'This piece cannot be shared (damaged or too big).'}[r]||''};
+  document.body.appendChild(ov);modDlgRender()}
+function modDlgRender(){const D=MS.dlg;if(!D)return;const L=LOBBY;const live=!!(L&&!L.stopped&&(L.isHost||L.conn));
+  D.all.classList.toggle('on',D.mode==='all');D.some.classList.toggle('on',D.mode==='some');D.help.textContent=D.mode==='all'?'Everybody online can see it in the public Mods list and install it.':'Only the players you tick get it.';
+  D.list.style.display=D.mode==='some'?'block':'none';
+  if(D.mode==='some'){D.list.textContent='';const us=live?L.users.filter(u=>u.id!==L.myId).sort((a,b)=>a.name.localeCompare(b.name)):[];
+    if(!live)msEmpty(D.list,'Connecting...');else if(!us.length)msEmpty(D.list,'Nobody else is online right now.');
+    for(const u of us){const lb=document.createElement('label');lb.className='sdp';const cb=document.createElement('input');cb.type='checkbox';cb.checked=D.sel.has(u.id);cb.onchange=()=>{if(cb.checked)D.sel.add(u.id);else D.sel.delete(u.id)};const sp=document.createElement('span');sp.textContent=u.name;lb.appendChild(cb);lb.appendChild(sp);D.list.appendChild(lb)}}
+  D.send.disabled=!live;if(!live)D.msg.textContent=L&&L.status&&L.status!=='Disconnected'?L.status:'Connecting...';else if(/^(Connecting|Reconnecting|Chat is)/.test(D.msg.textContent))D.msg.textContent=''}
+function modShareSetup(){$('btnMods').onclick=()=>showMenu('modShareMenu');$('btnModsBack').onclick=()=>{modShareClose();showMenu('titleMenu')};$('btnModsMaker').onclick=()=>openModMaker('modShareMenu')}
 // ---- chat inside a public server: plain messages go to everyone in the room (the host relays); names are the same aliases as the name tags ----
 const PCHAT={last:0};
 function chatLine(name,text){const c=$('chat');if(!c)return;const el=document.createElement('div');el.className='msg chatln';el.style.animationDuration='12s';const b=document.createElement('b');b.className='cname';b.textContent=name;el.appendChild(document.createTextNode('<'));el.appendChild(b);el.appendChild(document.createTextNode('> '+text));c.appendChild(el);while(c.children.length>8)c.removeChild(c.firstChild);setTimeout(()=>el.remove(),12000)}
@@ -8557,7 +9064,7 @@ function spawnStructureAt(name,say){const key=structKeyFromName(name);if(!key)re
   {const bx=floor(p.x),bz=floor(p.z);const bad=yy=>{const b=world.getBlock(bx,yy,bz);return b!==0&&(BLOCKS[b].solid||b===8||b===9)};let fy=floor(p.y),n=0;if(bad(fy)||bad(fy+1)){while(n<80&&(bad(fy)||bad(fy+1)))fy++,n++;p.y=fy+0.1;p.vy=0;p.fallDist=0}}
   const mobs=entities.length-before;playSound('place_stone',1,0.6);say('Built a '+SPAWN_STRUCT[key][0]+' where you were looking'+(mobs>0?' ('+mobs+' residents)':''));if(key==='base_bunker')say('Somewhere inside is a secret room. Not every bookshelf is what it seems...');return true}
 // cheats are off on public servers, for guests and the host alike: items, kits, structures, teleports, time, game mode, mob and disaster spawning, healing and xp
-const PUBLIC_BLOCKED=new Set(['give','kit','build','place','structure','tp','time','gamemode','gm','spawn','summon','portal','disaster','disasters','tornado','heal','xp','kill']);
+const PUBLIC_BLOCKED=new Set(['modcapture','give','kit','build','place','structure','tp','time','gamemode','gm','spawn','summon','portal','disaster','disasters','tornado','heal','xp','kill']);
 function onPublicServer(){return !!(MP.active&&MP.public)}
 function publicCheatBlocked(cmd,args){if(!onPublicServer()||!PUBLIC_BLOCKED.has(cmd))return false;if(cmd==='tp'&&args.length===1&&(args[0]==='spawn'||args[0]==='home'))return false;if(cmd==='kill'&&!args.length)return false;return true}
 function runCommand(line){const p=player;const raw=line.trim().replace(/^\/+/,'');const parts=raw.split(/\s+/);const cmd=(parts[0]||'').toLowerCase();const args=parts.slice(1);const say=showMessage;
@@ -8582,6 +9089,7 @@ function runCommand(line){const p=player;const raw=line.trim().replace(/^\/+/,''
       say('- Real-size vehicles: car x1.8 (4.5 m), tank x2.5 (9 m), jet x3 (15 m) and B-27 bomber x3 (20 m), with matching seats, cameras and guns.');
       say('- Ships on water: Patrol Boat (12 blocks, driver + twin machine gun, 14 blocks/s) and Destroyer (50 blocks, captain, two deck guns with explosive shells and an anti-air cannon that aims up to 85 degrees, 6 blocks/s). V changes seat, left click fires. /spawn patrol boat or /spawn destroyer near water, or craft their eggs from iron blocks, planks and diamonds.');
       say('- Extra war-only guns and anti-aircraft guns.');return}
+    case 'modcapture':{modCaptureCmd(args,say);return}
     case 'spawn':case 'summon':{if(enemyAirCmd(args,say))return;if(soldierCmd(args,say))return;if(/^(landmark|scene)s?$/i.test(args[0]||'')){nsCommand(args.slice(1),say);return}if(/portal/i.test(args.join('_'))){spawnNetherPortal(say,/sift/i.test(args.join('_'))?'sift':'nether');return}{const dn=(args[0]||'').toLowerCase().replace(/[\s-]+/g,'_');const dd=DISASTER_ALIAS[dn]||(DISASTER_NAMES.includes(dn)?dn:null);if(dd){startDisaster(dd,args[1],say);return}}const words=args.filter(a=>!/^\d+$/.test(a)),num=args.find(a=>/^\d+$/.test(a));const t=words.join('_');const type=t?mobTypeFromName(t):null;if(!type&&spawnStructureAt(t,say))return;if(!type){say('Mobs: '+MOB_TYPES.map(k=>mobLabel(k)).join(', '));say('Structures: '+Object.keys(SPAWN_STRUCT).map(k=>k.replace(/_/g,' ')).join(', ')+' (built where you are looking)');return}if(MOBDEF[type].ship){spawnShipCmd(type,say);return}const n=clamp(parseInt(num)||1,1,20);const d=eyeDir();for(let i=0;i<n;i++)entities.push(new Mob(type,p.x+d[0]*3+(Math.random()-0.5)*2,p.y+0.5,p.z+d[2]*3+(Math.random()-0.5)*2));say('Spawned '+n+' '+mobLabel(type));return}
     case 'landmark':case 'scene':nsCommand(args,say);return;
     case 'portal':spawnNetherPortal(say);return;
@@ -8609,7 +9117,7 @@ function loop(now){
     for(let i=entities.length-1;i>=0;i--){const e=entities[i];const dx=e.x-player.x,dz=e.z-player.z;if(dx*dx+dz*dz<96*96||e instanceof RemotePlayer||(MP.active&&MP.host&&e instanceof Mob&&mpNearRemote(e.x,e.z,96))||e instanceof FallingBlock||e instanceof NukeMissile||((e instanceof Mob||e instanceof ItemEntity)&&!e.onGround&&!e.inWater&&world.hasChunk(floor(e.x),floor(e.z))))e.update(dt);if(e.dead){entities[i]=entities[entities.length-1];entities.pop()}}
     updateParticles(dt);if(game.nuke)tickNuke(dt);if(game.wx)tickWeather(dt);if(game.hx)tickHorror(dt);if(game.ax)tickApocalypse(dt);if(game.disasters&&game.disasters.length)tickDisasters(dt);
     // fixed 20 tps
-    game.tickAcc+=dt;let n=0;while(game.tickAcc>=0.05&&n<4){game.tickAcc-=0.05;n++;game.tick++;world.time=(world.time+1)%24000;if(world.time===0)world.day++;
+    game.tickAcc+=dt;let n=0;while(game.tickAcc>=0.05&&n<4){game.tickAcc-=0.05;n++;game.tick++;modAdvanceTime();
       world.runScheduledTicks();
       const pcx=floor(player.x)>>4,pcz=floor(player.z)>>4;const rng=Math.random;for(const c of world.chunks.values()){const dx=c.cx-pcx,dz=c.cz-pcz;if(dx*dx+dz*dz<=25)world.randomTick(c,rng)}
       if(game.tick%10===0)trySpawnMobs();if(game.tick%8===0)tickHoppers();
@@ -8617,7 +9125,7 @@ function loop(now){
       if(game.tick%3===0)updateInfoHud();
       if(game.tick%200===0)saveWorld();
     }
-    tickPlates(dt);
+    tickPlates(dt);tickModKinds(dt);
     supplyTick(dt);
     howTick(dt);soldierWarTick(dt);wmpTick(dt);a10Tick(dt);
     mortarTick(dt);if(typeof tickCamp==='function')tickCamp(dt);tickNukeTimers(dt);tickFurnaces(dt);tickBrews(dt);tickSpawners(dt);tickTrials(dt);tickShriekers(dt);if(typeof beaconTick==='function')beaconTick();if(MP.active)mpTick(dt);
