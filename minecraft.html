@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="ironcraft-build" content="20261029-005047">
+<meta name="ironcraft-build" content="20261029-134746">
 <meta name="viewport" content="width=device-width,initial-scale=1.0,viewport-fit=cover">
 <title>Ironcraft – Free Voxel Survival Sandbox in Your Browser | Iron Games</title>
 <meta name="description" content="Ironcraft is a free browser-based voxel survival sandbox with building, exploration, private or safety-limited public multiplayer, and optional weather, horror and survival challenges. By Daniele Bros.">
@@ -7796,10 +7796,12 @@ function mpSpawnFor(key,name){const S=game.spawns||(game.spawns={});if(S[key]){i
 // host: a guest's first player packet names it; its key is its device token, else its name
 function mpSpawnJoin(conn,d){if(!MP.host||!world||conn.pkey)return;const r=mpRemote(d.id,d.name);let base=String(d.tok||d.name||d.id||'p').replace(/[^a-z0-9 _#-]/gi,'').slice(0,40)||'p';if(/^(__proto__|constructor|prototype)$/.test(base))base='_'+base;
   let key=base,k=1;while(MP.conns.some(c=>c!==conn&&c.open&&c.pkey===key))key=base+'#'+(++k);conn.pkey=key;
-  const dn=r?r.name:String(d.name||'Player'),sp=mpSpawnFor(key,dn);try{conn.send({t:'spawnpt',x:sp.x,z:sp.z,n:sp.n,ws:[game.worldSpawn[0],game.worldSpawn[2]]})}catch(e){}
+  const dn=r?r.name:String(d.name||'Player'),ws=[game.worldSpawn[0],game.worldSpawn[2]];
+  if(!(game.mods&&game.mods.war)){try{conn.send({t:'spawnpt',same:1,x:ws[0],z:ws[1],ws})}catch(e){}} // without War everyone spawns together at the world spawn
+  else{const sp=mpSpawnFor(key,dn);try{conn.send({t:'spawnpt',x:sp.x,z:sp.z,n:sp.n,ws})}catch(e){}}
   const w=game.war;if(w&&w.players&&w.players[key]){w.players[key].id=d.id;w.players[key].name=dn;wmpChanged()}}
 function mpSpawnGo(){const s=game.mySpawn,p=player;if(!s||!world||world.dimKey!=='over')return false;ensureChunks(s[0],s[2],2);const spot=safeSpotNear(s[0],s[2]);p.x=spot[0];p.y=spot[1];p.z=spot[2];p.vx=p.vy=p.vz=0;p.fallDist=0;if(p.riding)p.riding.dismount();return true}
-function mpSpawnIn(d){const x=+d.x,z=+d.z;if(!isFinite(x)||!isFinite(z))return;game.mySpawn=[x,70,z];MP.spawnAck=true;const ws=Array.isArray(d.ws)?d.ws:[game.worldSpawn[0],game.worldSpawn[2]],p=player;
+function mpSpawnIn(d){const x=+d.x,z=+d.z;if(!isFinite(x)||!isFinite(z))return;if(d.same){game.mySpawn=null;MP.spawnAck=true;return}game.mySpawn=[x,70,z];MP.spawnAck=true;const ws=Array.isArray(d.ws)?d.ws:[game.worldSpawn[0],game.worldSpawn[2]],p=player;
   if(!game.mySpawnShown){game.mySpawnShown=true;const dx=x-ws[0],dz=z-ws[1];showMessage('Your spawn is '+floor(Math.hypot(dx,dz))+' blocks '+mpDirWord(dx,dz)+' of the world centre')}
   if(world&&world.dimKey==='over'&&!p.dead&&Math.hypot(p.x-ws[0],p.z-ws[1])<48)mpSpawnGo()} // still standing at the shared spawn: go to your own
 // the host keeps the chunks round every guest alive so mobs and squads out there have ground under them
