@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="ironcraft-build" content="20261113-130938">
+<meta name="ironcraft-build" content="20261113-140646">
 <meta name="viewport" content="width=device-width,initial-scale=1.0,viewport-fit=cover">
 <title>Ironcraft – Free Voxel Survival Sandbox in Your Browser | Iron Games</title>
 <meta name="description" content="Ironcraft is a free browser-based voxel survival sandbox with building, exploration, private or safety-limited public multiplayer, and optional weather, horror and survival challenges. By Daniele Bros.">
@@ -6564,11 +6564,12 @@ const CTF_HIDE=600,CTF_DAYS=100,CTF_BASE={blue:[0,440],red:[0,-440]},CTF_BLOCK={
 function ctfOther(t){return t==='blue'?'red':'blue'}
 function ctfMyTeam(){const c=game.ctf;return (c&&c.you)||'blue'}
 function ctfSideMsg(){if(game.time>(game._ctfm||0)){game._ctfm=game.time+4;showMessage('Stay on your own half until the flags are hidden')}}
-function ctfNew(){return {phase:'hide',hideT:CTF_HIDE,day0:null,flags:{blue:{x:null,y:null,z:null,carrier:null},red:{x:null,y:null,z:null,carrier:null}},winner:null,teams:{},guards:false}}
+function ctfNew(){return {phase:'hide',hideT:CTF_HIDE,day0:null,flags:{blue:{x:null,y:null,z:null,carrier:null},red:{x:null,y:null,z:null,carrier:null}},winner:null,teams:{},guards:false,huntT:0,seek:null,lost:0}}
 function ctfSave(){const c=game.ctf;if(!c)return null;const o=JSON.parse(JSON.stringify(c));delete o.you;return o}
 function ctfNorm(o){if(!o||typeof o!=='object')return null;const c=ctfNew();if(['hide','hunt','over'].includes(o.phase))c.phase=o.phase;c.hideT=clamp(+o.hideT||0,0,CTF_HIDE);c.day0=isFinite(+o.day0)?+o.day0:null;
   for(const t of ['blue','red']){const f=o.flags&&o.flags[t];if(f){for(const k of ['x','y','z'])c.flags[t][k]=isFinite(+f[k])?+f[k]:null;c.flags[t].carrier=typeof f.carrier==='string'?f.carrier.slice(0,40):null}}
-  c.winner=['blue','red','draw'].includes(o.winner)?o.winner:null;c.guards=!!o.guards;if(o.teams&&typeof o.teams==='object')for(const k in o.teams)if(/^[a-z0-9 _#-]{1,40}$/i.test(k)&&(o.teams[k]==='blue'||o.teams[k]==='red'))c.teams[k]=o.teams[k];return c}
+  c.winner=['blue','red','draw'].includes(o.winner)?o.winner:null;c.guards=!!o.guards;c.huntT=Math.max(0,+o.huntT||0);c.lost=Math.max(0,+o.lost||0);
+  if(o.seek&&typeof o.seek==='object'&&isFinite(+o.seek.x)&&isFinite(+o.seek.z)){const k=o.seek;c.seek={x:+k.x,z:+k.z,wp:Array.isArray(k.wp)&&isFinite(+k.wp[0])&&isFinite(+k.wp[1])?[+k.wp[0],+k.wp[1]]:null,vis:(Array.isArray(k.vis)?k.vis:[]).slice(-40).filter(v=>Array.isArray(v)&&isFinite(+v[0])&&isFinite(+v[1])).map(v=>[+v[0],+v[1]]),warned:!!k.warned}}if(o.teams&&typeof o.teams==='object')for(const k in o.teams)if(/^[a-z0-9 _#-]{1,40}$/i.test(k)&&(o.teams[k]==='blue'||o.teams[k]==='red'))c.teams[k]=o.teams[k];return c}
 function ctfIn(st,you){const c=ctfNorm(st);if(!c)return;const old=game.ctf;c.you=you==='red'?'red':(old&&old.you)||'blue';game.ctf=c;if(old&&old.phase!==c.phase)ctfPhaseMsg()}
 function ctfSync(){if(!MP.active||!MP.host||!game.ctf)return;const st=ctfSave();for(const c of MP.conns)if(c.open){try{c.send({t:'ctf',st,you:(c.pkey&&game.ctf.teams[c.pkey])||'blue'})}catch(e){}}}
 // host or solo: a new match. The red flag is hidden by the enemy at once (no red players), the player gets the blue flag to hide
@@ -6608,7 +6609,7 @@ function ctfDropAt(team,x,y,z){const c=game.ctf,f=c.flags[team];let gy=floor(y);
 function ctfHud(){const el=$('ctfHud');if(!el)return;const c=game.ctf;if(!c||!world||!world.war2||game.state!=='playing'){el.style.display='none';return}const me=ctfMyTeam(),en=ctfOther(me);let h='';
   if(c.phase==='hide'){const mine=c.flags[me].x!==null;h='<span style="color:#9cf">HIDE YOUR FLAG</span> '+ctfFmt(c.hideT)+'<small>'+(mine?'Your flag is hidden. The hunt starts when the clock runs out':'Right-click with the '+me+' flag to hide it on your half')+'</small>'}
   else if(c.phase==='hunt'){const dl=Math.max(0,CTF_DAYS-((world.day|0)-(c.day0|0)));const f=c.flags[en],own=c.flags[me];let sub='';if(f.carrier==='host'&&!(MP.active&&!MP.host))sub='YOU HAVE THE '+en.toUpperCase()+' FLAG: get to your base at z '+CTF_BASE[me][1];else if(f.carrier)sub='Your side carries the '+en+' flag!';
-    if(own.carrier)sub+=(sub?' | ':'')+'The enemy has your flag!';h='<span style="color:'+(me==='blue'?'#9cf':'#f99')+'">FIND THE '+en.toUpperCase()+' FLAG</span> '+dl+' day'+(dl===1?'':'s')+' left<small>'+(sub||'It is hidden somewhere on the '+(en==='red'?'north':'south')+' half')+'</small>'}
+    if(own.carrier)sub+=(sub?' | ':'')+(own.carrier==='ai'?'The enemy search party has your flag and is running north!':'The enemy has your flag!');else if(c.seek&&c.seek.warned)sub+=(sub?' | ':'')+'An enemy search party is on your half';h='<span style="color:'+(me==='blue'?'#9cf':'#f99')+'">FIND THE '+en.toUpperCase()+' FLAG</span> '+dl+' day'+(dl===1?'':'s')+' left<small>'+(sub||'It is hidden somewhere on the '+(en==='red'?'north':'south')+' half')+'</small>'}
   else h=(c.winner==='draw'?'DRAW: nobody found the flag':(c.winner||'').toUpperCase()+' WINS')+'<small>/ctf restart starts a new match</small>';
   el.innerHTML=h;el.style.display='block'}
 function ctfTick(dt){if(!world||!world.war2||game.state!=='playing')return;const host=!(MP.active&&!MP.host);if(!game.ctf){if(host)ctfStart(false);else return}const c=game.ctf;ctfHud();if(!host)return;
@@ -6620,12 +6621,39 @@ function ctfTick(dt){if(!world||!world.war2||game.state!=='playing')return;const
   // the enemy's guards wake up near their flag once someone comes close (solo and private games)
   if(!c.guards&&!MP.public&&c.flags.red.x!==null){const f=c.flags.red;if(Math.hypot(player.x-f.x,player.z-f.z)<70){c.guards=true;spawnWarSquad('enemy',4,f.x+6,f.z+6,{nation:'enemy',kinds:['rifle','rifle','heavy','sniper']})}}
   // carriers: scoring at their own base, dropping the flag when they die
-  for(const t of ['blue','red']){const f=c.flags[t];if(!f.carrier)continue;const home=ctfOther(t),b=CTF_BASE[home];
+  ctfSeekTick(dt);if(c.phase!=='hunt')return;
+  for(const t of ['blue','red']){const f=c.flags[t];if(!f.carrier||f.carrier==='ai')continue;const home=ctfOther(t),b=CTF_BASE[home];
     if(f.carrier==='host'){if(player.dead){ctfDropAt(t,player.x,player.y,player.z);continue}if(Math.hypot(player.x-b[0],player.z-b[1])<16){c.phase='over';c.winner=home;ctfPhaseMsg();ctfSync();return}}
     else{let r=null;for(const cn of MP.conns)if(cn.pkey===f.carrier){r=mpRemote(cn.mpId);break}if(!r||!r.hasTarget){ctfDropAt(t,f.lx||b[0],70,f.lz||0);continue}f.lx=r.x;f.lz=r.z;
       if(r.deadP){ctfDropAt(t,r.x,r.y,r.z);continue}if(Math.hypot(r.x-b[0],r.z-b[1])<16){c.phase='over';c.winner=home;ctfPhaseMsg();ctfSync();return}}}}
+
+// the enemy looks for your flag too: a search party sweeps your half waypoint by waypoint (a virtual party while far from you, real soldiers when you are near),
+// senses the flag from a few blocks away, grabs it and runs it to the red base; killing the party drops the flag and a fresh party sets out later
+let CTF_SEEKERS=[];
+function ctfSeekPick(c){const k=c.seek,best=[];for(let i=0;i<7;i++){const x=-230+Math.random()*460,z=60+Math.random()*400;let dm=1e9;for(const v of k.vis){const d=Math.hypot(v[0]-x,v[1]-z);if(d<dm)dm=d}if(k.wp){const d=Math.hypot(k.wp[0]-x,k.wp[1]-z);if(d<dm)dm=d}best.push([dm,x,z])}
+  best.sort((a,b)=>b[0]-a[0]);const w=best[0];if(k.wp)k.vis.push(k.wp);if(k.vis.length>40)k.vis.shift();k.wp=[floor(w[1])+0.5,floor(w[2])+0.5]}
+function ctfSeekTick(dt){const c=game.ctf;if(!c||c.phase!=='hunt'||MP.public||game.difficulty===0)return;c.huntT=(c.huntT||0)+dt;
+  CTF_SEEKERS=CTF_SEEKERS.filter(m=>!m.dead&&!m.dying);const f=c.flags.blue;
+  if(!c.seek){if(c.huntT<240+(c.lost||0)*120)return;c.seek={x:(Math.random()-0.5)*200,z:-120-Math.random()*200,wp:null,vis:[],warned:false};ctfSeekPick(c);return}
+  const k=c.seek,carrying=f.carrier==='ai';const p=player;const near=Math.hypot(p.x-k.x,p.z-k.z);
+  // the whole party was killed in view: the flag falls where they stood and a new party sets out later
+  if(k._had&&!CTF_SEEKERS.length&&near<130){k._had=false;if(carrying)ctfDropAt('blue',k.x,findGround(k.x,k.z),k.z);c.seek=null;c.lost=(c.lost||0)+1;showMessage('The enemy search party was wiped out');return}
+  // real soldiers close to the player, a virtual party otherwise
+  if(near<90&&!CTF_SEEKERS.length&&world.getChunk(floor(k.x)>>4,floor(k.z)>>4)&&soldierGround(k.x,k.z)>0){CTF_SEEKERS=spawnWarSquad('enemy',3,k.x,k.z,{nation:'enemy',kinds:['rifle','rifle','heavy'],march:false});for(const m of CTF_SEEKERS)m.ctfSeek=true}
+  else if(near>130&&CTF_SEEKERS.length){for(const m of CTF_SEEKERS)m.dead=true;CTF_SEEKERS=[]}
+  k._had=CTF_SEEKERS.length>0;
+  if(CTF_SEEKERS.length){let sx=0,sz=0;for(const m of CTF_SEEKERS){sx+=m.x;sz+=m.z}k.x=sx/CTF_SEEKERS.length;k.z=sz/CTF_SEEKERS.length}
+  // where to: the red base with the flag, the flag itself once sensed, otherwise the next sweep point
+  const sense=22+game.difficulty*5;
+  if(carrying)k.wp=[CTF_BASE.red[0],CTF_BASE.red[1]];else if(f.x!==null&&Math.hypot(f.x-k.x,f.z-k.z)<sense)k.wp=[f.x+0.5,f.z+0.5];else if(!k.wp)ctfSeekPick(c);
+  if(!k.warned&&k.z>0){k.warned=true;showMessage('An enemy search party has crossed into your half: they are looking for your flag')}
+  const dx=k.wp[0]-k.x,dz=k.wp[1]-k.z,d=Math.hypot(dx,dz)||0.01;
+  if(CTF_SEEKERS.length){for(const m of CTF_SEEKERS)if(!m.tgt)m.moveTo=[k.wp[0],k.wp[1]]}else{const sp=3.2*dt;if(d>sp){k.x+=dx/d*sp;k.z+=dz/d*sp}else{k.x=k.wp[0];k.z=k.wp[1]}}
+  if(carrying){if(Math.hypot(k.x-CTF_BASE.red[0],k.z-CTF_BASE.red[1])<16){c.phase='over';c.winner='red';ctfPhaseMsg();ctfSync()}return}
+  if(f.x!==null&&Math.hypot(f.x+0.5-k.x,f.z+0.5-k.z)<2.6){if(world.getBlock(f.x,f.y,f.z)===160)world.setBlock(f.x,f.y,f.z,0,0);f.x=f.y=f.z=null;f.carrier='ai';k.wp=[CTF_BASE.red[0],CTF_BASE.red[1]];showMessage('The enemy found your flag! They are running it north to their base');playSound('enderman',0.6,0.7);ctfSync();return}
+  if(d<4)ctfSeekPick(c)}
 function ctfCommand(args,say){const c=game.ctf;if(!world||!world.war2){say('Capture the flag runs on Jungle War worlds');return}if(MP.active&&!MP.host){say('Only the host can restart the match');return}
-  if(args[0]==='restart'||args[0]==='reset'){if(c)for(const t of ['blue','red']){const f=c.flags[t];if(f.x!==null&&world.getBlock(f.x,f.y,f.z)===CTF_BLOCK[t])world.setBlock(f.x,f.y,f.z,0,0)}ctfStart(false);say('New match: hide your flag');return}
+  if(args[0]==='restart'||args[0]==='reset'){if(c)for(const t of ['blue','red']){const f=c.flags[t];if(f.x!==null&&world.getBlock(f.x,f.y,f.z)===CTF_BLOCK[t])world.setBlock(f.x,f.y,f.z,0,0)}for(const m of CTF_SEEKERS)m.dead=true;CTF_SEEKERS=[];ctfStart(false);say('New match: hide your flag');return}
   if(!c){say('No match yet');return}say('Phase '+c.phase+(c.phase==='hide'?' ('+ctfFmt(c.hideT)+' left)':c.phase==='hunt'?' (day '+((world.day|0)-(c.day0|0))+' of '+CTF_DAYS+')':'')+'. Teams: '+Object.values(c.teams).filter(t=>t==='blue').length+' blue, '+Object.values(c.teams).filter(t=>t==='red').length+' red')}
 function findSpawn(){if(game.mods&&game.mods.war2)return [0.5,80,200.5];for(let r=0;r<400;r+=8){for(let a=0;a<PI*2;a+=0.7){const x=floor(Math.cos(a)*r),z=floor(Math.sin(a)*r);const info=world.columnInfo(x,z);if(info.height>SEA+1&&info.biome!==BI.mountains&&info.biome!==BI.ocean)return [x+0.5,info.height+1,z+0.5]}}return [0.5,80,0.5]}
 /* ---- world lifecycle ---- */
