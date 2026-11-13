@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="ironcraft-build" content="20261113-130253">
+<meta name="ironcraft-build" content="20261113-130938">
 <meta name="viewport" content="width=device-width,initial-scale=1.0,viewport-fit=cover">
 <title>Ironcraft – Free Voxel Survival Sandbox in Your Browser | Iron Games</title>
 <meta name="description" content="Ironcraft is a free browser-based voxel survival sandbox with building, exploration, private or safety-limited public multiplayer, and optional weather, horror and survival challenges. By Daniele Bros.">
@@ -80,6 +80,7 @@ canvas#gl{position:absolute;inset:0;width:100%;height:100%;display:block;image-r
 .gui.show{display:flex;}
 #nukeHud{position:absolute;top:34px;left:50%;transform:translateX(-50%);font:700 16px/1.2 'Segoe UI',Arial,sans-serif;color:#ffd27a;text-shadow:2px 2px 0 #000;letter-spacing:1px;display:none;pointer-events:none;white-space:nowrap}
 #nukeHud.hot{color:#ff3b30;font-size:26px}
+#ctfHud{position:absolute;top:34px;left:50%;transform:translateX(-50%);font:700 15px/1.25 'Segoe UI',Arial,sans-serif;color:#fff;background:rgba(0,0,0,.5);padding:4px 12px;border-radius:4px;text-shadow:2px 2px 0 #000;letter-spacing:1px;display:none;pointer-events:none;white-space:nowrap;max-width:96vw;overflow:hidden;text-align:center}#ctfHud small{display:block;font-size:12px;font-weight:400;letter-spacing:0;color:#ddd}
 #pvpHud{position:absolute;top:62px;left:50%;transform:translateX(-50%);font:700 15px/1.2 'Segoe UI',Arial,sans-serif;color:#ffd27a;background:rgba(0,0,0,.45);padding:3px 10px;border-radius:4px;text-shadow:2px 2px 0 #000;letter-spacing:1px;display:none;pointer-events:none;white-space:nowrap;max-width:96vw;overflow:hidden}
 #pvpHud.def{color:#ff6b5a}
 #nukeTimerGui .panel{min-width:300px;max-width:92vw;text-align:center;box-sizing:border-box}
@@ -248,7 +249,7 @@ label.lb{font-size:13px;color:#a0a0a0;align-self:flex-start;margin-left:calc(50%
   <div id="info" style="display:none"></div>
   <div id="effects"></div>
   <div id="waveHud" style="position:absolute;top:8px;left:50%;transform:translateX(-50%);font-size:18px;font-weight:700;color:#f55;text-shadow:2px 2px 0 #000;display:none;pointer-events:none;letter-spacing:1px"></div>
-  <div id="nukeHud"></div><div id="pvpHud"></div><div id="chat"></div>
+  <div id="nukeHud"></div><div id="pvpHud"></div><div id="ctfHud"></div><div id="chat"></div>
   <input id="cmd" placeholder="/help" autocomplete="off" spellcheck="false">
   <div id="itemname" class="sh"></div>
   <div id="status"><div id="armor"></div><div id="hearts"></div><div id="food"></div><div id="air"></div><div id="xpbar"><div id="xpfill"></div></div><div id="xplvl"></div></div>
@@ -591,6 +592,7 @@ label.lb{font-size:13px;color:#a0a0a0;align-self:flex-start;margin-left:calc(50%
   <h2 class="sh" id="createTitle">Create New World</h2>
   <label class="lb">World Name</label><input class="tx" id="wName" value="New World" maxlength="24">
   <label class="lb">Seed for the world generator (leave blank for random)</label><input class="tx" id="wSeed" placeholder="">
+  <label class="lb">Jungle War teams on a public world</label><select class="tx" id="ctfSize"><option value="5">5 v 5</option><option value="10" selected>10 v 10</option><option value="30">30 v 30</option><option value="100">100 v 100</option></select>
   <button class="btn" id="btnMode">Game Mode: Survival</button>
   <button class="btn" id="btnDiff">Difficulty: Normal</button>
   <button class="btn" id="btnFun" style="color:#ff6">Fun Mods: None</button>
@@ -906,6 +908,8 @@ defTex('flak_side',p=>{p.noise(78,84,66,9);p.rect(0,0,16,3,50,54,44);p.rect(0,13
     p.rect(7,9,2,2,b[0]*d,b[1]*d,b[2]*d);p.rect(6,12,4,1,b[0]*0.55,b[1]*0.42,b[2]*0.4);p.shadeRect(0,12,16,4,0.9);p.speckle(14,b[0]*0.6,b[1]*0.6,b[2]*0.6);p.shadeRect(0,0,16,1,0.85)}));
 }
 defTex('loot_crate',p=>{p.noise(128,98,56,16);p.rect(0,0,16,2,74,58,34,255);p.rect(0,14,16,2,74,58,34,255);p.rect(0,0,2,16,74,58,34,255);p.rect(14,0,2,16,74,58,34,255);p.rect(2,2,12,12,150,118,66,255);p.rect(2,7,12,2,96,76,44,255);p.rect(6,6,4,4,210,168,40,255);p.rect(7,7,2,2,252,226,96,255)});
+defTex('flag_blue',p=>{p.fill(0,0,0,0);p.rect(2,0,2,16,96,70,40);p.rect(4,1,10,7,40,90,220);p.rect(4,4,10,1,120,170,255);p.rect(13,1,1,7,30,70,180)});
+defTex('flag_red',p=>{p.fill(0,0,0,0);p.rect(2,0,2,16,96,70,40);p.rect(4,1,10,7,210,50,50);p.rect(4,4,10,1,255,150,150);p.rect(13,1,1,7,160,30,30)});
 defTex('door_bottom',p=>{planks(p,[150,120,70]);p.rect(2,1,12,13,120,95,55);p.rect(3,2,10,5,150,120,70);p.rect(3,8,10,5,150,120,70);p.rect(12,4,2,2,60,60,60)});
 defTex('chest_top',p=>{planks(p,[150,110,60]);p.rect(1,1,14,14,160,120,65);p.rect(7,6,2,4,60,60,60)});
 defTex('chest_front',p=>{planks(p,[150,110,60]);p.rect(1,1,14,14,160,120,65);p.rect(0,7,16,1,100,75,40);p.rect(6,5,4,5,80,80,80);p.rect(7,6,2,3,60,60,60)});
@@ -1507,6 +1511,8 @@ defItem(459,'sleeping_bag',{label:'Sleeping Bag',iconTile:TEX.sleeping_bag,stack
 defItem(465,'backpack',{label:'Backpack',iconTile:TEX.backpack,stack:1,bag:true});
 defBlock(159,'flak_cannon',{label:'Flak Cannon',tex:{side:'flak_side',top:'flak_top',bottom:'flak_side'},hard:3,tool:'pickaxe',sound:'stone',stack:16}); // placed as the Flak mob: see flakUseHook
 defItem(531,'loot_crate',{label:'Loot Crate',iconTile:TEX.loot_crate,stack:16});
+defBlock(160,'flag_blue',{label:'Blue Flag',tex:'flag_blue',model:'cross',solid:false,hard:999,sound:'wood',transparent:true,stack:1}); // Jungle War flags: hidden with a right-click, picked up by the ctf hooks, never mined
+defBlock(161,'flag_red',{label:'Red Flag',tex:'flag_red',model:'cross',solid:false,hard:999,sound:'wood',transparent:true,stack:1});
 defBlock(152,'iron_door',{label:'Iron Door',tex:{side:'iron_door_bottom',top:'iron_door_top'},model:'door',solid:true,hard:5,tool:'pickaxe',needsTool:true,sound:'stone',transparent:true,door:true,iron:true,stack:64,iconPal:['door',{p:[150,152,158],d:[186,188,194],w:[120,160,190],k:[60,60,66]}]});
 defBlock(145,'leaf_door',{label:'Leaf Door',tex:{side:'leaf_door_bottom',top:'leaf_door_top'},model:'door',solid:true,hard:0.4,sound:'grass',transparent:true,door:true,leaves:true,stack:64,iconPal:['door',{p:[30,60,20],d:[58,118,32],w:[150,210,110],k:[90,70,40]}]});
 defBlock(146,'grass_pressure_plate',{label:'Grass Pressure Plate',tex:'grass_top',model:'plate',solid:false,hard:0.3,sound:'grass',transparent:true,plate:true});
@@ -3647,7 +3653,7 @@ class Mob extends Entity{
       if(MP.active&&MP.host)for(const r of MP.remote.values())if(!r.hidden&&r.hasTarget)see(r,r.x,r.y,r.z)}
     for(const e of entities){if(!(e instanceof Mob)||e===me||e.dead||e.dying)continue;const d=e.def;
       if(en){if(d.soldier?e.team==='player':(d.vehicle&&!d.ship?(e.rider||e.remoteRider||Math.hypot(e.x-p.x,e.z-p.z)<30):false))see(e,e.x,e.y,e.z)}
-      else if(d.soldier?e.team==='enemy':soldierHostileMob(e)&&Math.hypot(e.x-p.x,e.z-p.z)<30)see(e,e.x,e.y,e.z)}
+      else if(d.soldier?e.team==='enemy':!world.war2&&soldierHostileMob(e)&&Math.hypot(e.x-p.x,e.z-p.z)<30)see(e,e.x,e.y,e.z)}
     return best}
   // step behind cover when hit: 2 blocks away from the shooter, preferring a spot the shooter cannot see
   soldierCover(from){const ax=from?this.x-from[0]:Math.random()-0.5,az=from?this.z-from[2]:Math.random()-0.5;const base=Math.atan2(az,ax);let best=null,bs=-1;const by=floor(this.y+0.05);const sol=(x,y,z)=>BLOCKS[world.getBlock(x,y,z)].solid;
@@ -4171,7 +4177,7 @@ function enemyAirCmd(args,say){const t=args.filter(a=>!/^\d+$/.test(a)).join('_'
 const SOLDIER_COMPASS=['north','north-east','east','south-east','south','south-west','west','north-west'];
 function spawnWarPatrol(){const p=player,wins=game.warWins|0,n=clamp(3+floor(Math.random()*2)+floor(wins/2),3,6);
   const kinds=[];for(let i=0;i<n;i++){const r=Math.random();kinds.push(wins>=2&&r<0.15?'sniper':wins>=1&&r<0.2+wins*0.05?'heavy':'rifle')}
-  const w2=world.war2;for(let t=0;t<20;t++){const a=w2?(Math.random()-0.5)*0.9:Math.random()*PI*2,dd=40+Math.random()*20,x=p.x+Math.sin(a)*dd,z=p.z-Math.cos(a)*dd;if(soldierGround(x,z)<0||(w2&&(abs(x)>240||abs(z)>490)))continue;
+  const w2=world.war2;if(w2&&MP.public)return;for(let t=0;t<20;t++){const a=w2?(Math.random()-0.5)*0.9:Math.random()*PI*2,dd=40+Math.random()*20,x=p.x+Math.sin(a)*dd,z=p.z-Math.cos(a)*dd;if(soldierGround(x,z)<0||(w2&&(abs(x)>240||abs(z)>490)))continue;
     const mobs=spawnWarSquad('enemy',n,x,z,{nation:'enemy',kinds,elite:wins>=4&&Math.random()<0.5,march:true});if(!mobs.length)continue;
     game.warPatrol={mobs,t:0};showMessage('Enemy patrol spotted to the '+SOLDIER_COMPASS[Math.round(a/(PI/4))%8]);playSound('horn',0.5,0.8);warPatrolAir();return mobs}
   return null}
@@ -4802,7 +4808,7 @@ class NukeMissile extends Entity{constructor(x,y,z,tx,tz,remote){super(x,y,z);th
       EB.box(tf,-0.24,-0.24,1.0,0.24,0.24,1.35,T,RD,l,true);EB.box(tf,-0.16,-0.16,1.35,0.16,0.16,1.65,T,RD,l,true);EB.box(tf,-0.07,-0.07,1.65,0.07,0.07,1.9,T,RD,l,true);EB.box(tf,-0.24,-0.24,-1.5,0.24,0.24,-1.3,T,DK,l,true)}
     EB.box(tfs[0],-0.8,-0.03,-1.5,0.8,0.03,-0.8,T,RD,l,true);EB.box(tfs[0],-0.03,-0.8,-1.5,0.03,0.8,-0.8,T,RD,l,true);
     const fl=0.7+Math.random()*0.5;EB.box(tfs[0],-0.16,-0.16,-1.5-1.1*fl,0.16,0.16,-1.5,T,[1,0.7,0.2],[1,1],true);EB.box(tfs[1],-0.16,-0.16,-1.5-0.8*fl,0.16,0.16,-1.5,T,[1,0.95,0.7],[1,1],true)}}
-function attack(){const p=player;if(p.dead||game.gui||game.paused||p.koT>0)return;p.swing=0;if(typeof howAttackHook==='function'&&howAttackHook())return;if(typeof subAttackHook==='function'&&subAttackHook())return;if(typeof warAttackHook==='function'&&warAttackHook())return;if(typeof flakAttackHook==='function'&&flakAttackHook())return;if(typeof a10AttackHook==='function'&&a10AttackHook())return;if(typeof mortarAttackHook==='function'&&mortarAttackHook())return;if(typeof tankAttackHook==='function'&&tankAttackHook())return;if(typeof siloAttack==='function'&&siloAttack())return;if(typeof nukeTimerHook==='function'&&nukeTimerHook())return;
+function attack(){const p=player;if(p.dead||game.gui||game.paused||p.koT>0)return;p.swing=0;if(typeof ctfAttackHook==='function'&&ctfAttackHook())return;if(typeof howAttackHook==='function'&&howAttackHook())return;if(typeof subAttackHook==='function'&&subAttackHook())return;if(typeof warAttackHook==='function'&&warAttackHook())return;if(typeof flakAttackHook==='function'&&flakAttackHook())return;if(typeof a10AttackHook==='function'&&a10AttackHook())return;if(typeof mortarAttackHook==='function'&&mortarAttackHook())return;if(typeof tankAttackHook==='function'&&tankAttackHook())return;if(typeof siloAttack==='function'&&siloAttack())return;if(typeof nukeTimerHook==='function'&&nukeTimerHook())return;
   const e=p.targetEntity;if(!e)return;const st=heldStack();const it=st?ITEMS[st.id]:null;let dmg=(it&&it.dmg?it.dmg:1)+(p.effects.strength>0?3*effLvl('strength'):0);const spd=it&&it.atkSpd?it.atkSpd:4;
   const t=Math.min(1,(game.time-p.lastAtk)*spd);p.lastAtk=game.time;dmg*=0.2+0.8*t*t;let crit=false;
   if(p.fallDist>0&&!p.onGround&&!p.inWater&&!p.sprinting&&t>0.848){dmg*=1.5;crit=true}
@@ -4891,6 +4897,7 @@ function tickPlates(dt){if(!world||(MP.active&&!MP.host))return;const P=game.pla
   for(const [k,st] of P){if(pressed.has(k)){st.t=0;continue}st.t+=dt;if(st.t<0.6)continue;const [x,y,z]=k.split(',').map(Number);for(const d of st.doors)setDoorOpen(d[0],d[1],d[2],false);const rid=world.getBlock(x,y,z);if(rid===146||rid===90){world.setMeta(x,y,z,0);mpSyncBlock(x,y,z)}P.delete(k)}}
 function useItem(){
   const p=player;if(p.dead||game.gui||game.paused||p.koT>0)return;const st=heldStack();const hd=st?ITEMS[st.id]:null;const t=p.target;const creative=p.mode==='creative';
+  if(typeof ctfUseHook==='function'&&ctfUseHook(st,hd,t))return;
   if(typeof lootUseHook==='function'&&lootUseHook(st,hd,t))return;
   if(typeof howUseHook==='function'&&howUseHook(st,hd,t))return;
   if(typeof soldierUseHook==='function'&&soldierUseHook(st,hd,t))return;if(typeof squadUseHook==='function'&&squadUseHook(st,hd,t))return;
@@ -6536,7 +6543,8 @@ function randomDrops(){if(Math.random()<0.03){const set=RANDOM_SETS[floor(Math.r
 function war2Edge(e,dx,dz){const L=250-e.w/2,M=500-e.w/2;let hit=false;
   if(dx>L-e.x){dx=Math.max(0,L-e.x);e.vx=0;hit=true}else if(dx<-L-e.x){dx=Math.min(0,-L-e.x);e.vx=0;hit=true}
   if(dz>M-e.z){dz=Math.max(0,M-e.z);e.vz=0;hit=true}else if(dz<-M-e.z){dz=Math.min(0,-M-e.z);e.vz=0;hit=true}
-  if(hit&&e===player&&game.time>(game._w2m||0)){game._w2m=game.time+3;showMessage('World edge')}return [dx,dz]}
+  if(hit&&e===player&&game.time>(game._w2m||0)){game._w2m=game.time+3;showMessage('World edge')}
+  if(e===player&&game.ctf&&game.ctf.phase==='hide'){const T=ctfMyTeam();if(T==='blue'&&e.z+dz<2){dz=Math.max(0,2-e.z);e.vz=0;ctfSideMsg()}else if(T==='red'&&e.z+dz>-2){dz=Math.min(0,-2-e.z);e.vz=0;ctfSideMsg()}}return [dx,dz]}
 function war2Tick(dt){const p=player;if(game.state!=='playing')return;
   for(const e of entities){if(e.dead||e.x===undefined||e.remote||e===p)continue;const L=250-(e.w||0.6)/2,M=500-(e.w||0.6)/2;if(e.x>L){e.x=L;e.vx=0}else if(e.x<-L){e.x=-L;e.vx=0}if(e.z>M){e.z=M;e.vz=0}else if(e.z<-M){e.z=-M;e.vz=0}}
   {const L=250-0.3,M=500-0.3;let hit=false;if(p.x>L){p.x=L;p.vx=0;hit=true}else if(p.x<-L){p.x=-L;p.vx=0;hit=true}if(p.z>M){p.z=M;p.vz=0;hit=true}else if(p.z<-M){p.z=-M;p.vz=0;hit=true}
@@ -6547,10 +6555,79 @@ function war2Wall(EB){const p=player,uv=tileUVs(TEX.glass,0,0,1,1),L=[1,1,1],C=[
     const P=alongX?[[a,y,w],[a+4,y,w],[a+4,y+4,w],[a,y+4,w]]:[[w,y,a],[w,y,a+4],[w,y+4,a+4],[w,y+4,a]];EB.quad(P,uv,L,C);EB.quad([P[3],P[2],P[1],P[0]],uv,L,C)}}};
   if(250-p.x<32)wall(false,250,500);if(p.x+250<32)wall(false,-250,500);if(500-p.z<32)wall(true,500,250);if(p.z+500<32)wall(true,-500,250)}
 // a small base on a fresh world: the military compound behind the spawn, two bunkers, and a friendly squad
-function war2Setup(s){try{const gy=(x,z)=>world.columnInfo(x,z).height;const bz=floor(s[2])+45;buildMilitaryBase(0,gy(0,bz),bz);
-    for(const bx of [-32,32])buildBunker(bx,gy(bx,floor(s[2])-4),floor(s[2])-4);
-    spawnWarSquad('player',4,s[0]+3,s[2]+3,{kinds:['rifle','rifle','heavy','sniper']})}catch(e){console.warn('war2 base',e)}}
-function findSpawn(){if(game.mods&&game.mods.war2)return [0.5,80,400.5];for(let r=0;r<400;r+=8){for(let a=0;a<PI*2;a+=0.7){const x=floor(Math.cos(a)*r),z=floor(Math.sin(a)*r);const info=world.columnInfo(x,z);if(info.height>SEA+1&&info.biome!==BI.mountains&&info.biome!==BI.ocean)return [x+0.5,info.height+1,z+0.5]}}return [0.5,80,0.5]}
+function war2Setup(s){try{const gy=(x,z)=>world.columnInfo(x,z).height; // both bases sit at the back of their half, far behind the spawns; the red one is the enemy's (or the red team's on a public world)
+    for(const sg of [1,-1]){const bz=440*sg;ensureChunks(0,bz,3);buildMilitaryBase(0,gy(0,bz),bz);for(const bx of [-32,32])buildBunker(bx,gy(bx,bz-44*sg),bz-44*sg)}
+    if(!MP.public)spawnWarSquad('player',4,s[0]+3,s[2]+3,{kinds:['rifle','rifle','heavy','sniper']});ctfStart(true)}catch(e){console.warn('war2 base',e)}}
+
+/* ---- Jungle War capture the flag: ten minutes to hide your flag on your own half, then a hundred days to find the other side's ---- */
+const CTF_HIDE=600,CTF_DAYS=100,CTF_BASE={blue:[0,440],red:[0,-440]},CTF_BLOCK={blue:160,red:161};
+function ctfOther(t){return t==='blue'?'red':'blue'}
+function ctfMyTeam(){const c=game.ctf;return (c&&c.you)||'blue'}
+function ctfSideMsg(){if(game.time>(game._ctfm||0)){game._ctfm=game.time+4;showMessage('Stay on your own half until the flags are hidden')}}
+function ctfNew(){return {phase:'hide',hideT:CTF_HIDE,day0:null,flags:{blue:{x:null,y:null,z:null,carrier:null},red:{x:null,y:null,z:null,carrier:null}},winner:null,teams:{},guards:false}}
+function ctfSave(){const c=game.ctf;if(!c)return null;const o=JSON.parse(JSON.stringify(c));delete o.you;return o}
+function ctfNorm(o){if(!o||typeof o!=='object')return null;const c=ctfNew();if(['hide','hunt','over'].includes(o.phase))c.phase=o.phase;c.hideT=clamp(+o.hideT||0,0,CTF_HIDE);c.day0=isFinite(+o.day0)?+o.day0:null;
+  for(const t of ['blue','red']){const f=o.flags&&o.flags[t];if(f){for(const k of ['x','y','z'])c.flags[t][k]=isFinite(+f[k])?+f[k]:null;c.flags[t].carrier=typeof f.carrier==='string'?f.carrier.slice(0,40):null}}
+  c.winner=['blue','red','draw'].includes(o.winner)?o.winner:null;c.guards=!!o.guards;if(o.teams&&typeof o.teams==='object')for(const k in o.teams)if(/^[a-z0-9 _#-]{1,40}$/i.test(k)&&(o.teams[k]==='blue'||o.teams[k]==='red'))c.teams[k]=o.teams[k];return c}
+function ctfIn(st,you){const c=ctfNorm(st);if(!c)return;const old=game.ctf;c.you=you==='red'?'red':(old&&old.you)||'blue';game.ctf=c;if(old&&old.phase!==c.phase)ctfPhaseMsg()}
+function ctfSync(){if(!MP.active||!MP.host||!game.ctf)return;const st=ctfSave();for(const c of MP.conns)if(c.open){try{c.send({t:'ctf',st,you:(c.pkey&&game.ctf.teams[c.pkey])||'blue'})}catch(e){}}}
+// host or solo: a new match. The red flag is hidden by the enemy at once (no red players), the player gets the blue flag to hide
+function ctfStart(fresh){if(!world||!world.war2)return;const c=ctfNew();c.you='blue';c.teams.host='blue';game.ctf=c;
+  if(!MP.public){const rng=mulberry32((game.seed^0x7f1a9)>>>0);for(let t=0;t<40;t++){const x=floor(-200+rng()*400),z=floor(-470+rng()*340);const inf=world.columnInfo(x,z);if(inf.wvoid||inf.height<SEA+1)continue;ensureChunks(x,z,1);const y=inf.height+1;if(world.getBlock(x,y,z)!==0)continue;world.setBlock(x,y,z,161,0,{silent:true});c.flags.red.x=x;c.flags.red.y=y;c.flags.red.z=z;break}}
+  if(!(MP.active&&!MP.host))ctfGiveFlag('blue');ctfPhaseMsg();ctfSync()}
+function ctfGiveFlag(team){const id=CTF_BLOCK[team];const p=player;if(p.inv.some(st=>st&&st.id===id))return;const left=addToInventory({id,count:1});if(left>0)spawnItem(p.x,p.y+1,p.z,{id,count:1})}
+function ctfPhaseMsg(){const c=game.ctf;if(!c)return;if(c.phase==='hide')showMessage('Capture the flag: you have 10 minutes to hide your flag on your own half (right-click with it in hand)');
+  else if(c.phase==='hunt')showMessage('The flags are hidden. Find the '+ctfOther(ctfMyTeam())+' flag within '+CTF_DAYS+' days and bring it to your base');
+  else if(c.phase==='over')showMessage(c.winner==='draw'?'Time is up: nobody found the flag':(c.winner||'').toUpperCase()+' WINS the capture the flag!')}
+function ctfFmt(t){t=Math.max(0,Math.ceil(t));return floor(t/60)+':'+String(t%60).padStart(2,'0')}
+// a flag block of the other side is grabbed with a left click; your own is picked back up during the hide phase
+function ctfAttackHook(){const c=game.ctf,p=player;if(!c||!world||!world.war2)return false;const t=p.target;if(!t||!t.block)return false;const id=t.id;if(id!==160&&id!==161)return false;
+  const team=id===160?'blue':'red',me=ctfMyTeam();
+  if(team===me){if(c.phase==='hide'){if(MP.active&&!MP.host){mpSend({t:'ctfgrab',x:t.bx,y:t.by,z:t.bz});return true}world.setBlock(t.bx,t.by,t.bz,0,0);c.flags[me].x=null;ctfGiveFlag(me);showMessage('Flag picked up: hide it somewhere else');ctfSync()}else showMessage('Your flag stays where you hid it');return true}
+  if(c.phase!=='hunt'){showMessage('The hunt has not started yet');return true}
+  if(MP.active&&!MP.host){mpSend({t:'ctfgrab',x:t.bx,y:t.by,z:t.bz});return true}
+  ctfGrab(team,'host',t.bx,t.by,t.bz);return true}
+function ctfGrab(team,who,x,y,z){const c=game.ctf;if(!c||c.phase!=='hunt')return false;if(world.getBlock(x,y,z)!==CTF_BLOCK[team])return false;world.setBlock(x,y,z,0,0);const f=c.flags[team];f.x=f.y=f.z=null;f.carrier=who;
+  showMessage((who==='host'?'You have':'A player has')+' the '+team+' flag! Run it to the '+ctfOther(team)+' base');ctfSync();return true}
+function ctfGrabIn(conn,d){const c=game.ctf;if(!c||!conn.pkey)return;const r=mpRemote(conn.mpId);if(!r||!r.hasTarget)return;const x=+d.x|0,y=+d.y|0,z=+d.z|0;if(Math.hypot(r.tx-x,r.tz-z)>7||abs(r.ty-y)>4)return;const id=world.getBlock(x,y,z);const team=id===160?'blue':id===161?'red':null;if(!team)return;const mine=c.teams[conn.pkey]||'blue';
+  if(team===mine){if(c.phase!=='hide')return;world.setBlock(x,y,z,0,0);c.flags[team].x=null;try{conn.send({t:'ctfflag',team})}catch(e){}ctfSync();return}
+  ctfGrab(team,conn.pkey,x,y,z)}
+// right-click with your flag in hand during the hide phase hides it where you aim, on your own half only
+function ctfUseHook(st,hd,t){const c=game.ctf;if(!c||!world||!world.war2||!st||(st.id!==160&&st.id!==161))return false;const team=st.id===160?'blue':'red',me=ctfMyTeam();
+  if(team!==me){showMessage('That is the other side\'s flag');return true}if(c.phase!=='hide'){showMessage('Too late: the hunt is on. Guard your flag where it stands');return true}
+  if(!t||!t.block)return true;const n=FACE_DIR[t.face];const x=t.bx+n[0],y=t.by+n[1],z=t.bz+n[2];if(world.getBlock(x,y,z)!==0)return true;
+  if((me==='blue'&&z<2)||(me==='red'&&z>-2)){showMessage('Hide it on your own half of the map');return true}
+  if(MP.active&&!MP.host){mpSend({t:'ctfhide',x,y,z});consumeHeld();return true}
+  ctfPlace(me,x,y,z);consumeHeld();return true}
+function ctfPlace(team,x,y,z){const c=game.ctf,f=c.flags[team];if(f.x!==null&&world.getBlock(f.x,f.y,f.z)===CTF_BLOCK[team])world.setBlock(f.x,f.y,f.z,0,0);world.setBlock(x,y,z,CTF_BLOCK[team],0);f.x=x;f.y=y;f.z=z;f.carrier=null;showMessage('Flag hidden. Nobody on the other side knows where');ctfSync()}
+function ctfHideIn(conn,d){const c=game.ctf;if(!c||c.phase!=='hide'||!conn.pkey)return;const r=mpRemote(conn.mpId);if(!r||!r.hasTarget)return;const x=+d.x|0,y=+d.y|0,z=+d.z|0;if(Math.hypot(r.tx-x,r.tz-z)>7||abs(r.ty-y)>4)return;const team=c.teams[conn.pkey]||'blue';
+  if((team==='blue'&&z<2)||(team==='red'&&z>-2)||world.getBlock(x,y,z)!==0){try{conn.send({t:'ctfflag',team})}catch(e){}return}ctfPlace(team,x,y,z)}
+function ctfTeamAssign(key){const c=game.ctf;if(!c)return 'blue';if(c.teams[key])return c.teams[key];let nb=0,nr=0;for(const k in c.teams)if(k!=='host'){if(c.teams[k]==='blue')nb++;else nr++}nb++; // the host plays blue
+  const size=game.ctfSize||10;if(MP.public&&nb>=size&&nr>=size)return null;const t=nr<nb?'red':(nb<=nr?'blue':'red');c.teams[key]=t;return t}
+function ctfDropAt(team,x,y,z){const c=game.ctf,f=c.flags[team];let gy=floor(y);const bx=floor(x),bz=floor(z);while(gy>1&&world.getBlock(bx,gy-1,bz)===0)gy--;while(gy<CH-2&&world.getBlock(bx,gy,bz)!==0)gy++;world.setBlock(bx,gy,bz,CTF_BLOCK[team],0);f.x=bx;f.y=gy;f.z=bz;f.carrier=null;showMessage('The '+team+' flag was dropped');ctfSync()}
+function ctfHud(){const el=$('ctfHud');if(!el)return;const c=game.ctf;if(!c||!world||!world.war2||game.state!=='playing'){el.style.display='none';return}const me=ctfMyTeam(),en=ctfOther(me);let h='';
+  if(c.phase==='hide'){const mine=c.flags[me].x!==null;h='<span style="color:#9cf">HIDE YOUR FLAG</span> '+ctfFmt(c.hideT)+'<small>'+(mine?'Your flag is hidden. The hunt starts when the clock runs out':'Right-click with the '+me+' flag to hide it on your half')+'</small>'}
+  else if(c.phase==='hunt'){const dl=Math.max(0,CTF_DAYS-((world.day|0)-(c.day0|0)));const f=c.flags[en],own=c.flags[me];let sub='';if(f.carrier==='host'&&!(MP.active&&!MP.host))sub='YOU HAVE THE '+en.toUpperCase()+' FLAG: get to your base at z '+CTF_BASE[me][1];else if(f.carrier)sub='Your side carries the '+en+' flag!';
+    if(own.carrier)sub+=(sub?' | ':'')+'The enemy has your flag!';h='<span style="color:'+(me==='blue'?'#9cf':'#f99')+'">FIND THE '+en.toUpperCase()+' FLAG</span> '+dl+' day'+(dl===1?'':'s')+' left<small>'+(sub||'It is hidden somewhere on the '+(en==='red'?'north':'south')+' half')+'</small>'}
+  else h=(c.winner==='draw'?'DRAW: nobody found the flag':(c.winner||'').toUpperCase()+' WINS')+'<small>/ctf restart starts a new match</small>';
+  el.innerHTML=h;el.style.display='block'}
+function ctfTick(dt){if(!world||!world.war2||game.state!=='playing')return;const host=!(MP.active&&!MP.host);if(!game.ctf){if(host)ctfStart(false);else return}const c=game.ctf;ctfHud();if(!host)return;
+  if(c.phase==='hide'){c.hideT-=dt;if(floor(c.hideT)%30===0&&c.hideT>0&&game.time-(c._s||0)>1){c._s=game.time;ctfSync()}
+    if(c.hideT<=0){for(const t of ['blue','red']){const f=c.flags[t];if(f.x===null){const b=CTF_BASE[t];ensureChunks(b[0],b[1],1);const y=findGround(b[0]+3,b[1]);world.setBlock(b[0]+3,y,b[1],CTF_BLOCK[t],0);f.x=b[0]+3;f.y=y;f.z=b[1];f.carrier=null}}
+      c.phase='hunt';c.day0=world.day|0;c.hideT=0;for(const st of player.inv)if(st&&(st.id===160||st.id===161))st.count=0;player.inv.forEach((st,i)=>{if(st&&st.count<=0)player.inv[i]=null});updateHotbar();ctfPhaseMsg();ctfSync()}return}
+  if(c.phase!=='hunt')return;
+  if((world.day|0)-(c.day0|0)>=CTF_DAYS){c.phase='over';c.winner='draw';ctfPhaseMsg();ctfSync();return}
+  // the enemy's guards wake up near their flag once someone comes close (solo and private games)
+  if(!c.guards&&!MP.public&&c.flags.red.x!==null){const f=c.flags.red;if(Math.hypot(player.x-f.x,player.z-f.z)<70){c.guards=true;spawnWarSquad('enemy',4,f.x+6,f.z+6,{nation:'enemy',kinds:['rifle','rifle','heavy','sniper']})}}
+  // carriers: scoring at their own base, dropping the flag when they die
+  for(const t of ['blue','red']){const f=c.flags[t];if(!f.carrier)continue;const home=ctfOther(t),b=CTF_BASE[home];
+    if(f.carrier==='host'){if(player.dead){ctfDropAt(t,player.x,player.y,player.z);continue}if(Math.hypot(player.x-b[0],player.z-b[1])<16){c.phase='over';c.winner=home;ctfPhaseMsg();ctfSync();return}}
+    else{let r=null;for(const cn of MP.conns)if(cn.pkey===f.carrier){r=mpRemote(cn.mpId);break}if(!r||!r.hasTarget){ctfDropAt(t,f.lx||b[0],70,f.lz||0);continue}f.lx=r.x;f.lz=r.z;
+      if(r.deadP){ctfDropAt(t,r.x,r.y,r.z);continue}if(Math.hypot(r.x-b[0],r.z-b[1])<16){c.phase='over';c.winner=home;ctfPhaseMsg();ctfSync();return}}}}
+function ctfCommand(args,say){const c=game.ctf;if(!world||!world.war2){say('Capture the flag runs on Jungle War worlds');return}if(MP.active&&!MP.host){say('Only the host can restart the match');return}
+  if(args[0]==='restart'||args[0]==='reset'){if(c)for(const t of ['blue','red']){const f=c.flags[t];if(f.x!==null&&world.getBlock(f.x,f.y,f.z)===CTF_BLOCK[t])world.setBlock(f.x,f.y,f.z,0,0)}ctfStart(false);say('New match: hide your flag');return}
+  if(!c){say('No match yet');return}say('Phase '+c.phase+(c.phase==='hide'?' ('+ctfFmt(c.hideT)+' left)':c.phase==='hunt'?' (day '+((world.day|0)-(c.day0|0))+' of '+CTF_DAYS+')':'')+'. Teams: '+Object.values(c.teams).filter(t=>t==='blue').length+' blue, '+Object.values(c.teams).filter(t=>t==='red').length+' red')}
+function findSpawn(){if(game.mods&&game.mods.war2)return [0.5,80,200.5];for(let r=0;r<400;r+=8){for(let a=0;a<PI*2;a+=0.7){const x=floor(Math.cos(a)*r),z=floor(Math.sin(a)*r);const info=world.columnInfo(x,z);if(info.height>SEA+1&&info.biome!==BI.mountains&&info.biome!==BI.ocean)return [x+0.5,info.height+1,z+0.5]}}return [0.5,80,0.5]}
 /* ---- world lifecycle ---- */
 const MODN={weather:'Weather',horror:'Horror',random:'Random Blocks',hardcore:'Hardcore',structures:'Structure Chaos',apocalypse:'Zombie Apocalypse',guns:'Guns',hearts:'Hearts',nightvision:'Night Vision',reallife:'Real Life',uncrafting:'Uncrafting',leafdoors:'Leaf Doors',notags:'No Name Tags',nukes:'Nukes',war:'War',war2:'Jungle War',camping:'Camping'};
 function applyModsLive(m,fromHost){if(!world||game.state!=='playing')return;const old=game.mods||{};game.mods=Object.assign({weather:false,horror:false,random:false,hardcore:false,structures:false,apocalypse:false,guns:false,hearts:false,nightvision:false,reallife:false,uncrafting:false,leafdoors:false,notags:false,nukes:false,war:false,war2:false,camping:false},m);const g=game.mods;if(g.war2)g.war=true;if(g.war){g.guns=true;if(!old.war&&typeof warKit==='function')warKit()}
@@ -6594,11 +6671,11 @@ function migrateSaveHeight(save){if(!save)return save;const f=idxMapFor(save.ch)
   save.ch=CH;return save}
 function startWorld(meta,save){if(typeof modsPending==='function')modsPending();if(save)migrateSaveHeight(save);if(window.trackEvent)trackEvent('game_start',{game:'Ironcraft',multiplayer:!!(MP&&MP.active),mods:Object.keys(modsOf(meta)).filter(k=>modsOf(meta)[k]).join(',')||'none'});
   game.mods=modsOf(meta);game.baseDiff=meta.diff;game.noSave=false;game.wx=game.mods.weather?{storm:false,I:0,t:30+Math.random()*60,lt:4,flash:0,tornado:null}:null;game.hx=game.mods.horror?{amb:15,beat:0}:null;game.ax=game.mods.apocalypse?{wave:0,next:75,active:false,mobs:[],warned:{},left:0}:null;
-  game.spawns={};game.mySpawn=null;game.mySpawnShown=false;game.wmpPvp=[];game.wmpPB={};game.pvpHud=null;game.wmpRB=null;game.war=null;game.wmpBattle=null;game.wmpCounter=null;wmAsk=false;wmCd=null;game.dims={over:null,nether:null,end:null,sift:null};game.gen=meta.gen||(save&&save.gen)||1;world=new World(meta.seed);game.seed=meta.seed;game.worldId=meta.id;game.worldName=meta.name;game.difficulty=game.mods.hardcore?3:(game.mods.apocalypse?Math.max(1,meta.diff):meta.diff);game.randomDrops=game.mods.random;entities.length=0;particles.length=0;activeFurnaces.clear();game.plates=new Map();game.nukeTimers=new Map();game.nukeTimerDim=new Map();if(MP.active)for(const r of MP.remote.values()){r.dead=false;entities.push(r)}
+  game.spawns={};game.mySpawn=null;game.mySpawnShown=false;game.wmpPvp=[];game.wmpPB={};game.pvpHud=null;game.wmpRB=null;game.war=null;game.wmpBattle=null;game.wmpCounter=null;wmAsk=false;wmCd=null;game.dims={over:null,nether:null,end:null,sift:null};game.gen=meta.gen||(save&&save.gen)||1;game.ctfSize=[5,10,30,100].includes(+meta.ctfSize)?+meta.ctfSize:10;game.ctf=null;world=new World(meta.seed);game.seed=meta.seed;game.worldId=meta.id;game.worldName=meta.name;game.difficulty=game.mods.hardcore?3:(game.mods.apocalypse?Math.max(1,meta.diff):meta.diff);game.randomDrops=game.mods.random;entities.length=0;particles.length=0;activeFurnaces.clear();game.plates=new Map();game.nukeTimers=new Map();game.nukeTimerDim=new Map();if(MP.active)for(const r of MP.remote.values()){r.dead=false;entities.push(r)}
   const p=player;p.mode=meta.mode;p.inv.fill(null);p.armor.fill(null);p.off[0]=null;p.sel=0;p.hp=20;p.absorb=0;p.absorbT=0;p.coldT=0;p.frozen=false;p.koT=0;$('koov').style.opacity=0;p.effLvl={};p.swimming=false;p.hunger=20;p.sat=5;p.exh=0;p.xp=0;p.level=0;p.dead=false;p.flying=false;p.effects={};p.spawn=null;p.fireT=0;p.air=300;p.vx=p.vy=p.vz=0;p.riding=null;
   if(save){if(game.ax&&save.apoc)game.ax.wave=save.apoc.wave||0;world.time=save.time;world.day=save.day||0;game.worldSpawn=save.spawn;world.savedMods={};for(const k in save.mods)world.savedMods[k]=save.mods[k];world.savedBents=save.bents||{};world.populated=new Set(save.pop||[]);
     const sp=save.player;if(sp.hp<=0)game.respawnOnLoad=true;Object.assign(p,{x:sp.x,y:sp.y,z:sp.z,yaw:sp.yaw,pitch:sp.pitch,hp:sp.hp,hunger:sp.hunger,sat:sp.sat,xp:sp.xp,level:sp.level,sel:sp.sel,spawn:sp.spawn,flying:sp.flying||false});p.off[0]=sp.offhand||null;for(let i=0;i<36;i++)p.inv[i]=sp.inv[i]||null;for(let i=0;i<4;i++)p.armor[i]=sp.armor[i]||null;
-    game.pendingMobs=save.mobs||[];game.pendingItems=save.items||[];nukeTimersLoad(save.nukeT);game.warWins=save.warWins|0;game._warLoaded=true;wmpLoad(save.war);game.spawns=save.spawns||{};
+    game.pendingMobs=save.mobs||[];game.pendingItems=save.items||[];nukeTimersLoad(save.nukeT);game.warWins=save.warWins|0;game._warLoaded=true;wmpLoad(save.war);game.spawns=save.spawns||{};if(save.ctf){game.ctf=ctfNorm(save.ctf);if(game.ctf)game.ctf.you='blue'}
     if(save.nether){const nw=new World(meta.seed+1,true);nw.savedMods=save.nether.mods||{};nw.savedBents=save.nether.bents||{};nw.populated=new Set(save.nether.pop||[]);game.dims.nether={world:nw,ents:(save.nether.mobs||[]).filter(m=>m.type==='wither'||MOBDEF[m.type]).map(m=>{if(m.type==='wither'){const w=new Wither(m.x,m.y,m.z);w.hp=m.hp;w.state='hunt';return w}const e=new Mob(m.type,m.x,m.y,m.z);e.hp=m.hp;return e}),furn:new Map()}}
     if(save.end){const ew=new World(meta.seed+2,'end');ew.savedMods=save.end.mods||{};ew.savedBents=save.end.bents||{};ew.populated=new Set(save.end.pop||[]);ew.dragonDead=!!save.end.dragonDead;const ents=(save.end.mobs||[]).filter(m=>MOBDEF[m.type]).map(m=>{const e=new Mob(m.type,m.x,m.y,m.z);e.hp=m.hp;return e});
       if(!ew.dragonDead){const d=new Dragon(0,80,-30);if(save.end.dragonHp)d.hp=save.end.dragonHp;ents.push(d)}for(const c of (save.end.crystals||[]))ents.push(new Crystal(c[0],c[1],c[2]));ew.crystalsPlaced=true;game.dims.end={world:ew,ents,furn:new Map()}}
@@ -6633,7 +6710,7 @@ function saveWorld(){if(!world||game.state!=='playing'||game.noSave)return;const
   if(overSaveWorld){for(const c of overSaveWorld.chunks.values()){const k=c.cx+','+c.cz;if(!overSaveWorld.savedMods)overSaveWorld.savedMods={};if(!overSaveWorld.savedBents)overSaveWorld.savedBents={};if(c.mods.size)overSaveWorld.savedMods[k]=Array.from(c.mods);if(c.bents.size)overSaveWorld.savedBents[k]=Array.from(c.bents)}Object.assign(mods,overSaveWorld.savedMods||{});Object.assign(bents,overSaveWorld.savedBents||{})}
   const mobs=[],items=[];const overEnts=world.dimKey==='over'?entities:(game.dims.over?game.dims.over.ents:[]);for(const e of overEnts){if(e.dead)continue;if(e instanceof Wither&&!e.dying)mobs.push({type:'wither',x:e.x,y:e.y,z:e.z,hp:e.hp});else if(e instanceof Mob&&!e.dying)mobs.push({type:e.type,x:e.x,y:e.y,z:e.z,hp:e.hp,baby:e.baby,growT:e.growT,sheared:e.sheared,woolId:e.woolId,prof:e.prof,vlevel:e.vlevel,vxp:e.vxp,uses:e.trades?e.trades.map(t=>t.uses):undefined,tamed:e.tamed||undefined,sitting:e.sitting||undefined,color:e.color,hspeed:e.hspeed,hjump:e.hjump,saddled:e.saddled||undefined,maxHp:e.type==='horse'?e.maxHp:undefined,size:e.size,demand:e.trades?e.trades.map(t=>t.demand||0):undefined,restocks:e.restocks,tm:e.def.soldier?e.team:undefined,nt:e.def.soldier?e.nation:undefined,kd:e.def.soldier?e.kind:undefined,gn:e.def.soldier?e.gunId:undefined,el:e.elite||undefined,od:e.def.soldier?e.order:undefined,op:e.def.soldier&&e.orderPos?e.orderPos:undefined});else if(e instanceof ItemEntity)items.push({x:e.x,y:e.y,z:e.z,id:e.stack.id,count:e.stack.count,dur:e.stack.dur,ench:e.stack.ench,items:e.stack.items})}
   const save={v:1,ch:CH,gen:game.gen||1,apoc:game.ax?{wave:game.ax.wave}:undefined,dim:world.dimKey,nether:netherSave,end:endSave,sift:siftSave,time:world.time,day:world.day,spawn:game.worldSpawn,player:{x:p.x,y:p.y,z:p.z,yaw:p.yaw,pitch:p.pitch,hp:p.hp,hunger:p.hunger,sat:p.sat,xp:p.xp,level:p.level,sel:p.sel,inv:p.inv,armor:p.armor,spawn:p.spawn,flying:p.flying,offhand:p.off[0]||null},mods,bents,mobs:mobs.slice(0,120),items:items.slice(0,100),pop:Array.from(overSaveWorld?overSaveWorld.populated:[])};
-  const wid=game.worldId;const nt=nukeTimersSave();if(nt)save.nukeT=nt;if(game.warWins)save.warWins=game.warWins;if(game.war)save.war=wmpSave();if(game.spawns&&Object.keys(game.spawns).length)save.spawns=game.spawns;const packed=packSave(save);SaveDB.put('ic_world_'+wid,packed).then(ok=>{if(ok)return;let done=false;try{localStorage.setItem('ic_world_'+wid,JSON.stringify(save));done=true}catch(e){}if(!done&&game.time-saveFailT>60){saveFailT=game.time;showMessage('Save failed: the browser gave no room to save. Free space by removing old worlds from the world list.')}});
+  const wid=game.worldId;const nt=nukeTimersSave();if(nt)save.nukeT=nt;if(game.warWins)save.warWins=game.warWins;if(game.war)save.war=wmpSave();if(game.ctf&&world&&world.war2)save.ctf=ctfSave();if(game.spawns&&Object.keys(game.spawns).length)save.spawns=game.spawns;const packed=packSave(save);SaveDB.put('ic_world_'+wid,packed).then(ok=>{if(ok)return;let done=false;try{localStorage.setItem('ic_world_'+wid,JSON.stringify(save));done=true}catch(e){}if(!done&&game.time-saveFailT>60){saveFailT=game.time;showMessage('Save failed: the browser gave no room to save. Free space by removing old worlds from the world list.')}});
   try{const list=worldList();const m=list.find(w=>w.id===wid);if(m){m.played=Date.now();localStorage.setItem('ic_worlds',JSON.stringify(list))}}catch(e){}
   if(ridePos){p.y=ridePos[1]}game.lastSave=game.time;
 }
@@ -7926,7 +8003,7 @@ function mpSpawnLand(W,x,z){x=floor(x);z=floor(z);for(const [dx,dz] of [[0,0],[7
 function mpSpawnFor(key,name){const S=game.spawns||(game.spawns={});if(S[key]){if(name)S[key].name=name;return S[key]}
   const n=Object.keys(S).length,ws=game.worldSpawn,W=mpOverWorld(),others=Object.keys(S).map(k=>S[k]);
   const ok=(x,z)=>mpSpawnLand(W,x,z)&&others.every(o=>Math.hypot(o.x-x,o.z-z)>=48);
-  const a0=(n+1)*2.399963+(game.seed%628)/100;let best=null;if(game.mods&&game.mods.war2){for(let k=0;k<80&&!best;k++){const x=clamp(ws[0]+(((n+1)*0.618034+k*0.41)%1-0.5)*200,-240,240),z=ws[2]-(((n+1)*0.37+k*0.173)%1)*100;if(ok(x,z))best=[floor(x)+0.5,floor(z)+0.5]}} // Jungle War: everyone starts in the south third
+  const a0=(n+1)*2.399963+(game.seed%628)/100;let best=null;if(game.mods&&game.mods.war2){for(let k=0;k<80&&!best;k++){const red=!!(game.ctf&&game.ctf.teams[key]==='red');const x=clamp(ws[0]+(((n+1)*0.618034+k*0.41)%1-0.5)*200,-240,240),z=(red?-200:200)+(((n+1)*0.37+k*0.173)%1-0.5)*80;if(ok(x,z))best=[floor(x)+0.5,floor(z)+0.5]}} // Jungle War: everyone starts in the south third
   for(let k=0;k<60&&!best;k++){const a=a0+(k%2?1:-1)*floor((k+1)/2)*0.1,r=160+((((n+1)*0.618034+k*0.37)%1)*160),x=ws[0]+Math.cos(a)*r,z=ws[2]+Math.sin(a)*r;if(ok(x,z))best=[floor(x)+0.5,floor(z)+0.5]}
   for(let r=160;r<=320&&!best;r+=12)for(let a=0;a<PI*2&&!best;a+=0.15){const x=ws[0]+Math.cos(a0+a)*r,z=ws[2]+Math.sin(a0+a)*r;if(ok(x,z))best=[floor(x)+0.5,floor(z)+0.5]}
   if(!best)best=[floor(ws[0]+Math.cos(a0)*200)+0.5,floor(ws[2]+Math.sin(a0)*200)+0.5];
@@ -7936,7 +8013,7 @@ function mpSpawnJoin(conn,d){if(!MP.host||!world||conn.pkey)return;const r=mpRem
   let key=base,k=1;while(MP.conns.some(c=>c!==conn&&c.open&&c.pkey===key))key=base+'#'+(++k);conn.pkey=key;
   const dn=r?r.name:String(d.name||'Player'),ws=[game.worldSpawn[0],game.worldSpawn[2]];
   if(!(game.mods&&game.mods.war)){try{conn.send({t:'spawnpt',same:1,x:ws[0],z:ws[1],ws})}catch(e){}} // without War everyone spawns together at the world spawn
-  else{const sp=mpSpawnFor(key,dn);try{conn.send({t:'spawnpt',x:sp.x,z:sp.z,n:sp.n,ws})}catch(e){}}
+  else{if(world.war2&&game.ctf){const tm=ctfTeamAssign(key);if(!tm){try{conn.send({t:'ctffull',size:game.ctfSize||10})}catch(e){}return}}const sp=mpSpawnFor(key,dn);try{conn.send({t:'spawnpt',x:sp.x,z:sp.z,n:sp.n,ws})}catch(e){}if(world.war2&&game.ctf){try{conn.send({t:'ctf',st:ctfSave(),you:game.ctf.teams[key]||'blue'})}catch(e){}}}
   const w=game.war;if(w&&w.players&&w.players[key]){w.players[key].id=d.id;w.players[key].name=dn;wmpChanged()}}
 function mpSpawnGo(){const s=game.mySpawn,p=player;if(!s||!world||world.dimKey!=='over')return false;ensureChunks(s[0],s[2],2);const spot=safeSpotNear(s[0],s[2]);p.x=spot[0];p.y=spot[1];p.z=spot[2];p.vx=p.vy=p.vz=0;p.fallDist=0;if(p.riding)p.riding.dismount();return true}
 function mpSpawnIn(d){const x=+d.x,z=+d.z;if(!isFinite(x)||!isFinite(z))return;if(d.same){game.mySpawn=null;MP.spawnAck=true;return}game.mySpawn=[x,70,z];MP.spawnAck=true;const ws=Array.isArray(d.ws)?d.ws:[game.worldSpawn[0],game.worldSpawn[2]],p=player;
@@ -8214,7 +8291,7 @@ function beaconStop(){if(MP.beacon){try{MP.beacon.destroy()}catch(e){}MP.beacon=
 function beaconKeep(){if(MP.active&&MP.host&&MP.public&&!MP.beacon)beaconStart()}
 function mpCreatePublic(name,seedStr,mode,diff,mods){loadPeerJS().then(()=>{mpLeave(true);MP.public=true;MP.name=mpName(true);name=publicWorldLabel('community-'+Date.now()+Math.random());const seed=seedStr?(isNaN(+seedStr)?hashStr(seedStr):(+seedStr|0)):(Math.random()*2147483647|0);
   const room='ironcraft-pub-'+name.toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/^-|-$/g,'').slice(0,20)+'-'+Math.random().toString(36).slice(2,6);const worldId='pub-'+room.replace(/[^a-z0-9]/gi,'');
-  const meta={id:worldId,name,seed,mode,diff,drops:mods.random?'random':'normal',mods,room,gen:2,created:Date.now(),played:Date.now()};const list=worldList();list.push(meta);localStorage.setItem('ic_worlds',JSON.stringify(list));
+  const meta={id:worldId,name,seed,mode,diff,drops:mods.random?'random':'normal',mods,room,gen:2,ctfSize:[5,10,30,100].includes(+($('ctfSize')||{}).value)?+$('ctfSize').value:10,created:Date.now(),played:Date.now()};const list=worldList();list.push(meta);localStorage.setItem('ic_worlds',JSON.stringify(list));
   mpStatus('Opening your public world...');showMenu('mpMenu');mpHost(room,seed,mods,worldId,true)}).catch(e=>mpStatus(e.message))}
 function mpHostPrivate(code,seedStr){loadPeerJS().then(()=>{mpLeave(true);MP.name=mpName(false);mpStatus('Starting your world...');const seed=seedStr?mpSeed(seedStr):(Math.random()*2147483647)|0;mpHost('ironcraft-room-'+code,seed,{},'room-'+code,false,code)}).catch(e=>mpStatus(e.message))}
 function mpHost(room,seed,mods,worldId,isPublic,code,keepWorld){const peer=newPeer(room);MP.peer=peer;MP.room=room;MP.public=!!isPublic;MP.annT=1;MP.worldId=worldId;
@@ -8222,7 +8299,7 @@ function mpHost(room,seed,mods,worldId,isPublic,code,keepWorld){const peer=newPe
     if(!meta){const pub=PUBLIC_SERVERS.find(s=>s.room===room);meta={id:worldId,name:pub?'Public: '+pub.name:'Room '+code.toUpperCase(),seed,mode:'survival',diff:2,drops:mods.random?'random':'normal',mods,room:isPublic?room:undefined,gen:2,created:Date.now(),played:Date.now()};list.push(meta);localStorage.setItem('ic_worlds',JSON.stringify(list))}else if(isPublic&&!meta.room){meta.room=room;localStorage.setItem('ic_worlds',JSON.stringify(list))}
     initAudio();loadWorld(meta);if(isPublic)setTimeout(mpChatHint,1700);setTimeout(()=>showMessage(isPublic?'You are hosting a public world. Names are random aliases and chat is on: be kind.':'Hosting. Room code: '+code.toUpperCase()+' (friends type it under Join by Code). Press T to chat.'),1500)});
   peer.on('connection',conn=>{conn.on('open',()=>{if(MP.peer!==peer){try{conn.close()}catch(e){}return}if(conn.metadata&&conn.metadata.probe){try{conn.send(mpInfo())}catch(e){}setTimeout(()=>{try{conn.close()}catch(e){}},1500);return}MP.conns.push(conn);conn.on('data',d=>{if(MP.conns.includes(conn))mpOnData(conn,d)});conn.on('close',()=>mpDrop(conn));conn.on('error',()=>mpDrop(conn));
-    if(!world)return;conn.send({t:'hello',ch:CH,gen:game.gen||1,seed:game.seed,mods:game.mods,worldName:game.worldName,time:world.time,day:world.day,spawn:game.worldSpawn,blocks:mpCollectBlocks(),wx:mpWeatherState(),war:(typeof wmpSave==='function'?wmpSave():null),wave:game.ax?{wave:game.ax.wave,active:game.ax.active,next:game.ax.next,left:game.ax.left||0,roster:game.ax.roster}:null,hostId:MP.myId,hostName:MP.name,players:[...MP.remote.values()].map(r=>({id:r.pid,name:r.name})),items:mpItemList(),bents:mpBentList()})})});
+    if(!world)return;conn.send({t:'hello',ch:CH,gen:game.gen||1,seed:game.seed,mods:game.mods,worldName:game.worldName,time:world.time,day:world.day,spawn:game.worldSpawn,blocks:mpCollectBlocks(),wx:mpWeatherState(),war:(typeof wmpSave==='function'?wmpSave():null),ctf:(typeof ctfSave==='function'?ctfSave():null),wave:game.ax?{wave:game.ax.wave,active:game.ax.active,next:game.ax.next,left:game.ax.left||0,roster:game.ax.roster}:null,hostId:MP.myId,hostName:MP.name,players:[...MP.remote.values()].map(r=>({id:r.pid,name:r.name})),items:mpItemList(),bents:mpBentList()})})});
   peer.on('error',err=>{if(err.type==='peer-unavailable')return;if(err.type==='unavailable-id'){mpStatus('Someone just opened this server: joining them...');setTimeout(()=>{if(!MP.active&&MP.room===room)mpJoin(room,String(seed),mods,worldId,isPublic)},800)}else mpStatus('Network error: '+err.type)})}
 function mpBecomeGuest(peer,conn,worldId){MP.peer=peer;MP.conns=[conn];MP.worldId=worldId;MP.public=!!worldId;MP.host=false;MP.myId=peer.id;MP.active=true;mpStatus('Connected! Receiving the world...');
   conn.on('data',d=>{if(MP.conns.includes(conn))mpOnData(conn,d)});conn.on('close',()=>{if(MP.active&&!MP.host&&MP.conns.includes(conn))mpHostLost()});conn.on('error',()=>{})}
@@ -8239,7 +8316,7 @@ async function mpHello(d){initAudio();const pub=MP.worldId&&PUBLIC_SERVERS.find(
       if(keep){game.noSave=!MP.worldId;for(const r of MP.remote.values())r.dead=true;MP.remote.clear()}
       else if(MP.worldId){const list=worldList();let meta=list.find(w=>w.id===MP.worldId);if(!meta){meta={id:MP.worldId,name:'Public: '+(pub?pub.name:(d.worldName||'world')),seed:d.seed,mode:'survival',diff:2,drops:d.mods&&d.mods.random?'random':'normal',mods:d.mods||{},room:MP.room,gen:d.gen||1,created:Date.now(),played:Date.now()};list.push(meta);localStorage.setItem('ic_worlds',JSON.stringify(list))}else if(!meta.room){meta.room=MP.room;localStorage.setItem('ic_worlds',JSON.stringify(list))}meta.gen=d.gen||1;await loadWorld(meta);game.noSave=false}
       else{const meta={id:'mp-guest',name:'Multiplayer',seed:d.seed,mode:'survival',diff:2,drops:d.mods&&d.mods.random?'random':'normal',mods:d.mods||{},gen:d.gen||1};startWorld(meta,null);game.noSave=true}
-      MP.hostId=d.hostId;world.time=d.time;world.day=d.day;if(d.spawn)game.worldSpawn=d.spawn;{const f=idxMapFor(d.ch);if(f){d.blocks=oldLayoutMods(d.blocks||{},f);if(d.bents)d.bents=oldLayoutMods(d.bents,f)}}mpApplyBlocks(d.blocks||{});if(d.bents)mpApplyBents(d.bents);if(d.items){for(const e of entities)if(e instanceof ItemEntity)e.dead=true;MP.pendingItems=[];for(const it of d.items)mpItemIn(it)}if(d.wx)mpApplyWeather(d.wx);if(d.war)wmpIn(d.war);if(d.wave&&game.ax){const A=game.ax;A.wave=d.wave.wave;A.next=d.wave.next;A.left=d.wave.left;if(d.wave.active){A.active=true;A.pendingRoster=d.wave.roster||waveRoster(d.wave.wave)}}
+      MP.hostId=d.hostId;world.time=d.time;world.day=d.day;if(d.spawn)game.worldSpawn=d.spawn;{const f=idxMapFor(d.ch);if(f){d.blocks=oldLayoutMods(d.blocks||{},f);if(d.bents)d.bents=oldLayoutMods(d.bents,f)}}mpApplyBlocks(d.blocks||{});if(d.bents)mpApplyBents(d.bents);if(d.items){for(const e of entities)if(e instanceof ItemEntity)e.dead=true;MP.pendingItems=[];for(const it of d.items)mpItemIn(it)}if(d.wx)mpApplyWeather(d.wx);if(d.war)wmpIn(d.war);if(d.ctf)ctfIn(d.ctf);if(d.wave&&game.ax){const A=game.ax;A.wave=d.wave.wave;A.next=d.wave.next;A.left=d.wave.left;if(d.wave.active){A.active=true;A.pendingRoster=d.wave.roster||waveRoster(d.wave.wave)}}
       mpRemote(d.hostId,d.hostName);for(const pl of d.players||[])if(pl.id!==MP.myId)mpRemote(pl.id,pl.name);mpStatus('');if(MP.public)setTimeout(mpChatHint,1700);setTimeout(()=>showMessage(MP.public?'Joined a public world. Names are random aliases. Be kind in chat.':'Joined '+(d.hostName||'the host')+"'s private world. Press T to chat. Watch out: players can hurt each other here."),1500)}
 function mpOnData(conn,d){if(!d||!d.t)return;
   switch(d.t){
@@ -8267,6 +8344,8 @@ function mpOnData(conn,d){if(!d||!d.t)return;
     case 'gspawnr':{if(MP.host)break;showMessage(String(d.msg||'').slice(0,200));if(d.ok&&d.k!=='mob'){setTimeout(gspawnUnbury,1200);setTimeout(gspawnUnbury,3500)}break}
     case 'supply':{if(MP.host)break;supplyRemote(d);break}
     case 'spawnpt':{if(!MP.host)mpSpawnIn(d);break}
+    case 'ctf':{if(!MP.host)ctfIn(d.st,d.you);break}case 'ctfgrab':{if(MP.host)ctfGrabIn(conn,d);break}case 'ctfhide':{if(MP.host)ctfHideIn(conn,d);break}
+    case 'ctfflag':{if(!MP.host&&(d.team==='blue'||d.team==='red'))ctfGiveFlag(d.team);break}case 'ctffull':{if(!MP.host){showMessage('This world is full: '+(d.size|0)+' v '+(d.size|0)+' teams');setTimeout(()=>{try{mpLeave()}catch(e){}},2500)}break}
     case 'wmpick':{if(MP.host)wmpPickReq(conn,d.name);break}
     case 'wmatk':{if(MP.host)wmpAtkReq(conn,d.name);break}
     case 'wmret':{if(MP.host)wmpRetReq(conn);break}
@@ -9626,6 +9705,7 @@ function runCommand(line){const p=player;const raw=line.trim().replace(/^\/+/,''
     case 'xp':{const n=parseInt(args[0])||10;p.level=Math.max(0,p.level+n);p.xpFrac=0;say('Level '+p.level);updateHUD&&updateHUD();return}
     case 'squad':case 'soldiers':case 'soldier':case 'order':case 'orders':case 'troops':case 'men':{squadCmd(args,say);return}
     case 'lobby':case 'l':{lobbySay(args.join(' '));return}
+    case 'ctf':case 'flag':{ctfCommand(args,say);return}
     case 'players':case 'online':{if(!MP.active){say('Only you are here (solo world)');return}const nm=[(MP.public?publicAlias(MP.myId):MP.name)+' (you)'];for(const r of MP.remote.values())nm.push(r.name);say('Online ('+nm.length+'): '+nm.join(', '));return}
     case 'seed':say('Seed: '+game.seed);return;
     case 'kill':{let n=0;for(const e of entities){if(e instanceof Mob&&!e.def.passive&&!e.dead&&!(e.type==='wolf'&&e.tamed)&&Math.hypot(e.x-p.x,e.z-p.z)<32){e.dead=true;n++}}say('Removed '+n+' hostile mobs nearby');return}
@@ -9652,7 +9732,7 @@ function loop(now){
       if(game.tick%3===0)updateInfoHud();
       if(game.tick%200===0)saveWorld();
     }
-    tickPlates(dt);squadTick(dt);tickModKinds(dt);
+    tickPlates(dt);squadTick(dt);tickModKinds(dt);ctfTick(dt);
     supplyTick(dt);
     howTick(dt);soldierWarTick(dt);wmpTick(dt);a10Tick(dt);
     mortarTick(dt);if(typeof tickCamp==='function')tickCamp(dt);tickNukeTimers(dt);tickFurnaces(dt);tickBrews(dt);tickSpawners(dt);tickTrials(dt);tickShriekers(dt);if(typeof beaconTick==='function')beaconTick();if(MP.active)mpTick(dt);
