@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="ironcraft-build" content="20261113-192304">
+<meta name="ironcraft-build" content="20261113-214054">
 <meta name="viewport" content="width=device-width,initial-scale=1.0,viewport-fit=cover">
 <title>Ironcraft – Free Voxel Survival Sandbox in Your Browser | Iron Games</title>
 <meta name="description" content="Ironcraft is a free browser-based voxel survival sandbox with building, exploration, private or safety-limited public multiplayer, and optional weather, horror and survival challenges. By Daniele Bros.">
@@ -1653,7 +1653,8 @@ defItem(391,'blaze_powder',{label:'Ember Powder',icon:'blaze_powder'});
 defItem(392,'eye_of_ender',{label:'Void Eye',icon:'eye_of_ender',stack:16});
 defItem(393,'totem_of_undying',{icon:'totem',stack:1});
 defItem(394,'nether_star',{icon:'nether_star'});
-defItem(395,'elytra',{icon:'elytra',stack:1,armor:1,points:0,dur:432,elytra:true});
+defItem(395,'elytra',{icon:'elytra',label:'Glider',stack:1,armor:1,points:0,dur:432,elytra:true});
+defItem(532,'firework_rocket',{icon:'rocket',stack:64,label:'Firework Rocket',iconPal:['rocket',{k:[40,40,45],d:[225,220,210],m:[240,236,228],h:[255,255,250],r:[220,40,40],R:[255,120,100],o:[255,200,80]}]}); // used while gliding: a burst of speed
 defItem(396,'shulker_shell',{label:'Shellguard Shell',icon:'shulker_shell'});
 let tid=320;
 for(const tt of ['sword','pickaxe','axe','shovel','hoe'])for(const m of ['wood','stone','iron','diamond','gold']){
@@ -4490,7 +4491,7 @@ function updatePlayer(dt){
         const lm=world.getMeta(floor(p.x),floor(p.y),floor(p.z))&3;const f=FACING_TO_FACE[lm];const d=FACE_DIR[f];const into=-(mx*d[0]+mz*d[2]);p.vy=into>0.3?2.4:-3}else p.vy=Math.max(p.vy-32*dt,-3)}
     else if(p.effects.levitation>0){p.vy+=(1.6-p.vy)*Math.min(1,dt*6);p.fallDist=0;p.gliding=false}
     else if(p.gliding){ // elytra: steer with the mouse, dive to gain speed, pull up to trade it for height
-      const d=eyeDir();let s=Math.hypot(p.vx,p.vy,p.vz);s+=(-d[1]*22-2.5)*dt;s=clamp(s,3,42);const k=Math.min(1,dt*3);
+      const d=eyeDir();let s=Math.hypot(p.vx,p.vy,p.vz);s+=(-d[1]*22-2.5)*dt;if(p.rocketT>0){p.rocketT-=dt;s+=38*dt;if(Math.random()<dt*30)spawnParticles('fire',p.x-d[0]*0.6,p.y+0.9,p.z-d[2]*0.6,1)}s=clamp(s,3,p.rocketT>0?52:42);const k=Math.min(1,dt*(p.rocketT>0?6:3));
       p.vx+=(d[0]*s-p.vx)*k;p.vy+=(d[1]*s-p.vy)*k;p.vz+=(d[2]*s-p.vz)*k;const hs=Math.hypot(p.vx,p.vz);p.vy-=Math.max(0,9-hs*0.55)*dt;p.fallDist=0;p.glideSpeed=s;
       p.glideT=(p.glideT||0)+dt;if(p.glideT>1){p.glideT=0;if(p.armor[1])damageItem(p.armor[1],1)}if(Math.random()<dt*2)spawnParticles('smoke',p.x,p.y+1,p.z,1)}
     else{p.vy-=32*(MOD_RULES.grav||1)*dt;p.vy*=Math.pow(0.98,dt*20);
@@ -4895,6 +4896,7 @@ function tickPlates(dt){if(!world||(MP.active&&!MP.host))return;const P=game.pla
   for(const [k,st] of P){if(pressed.has(k)){st.t=0;continue}st.t+=dt;if(st.t<0.6)continue;const [x,y,z]=k.split(',').map(Number);for(const d of st.doors)setDoorOpen(d[0],d[1],d[2],false);const rid=world.getBlock(x,y,z);if(rid===146||rid===90){world.setMeta(x,y,z,0);mpSyncBlock(x,y,z)}P.delete(k)}}
 function useItem(){
   const p=player;if(p.dead||game.gui||game.paused||p.koT>0)return;const st=heldStack();const hd=st?ITEMS[st.id]:null;const t=p.target;const creative=p.mode==='creative';
+  if(hd&&hd.id===532){if(!p.gliding){showMessage('Light it while gliding with the Glider on');return}p.rocketT=1.5;consumeHeld();playSound('wind',0.6,1.6);spawnParticles('fire',p.x,p.y+0.8,p.z,6);p.swing=0;return}
   if(typeof ctfUseHook==='function'&&ctfUseHook(st,hd,t))return;
   if(typeof lootUseHook==='function'&&lootUseHook(st,hd,t))return;
   if(typeof howUseHook==='function'&&howUseHook(st,hd,t))return;
@@ -5826,7 +5828,8 @@ const PLANKS=[5,50,51],LOGS=[15,44,46],WOOLS=[20,75,76,77];
 const RECIPES=[];
 function shaped(p,k,out){RECIPES.push({p,k,out,shaped:true})}
 function shapeless(s,out){RECIPES.push({s,out,shaped:false})}
-shapeless([15],[5,4]);shapeless([44],[50,4]);shapeless([46],[51,4]);
+shapeless([15],[5,4]);shapeless([377,285],[532,3]); // paper + gunpowder: three firework rockets
+shapeless([44],[50,4]);shapeless([46],[51,4]);
 shaped(['#','#'],{'#':PLANKS},[256,4]);
 shaped(['#.#','.#.'],{'#':17},[474,3]);shapeless([94],[307,1]);for(const k in TIPPED_IDS)shaped(['AAA','ASA','AAA'],{A:284,S:SPLASH_IDS[k]},[TIPPED_IDS[k],8]);shaped(["##","##"],{"#":314},[53,1]);shapeless([53],[314,4]);shaped(["###"],{"#":94},[I.paper||315,3]);shaped(['##','##'],{'#':140},[141,4]);shaped(['#I#','###','.#.'],{'#':PLANKS,'I':260},[513,1]);shaped(['.R.','SSS'],{'R':390,'S':4},[138,1]);shapeless([313,391],[480,1]);shapeless([287,307,65],[481,1]);
 shaped(['##','##'],{'#':PLANKS},[34,1]);
@@ -7764,7 +7767,7 @@ const KITS={
   trials:{label:'mace, trident, 4 trial keys, heavy core, 4 breeze rods, 8 wind charges',items:[[467,1],[468,1],[470,4],[469,1],[471,4],[472,8]]},
   guns:{label:'pistol, rifle, shotgun, sniper rifle, ghillie suit, 128 bullets, 32 shells, rocket launcher, 4 rockets',items:[[460,1],[461,1],[462,1],[466,1],[473,1],[463,128],[464,32],[451,1],[452,4]]},
   enchanting:{label:'enchanting table, 15 bookshelves, 100 lapis, 16 books',items:[[96,1],[29,15],[264,100],[378,16]]},
-  end:{label:'elytra, 16 eyes of ender, 16 ender pearls, netherite sword',items:[[395,1],[392,16],[312,16],[I.netherite_sword,1]]},
+  end:{label:'glider, 16 firework rockets, 16 eyes of ender, 16 ender pearls, netherite sword',items:[[395,1],[532,16],[392,16],[312,16],[I.netherite_sword,1]]},
   netherite:{label:'full netherite armor and tools',items:[[386,1],[387,1],[388,1],[389,1],[380,1],[381,1],[382,1],[383,1]]},
   diamond:{label:'full diamond armor and tools',items:[[I.diamond_helmet,1],[I.diamond_chestplate,1],[I.diamond_leggings,1],[I.diamond_boots,1],[I.diamond_sword,1],[I.diamond_pickaxe,1],[I.diamond_axe,1],[I.diamond_shovel,1]]},
   food:{label:'64 steak, 64 golden apples',items:[[277,64],[308,64]]},
