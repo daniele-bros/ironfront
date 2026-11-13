@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="ironcraft-build" content="20261113-023139">
+<meta name="ironcraft-build" content="20261113-024300">
 <meta name="viewport" content="width=device-width,initial-scale=1.0,viewport-fit=cover">
 <title>Ironcraft – Free Voxel Survival Sandbox in Your Browser | Iron Games</title>
 <meta name="description" content="Ironcraft is a free browser-based voxel survival sandbox with building, exploration, private or safety-limited public multiplayer, and optional weather, horror and survival challenges. By Daniele Bros.">
@@ -581,7 +581,7 @@ label.lb{font-size:13px;color:#a0a0a0;align-self:flex-start;margin-left:calc(50%
   <button class="btn modbtn" data-mod="war">War: OFF</button>
   <div class="hint" style="color:#aaa;width:440px;margin:0 0 4px">Everyone starts with a rifle, a shotgun, ammo, iron armour, TNT, a car, a jet and steak, and Guns switches on with it. Cars, tanks, jets and bombers become real-life size (a tank is about 9 metres long), you can build Patrol Boats and Destroyers to fight on the water, and extra war-only guns and anti-aircraft guns join the arsenal.</div>
   <button class="btn modbtn" data-mod="war2">Jungle War: OFF</button>
-  <div class="hint" style="color:#aaa;width:440px;margin:0 0 4px">A finished battlefield instead of a world: a jungle map 2000 by 5000 blocks with a hard edge, and a 1000 block wide no man's land across the middle, churned ground, small and dead trees and hundreds of artillery craters, some filled with water. You start at the southern base with soldiers, the enemy comes from the north. Everything War gives you is on too, but the world map is not used. Choose it when you create a world.</div>
+  <div class="hint" style="color:#aaa;width:440px;margin:0 0 4px">A finished battlefield instead of a world: a jungle map 500 by 1000 blocks with a hard edge, and a 100 block wide no man's land across the middle, churned ground, small and dead trees and hundreds of artillery craters, some filled with water. You start at the southern base with soldiers, the enemy comes from the north. Everything War gives you is on too, but the world map is not used. Choose it when you create a world.</div>
   <button class="btn modbtn" data-mod="hearts">Hearts: OFF</button>
   <div class="hint" style="color:#aaa;width:440px;margin:0 0 4px">Your health shows as a row of Minecraft-style hearts with every kind the game has: red hearts and half hearts, hardcore hearts with eyes, green poisoned hearts, black withered hearts, blue frozen hearts, gold absorption hearts from golden apples, a flash when you take damage, a shiver when you are nearly dead, and your horse's hearts while you ride.</div>
   <div class="btnrow" style="margin-top:12px"><button class="btn half" id="btnFunDone">Done</button><button class="btn half" id="btnFunClear">Clear All</button></div>
@@ -1898,17 +1898,17 @@ class World{
     this.dirtyLight=new Set();
     this.gen=(this.nether||this.end||this.sift)?1:(game.gen||1);this.war2=!this.nether&&!this.end&&!this.sift&&!!(game.mods&&game.mods.war2);this._w2c=new Map();if(this.gen>=2)this.nP=new Simplex(s+14); // nP: ridged noise for the tall peaks of gen 2
   }
-  /* ---- Jungle War (war2): finite 2000 x 5000 jungle, no man's land across the middle ---- */
+  /* ---- Jungle War (war2): finite 500 x 1000 jungle, a 100-block no man's land across the middle ---- */
   war2Craters(cx,cz){const k=cx+','+cz;let a=this._w2c.get(k);if(a)return a;if(this._w2c.size>6000)this._w2c.clear();
     const rng=mulberry32(hashInt(cx,cz,91,this.seed)),S=10,n=2+(rng()<0.5?1:0);a=[];
     for(let i=0;i<n;i++){const r=1.5+rng()*3,dep=clamp(1+floor(rng()*4),1,floor(r)+1);a.push([cx*S+rng()*S,cz*S+rng()*S,r,dep,dep>=2&&rng()<0.35])}
     this._w2c.set(k,a);return a}
   war2Info(x,z){
-    if(x<-1000||x>=1000||z<-2500||z>=2500)return {height:1,biome:BI.jungle,temp:0.6,hum:0.6,wvoid:true}; // outside the map: only a bedrock floor
+    if(x<-250||x>=250||z<-500||z>=500)return {height:1,biome:BI.jungle,temp:0.6,hum:0.6,wvoid:true}; // outside the map: only a bedrock floor
     const hills=this.nH.fbm2(x/140,z/140,4),cont=this.nT.fbm2(x/700,z/700,3),detail=this.nD.n2(x/24,z/24);
     let h=77+hills*9+cont*4+detail*2;const pv=this.nR.n2(x/55,z/55);if(pv>0.5)h-=Math.min(1,(pv-0.5)/0.25)*Math.max(0,h-60); // a few ponds, sloped in
     h=clamp(h,60,92);
-    const edge=500+this.nD.n2(x/37+9,z/37)*26+this.nR.n2(x/9,z/9+5)*9,az=abs(z),t=clamp((edge-az)/36,0,1);let cr=9,wt=0;const nml=az<edge;
+    const edge=50+this.nD.n2(x/37+9,z/37)*6+this.nR.n2(x/9,z/9+5)*2,az=abs(z),t=clamp((edge-az)/12,0,1);let cr=9,wt=0;const nml=az<edge;
     if(t>0){h+=(70+hills*1.2+detail*0.7-h)*t;
       const bl=floor(h);let lo=0,hi=0;const ccx=floor(x/10),ccz=floor(z/10);
       for(let i=-1;i<=1;i++)for(let j=-1;j<=1;j++)for(const q of this.war2Craters(ccx+i,ccz+j)){const d=Math.hypot(x+0.5-q[0],z+0.5-q[1])/q[2];if(d>=1.45)continue;if(d<cr)cr=d;
@@ -1930,7 +1930,7 @@ class World{
         if(r<0.0035){const t=2+floor(rng()*2);for(let i=1;i<=t;i++)this.setGen(X,h+i,Z,15,0,false); // small jungle bush: 3 to 4 blocks
           for(let dx=-1;dx<=1;dx++)for(let dz=-1;dz<=1;dz++){if(dx||dz)this.setGen(X+dx,h+t,Z+dz,16);if(!((dx&&dz)&&rng()<0.7))this.setGen(X+dx,h+t+1,Z+dz,16)}}
         else if(r<0.005){const t=3+floor(rng()*2);for(let i=1;i<=t;i++)this.setGen(X,h+i,Z,15,0,false);if(rng()<0.6)this.setGen(X+(rng()<0.5?1:-1),h+t-1,Z,15,0,false)}} // dead tree: bare trunk and a stub
-      if((az===418||az===419)&&info.cr>=1.6&&(((X+Z*7)>>3)&3)!==0){this.setGen(X,h+1,Z,rng()<0.2?30:4,0,false);this.setGen(X,h+2,Z,4,0,false)} // sandbag (cobble) lines 2 high near each side's edge of the band
+      if((az===43||az===44)&&info.cr>=1.6&&(((X+Z*7)>>3)&3)!==0){this.setGen(X,h+1,Z,rng()<0.2?30:4,0,false);this.setGen(X,h+2,Z,4,0,false)} // sandbag (cobble) lines 2 high near each side's edge of the band
     }}
   getChunk(cx,cz){return this.chunks.get(chunkKey(cx,cz))}
   chunkAt(x,z){return this.chunks.get(chunkKey(x>>4,z>>4))}
@@ -4171,7 +4171,7 @@ function enemyAirCmd(args,say){const t=args.filter(a=>!/^\d+$/.test(a)).join('_'
 const SOLDIER_COMPASS=['north','north-east','east','south-east','south','south-west','west','north-west'];
 function spawnWarPatrol(){const p=player,wins=game.warWins|0,n=clamp(3+floor(Math.random()*2)+floor(wins/2),3,6);
   const kinds=[];for(let i=0;i<n;i++){const r=Math.random();kinds.push(wins>=2&&r<0.15?'sniper':wins>=1&&r<0.2+wins*0.05?'heavy':'rifle')}
-  const w2=world.war2;for(let t=0;t<20;t++){const a=w2?(Math.random()-0.5)*0.9:Math.random()*PI*2,dd=40+Math.random()*20,x=p.x+Math.sin(a)*dd,z=p.z-Math.cos(a)*dd;if(soldierGround(x,z)<0||(w2&&(abs(x)>990||abs(z)>2490)))continue;
+  const w2=world.war2;for(let t=0;t<20;t++){const a=w2?(Math.random()-0.5)*0.9:Math.random()*PI*2,dd=40+Math.random()*20,x=p.x+Math.sin(a)*dd,z=p.z-Math.cos(a)*dd;if(soldierGround(x,z)<0||(w2&&(abs(x)>240||abs(z)>490)))continue;
     const mobs=spawnWarSquad('enemy',n,x,z,{nation:'enemy',kinds,elite:wins>=4&&Math.random()<0.5,march:true});if(!mobs.length)continue;
     game.warPatrol={mobs,t:0};showMessage('Enemy patrol spotted to the '+SOLDIER_COMPASS[Math.round(a/(PI/4))%8]);playSound('horn',0.5,0.8);warPatrolAir();return mobs}
   return null}
@@ -6533,24 +6533,24 @@ function randomDrops(){if(Math.random()<0.03){const set=RANDOM_SETS[floor(Math.r
   const id=randomDropFor();return [[id,ITEMS[id].stack>1&&Math.random()<0.25?2+floor(Math.random()*3):1]]}
 /* ---- initial spawn ---- */
 /* ---- Jungle War: world border (x -1000..1000, z -2500..2500), spawn, base ---- */
-function war2Edge(e,dx,dz){const L=1000-e.w/2,M=2500-e.w/2;let hit=false;
+function war2Edge(e,dx,dz){const L=250-e.w/2,M=500-e.w/2;let hit=false;
   if(dx>L-e.x){dx=Math.max(0,L-e.x);e.vx=0;hit=true}else if(dx<-L-e.x){dx=Math.min(0,-L-e.x);e.vx=0;hit=true}
   if(dz>M-e.z){dz=Math.max(0,M-e.z);e.vz=0;hit=true}else if(dz<-M-e.z){dz=Math.min(0,-M-e.z);e.vz=0;hit=true}
   if(hit&&e===player&&game.time>(game._w2m||0)){game._w2m=game.time+3;showMessage('World edge')}return [dx,dz]}
 function war2Tick(dt){const p=player;if(game.state!=='playing')return;
-  for(const e of entities){if(e.dead||e.x===undefined||e.remote||e===p)continue;const L=1000-(e.w||0.6)/2,M=2500-(e.w||0.6)/2;if(e.x>L){e.x=L;e.vx=0}else if(e.x<-L){e.x=-L;e.vx=0}if(e.z>M){e.z=M;e.vz=0}else if(e.z<-M){e.z=-M;e.vz=0}}
-  {const L=1000-0.3,M=2500-0.3;let hit=false;if(p.x>L){p.x=L;p.vx=0;hit=true}else if(p.x<-L){p.x=-L;p.vx=0;hit=true}if(p.z>M){p.z=M;p.vz=0;hit=true}else if(p.z<-M){p.z=-M;p.vz=0;hit=true}
+  for(const e of entities){if(e.dead||e.x===undefined||e.remote||e===p)continue;const L=250-(e.w||0.6)/2,M=500-(e.w||0.6)/2;if(e.x>L){e.x=L;e.vx=0}else if(e.x<-L){e.x=-L;e.vx=0}if(e.z>M){e.z=M;e.vz=0}else if(e.z<-M){e.z=-M;e.vz=0}}
+  {const L=250-0.3,M=500-0.3;let hit=false;if(p.x>L){p.x=L;p.vx=0;hit=true}else if(p.x<-L){p.x=-L;p.vx=0;hit=true}if(p.z>M){p.z=M;p.vz=0;hit=true}else if(p.z<-M){p.z=-M;p.vz=0;hit=true}
     if(hit&&game.time>(game._w2m||0)){game._w2m=game.time+3;showMessage('World edge')}}}
 // a faint see-through wall of glass panes along the map edge, drawn when you are within 32 blocks of it
 function war2Wall(EB){const p=player,uv=tileUVs(TEX.glass,0,0,1,1),L=[1,1,1],C=[0.55,0.85,1],y0=floor(p.y/4)*4-8;
   const wall=(alongX,w,lim)=>{const a0=alongX?p.x:p.z;for(let a=floor((a0-32)/4)*4;a<a0+32;a+=4){if(a<-lim||a+4>lim)continue;for(let y=y0;y<y0+32;y+=4){
     const P=alongX?[[a,y,w],[a+4,y,w],[a+4,y+4,w],[a,y+4,w]]:[[w,y,a],[w,y,a+4],[w,y+4,a+4],[w,y+4,a]];EB.quad(P,uv,L,C);EB.quad([P[3],P[2],P[1],P[0]],uv,L,C)}}};
-  if(1000-p.x<32)wall(false,1000,2500);if(p.x+1000<32)wall(false,-1000,2500);if(2500-p.z<32)wall(true,2500,1000);if(p.z+2500<32)wall(true,-2500,1000)}
+  if(250-p.x<32)wall(false,250,500);if(p.x+250<32)wall(false,-250,500);if(500-p.z<32)wall(true,500,250);if(p.z+500<32)wall(true,-500,250)}
 // a small base on a fresh world: the military compound behind the spawn, two bunkers, and a friendly squad
 function war2Setup(s){try{const gy=(x,z)=>world.columnInfo(x,z).height;const bz=floor(s[2])+45;buildMilitaryBase(0,gy(0,bz),bz);
     for(const bx of [-32,32])buildBunker(bx,gy(bx,floor(s[2])-4),floor(s[2])-4);
     spawnWarSquad('player',4,s[0]+3,s[2]+3,{kinds:['rifle','rifle','heavy','sniper']})}catch(e){console.warn('war2 base',e)}}
-function findSpawn(){if(game.mods&&game.mods.war2)return [0.5,80,2100.5];for(let r=0;r<400;r+=8){for(let a=0;a<PI*2;a+=0.7){const x=floor(Math.cos(a)*r),z=floor(Math.sin(a)*r);const info=world.columnInfo(x,z);if(info.height>SEA+1&&info.biome!==BI.mountains&&info.biome!==BI.ocean)return [x+0.5,info.height+1,z+0.5]}}return [0.5,80,0.5]}
+function findSpawn(){if(game.mods&&game.mods.war2)return [0.5,80,400.5];for(let r=0;r<400;r+=8){for(let a=0;a<PI*2;a+=0.7){const x=floor(Math.cos(a)*r),z=floor(Math.sin(a)*r);const info=world.columnInfo(x,z);if(info.height>SEA+1&&info.biome!==BI.mountains&&info.biome!==BI.ocean)return [x+0.5,info.height+1,z+0.5]}}return [0.5,80,0.5]}
 /* ---- world lifecycle ---- */
 const MODN={weather:'Weather',horror:'Horror',random:'Random Blocks',hardcore:'Hardcore',structures:'Structure Chaos',apocalypse:'Zombie Apocalypse',guns:'Guns',hearts:'Hearts',nightvision:'Night Vision',reallife:'Real Life',uncrafting:'Uncrafting',leafdoors:'Leaf Doors',notags:'No Name Tags',nukes:'Nukes',war:'War',war2:'Jungle War',camping:'Camping'};
 function applyModsLive(m,fromHost){if(!world||game.state!=='playing')return;const old=game.mods||{};game.mods=Object.assign({weather:false,horror:false,random:false,hardcore:false,structures:false,apocalypse:false,guns:false,hearts:false,nightvision:false,reallife:false,uncrafting:false,leafdoors:false,notags:false,nukes:false,war:false,war2:false,camping:false},m);const g=game.mods;if(g.war2)g.war=true;if(g.war){g.guns=true;if(!old.war&&typeof warKit==='function')warKit()}
@@ -7926,7 +7926,7 @@ function mpSpawnLand(W,x,z){x=floor(x);z=floor(z);for(const [dx,dz] of [[0,0],[7
 function mpSpawnFor(key,name){const S=game.spawns||(game.spawns={});if(S[key]){if(name)S[key].name=name;return S[key]}
   const n=Object.keys(S).length,ws=game.worldSpawn,W=mpOverWorld(),others=Object.keys(S).map(k=>S[k]);
   const ok=(x,z)=>mpSpawnLand(W,x,z)&&others.every(o=>Math.hypot(o.x-x,o.z-z)>=48);
-  const a0=(n+1)*2.399963+(game.seed%628)/100;let best=null;if(game.mods&&game.mods.war2){for(let k=0;k<80&&!best;k++){const x=clamp(ws[0]+(((n+1)*0.618034+k*0.41)%1-0.5)*500,-950,950),z=ws[2]-(((n+1)*0.37+k*0.173)%1)*500;if(ok(x,z))best=[floor(x)+0.5,floor(z)+0.5]}} // Jungle War: everyone starts in the south third
+  const a0=(n+1)*2.399963+(game.seed%628)/100;let best=null;if(game.mods&&game.mods.war2){for(let k=0;k<80&&!best;k++){const x=clamp(ws[0]+(((n+1)*0.618034+k*0.41)%1-0.5)*200,-240,240),z=ws[2]-(((n+1)*0.37+k*0.173)%1)*100;if(ok(x,z))best=[floor(x)+0.5,floor(z)+0.5]}} // Jungle War: everyone starts in the south third
   for(let k=0;k<60&&!best;k++){const a=a0+(k%2?1:-1)*floor((k+1)/2)*0.1,r=160+((((n+1)*0.618034+k*0.37)%1)*160),x=ws[0]+Math.cos(a)*r,z=ws[2]+Math.sin(a)*r;if(ok(x,z))best=[floor(x)+0.5,floor(z)+0.5]}
   for(let r=160;r<=320&&!best;r+=12)for(let a=0;a<PI*2&&!best;a+=0.15){const x=ws[0]+Math.cos(a0+a)*r,z=ws[2]+Math.sin(a0+a)*r;if(ok(x,z))best=[floor(x)+0.5,floor(z)+0.5]}
   if(!best)best=[floor(ws[0]+Math.cos(a0)*200)+0.5,floor(ws[2]+Math.sin(a0)*200)+0.5];
