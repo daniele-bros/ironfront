@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="ironcraft-build" content="20261113-140646">
+<meta name="ironcraft-build" content="20261113-192304">
 <meta name="viewport" content="width=device-width,initial-scale=1.0,viewport-fit=cover">
 <title>Ironcraft – Free Voxel Survival Sandbox in Your Browser | Iron Games</title>
 <meta name="description" content="Ironcraft is a free browser-based voxel survival sandbox with building, exploration, private or safety-limited public multiplayer, and optional weather, horror and survival challenges. By Daniele Bros.">
@@ -3820,9 +3820,7 @@ if(this.def.vehicle){if(this.hurtT>0)this.hurtT-=dt;if(this.invT>0)this.invT-=dt
     if(this.type==='enderman'){ // provoked by staring at its head, hates water, teleports around
       // staring: only the eyes count (a narrow cone on the head, not the body), and it takes two full seconds of eye contact; glancing away resets quickly
       if(p===player&&!p.dead&&dist3<64&&!this.angry){const e=[p.x,p.y+p.eyeHeight,p.z];const dir=eyeDir();const hx=this.x-e[0],hy=(this.y+this.h-0.25)-e[1],hz=this.z-e[2];const l=sqrt(hx*hx+hy*hy+hz*hz)||1;const cos=(hx*dir[0]+hy*dir[1]+hz*dir[2])/l;
-        if(cos>Math.cos(Math.atan2(0.45,l))){const bh=raycast(e[0],e[1],e[2],hx,hy,hz,l-0.3,false);if(!bh||!bh.block){this.stareT+=dt;if(this.stareT>2){this.angry=true;playSoundAt('enderman',this.x,this.y,this.z,1,1.2);this.screamT=1.2}}}else this.stareT=Math.max(0,this.stareT-dt*3)}
-      // a temper of its own: near a player it can see, one now and then turns hostile without being stared at (more often on harder difficulties)
-      if(!this.angry&&p===player&&!p.dead&&dist3<20&&game.difficulty>0&&Math.random()<dt*(game.difficulty>=3?0.04:game.difficulty===2?0.025:0.012)&&this.canSee(p)){this.angry=true;this.stareT=0;playSoundAt('enderman',this.x,this.y,this.z,1,1.2);this.screamT=1.2}
+        if(cos>Math.cos(Math.atan2(0.45,l))){const bh=raycast(e[0],e[1],e[2],hx,hy,hz,l-0.3,false);if(!bh||!bh.block){this.stareT+=dt;if(this.stareT>3){this.angry=true;playSoundAt('enderman',this.x,this.y,this.z,1,1.2);this.screamT=1.2}}}else this.stareT=Math.max(0,this.stareT-dt*3)} // three full seconds of eye contact, nothing else, makes one angry
       if(this.screamT>0)this.screamT-=dt;
       if(this.inWater||(this.fireT>0)){this.teleport(false)}
       this.tpT-=dt;if(this.tpT<=0){this.tpT=2+Math.random()*5;if(this.angry&&!p.dead&&dist3>4&&(dist3>10||this.collidedH||Math.random()<0.3))this.teleport(true);else if(!this.angry&&Math.random()<0.3)this.teleport(false)}
