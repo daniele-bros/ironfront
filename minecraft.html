@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="ironcraft-build" content="20261113-024300">
+<meta name="ironcraft-build" content="20261113-130253">
 <meta name="viewport" content="width=device-width,initial-scale=1.0,viewport-fit=cover">
 <title>Ironcraft – Free Voxel Survival Sandbox in Your Browser | Iron Games</title>
 <meta name="description" content="Ironcraft is a free browser-based voxel survival sandbox with building, exploration, private or safety-limited public multiplayer, and optional weather, horror and survival challenges. By Daniele Bros.">
@@ -2466,21 +2466,21 @@ function buildChunkMesh(W,c,smooth){
 const R={gl:null,canvas:null,progC:null,progE:null,atlasTex:null,itemTex:null,vp:null,proj:null,view:null,planes:null,eye:[0,0,0],aspect:1,fogColor:[0.6,0.7,1],day:1,gamma:0.5,stars:null,cloudNoise:new Simplex(4242)};
 const VS_C=`#version 300 es
 precision highp float;layout(location=0) in vec3 aPos;layout(location=1) in vec2 aUV;layout(location=2) in vec3 aLight;
-uniform mat4 uVP;uniform vec3 uOffset;uniform vec3 uCam;out vec2 vUV;out vec3 vLight;out float vDist;
-void main(){vec3 p=aPos+uOffset;gl_Position=uVP*vec4(p,1.0);vUV=aUV;vLight=aLight;vDist=length(p-uCam);}`;
+uniform mat4 uVP;uniform vec3 uOffset;uniform vec3 uCam;out vec2 vUV;out vec3 vLight;out float vDist;out vec3 vPos;
+void main(){vec3 p=aPos+uOffset;gl_Position=uVP*vec4(p,1.0);vUV=aUV;vLight=aLight;vDist=length(p-uCam);vPos=p;}`;
 const VS_E=`#version 300 es
 precision highp float;layout(location=0) in vec3 aPos;layout(location=1) in vec2 aUV;layout(location=2) in vec3 aLight;layout(location=3) in vec3 aColor;
-uniform mat4 uVP;uniform vec3 uOffset;uniform vec3 uCam;out vec2 vUV;out vec3 vLight;out float vDist;out vec3 vColor;
-void main(){vec3 p=aPos+uOffset;gl_Position=uVP*vec4(p,1.0);vUV=aUV;vLight=aLight;vDist=length(p-uCam);vColor=aColor;}`;
+uniform mat4 uVP;uniform vec3 uOffset;uniform vec3 uCam;out vec2 vUV;out vec3 vLight;out float vDist;out vec3 vColor;out vec3 vPos;
+void main(){vec3 p=aPos+uOffset;gl_Position=uVP*vec4(p,1.0);vUV=aUV;vLight=aLight;vDist=length(p-uCam);vColor=aColor;vPos=p;}`;
 const FS=(entity)=>`#version 300 es
-precision highp float;uniform sampler2D uTex;uniform float uDay;uniform float uGamma;uniform vec3 uFog;uniform float uFogStart;uniform float uFogEnd;uniform vec4 uColor;uniform float uAlphaTest;uniform float uNoLight;uniform float uAmbient;
-in vec2 vUV;in vec3 vLight;in float vDist;${entity?'in vec3 vColor;':''}out vec4 o;
+precision highp float;uniform sampler2D uTex;uniform float uDay;uniform float uGamma;uniform vec3 uFog;uniform float uFogStart;uniform float uFogEnd;uniform vec4 uColor;uniform float uAlphaTest;uniform float uNoLight;uniform float uAmbient;uniform vec4 uHand;
+in vec2 vUV;in vec3 vLight;in float vDist;in vec3 vPos;${entity?'in vec3 vColor;':''}out vec4 o;
 void main(){vec4 t=texture(uTex,vUV);if(t.a<uAlphaTest)discard;
- float sky=max(0.0,vLight.x*15.0-11.0*(1.0-uDay))/15.0;float l=max(sky,vLight.y);float b=l/(4.0-3.0*l);b=mix(b,sqrt(b),uGamma);b=max(b,uAmbient);b=mix(b,1.0,uNoLight);
+ float sky=max(0.0,vLight.x*15.0-11.0*(1.0-uDay))/15.0;float hd=clamp(1.0-length(vPos-uHand.xyz)/12.0,0.0,1.0);float l=max(max(sky,vLight.y),uHand.w*hd*hd);float b=l/(4.0-3.0*l);b=mix(b,sqrt(b),uGamma);b=max(b,uAmbient);b=mix(b,1.0,uNoLight);
  vec3 col=t.rgb*vLight.z*b${entity?'*vColor':''}*uColor.rgb;float f=clamp((vDist-uFogStart)/(uFogEnd-uFogStart),0.0,1.0);
  o=vec4(mix(col,uFog,f),t.a*uColor.a);}`;
 function mkProg(gl,vs,fs){const p=gl.createProgram();for(const [t,s] of [[gl.VERTEX_SHADER,vs],[gl.FRAGMENT_SHADER,fs]]){const sh=gl.createShader(t);gl.shaderSource(sh,s);gl.compileShader(sh);if(!gl.getShaderParameter(sh,gl.COMPILE_STATUS))throw new Error(gl.getShaderInfoLog(sh));gl.attachShader(p,sh)}
-  gl.linkProgram(p);if(!gl.getProgramParameter(p,gl.LINK_STATUS))throw new Error(gl.getProgramInfoLog(p));const u={};for(const n of ['uVP','uOffset','uCam','uTex','uDay','uGamma','uFog','uFogStart','uFogEnd','uColor','uAlphaTest','uNoLight','uAmbient'])u[n]=gl.getUniformLocation(p,n);return {p,u}}
+  gl.linkProgram(p);if(!gl.getProgramParameter(p,gl.LINK_STATUS))throw new Error(gl.getProgramInfoLog(p));const u={};for(const n of ['uVP','uOffset','uCam','uTex','uDay','uGamma','uFog','uFogStart','uFogEnd','uColor','uAlphaTest','uNoLight','uAmbient','uHand'])u[n]=gl.getUniformLocation(p,n);return {p,u}}
 function initGL(){
   const canvas=$('gl');R.canvas=canvas;const gl=canvas.getContext('webgl2',{antialias:false,alpha:false,powerPreference:'high-performance'});if(!gl)throw new Error('WebGL2 not supported');R.gl=gl;
   R.progC=mkProg(gl,VS_C,FS(false));R.progE=mkProg(gl,VS_E,FS(true));
@@ -2519,7 +2519,7 @@ class EBatch{constructor(){this.v=[];this.i=[];this.n=0}
     setCommonUniforms(prog,uniforms||{});gl.drawElements(gl.TRIANGLES,this.i.length,gl.UNSIGNED_INT,0);gl.bindVertexArray(null)}
 }
 function setCommonUniforms(prog,o){const gl=R.gl;const u=prog.u;gl.uniformMatrix4fv(u.uVP,false,o.vp||R.vp);gl.uniform3f(u.uOffset,...(o.offset||[0,0,0]));gl.uniform3f(u.uCam,...R.eye);gl.uniform1f(u.uDay,R.day);gl.uniform1f(u.uGamma,R.gamma);
-  gl.uniform3f(u.uFog,...R.fogColor);gl.uniform1f(u.uFogStart,o.fogStart!==undefined?o.fogStart:R.fogStart);gl.uniform1f(u.uFogEnd,o.fogEnd!==undefined?o.fogEnd:R.fogEnd);gl.uniform4f(u.uColor,...(o.color||[1,1,1,1]));gl.uniform1f(u.uAlphaTest,o.alphaTest!==undefined?o.alphaTest:0.1);gl.uniform1f(u.uNoLight,o.noLight||0);gl.uniform1f(u.uAmbient,R.ambient||0.02)}
+  gl.uniform3f(u.uFog,...R.fogColor);gl.uniform1f(u.uFogStart,o.fogStart!==undefined?o.fogStart:R.fogStart);gl.uniform1f(u.uFogEnd,o.fogEnd!==undefined?o.fogEnd:R.fogEnd);gl.uniform4f(u.uColor,...(o.color||[1,1,1,1]));gl.uniform1f(u.uAlphaTest,o.alphaTest!==undefined?o.alphaTest:0.1);gl.uniform1f(u.uNoLight,o.noLight||0);gl.uniform1f(u.uAmbient,R.ambient||0.02);gl.uniform4f(u.uHand,...(R.hand||[0,0,0,0]))}
 const EB=new EBatch(),EBI=new EBatch(),EBS=new EBatch();
 function lightAt(x,y,z){return [world.getSky(floor(x),floor(y),floor(z))/15,world.getLight(floor(x),floor(y),floor(z))/15]}
 /* transform helper: rotation about pivot */
@@ -2542,7 +2542,7 @@ function renderFrame(dt){
     ex+=dx*dist;eyeY+=dy*dist;ez+=dz*dist;if(!back){cyaw=p.yaw+PI;cpitch=-p.pitch}R.eye=[ex,eyeY,ez]}
   {const vc=vehCamUpdate(dt,ex,eyeY,ez);R.vch=!!vc;if(vc){ex=vc[0];eyeY=vc[1];ez=vc[2];cyaw=vc[3];cpitch=vc[4];R.eye=[ex,eyeY,ez]}}
   R.proj=m4perspective(fov,R.aspect,0.05,1000);R.view=m4mul(m4rotX(-cpitch),m4mul(m4rotY(-cyaw),m4trans(-ex,-eyeY,-ez)));R.vp=m4mul(R.proj,R.view);R.planes=frustumPlanes(R.vp);
-  const sc=skyColors(world.time/24000);if(world.sift){sc.day=1;sc.sky=[0.33,0.86,0.80]}R.day=(world.nether||world.end)?0:sc.day;R.gamma=opts.brightness/100;R.ambient=world.sift?0.10+0.06*R.gamma:world.end?0.32+0.08*R.gamma:world.nether?0.10+0.06*R.gamma:0.015+0.06*R.gamma;if((game.mods&&game.mods.nightvision)||(player&&player.effects&&player.effects.night_vision>0))R.ambient=Math.max(R.ambient,0.82);
+  const sc=skyColors(world.time/24000);if(world.sift){sc.day=1;sc.sky=[0.33,0.86,0.80]}R.day=(world.nether||world.end)?0:sc.day;{let hl=0;for(const st of [player.inv[player.sel],player.off[0]]){if(!st)continue;const d=BLOCKS[st.id];if(d&&d.light>hl)hl=d.light}R.hand=hl&&!player.dead?[player.x,player.y+1.2,player.z,hl/15*0.95]:[0,0,0,0]}R.gamma=opts.brightness/100;R.ambient=world.sift?0.10+0.06*R.gamma:world.end?0.32+0.08*R.gamma:world.nether?0.10+0.06*R.gamma:0.015+0.06*R.gamma;if((game.mods&&game.mods.nightvision)||(player&&player.effects&&player.effects.night_vision>0))R.ambient=Math.max(R.ambient,0.82);
   const headBlock=world.getBlock(floor(R.vch?ex:p.x),floor(eyeY),floor(R.vch?ez:p.z));const underwater=headBlock===8,inLava=headBlock===9||headBlock===133;
   const rd=opts.renderDist*16;
   if(underwater){R.fogColor=[0.05*sc.day+0.01,0.15*sc.day+0.02,0.5*sc.day+0.05];R.fogStart=2;R.fogEnd=18}else if(inLava){R.fogColor=headBlock===133?[0.95,0.55,0.75]:[0.9,0.35,0.05];R.fogStart=0;R.fogEnd=2}else if(world.sift){R.fogColor=[0.33,0.86,0.80];R.fogStart=rd*0.75;R.fogEnd=rd*1.08}else if(world.nether){R.fogColor=[0.22,0.04,0.04];R.fogStart=rd*0.15;R.fogEnd=rd*0.7}else if(world.end){R.fogColor=[0.05,0.03,0.08];R.fogStart=rd*0.5;R.fogEnd=rd*1.1}else{R.fogColor=sc.sky;R.fogStart=rd*0.55;R.fogEnd=rd*0.98}
