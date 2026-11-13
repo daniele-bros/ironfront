@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="ironcraft-build" content="20261029-214319">
+<meta name="ironcraft-build" content="20261113-022543">
 <meta name="viewport" content="width=device-width,initial-scale=1.0,viewport-fit=cover">
 <title>Ironcraft – Free Voxel Survival Sandbox in Your Browser | Iron Games</title>
 <meta name="description" content="Ironcraft is a free browser-based voxel survival sandbox with building, exploration, private or safety-limited public multiplayer, and optional weather, horror and survival challenges. By Daniele Bros.">
@@ -5124,7 +5124,9 @@ function lootTopUp(items,tier,target,rng){rng=rng||Math.random;let have=0;for(co
   for(const st of lootRoll(tier,target-have,rng)){let slot=floor(rng()*items.length);for(let t=0;t<items.length&&items[slot];t++)slot=(slot+1)%items.length;if(items[slot])break;items[slot]=st}return items}
 function lootRich(table,rng,n,x,y,z){const items=rollLoot(LOOT[table],rng,n||3+floor(rng()*5));if(game.randomDrops)return items;
   const lr=mulberry32(hashInt(x,y,z,0x10071)); // own generator, so the structure's layout does not change
-  return lootTopUp(items,LOOT_TIER_OF[table]||'common+rare',6+floor(lr()*7),lr)}
+  // fuller chests that stay in character: the extra comes from the structure's own table, plus one to three everyday finds
+  const more=rollLoot(LOOT[table],lr,2+floor(lr()*4));for(let i=0;i<27;i++)if(more[i]&&!items[i])items[i]=more[i];
+  let have=0;for(const it of items)if(it)have++;return lootTopUp(items,LOOT_TIER_OF[table]||'common',have+1+floor(lr()*3),lr)}
 function rollLoot(table,rng,n){if(typeof table==='string')return lootRoll(table,typeof rng==='number'?rng:n,typeof rng==='function'?rng:null);const items=new Array(27).fill(null);const tot=table.reduce((s,e)=>s+e[3],0);
   if(game.randomDrops){for(let k=0;k<n;k++){const pool=randomPool();const id=pool[floor(rng()*pool.length)];let slot=floor(rng()*27);for(let t=0;t<27&&items[slot];t++)slot=(slot+1)%27;if(!items[slot])items[slot]={id,count:Math.min(ITEMS[id].stack,1+floor(rng()*3))}}return items}
   for(let k=0;k<n;k++){let r=rng()*tot;let e=table[0];for(const t of table){r-=t[3];if(r<=0){e=t;break}}const cnt=e[1]+floor(rng()*(e[2]-e[1]+1));let slot=floor(rng()*27);for(let t=0;t<27&&items[slot];t++)slot=(slot+1)%27;if(!items[slot])items[slot]=e[0]===379?randomBook(rng):{id:e[0],count:Math.min(cnt,ITEMS[e[0]].stack)}}
