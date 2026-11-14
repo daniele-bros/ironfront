@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="ironcraft-build" content="20261114-013055">
+<meta name="ironcraft-build" content="20261114-234434">
 <meta name="viewport" content="width=device-width,initial-scale=1.0,viewport-fit=cover">
 <title>Ironcraft – Free Voxel Survival Sandbox in Your Browser | Iron Games</title>
 <meta name="description" content="Ironcraft is a free browser-based voxel survival sandbox with building, exploration, private or safety-limited public multiplayer, and optional weather, horror and survival challenges. By Daniele Bros.">
@@ -1226,8 +1226,8 @@ defTex('sift_ore',p=>{p.noise(74,92,94,7);p.speckle(10,96,128,126);for(let i=0;i
 defTex('sift_stone',p=>{p.noise(74,92,94,7);p.speckle(14,96,128,126);p.rect(0,0,16,1,52,66,68);p.rect(0,8,16,1,52,66,68);p.rect(7,0,1,8,52,66,68);p.rect(3,8,1,8,52,66,68);p.rect(11,8,1,8,52,66,68);p.px(5,4,170,20,40);p.px(12,12,170,20,40)});
 defTex('sift_crystal_block',p=>{p.noise(96,40,60,8);for(let i=0;i<6;i++){const x=floor(p.rng()*13),y=floor(p.rng()*13);p.rect(x,y,3,3,200,25,45);p.rect(x+1,y+1,1,1,255,120,130)}});
 // bow and trident drawn as box models like the guns: the bow's limbs curve back toward the archer and its string pulls with the charge; the trident is a long shaft with three teal prongs
-const WPN_FP={301:[0.026,0.4,-0.14,-0.72],468:[0.03,0.5,-0.3,-0.58]}; // first person: scale, then x,y,z of the grip in view space
-function wpnModel(id){return id===301||id===468}
+const WPN_FP={301:[0.026,0.4,-0.14,-0.72],468:[0.03,0.5,-0.3,-0.58],467:[0.03,0.5,-0.42,-0.6]}; // first person: scale, then x,y,z of the grip in view space
+function wpnModel(id){return id===301||id===468||id===467}
 function drawWeapon(EB,tf,id,light,charge,arrow){
   const W='gun_wood',D='gun_dark',S='gun_steel',G='gun_grip',T=[0.5,1.3,1.25],GOLD=[1.6,1.3,0.5];
   const box=(t,x0,y0,z0,x1,y1,z1,tex,col)=>gunBox(EB,t,x0,y0,z0,x1,y1,z1,tex,col||[1,1,1],light);
@@ -1240,6 +1240,12 @@ function drawWeapon(EB,tf,id,light,charge,arrow){
       box(tf,-0.45,Math.min(y,y+sg*0.9),z-0.35,0.45,Math.max(y,y+sg*0.9),z+0.35,S);if(sg>0){tipY=y;tipZ=z}}
     const zN=tipZ+1.2+pull*9;seg(tipY,tipZ,0,zN,0.25,0.25,S,[1.1,1.1,1]);seg(-tipY,tipZ,0,zN,0.25,0.25,S,[1.1,1.1,1]); // the string meets at the nock, drawn back with the charge
     if(arrow&&pull>0){box(tf,-0.3,-0.3,zN-21,0.3,0.3,zN-0.6,W,[0.95,0.85,0.6]);box(tf,-0.5,-0.5,zN-23.6,0.5,0.5,zN-21,S);box(tf,-1.2,-0.1,zN-5.5,1.2,0.1,zN-1.2,'white',[0.92,0.92,0.95]);box(tf,-0.1,-1.2,zN-5.5,0.1,1.2,zN-1.2,'white',[0.92,0.92,0.95])}
+    return}
+  if(id===467){const BR=[1.5,1.25,0.75],CORE=[1.6,1.35,0.7];
+    box(tf,-0.7,-0.7,-13,0.7,0.7,10,W,[0.8,0.6,0.38]);box(tf,-0.9,-0.9,3,0.9,0.9,9.6,G);box(tf,-1,-1,10,1,1,11.4,S,BR);for(const z of [-12.6,-9.5,2.2])box(tf,-0.95,-0.95,z,0.95,0.95,z+0.9,S,BR); // haft, leather grip, pommel cap, brass bands
+    box(tf,-2.4,-2.4,-19,2.4,2.4,-13,D);box(tf,-2.9,-2.9,-16.8,2.9,2.9,-15.2,S);box(tf,-2,-7.2,-17.4,2,-2.4,-14.6,D);box(tf,-2.3,-7.6,-17,2.3,-7.1,-15,S); // iron head block, steel collar, striking face below with a hardened rim
+    box(tf,-1.4,2.4,-17.6,1.4,5.4,-14.4,D);box(tf,-0.8,5.4,-17.2,0.8,7.6,-14.8,D);box(tf,-0.35,7.6,-16.8,0.35,9,-15.2,S); // back spike tapering upward
+    box(tf,-1.3,-1.3,-19.6,1.3,1.3,-19,S,CORE);box(tf,-2.5,-0.5,-19.3,2.5,0.5,-18.9,S,CORE);box(tf,-0.5,-2.5,-19.3,0.5,2.5,-18.9,S,CORE); // the Heavy Core glows through a cross on the front
     return}
   if(id===468){
     box(tf,-0.55,-0.55,-16,0.55,0.55,14,D);box(tf,-0.7,-0.7,2,0.7,0.7,8,G);box(tf,-0.7,-0.7,-15.6,0.7,0.7,-14,S,GOLD);box(tf,-0.7,-0.7,9,0.7,0.7,10.4,S,GOLD);box(tf,-0.8,-0.8,13,0.8,0.8,14.6,S,T); // shaft, grip wrap, gold bands, capped butt
@@ -1610,7 +1616,7 @@ defItem(461,'rifle',{icon:'rifle',stack:1,dur:900,gun:{dmg:8,rate:0.11,speed:130
 defItem(462,'shotgun',{icon:'shotgun',stack:1,dur:500,gun:{dmg:4,rate:0.85,speed:75,spread:0.11,pellets:7,ammo:464,auto:false,snd:'shotgun',recoil:0.06}});
 defItem(463,'bullet',{icon:'bullet',stack:64});
 defItem(464,'shell',{icon:'shell',stack:64,label:'Shotgun Shell'});
-defItem(467,'mace',{icon:'mace',stack:1,dur:500,tool:'mace',dmg:6,atkSpd:0.6,mat:'iron'});
+defItem(467,'mace',{icon:'mace',iconPal:['mace',{d:[58,56,64],h:[128,124,136],k:[200,170,90],s:[122,82,46],g:[70,46,26],b:[160,130,70]}],label:'Battle Hammer',stack:1,dur:500,tool:'mace',dmg:6,atkSpd:0.6,mat:'iron'}); // iconPal keeps the tool-template painter from recolouring the hammer as a plain iron tool // the Heavy Core war hammer: dropped from a height it smashes
 defItem(474,'glass_bottle',{icon:'glass_bottle',label:'Glass Bottle'});
 defItem(475,'water_bottle',{icon:'water_bottle',label:'Water Bottle',stack:1});
 defItem(476,'awkward_potion',{icon:'awkward_potion',label:'Awkward Potion',stack:1});
@@ -1761,7 +1767,7 @@ shotgun:["..............ho","..............dk",".............dk.","............d
 breeze_rod:["................","..............ww",".............wbw","............wbw.","...........wbw..","..........wbw...",".........wbw....","........wbw.....",".......wbw......","......wbw.......",".....wbw........","....wbw.........","...wbw..........","..ww............","................","................"],
 wind_charge:["................","................","......wwww......","....wwbbbbww....","...wbbwwwwbbw...","..wbbwwddwwbbw..","..wbwwddddwwbw..",".wbbwddwwddwbbw.",".wbbwddwwddwbbw.","..wbwwddddwwbw..","..wbbwwddwwbbw..","...wbbwwwwbbw...","....wwbbbbww....","......wwww......","................","................"],
 ghillie:["................","...gdgggdggdg...","..ggdggdggdggg..","..dggdgdggdgdg..","..gdgggdggdggd..","..ggdgdgggdgdg..","..dgggdggdgggg..","..gdggdggdgdgg..","..ggdgggdggdgg..","..gdggdgdgggdg..","..dgggdggdggdg..","..ggdgdgggdggg..","..gdgggdggdgdg..","...gdggdgggdg...","................","................"],
-mace:["................",".....dddddd.....","....dddddddd....","....ddhhhhdd....","....ddhhhhdd....","....dddddddd....",".....dddddd.....",".......ss.......",".......ss.......",".......ss.......",".......ss.......",".......ss.......",".......ss.......",".......gg.......",".......gg.......","................"],
+mace:["..........dddd..",".........dhhhdd.","........dhkkhddd","........dhkkhddd","........ddhhdddd",".........dddddd.","........bbsdddd.",".......bbss.dd..","......ssss......",".....ssss.......","....ssss........","...ssss.........","..gggs..........",".gggg...........","gggg............",".gg............."],
 shield:["....oooooooo....","...oowwwwwwoo...","...owwiiiiwwo...","...owwiiiiwwo...","...owwwwwwwwo...","...oobbwwbboo...","...oobbwwbboo...","...oowwwwwwoo...","....owwwwwwo....","....owwwwwwo....",".....owwwwo.....",".....owwwwo.....","......owwo......","......owwo......",".......oo.......","................"],
 bottle:["................","......llll......","......l..l......","......l..l......",".....ll..ll.....","....l......l....","....l......l....","....lffffffl....","....lffffffl....","....lffffffl....","....lffffffl....","....lffffffl....",".....lffffl.....","......llll......","................","................"],
 splash:["................","......llll......","......l..l......",".....ll..ll.....","....l......l....","...l........l...","...lffffffffl...","...lffffffffl...","...lffffffffl...","...lffffffffl...","....lffffffl....",".....llllll.....","....l..ll..l....","................","................","................"],
@@ -1845,7 +1851,7 @@ chicken:['drumstick',{m:[230,170,160],b:[240,230,220]}],cooked_chicken:['drumsti
 mutton:['meat',{m:[210,80,80],f:[240,220,220]}],cooked_mutton:['meat',{m:[150,80,50],f:[200,150,110]}],
 rotten_flesh:['meat',{m:[120,90,60],f:[90,120,60]}],bone:['bone',{w:[235,235,225]}],arrow:['arrow',{w:[200,200,210],l:[240,240,250],s:[140,110,70],f:[230,230,230]}],
 bow:['bow',{s:[140,100,60],w:[230,230,230]}],pistol:['pistol',{k:[14,14,18],d:[46,49,57],m:[86,90,100],h:[140,144,154],g:[32,31,36],G:[62,60,68],w:[112,72,40],W:[152,104,58],v:[72,46,26],s:[26,28,34],S:[90,160,220],L:[205,238,255],o:[230,190,80],t:[150,152,158]}],rifle:['rifle',{k:[14,14,18],d:[46,49,57],m:[86,90,100],h:[140,144,154],g:[32,31,36],G:[62,60,68],w:[112,72,40],W:[152,104,58],v:[72,46,26],s:[26,28,34],S:[90,160,220],L:[205,238,255],o:[230,190,80],t:[150,152,158]}],shotgun:['shotgun',{k:[14,14,18],d:[46,49,57],m:[86,90,100],h:[140,144,154],g:[32,31,36],G:[62,60,68],w:[112,72,40],W:[152,104,58],v:[72,46,26],s:[26,28,34],S:[90,160,220],L:[205,238,255],o:[230,190,80],t:[150,152,158]}],bullet:['bullet',{b:[205,165,70],w:[150,150,160]}],smg:['smg',{k:[14,14,18],d:[46,49,57],m:[86,90,100],h:[140,144,154],g:[32,31,36],G:[62,60,68],w:[112,72,40],W:[152,104,58],v:[72,46,26],s:[26,28,34],S:[90,160,220],L:[205,238,255],o:[230,190,80],t:[150,152,158],r:[235,40,40],R:[255,150,130]}],revolver:['revolver',{k:[14,14,18],d:[46,49,57],m:[86,90,100],h:[140,144,154],g:[32,31,36],G:[62,60,68],w:[112,72,40],W:[152,104,58],v:[72,46,26],s:[26,28,34],S:[90,160,220],L:[205,238,255],o:[230,190,80],t:[150,152,158],r:[235,40,40],R:[255,150,130]}],dmr:['dmr',{k:[14,14,18],d:[46,49,57],m:[86,90,100],h:[140,144,154],g:[32,31,36],G:[62,60,68],w:[112,72,40],W:[152,104,58],v:[72,46,26],s:[26,28,34],S:[90,160,220],L:[205,238,255],o:[230,190,80],t:[150,152,158],r:[235,40,40],R:[255,150,130]}],minigun:['minigun',{k:[14,14,18],d:[46,49,57],m:[86,90,100],h:[140,144,154],g:[32,31,36],G:[62,60,68],w:[112,72,40],W:[152,104,58],v:[72,46,26],s:[26,28,34],S:[90,160,220],L:[205,238,255],o:[230,190,80],t:[150,152,158],r:[235,40,40],R:[255,150,130]}],scope:['scope',{k:[14,14,18],d:[46,49,57],m:[86,90,100],h:[140,144,154],g:[32,31,36],G:[62,60,68],w:[112,72,40],W:[152,104,58],v:[72,46,26],s:[26,28,34],S:[90,160,220],L:[205,238,255],o:[230,190,80],t:[150,152,158],r:[235,40,40],R:[255,150,130]}],suppressor:['suppressor',{k:[14,14,18],d:[46,49,57],m:[86,90,100],h:[140,144,154],g:[32,31,36],G:[62,60,68],w:[112,72,40],W:[152,104,58],v:[72,46,26],s:[26,28,34],S:[90,160,220],L:[205,238,255],o:[230,190,80],t:[150,152,158],r:[235,40,40],R:[255,150,130]}],grip:['grip',{k:[14,14,18],d:[46,49,57],m:[86,90,100],h:[140,144,154],g:[32,31,36],G:[62,60,68],w:[112,72,40],W:[152,104,58],v:[72,46,26],s:[26,28,34],S:[90,160,220],L:[205,238,255],o:[230,190,80],t:[150,152,158],r:[235,40,40],R:[255,150,130]}],extended_mag:['extended_mag',{k:[14,14,18],d:[46,49,57],m:[86,90,100],h:[140,144,154],g:[32,31,36],G:[62,60,68],w:[112,72,40],W:[152,104,58],v:[72,46,26],s:[26,28,34],S:[90,160,220],L:[205,238,255],o:[230,190,80],t:[150,152,158],r:[235,40,40],R:[255,150,130]}],laser_sight:['laser_sight',{k:[14,14,18],d:[46,49,57],m:[86,90,100],h:[140,144,154],g:[32,31,36],G:[62,60,68],w:[112,72,40],W:[152,104,58],v:[72,46,26],s:[26,28,34],S:[90,160,220],L:[205,238,255],o:[230,190,80],t:[150,152,158],r:[235,40,40],R:[255,150,130]}],
-sniper:['sniper',{k:[14,14,18],d:[46,49,57],m:[86,90,100],h:[140,144,154],g:[32,31,36],G:[62,60,68],w:[112,72,40],W:[152,104,58],v:[72,46,26],s:[26,28,34],S:[90,160,220],L:[205,238,255],o:[230,190,80],t:[150,152,158]}],ghillie:['ghillie',{g:[92,142,56],d:[48,84,34]}],mace:['mace',{d:[60,58,64],h:[120,116,125],s:[120,80,45],g:[85,55,30]}],breeze_rod:['breeze_rod',{w:[215,230,245],b:[120,160,210]}],wind_charge:['wind_charge',{w:[225,235,250],b:[130,170,220],d:[80,110,170]}],trident:['trident',{t:[90,225,215],s:[70,180,170]}],heavy_core:['heavy_core',{d:[38,38,42],k:[70,70,78],h:[110,110,120]}],trial_key:['trial_key',{g:[235,175,60]}],shell:['shotgun_shell',{b:[205,165,70],r:[200,40,40]}],feather:['feather',{w:[240,240,240],s:[200,200,200]}],string:['string',{w:[235,235,235]}],
+sniper:['sniper',{k:[14,14,18],d:[46,49,57],m:[86,90,100],h:[140,144,154],g:[32,31,36],G:[62,60,68],w:[112,72,40],W:[152,104,58],v:[72,46,26],s:[26,28,34],S:[90,160,220],L:[205,238,255],o:[230,190,80],t:[150,152,158]}],ghillie:['ghillie',{g:[92,142,56],d:[48,84,34]}],mace:['mace',{d:[58,56,64],h:[128,124,136],k:[200,170,90],s:[122,82,46],g:[70,46,26],b:[160,130,70]}],breeze_rod:['breeze_rod',{w:[215,230,245],b:[120,160,210]}],wind_charge:['wind_charge',{w:[225,235,250],b:[130,170,220],d:[80,110,170]}],trident:['trident',{t:[90,225,215],s:[70,180,170]}],heavy_core:['heavy_core',{d:[38,38,42],k:[70,70,78],h:[110,110,120]}],trial_key:['trial_key',{g:[235,175,60]}],shell:['shotgun_shell',{b:[205,165,70],r:[200,40,40]}],feather:['feather',{w:[240,240,240],s:[200,200,200]}],string:['string',{w:[235,235,235]}],
 egg:['egg',{m:[230,215,180],l:[245,235,210]}],snowball:['ball',{m:[240,245,255],l:[255,255,255]}],clay_ball:['ball',{m:[160,165,175],l:[190,195,205]}],
 spider_eye:['eye',{r:[150,30,30],k:[30,10,10]}],leather:['leather',{m:[170,100,50]}],brick:['brick',{m:[150,80,65]}],
 bucket:['bucket',{g:[170,170,170],c:[120,120,120]}],water_bucket:['bucket',{g:[170,170,170],c:[50,100,220]}],lava_bucket:['bucket',{g:[170,170,170],c:[240,110,20]}],milk_bucket:['bucket',{g:[170,170,170],c:[245,245,245]}],
@@ -2713,6 +2719,7 @@ function drawHand(dt){const gl=R.gl;const p=player;const st=p.inv[p.sel];const i
     const tf=makeTF(fp[1]+bob,fp[2]+bob*0.7-kick*0.015,fp[3]+kick*0.07,0.13-kick*0.03,kick*0.2,0.03,0,0,0,fp[0]);drawGun(EB,tf,id,l,sw,st&&st.att);EB.draw(R.progE,R.atlasTex,{vp:proj,fogStart:100,fogEnd:200});return}
   if(wpnModel(id)){if(p.scoped)return;const fp=WPN_FP[id],ch=Math.min(1,p.bowCharge||0),th=Math.sin(sw*PI);EB.clear();let tf;
     if(id===301)tf=makeTF(fp[1]-ch*0.22+bob+swingY*0.3,fp[2]+ch*0.06+bob*0.7,fp[3]+ch*0.1,0.5-ch*0.3+swingR*0.25,0.05,-0.35+ch*0.25,0,0,0,fp[0]); // upright on the right, canted, drawn in toward the eye as it is pulled
+    else if(id===467)tf=makeTF(fp[1]+bob+th*0.05,fp[2]+bob*0.7-th*0.1,fp[3]-th*0.25,0.35+swingR*0.2,1.15+swingR*0.9,0.18,0,0,0,fp[0]); // hammer: held upright on the right with the head up and the face forward, chopped down and forward on a swing
     else tf=makeTF(fp[1]+bob,fp[2]+bob*0.7+ch*0.22-th*0.05,fp[3]+ch*0.28-th*0.35,0.72+swingR*0.15,0.22-ch*0.5,0.1,0,0,0,fp[0]); // trident: couched by the eye, cocked back as it charges, thrust forward on a swing
     drawWeapon(EB,tf,id,l,ch,id===301&&ch>0&&hasArrow());EB.draw(R.progE,R.atlasTex,{vp:proj,fogStart:100,fogEnd:200});return}
   if(def.isBlock&&(def.model==='cube'||def.model==='slab'||def.model==='stairs'||def.model==='chest'||def.model==='fence'||def.model==='cactus'||def.model==='snow'||def.model==='farmland'||def.model==='liquid')){
@@ -7879,7 +7886,7 @@ function buildEnchantingRoom(){ // an enchanting table two blocks ahead of the p
   const n=shelvesAround(tx,ty,tz);playSound('enchant');showMessage('Enchanting table placed with '+placed+' bookshelves ('+n+' of 15 count: '+(n>=15?'max level 30 unlocked':'clear the blocks between the shelves and the table')+')');return true}
 const KITS={
   sift:{label:'full Sift armor, Sift blade, lance, pickaxe and 16 crystals',items:[[I.sift_helmet,1],[I.sift_chestplate,1],[I.sift_leggings,1],[I.sift_boots,1],[I.sift_sword,1],[I.sift_spear,1],[I.sift_pickaxe,1],[490,16]]},
-  trials:{label:'mace, trident, 4 trial keys, heavy core, 4 breeze rods, 8 wind charges',items:[[467,1],[468,1],[470,4],[469,1],[471,4],[472,8]]},
+  trials:{label:'battle hammer, trident, 4 trial keys, heavy core, 4 breeze rods, 8 wind charges',items:[[467,1],[468,1],[470,4],[469,1],[471,4],[472,8]]},
   guns:{label:'pistol, rifle, shotgun, sniper rifle, ghillie suit, 128 bullets, 32 shells, rocket launcher, 4 rockets',items:[[460,1],[461,1],[462,1],[466,1],[473,1],[463,128],[464,32],[451,1],[452,4]]},
   enchanting:{label:'enchanting table, 15 bookshelves, 100 lapis, 16 books',items:[[96,1],[29,15],[264,100],[378,16]]},
   end:{label:'glider, 16 firework rockets, 16 eyes of ender, 16 ender pearls, netherite sword',items:[[395,1],[532,16],[392,16],[312,16],[I.netherite_sword,1]]},
@@ -9053,7 +9060,7 @@ class RemotePlayer extends Entity{constructor(id,name){super(0,-100,0);this.pid=
       part([-t-o,-12-o,-t-o,t+o,0,t+o],-2,2,0,-PI/2+crawlSwing*0.3,0,0,T,cp);part([-t-o,-12-o,-t-o,t+o,0,t+o],2,2,0,-PI/2-crawlSwing*0.3,0,0,T,cp);return}
     skinLegs(part,SK,lsw,rsw);
     skinTorso(part,SK,this.sneak?0.35:0);
-    const hit=this.swingT>0?Math.sin(this.swingT/0.4*PI)*1.6:0;const gunH=!!(this.held&&ITEMS[this.held]&&ITEMS[this.held].gun&&GUN_MODELS[this.held]),wpnH=!!(this.held&&wpnModel(this.held)),shH=!!(this.held&&ITEMS[this.held]&&ITEMS[this.held].shieldKind),aimH=gunH||wpnH||shH;const armR=sit?1.15:aimH?1.45+this.pitch*0.9-hit*0.1:swing-hit;const armL=sit?1.15:aimH?1.3+this.pitch*0.9:-swing,armLz=aimH?0.55:0.05;
+    const hit=this.swingT>0?Math.sin(this.swingT/0.4*PI)*1.6:0;const gunH=!!(this.held&&ITEMS[this.held]&&ITEMS[this.held].gun&&GUN_MODELS[this.held]),wpnH=!!(this.held&&wpnModel(this.held)),shH=!!(this.held&&ITEMS[this.held]&&ITEMS[this.held].shieldKind),aimH=gunH||(wpnH&&this.held!==467)||shH;/* the battle hammer hangs at the side instead of being aimed */const armR=sit?1.15:aimH?1.45+this.pitch*0.9-hit*0.1:swing-hit;const armL=sit?1.15:aimH?1.3+this.pitch*0.9:-swing,armLz=aimH?0.55:0.05;
     skinArms(part,SK,armL,armLz,armR);
     part([-4,0,-4,4,8,4],0,24,0,this.pitch,0,0,SK.head,[1,1,1]);skinHair(part,SK,this.pitch);
     // armor: coloured shells over the body parts, by material
@@ -9067,6 +9074,7 @@ class RemotePlayer extends Entity{constructor(id,name){super(0,-100,0);this.pid=
     // held item in the right hand: blocks as a small cube, everything else as its icon
     if(this.held&&ITEMS[this.held]){const def=ITEMS[this.held];const atf=partTF(this.x,this.y,this.z,this.yaw,4,22,0,armR,0,-0.05,s,0);
       if(gunH){const k=0.42;const gtf=(x,y,z)=>atf(x*k,z*k-9.5,-y*k-1.6);drawGun(EB,gtf,this.held,l,this.swingT>0?1-this.swingT/0.4:1,this.att)}
+      else if(wpnH&&this.held===467){const k=0.5,ca=Math.cos(1.3),sa=Math.sin(1.3);const gtf=(x,y,z)=>atf(x*k+3.4,-9.5+(y*ca-z*sa)*k,(y*sa+z*ca)*k-0.8);drawWeapon(EB,gtf,this.held,l,0,false)} // hammer carried almost upright beside the fist, head up at the hip, face forward
       else if(wpnH){const k=0.42;const gtf=(x,y,z)=>atf(x*k,z*k-9.5,-y*k-1.6);drawWeapon(EB,gtf,this.held,l,0,false)}
       else if(def.shieldKind){const k=0.42;const gtf=(x,y,z)=>atf(x*k,-z*k-8.5,y*k-1.6);const panel=drawShield(EB,gtf,def.shieldKind,l,0);if(panel)for(const b of panel)gunBox(EB,gtf,b[0],b[1],b[2],b[3],b[4],b[5],'white',[0.72,0.86,1],l)}
       else if(def.isBlock&&ITEMTILE[this.held]===undefined){const rb=renderBoxes(this.held,0,0,0,0);for(const b of rb)EB.box(atf,b[0]*6-3,b[1]*6-14,b[2]*6-9,b[3]*6-3,b[4]*6-14,b[5]*6-9,b[6],b[8]?[b[8][0]/255,b[8][1]/255,b[8][2]/255]:[1,1,1],l,false)}
