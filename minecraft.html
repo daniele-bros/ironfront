@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="ironcraft-build" content="20261114-001929">
+<meta name="ironcraft-build" content="20261114-013055">
 <meta name="viewport" content="width=device-width,initial-scale=1.0,viewport-fit=cover">
 <title>Ironcraft – Free Voxel Survival Sandbox in Your Browser | Iron Games</title>
 <meta name="description" content="Ironcraft is a free browser-based voxel survival sandbox with building, exploration, private or safety-limited public multiplayer, and optional weather, horror and survival challenges. By Daniele Bros.">
@@ -1818,6 +1818,8 @@ TPL.rocket=[".......rr.......","......rrrr......","......rRrr......",".....krRrr
     carbine:mk(R=>{R(1,6,4,7,'d');R(4,5,8,8,'W');R(8,4,11,8,'m');R(12,6,15,6,'t');R(15,7,15,9,'t');R(8,9,9,12,'g');R(11,9,12,11,'G');R(1,4,1,5,'d')}),
     battle_rifle:mk(R=>{R(1,6,5,7,'d');R(0,5,0,8,'d');R(5,5,9,8,'W');R(9,4,12,8,'m');R(12,5,15,9,'W');R(9,9,10,11,'g');R(12,10,13,11,'G');R(9,3,10,3,'d')}),
     mg42:mk(R=>{R(0,7,11,8,'d');R(0,6,1,9,'t');R(3,9,3,12,'t');R(6,9,6,12,'t');R(9,5,14,9,'m');R(10,6,13,8,'d');R(13,4,14,5,'d');R(14,7,15,10,'g');R(11,10,12,13,'o');R(5,5,8,6,'d')}),
+    tripod:mk(R=>{R(6,2,9,4,'d');R(7,0,8,2,'m');R(7,4,8,6,'t');R(5,6,6,8,'t');R(4,8,5,10,'t');R(3,10,4,12,'t');R(2,12,3,14,'t');R(9,6,10,8,'t');R(10,8,11,10,'t');R(11,10,12,12,'t');R(12,12,13,14,'t');R(7,6,8,14,'t')}),
+    m2mount:mk(R=>{R(0,4,8,5,'d');R(2,3,8,6,'m');R(9,1,14,7,'m');R(10,2,13,6,'d');R(15,2,15,4,'g');R(6,6,9,8,'d');R(7,8,8,10,'t');R(5,10,6,12,'t');R(4,12,5,14,'t');R(9,10,10,12,'t');R(10,12,11,14,'t');R(7,10,8,14,'t')}),
     m2:mk(R=>{R(0,7,8,8,'d');R(2,6,8,9,'m');R(3,7,7,8,'d');R(9,4,14,10,'m');R(10,5,13,9,'d');R(9,3,13,4,'d');R(15,5,15,7,'g');R(15,9,15,11,'g');R(14,10,14,10,'d');R(4,10,4,13,'t');R(7,10,7,13,'t');R(6,13,10,13,'t')}),
     lmg:mk(R=>{R(0,6,2,7,'d');R(3,5,8,8,'d');R(4,6,7,6,'m');R(3,9,3,12,'t');R(6,9,6,12,'t');R(8,4,12,8,'m');R(9,9,13,13,'g');R(9,10,13,10,'o');R(12,5,15,8,'d');R(4,3,7,3,'d')}),
     heavy_sniper:mk(R=>{R(0,7,6,7,'d');R(0,6,1,8,'t');R(5,2,12,4,'d');R(4,2,4,4,'L');R(8,5,12,8,'m');R(12,5,15,8,'d');R(2,8,2,11,'t');R(8,9,10,10,'g');R(11,9,12,11,'G')}),
@@ -1855,7 +1857,7 @@ quartz:['gem',{l:[255,255,255],m:[235,228,220],d:[180,170,160]}],cookie:['cookie
 door:['door',{p:[140,100,55],d:[160,120,70],w:[170,210,240],k:[70,70,70]}],bed:['bed',{w:[240,240,240],r:[200,30,30],b:[140,100,60]}],
 };
 {const GP={k:[14,14,18],d:[46,49,57],m:[86,90,100],h:[140,144,154],g:[32,31,36],G:[62,60,68],w:[112,72,40],W:[152,104,58],v:[72,46,26],s:[26,28,34],S:[90,160,220],L:[205,238,255],o:[230,190,80],t:[150,152,158],r:[235,40,40],R:[255,150,130],p:[165,95,175]};
-  for(const k of ['assault_rifle','carbine','battle_rifle','lmg','mg42','m2','heavy_sniper','grenade_launcher','flamethrower','machine_pistol','marksman_carbine','riot_shotgun'])ICONDEF[k]=[k,GP];
+  for(const k of ['assault_rifle','carbine','battle_rifle','lmg','mg42','m2','heavy_sniper','grenade_launcher','flamethrower','machine_pistol','marksman_carbine','riot_shotgun','tripod','m2mount'])ICONDEF[k]=[k,GP];
   ICONDEF.grenade=['grenade',{k:[14,14,18],o:[72,96,52],O:[126,156,90],t:[170,172,176],v:[44,62,32]}];
   ICONDEF.fuel_can=['fuel_can',{k:[14,14,18],r:[190,40,34],R:[236,96,80],t:[170,172,176]}]}
 function toolIcon(def){
@@ -2623,7 +2625,7 @@ function renderFrame(dt){
   // ---- selection & cracks ----
   drawSelection();
   // ---- hand ----
-  if(!game.cam&&!R.vch)drawHand(dt);
+  if(!game.cam&&!R.vch&&!(player.riding&&player.riding.def&&SIEGE[player.riding.def.vehicle]))drawHand(dt); // hands are on the siege piece, not the held item
   gl.disable(gl.BLEND);
 }
 function drawSky(sc){const gl=R.gl;gl.disable(gl.DEPTH_TEST);gl.disable(gl.CULL_FACE);gl.enable(gl.BLEND);gl.blendFunc(gl.SRC_ALPHA,gl.ONE_MINUS_SRC_ALPHA);EBS.clear();
@@ -3171,14 +3173,18 @@ class MortarShell extends Arrow{constructor(x,y,z,vx,vy,vz,mortar){super(x,y,z,v
   render(EB){const l=[1,1];const tf=makeTF(this.x,this.y,this.z,this.yaw,this.pitch,0,0,0,0,1);EB.box(tf,-0.1,-0.1,-0.28,0.1,0.1,0.28,TEX.white,[0.2,0.21,0.24],l,true);EB.box(tf,-0.07,-0.07,-0.45,0.07,0.07,-0.28,TEX.white,[0.8,0.5,0.18],l,true);EB.box(tf,-0.16,-0.02,0.12,0.16,0.02,0.34,TEX.white,[0.3,0.3,0.34],l,true);EB.box(tf,-0.02,-0.16,0.12,0.02,0.16,0.34,TEX.white,[0.3,0.3,0.34],l,true)}}
 
 /* ---- siege engines (War): a wheeled cannon and a catapult, manned like the mortar; look to aim, click to fire, Shift to leave ---- */
-const SIEGE={cannon:{v:40,g:14,min:-5*PI/180,max:50*PI/180,cd:3,ammo:534,len:1.5,piv:0.9,power:2.6,label:'Cannon',ammoName:'cannonballs'},catapult:{v:26,g:12,min:35*PI/180,max:70*PI/180,cd:5,ammo:536,len:1.9,piv:1.0,power:2.3,label:'Catapult',ammoName:'boulders'}};
+const SIEGE={cannon:{v:40,g:14,min:-5*PI/180,max:50*PI/180,cd:3,ammo:534,len:1.5,piv:0.9,power:2.6,stand:1.5,label:'Cannon',ammoName:'cannonballs'},catapult:{v:26,g:12,min:35*PI/180,max:70*PI/180,cd:5,ammo:536,len:1.9,piv:1.0,power:2.3,stand:2.1,label:'Catapult',ammoName:'boulders'},
+  m2mount:{gun:true,v:180,dmg:18,rate:0.11,spread:0.03,vehMul:2,min:-25*PI/180,max:40*PI/180,cd:0.11,ammo:541,len:1.45,piv:0.95,stand:1.1,label:'M2 on Tripod',ammoName:'.50 cal rounds'}}; // the M2 mount fires real bullets on full auto instead of lobbing a shot
 MOBDEF.cannon={hp:90,w:1.2,h:1.3,speed:0,passive:true,vehicle:'cannon',noDespawn:true,noBurn:true,fireproof:true,kbMul:0.1,drops:r=>[[260,4],[25,1],[5,4]],xp:[0,0],sound:'none',food:[]};
 MOBDEF.catapult={hp:70,w:1.6,h:1.8,speed:0,passive:true,vehicle:'catapult',noDespawn:true,noBurn:true,kbMul:0.1,drops:r=>[[5,8],[256,4],[15,2]],xp:[0,0],sound:'none',food:[]};
-MOB_TYPES.push('cannon','catapult');MOB_LABEL.cannon='Cannon';MOB_LABEL.catapult='Catapult';MOB_BY_LABEL.cannon='cannon';MOB_BY_LABEL.catapult='catapult';
+MOBDEF.m2mount={hp:80,w:1.1,h:1.2,speed:0,passive:true,vehicle:'m2mount',noBoom:true,noDespawn:true,noBurn:true,fireproof:true,kbMul:0.1,drops:r=>[[540,1],[542,1]],xp:[0,0],sound:'none',food:[]};
+MOB_TYPES.push('cannon','catapult','m2mount');MOB_LABEL.cannon='Cannon';MOB_LABEL.catapult='Catapult';MOB_LABEL.m2mount='M2 on Tripod';MOB_BY_LABEL.cannon='cannon';MOB_BY_LABEL.catapult='catapult';MOB_BY_LABEL.m2mount='m2mount';
 defItem(533,'cannon_spawn_egg',{label:'Cannon',icon:'egg',iconPal:['egg',{m:[40,42,48],l:[120,124,130]}],spawnMob:'cannon',stack:4});
 defItem(534,'cannonball',{label:'Cannonball',icon:'bullet',iconPal:['bullet',{b:[36,38,44],w:[96,98,104]}],stack:16});
 defItem(535,'catapult_spawn_egg',{label:'Catapult',icon:'egg',iconPal:['egg',{m:[110,74,40],l:[190,150,96]}],spawnMob:'catapult',stack:4});
 defItem(536,'boulder',{label:'Boulder',icon:'bullet',iconPal:['bullet',{b:[96,96,100],w:[140,140,144]}],stack:16});
+defItem(542,'tripod',{label:'Tripod',icon:'tripod',stack:16});
+defItem(543,'m2_mount',{label:'M2 on Tripod',icon:'m2mount',spawnMob:'m2mount',stack:1}); // placed like the cannon; sneak + right-click packs it back into the item
 // a cannonball or boulder: a plain lump that flies under its own gravity, bursts on the first block or mob it meets and spares its own crew
 class SiegeShot extends Arrow{constructor(x,y,z,vx,vy,vz,engine,kind){super(x,y,z,vx,vy,vz,'player',0);this.engine=engine;this.kind=kind;this.g=SIEGE[kind].g;this.noGravity=true;this.w=0.4;this.h=0.4;this.kb=0;this.shell=true}
   update(dt){this.age+=dt;if(this.age>30||this.y<-30){this.dead=true;return}const ox=this.x,oy=this.y,oz=this.z;this.vy-=this.g*dt;const nx=ox+this.vx*dt,ny=oy+this.vy*dt,nz=oz+this.vz*dt;
@@ -3189,7 +3195,9 @@ class SiegeShot extends Arrow{constructor(x,y,z,vx,vy,vz,engine,kind){super(x,y,
     try{explode(this.x,this.y,this.z,SIEGE[this.kind].power,this)}finally{own.forEach((e,i)=>{e.blastProof=was[i]})}spawnParticles(this.kind==='cannon'?'smoke':'crit',this.x,this.y,this.z,12);if(this.kind==='catapult')playSoundAt('place_stone',this.x,this.y,this.z,1,0.5)}
   render(EB){const l=lightAt(this.x,this.y,this.z);const tf=makeTF(this.x,this.y,this.z,this.yaw,this.pitch,0,0,0,0,1);if(this.kind==='cannon'){EB.box(tf,-0.18,-0.18,-0.18,0.18,0.18,0.18,TEX.white,[0.16,0.17,0.2],l,true)}else{EB.box(tf,-0.3,-0.26,-0.3,0.3,0.28,0.3,TEX.cobblestone,[1,1,1],l,true);EB.box(tf,-0.2,-0.34,-0.2,0.2,0.34,0.2,TEX.cobblestone,[0.9,0.9,0.9],l,true)}}}
 function siegeAttackHook(){const r=player.riding;if(r&&r.def&&SIEGE[r.def.vehicle]&&r.rider===player){if(!game.gui)r.siegeFire();return true}return false}
-function siegeUseHook(st,hd,t){if(!hd||!hd.spawnMob||!SIEGE[hd.spawnMob])return false;if(!(game.mods&&game.mods.war)){showMessage('The '+SIEGE[hd.spawnMob].label+' needs the War or Jungle War fun mod');return true}return false}
+function siegeUseHook(st,hd,t){const te=player.targetEntity;if(te&&te instanceof Mob&&te.def&&te.def.vehicle==='m2mount'&&player.sneaking&&!te.dead&&!te.dying&&!te.remote){if(te.rider||(te.seatIds&&te.seatIds.some(x=>x))){showMessage('Someone is on the gun');return true}if(MP.active&&!MP.host){showMessage('Only the host can pack up a mounted gun');return true}
+    const got={id:543,count:1};if(addToInventory(got))spawnItem(te.x,te.y+0.5,te.z,got);te.dead=true;te.hp=0;if(typeof mpMobRemove==='function')mpMobRemove(te);playSoundAt('place_wood',te.x,te.y,te.z,0.8,1.1);showMessage('Packed up the M2');player.swing=0;return true}
+  if(!hd||!hd.spawnMob||!SIEGE[hd.spawnMob])return false;if(!(game.mods&&game.mods.war)){showMessage('The '+SIEGE[hd.spawnMob].label+' needs the War or Jungle War fun mod');return true}return false}
 function siegeTick(dt){for(const e of entities){if(e instanceof Mob&&e.armT>0&&!e.remote)e.armT-=dt}} // the catapult arm keeps swinging after the crew hops off
 // cannon: iron barrel on a wooden carriage between two wheels. Boxes in 1/16ths; the barrel pivots at its trunnions, -z is the muzzle
 function renderCannon(m,part,W,N,tint){const H=TEX.tank_hull,P=TEX.oak_planks,IR=tint||[0.2,0.21,0.24],DK=[0.08,0.08,0.1],WD=[0.55,0.4,0.24],WD2=[0.42,0.3,0.18];
@@ -3199,6 +3207,13 @@ function renderCannon(m,part,W,N,tint){const H=TEX.tank_hull,P=TEX.oak_planks,IR
   part([-7.5,6,-1,7.5,8,1],0,0,0,0,tur,0,H,DK);part([-6,7,-6,6,11,14],0,0,0,0,tur,0,P,WD);part([-6.5,11,2,6.5,13,8],0,0,0,0,tur,0,P,WD2);part([-2,11,8,2,12.5,15],0,0,0,0,tur,0,P,WD); // axle, carriage, step, trail
   T([-3.1,-3.1,-6,3.1,3.1,4],IR);T([-2.7,-2.7,-22+rb,2.7,2.7,-6+rb],IR);T([-3.2,-3.2,-22.5+rb,3.2,3.2,-20+rb],DK);T([-1.5,-1.5,-22.8+rb,1.5,1.5,-22.2+rb],[0.02,0.02,0.02],W);T([-1.6,-1.6,4,1.6,1.6,6.5],DK);T([-4,-1,-3,4,1,-1],DK); // breech, barrel, muzzle band, bore, cascabel, trunnions
   if(m.flashT>0){T([-4.2,-4.2,-28,4.2,4.2,-22],[1,0.75,0.3],W);T([-2,-2,-33,2,2,-22],[1,1,0.8],W)}}
+// M2 on a tripod: three splayed steel legs meet at a head the gun pivots on; the gun body reuses the hand-held M2 boxes (minus its folded bipod) at 0.45 scale
+function renderM2Mount(m,part,W,N,tint){const H=TEX.tank_hull,ST=tint||[0.3,0.31,0.34],DK=[0.1,0.1,0.12],PY=SIEGE.m2mount.piv*16-1,tur=m.bank||0,e=clamp(m.throttle||0,SIEGE.m2mount.min,SIEGE.m2mount.max),rb=Math.max(0,m.recoilT||0)/0.08*0.8;
+  for(let i=0;i<3;i++){const a=i*2.0944+0.52;part([-0.7,-17,-0.7,0.7,0,0.7],0,PY,0,0.58,a,0,H,ST);part([-1.1,-17.2,-1.1,1.1,-15.6,1.1],0,PY,0,0.58,a,0,H,DK)} // legs and feet
+  part([-2,-1.5,-2,2,1.5,2],0,PY,0,0,tur,0,H,DK);part([-1.4,1.5,-1.4,1.4,3,1.4],0,PY,0,0,tur,0,H,ST);part([-2.6,-0.6,-1,2.6,0.6,1],0,PY,0,0,tur,0,H,ST); // head, pintle, traverse bar
+  const G=GUN_MODELS[540]||[],k=0.45,tx=t=>Array.isArray(t)?t.map(n=>typeof n==='number'?n:TEX[n]):(typeof t==='number'?t:TEX[t]);
+  for(const b of G){const o=b[7];if(o&&o.rx!==undefined)continue;const c=o&&o.col?o.col:[1,1,1];part([b[0]*k,b[1]*k+0.8,b[2]*k+rb,b[3]*k,b[4]*k+0.8,b[5]*k+rb],0,PY+1.6,0,e,tur,0,tx(b[6]),c)}
+  if(m.flashT>0){part([-2,0.5,-24,2,4.5,-21.5],0,PY+1.6,0,e,tur,0,W,[1,0.78,0.3]);part([-1,1.4,-28,1,3.6,-21.5],0,PY+1.6,0,e,tur,0,W,[1,1,0.85])}}
 // catapult: a timber frame, a throwing arm on an axle with a bucket and a counterweight; the arm leans back cocked, whips forward on firing and winds back during the reload
 function renderCatapult(m,part,W,N,tint){const P=TEX.oak_planks,L=TEX.oak_log,H=TEX.tank_hull,WD=tint||[0.6,0.45,0.27],WD2=[0.45,0.33,0.2],DK=[0.12,0.12,0.14],ST=[0.5,0.5,0.52];
   const tur=m.bank||0,e=clamp(m.throttle||0,SIEGE.catapult.min,SIEGE.catapult.max),cd=Math.max(0,m.gunCd||0),cock=1.55-e; // the cocked lean follows the aim: a steeper shot cocks the arm more upright
@@ -3504,10 +3519,15 @@ class Mob extends Entity{
   rideSiege(dt,fwd,strafe,jump,sprint){const p=player,K=SIEGE[this.def.vehicle];if(this.hurtT>0)this.hurtT-=dt;if(this.invT>0)this.invT-=dt;this.gunCd=(this.gunCd||0)-dt;if(this.recoilT>0)this.recoilT-=dt;if(this.flashT>0)this.flashT-=dt;
     const wrap=a=>Math.atan2(Math.sin(a),Math.cos(a));this.vx=this.vz=0;this.speed=0;this.pitch=0;this.physics(dt,{friction:0.5,gravity:this.inWater?8:32,drag:1});
     p.pitch=clamp(p.pitch,K.min,K.max);this.bank=wrap(p.yaw-this.yaw);this.throttle=p.pitch;this.loaded=countItem(K.ammo)>0;
-    if(game.time-(this.rideT===undefined?-99:this.rideT)>1)showMessage(K.label+': look to aim, click or Space to fire '+K.ammoName+', Shift to leave');this.rideT=game.time;
+    if(game.time-(this.rideT===undefined?-99:this.rideT)>1)showMessage(K.label+': look to aim, '+(K.gun?'hold click or Space to fire ':'click or Space to fire ')+K.ammoName+', Shift to leave');this.rideT=game.time;
     if((keys.Space||mouseL)&&!game.gui)this.siegeFire();p.breakCooldown=Math.max(p.breakCooldown||0,0.3);
-    p.x=this.x+Math.sin(p.yaw)*(this.def.vehicle==='cannon'?1.5:2.1);p.z=this.z+Math.cos(p.yaw)*(this.def.vehicle==='cannon'?1.5:2.1);p.y=this.y} // standing behind the piece
-  siegeFire(){const K=SIEGE[this.def.vehicle];if((this.gunCd||0)>0||this.rider!==player)return false;
+    p.x=this.x+Math.sin(p.yaw)*(K.stand||1.5);p.z=this.z+Math.cos(p.yaw)*(K.stand||1.5);p.y=this.y} // standing behind the piece
+  siegeFire(){const K=SIEGE[this.def.vehicle];if((this.gunCd||0)>0||this.rider!==player)return false;const creative=player.mode==='creative';
+    if(K.gun){if(!creative&&countItem(K.ammo)<=0){if(game.time-(this.dryT===undefined?-99:this.dryT)>1.5){this.dryT=game.time;showMessage('Out of '+K.ammoName);playSound('pop',0.4,0.5)}return false}
+      if(!creative)removeItem(K.ammo,1);this.gunCd=K.cd;this.loaded=creative||countItem(K.ammo)>0;const e=clamp(this.throttle||0,K.min,K.max),ya=this.yaw+this.bank,ce=Math.cos(e);const d=[-Math.sin(ya)*ce,Math.sin(e),-Math.cos(ya)*ce];
+      const sx=d[0]+(Math.random()-0.5)*K.spread*2,sy=d[1]+(Math.random()-0.5)*K.spread*2,sz=d[2]+(Math.random()-0.5)*K.spread*2;const L=sqrt(sx*sx+sy*sy+sz*sz);const x=this.x+d[0]*K.len,y=this.y+K.piv+d[1]*K.len,z=this.z+d[2]*K.len;
+      const b=new Arrow(x,y,z,sx/L*K.v,sy/L*K.v,sz/L*K.v,'player',K.dmg);b.bullet=true;b.noGravity=true;b.kb=3;b.volley=(game.volley=(game.volley||0)+1);b.vehMul=K.vehMul;entities.push(b);
+      this.recoilT=0.08;this.flashT=0.06;spawnParticles('flash',x,y,z,2);playSoundAt('sniper',this.x,this.y+1,this.z,0.9,0.95);game.shake=Math.max(game.shake||0,0.08);return true}
     if(countItem(K.ammo)<=0){if(game.time-(this.dryT===undefined?-99:this.dryT)>1.5){this.dryT=game.time;showMessage('Out of '+K.ammoName);playSound('pop',0.4,0.5)}return false}
     removeItem(K.ammo,1);this.gunCd=K.cd;this.loaded=countItem(K.ammo)>0;const e=clamp(this.throttle||0,K.min,K.max),ya=this.yaw+this.bank,ce=Math.cos(e);const d=[-Math.sin(ya)*ce,Math.sin(e),-Math.cos(ya)*ce];
     const x=this.x+d[0]*K.len,y=this.y+K.piv+d[1]*K.len,z=this.z+d[2]*K.len;entities.push(new SiegeShot(x,y,z,d[0]*K.v,d[1]*K.v,d[2]*K.v,this,this.def.vehicle));
@@ -4022,7 +4042,7 @@ if(this.def.vehicle){if(this.hurtT>0)this.hurtT-=dt;if(this.invT>0)this.invT-=dt
     if(this.def.passive){this.panicT=3;this.panicYaw=src&&src.x!==undefined?Math.atan2(src.x-this.x,src.z-this.z):Math.random()*PI*2}this.angry=true;
     if(src&&src.type==='player'&&this.def.passive){}
   }
-  onDeath(){const r=Math.random;if(this.def.vehicle&&!this.boomed){this.boomed=true;explode(this.x,this.y+1,this.z,this.def.vehicle==='bomber'?4:2.5)}if(this.type==='slime'&&this.size>1){const n=2+floor(r()*3);for(let i=0;i<n;i++){const s=new Mob('slime',this.x+(r()-0.5)*this.w,this.y+0.2,this.z+(r()-0.5)*this.w);s.setSize(this.size-1);s.vx=(r()-0.5)*6;s.vz=(r()-0.5)*6;s.vy=4;s.angry=this.angry;entities.push(s)}}
+  onDeath(){const r=Math.random;if(this.def.vehicle&&!this.boomed&&!this.def.noBoom){this.boomed=true;explode(this.x,this.y+1,this.z,this.def.vehicle==='bomber'?4:2.5)}if(this.type==='slime'&&this.size>1){const n=2+floor(r()*3);for(let i=0;i<n;i++){const s=new Mob('slime',this.x+(r()-0.5)*this.w,this.y+0.2,this.z+(r()-0.5)*this.w);s.setSize(this.size-1);s.vx=(r()-0.5)*6;s.vz=(r()-0.5)*6;s.vy=4;s.angry=this.angry;entities.push(s)}}
     const drops=game.randomDrops?randomDrops():this.def.drops(r,this);if(!game.randomDrops&&typeof lootMobDrops==='function')lootMobDrops(this,drops);if(game.mods&&game.mods.guns&&!this.def.passive&&!this.def.animal&&Math.random()<0.6)drops.push([Math.random()<0.75?463:464,2+floor(Math.random()*4)]);const loot=this.lastHit>game.time-5?(this.lootLvl||0):0;for(const d of drops){if(d[0]&&d[1]>0)spawnItem(this.x,this.y+0.3,this.z,{id:d[0],count:d[1]+(loot?floor(r()*(loot+1)):0)},null,undefined,{local:!(MP.active&&MP.host)})}
     if(this.lastHit>game.time-5)spawnXP(this.x,this.y+0.3,this.z,this.def.xp[0]+floor(Math.random()*(this.def.xp[1]-this.def.xp[0]+1)));playSoundAt(this.def.sound+'_death',this.x,this.y,this.z)}
   interact(stack){ // right click by player, returns true if consumed action
@@ -5244,7 +5264,7 @@ Object.assign(LOOT,{
   rare:[[263,1,3,12],[266,2,6,10],[379,1,1,12],[308,1,2,12],[312,1,3,10],[315,1,1,8],[262,4,10,8],[25,1,3,5],[392,1,2,3],[393,1,1,1],[375,1,2,3],[376,1,1,1.2],[396,1,1,1.5],[390,1,3,3],[395,1,1,0.6],[I.diamond_sword,1,1,2],[I.diamond_pickaxe,1,1,2],[I.diamond_helmet,1,1,1.5],[I.diamond_chestplate,1,1,1.5],[531,1,1,6],[467,1,1,0.8],[468,1,1,0.8],[465,1,1,1.5,'camping']],
   military:[[463,16,64,16,'guns'],[464,8,24,9,'guns'],[527,2,8,8,'war'],[528,1,4,5,'war'],
     [460,1,1,5,'guns'],[461,1,1,4,'guns'],[462,1,1,4,'guns'],[466,1,1,2.5,'guns'],[478,1,1,3,'guns'],[479,1,1,4,'guns'],[482,1,1,1.8,'guns'],[483,1,1,0.8,'guns'],
-    [517,1,1,2.2,'war'],[518,1,1,2.2,'war'],[519,1,1,2,'war'],[520,1,1,1.2,'war'],[521,1,1,1,'war'],[522,1,1,1,'war'],[523,1,1,1,'war'],[524,1,1,2,'war'],[525,1,1,1.6,'war'],[526,1,1,1.8,'war'],[539,1,1,1.1,'war'],[540,1,1,0.7,'war'],[541,8,24,1.4,'war'],
+    [517,1,1,2.2,'war'],[518,1,1,2.2,'war'],[519,1,1,2,'war'],[520,1,1,1.2,'war'],[521,1,1,1,'war'],[522,1,1,1,'war'],[523,1,1,1,'war'],[524,1,1,2,'war'],[525,1,1,1.6,'war'],[526,1,1,1.8,'war'],[539,1,1,1.1,'war'],[540,1,1,0.7,'war'],[542,1,1,0.9,'war'],[541,8,24,1.4,'war'],
     [451,1,1,1.5,'guns'],[452,2,6,5,'guns'],[MORT_SHELL,2,6,4,'guns'],[HOW_SHELL,2,4,2.5,'guns'],[484,1,1,1.2,'guns'],[485,1,1,1.2,'guns'],[473,1,1,0.8,'guns'],[489,1,1,1.5],
     [28,2,8,8],[151,1,1,0.5,'nukes'],[454,1,1,3],[260,4,16,8],[25,1,3,3],[277,4,10,6],[308,1,3,5],[257,4,12,3],[32,4,16,3],[531,1,1,3],
     [I.iron_helmet,1,1,4],[I.iron_chestplate,1,1,4],[I.iron_leggings,1,1,4],[I.iron_boots,1,1,4],[I.diamond_helmet,1,1,1.2],[I.diamond_chestplate,1,1,1.2],[I.diamond_leggings,1,1,1.2],[I.diamond_boots,1,1,1.2],[386,1,1,0.4],[387,1,1,0.4],[388,1,1,0.4],[389,1,1,0.4],
@@ -5938,6 +5958,7 @@ RECIPES.push({p:['BBB','dTB','i.i'],k:{B:25,d:263,T:28,i:260},out:[529,1],shaped
 RECIPES.push({s:[28,28,260,285],out:[HOW_SHELL,2],shaped:false,guns:true,station:'gun'}); /* artillery shells: 2 TNT + iron ingot + gunpowder */RECIPES.push({s:[260,289,272],out:[448,1],shaped:false,mod:'war'});
 RECIPES.push({p:['GIG','GIG','.I.'],k:{G:17,I:260},out:[537,1],shaped:true,mod:'war'});RECIPES.push({p:['BIB','BIB','.I.'],k:{B:25,I:260},out:[538,1],shaped:true,mod:'war'}); // riot shield: glass and iron; ballistic shield: iron blocks
 RECIPES.push({p:['.II','IBI','pIp'],k:{I:260,B:25,p:PLANKS},out:[533,1],shaped:true,mod:'war'});RECIPES.push({s:[260,260,285],out:[534,2],shaped:false,mod:'war'}); // cannon and cannonballs
+RECIPES.push({p:['.I.','III','I.I'],k:{I:260},out:[542,1],shaped:true,mod:'war'});RECIPES.push({s:[540,542],out:[543,1],shaped:false,mod:'war'});// tripod and M2 on tripod (sneak + right-click a placed mount packs it up; breaking one drops the gun and tripod)
 RECIPES.push({p:['s.s','sss','LsL'],k:{s:256,L:LOGS},out:[535,1],shaped:true,mod:'war'});RECIPES.push({s:[4,4,4,4],out:[536,2],shaped:false,mod:'war'}); // catapult and boulders /* Recruit Soldier egg: iron ingot + leather + bread (the Enemy Soldier egg is creative only) */
 shaped(['BgB','dtd','BBB'],{B:25,g:17,d:263,t:28},[455,1]); /* submarine spawn egg: 5 iron blocks, glass, 2 diamonds, TNT */
 RECIPES.push({s:[28,260,260,265],out:[447,2],shaped:false}); /* 2 torpedoes: TNT + 2 iron ingots + redstone */
@@ -7764,7 +7785,7 @@ function seatPlace(r){const m=r.seatM;if(!m||m.dead||!r.hasTarget)return;let yw=
   if(S&&m.riders){const e=(S[r.seatN]||S[0]).e,w=vehPoint(m,e[0],e[1],e[2]);q=[w[0],w[1]-1.62,w[2]];if(seatGunI(m,r.seatN)>=0)yw=r.tyaw}
   else q=[m.x,seatFeet(m),m.z];
   r.x=q[0];r.y=q[1];r.z=q[2];r.yaw=yw}
-function renderVehicle(m,part,W,N,kind,tint){if(m.def.ship)return renderShip(m,part,W,N);if((kind||m.def.vehicle)==='flak')return renderFlak(m,part,W,N,tint);if((kind||m.def.vehicle)==='tank')return renderTank(m,part,W,N,tint);if((kind||m.def.vehicle)==='sub')return renderSub(m,part,W,N,tint);if((kind||m.def.vehicle)==='heli')return renderHeli(m,part,W,N,tint);if((kind||m.def.vehicle)==='mortar')return renderMortar(m,part,W,N,tint);if((kind||m.def.vehicle)==='cannon')return renderCannon(m,part,W,N,tint);if((kind||m.def.vehicle)==='catapult')return renderCatapult(m,part,W,N,tint);if((kind||m.def.vehicle)==='howitzer')return renderHowitzer(m,part,W,N,tint);kind=kind||m.def.vehicle;if(kind==='a10')return renderA10(m,part,W,N,tint);const t=game.time;const fp=m.rider===player&&vehCamMode()===1,fs=fp?(player.seat|0):-1;const B=m.bank||0,cb=Math.cos(B),sb=Math.sin(B);const spin=m.remote?t*(8+40*(m.throttle||0)):(m.walkT||0);const onG=m.onGround||m.remote&&!(m.throttle>0.3);
+function renderVehicle(m,part,W,N,kind,tint){if(m.def.ship)return renderShip(m,part,W,N);if((kind||m.def.vehicle)==='flak')return renderFlak(m,part,W,N,tint);if((kind||m.def.vehicle)==='tank')return renderTank(m,part,W,N,tint);if((kind||m.def.vehicle)==='sub')return renderSub(m,part,W,N,tint);if((kind||m.def.vehicle)==='heli')return renderHeli(m,part,W,N,tint);if((kind||m.def.vehicle)==='mortar')return renderMortar(m,part,W,N,tint);if((kind||m.def.vehicle)==='cannon')return renderCannon(m,part,W,N,tint);if((kind||m.def.vehicle)==='catapult')return renderCatapult(m,part,W,N,tint);if((kind||m.def.vehicle)==='m2mount')return renderM2Mount(m,part,W,N,tint);if((kind||m.def.vehicle)==='howitzer')return renderHowitzer(m,part,W,N,tint);kind=kind||m.def.vehicle;if(kind==='a10')return renderA10(m,part,W,N,tint);const t=game.time;const fp=m.rider===player&&vehCamMode()===1,fs=fp?(player.seat|0):-1;const B=m.bank||0,cb=Math.cos(B),sb=Math.sin(B);const spin=m.remote?t*(8+40*(m.throttle||0)):(m.walkT||0);const onG=m.onGround||m.remote&&!(m.throttle>0.3);
   const DK=[0.1,0.1,0.11],GR=[0.22,0.22,0.25],CH=[0.82,0.83,0.86],GL=[0.5,0.72,0.92],RED=[0.9,0.12,0.1],YEL=[0.95,0.8,0.15];
   const bx=(cy,b,col,rx,ry,rzx,px,py,pz)=>{const ox=px||0,oy=py===undefined?cy:py,oz=pz||0;const qx=ox*cb-(oy-cy)*sb,qy=cy+ox*sb+(oy-cy)*cb;part(b,qx,qy,oz,rx||0,ry||0,B+(rzx||0),W,col)}; // box (b relative to its pivot), pivot (px,py,pz) banked round the centre line
   if(kind==='car'){const cy=8,C=tint||CAR_COLS[(m.color||0)%CAR_COLS.length];const A=(b,col)=>bx(cy,[b[0],b[1]-cy,b[2],b[3],b[4]-cy,b[5]],col);
