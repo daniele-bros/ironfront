@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="ironcraft-build" content="20261115-210330">
+<meta name="ironcraft-build" content="20261115-211256">
 <meta name="viewport" content="width=device-width,initial-scale=1.0,viewport-fit=cover">
 <title>Ironcraft – Free Voxel Survival Sandbox in Your Browser | Iron Games</title>
 <meta name="description" content="Ironcraft is a free browser-based voxel survival sandbox with building, exploration, private or safety-limited public multiplayer, and optional weather, horror and survival challenges. By Daniele Bros.">
@@ -1954,7 +1954,7 @@ class World{
     const s=seed|0;this.nT=new Simplex(s);this.nH=new Simplex(s+1);this.nM=new Simplex(s+2);this.nD=new Simplex(s+3);this.nTemp=new Simplex(s+4);this.nHum=new Simplex(s+5);
     this.nC1=new Simplex(s+6);this.nC2=new Simplex(s+7);this.nC3=new Simplex(s+8);this.nC4=new Simplex(s+11);this.nC5=new Simplex(s+12);this.nVar=new Simplex(s+9);this.nR=new Simplex(s+10);
     this.dirtyLight=new Set();
-    this.gen=(this.nether||this.end||this.sift)?1:(game.gen||1);this.war2=!this.nether&&!this.end&&!this.sift&&!!(game.mods&&game.mods.war2);this._w2c=new Map();if(this.gen>=2)this.nP=new Simplex(s+14); // nP: ridged noise for the tall peaks of gen 2
+    this.gen=(this.nether||this.end||this.sift)?1:(game.gen||1);this.war2=!this.nether&&!this.end&&!this.sift&&!!(game.mods&&game.mods.war2);this._w2c=new Map();if(this.war2)(this.keepClear||(this.keepClear=[])).push([-24,416,24,464,58],[-24,-464,24,-416,58],[110,360,190,440,58],[110,-440,190,-360,58]);/* no tree or canopy is ever generated over the Jungle War bases, whichever chunk grows it */if(this.gen>=2)this.nP=new Simplex(s+14); // nP: ridged noise for the tall peaks of gen 2
   }
   /* ---- Jungle War (war2): finite 500 x 1000 jungle, a 100-block no man's land across the middle ---- */
   war2Craters(cx,cz){const k=cx+','+cz;let a=this._w2c.get(k);if(a)return a;if(this._w2c.size>6000)this._w2c.clear();
@@ -4612,7 +4612,9 @@ function enemyAirCmd(args,say){const t=args.filter(a=>!/^\d+$/.test(a)).join('_'
 const SOLDIER_COMPASS=['north','north-east','east','south-east','south','south-west','west','north-west'];
 function spawnWarPatrol(){const p=player,wins=game.warWins|0,n=clamp(3+floor(Math.random()*2)+floor(wins/2),3,6);
   const kinds=[];for(let i=0;i<n;i++){const r=Math.random();kinds.push(wins>=2&&r<0.15?'sniper':wins>=1&&r<0.2+wins*0.05?'heavy':'rifle')}
-  const w2=world.war2;if(w2&&MP.public)return;for(let t=0;t<20;t++){const a=w2?(Math.random()-0.5)*0.9:Math.random()*PI*2,dd=40+Math.random()*20,x=p.x+Math.sin(a)*dd,z=p.z-Math.cos(a)*dd;if(soldierGround(x,z)<0||(w2&&(abs(x)>240||abs(z)>490)))continue;
+  const w2=world.war2;if(w2&&MP.public)return;
+  if(w2&&typeof CTF_BASE!=='undefined'&&Math.hypot(p.x-CTF_BASE.red[0],p.z-CTF_BASE.red[1])<170){const gx=CTF_BASE.red[0],gz=CTF_BASE.red[1]+34;const mobs=spawnWarSquad('enemy',n,gx,gz,{nation:'enemy',kinds,elite:wins>=4&&Math.random()<0.5,march:true});if(mobs.length){game.warPatrol={mobs,t:0};showMessage('Enemy patrol leaving the red depot');playSound('horn',0.5,0.8);return mobs}} // near the red depot the red team sets out from its own gate
+  for(let t=0;t<20;t++){const a=w2?(Math.random()-0.5)*0.9:Math.random()*PI*2,dd=40+Math.random()*20,x=p.x+Math.sin(a)*dd,z=p.z-Math.cos(a)*dd;if(soldierGround(x,z)<0||(w2&&(abs(x)>240||abs(z)>490)))continue;
     const mobs=spawnWarSquad('enemy',n,x,z,{nation:'enemy',kinds,elite:wins>=4&&Math.random()<0.5,march:true});if(!mobs.length)continue;
     game.warPatrol={mobs,t:0};showMessage('Enemy patrol spotted to the '+SOLDIER_COMPASS[Math.round(a/(PI/4))%8]);playSound('horn',0.5,0.8);warPatrolAir();return mobs}
   return null}
@@ -7000,7 +7002,7 @@ function war2Wall(EB){const p=player,uv=tileUVs(TEX.glass,0,0,1,1),L=[1,1,1],C=[
   if(250-p.x<32)wall(false,250,500);if(p.x+250<32)wall(false,-250,500);if(500-p.z<32)wall(true,500,250);if(p.z+500<32)wall(true,-500,250)}
 // a small base on a fresh world: the military compound behind the spawn, two bunkers, and a friendly squad
 function war2Setup(s){const wasLive=world.liveBuild;world.liveBuild=true;try{const gy=(x,z)=>world.columnInfo(x,z).height; // live build: the blocks are saved as edits, so the bases survive their chunks being stashed and regenerated // both bases sit at the back of their half, far behind the spawns; the red one is the enemy's (or the red team's on a public world)
-    for(const sg of [1,-1]){const bz=440*sg;ensureChunks(0,bz,3);buildMilitaryBase(0,gy(0,bz),bz);for(const bx of [-32,32])buildBunker(bx,gy(bx,bz-44*sg),bz-44*sg);ensureChunks(150,400*sg,4);buildStockBase(150,gy(150,400*sg),400*sg,sg>0?'blue':'red')} // each side also gets a big empty stock base east of its main base
+    for(const sg of [1,-1]){const bz=440*sg;ensureChunks(0,bz,3);buildMilitaryBase(0,gy(0,bz),bz);war2ClearAbove(-24,bz-24,24,bz+24,gy(0,bz)+1);for(const bx of [-32,32])buildBunker(bx,gy(bx,bz-44*sg),bz-44*sg);ensureChunks(150,400*sg,4);buildStockBase(150,gy(150,400*sg),400*sg,sg>0?'blue':'red');war2ClearAbove(150-40,400*sg-40,150+40,400*sg+40,gy(150,400*sg)+1)} // each side also gets a big empty stock base east of its main base
     if(!MP.public)spawnWarSquad('player',4,s[0]+3,s[2]+3,{kinds:['rifle','rifle','heavy','sniper']});ctfStart(true)}catch(e){console.warn('war2 base',e)}finally{world.liveBuild=wasLive}}
 
 /* ---- Jungle War capture the flag: ten minutes to hide your flag on your own half, then a hundred days to find the other side's ---- */
@@ -8488,7 +8490,7 @@ function mpSpawnJoin(conn,d){if(!MP.host||!world||conn.pkey)return;const r=mpRem
   let key=base,k=1;while(MP.conns.some(c=>c!==conn&&c.open&&c.pkey===key))key=base+'#'+(++k);conn.pkey=key;
   const dn=r?r.name:String(d.name||'Player'),ws=[game.worldSpawn[0],game.worldSpawn[2]];
   if(!(game.mods&&game.mods.war)){try{conn.send({t:'spawnpt',same:1,x:ws[0],z:ws[1],ws})}catch(e){}} // without War everyone spawns together at the world spawn
-  else{if(world.war2&&game.ctf){const tm=ctfTeamAssign(key);if(!tm){try{conn.send({t:'ctffull',size:game.ctfSize||10})}catch(e){}return}}const sp=mpSpawnFor(key,dn);try{conn.send({t:'spawnpt',x:sp.x,z:sp.z,n:sp.n,ws})}catch(e){}if(world.war2&&game.ctf){try{conn.send({t:'ctf',st:ctfSave(),you:game.ctf.teams[key]||'blue'})}catch(e){}}}
+  else{if(world.war2&&game.ctf){const tm=ctfTeamAssign(key);if(!tm){try{conn.send({t:'ctffull',size:game.ctfSize||10})}catch(e){}return}}const sp=mpSpawnFor(key,dn);if(world.war2&&game.ctf){try{conn.send({t:'ctf',st:ctfSave(),you:game.ctf.teams[key]||'blue'})}catch(e){}}try{conn.send({t:'spawnpt',x:sp.x,z:sp.z,n:sp.n,ws})}catch(e){}}/* the team goes first so a red guest is never clamped to the blue half on arrival */
   const w=game.war;if(w&&w.players&&w.players[key]){w.players[key].id=d.id;w.players[key].name=dn;wmpChanged()}}
 function mpSpawnGo(){const s=game.mySpawn,p=player;if(!s||!world||world.dimKey!=='over')return false;ensureChunks(s[0],s[2],2);const spot=safeSpotNear(s[0],s[2]);p.x=spot[0];p.y=spot[1];p.z=spot[2];p.vx=p.vy=p.vz=0;p.fallDist=0;if(p.riding)p.riding.dismount();return true}
 function mpSpawnIn(d){const x=+d.x,z=+d.z;if(!isFinite(x)||!isFinite(z))return;if(d.same){game.mySpawn=null;MP.spawnAck=true;return}game.mySpawn=[x,70,z];MP.spawnAck=true;const ws=Array.isArray(d.ws)?d.ws:[game.worldSpawn[0],game.worldSpawn[2]],p=player;
@@ -10034,6 +10036,7 @@ function buildMilitaryBase(x,y,z){ // 31 x 31 walled compound: corner towers, ba
   // flag pole on the plaza, a parked car and a tank facing the gate
   baseFill(x,fy,z,x,fy+7,z,61);baseSet(x,fy+8,z,24);baseFill(x+1,fy+6,z,x+3,fy+6,z,20);baseFill(x+1,fy+7,z,x+3,fy+7,z,27);
   milMob('car',x-9.5,fy+0.05,z+8.5,PI);milMob('tank',x+9.5,fy+0.05,z+8.5,PI)}
+function war2ClearAbove(x0,z0,x1,z1,y){for(let x=x0;x<=x1;x++)for(let z=z0;z<=z1;z++)for(let yy=y+1;yy<Math.min(CH-1,y+70);yy++){const b=world.getBlock(x,yy,z);if(b!==0&&b!==8&&b!==9)baseSet(x,yy,z,0)}} // nothing above a base: no canopy, vines or trunks over the walls, out to a margin past them
 function buildStockBase(x,y,z,team){ // 63 x 63 supply depot: a big empty parade ground behind stone-brick walls trimmed in the team colour, a fenced paddock of farm animals with a door, hay bale stacks, a flag pole and a wide open gate toward the front
   const fy=y+1,H=31,C=team==='red'?27:79,gateS=team==='red'?1:-1;const rng=mulberry32(hashInt(x,z,team==='red'?7:3,world.seed||1));
   milPad(x-H-2,z-H-2,x+H+2,z+H+2,y,2,10);baseFill(x-H,fy,z-H,x+H,fy+2,z+H,52);baseFill(x-H+1,fy,z-H+1,x+H-1,fy+2,z+H-1,0);baseFill(x-H,fy+3,z-H,x+H,fy+3,z+H,C);baseFill(x-H+1,fy+3,z-H+1,x+H-1,fy+3,z+H-1,0); // walls with a coloured top course
