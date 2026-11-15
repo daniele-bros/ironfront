@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="ironcraft-build" content="20261115-012955">
+<meta name="ironcraft-build" content="20261115-175227">
 <meta name="viewport" content="width=device-width,initial-scale=1.0,viewport-fit=cover">
 <title>Ironcraft – Free Voxel Survival Sandbox in Your Browser | Iron Games</title>
 <meta name="description" content="Ironcraft is a free browser-based voxel survival sandbox with building, exploration, private or safety-limited public multiplayer, and optional weather, horror and survival challenges. By Daniele Bros.">
@@ -2352,7 +2352,7 @@ function blockBoxes(id,meta,mode,x,y,z){
     case 'slab':return (meta&1)?[[0,0.5,0,1,1,1]]:[[0,0,0,1,0.5,1]];
     case 'stairs':{const f=meta&3,up=meta&4;const boxes=up?[[0,0.5,0,1,1,1],rotBox([0,0,0.5,1,0.5,1],f)]:[[0,0,0,1,0.5,1],rotBox([0,0.5,0.5,1,1,1],f)];return boxes}
     case 'door':{const f=meta&3,open=meta&4;const b=open?(meta&16?[1-0.1875,0,0,1,1,1]:[0,0,0,0.1875,1,1]):[0,0,0,1,1,0.1875];return [rotBox(b,f)]}
-    case 'fence':{const h=mode==='c'?1.5:1;const bx=[[0.375,0,0.375,0.625,h,0.625]];
+    case 'fence':{const h=mode==='c'?2:1;/* two blocks tall for collisions: nobody jumps a fence, even at a low frame rate */const bx=[[0.375,0,0.375,0.625,h,0.625]];
       const W=typeof world!=='undefined'?world:null;if(W&&x!==undefined){
         const con=(dx,dz)=>{const n=W.getBlock(x+dx,y,z+dz);const nd=BLOCKS[n];return nd.model==='fence'||(nd.opaque&&nd.model==='cube')};
         if(con(1,0))bx.push([0.625,0.375,0.4375,1,0.5625,0.5625],[0.625,0.75,0.4375,1,0.9375,0.5625]);if(con(-1,0))bx.push([0,0.375,0.4375,0.375,0.5625,0.5625],[0,0.75,0.4375,0.375,0.9375,0.5625]);
@@ -2751,13 +2751,14 @@ function sweepAxis(box,boxes,axis,d){const e=1e-4;for(const b of boxes){
   if(d>0&&hi<=blo){const m=blo-hi-e;if(m<d)d=m}else if(d<0&&lo>=bhi){const m=bhi-lo+e;if(m>d)d=m}}return d}
 function moveEntity(e,dx,dy,dz,stepH,airStep){if(world&&world.war2)[dx,dz]=war2Edge(e,dx,dz);
   const w=e.w/2;let box=[e.x-w,e.y,e.z-w,e.x+w,e.y+e.h,e.z+w];const wasGround=e.onGround;
-  const boxes=collectBoxes(Math.min(box[0],box[0]+dx)-0.6,Math.min(box[1],box[1]+dy)-0.6,Math.min(box[2],box[2]+dz)-0.6,Math.max(box[3],box[3]+dx)+0.6,Math.max(box[4],box[4]+dy)+1.2,Math.max(box[5],box[5]+dz)+0.6);
+  const boxes=collectBoxes(Math.min(box[0],box[0]+dx)-0.6,Math.min(box[1],box[1]+dy)-2.1,Math.min(box[2],box[2]+dz)-0.6,Math.max(box[3],box[3]+dx)+0.6,Math.max(box[4],box[4]+dy)+1.2,Math.max(box[5],box[5]+dz)+0.6);
   const ody=dy,odx=dx,odz=dz;
   const run=(b,dx,dy,dz)=>{b=b.slice();const ry=sweepAxis(b,boxes,1,dy);b[1]+=ry;b[4]+=ry;const rx=sweepAxis(b,boxes,0,dx);b[0]+=rx;b[3]+=rx;const rz=sweepAxis(b,boxes,2,dz);b[2]+=rz;b[5]+=rz;return {b,rx,ry,rz}};
   let r=run(box,dx,dy,dz);
   if(stepH>0&&(wasGround||r.ry!==ody&&ody<0||(airStep&&ody<0))&&(r.rx!==dx||r.rz!==dz)){
     const up=sweepAxis(box,boxes,1,stepH);let b2=box.slice();b2[1]+=up;b2[4]+=up;const rx=sweepAxis(b2,boxes,0,dx);b2[0]+=rx;b2[3]+=rx;const rz=sweepAxis(b2,boxes,2,dz);b2[2]+=rz;b2[5]+=rz;const down=sweepAxis(b2,boxes,1,-up-0.001);b2[1]+=down;b2[4]+=down;
-    if(rx*rx+rz*rz>r.rx*r.rx+r.rz*r.rz&&down<0){r={b:b2,rx,ry:up+down,rz}}
+    const overFence=()=>{for(let x=floor(b2[0]);x<=floor(b2[3]);x++)for(let z=floor(b2[2]);z<=floor(b2[5]);z++)for(let y=floor(box[1])-1;y<=floor(b2[1]);y++){const id=world.getBlock(x,y,z);if(id&&BLOCKS[id].model==='fence'&&y+1.5>box[1]+0.01)return true}return false}; // fences are never stepped onto, so no animal, soldier or player jumps one
+    if(rx*rx+rz*rz>r.rx*r.rx+r.rz*r.rz&&down<0&&!overFence()){r={b:b2,rx,ry:up+down,rz}}
   }
   e.onGround=ody<0&&r.ry!==ody;e.collidedH=(r.rx!==odx)||(r.rz!==odz);e.collidedUp=ody>0&&r.ry!==ody;
   e.x=(r.b[0]+r.b[3])/2;e.y=r.b[1];e.z=(r.b[2]+r.b[5])/2;
@@ -6998,9 +6999,9 @@ function war2Wall(EB){const p=player,uv=tileUVs(TEX.glass,0,0,1,1),L=[1,1,1],C=[
     const P=alongX?[[a,y,w],[a+4,y,w],[a+4,y+4,w],[a,y+4,w]]:[[w,y,a],[w,y,a+4],[w,y+4,a+4],[w,y+4,a]];EB.quad(P,uv,L,C);EB.quad([P[3],P[2],P[1],P[0]],uv,L,C)}}};
   if(250-p.x<32)wall(false,250,500);if(p.x+250<32)wall(false,-250,500);if(500-p.z<32)wall(true,500,250);if(p.z+500<32)wall(true,-500,250)}
 // a small base on a fresh world: the military compound behind the spawn, two bunkers, and a friendly squad
-function war2Setup(s){try{const gy=(x,z)=>world.columnInfo(x,z).height; // both bases sit at the back of their half, far behind the spawns; the red one is the enemy's (or the red team's on a public world)
-    for(const sg of [1,-1]){const bz=440*sg;ensureChunks(0,bz,3);buildMilitaryBase(0,gy(0,bz),bz);for(const bx of [-32,32])buildBunker(bx,gy(bx,bz-44*sg),bz-44*sg)}
-    if(!MP.public)spawnWarSquad('player',4,s[0]+3,s[2]+3,{kinds:['rifle','rifle','heavy','sniper']});ctfStart(true)}catch(e){console.warn('war2 base',e)}}
+function war2Setup(s){const wasLive=world.liveBuild;world.liveBuild=true;try{const gy=(x,z)=>world.columnInfo(x,z).height; // live build: the blocks are saved as edits, so the bases survive their chunks being stashed and regenerated // both bases sit at the back of their half, far behind the spawns; the red one is the enemy's (or the red team's on a public world)
+    for(const sg of [1,-1]){const bz=440*sg;ensureChunks(0,bz,3);buildMilitaryBase(0,gy(0,bz),bz);for(const bx of [-32,32])buildBunker(bx,gy(bx,bz-44*sg),bz-44*sg);ensureChunks(150,400*sg,4);buildStockBase(150,gy(150,400*sg),400*sg,sg>0?'blue':'red')} // each side also gets a big empty stock base east of its main base
+    if(!MP.public)spawnWarSquad('player',4,s[0]+3,s[2]+3,{kinds:['rifle','rifle','heavy','sniper']});ctfStart(true)}catch(e){console.warn('war2 base',e)}finally{world.liveBuild=wasLive}}
 
 /* ---- Jungle War capture the flag: ten minutes to hide your flag on your own half, then a hundred days to find the other side's ---- */
 const CTF_HIDE=600,CTF_DAYS=100,CTF_BASE={blue:[0,440],red:[0,-440]},CTF_BLOCK={blue:160,red:161};
@@ -10032,6 +10033,17 @@ function buildMilitaryBase(x,y,z){ // 31 x 31 walled compound: corner towers, ba
   // flag pole on the plaza, a parked car and a tank facing the gate
   baseFill(x,fy,z,x,fy+7,z,61);baseSet(x,fy+8,z,24);baseFill(x+1,fy+6,z,x+3,fy+6,z,20);baseFill(x+1,fy+7,z,x+3,fy+7,z,27);
   milMob('car',x-9.5,fy+0.05,z+8.5,PI);milMob('tank',x+9.5,fy+0.05,z+8.5,PI)}
+function buildStockBase(x,y,z,team){ // 63 x 63 supply depot: a big empty parade ground behind stone-brick walls trimmed in the team colour, a fenced paddock of farm animals with a door, hay bale stacks, a flag pole and a wide open gate toward the front
+  const fy=y+1,H=31,C=team==='red'?27:79,gateS=team==='red'?1:-1;const rng=mulberry32(hashInt(x,z,team==='red'?7:3,world.seed||1));
+  milPad(x-H-2,z-H-2,x+H+2,z+H+2,y,2,10);baseFill(x-H,fy,z-H,x+H,fy+2,z+H,52);baseFill(x-H+1,fy,z-H+1,x+H-1,fy+2,z+H-1,0);baseFill(x-H,fy+3,z-H,x+H,fy+3,z+H,C);baseFill(x-H+1,fy+3,z-H+1,x+H-1,fy+3,z+H-1,0); // walls with a coloured top course
+  for(const sx of [-1,1])for(const sz of [-1,1]){const cx=x+sx*H,cz=z+sz*H;baseFill(cx-1,fy,cz-1,cx+1,fy+4,cz+1,52);baseSet(cx,fy+5,cz,C);baseSet(cx-sx,fy+5,cz-sz,32)} // corner posts with a torch
+  baseFill(x-2,fy,z+gateS*H,x+2,fy+3,z+gateS*H,0);baseFill(x-2,y,z+gateS*H,x+2,y,z+gateS*(H+3),11);baseFill(x-1,y,z,x+1,y,z+gateS*H,11);for(const gx of [-3,3])baseSet(x+gx,fy+4,z+gateS*H,C); // open gate and gravel road to the middle
+  baseFill(x,fy,z,x,fy+9,z,61);baseSet(x,fy+10,z,C);baseFill(x+1,fy+8,z,x+4,fy+9,z,C);baseFill(x-4,y,z-4,x+4,y,z+4,72); // flag pole on a stone plaza
+  const px=x-gateS*0,pz=z-gateS*12,P=10;baseFill(px-P,fy,pz-P,px+P,fy,pz+P,61);baseFill(px-P+1,fy,pz-P+1,px+P-1,fy,pz+P-1,0);baseFill(px-P,fy,pz+gateS*P,px+P,fy,pz+gateS*P,61);baseSet(px,fy,pz+gateS*P,0);milDoor(px,fy,pz+gateS*P,54,gateS>0?0:2); // fenced paddock, one door on the gate side
+  const kinds=['cow','cow','cow','pig','pig','sheep','sheep','sheep','chicken','chicken','chicken','horse','horse','cow','pig','sheep'];
+  for(const k of kinds){const m=new Mob(k,px+(rng()-0.5)*(P*2-4),fy+0.1,pz+(rng()-0.5)*(P*2-4));m.noDespawn=true;m.yaw=rng()*PI*2;if(k==='sheep')m.woolId=20;entities.push(m)}
+  for(let i=0;i<14;i++){const hx=x+Math.round((rng()-0.5)*(H*2-10)),hz=z+Math.round((rng()-0.5)*(H*2-10));if(Math.abs(hx-px)<P+3&&Math.abs(hz-pz)<P+3)continue;if(Math.abs(hx-x)<6&&Math.abs(hz-z)<6)continue;const hh=1+floor(rng()*3),ww=1+floor(rng()*2);baseFill(hx,fy,hz,hx+ww,fy+hh-1,hz+ww,144);if(hh>1&&rng()<0.6)baseSet(hx+ww,fy+hh-1,hz+ww,0)} // hay bale stacks
+  for(const t of [-20,0,20]){baseSet(x+t,fy+4,z-H,32);baseSet(x+t,fy+4,z+H,32);baseSet(x-H,fy+4,z+t,32);baseSet(x+H,fy+4,z+t,32)}}
 function buildBunker(x,y,z){ // half-buried smooth-stone box: floor 2 below the ground, slit windows, iron door at the bottom of a stair trench
   const F=y-2;milPad(x-6,z-5,x+6,z+9,y,2,6);
   baseFill(x-5,F,z-4,x+5,y+2,z+4,72);baseFill(x-4,F+1,z-3,x+4,y+1,z+3,0);baseFill(x-6,y+2,z-5,x+6,y+2,z+5,72); // box, hollow inside, roof with an overhang
