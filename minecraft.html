@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="ironcraft-build" content="20261115-211256">
+<meta name="ironcraft-build" content="20261115-212328">
 <meta name="viewport" content="width=device-width,initial-scale=1.0,viewport-fit=cover">
 <title>Ironcraft – Free Voxel Survival Sandbox in Your Browser | Iron Games</title>
 <meta name="description" content="Ironcraft is a free browser-based voxel survival sandbox with building, exploration, private or safety-limited public multiplayer, and optional weather, horror and survival challenges. By Daniele Bros.">
@@ -2444,10 +2444,13 @@ function aabbInFrustum(P,x0,y0,z0,x1,y1,z1){for(const p of P){const px=p[0]>0?x1
 /* ===================== CHUNK MESHER ===================== */
 const AO_F=[0.5,0.68,0.84,1.0];
 let TILE_W=1/16,TILE_H=1/16,TILE_INSET=0.0004;
-class MeshBuf{constructor(){this.v=[];this.i=[];this.n=0}
-  quad(p,uv,l,flip){const v=this.v;for(let k=0;k<4;k++){v.push(p[k][0],p[k][1],p[k][2],uv[k][0],uv[k][1],l[k][0],l[k][1],l[k][2])}const n=this.n;
-    if(flip)this.i.push(n+1,n+2,n+3,n+1,n+3,n);else this.i.push(n,n+1,n+2,n,n+2,n+3);this.n+=4}
+class MeshBuf{constructor(){this.v=new Float32Array(8*65536);this.vn=0;this.ix=new Uint32Array(6*16384);this.inn=0;this.n=0} // typed arrays that grow; two are reused for every chunk and sliced on output
+  reset(){this.vn=0;this.inn=0;this.n=0}
+  _room(nv,ni){if(this.vn+nv>this.v.length){let L=this.v.length*2;while(L<this.vn+nv)L*=2;const a=new Float32Array(L);a.set(this.v.subarray(0,this.vn));this.v=a}if(this.inn+ni>this.ix.length){let L=this.ix.length*2;while(L<this.inn+ni)L*=2;const a=new Uint32Array(L);a.set(this.ix.subarray(0,this.inn));this.ix=a}}
+  _tri(flip){const n=this.n,ix=this.ix;let j=this.inn;if(flip){ix[j++]=n+1;ix[j++]=n+2;ix[j++]=n+3;ix[j++]=n+1;ix[j++]=n+3;ix[j++]=n}else{ix[j++]=n;ix[j++]=n+1;ix[j++]=n+2;ix[j++]=n;ix[j++]=n+2;ix[j++]=n+3}this.inn=j;this.n+=4}
+  quad(p,uv,l,flip){this._room(32,6);const v=this.v;let o=this.vn;for(let k=0;k<4;k++){const q=p[k],t=uv[k],m=l[k];v[o++]=q[0];v[o++]=q[1];v[o++]=q[2];v[o++]=t[0];v[o++]=t[1];v[o++]=m[0];v[o++]=m[1];v[o++]=m[2]}this.vn=o;this._tri(flip)}
 }
+const MB_O=new MeshBuf(),MB_T=new MeshBuf();
 function tileUVs(tile,u0,v0,u1,v1,rot){const ox=(tile%ATLAS_W)*TILE_W,oy=floor(tile/ATLAS_W)*TILE_H;const I=TILE_INSET;
   const f=(u,v)=>[ox+clamp(u,0,1)*TILE_W*(1-2*I)+TILE_W*I,oy+clamp(v,0,1)*TILE_H*(1-2*I)+TILE_H*I];
   let c=[[u0,v0],[u1,v0],[u1,v1],[u0,v1]];return c.map(q=>f(q[0],q[1]))}
@@ -2459,14 +2462,15 @@ function buildChunkMesh(W,c,smooth){
   const gs=(x,y,z)=>{if(y>=CH)return 15;if(y<0)return 0;const ch=gc(x,z);return ch?ch.sky[cidx(x&15,y,z&15)]:15};
   const gl_=(x,y,z)=>{if(y<0||y>=CH)return 0;const ch=gc(x,z);return ch?ch.light[cidx(x&15,y,z&15)]:0};
   const op=(x,y,z)=>{if(y<0)return true;if(y>=CH)return false;const ch=gc(x,z);return ch?BLOCKS[ch.blocks[cidx(x&15,y,z&15)]].opaque:false};
-  const O=new MeshBuf(),T=new MeshBuf();const wx=c.cx*16,wz=c.cz*16;
-  const vertLight=(nx,ny,nz,d,t1,t2)=>{ // returns [sky,block,ao]
-    if(!smooth)return [gs(nx,ny,nz),gl_(nx,ny,nz),3];
-    const s1x=nx+t1[0],s1y=ny+t1[1],s1z=nz+t1[2],s2x=nx+t2[0],s2y=ny+t2[1],s2z=nz+t2[2],cx=nx+t1[0]+t2[0],cy=ny+t1[1]+t2[1],cz=nz+t1[2]+t2[2];
+  const O=MB_O,T=MB_T;O.reset();T.reset();const wx=c.cx*16,wz=c.cz*16;
+  let vS=0,vB=0,vA=3;const vertLight=(nx,ny,nz,t1x,t1y,t1z,t2x,t2y,t2z)=>{ // leaves sky, block light and ambient occlusion in vS, vB, vA (no arrays: this runs for every vertex of every face)
+    if(!smooth){vS=gs(nx,ny,nz);vB=gl_(nx,ny,nz);vA=3;return}
+    const s1x=nx+t1x,s1y=ny+t1y,s1z=nz+t1z,s2x=nx+t2x,s2y=ny+t2y,s2z=nz+t2z,cx=nx+t1x+t2x,cy=ny+t1y+t2y,cz=nz+t1z+t2z;
     const o1=op(s1x,s1y,s1z),o2=op(s2x,s2y,s2z),oc=op(cx,cy,cz);
     let ao=(o1&&o2)?0:3-(o1+o2+oc);let sk=gs(nx,ny,nz),bl=gl_(nx,ny,nz),n=1;
     if(!o1){sk+=gs(s1x,s1y,s1z);bl+=gl_(s1x,s1y,s1z);n++}if(!o2){sk+=gs(s2x,s2y,s2z);bl+=gl_(s2x,s2y,s2z);n++}if(!oc&&!(o1&&o2)){sk+=gs(cx,cy,cz);bl+=gl_(cx,cy,cz);n++}
-    return [sk/n,bl/n,ao]};
+    vS=sk/n;vB=bl/n;vA=ao};
+  const SU=TILE_W*(1-2*TILE_INSET),SV=TILE_H*(1-2*TILE_INSET),IU=TILE_W*TILE_INSET,IV=TILE_H*TILE_INSET;
   const mtop=chunkTop(c,true)+1;for(let x=0;x<16;x++)for(let z=0;z<16;z++)for(let y=0;y<mtop;y++){
     const i=cidx(x,y,z);const id=c.blocks[i];if(id===0)continue;const def=BLOCKS[id];const meta=c.meta[i];const model=def.model;
     const ownS=c.sky[i],ownL=c.light[i];
@@ -2475,15 +2479,14 @@ function buildChunkMesh(W,c,smooth){
         if(nd.opaque)continue;if(nid===id&&def.transparent)continue; // a sheet of glass or a bush of leaves has no inner faces
         let tile=def.texFn?def.texFn(meta,d):null;if(tile===null||tile===undefined){tile=def.faces[d];if(def.front!==undefined&&d===FACING_TO_FACE[meta&3])tile=(def.frontLit!==undefined&&(meta&4))?def.frontLit:def.front}
         const logAx=def.log?meta&3:0;let logRot=false;if(logAx){const end=logAx===1?d<2:d>3;tile=end?def.faces[2]:def.faces[0];logRot=!end&&(logAx===1?d>=2:d<2)}
-        const U=FACE_U[d],V=FACE_V[d],Bs=FACE_BASE[d];const P=[],L=[];
-        const corners=[[0,0],[1,0],[1,1],[0,1]];
-        for(let k=0;k<4;k++){const cu=corners[k][0],cv=corners[k][1];const px=Bs[0]+U[0]*cu+V[0]*cv,py=Bs[1]+U[1]*cu+V[1]*cv,pz=Bs[2]+U[2]*cu+V[2]*cv;P.push([x+px,y+py,z+pz]);
-          const t1=[U[0]*(cu?1:-1),U[1]*(cu?1:-1),U[2]*(cu?1:-1)],t2=[V[0]*(cv?1:-1),V[1]*(cv?1:-1),V[2]*(cv?1:-1)];const vl=vertLight(nx,ny,nz,d,t1,t2);L.push([vl[0]/15,vl[1]/15,FACE_SHADE[d]*AO_F[vl[2]]])}
-        // uv per corner
-        const UVc=[];for(let k=0;k<4;k++){const p=P[k];const px=p[0]-x,py=p[1]-y,pz=p[2]-z;let u,v;if(d<2){u=pz;v=1-py}else if(d>3){u=px;v=1-py}else{u=px;v=pz}if(logRot){const t=u;u=v;v=t}UVc.push([u,v])}
-        const ox=(tile%ATLAS_W)*TILE_W,oy=floor(tile/ATLAS_W)*TILE_H;const uvs=UVc.map(q=>[ox+q[0]*TILE_W*(1-2*TILE_INSET)+TILE_W*TILE_INSET,oy+q[1]*TILE_H*(1-2*TILE_INSET)+TILE_H*TILE_INSET]);
-        const flip=(L[0][2]+L[2][2])<(L[1][2]+L[3][2]);
-        (def.transparent&&!def.leaves&&id!==17?T:O).quad(P,uvs,L,flip);
+        const U=FACE_U[d],V=FACE_V[d],Bs=FACE_BASE[d];const buf=(def.transparent&&!def.leaves&&id!==17)?T:O;buf._room(32,6);const v=buf.v;let o=buf.vn;
+        const ox=(tile%ATLAS_W)*TILE_W+IU,oy=floor(tile/ATLAS_W)*TILE_H+IV,sh=FACE_SHADE[d];let a0=0,a1=0,a2=0,a3=0;
+        for(let k=0;k<4;k++){const cu=(k===1||k===2)?1:0,cv=k>=2?1:0;const px=Bs[0]+U[0]*cu+V[0]*cv,py=Bs[1]+U[1]*cu+V[1]*cv,pz=Bs[2]+U[2]*cu+V[2]*cv;
+          const t1s=cu?1:-1,t2s=cv?1:-1;vertLight(nx,ny,nz,U[0]*t1s,U[1]*t1s,U[2]*t1s,V[0]*t2s,V[1]*t2s,V[2]*t2s);
+          let u,w;if(d<2){u=pz;w=1-py}else if(d>3){u=px;w=1-py}else{u=px;w=pz}if(logRot){const t=u;u=w;w=t}
+          const ao=sh*AO_F[vA];if(k===0)a0=ao;else if(k===1)a1=ao;else if(k===2)a2=ao;else a3=ao;
+          v[o++]=x+px;v[o++]=y+py;v[o++]=z+pz;v[o++]=ox+u*SU;v[o++]=oy+w*SV;v[o++]=vS/15;v[o++]=vB/15;v[o++]=ao}
+        buf.vn=o;buf._tri((a0+a2)<(a1+a3));
       }
     } else if(model==='cross'||model==='crop'||model==='fire'||model==='portal'){
       const tile=def.texFn?def.texFn(meta,0):def.faces[0];const l=[ownS/15,ownL/15,1];const L=[l,l,l,l];const uvs=tileUVs(tile,0,1,1,0); // corners run bottom-left, bottom-right, top-right, top-left, so the bottom of the tile (v=1) goes on the bottom corners
@@ -2517,7 +2520,7 @@ function buildChunkMesh(W,c,smooth){
       }
     }
   }
-  return {o:new Float32Array(O.v),oi:new Uint32Array(O.i),t:new Float32Array(T.v),ti:new Uint32Array(T.i)};
+  return {o:O.v.slice(0,O.vn),oi:O.ix.slice(0,O.inn),t:T.v.slice(0,T.vn),ti:T.ix.slice(0,T.inn)};
 }
 
 /* ===================== RENDERER ===================== */
@@ -2560,21 +2563,21 @@ function uploadChunkMesh(c,m){const gl=R.gl;if(!c.mesh){c.mesh={};for(const k of
 }
 function deleteChunkMesh(c){if(!c.mesh)return;const gl=R.gl;for(const k of ['o','t']){gl.deleteVertexArray(c.mesh[k].vao);gl.deleteBuffer(c.mesh[k].vbo);gl.deleteBuffer(c.mesh[k].ibo)}c.mesh=null}
 /* ---- entity batch ---- */
-class EBatch{constructor(){this.v=[];this.i=[];this.n=0}
-  clear(){this.v.length=0;this.i.length=0;this.n=0}
-  quad(P,uv,l,col){const v=this.v;for(let k=0;k<4;k++)v.push(P[k][0],P[k][1],P[k][2],uv[k][0],uv[k][1],l[0],l[1],l[2]*(l[3]!==undefined?l[3]:1),col[0],col[1],col[2]);const n=this.n;this.i.push(n,n+1,n+2,n,n+2,n+3);this.n+=4}
+class EBatch{constructor(){this.v=new Float32Array(44*4096);this.vn=0;this.ix=new Uint32Array(6*4096);this.inn=0;this.n=0} // vertices and indices live in typed arrays that grow as needed: no per-vertex objects, no array-to-buffer copy per frame
+  clear(){this.vn=0;this.inn=0;this.n=0}
+  _room(nv,ni){if(this.vn+nv>this.v.length){let L=this.v.length*2;while(L<this.vn+nv)L*=2;const a=new Float32Array(L);a.set(this.v.subarray(0,this.vn));this.v=a}if(this.inn+ni>this.ix.length){let L=this.ix.length*2;while(L<this.inn+ni)L*=2;const a=new Uint32Array(L);a.set(this.ix.subarray(0,this.inn));this.ix=a}}
+  _tri(){const n=this.n,ix=this.ix;let j=this.inn;ix[j++]=n;ix[j++]=n+1;ix[j++]=n+2;ix[j++]=n;ix[j++]=n+2;ix[j++]=n+3;this.inn=j;this.n+=4}
+  quad(P,uv,l,col){this._room(44,6);const v=this.v;let o=this.vn;const l2=l[2]*(l[3]!==undefined?l[3]:1);for(let k=0;k<4;k++){const q=P[k],t=uv[k];v[o++]=q[0];v[o++]=q[1];v[o++]=q[2];v[o++]=t[0];v[o++]=t[1];v[o++]=l[0];v[o++]=l[1];v[o++]=l2;v[o++]=col[0];v[o++]=col[1];v[o++]=col[2]}this.vn=o;this._tri()}
   // box: corners via transform fn; size in world units; tiles per face; uv sub-rect optional
-  box(tf,x0,y0,z0,x1,y1,z1,tiles,col,light,uvfull){
-    for(let d=0;d<6;d++){const dir=FACE_DIR[d];const U=FACE_U[d],V=FACE_V[d];const lo=[x0,y0,z0],hi=[x1,y1,z1];const Bs=[dir[0]>0?hi[0]:lo[0],dir[1]>0?hi[1]:lo[1],dir[2]>0?hi[2]:lo[2]];
-      const P=[],UVc=[];const corners=[[0,0],[1,0],[1,1],[0,1]];
-      for(let k=0;k<4;k++){const cu=corners[k][0],cv=corners[k][1];const px=(U[0]||V[0])?(lo[0]+(hi[0]-lo[0])*(U[0]*cu+V[0]*cv)):Bs[0],py=(U[1]||V[1])?(lo[1]+(hi[1]-lo[1])*(U[1]*cu+V[1]*cv)):Bs[1],pz=(U[2]||V[2])?(lo[2]+(hi[2]-lo[2])*(U[2]*cu+V[2]*cv)):Bs[2];
-        P.push(tf(px,py,pz));let u,v;if(uvfull){if(d>=2&&d<=3){u=cv;v=cu}else{u=(d===5||d===0)?1-cv:cv;v=1-cu}}else{const sx=x1-x0||1,sy=y1-y0||1,sz=z1-z0||1;if(d<2){u=(pz-z0)/sz;v=1-(py-y0)/sy}else if(d>3){u=(px-x0)/sx;v=1-(py-y0)/sy}else{u=(px-x0)/sx;v=(pz-z0)/sz}}UVc.push([u,v])}
-      const tile=Array.isArray(tiles)?tiles[d]:tiles;const ox=(tile%ATLAS_W)*TILE_W,oy=floor(tile/ATLAS_W)*TILE_H;const uvs=UVc.map(q=>[ox+q[0]*TILE_W*(1-2*TILE_INSET)+TILE_W*TILE_INSET,oy+q[1]*TILE_H*(1-2*TILE_INSET)+TILE_H*TILE_INSET]);
-      this.quad(P,uvs,[light[0],light[1],FACE_SHADE[d]],col)}
-  }
-  draw(prog,tex,uniforms){const gl=R.gl;if(this.n===0)return;gl.useProgram(prog.p);gl.bindVertexArray(R.evao);gl.bindBuffer(gl.ARRAY_BUFFER,R.evbo);gl.bufferData(gl.ARRAY_BUFFER,new Float32Array(this.v),gl.DYNAMIC_DRAW);
-    gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER,R.eibo);gl.bufferData(gl.ELEMENT_ARRAY_BUFFER,new Uint32Array(this.i),gl.DYNAMIC_DRAW);gl.activeTexture(gl.TEXTURE0);gl.bindTexture(gl.TEXTURE_2D,tex);gl.uniform1i(prog.u.uTex,0);
-    setCommonUniforms(prog,uniforms||{});gl.drawElements(gl.TRIANGLES,this.i.length,gl.UNSIGNED_INT,0);gl.bindVertexArray(null)}
+  box(tf,x0,y0,z0,x1,y1,z1,tiles,col,light,uvfull){this._room(264,36);const v=this.v;const dx=x1-x0,dy=y1-y0,dz=z1-z0,sx=dx||1,sy=dy||1,sz=dz||1;const r=col[0],g=col[1],b=col[2],l0=light[0],l1=light[1];const arr=Array.isArray(tiles);
+    for(let d=0;d<6;d++){const dir=FACE_DIR[d],U=FACE_U[d],V=FACE_V[d];const bx=dir[0]>0?x1:x0,by=dir[1]>0?y1:y0,bz=dir[2]>0?z1:z0;const tile=arr?tiles[d]:tiles;const ox=(tile%ATLAS_W)*TILE_W+TILE_W*TILE_INSET,oy=floor(tile/ATLAS_W)*TILE_H+TILE_H*TILE_INSET,su=TILE_W*(1-2*TILE_INSET),sv=TILE_H*(1-2*TILE_INSET);const l2=FACE_SHADE[d];const ux=U[0]||V[0],uy=U[1]||V[1],uz=U[2]||V[2];let o=this.vn;
+      for(let k=0;k<4;k++){const cu=(k===1||k===2)?1:0,cv=k>=2?1:0;const px=ux?x0+dx*(U[0]*cu+V[0]*cv):bx,py=uy?y0+dy*(U[1]*cu+V[1]*cv):by,pz=uz?z0+dz*(U[2]*cu+V[2]*cv):bz;const q=tf(px,py,pz);let u,w;
+        if(uvfull){if(d>=2&&d<=3){u=cv;w=cu}else{u=(d===5||d===0)?1-cv:cv;w=1-cu}}else{if(d<2){u=(pz-z0)/sz;w=1-(py-y0)/sy}else if(d>3){u=(px-x0)/sx;w=1-(py-y0)/sy}else{u=(px-x0)/sx;w=(pz-z0)/sz}}
+        v[o++]=q[0];v[o++]=q[1];v[o++]=q[2];v[o++]=ox+u*su;v[o++]=oy+w*sv;v[o++]=l0;v[o++]=l1;v[o++]=l2;v[o++]=r;v[o++]=g;v[o++]=b}
+      this.vn=o;this._tri()}}
+  draw(prog,tex,uniforms){const gl=R.gl;if(this.n===0)return;gl.useProgram(prog.p);gl.bindVertexArray(R.evao);gl.bindBuffer(gl.ARRAY_BUFFER,R.evbo);gl.bufferData(gl.ARRAY_BUFFER,this.v.subarray(0,this.vn),gl.DYNAMIC_DRAW);
+    gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER,R.eibo);gl.bufferData(gl.ELEMENT_ARRAY_BUFFER,this.ix.subarray(0,this.inn),gl.DYNAMIC_DRAW);gl.activeTexture(gl.TEXTURE0);gl.bindTexture(gl.TEXTURE_2D,tex);gl.uniform1i(prog.u.uTex,0);
+    setCommonUniforms(prog,uniforms||{});gl.drawElements(gl.TRIANGLES,this.inn,gl.UNSIGNED_INT,0);gl.bindVertexArray(null)}
 }
 function setCommonUniforms(prog,o){const gl=R.gl;const u=prog.u;gl.uniformMatrix4fv(u.uVP,false,o.vp||R.vp);gl.uniform3f(u.uOffset,...(o.offset||[0,0,0]));gl.uniform3f(u.uCam,...R.eye);gl.uniform1f(u.uDay,R.day);gl.uniform1f(u.uGamma,R.gamma);
   gl.uniform3f(u.uFog,...R.fogColor);gl.uniform1f(u.uFogStart,o.fogStart!==undefined?o.fogStart:R.fogStart);gl.uniform1f(u.uFogEnd,o.fogEnd!==undefined?o.fogEnd:R.fogEnd);gl.uniform4f(u.uColor,...(o.color||[1,1,1,1]));gl.uniform1f(u.uAlphaTest,o.alphaTest!==undefined?o.alphaTest:0.1);gl.uniform1f(u.uNoLight,o.noLight||0);gl.uniform1f(u.uAmbient,R.ambient||0.02);gl.uniform4f(u.uHand,...(R.hand||[0,0,0,0]))}
@@ -2625,7 +2628,8 @@ function renderFrame(dt){
   gl.bindVertexArray(null);
   // ---- entities ----
   EB.clear();EBI.clear();
-  for(const e of entities)e.render(EB,EBI,dt);if(world.war2)war2Wall(EB);
+  {const rd2=(rd+24)*(rd+24),P=R.planes;for(const e of entities){if(e.x!==undefined&&!e.noCull){const ddx=e.x-ex,ddz=e.z-ez;if(ddx*ddx+ddz*ddz>rd2)continue;const m=Math.max(e.w||1,e.h||1,2)+1.5;if(P&&!aabbInFrustum(P,e.x-m,e.y-m,e.z-m,e.x+m,e.y+(e.h||1)+m,e.z+m))continue}e.render(EB,EBI,dt)}} // only entities within render distance and in view are tessellated
+  if(world.war2)war2Wall(EB);
   if(vehChaseOn()||(game.cam&&!(player.riding&&player.riding.def&&player.riding.def.vehicle)))renderAvatar(EB,EBI,dt);
   renderParticles(EB);
   gl.enable(gl.BLEND);gl.blendFunc(gl.SRC_ALPHA,gl.ONE_MINUS_SRC_ALPHA);
@@ -7059,7 +7063,7 @@ function ctfHud(){const el=$('ctfHud');if(!el)return;const c=game.ctf;if(!c||!wo
     if(own.carrier)sub+=(sub?' | ':'')+(own.carrier==='ai'?'The enemy search party has your flag and is running north!':'The enemy has your flag!');else if(c.seek&&c.seek.warned)sub+=(sub?' | ':'')+'An enemy search party is on your half';h='<span style="color:'+(me==='blue'?'#9cf':'#f99')+'">FIND THE '+en.toUpperCase()+' FLAG</span> '+dl+' day'+(dl===1?'':'s')+' left<small>'+(sub||'It is hidden somewhere on the '+(en==='red'?'north':'south')+' half')+'</small>'}
   else h=(c.winner==='draw'?'DRAW: nobody found the flag':(c.winner||'').toUpperCase()+' WINS')+'<small>/ctf restart starts a new match</small>';
   el.innerHTML=h;el.style.display='block'}
-function ctfTick(dt){if(!world||!world.war2||game.state!=='playing')return;const host=!(MP.active&&!MP.host);if(!game.ctf){if(host)ctfStart(false);else return}const c=game.ctf;ctfHud();if(!host)return;
+function ctfTick(dt){if(!world||!world.war2||game.state!=='playing')return;const host=!(MP.active&&!MP.host);if(!game.ctf){if(host)ctfStart(false);else return}const c=game.ctf;if(game.time-(c._hudT||-9)>0.25){c._hudT=game.time;ctfHud()}if(!host)return;
   if(c.phase==='hide'){c.hideT-=dt;if(floor(c.hideT)%30===0&&c.hideT>0&&game.time-(c._s||0)>1){c._s=game.time;ctfSync()}
     if(c.hideT<=0){for(const t of ['blue','red']){const f=c.flags[t];if(f.x===null){const b=CTF_BASE[t];ensureChunks(b[0],b[1],1);const y=findGround(b[0]+3,b[1]);world.setBlock(b[0]+3,y,b[1],CTF_BLOCK[t],0);f.x=b[0]+3;f.y=y;f.z=b[1];f.carrier=null}}
       c.phase='hunt';c.day0=world.day|0;c.hideT=0;for(const st of player.inv)if(st&&(st.id===160||st.id===161))st.count=0;player.inv.forEach((st,i)=>{if(st&&st.count<=0)player.inv[i]=null});updateHotbar();ctfPhaseMsg();ctfSync()}return}
