@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="ironcraft-build" content="20261115-012753">
+<meta name="ironcraft-build" content="20261115-012955">
 <meta name="viewport" content="width=device-width,initial-scale=1.0,viewport-fit=cover">
 <title>Ironcraft – Free Voxel Survival Sandbox in Your Browser | Iron Games</title>
 <meta name="description" content="Ironcraft is a free browser-based voxel survival sandbox with building, exploration, private or safety-limited public multiplayer, and optional weather, horror and survival challenges. By Daniele Bros.">
@@ -3387,6 +3387,7 @@ function heroLightning(x,z){const bx=floor(x),bz=floor(z);if(!world||!world.hasC
   playSoundAt('thunder',bx,y,bz,0.9+Math.random()*0.3,1);spawnParticles('flash',bx+0.5,y+0.5,bz+0.5,6);
   for(const e of entities){if(e.dead||!(e instanceof Mob))continue;if(Math.hypot(e.x-bx-0.5,e.z-bz-0.5)<3&&abs(e.y-y)<4){damageEntity(e,10,{type:'lightning'});e.fireT=Math.max(e.fireT||0,4)}}
   if(!player.dead&&Math.hypot(player.x-bx-0.5,player.z-bz-0.5)<2.5&&abs(player.y-y)<4&&!(game.hero&&HEROES[game.hero.k]&&HEROES[game.hero.k].pw.a.fx==='lightning'))damageEntity(player,6,{type:'lightning'})}
+function heroDiff(){const d=game.difficulty;if(typeof d==='number')return d;const m={peaceful:0,easy:1,normal:2,hard:3};return d in m?m[d]:2} // the game keeps difficulty as a word
 function heroH(){return game.hero&&HEROES[game.hero.k]||null}
 function heroSkin(k){const H=HEROES[k];if(!H)return null;if(!H._sk)H._sk=skinNorm(Object.assign({},SKIN_DEF,H.look));return H._sk}
 function heroCode(){const h=game.hero;return h?h.k+(h.tiny?':t':h.giant?':g':''):undefined} // what goes over the wire
@@ -3504,14 +3505,14 @@ class HeroThrow extends Arrow{constructor(x,y,z,vx,vy,vz,stack,spec){super(x,y,z
     this.x=nx;this.y=ny;this.z=nz;const trav=Math.hypot(this.x-player.x,this.z-player.z);if(trav>(this.spec.range||30)||this.age>2.5)this.returning=true}
   render(EB){const l=lightAt(this.x,this.y,this.z);const flat=this.wid===544;const tf=makeTF(this.x,this.y+0.2,this.z,this.yaw||0,flat?PI/2:this.spin,flat?this.spin:0,0,0,0,0.04);drawWeapon(EB,tf,this.wid,l,0,false)}}
 // ---- the NPC versions: minions' bosses for heroes, the assembled heroes for villains ----
-function heroNpcSpawn(k,x,y,z,o){o=o||{};const H=HEROES[k];if(!H||!MOBDEF.nemesis)return null;if(!world.hasChunk(floor(x),floor(z)))return null;const m=new Mob('nemesis',x,y,z);m.heroKey=k;const mul=o.mul||1;m.hp=m.maxHp=Math.round((H.npc.hp||100)*mul*(game.difficulty===3?1.3:1));m.dmgOverride=o.decoy?0:Math.round((H.npc.dmg||6)*(game.difficulty===1?0.7:1));
+function heroNpcSpawn(k,x,y,z,o){o=o||{};const H=HEROES[k];if(!H||!MOBDEF.nemesis)return null;if(!world.hasChunk(floor(x),floor(z)))return null;const m=new Mob('nemesis',x,y,z);m.heroKey=k;const mul=o.mul||1;m.hp=m.maxHp=Math.round((H.npc.hp||100)*mul*(heroDiff()===3?1.3:1));m.dmgOverride=o.decoy?0:Math.round((H.npc.dmg||6)*(heroDiff()===1?0.7:1));
   if(o.boss){m.boss=o.boss}if(o.decoy){m.decoy=true;m.decoyLife=o.decoy;m.hp=m.maxHp=1}m.yaw=Math.random()*PI*2;entities.push(m);return m}
 function nemesisTick(m,dt){const H=HEROES[m.heroKey];if(!H){m.dead=true;return}const p=player;
   if(m.decoy){m.decoyT=(m.decoyT||0)+dt;if(m.decoyT>m.decoyLife){m.dead=true;spawnParticles('smoke',m.x,m.y+1,m.z,8)}m.vx=m.vz=0;m.moveDir=null;m.wanderT=9;return}
   if(m.remote)return;const N=H.npc||{};const dist=Math.hypot(p.x-m.x,p.z-m.z),dist3=Math.hypot(p.x-m.x,p.y-m.y,p.z-m.z);
   if(N.regen&&m.hp<m.maxHp){m.regT=(m.regT||0)+dt*N.regen;if(m.regT>=1){m.regT-=1;m.hp=Math.min(m.maxHp,m.hp+1)}}
   if(N.fly&&!p.dead&&dist<60){m.noGravity=true;const want=p.y+(dist>5?2.5:0.6);m.vy+=(clamp((want-m.y)*2.2,-7,7)-m.vy)*Math.min(1,dt*3);m.fallDist=0}else if(N.fly){m.noGravity=false}
-  if(N.bolt&&!p.dead){m.boltT=(m.boltT||0)-dt;if(m.boltT<=0&&dist3<34&&dist3>2.5&&!(m.webT>0)&&m.canSee(p)){m.boltT=(N.rate||2)*(game.difficulty===1?1.5:1);const sx=p.x-m.x,sy=(p.y+1)-(m.y+m.h*0.8),sz=p.z-m.z;const L=Math.hypot(sx,sy,sz)||1;const sp=50;const b=new Arrow(m.x+sx/L*0.8,m.y+m.h*0.8,m.z+sz/L*0.8,sx/L*sp,sy/L*sp+(dist3>15?2:0),sz/L*sp,m,N.bolt*(game.difficulty===3?1.3:1));b.bullet=true;b.noGravity=true;b.kb=4;b.col=[0.5,0.8,1];b.big=true;entities.push(b);playSoundAt('rifle',m.x,m.y,m.z,1.4,0.5);
+  if(N.bolt&&!p.dead){m.boltT=(m.boltT||0)-dt;if(m.boltT<=0&&dist3<34&&dist3>2.5&&!(m.webT>0)&&m.canSee(p)){m.boltT=(N.rate||2)*(heroDiff()===1?1.5:1);const sx=p.x-m.x,sy=(p.y+1)-(m.y+m.h*0.8),sz=p.z-m.z;const L=Math.hypot(sx,sy,sz)||1;const sp=50;const b=new Arrow(m.x+sx/L*0.8,m.y+m.h*0.8,m.z+sz/L*0.8,sx/L*sp,sy/L*sp+(dist3>15?2:0),sz/L*sp,m,N.bolt*(heroDiff()===3?1.3:1));b.bullet=true;b.noGravity=true;b.kb=4;b.col=[0.5,0.8,1];b.big=true;entities.push(b);playSoundAt('rifle',m.x,m.y,m.z,1.4,0.5);
       if(N.boltLightning&&Math.random()<0.35)heroLightning(p.x+(Math.random()-0.5)*4,p.z+(Math.random()-0.5)*4)}}
   if(N.leap&&m.onGround&&dist>6&&dist<26&&!p.dead&&Math.random()<dt*0.35){m.vy=11;m.vx=(p.x-m.x)/dist*9;m.vz=(p.z-m.z)/dist*9;m.onGround=false;playSoundAt('wind',m.x,m.y,m.z,0.9,0.8)}
   if(N.blink&&dist>14&&dist<50&&!p.dead&&Math.random()<dt*0.2){const a=Math.random()*PI*2;const nx=p.x+Math.sin(a)*4,nz=p.z+Math.cos(a)*4;if(world.hasChunk(floor(nx),floor(nz))){spawnParticles('portal',m.x,m.y+1,m.z,10);m.x=nx;m.z=nz;m.y=findGround(nx,nz);spawnParticles('portal',m.x,m.y+1,m.z,10);playSoundAt('pop',m.x,m.y,m.z,0.6)}}
@@ -3519,13 +3520,13 @@ function nemesisTick(m,dt){const H=HEROES[m.heroKey];if(!H){m.dead=true;return}c
 function heroNpcRender(m,EB,EBI){const H=HEROES[m.heroKey];if(!H)return;let r=m.proxy;if(!r){r=m.proxy=new RemotePlayer('nem:'+(m.nid||Math.random().toString(36).slice(2)),H.n);r.skinD=heroSkin(m.heroKey);r.hasTarget=true;r.hero=m.heroKey;r.armor=[0,0,0,0];r.held=H.items.length?(Array.isArray(H.items[0])?H.items[0][0]:H.items[0]):0}
   if(m.dying){return}r.x=m.x;r.y=m.y;r.z=m.z;r.yaw=m.yaw;r.pitch=clamp(m.headPitch||0,-0.8,0.8);r.walkT=m.walkT;r.walkAmp=m.walkAmp;r.hurtT=m.hurtT;r.hidden=false;if(m.atkCd>0.9&&!(r.swingT>0))r.swingT=0.4;if(r.swingT>0)r.swingT-=1/60;if(m.decoy&&Math.sin(game.time*9)>0.6)return;r.render(EB,EBI)}
 // ---- the mission: waves, then the boss; after a win the next villain (or hero) of the movie comes, and it starts over ----
-function heroMissionTick(dt){const h=game.hero,m=h.m;if(!m||game.difficulty===0||player.dead||!world||world.dimKey!=='over')return;const M=HERO_MOVIE_BY[m.mk];if(!M)return;const p=player;
+function heroMissionTick(dt){const h=game.hero,m=h.m;if(!m||heroDiff()===0||player.dead||!world||world.dimKey!=='over')return;const M=HERO_MOVIE_BY[m.mk];if(!M)return;const p=player;
   m.nextT-=dt;if(m.nextT<=0){m.nextT=85+m.wave*8;m.wave++;heroWave(M,m)}
   if(!m.bossUp){m.bossT-=dt;if(m.bossT<=0)heroBossSpawn(M,m)}
   else{const b=entities.find(e=>e.boss===m.bossId&&!e.dead);if(!b){m.bossUp=false;m.done++;m.bossT=240;const nm=m.bossName||'The boss';showMessage(nm+' is defeated! '+(m.side==='hero'?'The city is safe... for now.':'One less Avenger in your way.'));playSound('levelup',1,0.8);game.heroWins=(game.heroWins||0)+1;
       const loot=[[263,3],[266,6],[531,1]];for(const [id,n] of loot)if(ITEMS[id])spawnItem(p.x+(Math.random()-0.5)*2,p.y+1,p.z+(Math.random()-0.5)*2,{id,count:n});
       for(const e of entities)if(e instanceof Mob&&!e.dead&&!e.def.nemesis&&e.def.dmg&&Math.hypot(e.x-p.x,e.z-p.z)<60&&!(e.def.soldier))e.dead=true}}}
-function heroWave(M,m){const p=player;const diff=game.difficulty||1;let n=0;
+function heroWave(M,m){const p=player;const diff=heroDiff()||1;let n=0;
   if(m.side==='hero'){const count=Math.min(12,2+m.wave+diff);for(let i=0;i<count;i++){const a=Math.random()*PI*2,d=16+Math.random()*14;const x=p.x+Math.sin(a)*d,z=p.z+Math.cos(a)*d;if(!world.hasChunk(floor(x),floor(z)))continue;const k=M.minions[floor(Math.random()*M.minions.length)];if(!MOBDEF[k])continue;const e=new Mob(k,x+0.5,findGround(x,z),z+0.5);e.angry=true;e.noDespawn=true;e.waveMob=true;entities.push(e);n++}
     if(n)showMessage(M.foe.charAt(0).toUpperCase()+M.foe.slice(1)+' incoming: wave '+m.wave)}
   else{const count=Math.min(4,1+floor(m.wave/2));const pool=M.heroes.filter(k=>k!==m.k);for(let i=0;i<count;i++){const a=Math.random()*PI*2,d=18+Math.random()*12;const x=p.x+Math.sin(a)*d,z=p.z+Math.cos(a)*d;const k=pool[floor(Math.random()*pool.length)]||M.heroes[0];const e=heroNpcSpawn(k,x,findGround(x,z),z,{mul:0.45});if(e)n++}
@@ -3537,7 +3538,7 @@ function heroBossSpawn(M,m){const p=player;const list=m.side==='hero'?M.villains
 function heroHud(){const el=$('heroHud');if(!el)return;const h=game.hero,H=heroH();const touch=typeof isTouchDevice==='function'&&isTouchDevice();for(const id of ['mobilePow1','mobilePow2']){const b=$(id);if(b)b.style.display=h&&touch?'':'none'}
   if(!h||!H||game.state!=='playing'){el.style.display='none';return}const M=HERO_MOVIE_BY[h.mk]||{};const cd=(t,n)=>t>0?n+' '+Math.ceil(t)+'s':n+' ✓';
   let s='<b>'+H.n+'</b> · '+M.n+'<br>'+'<span>[G] '+cd(h.cdA,H.pw.a.n)+'</span> <span>[H] '+cd(h.cdB,H.pw.b.n)+'</span>'+(H.pw.use?' <span>[click] '+H.pw.use.n+'</span>':'');
-  const m=h.m;if(m&&game.difficulty>0){if(MP.active&&!MP.host)s+='<br><small>Powers only: the host\'s movie sets the enemies</small>';else{const b=m.bossUp?entities.find(e=>e.boss===m.bossId&&!e.dead):null;s+='<br><small>'+(m.side==='hero'?'Wave '+(m.wave+1)+' of '+(M.foe||'enemies')+' in '+Math.ceil(m.nextT)+'s':'Next Avengers in '+Math.ceil(m.nextT)+'s')+(b?' · '+m.bossName+' '+Math.ceil(b.hp)+'/'+b.maxHp+' HP':(m.bossUp?'':' · '+(m.side==='hero'?'the villain':'the hero')+' arrives in '+Math.ceil(m.bossT)+'s'))+(h.kin>0?' · kinetic '+Math.round(h.kin):'')+(h.tiny?' · tiny':h.giant?' · GIANT '+Math.ceil(h.giantT)+'s':'')+'</small>'}}
+  const m=h.m;if(m&&heroDiff()>0){if(MP.active&&!MP.host)s+='<br><small>Powers only: the host\'s movie sets the enemies</small>';else{const b=m.bossUp?entities.find(e=>e.boss===m.bossId&&!e.dead):null;s+='<br><small>'+(m.side==='hero'?'Wave '+(m.wave+1)+' of '+(M.foe||'enemies')+' in '+Math.ceil(m.nextT)+'s':'Next Avengers in '+Math.ceil(m.nextT)+'s')+(b?' · '+m.bossName+' '+Math.ceil(b.hp)+'/'+b.maxHp+' HP':(m.bossUp?'':' · '+(m.side==='hero'?'the villain':'the hero')+' arrives in '+Math.ceil(m.bossT)+'s'))+(h.kin>0?' · kinetic '+Math.round(h.kin):'')+(h.tiny?' · tiny':h.giant?' · GIANT '+Math.ceil(h.giantT)+'s':'')+'</small>'}}
   el.innerHTML=s;el.style.display='block'}
 function heroKey(code){if(!game.hero||game.gui)return false;if(code==='KeyG')return heroPower('a');if(code==='KeyH')return heroPower('b');return false}
 function heroUseHook(st,hd,t){const h=game.hero,H=heroH();if(!h||!H)return false;if(hd&&hd.id===544&&player.sneaking)return false; // sneak + right-click raises the shield to block like any shield
