@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0,viewport-fit=cover,user-scalable=no">
+<title>Iron Colors – Free Pixel Coloring Book in Your Browser | Iron Games</title>
+<meta name="description" content="Iron Colors is a free browser coloring game: colour by number pictures of a butterfly, a kitten, a unicorn, a rainbow cottage, a flower and a rocket, or paint your own pixel art on a blank canvas, then download it. No download needed to play.">
+<meta name="robots" content="index,follow,max-snippet:-1,max-image-preview:large">
+<link rel="canonical" href="https://irongames.win/ironcolors.html">
+<link rel="icon" href="favicon.svg" type="image/svg+xml"><link rel="manifest" href="site.webmanifest">
+<meta property="og:type" content="website"><meta property="og:site_name" content="Iron Games"><meta property="og:title" content="Iron Colors – Pixel Coloring Book | Iron Games"><meta property="og:description" content="Colour by number or paint your own pixel art, then download it. Free in your browser."><meta property="og:url" content="https://irongames.win/ironcolors.html"><meta name="twitter:card" content="summary">
+<script type="application/ld+json">{"@context":"https://schema.org","@graph":[{"@type":"VideoGame","name":"Iron Colors","url":"https://irongames.win/ironcolors.html","genre":["Creative","Casual","Family"],"gamePlatform":"Web browser","applicationCategory":"Game","operatingSystem":"Any","isAccessibleForFree":true,"offers":{"@type":"Offer","price":"0","priceCurrency":"USD"},"author":{"@type":"Organization","name":"Daniele Bros","url":"https://irongames.win/"},"description":"A pixel coloring book with six colour-by-number pictures and a free paint mode, saved in the browser and downloadable as images."},{"@type":"BreadcrumbList","itemListElement":[{"@type":"ListItem","position":1,"name":"Iron Games","item":"https://irongames.win/"},{"@type":"ListItem","position":2,"name":"Iron Colors","item":"https://irongames.win/ironcolors.html"}]}]}</script>
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link href="https://fonts.googleapis.com/css2?family=Oswald:wght@500;700&family=Share+Tech+Mono&display=swap" rel="stylesheet">
+<style>
+:root{--gold:#e8c84a;--cream:#fffdf6;--dim:#a8a090;--panel:rgba(40,36,30,.94);--border:#7a7060;--accent:#ffd27a;}
+*{box-sizing:border-box;margin:0;padding:0;}html,body{width:100%;height:100%;overflow:hidden;background:#26221c;}
+body{font-family:'Share Tech Mono','Courier New',monospace;color:var(--cream);user-select:none;-webkit-user-select:none;touch-action:none;}
+#wrap{position:absolute;inset:0;display:grid;grid-template-columns:1fr 290px;}#main{position:relative;overflow:hidden;background:#e8e2d4;}canvas#c{width:100%;height:100%;display:block;cursor:crosshair;}
+#side{background:var(--panel);border-left:1px solid var(--border);display:flex;flex-direction:column;padding:12px;gap:7px;overflow-y:auto;}
+.back{position:absolute;top:10px;left:10px;z-index:30;background:rgba(40,36,30,.85);color:var(--dim);font-family:'Oswald',sans-serif;font-size:12px;letter-spacing:3px;padding:7px 12px;border:1px solid var(--border);text-decoration:none;border-radius:2px;}.back:hover{color:var(--gold);border-color:var(--gold);}
+h2.t{font-family:'Oswald',sans-serif;font-size:22px;letter-spacing:6px;color:var(--accent);}
+.stat{display:flex;justify-content:space-between;font-size:12px;letter-spacing:1px;padding:2px 0;border-bottom:1px dashed #4a4438;}.stat b{color:var(--gold);}
+.btn{display:block;width:100%;background:#4a4238;border:1px solid var(--border);color:var(--cream);font-family:'Oswald',sans-serif;font-size:12px;letter-spacing:2px;padding:7px 6px;cursor:pointer;text-align:center;border-radius:6px;}.btn:hover{border-color:var(--accent);color:var(--accent);}.btn.on{background:#8a6a2a;border-color:var(--accent);color:#fff;}
+.row{display:flex;gap:5px;flex-wrap:wrap;}.row .btn{flex:1;min-width:58px;}
+.lbl{font-size:10px;letter-spacing:2px;color:var(--dim);margin-top:4px;}
+.pal{display:flex;gap:5px;flex-wrap:wrap;}.pal i{width:28px;height:28px;border-radius:6px;border:2px solid rgba(255,255,255,.25);cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:11px;color:#000;font-weight:700;text-shadow:0 0 2px #fff;}.pal i.on{border-color:#fff;outline:2px solid var(--accent);}
+#panel{flex:1;min-height:60px;overflow-y:auto;font-size:12px;line-height:1.5;border:1px solid var(--border);padding:8px;background:rgba(0,0,0,.3);border-radius:6px;}
+#panel h4{font-family:'Oswald',sans-serif;letter-spacing:3px;color:var(--accent);font-size:13px;margin:4px 0 6px;}
+#overlay{position:absolute;inset:0;display:none;align-items:center;justify-content:center;background:rgba(0,0,0,.55);z-index:20;padding:16px;}#overlay.on{display:flex;}
+.modal{background:var(--panel);border:2px solid var(--accent);border-radius:10px;padding:18px 20px;max-width:520px;width:100%;max-height:100%;overflow:auto;}.modal h3{font-family:'Oswald',sans-serif;letter-spacing:5px;color:var(--accent);font-size:20px;margin-bottom:10px;}.modal p{font-size:13px;line-height:1.6;margin-bottom:10px;}
+.title h1{font-family:'Oswald',sans-serif;font-size:44px;letter-spacing:12px;color:var(--accent);text-align:center;text-shadow:0 0 24px rgba(255,210,122,.35);}.title .tag{font-size:12px;letter-spacing:4px;color:var(--dim);margin:6px 0 16px;text-align:center;}
+@media (max-width:760px){#wrap{grid-template-columns:1fr;grid-template-rows:56% 44%;}#side{border-left:none;border-top:1px solid var(--border);}.title h1{font-size:30px;letter-spacing:6px;}}
+</style></head>
+<body>
+<a class="back" href="/" title="Back to Iron Games">◀ IRON GAMES</a>
+<div id="wrap">
+  <div id="main"><canvas id="c"></canvas><div id="overlay"></div></div>
+  <div id="side">
+    <h2 class="t">IRON COLORS</h2>
+    <div class="stat"><span id="sPic">—</span><b id="sDone">0%</b></div>
+    <div class="lbl">PICTURE</div><div class="row" id="pics"></div>
+    <div class="lbl">COLOURS (NUMBERS SHOW WHERE THEY GO)</div><div class="pal" id="pal"></div>
+    <div class="row"><button class="btn" id="bHint">SHOW NUMBERS</button><button class="btn" id="bFill">FILL ALL OF THIS COLOUR</button></div>
+    <div class="row"><button class="btn" id="bClear">CLEAR</button><button class="btn" id="bDownload">DOWNLOAD</button></div>
+    <div id="panel"></div>
+  </div>
+</div>
+<script>
+'use strict';
+const $=id=>document.getElementById(id);
+const PAL=['#ffffff','#1a1a1a','#e03050','#ff8fb8','#ff9a40','#ffd040','#8ff060','#30a050','#60c0ff','#3060e0','#a070e0','#8a5a3a','#f0c8a0','#a0a0a0'];
+// pictures are 16x16 grids of palette indexes; '.' is blank (no colour)
+const PICS={butterfly:{n:'Butterfly',g:['................','..2..........2..','.222........222.','.2332......2332.','.23332....23332.','.233332..233332.','.2333321123333 2'.replace(' ',''),'.2333321123333 2'.replace(' ',''),'..233321123332..','..233321123332..','...2332112332...','...2222112222...','....2211112 2...'.replace(' ',''),'.....21111 2....'.replace(' ',''),'......1111......','......1..1......']},
+  kitten:{n:'Kitten',g:['................','....9......9....','....99....99....','....999999999...','...9999999999...','...9199999919...','...9999999999...','...9993333999...','....99999999....','....29999992....','...299999999....','...2999999992...','...299999999 2..'.replace(' ',''),'....999..999....','....999..999....','................']},
+  unicorn:{n:'Unicorn',g:['..........5.....','.........55.....','........55......','.......000......','......00000.....','.....000000A....','....00000000A...','...000000000A...','...00000000A....','..0000000000....','..00000000......','..00..00..00....','..00..00..00....','..00..00..00....','................','................']},
+  cottage:{n:'Rainbow Cottage',g:['................','.....2222.......','....244442......','...24555542.....','..2455555542....','.245555555542...','.24555555555 42.'.replace(' ',''),'.11111111111111.','.1CC11CC11CC111.','.1CC11CC11CC111.','.111111111111 11'.replace(' ',''),'.1CC1111B11CC11.','.1CC1111B11CC11.','.1111111B111111.','77777777777 7777'.replace(' ',''),'7777777777777777']},
+  flower:{n:'Sunflower',g:['................','......5555......','....55555555....','...5555BB5555...','..555BBBBBB555..','..55BBBBBBBB55..','.555BBBBBBBB555.','.555BBBBBBBB555.','..55BBBBBBBB55..','..555BBBBBB555..','...5555BB5555...','....55577555....','......5775......','.......77.......','......7777......','......7..7......']},
+  rocket:{n:'Rocket',g:['.......22.......','......2222......','.....222222.....','.....200002.....','.....208802.....','.....208802.....','.....200002.....','....2200002 2...'.replace(' ',''),'...222000022 2..'.replace(' ',''),'...222000022 2..'.replace(' ',''),'..2222222222 22.'.replace(' ',''),'.....2....2.....','....44....44....','...4444..4444...','....44....44....','.....4....4.....']}};
+const KEY={'0':0,'1':1,'2':2,'3':3,'4':4,'5':5,'6':6,'7':7,'8':8,'9':9,'A':10,'B':11,'C':12,'D':13};
+let pic='butterfly',col=2,cells=[],hint=true,mode='number',painting=false,saved={};
+try{saved=JSON.parse(localStorage.getItem('ic_colors')||'{}')}catch(e){}
+function target(){return PICS[pic]?PICS[pic].g.map(r=>r.padEnd(16,'.').slice(0,16).split('').map(ch=>ch==='.'?-1:KEY[ch])):null}
+function load(){cells=saved[pic]||new Array(256).fill(-1);mode=pic==='blank'?'free':'number';refresh()}
+function save(){saved[pic]=cells;try{localStorage.setItem('ic_colors',JSON.stringify(saved))}catch(e){}}
+function progress(){const t=target();if(!t)return 0;let need=0,ok=0;for(let y=0;y<16;y++)for(let x=0;x<16;x++){const v=t[y][x];if(v<0)continue;need++;if(cells[y*16+x]===v)ok++}return need?Math.round(ok/need*100):0}
+function refresh(){$('sPic').textContent=pic==='blank'?'Free paint':PICS[pic].n;$('sDone').textContent=mode==='free'?'':progress()+'%';$('pics').innerHTML=Object.keys(PICS).map(k=>'<button class="btn'+(pic===k?' on':'')+'" data-p="'+k+'">'+PICS[k].n.toUpperCase()+'</button>').join('')+'<button class="btn'+(pic==='blank'?' on':'')+'" data-p="blank">BLANK</button>';for(const b of $('pics').children)b.onclick=()=>{pic=b.dataset.p;load()};
+  $('pal').innerHTML=PAL.map((c,i)=>'<i class="'+(col===i?'on':'')+'" style="background:'+c+'" data-c="'+i+'">'+(mode==='number'?i:'')+'</i>').join('');for(const i of $('pal').children)i.onclick=()=>{col=+i.dataset.c;refresh()};$('bHint').textContent=hint?'HIDE NUMBERS':'SHOW NUMBERS';$('bHint').style.display=mode==='free'?'none':'block';$('bFill').style.display=mode==='free'?'none':'block';
+  $('panel').innerHTML='<h4>HOW TO PLAY</h4><p>'+(mode==='free'?'Pick a colour and paint the squares however you like. Drag to paint lines.':'Each square shows a number; pick the colour with that number and tap or drag over the squares. FILL ALL paints every square of the chosen number at once. The picture is finished at 100%.')+' Your pictures are saved as you go, and DOWNLOAD gives you a picture file.</p>'}
+const cv=$('c'),ctx=cv.getContext('2d');let W=800,H=450;
+function resize(){const r=cv.getBoundingClientRect();W=Math.max(300,Math.floor(r.width));H=Math.max(200,Math.floor(r.height));cv.width=W;cv.height=H}addEventListener('resize',resize);resize();
+function grid(){const s=Math.floor(Math.min(W,H)*0.9/16);return [(W-s*16)/2,(H-s*16)/2,s]}
+function draw(){ctx.fillStyle='#e8e2d4';ctx.fillRect(0,0,W,H);const [ox,oy,s]=grid();const t=target();ctx.fillStyle='#fff';ctx.fillRect(ox-6,oy-6,s*16+12,s*16+12);ctx.fillStyle='rgba(0,0,0,0.15)';ctx.fillRect(ox-2,oy+s*16+6,s*16+12,4);
+  for(let y=0;y<16;y++)for(let x=0;x<16;x++){const v=cells[y*16+x];const tv=t?t[y][x]:0;const px=ox+x*s,py=oy+y*s;if(v>=0){ctx.fillStyle=PAL[v];ctx.fillRect(px,py,s,s)}else{ctx.fillStyle=(mode==='number'&&tv<0)?'#f4f0e8':'#fff';ctx.fillRect(px,py,s,s)}ctx.strokeStyle='rgba(0,0,0,0.12)';ctx.strokeRect(px+0.5,py+0.5,s-1,s-1);
+    if(mode==='number'&&hint&&tv>=0&&v!==tv){ctx.fillStyle=tv===col?'#e03050':'#8a8070';ctx.font=(tv===col?'bold ':'')+Math.round(s*0.45)+'px Share Tech Mono, monospace';ctx.textAlign='center';ctx.textBaseline='middle';ctx.fillText(String(tv),px+s/2,py+s/2)}}
+  if(mode==='number'&&progress()===100){ctx.fillStyle='rgba(0,0,0,0.55)';ctx.fillRect(ox,oy+s*7,s*16,s*2);ctx.fillStyle='#ffd27a';ctx.font='bold '+Math.round(s*1.1)+'px Oswald, sans-serif';ctx.textAlign='center';ctx.textBaseline='middle';ctx.fillText('FINISHED!',W/2,oy+s*8)}}
+function paint(x,y){const [ox,oy,s]=grid();const gx=Math.floor((x-ox)/s),gy=Math.floor((y-oy)/s);if(gx<0||gy<0||gx>=16||gy>=16)return;const t=target();if(mode==='number'&&t&&t[gy][gx]<0)return;if(cells[gy*16+gx]!==col){cells[gy*16+gx]=col;save();if(mode==='number'&&t&&t[gy][gx]===col)beep(600+gx*10,0.03);if(mode==='number'&&progress()===100)beep(900,0.3,'triangle');refresh()}}
+const pos=e=>{const r=cv.getBoundingClientRect();const tt=e.touches?e.touches[0]:e;return [(tt.clientX-r.left)*W/r.width,(tt.clientY-r.top)*H/r.height]};
+cv.addEventListener('mousedown',e=>{ac();painting=true;const [x,y]=pos(e);paint(x,y)});cv.addEventListener('mousemove',e=>{if(painting){const [x,y]=pos(e);paint(x,y)}});addEventListener('mouseup',()=>painting=false);
+cv.addEventListener('touchstart',e=>{ac();painting=true;const [x,y]=pos(e);paint(x,y);e.preventDefault()},{passive:false});cv.addEventListener('touchmove',e=>{const [x,y]=pos(e);paint(x,y);e.preventDefault()},{passive:false});cv.addEventListener('touchend',()=>painting=false);
+$('bHint').onclick=()=>{hint=!hint;refresh()};$('bFill').onclick=()=>{const t=target();if(!t)return;for(let y=0;y<16;y++)for(let x=0;x<16;x++)if(t[y][x]===col)cells[y*16+x]=col;save();refresh();beep(700,0.1)};$('bClear').onclick=()=>{cells=new Array(256).fill(-1);save();refresh()};
+$('bDownload').onclick=()=>{const out=document.createElement('canvas');out.width=out.height=512;const x=out.getContext('2d');x.fillStyle='#fff';x.fillRect(0,0,512,512);for(let y=0;y<16;y++)for(let xx=0;xx<16;xx++){const v=cells[y*16+xx];if(v>=0){x.fillStyle=PAL[v];x.fillRect(xx*32,y*32,32,32)}}const a=document.createElement('a');a.download='iron-colors.png';a.href=out.toDataURL('image/png');a.click()};
+let AC=null;function ac(){if(!AC){try{AC=new (window.AudioContext||window.webkitAudioContext)()}catch(e){}}if(AC&&AC.state==='suspended')AC.resume();return AC}
+function beep(f,d,type){const a=ac();if(!a)return;const o=a.createOscillator(),g=a.createGain();o.type=type||'sine';o.frequency.value=f;g.gain.value=0.04;g.gain.exponentialRampToValueAtTime(0.0001,a.currentTime+d);o.connect(g);g.connect(a.destination);o.start();o.stop(a.currentTime+d)}
+function frame(){requestAnimationFrame(frame);draw()}
+$('overlay').innerHTML='<div class="modal title"><h1>IRON COLORS</h1><div class="tag">A PIXEL COLORING BOOK</div><p>Six colour-by-number pictures and a blank canvas for your own pixel art. Pick a colour, tap the squares with its number, and watch the picture appear. Everything is saved as you go and you can download your finished pictures.</p><button class="btn on" id="go">START COLOURING</button></div>';$('overlay').classList.add('on');$('go').onclick=()=>{$('overlay').classList.remove('on');load()};
+load();requestAnimationFrame(frame);
+</script></body></html>
