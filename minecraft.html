@@ -224,7 +224,7 @@ label.lb{font-size:13px;color:#a0a0a0;align-self:flex-start;margin-left:calc(50%
   <button class="btn" id="btnSingle">Singleplayer</button>
   <button class="btn" id="btnOptionsT">Options...</button>
   <button class="btn" id="btnControls">Controls</button>
-  <div style="position:absolute;bottom:6px;left:8px;font-size:12px;font-weight:400;color:#aaa">Ironcraft 1.15 &mdash; a browser voxel survival game</div>
+  <div style="position:absolute;bottom:6px;left:8px;font-size:12px;font-weight:400;color:#aaa">Ironcraft 1.16 &mdash; a browser voxel survival game</div>
 </div>
 
 <div id="worldMenu" class="menu dirtbg">
@@ -256,6 +256,7 @@ label.lb{font-size:13px;color:#a0a0a0;align-self:flex-start;margin-left:calc(50%
   <button class="btn" id="btnSmooth">Smooth Lighting: ON</button>
   <button class="btn" id="btnClouds">Clouds: ON</button>
   <button class="btn" id="btnKeepInv">Keep Inventory on Death: ON</button>
+  <button class="btn" id="btnNightVis">Night Vision: OFF</button>
   <button class="btn" id="btnOptionsBack" style="margin-top:14px">Done</button>
 </div>
 
@@ -270,6 +271,7 @@ label.lb{font-size:13px;color:#a0a0a0;align-self:flex-start;margin-left:calc(50%
     <span><b>Middle click</b> Pick block (Creative)</span><span><b>F3</b> Debug info</span>
     <span><b>Esc</b> Pause / close menu</span><span><b>Double Space</b> Fly (Creative)</span>
     <span><b>Shift+Click</b> Quick move items</span><span><b>Right click slot</b> Split stack</span>
+    <span><b>N</b> Night vision on/off</span><span><b>/</b> or <b>T</b> Command console</span>
   </div>
   <button class="btn" id="btnControlsBack" style="margin-top:14px">Done</button>
 </div>
@@ -1525,7 +1527,7 @@ function renderFrame(dt){
   const p=player;const eyeY=p.y+p.eyeHeight;R.eye=[p.x,eyeY,p.z];R.aspect=W/H;
   let fov=opts.fov*PI/180;if(p.sprinting)fov*=1.1;if(p.bowCharge>0)fov*=1-Math.min(p.bowCharge,1)*0.15;
   R.proj=m4perspective(fov,R.aspect,0.05,1000);R.view=m4mul(m4rotX(-p.pitch),m4mul(m4rotY(-p.yaw),m4trans(-p.x,-eyeY,-p.z)));R.vp=m4mul(R.proj,R.view);R.planes=frustumPlanes(R.vp);
-  const sc=skyColors(world.time/24000);R.day=(world.nether||world.end)?0:sc.day;R.gamma=opts.brightness/100;R.ambient=world.end?0.32+0.08*R.gamma:world.nether?0.10+0.06*R.gamma:0.015+0.06*R.gamma;
+  const sc=skyColors(world.time/24000);R.day=(world.nether||world.end)?0:sc.day;R.gamma=opts.brightness/100;R.ambient=world.end?0.32+0.08*R.gamma:world.nether?0.10+0.06*R.gamma:0.015+0.06*R.gamma;R.nv=(R.nv||0)+((opts.nightVision?1:0)-(R.nv||0))*0.08;if(R.nv>0.001)R.ambient=Math.max(R.ambient,0.92*R.nv); // night vision: lift the darkest light level to near daylight
   const headBlock=world.getBlock(floor(p.x),floor(eyeY),floor(p.z));const underwater=headBlock===8,inLava=headBlock===9;
   const rd=opts.renderDist*16;
   if(underwater){R.fogColor=[0.05*sc.day+0.01,0.15*sc.day+0.02,0.5*sc.day+0.05];R.fogStart=2;R.fogEnd=18}else if(inLava){R.fogColor=[0.9,0.35,0.05];R.fogStart=0;R.fogEnd=2}else if(world.nether){R.fogColor=[0.22,0.04,0.04];R.fogStart=rd*0.15;R.fogEnd=rd*0.7}else if(world.end){R.fogColor=[0.05,0.03,0.08];R.fogStart=rd*0.5;R.fogEnd=rd*1.1}else{R.fogColor=sc.sky;R.fogStart=rd*0.55;R.fogEnd=rd*0.98}
@@ -3335,9 +3337,10 @@ function updateMusic(dt){if(!AU.ctx||opts.music===0)return;AU.musicT-=dt;if(AU.m
   const n=1+floor(Math.random()*3);for(let i=0;i<n;i++){const o=c.createOscillator();o.type='sine';o.frequency.value=scale[floor(Math.random()*scale.length)]*(Math.random()<0.3?0.5:1);const g=c.createGain();g.gain.setValueAtTime(0,t+i*0.6);g.gain.linearRampToValueAtTime(0.6,t+i*0.6+0.4);g.gain.exponentialRampToValueAtTime(0.001,t+i*0.6+4);o.connect(g);g.connect(AU.music);o.start(t+i*0.6);o.stop(t+i*0.6+4.2)}}
 /* ===================== GAME ===================== */
 const game={dims:{over:null,nether:null},state:'title',paused:false,gui:null,time:0,tick:0,difficulty:2,worldId:null,worldName:'',worldSpawn:[0.5,70,0.5],seed:0,lastSave:0,fps:0,frames:0,fpsT:0,tickAcc:0,spawnT:0};
-const opts=Object.assign({renderDist:8,fov:70,sens:100,brightness:50,volume:100,music:50,smooth:true,clouds:true,keepInv:true},JSON.parse(localStorage.getItem('ic_opts')||'{}'));
+const opts=Object.assign({renderDist:8,fov:70,sens:100,brightness:50,volume:100,music:50,smooth:true,clouds:true,keepInv:true,nightVision:false},JSON.parse(localStorage.getItem('ic_opts')||'{}'));
 let world=null;
 function saveOpts(){localStorage.setItem('ic_opts',JSON.stringify(opts))}
+function setNightVision(on,quiet){opts.nightVision=!!on;saveOpts();$('btnNightVis').textContent='Night Vision: '+(opts.nightVision?'ON':'OFF');if(!quiet){showMessage('Night vision '+(opts.nightVision?'ON':'OFF')+' (press N to toggle)');playSound('click',0.5,opts.nightVision?1.4:0.8)}}
 /* ---- chunk streaming ---- */
 function updateChunks(budgetMs){
   const t0=performance.now();const pcx=floor(player.x)>>4,pcz=floor(player.z)>>4;const rd=opts.renderDist;
@@ -3522,6 +3525,7 @@ function setupMenus(){
   sl('optRender','renderDist',v=>'Render Distance: '+v+' chunks');sl('optFov','fov',v=>'FOV: '+(v===70?'Normal':v));sl('optSens','sens',v=>'Sensitivity: '+v+'%');sl('optBright','brightness',v=>'Brightness: '+(v===0?'Moody':v===100?'Bright':v+'%'));
   sl('optVol','volume',v=>'Master Volume: '+(v===0?'OFF':v+'%'),setVolume);sl('optMusic','music',v=>'Music: '+(v===0?'OFF':v+'%'),setVolume);
   $('btnSmooth').onclick=()=>{opts.smooth=!opts.smooth;$('btnSmooth').textContent='Smooth Lighting: '+(opts.smooth?'ON':'OFF');if(world)for(const c of world.chunks.values())c.dirty=true};$('btnSmooth').textContent='Smooth Lighting: '+(opts.smooth?'ON':'OFF');
+  $('btnNightVis').onclick=()=>setNightVision(!opts.nightVision);$('btnNightVis').textContent='Night Vision: '+(opts.nightVision?'ON':'OFF');
   $('btnKeepInv').onclick=()=>{opts.keepInv=!opts.keepInv;$('btnKeepInv').textContent='Keep Inventory on Death: '+(opts.keepInv?'ON':'OFF');saveOpts()};$('btnKeepInv').textContent='Keep Inventory on Death: '+(opts.keepInv?'ON':'OFF');
   $('btnClouds').onclick=()=>{opts.clouds=!opts.clouds;$('btnClouds').textContent='Clouds: '+(opts.clouds?'ON':'OFF')};$('btnClouds').textContent='Clouds: '+(opts.clouds?'ON':'OFF');
 }
@@ -3562,6 +3566,7 @@ function setupInput(){
     if((ev.code==='Slash'||ev.code==='KeyT')&&!player.dead){openCmd(ev.code==='Slash'?'/':'');ev.preventDefault();return}
     if(ev.code>='Digit1'&&ev.code<='Digit9'){player.sel=+ev.code[5]-1;updateHotbar()}
     if(ev.code==='KeyQ'){const st=player.inv[player.sel];if(st){const d=eyeDir();const drop={id:st.id,count:ev.shiftKey?st.count:1,dur:st.dur};st.count-=drop.count;if(st.count<=0)player.inv[player.sel]=null;spawnItem(player.x,player.y+player.eyeHeight-0.3,player.z,drop,[d[0]*6+player.vx,d[1]*6+1,d[2]*6+player.vz],2);player.swing=0;updateHotbar()}}
+    if(ev.code==='KeyN'){setNightVision(!opts.nightVision);ev.preventDefault()}
     if(ev.code==='F3'){const d=$('debug');d.style.display=d.style.display==='block'?'none':'block';ev.preventDefault()}
     if(ev.code==='F5'){ev.preventDefault()}
     if(ev.code==='Space'){const t=game.time;if(player.mode==='creative'&&t-player.lastSpaceT<0.3){player.flying=!player.flying;player.vy=0;player.lastSpaceT=-1}else player.lastSpaceT=t;
@@ -3653,7 +3658,7 @@ function commandLocate(name,teleport){const p=player;const say=showMessage;const
   say('Teleported '+Math.round(b.dist)+' blocks to the '+label(key)+(d.sea?' (it is below you, in the water)':b.y!==null?' (you are inside it, underground)':'')+note)}
 function runCommand(line){const p=player;const raw=line.startsWith('/')?line.slice(1):line;const parts=raw.split(/\s+/);const cmd=(parts[0]||'').toLowerCase();const args=parts.slice(1);const say=showMessage;
   switch(cmd){
-    case 'help':say('/give <item> [count] [enchant:lvl ...]  /kit <'+Object.keys(KITS).join('|')+'>  /build enchanting');say('/tp <x y z|spawn|home|village|mansion|stronghold|diamonds|...>  /locate <structure|ore>  /time <day|night|n>  /gamemode <survival|creative>  /spawn <mob>  /heal  /xp <levels>  /seed  /kill');return;
+    case 'help':say('/give <item> [count] [enchant:lvl ...]  /kit <'+Object.keys(KITS).join('|')+'>  /build enchanting');say('/tp <x y z|spawn|home|village|mansion|stronghold|diamonds|...>  /locate <structure|ore>  /time <day|night|n>  /nightvision [on|off]  /gamemode <survival|creative>  /spawn <mob>  /heal  /xp <levels>  /seed  /kill');return;
     case 'give':{const isEnch=a=>/[:=]/.test(a)||!!Object.keys(ENCH).find(k=>k===a.toLowerCase()||(a.length>=4&&k.startsWith(a.toLowerCase())));const nm=[args[0]||''];let i=1;while(i<args.length&&!/^\d+$/.test(args[i])&&!isEnch(args[i])){nm.push(args[i]);i++}
       const id=findItemId(nm.join('_'));if(id===null){say('Unknown item: '+nm.join(' '));return}
       const cnt=args.slice(i).find(a=>/^\d+$/.test(a));const ench=parseEnch(args.slice(i).filter(isEnch));giveItems(id,cnt?clamp(+cnt,1,2304):1,ench);say('Gave '+(cnt||1)+' x '+ITEMS[id].label+(ench?' ('+Object.keys(ench).map(k=>enchName(k,ench[k])).join(', ')+')':''));return}
@@ -3666,6 +3671,7 @@ function runCommand(line){const p=player;const raw=line.startsWith('/')?line.sli
     case 'time':{const a=(args[0]||'').toLowerCase();const t=a==='day'?1000:a==='noon'?6000:a==='night'?13000:a==='midnight'?18000:parseInt(a);if(isNaN(t)){say('Usage: /time day|night|<0-24000>');return}world.time=((t%24000)+24000)%24000;say('Time set to '+world.time);return}
     case 'gamemode':case 'gm':{const a=(args[0]||'').toLowerCase();const m=a==='c'||a==='creative'||a==='1'?'creative':a==='s'||a==='survival'||a==='0'?'survival':null;if(!m){say('Usage: /gamemode survival|creative');return}p.mode=m;if(m==='survival')p.flying=false;say('Game mode: '+m);return}
     case 'spawn':case 'summon':{const t=(args[0]||'').toLowerCase().replace(/[\s-]+/g,'_');const type=MOBDEF[t]?t:MOB_TYPES.find(k=>k.startsWith(t));if(!type){say('Mobs: '+MOB_TYPES.join(', '));return}const n=clamp(parseInt(args[1])||1,1,20);const d=eyeDir();for(let i=0;i<n;i++)entities.push(new Mob(type,p.x+d[0]*3+(Math.random()-0.5)*2,p.y+0.5,p.z+d[2]*3+(Math.random()-0.5)*2));say('Spawned '+n+' '+label(type));return}
+    case 'nightvision':case 'nv':case 'night_vision':{const a=(args[0]||'').toLowerCase();setNightVision(a==='on'||a==='1'?true:a==='off'||a==='0'?false:!opts.nightVision);return}
     case 'heal':p.hp=p.maxHp;p.hunger=20;p.sat=5;p.fireT=0;p.air=300;p.effects={};say('Healed');return;
     case 'xp':{const n=parseInt(args[0])||10;p.level=Math.max(0,p.level+n);p.xpFrac=0;say('Level '+p.level);updateHUD&&updateHUD();return}
     case 'seed':say('Seed: '+game.seed);return;
