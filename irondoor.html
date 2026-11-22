@@ -10,7 +10,7 @@
 <link rel="icon" href="favicon.svg" type="image/svg+xml"><link rel="manifest" href="site.webmanifest">
 <meta property="og:type" content="website"><meta property="og:site_name" content="Iron Games"><meta property="og:title" content="Iron Door – Backrooms Horror | Iron Games"><meta property="og:description" content="Lost in the backrooms. Endless yellow rooms, buzzing lights, things in the dark. Find the way down through five levels to the Iron Door. Free browser game."><meta property="og:url" content="https://irongames.win/irondoor.html">
 <meta name="twitter:card" content="summary"><meta name="twitter:title" content="Iron Door – Backrooms Horror | Iron Games"><meta name="twitter:description" content="Endless yellow rooms, buzzing lights, things in the dark. Find the way down to the Iron Door. Free browser game.">
-<script type="application/ld+json">{"@context":"https://schema.org","@graph":[{"@type":"VideoGame","name":"Iron Door","url":"https://irongames.win/irondoor.html","genre":["Horror","Exploration","Backrooms","First-person"],"gamePlatform":"Web browser","applicationCategory":"Game","operatingSystem":"Any","isAccessibleForFree":true,"offers":{"@type":"Offer","price":"0","priceCurrency":"USD"},"author":{"@type":"Organization","name":"Daniele Bros"},"inLanguage":"en","description":"A free first-person backrooms horror game in the browser: endless procedurally generated yellow rooms with buzzing fluorescent lights, five levels down (the Lobby, the Habitable Zone, Pipe Dreams, the Electrical Station and the Poolrooms), entities that hunt you, almond water to keep your sanity up, sprinting with stamina, and a hidden exit door on every level leading to the Iron Door."},{"@type":"BreadcrumbList","itemListElement":[{"@type":"ListItem","position":1,"name":"Iron Games","item":"https://irongames.win/"},{"@type":"ListItem","position":2,"name":"Iron Door","item":"https://irongames.win/irondoor.html"}]},{"@type":"FAQPage","mainEntity":[{"@type":"Question","name":"How do I play Iron Door?","acceptedAnswer":{"@type":"Answer","text":"Click to lock the mouse, then look with the mouse and walk with WASD or the arrow keys. Hold Shift to sprint while you have stamina. On a phone, drag on the left of the screen to walk and on the right to look. Every level hides an exit door somewhere in the endless rooms: spray-painted arrows on the walls point toward it. Walk into the door to go down a level. Walk into almond water bottles to drink them."}},{"@type":"Question","name":"What drains sanity in Iron Door?","acceptedAnswer":{"@type":"Answer","text":"Time in the rooms drains it slowly, being near an entity drains it fast and getting caught costs a big chunk. Almond water restores it. When it reaches zero you are lost and the run ends; your deepest level and time are saved as your record."}},{"@type":"Question","name":"What are the levels in Iron Door?","acceptedAnswer":{"@type":"Answer","text":"Level 0 The Lobby (yellow rooms, buzzing lights, wanderers), Level 1 The Habitable Zone (dark concrete warehouse, hounds), Level 2 Pipe Dreams (red pipe tunnels, skin-stealers), Level 3 The Electrical Station (green machinery, smilers that only move when you look away) and Level 4 The Poolrooms (white tiles and water, where the Iron Door waits)."}}]}]}</script>
+<script type="application/ld+json">{"@context":"https://schema.org","@graph":[{"@type":"VideoGame","name":"Iron Door","url":"https://irongames.win/irondoor.html","genre":["Horror","Exploration","Backrooms","First-person"],"gamePlatform":"Web browser","applicationCategory":"Game","operatingSystem":"Any","isAccessibleForFree":true,"offers":{"@type":"Offer","price":"0","priceCurrency":"USD"},"author":{"@type":"Organization","name":"Daniele Bros"},"inLanguage":"en","description":"A free first-person backrooms horror game in the browser: endless procedurally generated yellow rooms with buzzing fluorescent lights, five levels down (the Lobby, the Habitable Zone, Pipe Dreams, the Electrical Station and the Poolrooms), entities that hunt you, almond water to keep your sanity up, sprinting with stamina, and a hidden exit door on every level leading to the Iron Door."},{"@type":"BreadcrumbList","itemListElement":[{"@type":"ListItem","position":1,"name":"Iron Games","item":"https://irongames.win/"},{"@type":"ListItem","position":2,"name":"Iron Door","item":"https://irongames.win/irondoor.html"}]},{"@type":"FAQPage","mainEntity":[{"@type":"Question","name":"How do I play Iron Door?","acceptedAnswer":{"@type":"Answer","text":"Click to lock the mouse, then look with the mouse and walk with WASD or the arrow keys. Hold Shift to sprint while you have stamina. Press N or the Skip Level button to jump to the next level, or pick any level from the list before you start. On a phone, drag on the left of the screen to walk, on the right to look, and tap Skip Level. Every level hides an exit door somewhere in the endless rooms: spray-painted arrows on the walls point toward it. Walk into the door to go down a level. Walk into almond water bottles to drink them."}},{"@type":"Question","name":"What drains sanity in Iron Door?","acceptedAnswer":{"@type":"Answer","text":"Time in the rooms drains it slowly, being near an entity drains it fast and getting caught costs a big chunk. Almond water restores it. When it reaches zero you are lost and the run ends; your deepest level and time are saved as your record."}},{"@type":"Question","name":"What are the levels in Iron Door?","acceptedAnswer":{"@type":"Answer","text":"Level 0 The Lobby (yellow rooms, buzzing lights, wanderers), Level 1 The Habitable Zone (dark concrete warehouse, hounds), Level 2 Pipe Dreams (red pipe tunnels, skin-stealers), Level 3 The Electrical Station (green machinery, smilers that only move when you look away) and Level 4 The Poolrooms (white tiles and water, where the Iron Door waits)."}}]}]}</script>
 <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link href="https://fonts.googleapis.com/css2?family=Oswald:wght@500;700&family=Share+Tech+Mono&display=swap" rel="stylesheet">
 <style>
 :root{--gold:#e8c84a;--cream:#f4ecc8;--dim:#9a9060;--panel:rgba(20,18,10,.92);--border:#5a5030;}
@@ -43,7 +43,19 @@ canvas#c{position:absolute;inset:0;width:100%;height:100%;display:block;image-re
 #knob{position:absolute;left:35px;top:35px;width:50px;height:50px;border-radius:50%;background:rgba(232,200,74,.35);border:1px solid rgba(232,200,74,.6);}
 #look{position:absolute;right:0;top:0;bottom:0;width:55%;pointer-events:auto;}
 #runbtn{position:absolute;right:30px;bottom:70px;width:74px;height:74px;border-radius:50%;border:1px solid var(--gold);color:var(--gold);font-family:'Oswald',sans-serif;letter-spacing:2px;font-size:13px;display:flex;align-items:center;justify-content:center;pointer-events:auto;background:rgba(0,0,0,.4);}
-@media (pointer:coarse){#hud .bar{width:150px;}}
+#skip{position:absolute;top:58px;right:12px;z-index:32;display:none;font-family:'Oswald',sans-serif;letter-spacing:2px;font-size:13px;line-height:1.15;padding:8px 14px;border:1px solid var(--gold);color:var(--gold);background:var(--panel);cursor:pointer;pointer-events:auto;text-align:center;}
+#skip small{display:block;font-family:'Share Tech Mono',monospace;font-size:9px;letter-spacing:1px;color:var(--dim);}
+#skip:hover:not(:disabled){background:var(--gold);color:#000;}
+#skip:hover:not(:disabled) small{color:#000;}
+#skip:disabled{opacity:.65;cursor:default;border-color:var(--border);color:var(--dim);}
+.picklab{font-size:11px;letter-spacing:2px;color:var(--gold);margin:14px 0 6px;}
+.lvlsel{display:flex;flex-wrap:wrap;gap:6px;justify-content:center;}
+.lvlbtn{flex:1 1 148px;max-width:100%;font-family:'Share Tech Mono',monospace;font-size:11px;letter-spacing:1px;line-height:1.35;padding:8px 8px;border:1px solid var(--border);color:var(--cream);background:rgba(0,0,0,.35);cursor:pointer;}
+.lvlbtn small{display:block;color:var(--dim);font-size:9px;letter-spacing:1px;}
+.lvlbtn:hover,.lvlbtn:focus-visible{border-color:var(--gold);color:var(--gold);}
+@media (pointer:coarse){#hud .bar{width:150px;}
+  #skip{padding:14px 18px;font-size:16px;min-height:48px;min-width:128px;}
+  .lvlbtn{padding:12px 10px;font-size:13px;min-height:48px;}}
 </style>
 </head>
 <body>
@@ -52,19 +64,24 @@ canvas#c{position:absolute;inset:0;width:100%;height:100%;display:block;image-re
 <div id="fx"></div><div id="vig"></div><div id="noise"></div><div id="hurt"></div>
 <a class="back" href="index.html">◀ IRON GAMES</a>
 <div id="lvl"></div>
+<button type="button" id="skip">SKIP LEVEL<small>N</small></button>
 <div id="tip"></div>
 <div id="hud"><div class="lab">SANITY</div><div class="bar" id="san"><i></i></div><div class="lab" style="margin-top:6px">STAMINA</div><div class="bar" id="stam"><i></i></div><div id="inv"></div></div>
 <div id="touch"><div id="stick"><div id="knob"></div></div><div id="look"></div><div id="runbtn">RUN</div></div>
 <div class="menu" id="title" style="display:flex"><div class="panel">
   <h1>IRON DOOR</h1><h2>YOU NOCLIPPED OUT OF REALITY</h2>
   <p>Endless yellow rooms. The hum of fluorescent lights. Damp carpet. Something is walking the halls with you.<br>Every level hides a door down. Spray-painted arrows on the walls point the way. Drink almond water to keep your head. Reach the Iron Door.</p>
-  <p>Mouse to look, <b>WASD</b> to walk, <b>Shift</b> to run. Phone: left thumb walks, right thumb looks.<br>Click the screen to lock the mouse.</p>
+  <p>Mouse to look, <b>WASD</b> to walk, <b>Shift</b> to run, <b>N</b> or Skip Level to jump ahead. Phone: left thumb walks, right thumb looks, tap Skip Level.<br>Click the screen to lock the mouse.</p>
   <div class="rec" id="best"></div>
   <button class="btn" id="play">ENTER</button>
+  <p class="picklab">OR JUMP STRAIGHT TO A LEVEL</p>
+  <div class="lvlsel" id="lvlsel"></div>
 </div></div>
 <div class="menu" id="over"><div class="panel">
   <h1 id="overH">LOST</h1><h2 id="overS"></h2><p id="overP"></p>
   <button class="btn" id="again">AGAIN</button><a class="btn" href="index.html">HUB</a>
+  <p class="picklab">OR JUMP STRAIGHT TO A LEVEL</p>
+  <div class="lvlsel" id="lvlsel2"></div>
 </div></div>
 </div>
 <script>
@@ -150,7 +167,7 @@ function startLevel(i){LI=i;L=LEVELS[i];T=TEX[i];cellCache.clear();SEED=(SEED*7+
   const [sx,sy]=nearestOpen(1,1);P.x=sx+0.5;P.y=sy+0.5;P.a=hash(i,0,21)*PI*2;const ang=hash(i,1,22)*PI*2,d=L.exitD[0]+hash(i,2,23)*(L.exitD[1]-L.exitD[0]);
   const [ex,ey]=nearestOpen(Math.round(sx+Math.cos(ang)*d),Math.round(sy+Math.sin(ang)*d));EXIT={x:ex,y:ey};cellCache.clear();
   ENTS=[];ITEMS=[];P.lvlT=0;P.deep=Math.max(P.deep,i);for(let k=0;k<L.ents;k++)spawnEnt(true);for(let k=0;k<14;k++)spawnWater(10,40);
-  $('lvl').innerHTML=L.name+'<small>'+L.sub+'</small>';tip(L.name+' · '+L.sub,L.intro);snd.drop();snd.hum(L)}
+  $('lvl').innerHTML=L.name+'<small>'+L.sub+'</small>';tip(L.name+' · '+L.sub,L.intro);snd.drop();snd.hum(L);updateSkip()}
 function randOpenAround(x,y,r0,r1){for(let t=0;t<80;t++){const a=rnd()*PI*2,d=r0+rnd()*(r1-r0);const cx=Math.floor(x+Math.cos(a)*d),cy=Math.floor(y+Math.sin(a)*d);if(cell(cx,cy)===0)return [cx+0.5,cy+0.5]}return null}
 function spawnEnt(far){const p=randOpenAround(P.x,P.y,far?14:22,far?26:34);if(!p)return;ENTS.push({x:p[0],y:p[1],vx:0,vy:0,a:rnd()*PI*2,state:'wander',t:0,cool:0})}
 function spawnWater(r0,r1){const p=randOpenAround(P.x,P.y,r0,r1);if(p)ITEMS.push({x:p[0],y:p[1]})}
@@ -256,18 +273,24 @@ const snd=(()=>{let ac=null,hum=null,humG=null,fearG=null,fearO=null,beat=0;cons
   S.fear=(f,san)=>{if(!fearG||!playing)return;fearG.gain.setTargetAtTime(f*0.25,ac.currentTime,0.1);beat-=1/60;if(san<30&&beat<=0){beat=0.5+san/60;const o=ac.createOscillator();o.type='sine';o.frequency.value=50;const g=ac.createGain();g.gain.value=0.3;g.gain.exponentialRampToValueAtTime(0.001,ac.currentTime+0.18);o.connect(g);g.connect(ac.destination);o.start();o.stop(ac.currentTime+0.2)}};
   return S})();
 // ---------- game flow ----------
-function startGame(){SEED=(Math.random()*1e9)|0;Object.assign(P,{san:100,stam:100,water:0,t:0,deep:0,dead:false,won:false,bob:0});for(const k in keys)keys[k]=false;snd.init();$('title').style.display='none';$('over').style.display='none';$('hud').style.display='block';$('lvl').style.display='block';$('touch').style.display=isTouch?'block':'none';playing=true;paused=false;startLevel(0);lastT=performance.now();if(!isTouch)lock()}
-function endGame(won){playing=false;snd.stop();document.exitPointerLock&&document.exitPointerLock();saveBest();$('overH').textContent=won?'YOU FOUND THE IRON DOOR':'LOST';$('overS').textContent=won?'OUT OF THE BACKROOMS IN '+fmt(P.t):'YOUR MIND GAVE OUT ON '+L.name;$('overP').innerHTML=won?'Through the Iron Door and back to reality. '+P.water+' almond waters along the way.':'Deepest: '+L.name+' · '+L.sub+'<br>'+fmt(P.t)+' in the rooms, '+P.water+' almond waters.';$('over').style.display='flex';$('touch').style.display='none'}
+function resetInput(){for(const k in keys)keys[k]=false;touch.mx=touch.my=touch.look=0;touch.run=false;mdx=0;const kn=$('knob');if(kn){kn.style.left='35px';kn.style.top='35px'}}
+function updateSkip(){const btn=$('skip');const last=LI>=LEVELS.length-1;btn.disabled=last;btn.style.display=playing?'block':'none';btn.innerHTML=last?'LAST LEVEL':'SKIP LEVEL<small>N</small>'}
+function skipLevel(){if(!playing||P.dead||P.won||LI>=LEVELS.length-1)return;resetInput();exitLevel();paused=false;lastT=performance.now()}
+function beginRun(i){SEED=(Math.random()*1e9)|0;Object.assign(P,{san:100,stam:100,water:0,t:0,deep:0,dead:false,won:false,bob:0});resetInput();snd.init();$('title').style.display='none';$('over').style.display='none';$('hud').style.display='block';$('lvl').style.display='block';$('touch').style.display=isTouch?'block':'none';playing=true;paused=false;startLevel(i);lastT=performance.now()}
+function startGame(){beginRun(0)}
+function endGame(won){playing=false;snd.stop();document.exitPointerLock&&document.exitPointerLock();saveBest();$('overH').textContent=won?'YOU FOUND THE IRON DOOR':'LOST';$('overS').textContent=won?'OUT OF THE BACKROOMS IN '+fmt(P.t):'YOUR MIND GAVE OUT ON '+L.name;$('overP').innerHTML=won?'Through the Iron Door and back to reality. '+P.water+' almond waters along the way.':'Deepest: '+L.name+' · '+L.sub+'<br>'+fmt(P.t)+' in the rooms, '+P.water+' almond waters.';$('over').style.display='flex';$('touch').style.display='none';updateSkip()}
 function frame(now){const dt=Math.min(0.05,(now-lastT)/1000);lastT=now;if(playing&&!paused){update(dt);render();snd.flicker(flick)}requestAnimationFrame(frame)}
 // ---------- input ----------
 const isTouch=matchMedia('(pointer:coarse)').matches;
 function lock(){if(isTouch)return;try{const r=cv.requestPointerLock();if(r&&r.catch)r.catch(()=>{})}catch(e){}}
 cv.addEventListener('mousedown',()=>{if(playing){snd.init();if(document.pointerLockElement!==cv)lock();if(paused){paused=false;lastT=performance.now()}}});
 document.addEventListener('mousemove',e=>{if(document.pointerLockElement===cv)mdx+=e.movementX});
-document.addEventListener('pointerlockchange',()=>{if(document.pointerLockElement!==cv&&playing&&!isTouch){paused=true;tip('PAUSED','click to go on')}});
-addEventListener('keydown',e=>{keys[e.code]=true;if(['ArrowUp','ArrowDown','ArrowLeft','ArrowRight','Space'].includes(e.code))e.preventDefault();if(e.code==='Escape'&&playing){paused=!paused;if(!paused){lastT=performance.now();lock()}else tip('PAUSED','click to go on')}});
+document.addEventListener('pointerlockchange',()=>{if(document.pointerLockElement!==cv&&playing&&!isTouch){paused=true;tip('PAUSED','N skips ahead, or click Skip Level')}});
+addEventListener('keydown',e=>{keys[e.code]=true;if(['ArrowUp','ArrowDown','ArrowLeft','ArrowRight','Space'].includes(e.code))e.preventDefault();if(e.code==='KeyN'&&!e.repeat)skipLevel();if(e.code==='Escape'&&playing&&!e.repeat){if(paused){paused=false;lastT=performance.now();lock()}else{paused=true;tip('PAUSED','N skips ahead, or click Skip Level');if(document.pointerLockElement)document.exitPointerLock()}}});
 addEventListener('keyup',e=>{keys[e.code]=false});
-$('play').onclick=startGame;$('again').onclick=startGame;
+$('play').onclick=startGame;$('again').onclick=startGame;$('skip').onclick=e=>{e.preventDefault();e.stopPropagation();skipLevel()};
+function fillLevels(id){const el=$(id);LEVELS.forEach((Lv,i)=>{const b=document.createElement('button');b.type='button';b.className='lvlbtn';b.dataset.level=String(i);b.innerHTML=Lv.name+'<small>'+Lv.sub+'</small>';b.addEventListener('click',()=>beginRun(i));el.appendChild(b)})}
+fillLevels('lvlsel');fillLevels('lvlsel2');
 // touch: left stick walks, right half looks, RUN holds sprint
 (()=>{const st=$('stick'),kn=$('knob'),lk=$('look'),rb=$('runbtn');let sid=null,sx=0,sy=0,lid=null,lx=0;
   st.addEventListener('touchstart',e=>{const t=e.changedTouches[0];sid=t.identifier;sx=t.clientX;sy=t.clientY;e.preventDefault()},{passive:false});
