@@ -647,13 +647,29 @@ function drawParts(parts,bx,by,bz,R,sc,st){st=st||{};for(const p of parts){const
     let Rt=Rq?m3mul(R,Rq):R;if(Rp)Rt=m3mul(Rt,Rp);const w=m3v(R,[off[0]*sc,off[1]*sc,off[2]*sc]);
     const tn=st.tint?[p.tint[0]*st.tint[0],p.tint[1]*st.tint[1],p.tint[2]*st.tint[2]]:p.tint;drawMR(m,bx+w[0],by+w[1],bz+w[2],Rt,sx*sc,sy*sc,sz*sc,p.tex,tn,{a:o.a,mode:o.mode,rep:o.rep,shin:o.shin||30,spec:o.spec===undefined?0.3:o.spec,noShadow:o.noShadow})}}
 // ---- vehicle models ----
-const HANDCACHE={};
-function handParts(curl,side,col,SK,arm,ayaw){arm=arm||0;ayaw=ayaw||0;const key=curl.toFixed(2)+side+arm+'/'+ayaw+col.join(',')+SK.join(',');if(HANDCACHE[key])return HANDCACHE[key];const P=[];const B=VB,C=VC,S=VSP;
-  P.push(B(-2,8,-1.3,1.3,-3.6,3.6,'glove',WHITE,{spec:0.1}),B(1,7,1.3,1.8,-3,3,'glove',[0.85,0.85,0.85],{spec:0.1}),B(-3.5,-1.8,-1.5,1.5,-3.3,3.3,'skin',SK,{spec:0.05}),C(-18,0,0,0,2.9,'shirt',col,{rot:arm,yaw:ayaw,piv:[-3,0,0],spec:0.06}),C(-3,0,0,0,3.3,'shirt',[col[0]*0.75,col[1]*0.75,col[2]*0.75],{rot:arm,yaw:ayaw,piv:[-3,0,0],hollow:true}));
-  for(const r of [-2.7,-0.9,0.9,2.7]){const L1=3.7,L2=3.1,w=0.82;const c1=-curl*(1+Math.abs(r)*0.04),c2=-curl*1.05;P.push(B(0,L1,-0.8,0.8,-w,w,'skin',SK,{rot:c1,piv:[8,0,r],spec:0.05}));const ex=8+L1*Math.cos(c1),ey=L1*Math.sin(c1);P.push(B(0,L2,-0.75,0.75,-w*0.95,w*0.95,'skin',SK,{rot:c1+c2,piv:[ex,ey,r],spec:0.05}));const fx=ex+L2*Math.cos(c1+c2),fy=ey+L2*Math.sin(c1+c2);P.push(S(fx+0.3,fy,r,1.7,1.5,1.5,'skin',SK,{spec:0.05}))}
-  P.push(B(0,3.6,-0.95,0.95,-0.95,0.95,'skin',SK,{yaw:side*0.95,rot:-curl*0.45,piv:[3.5,-0.2,side*-3.6],spec:0.05}),B(0,2.6,-0.85,0.85,-0.85,0.85,'skin',SK,{yaw:side*0.55,rot:-curl*1.1,piv:[3.5+3.4*Math.cos(side*0.95),-0.2,side*-3.6-3.4*Math.sin(0.95)],spec:0.05}));
-  return HANDCACHE[key]=P}
-function drawHand(x,y,z,yaw,pitch,roll,curl,side,sc,shirtCol,arm,ayaw){drawParts(handParts(curl,side,shirtCol,col(G.me.skin),arm,ayaw),x,y,z,vehR(yaw,pitch,roll),sc,{})}
+const HANDCACHE={},HANDMESH={};
+function hRound(p,b,r){const qx=Math.abs(p[0])-b[0],qy=Math.abs(p[1])-b[1],qz=Math.abs(p[2])-b[2];const ax=Math.max(qx,0),ay=Math.max(qy,0),az=Math.max(qz,0);return Math.hypot(ax,ay,az)+Math.min(Math.max(qx,Math.max(qy,qz)),0)-r}
+function hCap(p,a,b,r){const abx=b[0]-a[0],aby=b[1]-a[1],abz=b[2]-a[2],apx=p[0]-a[0],apy=p[1]-a[1],apz=p[2]-a[2],ab2=abx*abx+aby*aby+abz*abz||1;let t=(apx*abx+apy*aby+apz*abz)/ab2;t=t<0?0:t>1?1:t;return Math.hypot(apx-abx*t,apy-aby*t,apz-abz*t)-r}
+function hSph(p,c,r){return Math.hypot(p[0]-c[0],p[1]-c[1],p[2]-c[2])-r}
+function hMin(a,b,k){const h=Math.max(0,Math.min(1,0.5+0.5*(b-a)/k));return b+(a-b)*h-k*h*(1-h)}
+function fingerBones(curl,r){const c1=-curl*(1+Math.abs(r)*0.04),c2=-curl*1.05,L1=3.7,L2=3.1;const j1=[8,0.15,r];const j2=[8+L1*Math.cos(c1),0.15+L1*Math.sin(c1),r];const tip=[j2[0]+L2*Math.cos(c1+c2),j2[1]+L2*Math.sin(c1+c2),r];return {j1,j2,tip}}
+function thumbBones(curl,side){const piv1=[3.5,-0.15,side*-3.6];const R1=m3mul(m3ry(side*0.95),m3rz(-curl*0.45));const end1=[piv1[0]+R1[0]*3.6,piv1[1]+R1[3]*3.6,piv1[2]+R1[6]*3.6];const piv2=[3.5+3.4*Math.cos(side*0.95),-0.15,side*-3.6-3.4*Math.sin(0.95)];const R2=m3mul(m3ry(side*0.55),m3rz(-curl*1.1));const end2=[piv2[0]+R2[0]*2.6,piv2[1]+R2[3]*2.6,piv2[2]+R2[6]*2.6];return {piv1,end1,piv2,end2}}
+function hEll(p,c,rx,ry,rz){const x=(p[0]-c[0])/rx,y=(p[1]-c[1])/ry,z=(p[2]-c[2])/rz,k=Math.hypot(x,y,z);return (k-1)*Math.min(rx,ry,rz)}
+function handField(f,u,r,curl,side){const p=[f,u,r];let d=hEll(p,[3.1,0.05,0],4.15,1.22,2.55);d=hMin(d,hEll(p,[1.2,-0.15,0],2.4,1.05,2.15),0.7);d=hMin(d,hCap(p,[-3.5,0,0],[0.2,0,0],1.22),0.6);d=hMin(d,hCap(p,[6.6,0.55,-2.7],[6.6,0.55,2.7],0.78),0.28);const rs=[-2.7,-0.9,0.9,2.7],rad=[0.66,0.74,0.72,0.6];
+  for(let i=0;i<4;i++){const b=fingerBones(curl,rs[i]),rb=rad[i];d=hMin(d,hCap(p,b.j1,b.j2,rb),0.24);d=hMin(d,hCap(p,b.j2,b.tip,rb*0.86),0.2);d=hMin(d,hSph(p,[b.j1[0],b.j1[1]+0.22,b.j1[2]],rb+0.32),0.16);d=hMin(d,hSph(p,b.j2,rb*1.02),0.12);d=hMin(d,hSph(p,b.tip,rb*0.92),0.16)}
+  const t=thumbBones(curl,side);d=hMin(d,hCap(p,[1.3,-0.25,side*-0.9],t.piv1,1.15),0.5);d=hMin(d,hCap(p,t.piv1,t.end1,0.92),0.3);d=hMin(d,hCap(p,t.piv2,t.end2,0.74),0.24);d=hMin(d,hSph(p,t.piv1,1.05),0.18);d=hMin(d,hSph(p,[(t.piv1[0]+t.end1[0])*0.5,(t.piv1[1]+t.end1[1])*0.5,(t.piv1[2]+t.end1[2])*0.5],0.84),0.12);d=hMin(d,hSph(p,t.end2,0.7),0.16);return d}
+function handNets(sample,o,step,nx,ny,nz){const sx=nx+1,sy=ny+1,sz=nz+1,F=new Float32Array(sx*sy*sz),G=(i,j,k)=>(k*sy+j)*sx+i;for(let k=0;k<sz;k++)for(let j=0;j<sy;j++)for(let i=0;i<sx;i++)F[G(i,j,k)]=sample(o[0]+i*step,o[1]+j*step,o[2]+k*step);const V=[],I=new Int32Array(nx*ny*nz);I.fill(-1);const C=(i,j,k)=>(k*ny+j)*nx+i;const corn=[[0,0,0],[1,0,0],[1,1,0],[0,1,0],[0,0,1],[1,0,1],[1,1,1],[0,1,1]],edges=[[0,1],[1,2],[2,3],[3,0],[4,5],[5,6],[6,7],[7,4],[0,4],[1,5],[2,6],[3,7]];
+  for(let k=0;k<nz;k++)for(let j=0;j<ny;j++)for(let i=0;i<nx;i++){const vs=new Array(8);let mask=0;for(let c=0;c<8;c++){const v=F[G(i+corn[c][0],j+corn[c][1],k+corn[c][2])];vs[c]=v;if(v<0)mask|=1<<c}if(!mask||mask===255)continue;let px=0,py=0,pz=0,cnt=0;for(const [a,b] of edges){const va=vs[a],vb=vs[b];if((va<0)===(vb<0))continue;const t=va/(va-vb);px+=corn[a][0]+(corn[b][0]-corn[a][0])*t;py+=corn[a][1]+(corn[b][1]-corn[a][1])*t;pz+=corn[a][2]+(corn[b][2]-corn[a][2])*t;cnt++}if(!cnt)continue;I[C(i,j,k)]=V.length;V.push([o[0]+(i+px/cnt)*step,o[1]+(j+py/cnt)*step,o[2]+(k+pz/cnt)*step])}
+  const tris=[],quad=(a,b,c,d,flip)=>{if(a<0||b<0||c<0||d<0)return;const q=flip?[a,d,c,b]:[a,b,c,d];tris.push([q[0],q[1],q[2]],[q[0],q[2],q[3]])};
+  for(let k=1;k<nz;k++)for(let j=1;j<ny;j++)for(let i=0;i<nx;i++){const va=F[G(i,j,k)],vb=F[G(i+1,j,k)];if((va<0)===(vb<0))continue;quad(I[C(i,j-1,k-1)],I[C(i,j,k-1)],I[C(i,j,k)],I[C(i,j-1,k)],!(va<0))}
+  for(let k=1;k<nz;k++)for(let j=0;j<ny;j++)for(let i=1;i<nx;i++){const va=F[G(i,j,k)],vb=F[G(i,j+1,k)];if((va<0)===(vb<0))continue;quad(I[C(i-1,j,k-1)],I[C(i,j,k-1)],I[C(i,j,k)],I[C(i-1,j,k)],!(va<0))}
+  for(let k=0;k<nz;k++)for(let j=1;j<ny;j++)for(let i=1;i<nx;i++){const va=F[G(i,j,k)],vb=F[G(i,j,k+1)];if((va<0)===(vb<0))continue;quad(I[C(i-1,j-1,k)],I[C(i,j-1,k)],I[C(i,j,k)],I[C(i-1,j,k)],!(va<0))}
+  return {V,tris}}
+function buildSmoothHand(curl,side,step){const o=[-6,-8.2,-7.6],nx=Math.ceil(22/step),ny=Math.ceil(12.4/step),nz=Math.ceil(15.2/step);const sample=(f,u,r)=>handField(f,u,r,curl,side);const net=handNets(sample,o,step,nx,ny,nz);const e=step*0.55,GN=net.V.map(p=>{const dx=sample(p[0]+e,p[1],p[2])-sample(p[0]-e,p[1],p[2]),dy=sample(p[0],p[1]+e,p[2])-sample(p[0],p[1]-e,p[2]),dz=sample(p[0],p[1],p[2]+e)-sample(p[0],p[1],p[2]-e),l=Math.hypot(dx,dy,dz)||1;return [dx/l,dy/l,dz/l]});const tris=[];
+  for(const t of net.tris){const tri=[];for(const vi of t){const p=net.V[vi],n=GN[vi];tri.push([p[0],p[1],p[2],n[0],n[1],n[2],p[0]*0.085+0.15,p[2]*0.1+p[1]*0.03+0.45])}tris.push(tri)}
+  return mesh(tris)}
+function handParts(curl,side,col,SK,arm,ayaw){arm=arm||0;ayaw=ayaw||0;const key='s'+side+arm.toFixed(2)+'/'+ayaw.toFixed(2)+col.join(',')+SK.join(',');if(HANDCACHE[key])return HANDCACHE[key];const C=VC;return HANDCACHE[key]=[C(-18,0,0,0,2.9,'shirt',col,{rot:arm,yaw:ayaw,piv:[-3,0,0],spec:0.06}),C(-3,0,0,0,3.3,'shirt',[col[0]*0.75,col[1]*0.75,col[2]*0.75],{rot:arm,yaw:ayaw,piv:[-3,0,0],hollow:true})]}
+function drawHand(x,y,z,yaw,pitch,roll,curl,side,sc,shirtCol,arm,ayaw){const step=GFX==='low'?0.52:0.36;const key=curl.toFixed(2)+'|'+side+'|'+step;let hm=HANDMESH[key];if(!hm)hm=HANDMESH[key]=buildSmoothHand(curl,side,step);const R=vehR(yaw,pitch,roll);drawMR(hm,x,y,z,R,sc,sc,sc,'skin',col(G.me.skin),{spec:0.08,shin:16});drawParts(handParts(curl,side,shirtCol,col(G.me.skin),arm,ayaw),x,y,z,R,sc,{})}
 const CARCOLS=[[0.85,0.1,0.12],[0.15,0.38,0.85],[0.95,0.78,0.1],[0.93,0.93,0.96],[0.1,0.1,0.12],[0.12,0.6,0.32],[0.9,0.45,0.1],[0.5,0.1,0.55]];
 const VDK=[0.1,0.1,0.11],VGR=[0.24,0.24,0.27],VCH=[0.85,0.86,0.9],VRED=[0.9,0.12,0.1],VYEL=[0.95,0.8,0.15],VGL=[0.75,0.85,0.95];
 const VEHCACHE={};
@@ -971,6 +987,7 @@ function setGfx(level){if(level!=='low'&&level!=='med'&&level!=='high'||level===
 function paintGfx(){const b=$('gfxBtn');if(b)b.textContent='GFX '+(GFX==='high'?'HIGH':GFX==='med'?'MEDIUM':'LOW');wireGfx()}
 function wireGfx(){const map={gfxLow:'low',gfxMed:'med',gfxHigh:'high'};for(const id in map){const b=$(id);if(!b)continue;b.style.borderColor=GFX===map[id]?'#ffd84a':'';b.onclick=()=>setGfx(map[id])}}
 $('gfxBtn').onclick=()=>setGfx(GFX==='low'?'med':GFX==='med'?'high':'low');
+setTimeout(()=>{try{const step=GFX==='low'?0.52:0.36;for(const [c,s] of [[1.25,1],[1.05,-1],[1.2,-1],[0.55,1],[0.55,-1]]){const key=c.toFixed(2)+'|'+s+'|'+step;if(!HANDMESH[key])HANDMESH[key]=buildSmoothHand(c,s,step)}}catch(e){}},50);
 titleScreen();requestAnimationFrame(frame);
 </script>
 </body>
