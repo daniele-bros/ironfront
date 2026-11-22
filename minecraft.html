@@ -2540,13 +2540,111 @@ void main(){vec4 t=texture(uTex,vUV);if(t.a<uAlphaTest)discard;
  float sky=max(0.0,vLight.x*15.0-11.0*(1.0-uDay))/15.0;float hd=clamp(1.0-length(vPos-uHand.xyz)/12.0,0.0,1.0);float l=max(max(sky,vLight.y),uHand.w*hd*hd);float b=l/(4.0-3.0*l);b=mix(b,sqrt(b),uGamma);b=max(b,uAmbient);b=mix(b,1.0,uNoLight);
  vec3 col=t.rgb*vLight.z*b${entity?'*vColor':''}*uColor.rgb;float f=clamp((vDist-uFogStart)/(uFogEnd-uFogStart),0.0,1.0);
  o=vec4(mix(col,uFog,f),t.a*uColor.a);}`;
-function mkProg(gl,vs,fs){const p=gl.createProgram();for(const [t,s] of [[gl.VERTEX_SHADER,vs],[gl.FRAGMENT_SHADER,fs]]){const sh=gl.createShader(t);gl.shaderSource(sh,s);gl.compileShader(sh);if(!gl.getShaderParameter(sh,gl.COMPILE_STATUS))throw new Error(gl.getShaderInfoLog(sh));gl.attachShader(p,sh)}
-  gl.linkProgram(p);if(!gl.getProgramParameter(p,gl.LINK_STATUS))throw new Error(gl.getProgramInfoLog(p));const u={};for(const n of ['uVP','uOffset','uCam','uTex','uDay','uGamma','uFog','uFogStart','uFogEnd','uColor','uAlphaTest','uNoLight','uAmbient','uHand'])u[n]=gl.getUniformLocation(p,n);return {p,u}}
+// GLSL ES 1.00. Positions stay highp in the vertex shader. Varyings are mediump so a Mali or old Intel
+// fragment shader does less work. The hand-light distance is computed before it is packed into a varying.
+const VS_C100=`precision highp float;
+attribute vec3 aPos;attribute vec2 aUV;attribute vec3 aLight;
+uniform mat4 uVP;uniform vec3 uOffset;uniform vec3 uCam;uniform vec4 uHand;
+varying mediump vec2 vUV;varying mediump vec3 vLight;varying mediump float vDist;varying mediump float vHand;
+void main(){vec3 p=aPos+uOffset;gl_Position=uVP*vec4(p,1.0);vUV=aUV;vLight=aLight;vDist=length(p-uCam);vHand=length(p-uHand.xyz);}`;
+const VS_E100=`precision highp float;
+attribute vec3 aPos;attribute vec2 aUV;attribute vec3 aLight;attribute vec3 aColor;
+uniform mat4 uVP;uniform vec3 uOffset;uniform vec3 uCam;uniform vec4 uHand;
+varying mediump vec2 vUV;varying mediump vec3 vLight;varying mediump float vDist;varying mediump float vHand;varying mediump vec3 vColor;
+void main(){vec3 p=aPos+uOffset;gl_Position=uVP*vec4(p,1.0);vUV=aUV;vLight=aLight;vDist=length(p-uCam);vHand=length(p-uHand.xyz);vColor=aColor;}`;
+const FS100=(entity)=>`precision mediump float;
+uniform sampler2D uTex;uniform float uDay;uniform float uGamma;uniform vec3 uFog;uniform float uFogStart;uniform float uFogEnd;uniform vec4 uColor;uniform float uAlphaTest;uniform float uNoLight;uniform float uAmbient;uniform vec4 uHand;
+varying mediump vec2 vUV;varying mediump vec3 vLight;varying mediump float vDist;varying mediump float vHand;${entity?'varying mediump vec3 vColor;':''}
+void main(){vec4 t=texture2D(uTex,vUV);if(t.a<uAlphaTest)discard;
+ float sky=max(0.0,vLight.x*15.0-11.0*(1.0-uDay))/15.0;float hd=clamp(1.0-vHand/12.0,0.0,1.0);float l=max(max(sky,vLight.y),uHand.w*hd*hd);float b=l/(4.0-3.0*l);b=mix(b,sqrt(b),uGamma);b=max(b,uAmbient);b=mix(b,1.0,uNoLight);
+ vec3 col=t.rgb*vLight.z*b${entity?'*vColor':''}*uColor.rgb;float f=clamp((vDist-uFogStart)/(uFogEnd-uFogStart),0.0,1.0);
+ gl_FragColor=vec4(mix(col,uFog,f),t.a*uColor.a);}`;
+// The first request is the one the game has always used. Some phones, iPads and Chromebooks
+// return null for that exact option set (high-performance GPU, or a canvas with no alpha)
+// even though a plainer WebGL2 context works. Each failed attempt gets a new canvas: a few
+// browsers lock a canvas after the first getContext, so a retry on the same canvas stays null.
+const GL2_ATTRS=[
+  {antialias:false,alpha:false,powerPreference:'high-performance',failIfMajorPerformanceCaveat:false},
+  {antialias:false,alpha:false,powerPreference:'default',failIfMajorPerformanceCaveat:false},
+  {antialias:false,alpha:true,powerPreference:'low-power',failIfMajorPerformanceCaveat:false},
+  {antialias:true,alpha:true,failIfMajorPerformanceCaveat:false},
+  {failIfMajorPerformanceCaveat:false}
+];
+const GL1_ATTRS=[
+  {antialias:false,alpha:false,powerPreference:'low-power',failIfMajorPerformanceCaveat:false},
+  {antialias:false,alpha:true,powerPreference:'low-power',failIfMajorPerformanceCaveat:false},
+  {antialias:false,alpha:true,failIfMajorPerformanceCaveat:false}
+];
+function freshGLCanvas(old){
+  const next=document.createElement('canvas');
+  if(old){old.removeAttribute('id');if(old.parentNode)old.replaceWith(next)}
+  else document.body.prepend(next);
+  next.id='gl';return next;
+}
+function tryGetContext(canvas,type,attrs){
+  let gl=null;try{gl=canvas.getContext(type,attrs)}catch(e){gl=null}
+  if(!gl||(gl.isContextLost&&gl.isContextLost()))return null;return gl;
+}
+function obtainContext(canvas,type,attrsList){
+  for(let i=0;i<attrsList.length;i++){
+    const gl=tryGetContext(canvas,type,attrsList[i]);
+    if(gl)return {gl,canvas};
+    if(i<attrsList.length-1)canvas=freshGLCanvas(canvas);
+  }
+  return {gl:null,canvas};
+}
+function webgl2Works(gl){
+  if(typeof WebGL2RenderingContext==='undefined'||!(gl instanceof WebGL2RenderingContext))return false;
+  const sh=gl.createShader(gl.VERTEX_SHADER);
+  gl.shaderSource(sh,'#version 300 es\nprecision highp float;\nvoid main(){gl_Position=vec4(0.0);}');
+  gl.compileShader(sh);const ok=!!gl.getShaderParameter(sh,gl.COMPILE_STATUS);gl.deleteShader(sh);gl.getError();return ok;
+}
+// WebGL1 has no vertex-array object unless OES_vertex_array_object is present. The rest of the
+// renderer binds one VAO per mesh, so a tiny stand-in records that state when the extension is missing.
+function installVertexArrays(gl){
+  if(gl.createVertexArray)return;
+  const ext=gl.getExtension('OES_vertex_array_object');
+  if(ext){gl.createVertexArray=function(){return ext.createVertexArrayOES()};gl.bindVertexArray=function(v){ext.bindVertexArrayOES(v)};gl.deleteVertexArray=function(v){ext.deleteVertexArrayOES(v)};return}
+  let bound=null,arrayBuf=null;const oEnable=gl.enableVertexAttribArray.bind(gl),oDisable=gl.disableVertexAttribArray.bind(gl),oPointer=gl.vertexAttribPointer.bind(gl),oBind=gl.bindBuffer.bind(gl);
+  const blank=()=>({attribs:[null,null,null,null],enabled:[false,false,false,false],elem:null});const def=blank();
+  gl.createVertexArray=function(){return blank()};gl.deleteVertexArray=function(){};
+  gl.bindVertexArray=function(v){bound=v||def;oBind(gl.ELEMENT_ARRAY_BUFFER,bound.elem);for(let i=0;i<4;i++){const a=bound.attribs[i];if(bound.enabled[i]&&a){oBind(gl.ARRAY_BUFFER,a.buffer);oEnable(i);oPointer(i,a.size,a.type,a.norm,a.stride,a.offset)}else oDisable(i)}arrayBuf=null};
+  gl.enableVertexAttribArray=function(i){if(bound)bound.enabled[i]=true;oEnable(i)};
+  gl.disableVertexAttribArray=function(i){if(bound)bound.enabled[i]=false;oDisable(i)};
+  gl.vertexAttribPointer=function(i,size,type,norm,stride,offset){if(bound)bound.attribs[i]={size,type,norm,stride,offset,buffer:arrayBuf};oPointer(i,size,type,norm,stride,offset)};
+  gl.bindBuffer=function(target,buf){if(target===gl.ARRAY_BUFFER)arrayBuf=buf;else if(target===gl.ELEMENT_ARRAY_BUFFER&&bound)bound.elem=buf;oBind(target,buf)};
+}
+function acquireGL(){
+  let canvas=$('gl');if(!canvas)throw new Error('The game canvas is missing');
+  let got=obtainContext(canvas,'webgl2',GL2_ATTRS);canvas=got.canvas;
+  if(got.gl&&webgl2Works(got.gl))return {gl:got.gl,canvas,webgl2:true};
+  canvas=freshGLCanvas(canvas);
+  for(const type of ['webgl','experimental-webgl']){
+    got=obtainContext(canvas,type,GL1_ATTRS);canvas=got.canvas;
+    if(got.gl)return {gl:got.gl,canvas,webgl2:false};
+    canvas=freshGLCanvas(canvas);
+  }
+  return null;
+}
+function potDim(n){let p=1;while(p<n)p<<=1;return p}
+function padPot(src){const W=potDim(src.width),H=potDim(src.height);if(W===src.width&&H===src.height)return src;const c=document.createElement('canvas');c.width=W;c.height=H;const x=c.getContext('2d');x.imageSmoothingEnabled=false;x.drawImage(src,0,0);return c}
+function atlasImage(){return R.webgl2?atlasCanvas:padPot(atlasCanvas)}
+function mkProg(gl,vs,fs){const p=gl.createProgram();for(const [t,s] of [[gl.VERTEX_SHADER,vs],[gl.FRAGMENT_SHADER,fs]]){const sh=gl.createShader(t);gl.shaderSource(sh,s);gl.compileShader(sh);if(!gl.getShaderParameter(sh,gl.COMPILE_STATUS))throw new Error(gl.getShaderInfoLog(sh)||'shader');gl.attachShader(p,sh)}
+  gl.bindAttribLocation(p,'aPos',0);gl.bindAttribLocation(p,'aUV',1);gl.bindAttribLocation(p,'aLight',2);gl.bindAttribLocation(p,'aColor',3);
+  gl.linkProgram(p);if(!gl.getProgramParameter(p,gl.LINK_STATUS))throw new Error(gl.getProgramInfoLog(p)||'link');const u={};for(const n of ['uVP','uOffset','uCam','uTex','uDay','uGamma','uFog','uFogStart','uFogEnd','uColor','uAlphaTest','uNoLight','uAmbient','uHand'])u[n]=gl.getUniformLocation(p,n);return {p,u}}
+function linkProg(gl,vs,fs){try{return mkProg(gl,vs,fs)}catch(e){if(R.webgl2)throw e;const med=s=>s.replace(/precision highp float/g,'precision mediump float');return mkProg(gl,med(vs),med(fs))}}
 function initGL(){
-  const canvas=$('gl');R.canvas=canvas;const gl=canvas.getContext('webgl2',{antialias:false,alpha:false,powerPreference:'high-performance'});if(!gl)throw new Error('WebGL2 not supported');R.gl=gl;
-  R.progC=mkProg(gl,VS_C,FS(false));R.progE=mkProg(gl,VS_E,FS(true));
-  const atlas=buildAtlas();TILE_W=16/atlas.width;TILE_H=16/atlas.height;
-  R.atlasTex=mkTex(gl,atlas,true);buildIcons();R.itemTex=mkTex(gl,itemAtlas,false);applyCustomMods();
+  const got=acquireGL();if(!got)throw new Error('no-context');
+  const canvas=got.canvas,gl=got.gl;R.canvas=canvas;R.gl=gl;R.webgl2=got.webgl2;
+  if(!R.webgl2)installVertexArrays(gl);
+  R.uintIndex=!!R.webgl2||!!gl.getExtension('OES_element_index_uint');
+  if(!gl.createVertexArray)throw new Error('no-vao');
+  canvas.dataset.renderer=R.webgl2?'webgl2':'webgl';
+  canvas.dataset.viewChunks=String(R.webgl2?(opts.renderDist|0):Math.min(opts.renderDist|0,4));
+  const vsC=R.webgl2?VS_C:VS_C100,vsE=R.webgl2?VS_E:VS_E100,fs=R.webgl2?FS:FS100;
+  R.progC=linkProg(gl,vsC,fs(false));R.progE=linkProg(gl,vsE,fs(true));
+  const atlas=buildAtlas();const img=R.webgl2?atlas:padPot(atlas);TILE_W=16/img.width;TILE_H=16/img.height;
+  R.atlasTex=mkTex(gl,img,true);buildIcons();R.itemTex=mkTex(gl,itemAtlas,false);applyCustomMods();
   gl.enable(gl.DEPTH_TEST);gl.enable(gl.CULL_FACE);gl.cullFace(gl.BACK);gl.frontFace(gl.CCW);
   // stars
   const rng=mulberry32(99);const st=[];for(let i=0;i<600;i++){const u=rng()*2-1,th=rng()*PI*2;const r=sqrt(1-u*u);st.push([r*Math.cos(th),u,r*Math.sin(th),0.4+rng()*0.8])}R.stars=st;
@@ -2555,13 +2653,27 @@ function initGL(){
   R.eibo=gl.createBuffer();gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER,R.eibo);gl.bindVertexArray(null);
 }
 function mkTex(gl,img,mip){const t=gl.createTexture();gl.bindTexture(gl.TEXTURE_2D,t);gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL,false);gl.texImage2D(gl.TEXTURE_2D,0,gl.RGBA,gl.RGBA,gl.UNSIGNED_BYTE,img);
-  gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_MAG_FILTER,gl.NEAREST);if(mip){gl.generateMipmap(gl.TEXTURE_2D);gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_MAX_LEVEL,2);gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_MIN_FILTER,gl.NEAREST_MIPMAP_LINEAR)}else gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_MIN_FILTER,gl.NEAREST);
+  gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_MAG_FILTER,gl.NEAREST);if(mip){gl.generateMipmap(gl.TEXTURE_2D);if(gl.TEXTURE_MAX_LEVEL)gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_MAX_LEVEL,2);gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_MIN_FILTER,gl.NEAREST_MIPMAP_LINEAR)}else gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_MIN_FILTER,gl.NEAREST);
   gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_WRAP_S,gl.CLAMP_TO_EDGE);gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_WRAP_T,gl.CLAMP_TO_EDGE);return t}
-function uploadChunkMesh(c,m){const gl=R.gl;if(!c.mesh){c.mesh={};for(const k of ['o','t']){const vao=gl.createVertexArray(),vbo=gl.createBuffer(),ibo=gl.createBuffer();gl.bindVertexArray(vao);gl.bindBuffer(gl.ARRAY_BUFFER,vbo);
-    for(let a=0;a<3;a++)gl.enableVertexAttribArray(a);gl.vertexAttribPointer(0,3,gl.FLOAT,false,32,0);gl.vertexAttribPointer(1,2,gl.FLOAT,false,32,12);gl.vertexAttribPointer(2,3,gl.FLOAT,false,32,20);gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER,ibo);gl.bindVertexArray(null);c.mesh[k]={vao,vbo,ibo,n:0}}}
-  for(const k of ['o','t']){const mm=c.mesh[k];const v=k==='o'?m.o:m.t,idx=k==='o'?m.oi:m.ti;mm.n=idx.length;if(mm.n){gl.bindBuffer(gl.ARRAY_BUFFER,mm.vbo);gl.bufferData(gl.ARRAY_BUFFER,v,gl.STATIC_DRAW);gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER,mm.ibo);gl.bufferData(gl.ELEMENT_ARRAY_BUFFER,idx,gl.STATIC_DRAW)}}
+function makeChunkSlot(){const gl=R.gl;const vao=gl.createVertexArray(),vbo=gl.createBuffer(),ibo=gl.createBuffer();gl.bindVertexArray(vao);gl.bindBuffer(gl.ARRAY_BUFFER,vbo);
+  for(let a=0;a<3;a++)gl.enableVertexAttribArray(a);gl.vertexAttribPointer(0,3,gl.FLOAT,false,32,0);gl.vertexAttribPointer(1,2,gl.FLOAT,false,32,12);gl.vertexAttribPointer(2,3,gl.FLOAT,false,32,20);gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER,ibo);gl.bindVertexArray(null);return {vao,vbo,ibo,n:0,short:!R.uintIndex,more:null}}
+// Quads do not share vertices. Without 32-bit indices a mesh is cut into pieces of at most 65536 vertices.
+function splitChunkIndices(v,idx){
+  if(!v||!idx||!idx.length)return [{v:v||new Float32Array(0),idx:idx||new Uint32Array(0),short:!R.uintIndex}];
+  if(R.uintIndex||v.length/8<=65536)return [{v,idx,short:!R.uintIndex}];
+  const parts=[],quads=idx.length/6,MAXQ=16384;
+  for(let q=0;q<quads;q+=MAXQ){const nq=Math.min(MAXQ,quads-q),base=q*4,s0=q*6;const partI=new Uint16Array(nq*6);for(let i=0;i<partI.length;i++)partI[i]=idx[s0+i]-base;parts.push({v:v.subarray(base*8,(base+nq*4)*8),idx:partI,short:true})}
+  return parts;
 }
-function deleteChunkMesh(c){if(!c.mesh)return;const gl=R.gl;for(const k of ['o','t']){gl.deleteVertexArray(c.mesh[k].vao);gl.deleteBuffer(c.mesh[k].vbo);gl.deleteBuffer(c.mesh[k].ibo)}c.mesh=null}
+function putMesh(slot,v,idx,short){const gl=R.gl;slot.short=short;slot.n=idx.length;if(!slot.n)return;gl.bindBuffer(gl.ARRAY_BUFFER,slot.vbo);gl.bufferData(gl.ARRAY_BUFFER,v,gl.STATIC_DRAW);gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER,slot.ibo);
+  if(!short)gl.bufferData(gl.ELEMENT_ARRAY_BUFFER,idx,gl.STATIC_DRAW);else{const u=idx instanceof Uint16Array?idx:Uint16Array.from(idx);gl.bufferData(gl.ELEMENT_ARRAY_BUFFER,u,gl.STATIC_DRAW)}}
+function uploadChunkMesh(c,m){if(!c.mesh)c.mesh={o:makeChunkSlot(),t:makeChunkSlot()};
+  for(const k of ['o','t']){const v=k==='o'?m.o:m.t,idx=k==='o'?m.oi:m.ti;const parts=splitChunkIndices(v,idx);const slot=c.mesh[k];putMesh(slot,parts[0].v,parts[0].idx,parts[0].short);
+    if(parts.length>1){slot.more=slot.more||[];while(slot.more.length<parts.length-1)slot.more.push(makeChunkSlot());for(let i=1;i<parts.length;i++)putMesh(slot.more[i-1],parts[i].v,parts[i].idx,true);for(let i=parts.length-1;i<slot.more.length;i++)slot.more[i].n=0}
+    else if(slot.more)for(const e of slot.more)e.n=0}}
+function chunkMeshLive(m){if(!m)return false;if(m.n)return true;return !!(m.more&&m.more.some(p=>p.n))}
+function drawChunkMesh(gl,m){const one=p=>{if(!p||!p.n)return;gl.bindVertexArray(p.vao);gl.drawElements(gl.TRIANGLES,p.n,p.short?gl.UNSIGNED_SHORT:gl.UNSIGNED_INT,0)};one(m);if(m.more)for(const p of m.more)one(p)}
+function deleteChunkMesh(c){if(!c.mesh)return;const gl=R.gl;const drop=s=>{if(!s)return;gl.deleteVertexArray(s.vao);gl.deleteBuffer(s.vbo);gl.deleteBuffer(s.ibo);if(s.more)for(const e of s.more){gl.deleteVertexArray(e.vao);gl.deleteBuffer(e.vbo);gl.deleteBuffer(e.ibo)}};drop(c.mesh.o);drop(c.mesh.t);c.mesh=null}
 /* ---- entity batch ---- */
 class EBatch{constructor(){this.v=new Float32Array(44*4096);this.vn=0;this.ix=new Uint32Array(6*4096);this.inn=0;this.n=0} // vertices and indices live in typed arrays that grow as needed: no per-vertex objects, no array-to-buffer copy per frame
   clear(){this.vn=0;this.inn=0;this.n=0}
@@ -2575,9 +2687,11 @@ class EBatch{constructor(){this.v=new Float32Array(44*4096);this.vn=0;this.ix=ne
         if(uvfull){if(d>=2&&d<=3){u=cv;w=cu}else{u=(d===5||d===0)?1-cv:cv;w=1-cu}}else{if(d<2){u=(pz-z0)/sz;w=1-(py-y0)/sy}else if(d>3){u=(px-x0)/sx;w=1-(py-y0)/sy}else{u=(px-x0)/sx;w=(pz-z0)/sz}}
         v[o++]=q[0];v[o++]=q[1];v[o++]=q[2];v[o++]=ox+u*su;v[o++]=oy+w*sv;v[o++]=l0;v[o++]=l1;v[o++]=l2;v[o++]=r;v[o++]=g;v[o++]=b}
       this.vn=o;this._tri()}}
-  draw(prog,tex,uniforms){const gl=R.gl;if(this.n===0)return;gl.useProgram(prog.p);gl.bindVertexArray(R.evao);gl.bindBuffer(gl.ARRAY_BUFFER,R.evbo);gl.bufferData(gl.ARRAY_BUFFER,this.v.subarray(0,this.vn),gl.DYNAMIC_DRAW);
-    gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER,R.eibo);gl.bufferData(gl.ELEMENT_ARRAY_BUFFER,this.ix.subarray(0,this.inn),gl.DYNAMIC_DRAW);gl.activeTexture(gl.TEXTURE0);gl.bindTexture(gl.TEXTURE_2D,tex);gl.uniform1i(prog.u.uTex,0);
-    setCommonUniforms(prog,uniforms||{});gl.drawElements(gl.TRIANGLES,this.inn,gl.UNSIGNED_INT,0);gl.bindVertexArray(null)}
+  draw(prog,tex,uniforms){const gl=R.gl;if(this.n===0)return;gl.useProgram(prog.p);gl.bindVertexArray(R.evao);gl.bindBuffer(gl.ARRAY_BUFFER,R.evbo);gl.activeTexture(gl.TEXTURE0);gl.bindTexture(gl.TEXTURE_2D,tex);gl.uniform1i(prog.u.uTex,0);setCommonUniforms(prog,uniforms||{});gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER,R.eibo);
+    if(R.uintIndex){gl.bufferData(gl.ARRAY_BUFFER,this.v.subarray(0,this.vn),gl.DYNAMIC_DRAW);gl.bufferData(gl.ELEMENT_ARRAY_BUFFER,this.ix.subarray(0,this.inn),gl.DYNAMIC_DRAW);gl.drawElements(gl.TRIANGLES,this.inn,gl.UNSIGNED_INT,0)}
+    else if(this.n<=65536){gl.bufferData(gl.ARRAY_BUFFER,this.v.subarray(0,this.vn),gl.DYNAMIC_DRAW);if(!this.ix16||this.ix16.length<this.inn)this.ix16=new Uint16Array(this.inn);const u=this.ix16,src=this.ix;for(let i=0;i<this.inn;i++)u[i]=src[i];gl.bufferData(gl.ELEMENT_ARRAY_BUFFER,u.subarray(0,this.inn),gl.DYNAMIC_DRAW);gl.drawElements(gl.TRIANGLES,this.inn,gl.UNSIGNED_SHORT,0)}
+    else{const MAXQ=16384,quads=this.inn/6;for(let q=0;q<quads;q+=MAXQ){const nq=Math.min(MAXQ,quads-q),base=q*4;gl.bufferData(gl.ARRAY_BUFFER,this.v.subarray(q*44,(q+nq)*44),gl.DYNAMIC_DRAW);const u=new Uint16Array(nq*6),src=this.ix,s0=q*6;for(let i=0;i<u.length;i++)u[i]=src[s0+i]-base;gl.bufferData(gl.ELEMENT_ARRAY_BUFFER,u,gl.DYNAMIC_DRAW);gl.drawElements(gl.TRIANGLES,u.length,gl.UNSIGNED_SHORT,0)}}
+    gl.bindVertexArray(null)}
 }
 function setCommonUniforms(prog,o){const gl=R.gl;const u=prog.u;gl.uniformMatrix4fv(u.uVP,false,o.vp||R.vp);gl.uniform3f(u.uOffset,...(o.offset||[0,0,0]));gl.uniform3f(u.uCam,...R.eye);gl.uniform1f(u.uDay,R.day);gl.uniform1f(u.uGamma,R.gamma);
   gl.uniform3f(u.uFog,...R.fogColor);gl.uniform1f(u.uFogStart,o.fogStart!==undefined?o.fogStart:R.fogStart);gl.uniform1f(u.uFogEnd,o.fogEnd!==undefined?o.fogEnd:R.fogEnd);gl.uniform4f(u.uColor,...(o.color||[1,1,1,1]));gl.uniform1f(u.uAlphaTest,o.alphaTest!==undefined?o.alphaTest:0.1);gl.uniform1f(u.uNoLight,o.noLight||0);gl.uniform1f(u.uAmbient,R.ambient||0.02);gl.uniform4f(u.uHand,...(R.hand||[0,0,0,0]))}
@@ -2605,7 +2719,7 @@ function renderFrame(dt){
   R.proj=m4perspective(fov,R.aspect,0.05,1000);R.view=m4mul(m4rotX(-cpitch),m4mul(m4rotY(-cyaw),m4trans(-ex,-eyeY,-ez)));R.vp=m4mul(R.proj,R.view);R.planes=frustumPlanes(R.vp);
   const sc=skyColors(world.time/24000);if(world.sift){sc.day=1;sc.sky=[0.33,0.86,0.80]}R.day=(world.nether||world.end)?0:sc.day;{let hl=0;for(const st of [player.inv[player.sel],player.off[0]]){if(!st)continue;const d=BLOCKS[st.id];if(d&&d.light>hl)hl=d.light}R.hand=hl&&!player.dead?[player.x,player.y+1.2,player.z,hl/15*0.95]:[0,0,0,0]}R.gamma=opts.brightness/100;R.ambient=world.sift?0.10+0.06*R.gamma:world.end?0.32+0.08*R.gamma:world.nether?0.10+0.06*R.gamma:0.015+0.06*R.gamma;if((game.mods&&game.mods.nightvision)||(player&&player.effects&&player.effects.night_vision>0))R.ambient=Math.max(R.ambient,0.82);
   const headBlock=world.getBlock(floor(R.vch?ex:p.x),floor(eyeY),floor(R.vch?ez:p.z));const underwater=headBlock===8,inLava=headBlock===9||headBlock===133;
-  const rd=opts.renderDist*16;
+  const rd=chunkRange()*16;
   if(underwater){R.fogColor=[0.05*sc.day+0.01,0.15*sc.day+0.02,0.5*sc.day+0.05];R.fogStart=2;R.fogEnd=18}else if(inLava){R.fogColor=headBlock===133?[0.95,0.55,0.75]:[0.9,0.35,0.05];R.fogStart=0;R.fogEnd=2}else if(world.sift){R.fogColor=[0.33,0.86,0.80];R.fogStart=rd*0.75;R.fogEnd=rd*1.08}else if(world.nether){R.fogColor=[0.22,0.04,0.04];R.fogStart=rd*0.15;R.fogEnd=rd*0.7}else if(world.end){R.fogColor=[0.05,0.03,0.08];R.fogStart=rd*0.5;R.fogEnd=rd*1.1}else{R.fogColor=sc.sky;R.fogStart=rd*0.55;R.fogEnd=rd*0.98}
   // underground darkening of fog
   if(!underwater&&!inLava&&!world.nether){const sk=world.getSky(floor(R.vch?ex:p.x),floor(eyeY),floor(R.vch?ez:p.z));const f=clamp(sk/15,0,1);const m=0.15+0.85*f;R.fogColor=[R.fogColor[0]*m,R.fogColor[1]*m,R.fogColor[2]*m]}
@@ -2619,12 +2733,12 @@ function renderFrame(dt){
   if(!world.nether&&!world.end&&!underwater&&!inLava){}
   // ---- chunks ----
   const vis=[];const pcx=p.x/16,pcz=p.z/16;
-  for(const c of world.chunks.values()){if(!c.mesh)continue;const dx=c.cx+0.5-pcx,dz=c.cz+0.5-pcz;const d2=dx*dx+dz*dz;if(d2>(opts.renderDist+0.5)*(opts.renderDist+0.5))continue;
+  for(const c of world.chunks.values()){if(!c.mesh)continue;const dx=c.cx+0.5-pcx,dz=c.cz+0.5-pcz;const d2=dx*dx+dz*dz;const cr=chunkRange();if(d2>(cr+0.5)*(cr+0.5))continue;
     if(!aabbInFrustum(R.planes,c.cx*16,0,c.cz*16,c.cx*16+16,CH,c.cz*16+16))continue;vis.push([d2,c])}
   vis.sort((a,b)=>a[0]-b[0]);R.visibleChunks=vis.length;
   const pc=R.progC;gl.useProgram(pc.p);gl.activeTexture(gl.TEXTURE0);gl.bindTexture(gl.TEXTURE_2D,R.atlasTex);gl.uniform1i(pc.u.uTex,0);setCommonUniforms(pc,{});
   gl.disable(gl.BLEND);
-  for(const [d2,c] of vis){const m=c.mesh.o;if(!m.n)continue;gl.uniform3f(pc.u.uOffset,c.cx*16,0,c.cz*16);gl.bindVertexArray(m.vao);gl.drawElements(gl.TRIANGLES,m.n,gl.UNSIGNED_INT,0)}
+  for(const [d2,c] of vis){const m=c.mesh.o;if(!chunkMeshLive(m))continue;gl.uniform3f(pc.u.uOffset,c.cx*16,0,c.cz*16);drawChunkMesh(gl,m)}
   gl.bindVertexArray(null);
   // ---- entities ----
   EB.clear();EBI.clear();
@@ -2636,7 +2750,7 @@ function renderFrame(dt){
   EB.draw(R.progE,R.atlasTex,{});gl.disable(gl.CULL_FACE);EBI.draw(R.progE,R.itemTex,{});gl.enable(gl.CULL_FACE);
   // ---- transparent chunks ----
   gl.useProgram(pc.p);gl.bindTexture(gl.TEXTURE_2D,R.atlasTex);setCommonUniforms(pc,{});gl.depthMask(true);
-  for(let k=vis.length-1;k>=0;k--){const c=vis[k][1];const m=c.mesh.t;if(!m.n)continue;gl.uniform3f(pc.u.uOffset,c.cx*16,0,c.cz*16);gl.bindVertexArray(m.vao);gl.drawElements(gl.TRIANGLES,m.n,gl.UNSIGNED_INT,0)}
+  for(let k=vis.length-1;k>=0;k--){const c=vis[k][1];const m=c.mesh.t;if(!chunkMeshLive(m))continue;gl.uniform3f(pc.u.uOffset,c.cx*16,0,c.cz*16);drawChunkMesh(gl,m)}
   gl.bindVertexArray(null);
   if(opts.clouds&&!underwater&&!world.nether&&!world.end&&!world.sift)drawClouds(sc);
   // ---- selection & cracks ----
@@ -2652,14 +2766,14 @@ function drawSky(sc){const gl=R.gl;gl.disable(gl.DEPTH_TEST);gl.disable(gl.CULL_
     const P=[[cx-rx*size-ux*size,cy-ry*size-uy*size,cz-rz*size-uz*size],[cx+rx*size-ux*size,cy+ry*size-uy*size,cz+rz*size-uz*size],[cx+rx*size+ux*size,cy+ry*size+uy*size,cz+rz*size+uz*size],[cx-rx*size+ux*size,cy-ry*size+uy*size,cz-rz*size+uz*size]];
     EBS.quad(P,tileUVs(tile,0,0,1,1),[1,1,1],col)};
   // stars
-  const night=world.end?1:clamp(1-sc.day*1.5,0,1);if(night>0){const s=1,ca=Math.cos(a),sa=Math.sin(a);for(const st of R.stars){ // rotate star sphere with the sun (around z axis)
+  const night=world.end?1:clamp(1-sc.day*1.5,0,1);if(night>0){const s=1,ca=Math.cos(a),sa=Math.sin(a);const starN=R.webgl2?R.stars.length:180;for(let si=0;si<starN;si++){const st=R.stars[si]; // rotate star sphere with the sun (around z axis)
     const x=st[0]*ca-st[1]*sa,y=st[0]*sa+st[1]*ca,z=st[2];if(y<-0.1)continue;mk(x,y,z,0.35*st[3],TEX.white,[night*st[3],night*st[3],night*st[3]])}}
   if(!world.end&&!world.sift){mk(sx,sy,0,10,TEX.sun,[1,1,1]);mk(-sx,-sy,0,7,TEX.moon,[1,1,1])}
   EBS.draw(R.progE,R.atlasTex,{fogStart:1e6,fogEnd:2e6,noLight:1});
   gl.enable(gl.DEPTH_TEST);gl.enable(gl.CULL_FACE);gl.disable(gl.BLEND)}
-function drawClouds(sc){const gl=R.gl;EBS.clear();const e=R.eye;const t=game.time*0.6;const cy=world.gen>=2?GEN2_H+16:GH+14;const cell=12;const ox=floor((e[0]+t)/cell)*cell-t,oz=floor(e[2]/cell)*cell;const n=R.cloudNoise;
+function drawClouds(sc){const gl=R.gl;EBS.clear();const e=R.eye;const t=game.time*0.6;const cy=world.gen>=2?GEN2_H+16:GH+14;const lite=!R.webgl2;const cell=lite?16:12,rad=lite?8:16;const ox=floor((e[0]+t)/cell)*cell-t,oz=floor(e[2]/cell)*cell;const n=R.cloudNoise;
   const l=[1,0,1];const col=[0.95,0.95,1];
-  for(let i=-16;i<=16;i++)for(let j=-16;j<=16;j++){const x=ox+i*cell,z=oz+j*cell;const v=n.n2((x+t)/90,z/90)+0.5*n.n2((x+t)/35,z/35);if(v<0.35)continue;
+  for(let i=-rad;i<=rad;i++)for(let j=-rad;j<=rad;j++){const x=ox+i*cell,z=oz+j*cell;const v=lite?n.n2((x+t)/90,z/90):n.n2((x+t)/90,z/90)+0.5*n.n2((x+t)/35,z/35);if(v<0.35)continue;
     const uv=tileUVs(TEX.white,0,0,1,1);EBS.quad([[x,cy,z],[x,cy,z+cell],[x+cell,cy,z+cell],[x+cell,cy,z]],uv,[1,0,0.95],col);EBS.quad([[x,cy,z],[x+cell,cy,z],[x+cell,cy,z+cell],[x,cy,z+cell]],uv,[1,0,0.75],col)}
   gl.enable(gl.BLEND);gl.blendFunc(gl.SRC_ALPHA,gl.ONE_MINUS_SRC_ALPHA);gl.disable(gl.CULL_FACE);EBS.draw(R.progE,R.atlasTex,{color:[1,1,1,0.75],fogStart:R.fogEnd*1.2,fogEnd:R.fogEnd*2.5});gl.enable(gl.CULL_FACE)}
 function drawSelection(){const gl=R.gl;const h=player.target;if(!h||!h.block)return;const id=world.getBlock(h.bx,h.by,h.bz);if(id===0)return;const meta=world.getMeta(h.bx,h.by,h.bz);
@@ -5321,7 +5435,7 @@ function supplyDropAt(x,z,o){const p=player;ensureChunks(x,z,1);const gy=findGro
   const msg='Supply drop incoming, '+dist+' blocks '+dir;showMessage(msg);playSound('levelup',0.5,0.6);
   if(MP.active&&MP.host)mpSend({t:'supply',x,y:gy+60,z,msg});return e}
 function supplyRemote(d){if(!world||world.dimKey!=='over')return;if(d.msg)showMessage(d.msg);entities.push(new SupplyDrop(d.x,d.y,d.z,{remote:true}))}
-function supplyAuto(){const p=player;const maxd=Math.max(40,Math.min(88,opts.renderDist*16-6)); // entities only run within 96 blocks and chunks unload past the view
+function supplyAuto(){const p=player;const maxd=Math.max(40,Math.min(88,chunkRange()*16-6)); // entities only run within 96 blocks and chunks unload past the view
   for(let t=0;t<30;t++){const a=Math.random()*PI*2,d=maxd*(0.55+0.45*Math.random()),x=floor(p.x+Math.cos(a)*d),z=floor(p.z+Math.sin(a)*d);if(world.columnInfo(x,z).height<=SEA+2)continue;return supplyDropAt(x+0.5,z+0.5)}return null}
 function supplyTick(dt){const g=game;if(g.supplyWorld!==g.worldId){g.supplyWorld=g.worldId;g.supplyT=180+Math.random()*120;g.flares=[];g.supplyQ=[]}
   if(g.supplyQ&&g.supplyQ.length){entities.push(...g.supplyQ);g.supplyQ.length=0}supplyFlares(dt);
@@ -6854,8 +6968,10 @@ if(!localStorage.getItem('ic_opts')&&matchMedia('(pointer:coarse)').matches)opts
 let world=null;
 function saveOpts(){localStorage.setItem('ic_opts',JSON.stringify(opts))}
 /* ---- chunk streaming ---- */
+function chunkRange(){const n=opts.renderDist|0;return R.webgl2?n:Math.min(n,4)} // WebGL1 keeps a short view: integrated GPUs fill too slowly past 4 chunks
+function meshSmooth(){return R.webgl2?!!opts.smooth:!!R.liteSmooth}
 function updateChunks(budgetMs){
-  const t0=performance.now();const pcx=floor(player.x)>>4,pcz=floor(player.z)>>4;const rd=opts.renderDist;
+  const t0=performance.now();const pcx=floor(player.x)>>4,pcz=floor(player.z)>>4;const rd=chunkRange();
   // generate: spiral outwards
   let gen=0;
   outer:for(let r=0;r<=rd+1;r++){for(let dx=-r;dx<=r;dx++)for(let dz=-r;dz<=r;dz++){if(Math.max(abs(dx),abs(dz))!==r)continue;if(dx*dx+dz*dz>(rd+1.5)*(rd+1.5))continue;const cx=pcx+dx,cz=pcz+dz;const c=world.getChunk(cx,cz);if(c&&c.generated)continue;
@@ -6864,7 +6980,7 @@ function updateChunks(budgetMs){
   const dirty=[];for(const c of world.chunks.values()){if(!c.dirty||!c.generated)continue;const dx=c.cx-pcx,dz=c.cz-pcz;if(dx*dx+dz*dz>(rd+0.5)*(rd+0.5))continue;
     if(!world.hasChunk((c.cx-1)*16,c.cz*16)||!world.hasChunk((c.cx+1)*16,c.cz*16)||!world.hasChunk(c.cx*16,(c.cz-1)*16)||!world.hasChunk(c.cx*16,(c.cz+1)*16))continue;dirty.push([dx*dx+dz*dz,c])}
   dirty.sort((a,b)=>a[0]-b[0]);
-  for(const [d,c] of dirty){const m=buildChunkMesh(world,c,opts.smooth);uploadChunkMesh(c,m);c.dirty=false;if(performance.now()-t0>budgetMs*1.6)break}
+  for(const [d,c] of dirty){const m=buildChunkMesh(world,c,meshSmooth());uploadChunkMesh(c,m);c.dirty=false;if(performance.now()-t0>budgetMs*1.6)break}
   // unload far chunks
   if(game.tick%40===0){for(const [k,c] of world.chunks){const dx=c.cx-pcx,dz=c.cz-pcz;if(dx*dx+dz*dz>(rd+4)*(rd+4)&&!siloKeeps(c)&&!mpKeeps(c)){stashChunk(c);deleteChunkMesh(c);world.chunks.delete(k)}}}
 }
@@ -7165,7 +7281,7 @@ function startWorld(meta,save){if(typeof modsPending==='function')modsPending();
   else{if(game.mods.guns){p.inv[0]={id:460,count:1};p.inv[1]={id:463,count:32}}if(game.mods.war)warKit();world.time=1000;world.day=0;game.worldSpawn=findSpawn();p.x=game.worldSpawn[0];p.y=game.worldSpawn[1];p.z=game.worldSpawn[2];p.yaw=0;p.pitch=0;game.pendingMobs=[];game.pendingItems=[];game.freshWorld=true;
     if(meta.mode==='creative'){}}
   game.state='loading';showMenu('loading');$('loadText').textContent='Building terrain';
-  const need=[];const pcx=floor(p.x)>>4,pcz=floor(p.z)>>4;const r0=Math.min(opts.renderDist,6);for(let dx=-r0-1;dx<=r0+1;dx++)for(let dz=-r0-1;dz<=r0+1;dz++)need.push([pcx+dx,pcz+dz]);need.sort((a,b)=>(a[0]-pcx)**2+(a[1]-pcz)**2-((b[0]-pcx)**2+(b[1]-pcz)**2));
+  const need=[];const pcx=floor(p.x)>>4,pcz=floor(p.z)>>4;const r0=Math.min(chunkRange(),6);for(let dx=-r0-1;dx<=r0+1;dx++)for(let dz=-r0-1;dz<=r0+1;dz++)need.push([pcx+dx,pcz+dz]);need.sort((a,b)=>(a[0]-pcx)**2+(a[1]-pcz)**2-((b[0]-pcx)**2+(b[1]-pcz)**2));
   let i=0;const step=()=>{const t0=performance.now();while(i<need.length&&performance.now()-t0<40){populateChunk(world.generateChunk(need[i][0],need[i][1]));i++}$('loadBar').style.width=(i/need.length*100)+'%';
     if(i<need.length)setTimeout(step,0);else{finishLoad()}};setTimeout(step,10);
 }
@@ -7240,10 +7356,11 @@ function setupMenus(){
   migrateOldSaves();checkForUpdate();setInterval(checkForUpdate,5*60*1000);$('updateBanner').onclick=()=>{location.href=location.pathname+'?v='+Date.now()};
   $('btnModMaker').onclick=()=>openModMaker('moreMenu');$('btnModMakerP').onclick=()=>openModMaker('pauseMenu');setupModMaker();
   $('btnRespawn').onclick=()=>{respawn();lockPointer()};$('btnDeathQuit').onclick=()=>{if(game.mods&&game.mods.hardcore){$('deathScreen').classList.remove('show');quitToTitle()}else{respawn();quitToTitle()}};
-  const sl=(id,key,fmt,cb)=>{const inp=$(id);const box=inp.parentElement;const span=box.querySelector('span'),knob=box.querySelector('.knob');const upd=()=>{span.textContent=fmt(opts[key]);const f=(opts[key]-inp.min)/(inp.max-inp.min);knob.style.left='calc('+(f*100)+'% - '+(f*16)+'px)'};inp.value=opts[key];upd();inp.addEventListener('input',()=>{opts[key]=+inp.value;upd();if(cb)cb()})};
+  if(!R.webgl2)$('optRender').max=4; // the lite renderer will not draw farther than this
+  const sl=(id,key,fmt,cb)=>{const inp=$(id);const box=inp.parentElement;const span=box.querySelector('span'),knob=box.querySelector('.knob');const shown=()=>Math.min(+opts[key],+inp.max);const upd=()=>{const v=shown();span.textContent=fmt(v);const f=(v-+inp.min)/(+inp.max-+inp.min);knob.style.left='calc('+(f*100)+'% - '+(f*16)+'px)'};inp.value=shown();upd();inp.addEventListener('input',()=>{opts[key]=+inp.value;upd();if(cb)cb()})};
   sl('optRender','renderDist',v=>'Render Distance: '+v+' chunks');sl('optFov','fov',v=>'FOV: '+(v===70?'Normal':v));sl('optSens','sens',v=>'Sensitivity: '+v+'%');sl('optBright','brightness',v=>'Brightness: '+(v===0?'Moody':v===100?'Bright':v+'%'));
   sl('optVol','volume',v=>'Master Volume: '+(v===0?'OFF':v+'%'),setVolume);sl('optMusic','music',v=>'Music: '+(v===0?'OFF':v+'%'),setVolume);
-  $('btnSmooth').onclick=()=>{opts.smooth=!opts.smooth;$('btnSmooth').textContent='Smooth Lighting: '+(opts.smooth?'ON':'OFF');if(world)for(const c of world.chunks.values())c.dirty=true};$('btnSmooth').textContent='Smooth Lighting: '+(opts.smooth?'ON':'OFF');
+  const smoothLabel=()=>$('btnSmooth').textContent='Smooth Lighting: '+(meshSmooth()?'ON':'OFF');$('btnSmooth').onclick=()=>{if(R.webgl2)opts.smooth=!opts.smooth;else R.liteSmooth=!R.liteSmooth;smoothLabel();if(world)for(const c of world.chunks.values())c.dirty=true};smoothLabel();
   $('btnKeepInv').onclick=()=>{opts.keepInv=!opts.keepInv;$('btnKeepInv').textContent='Keep Inventory on Death: '+(opts.keepInv?'ON':'OFF');saveOpts();if(opts.keepInv)showMessage('On public servers your items always drop when you die')};$('btnKeepInv').textContent='Keep Inventory on Death: '+(opts.keepInv?'ON':'OFF');
   const heartsLabel=()=>$('btnHearts').textContent='Health Display: '+(opts.hearts?'Minecraft Hearts':'Bar');$('btnHearts').onclick=()=>{opts.hearts=!opts.hearts;heartsLabel();saveOpts();if(game.state==='playing')updateHUD()};heartsLabel();
   const infoLabel=()=>$('btnInfo').textContent='Show Day & Coordinates: '+(opts.info?'ON':'OFF');$('btnInfo').onclick=()=>{opts.info=!opts.info;infoLabel();saveOpts();updateInfoHud()};infoLabel();
@@ -7354,7 +7471,7 @@ function saveCustomMods(m){try{localStorage.setItem('ic_custom_mods',JSON.string
 function b64ToBytes(str){const b=atob(str);const a=new Uint8ClampedArray(b.length);for(let i=0;i<b.length;i++)a[i]=b.charCodeAt(i);return a}
 function bytesToB64(a){let r='';for(let i=0;i<a.length;i++)r+=String.fromCharCode(a[i]);return btoa(r)}
 function setCustomTexture(k,rgba){const idx=TEX['custom'+k];if(idx===undefined)return;TEXDATA[idx]=rgba;if(typeof atlasCanvas!=='undefined'&&atlasCanvas)atlasCanvas.getContext('2d').putImageData(new ImageData(new Uint8ClampedArray(rgba),16,16),(idx%ATLAS_W)*16,floor(idx/ATLAS_W)*16)}
-function uploadAtlas(){if(!R.gl||!R.atlasTex)return;const gl=R.gl;gl.bindTexture(gl.TEXTURE_2D,R.atlasTex);gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL,false);gl.texImage2D(gl.TEXTURE_2D,0,gl.RGBA,gl.RGBA,gl.UNSIGNED_BYTE,atlasCanvas);gl.generateMipmap(gl.TEXTURE_2D)}
+function uploadAtlas(){if(!R.gl||!R.atlasTex||typeof atlasCanvas==='undefined'||!atlasCanvas)return;const gl=R.gl;const img=atlasImage();gl.bindTexture(gl.TEXTURE_2D,R.atlasTex);gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL,false);gl.texImage2D(gl.TEXTURE_2D,0,gl.RGBA,gl.RGBA,gl.UNSIGNED_BYTE,img);gl.generateMipmap(gl.TEXTURE_2D);if(gl.TEXTURE_MAX_LEVEL)gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_MAX_LEVEL,2)}
 function customKeyFor(k){return I[CUSTOM_KEYS[k%CUSTOM_KEYS.length]]}
 function applyCustomMods(){const m=loadCustomMods();const pieces=m.pieces.slice(0,CUSTOM_SLOTS);modKindsReset();
   for(const t in customOrig.faces)TEX[t+'_face']=customOrig.faces[t];
@@ -8503,7 +8620,7 @@ function mpSpawnIn(d){const x=+d.x,z=+d.z;if(!isFinite(x)||!isFinite(z))return;i
 // the host keeps the chunks round every guest alive so mobs and squads out there have ground under them
 function mpKeeps(c){if(!MP.active||!MP.host)return false;for(const r of MP.remote.values()){if(!r.hasTarget||r.hidden)continue;if(abs(c.cx-(floor(r.x)>>4))<=4&&abs(c.cz-(floor(r.z)>>4))<=4)return true}return false}
 function mpSpawnTick(dt){if(!MP.active||!MP.host||!world||world.dimKey!=='over')return;MP.gcT=(MP.gcT||0)-dt;if(MP.gcT>0)return;MP.gcT=0.2;let gen=0;
-  for(const r of MP.remote.values()){if(!r.hasTarget||r.hidden)continue;if(Math.hypot(r.x-player.x,r.z-player.z)<(opts.renderDist+2)*16)continue;const pcx=floor(r.x)>>4,pcz=floor(r.z)>>4;
+  for(const r of MP.remote.values()){if(!r.hasTarget||r.hidden)continue;if(Math.hypot(r.x-player.x,r.z-player.z)<(chunkRange()+2)*16)continue;const pcx=floor(r.x)>>4,pcz=floor(r.z)>>4;
     for(let q=0;q<=3;q++)for(let dx=-q;dx<=q;dx++)for(let dz=-q;dz<=q;dz++){if(Math.max(abs(dx),abs(dz))!==q)continue;const c=world.getChunk(pcx+dx,pcz+dz);if(c&&c.generated)continue;populateChunk(world.generateChunk(pcx+dx,pcz+dz));if(++gen>=3)return}}}
 // --- who owns what ---
 function wmpPlayersSave(w){const o={};for(const k in (w.players||{})){const r=w.players[k];o[k]={name:r.name,id:r.id,home:r.home,owned:r.owned.slice(),lost:(r.lost||[]).slice(),score:r.score||0,battles:r.battles||0,ci:r.ci|0}}return o}
@@ -10240,8 +10357,21 @@ function loop(now){
     $('debug').textContent=`Ironcraft 1.0 (${game.fps} fps)\nXYZ: ${p.x.toFixed(2)} / ${p.y.toFixed(2)} / ${p.z.toFixed(2)}\nBlock: ${floor(p.x)} ${floor(p.y)} ${floor(p.z)}\nChunk: ${floor(p.x)>>4} ${floor(p.z)>>4}\nFacing: ${['south','west','north','east'][lookFacing()]} (yaw ${(p.yaw*180/PI).toFixed(1)}, pitch ${(p.pitch*180/PI).toFixed(1)})\nBiome: ${bi}\nLight: sky ${world.getSky(floor(p.x),floor(p.y),floor(p.z))} block ${world.getLight(floor(p.x),floor(p.y),floor(p.z))}\nTime: ${fmtTime(world.time)} day ${world.day}\nChunks: ${world.chunks.size} loaded, ${R.visibleChunks} visible\nEntities: ${entities.length}  Particles: ${particles.length}\nSeed: ${game.seed}\nDimension: ${DIM_NAME[world.dimKey]}\nMode: ${p.mode} diff ${['Peaceful','Easy','Normal','Hard'][game.difficulty]}\nHunger ${p.hunger.toFixed(1)} sat ${p.sat.toFixed(1)} exh ${p.exh.toFixed(2)}`}
 }
 /* ---- boot ---- */
+function showGraphicsHelp(detail){
+  const esc=s=>String(s||'').replace(/[&<>]/g,c=>c==='&'?'&amp;':c==='<'?'&lt;':'&gt;');
+  document.body.innerHTML='<div style="box-sizing:border-box;max-width:680px;margin:0 auto;padding:36px 28px;color:#f4e6c4;font:18px/1.5 Segoe UI,Verdana,Arial,sans-serif">'+
+    '<h1 style="font-size:30px;letter-spacing:1px;color:#e2a943;margin:0 0 12px">Ironcraft needs 3D graphics</h1>'+
+    '<p style="margin:0 0 14px">Chrome could not start a picture of the world. On a Chromebook this is usually graphics acceleration being off, or a school policy blocking it.</p>'+
+    '<ol style="margin:0 0 14px;padding-left:22px">'+
+    '<li style="margin:0 0 10px"><b>Type chrome://settings/system into the address bar.</b> Turn on <b>Use graphics acceleration when available</b>. Quit Chrome completely, then open it and try Ironcraft again.</li>'+
+    '<li style="margin:0 0 10px">If that switch is greyed out, a school account is holding it off. A teacher or parent has to allow graphics acceleration.</li>'+
+    '<li>Update Chrome and ChromeOS. An older Chromebook whose graphics chip is blocked needs the newest update that device can take.</li>'+
+    '</ol>'+
+    '<p style="margin:0;color:#d9c7a2">Ironcraft already switches to a simpler graphics mode when WebGL2 is unavailable. This screen shows only when even that mode cannot start.</p>'+
+    (detail?'<p style="margin:14px 0 0;color:#a89880;font:13px/1.4 ui-monospace,monospace;white-space:pre-wrap">'+esc(detail)+'</p>':'')+'</div>';
+}
 function boot(){
-  try{initGL()}catch(e){console.error(e.stack);document.body.innerHTML='<div style="padding:40px;color:#fff;font-size:18px">WebGL2 is required to play. '+e.message+'</div>';return}
+  try{initGL()}catch(e){console.error(e&&e.stack||e);const msg=e&&e.message||'';showGraphicsHelp(/^(no-context|no-vao|The game canvas is missing)$/.test(msg)?'':msg);return}
   buildHUD();buildGuis();setupMenus();setupInput();setupMobileControls();
   document.documentElement.style.setProperty('--dirt','url('+tileCanvas(TEX.dirt).toDataURL()+')');
   $('overlay').style.display='none';
