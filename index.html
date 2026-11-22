@@ -23,7 +23,7 @@
 </script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Oswald:wght@500;700&amp;family=Share+Tech+Mono&amp;display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Oswald:wght@500;700&family=Share+Tech+Mono&display=swap" rel="stylesheet">
 <script>try{if(location.pathname.endsWith('/index.html'))history.replaceState(null,'',location.pathname.slice(0,-10)+location.search+location.hash)}catch(e){}</script>
 <style>
 :root{
@@ -469,7 +469,7 @@ footer a:hover{color:var(--gold);}
 </main>
 
 <footer>
-  Iron Games &amp;nbsp;·&amp;nbsp; Made by Daniele Bros &amp;nbsp;·&amp;nbsp; Guides: <a href="ironcraft-guide.html">Ironcraft</a> · <a href="iron-front-guide.html">Iron Front</a> · <a href="iron-battle-guide.html">Iron Battle</a>
+  Iron Games &nbsp;·&nbsp; Made by Daniele Bros &nbsp;·&nbsp; Guides: <a href="ironcraft-guide.html">Ironcraft</a> · <a href="iron-front-guide.html">Iron Front</a> · <a href="iron-battle-guide.html">Iron Battle</a>
  · <a href="privacy.html">Privacy</a> · <a href="safety.html">Family safety</a></footer>
 
 <script>
@@ -478,7 +478,7 @@ footer a:hover{color:var(--gold);}
   const n=cards.length;
   document.getElementById('game-count').textContent=`${n} GAME${n===1?'':'S'} · MORE COMING`;
   // NEW badges expire by themselves a week after the card's data-added date.
-  cards.forEach(card=>{const d=Date.parse(card.dataset.added||'');const b=card.querySelector('.badge');if(b&amp;&amp;b.textContent.trim()==='NEW'&amp;&amp;(!d||Date.now()-d>7*864e5))b.remove();});
+  cards.forEach(card=>{const d=Date.parse(card.dataset.added||'');const b=card.querySelector('.badge');if(b&&b.textContent.trim()==='NEW'&&(!d||Date.now()-d>7*864e5))b.remove();});
   document.querySelectorAll('.card-art video').forEach(video=>{video.muted=true;video.play().catch(()=>{});});
   document.querySelectorAll('#games a.play').forEach(a=>a.addEventListener('click',()=>{if(window.trackEvent)trackEvent('select_game',{game:a.dataset.game})}));
 })();
