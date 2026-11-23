@@ -404,6 +404,7 @@ function hitTank(sh,t,h,pt){const a=armourAt(t,h,sh.v);const src=sh.o;let dmg=0,
   if(res==='ricochet'){for(let k=0;k<8;k++)part(pt,[(random()-.5)*10,random()*6,(random()-.5)*10],.3,.8,[1,.95,.6,1],-8)}else boom(pt,sh.he,res==='pen'?[1,.55,.2,1]:[1,.9,.6,1]);
   sound(res==='pen'||res==='he'?'pen':'ric',t);
   if(src===G.player){msg(res==='pen'?'Penetration!':res==='he'?'HE hit':res==='ricochet'?'Ricochet':'Didn\'t penetrate',res==='pen'||res==='he'?'#ffd24a':'#ccc')}
+  if(t.ai&&t.alive&&src.alive&&src.team!==t.team){const hb=t.ai.hitBy;if(hb&&hb.src===src){hb.until=G.now+7}else t.ai.hitBy={src,at:G.now+.3+random()*.3,until:G.now+7,dir:atan2(src.x-t.x,src.z-t.z)}}
   if(t===G.player){G.hitDir={a:atan2(src.x-t.x,src.z-t.z),t:G.now};if(dmg)G.shake=.4;else msg(res==='ricochet'?'Ricochet off your armour':'Your armour held',' #9cf')}
   if(dmg>0&&t.alive){dmg=min(dmg,t.hp);t.hp-=dmg;src.dmg+=dmg;src.hits++;t.flash=.25;t.lastHitBy=src;num(vadd(pt,[0,1,0]),'-'+dmg,src===G.player?'#ffd24a':t===G.player?'#ff5a4a':src.team===0?'#9f9':'#f88',src===G.player||t===G.player);
     if(t.team!==src.team){const bi=1-t.team;/* the base t is capturing */if(G.capping&&G.capping[bi]&&G.capping[bi].includes(t))G.cap[bi]=max(0,G.cap[bi]-35)}
@@ -439,6 +440,10 @@ function aiWaypoints(t){const s=t.team===0?1:-1,lx=LANES[t.ai.lane];return [[lx,
 function aiThink(t,dt){const ai=t.ai;ai.t-=dt;
   if(ai.t<=0){ai.t=.3+random()*.25;let best=null,bd=1e9;const eye=[t.x,t.y+t.i.H+t.i.th,t.z];
     for(const e of G.tanks){if(!e.alive||e.team===t.team||!spotted(e,t.team))continue;const d=hypot(e.x-t.x,e.z-t.z);if(d>520)continue;const sc=d-(e===ai.target?40:0)+(e.hp/e.maxhp)*30;if(sc<bd&&los(eye,[e.x,e.y+e.i.H*.7,e.z])){bd=sc;best=e}}
+    // retaliation: an enemy that just shot us takes priority unless a much closer threat is in sight
+    ai.look=null;const hb=ai.hitBy;if(hb&&(!hb.src.alive||G.now>hb.until))ai.hitBy=null;
+    else if(hb&&G.now>=hb.at){const r=hb.src,dr=hypot(r.x-t.x,r.z-t.z),db=best?hypot(best.x-t.x,best.z-t.z):1e9;
+      if(!(best&&best!==r&&db<dr*.4&&db<120)){if(spotted(r,t.team)&&dr<520&&los(eye,[r.x,r.y+r.i.H*.7,r.z])){if(ai.target!==r){ai.target=r;ai.react=.15+random()*.2;ai.off=[(random()-.5)*1.2,(random()-.5)*.6,0]}best=r}else{best=null;ai.target=null;ai.look=r}}}
     if(best!==ai.target){ai.target=best;ai.react=.5+random()*.7;ai.off=[(random()-.5)*1.2,(random()-.5)*.6,0]}
     // defend home if it is being captured and we are close
     ai.defend=G.cap[t.team]>5&&hypot(t.x-W.bases[t.team][0],t.z-W.bases[t.team][1])<320}
@@ -451,6 +456,7 @@ function aiThink(t,dt){const ai=t.ai;ai.t-=dt;
   else if(G.time>240&&!ai.defend){goal=W.bases[1-t.team];if(hypot(goal[0]-t.x,goal[1]-t.z)<W.baseR*.6)stop=true}
   else{ai.hunt=null;const wps=ai.wps||(ai.wps=aiWaypoints(t));while(ai.wp<wps.length-1&&hypot(wps[ai.wp][0]-t.x,wps[ai.wp][1]-t.z)<22)ai.wp++;goal=wps[ai.wp];if(ai.wp===wps.length-1&&hypot(goal[0]-t.x,goal[1]-t.z)<W.baseR*.6)stop=true}
   if(t.s.tt===0&&e){stop=hypot(e.x-t.x,e.z-t.z)<330;face=atan2(e.x-t.x,e.z-t.z)}
+  else if(!e&&ai.look&&ai.look.alive){const L=ai.look;if(t.s.tt===0||abs(angDiff(t.yaw,atan2(L.x-t.x,L.z-t.z)))>2.6&&t.s.tt<14){stop=true;face=atan2(L.x-t.x,L.z-t.z)}}
   // steering
   t.thr=0;t.str=0;
   if(ai.rev>0){ai.rev-=dt;t.thr=-1;t.str=ai.revStr;}
@@ -464,6 +470,7 @@ function aiThink(t,dt){const ai=t.ai;ai.t-=dt;
     const y=frontal?(e.s.ar[3]>e.s.ar[0]*1.6?e.i.trH*.75:e.i.H*.55):e.i.H*.6;const pt=[e.x+ai.off[0],e.y+y+ai.off[1],e.z];const yw=aimTank(t,pt,dt);
     const err=abs(angDiff(t.yaw+t.ty,yw));if(ai.react<=0&&t.rl<=0&&err<.03&&t.bloom<(hypot(e.x-t.x,e.z-t.z)<90?2.4:1.7)){const r=raycast(muzzle(t),gunDir(t),600,t);const de=hypot(e.x-t.x,e.z-t.z);
       if(r.kind==='tank'&&r.tank.team===t.team&&r.tank.alive){}else if(r.kind!=='tank'&&r.t<de-6){ai.block=(ai.block||0)+dt;if(ai.block>2.5){ai.block=0;ai.push=6}}else{ai.block=0;fire(t);ai.off=[(random()-.5)*1.4,(random()-.5)*.7,0]}}}
+  else if(ai.look&&ai.look.alive){const L=ai.look;aimTank(t,[L.x,L.y+L.i.H*.6,L.z],dt)}
   else{const h=[t.x+sin(t.yaw)*50,t.y+2,t.z+cos(t.yaw)*50];aimTank(t,h,dt)}}
 function obstacleAt(x,z,r){for(const b of W.obs){const c=cos(b.yaw),s=sin(b.yaw);const px=x-b.x,pz=z-b.z;const lx=-c*px+s*pz,lz=s*px+c*pz;if(abs(lx)<b.hw+r&&abs(lz)<b.hd+r)return true}for(const o of W.rocks)if(hypot(x-o.x,z-o.z)<o.r*.8+r)return true;return false}
 /* ---- matchmaking + battle start ---- */
