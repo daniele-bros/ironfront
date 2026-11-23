@@ -619,6 +619,8 @@ label.lb{font-size:13px;color:#a0a0a0;align-self:flex-start;margin-left:calc(50%
   <button class="btn" id="btnSmooth">Smooth Lighting: ON</button>
   <button class="btn" id="btnClouds">Clouds: ON</button>
   <button class="btn" id="btnKeepInv">Keep Inventory on Death: ON</button>
+  <button class="btn" id="btnTimber">Tree Chopping: ON</button>
+  <div class="hint" style="color:#aaa;width:440px;margin:0 0 4px">Chop a tree's log with an axe and the whole tree falls: every log drops and the leaves fall off (saplings and apples too). Sneak while chopping to cut a single log. Log houses and placed leaves are left alone.</div>
   <button class="btn" id="btnHearts">Health Display: Bar</button>
   <div class="hint" style="color:#aaa;width:440px;margin:0 0 4px">Minecraft Hearts shows your health as pixel hearts: red, hardcore, poisoned, withered, frozen and gold absorption hearts, with a flash when you are hit and your horse's hearts while riding. It is your own setting and works in every world, even ones you join.</div>
   <button class="btn" id="btnInfo">Show Day &amp; Coordinates: OFF</button>
@@ -2914,7 +2916,7 @@ class ItemEntity extends Entity{
   update(dt){this.age+=dt;this.pickupDelay-=dt;this.physics(dt,{step:0,friction:0.6});this.rot+=dt*1.5;if(this.age>300){this.dead=true;return}
     if(this.inLava&&!(ITEMS[this.stack.id].mat==='netherite'||ITEMS[this.stack.id].mat==='sift'||this.stack.id===490||this.stack.id===375||this.stack.id===376||this.stack.id===95||this.stack.id===98)){this.dead=true;if(this.nid&&MP.active)mpSend({t:'ir',nid:this.nid});return}
     // merge
-    if(this.age%1<dt*2)for(const o of entities){if(o===this||!(o instanceof ItemEntity)||o.dead)continue;if(o.stack.id===this.stack.id&&!this.stack.dur&&!this.stack.ench&&!o.stack.ench&&abs(o.x-this.x)<0.8&&abs(o.y-this.y)<0.8&&abs(o.z-this.z)<0.8){const max=ITEMS[this.stack.id].stack;if(this.stack.count+o.stack.count<=max){this.stack.count+=o.stack.count;o.dead=true;if(MP.active){if(o.nid)mpSend({t:'ir',nid:o.nid});if(this.nid)mpSend({t:'ic',nid:this.nid,count:this.stack.count})}}}}
+    if(this.age%1<dt*2&&!this.dead)for(const o of entities){if(o===this||!(o instanceof ItemEntity)||o.dead)continue;if(o.stack.id===this.stack.id&&!this.stack.dur&&!this.stack.ench&&!o.stack.ench&&abs(o.x-this.x)<0.8&&abs(o.y-this.y)<0.8&&abs(o.z-this.z)<0.8){const max=ITEMS[this.stack.id].stack;if(this.stack.count+o.stack.count<=max){this.stack.count+=o.stack.count;o.dead=true;if(MP.active){if(o.nid)mpSend({t:'ir',nid:o.nid});if(this.nid)mpSend({t:'ic',nid:this.nid,count:this.stack.count})}}}}
     // pickup
     if(this.pickupDelay<=0&&!player.dead){const p=player;if(abs(p.x-this.x)<1.0&&this.y>p.y-0.5&&this.y<p.y+p.h+0.5&&abs(p.z-this.z)<1.0){const left=addToInventory(this.stack);if(left===0){this.dead=true;playSound('pop');updateHotbar();if(this.nid&&MP.active)mpSend({t:'ir',nid:this.nid})}else if(left!==this.stack.count){this.stack.count=left;if(this.nid&&MP.active)mpSend({t:'ic',nid:this.nid,count:left})}}}
   }
@@ -5134,10 +5136,10 @@ function updatePlayer(dt){
   if(mouseL&&!guiOpen&&!p.targetEntity&&p.target&&p.target.block&&p.breakCooldown<=0&&!(p.riding&&p.riding.def&&(p.riding.def.vehicle==='tank'||p.riding.def.vehicle==='flak'||p.riding.def.ship))){
     const t=p.target;const id=t.id;const def=BLOCKS[id];
     if(!p.breakTarget||p.breakTarget[0]!==t.bx||p.breakTarget[1]!==t.by||p.breakTarget[2]!==t.bz){p.breakTarget=[t.bx,t.by,t.bz];p.breakProgress=0}
-    if(creative){breakBlock(t.bx,t.by,t.bz,true,true);p.breakCooldown=0.25;p.swing=0}
+    if(creative){const tl=timberCheck(t.bx,t.by,t.bz,id,heldStack());breakBlock(t.bx,t.by,t.bz,true,true);if(tl)timberStart(t.bx,t.by,t.bz,id,tl,heldStack());p.breakCooldown=0.25;p.swing=0}
     else{const hs=heldStack();const dpt=breakDamagePerTick(def,hs?Object.assign({},ITEMS[hs.id],{ench:hs.ench}):null,p.onGround,headWater&&!enchLevel(p.armor[0],'aqua_affinity'));p.breakProgress+=dpt*20*dt;
       if(p.swing>=1)p.swing=0;p.hitSoundT=(p.hitSoundT||0)+dt;if(p.hitSoundT>0.25){p.hitSoundT=0;playSound('hit_'+def.sound,0.3);spawnParticles('hit',t.x,t.y,t.z,1,id)}
-      if(p.breakProgress>=1){breakBlock(t.bx,t.by,t.bz,true);p.breakProgress=0;p.breakCooldown=0.3;p.exh+=0.005;const st=heldStack();if(st&&ITEMS[st.id].tool&&ITEMS[st.id].tool!=='sword'&&ITEMS[st.id].dur)damageItem(st,1)}}
+      if(p.breakProgress>=1){const tl=timberCheck(t.bx,t.by,t.bz,id,heldStack());breakBlock(t.bx,t.by,t.bz,true);p.breakProgress=0;p.breakCooldown=0.3;p.exh+=0.005;const st=heldStack();if(st&&ITEMS[st.id].tool&&ITEMS[st.id].tool!=='sword'&&ITEMS[st.id].dur)damageItem(st,1);if(tl&&heldStack()===st)timberStart(t.bx,t.by,t.bz,id,tl,st)}}
   } else {p.breakProgress=0;p.breakTarget=null;if(mouseL&&!guiOpen&&p.swing>=1)p.swing=0}
   // ---- using (hold) ----
   if(mouseR&&!guiOpen){const st=heldStack();const hd=st?ITEMS[st.id]:null;
@@ -5239,6 +5241,41 @@ function breakBlock(x,y,z,byPlayer,noDrop){
     if(def.xp&&byPlayer&&canHarvest(def,tool))spawnXP(x+0.5,y+0.5,z+0.5,def.xp[0]+floor(Math.random()*(def.xp[1]-def.xp[0]+1)))}
   return true;
 }
+/* ---- Timber: chop a tree's log with an axe and every log above it comes down, then the leaves fall (opts.timber, sneak to cut one log) ---- */
+const TIMBER_MAX=200;
+function timberMan(b){const d=BLOCKS[b];return !!d&&b!==0&&!d.log&&!d.leaves&&(d.sound==='wood'||d.sound==='glass'||/plank|brick|wool|glass|cobble|door|fence|stair|slab|chest|table/.test(d.name))}
+function timberFind(x,y,z,id){ // the tree's logs at or above the cut (26-way, same wood), or null when it looks player-built
+  if((world.getMeta(x,y,z)&3)!==0)return null;
+  const seen=new Set([x+','+y+','+z]),out=[],q=[[x,y,z]];let leaves=0;
+  while(q.length){const c=q.pop();
+    for(let dx=-1;dx<=1;dx++)for(let dy=-1;dy<=1;dy++)for(let dz=-1;dz<=1;dz++){if(!dx&&!dy&&!dz)continue;const nx=c[0]+dx,ny=c[1]+dy,nz=c[2]+dz;if(ny<y)continue;
+      const k=nx+','+ny+','+nz;if(seen.has(k))continue;seen.add(k);const b=world.getBlock(nx,ny,nz);
+      if(b===id){if((world.getMeta(nx,ny,nz)&3)!==0)return null;out.push([nx,ny,nz]);if(out.length>TIMBER_MAX)return null;q.push([nx,ny,nz])}
+      else if(BLOCKS[b]&&BLOCKS[b].leaves&&b!==145){if(!(world.getMeta(nx,ny,nz)&4))leaves++}
+      else if(abs(dx)+abs(dy)+abs(dz)===1&&timberMan(b))return null}}
+  return leaves>=4?out:null} // a real tree has its own leaves; log walls, pillars and cabins do not
+function timberCheck(x,y,z,id,st){const p=player;if(opts.timber===false||!BLOCKS[id]||!BLOCKS[id].log||p.sneaking)return null;const t=st?ITEMS[st.id]:null;if(!t||t.tool!=='axe')return null;return timberFind(x,y,z,id)}
+function timberStart(x,y,z,id,logs,st){const p=player;const creative=p.mode==='creative';
+  logs.sort((a,b)=>a[1]-b[1]||((a[0]-x)**2+(a[2]-z)**2)-((b[0]-x)**2+(b[2]-z)**2));
+  if(!creative&&st&&ITEMS[st.id].dur){const rem=Math.max(0,ITEMS[st.id].dur-(st.dur||0));if(logs.length>rem)logs=logs.slice(0,rem);for(let i=0;i<logs.length;i++){damageItem(st,1);p.exh+=0.005}updateHotbar()}
+  let fx=x+0.5-p.x,fz=z+0.5-p.z;const fl=sqrt(fx*fx+fz*fz)||1;fx/=fl;fz/=fl; // the tree topples away from you
+  const job={id,x,y,z,fx,fz,t:0,i:0,list:logs.map(l=>({p:l,d:0.08+(l[1]-y)*0.07+Math.random()*0.03})),creative,leaves:null,minX:x,maxX:x,minY:y,maxY:y,minZ:z,maxZ:z};
+  for(const l of logs){job.minX=Math.min(job.minX,l[0]);job.maxX=Math.max(job.maxX,l[0]);job.maxY=Math.max(job.maxY,l[1]);job.minZ=Math.min(job.minZ,l[2]);job.maxZ=Math.max(job.maxZ,l[2])}
+  (game.timber||(game.timber=[])).push(job);playSoundAt('hit_wood',x,y,z,0.55,1);if(!game.timberSaid){game.timberSaid=true;showMessage('Timber! Sneak while chopping to cut a single log')}}
+function timberLeaves(J){ // leaves more than 4 steps from any log (through leaves) decay, like Minecraft
+  const R=4,x0=J.minX-R-1,x1=J.maxX+R+1,y0=J.minY-1,y1=J.maxY+R+1,z0=J.minZ-R-1,z1=J.maxZ+R+1;const dist=new Map(),q=[],cand=[];
+  for(let X=x0;X<=x1;X++)for(let Y=y0;Y<=y1;Y++)for(let Z=z0;Z<=z1;Z++){const b=world.getBlock(X,Y,Z);if(!b)continue;const d=BLOCKS[b];
+    if(d.log){dist.set(X+','+Y+','+Z,0);q.push([X,Y,Z,0])}else if(d.leaves&&b!==145){if(world.getMeta(X,Y,Z)&4)dist.set(X+','+Y+','+Z,0),q.push([X,Y,Z,0]);else cand.push([X,Y,Z,b])}}
+  for(let h=0;h<q.length;h++){const [X,Y,Z,n]=q[h];if(n>=R)continue;for(const d of FACE_DIR){const nx=X+d[0],ny=Y+d[1],nz=Z+d[2];const k=nx+','+ny+','+nz;if(dist.has(k))continue;const b=world.getBlock(nx,ny,nz);if(!b||!BLOCKS[b].leaves||b===145)continue;dist.set(k,n+1);q.push([nx,ny,nz,n+1])}}
+  const out=[];for(const c of cand)if(!dist.has(c[0]+','+c[1]+','+c[2]))out.push({p:c,d:J.t+0.25+Math.random()*2.2,leaf:true});out.sort((a,b)=>a.d-b.d);return out}
+function timberTick(dt){const L=game.timber;if(!L||!L.length||!world)return;
+  for(let j=L.length-1;j>=0;j--){const J=L[j];J.t+=dt;
+    while(J.i<J.list.length&&J.list[J.i].d<=J.t){const e=J.list[J.i++];const [lx,ly,lz]=e.p;
+      if(e.leaf){if(BLOCKS[world.getBlock(lx,ly,lz)].leaves&&!(world.getMeta(lx,ly,lz)&4))breakBlock(lx,ly,lz,null,J.creative);continue}
+      if(world.getBlock(lx,ly,lz)!==J.id)continue;const meta=world.getMeta(lx,ly,lz);breakBlock(lx,ly,lz,null,true);
+      if(!J.creative){const h=Math.max(0,ly-J.y),s=1.2+h*0.45;for(const d of blockDrops(J.id,meta,null,null))spawnItem(lx+0.5,ly+0.3,lz+0.5,{id:d[0],count:d[1]},[J.fx*s+(Math.random()-0.5),1.5+Math.random(),J.fz*s+(Math.random()-0.5)])}
+      if(J.i===J.list.length||J.i%4===0)spawnParticles('block',lx+0.5+J.fx,ly+0.5,lz+0.5+J.fz,6,J.id)}
+    if(J.i>=J.list.length){if(!J.leaves){J.leaves=true;J.list=timberLeaves(J);J.i=0;if(J.list.length)playSoundAt('break_grass',J.x,J.maxY,J.z,0.8,0.8)}else L.splice(j,1)}}}
 /* ---- left click ---- */
 function maceSmash(hit,fall){const p=player;p.fallDist=0;p.vy=Math.max(p.vy,0);const st=heldStack();const wb=st?enchLevel(st,'wind_burst'):0;if(wb){p.vy=9+wb*3.5;p.onGround=false;windBurst(hit.x,hit.y+0.5,hit.z,true,true);showMessage('Wind Burst! You are launched back up: land another smash')}playSound('explode',0.5,1.6);playSound('hit_stone',1,0.5);spawnParticles('explosion',hit.x,hit.y+0.2,hit.z,10);
   for(let i=0;i<24;i++)spawnParticles('block',hit.x+(Math.random()-0.5)*4,hit.y+0.1,hit.z+(Math.random()-0.5)*4,1,world.getBlock(floor(hit.x),floor(hit.y)-1,floor(hit.z))||1);
@@ -5561,6 +5598,7 @@ function placeHeldBlock(hd,st,t){
   }
   if(hd.facing)meta=(lf+2)&3;
   if(hd.log)meta=face<2?1:face>3?2:0; // logs lie along the axis of the face you click
+  if(BLOCKS[id]&&BLOCKS[id].leaves&&id!==145)meta=4; // placed leaves never decay
   // collision with entities
   if(hd.solid){const bs=blockBoxes(id,meta,'c',px,py,pz);for(const b of bs)if(boxesOverlapEntity(px+b[0],py+b[1],pz+b[2],px+b[3],py+b[4],pz+b[5]))return}
   world.setBlock(px,py,pz,id,meta);if(id===107&&st.items){const be=world.getBlockEntity(px,py,pz,()=>({items:st.items.map(s=>s?Object.assign({},s):null)}));mpSendBE(px,py,pz,be)}consumeHeld();playSoundAt('place_'+hd.sound,px,py,pz);p.swing=0;
@@ -7000,7 +7038,7 @@ function updateMusic(dt){if(!AU.ctx||opts.music===0)return;AU.musicT-=dt;if(AU.m
   const n=1+floor(Math.random()*3);for(let i=0;i<n;i++){const o=c.createOscillator();o.type='sine';o.frequency.value=scale[floor(Math.random()*scale.length)]*(Math.random()<0.3?0.5:1);const g=c.createGain();g.gain.setValueAtTime(0,t+i*0.6);g.gain.linearRampToValueAtTime(0.6,t+i*0.6+0.4);g.gain.exponentialRampToValueAtTime(0.001,t+i*0.6+4);o.connect(g);g.connect(AU.music);o.start(t+i*0.6);o.stop(t+i*0.6+4.2)}}
 /* ===================== GAME ===================== */
 const game={dims:{over:null,nether:null,end:null,sift:null},state:'title',paused:false,gui:null,time:0,tick:0,difficulty:2,worldId:null,worldName:'',worldSpawn:[0.5,70,0.5],seed:0,lastSave:0,fps:0,frames:0,fpsT:0,tickAcc:0,spawnT:0};
-const opts=Object.assign({renderDist:8,fov:70,sens:100,brightness:50,volume:100,music:50,smooth:true,clouds:true,keepInv:true,hearts:false,info:false},JSON.parse(localStorage.getItem('ic_opts')||'{}'));
+const opts=Object.assign({renderDist:8,fov:70,sens:100,brightness:50,volume:100,music:50,smooth:true,clouds:true,keepInv:true,timber:true,hearts:false,info:false},JSON.parse(localStorage.getItem('ic_opts')||'{}'));
 if(!localStorage.getItem('ic_opts')&&matchMedia('(pointer:coarse)').matches)opts.renderDist=5; // tablets and phones start lighter
 let world=null;
 function saveOpts(){localStorage.setItem('ic_opts',JSON.stringify(opts))}
@@ -7398,6 +7436,7 @@ function setupMenus(){
   sl('optRender','renderDist',v=>'Render Distance: '+v+' chunks');sl('optFov','fov',v=>'FOV: '+(v===70?'Normal':v));sl('optSens','sens',v=>'Sensitivity: '+v+'%');sl('optBright','brightness',v=>'Brightness: '+(v===0?'Moody':v===100?'Bright':v+'%'));
   sl('optVol','volume',v=>'Master Volume: '+(v===0?'OFF':v+'%'),setVolume);sl('optMusic','music',v=>'Music: '+(v===0?'OFF':v+'%'),setVolume);
   const smoothLabel=()=>$('btnSmooth').textContent='Smooth Lighting: '+(meshSmooth()?'ON':'OFF');$('btnSmooth').onclick=()=>{if(R.webgl2)opts.smooth=!opts.smooth;else R.liteSmooth=!R.liteSmooth;smoothLabel();if(world)for(const c of world.chunks.values())c.dirty=true};smoothLabel();
+  $('btnTimber').onclick=()=>{opts.timber=!opts.timber;$('btnTimber').textContent='Tree Chopping: '+(opts.timber?'ON':'OFF');saveOpts()};$('btnTimber').textContent='Tree Chopping: '+(opts.timber!==false?'ON':'OFF');
   $('btnKeepInv').onclick=()=>{opts.keepInv=!opts.keepInv;$('btnKeepInv').textContent='Keep Inventory on Death: '+(opts.keepInv?'ON':'OFF');saveOpts();if(opts.keepInv)showMessage('On public servers your items always drop when you die')};$('btnKeepInv').textContent='Keep Inventory on Death: '+(opts.keepInv?'ON':'OFF');
   const heartsLabel=()=>$('btnHearts').textContent='Health Display: '+(opts.hearts?'Minecraft Hearts':'Bar');$('btnHearts').onclick=()=>{opts.hearts=!opts.hearts;heartsLabel();saveOpts();if(game.state==='playing')updateHUD()};heartsLabel();
   const infoLabel=()=>$('btnInfo').textContent='Show Day & Coordinates: '+(opts.info?'ON':'OFF');$('btnInfo').onclick=()=>{opts.info=!opts.info;infoLabel();saveOpts();updateInfoHud()};infoLabel();
@@ -7541,7 +7580,7 @@ function renderModList(){const m=loadCustomMods();const l=$('modList');l.innerHT
     const how=pc.data?modDataSummary(pc,k):pc.spec?specSummary(pc.spec).replace(/<[^>]*>/g,'')+' Key item: '+keyName+'.':pc.kind==='creature'?'face of every '+(MOB_LABEL[pc.target]||pc.target):pc.kind==='block'?'block, craft 4 from cobblestone + '+keyName+(pc.glow?', glows':''):'item, craft 2 from cobblestone + '+keyName;
     el.innerHTML='<img src="'+pieceIconURL(pc,k)+'" width="32" height="32" style="image-rendering:pixelated;border:1px solid #888"><div style="flex:1"><b>'+escapeHtml(pc.name)+'</b>'+modKindBadge(pc)+'<div style="font-size:11px;opacity:.85">'+escapeHtml(how)+'</div></div><button class="btn" style="width:auto;height:30px;font-size:11px;padding:0 10px">Edit</button><button class="btn" style="width:auto;height:30px;font-size:11px;padding:0 10px">Remove</button><button class="btn" style="width:auto;height:30px;font-size:11px;padding:0 10px">Share</button>';
     const bs=el.querySelectorAll('button');bs[0].onclick=()=>{if(window.startEditPiece)startEditPiece(k)};bs[2].onclick=()=>{try{modShareOpen(k)}catch(e){}};bs[1].onclick=()=>{const mm=loadCustomMods();mm.pieces.splice(k,1);saveCustomMods(mm);applyCustomMods();renderModList();$('modStatus').textContent='Removed '+pc.name};l.appendChild(el)})}
-function escapeHtml(t){return String(t).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]))}
+function escapeHtml(t){return String(t).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&'+'quot;'}[c]))}
 function setupModMaker(){const drop=$('modDrop'),file=$('modFile');if(!drop)return;
   const sel=$('modTarget');sel.innerHTML=CUSTOM_TARGETS.map(t=>'<option value="'+t+'">'+(MOB_LABEL[t]||t)+'</option>').join('');
   $('modKind').onchange=()=>{const k=$('modKind').value;sel.style.display=k==='creature'?'inline-block':'none';$('modBlockOpts').style.display=k==='block'?'block':'none'};
@@ -10319,17 +10358,27 @@ function gspawnIn(conn,d){if(!MP.active||!MP.host||!world||!d)return;
   }catch(e){console.error('guest spawn failed',e);return reply(false,'That did not work')}
   const msg=msgs.join(' ')||(ok?'Done':'Could not build that here');if(ok)showMessage(who+': '+msg);return reply(ok,msg)}
 function onPublicServer(){return !!(MP.active&&MP.public)}
-function publicCheatBlocked(cmd,args){if(!onPublicServer()||!PUBLIC_BLOCKED.has(cmd))return false;if(cmd==='tp'&&args.length===1&&(args[0]==='spawn'||args[0]==='home'))return false;if(cmd==='kill'&&!args.length)return false;return true}
+function publicCheatBlocked(cmd,args){if(!onPublicServer()||!PUBLIC_BLOCKED.has(cmd))return false;if(cmd==='tp'&&args.length===1&&(args[0]==='spawn'||args[0]==='home'))return false;if(cmd==='kill'&&!args.length)return false;if(cmd==='spawn'&&!args.length)return false;return true}
+/* /spawn with nothing after it takes you back to the world spawn (your team's spawn in War). On public servers it, /tp spawn and /tp home wait 3 s (taking damage cancels) and then cool down for 10 s, so nobody can use them to dodge a fight */
+const SPAWN_TP_WARM=3,SPAWN_TP_CD=10;
+function spawnTpRequest(kind,say){const p=player;if(!world||p.dead)return;if(game.spawnTp){say('Already teleporting: hold still');return}
+  const cd=(game.spawnTpCd||0)-performance.now()/1000;if(cd>0){say('/spawn is cooling down: try again in '+Math.ceil(cd)+' s');return}
+  game.spawnTp={kind,t:SPAWN_TP_WARM,hp:p.hp};say('Teleporting to '+(kind==='home'?'your bed':'spawn')+' in '+SPAWN_TP_WARM+' s. Taking damage cancels it.');playSound('click',0.6,1.2)}
+function spawnTpTick(dt){const T=game.spawnTp;if(!T)return;const p=player;if(!world||game.state!=='playing'||p.dead){game.spawnTp=null;return}
+  if(p.hp<T.hp){game.spawnTp=null;showMessage('Teleport cancelled: you took damage');playSound('hurt',0.4,0.7);return}T.hp=p.hp;
+  const a=Math.ceil(T.t);T.t-=dt;if(T.t<=0){game.spawnTp=null;game.spawnTpCd=performance.now()/1000+SPAWN_TP_CD;game.spawnTpGo=true;try{runCommand('tp '+T.kind)}finally{game.spawnTpGo=false}return}
+  if(Math.ceil(T.t)!==a)showMessage(Math.ceil(T.t)+'...')}
 function runCommand(line){const p=player;const raw=line.trim().replace(/^\/+/,'');const parts=raw.split(/\s+/);const cmd=(parts[0]||'').toLowerCase();const args=parts.slice(1);const say=showMessage;
-  if(publicCheatBlocked(cmd,args)){say('Cheats are off on public servers: no /'+cmd+' here'+(/^(spawn|summon|build|place|structure|portal)$/.test(cmd)?' (structures and mobs are host-only on public servers)':'')+'. You can still /tp spawn, /tp home and /seed. Host a private room or play solo to use cheats.');playSound('hurt',0.4,0.7);return}
+  if(publicCheatBlocked(cmd,args)){say('Cheats are off on public servers: no /'+cmd+(cmd==='spawn'&&args.length?' '+args.join(' '):'')+' here'+(/^(spawn|summon|build|place|structure|portal)$/.test(cmd)?' (structures and mobs are host-only on public servers)':'')+'. You can still /spawn, /tp spawn, /tp home and /seed. Host a private room or play solo to use cheats.');playSound('hurt',0.4,0.7);return}
   switch(cmd){
-    case 'help':if(onPublicServer())say('This is a public server: cheat commands are off (no /give, /kit, /spawn, /build, /tp to places, /time, /gamemode, /disaster, /tornado, /heal, /xp). /tp spawn, /tp home and /seed still work.');say('/give <item> [count] [enchant:lvl ...]  /kit <'+Object.keys(KITS).join('|')+'>  /build enchanting');say('/tp <x y z|spawn|home|any block|any mob|any biome|any structure|nether|the end|the sift|overworld>  e.g. /tp diamonds, /tp hisser, /tp jungle, /tp end city, /tp sift   /spawn nether portal   /spawn sift portal   /build <village|mansion|outpost|stronghold|...> builds it where you look   /stop');say('/time <day|night|n>  /gamemode <survival|creative>  /spawn <mob>  /heal  /xp <levels>  /seed  /kill  /tornado <1-5> (weather mod)  /disaster <earthquake|meteor|flood|tsunami|volcano|wildfire|blizzard|sinkhole|storm|lightning|tornado|random>');return;
+    case 'help':if(onPublicServer())say('This is a public server: cheat commands are off (no /give, /kit, /spawn <mob or structure>, /build, /tp to places, /time, /gamemode, /disaster, /tornado, /heal, /xp). /spawn (back to the world spawn), /tp spawn, /tp home and /seed still work: they take 3 s, taking damage cancels them, then wait 10 s before the next one.');say('/give <item> [count] [enchant:lvl ...]  /kit <'+Object.keys(KITS).join('|')+'>  /build enchanting');say('/tp <x y z|spawn|home|any block|any mob|any biome|any structure|nether|the end|the sift|overworld>  e.g. /tp diamonds, /tp hisser, /tp jungle, /tp end city, /tp sift   /spawn (back to the world spawn)   /spawn nether portal   /spawn sift portal   /build <village|mansion|outpost|stronghold|...> builds it where you look   /stop');say('/time <day|night|n>  /gamemode <survival|creative>  /spawn <mob>  /heal  /xp <levels>  /seed  /kill  /tornado <1-5> (weather mod)  /disaster <earthquake|meteor|flood|tsunami|volcano|wildfire|blizzard|sinkhole|storm|lightning|tornado|random>');return;
     case 'give':{if(args.length>=2&&/^(@[aprse]|me|self|you|play\w*|steve|alex)$/i.test(args[0]))args.shift();if(!args.length){say('Usage: /give [player] <item> [count] [enchant:lvl ...]   e.g. /give player anvil, /give @p netherite 5');return}const isEnch=a=>/[:=]/.test(a)||!!Object.keys(ENCH).find(k=>k===a.toLowerCase()||(a.length>=4&&k.startsWith(a.toLowerCase())));const nm=[args[0]||''];let i=1;while(i<args.length&&!/^\d+$/.test(args[i])&&!isEnch(args[i])){nm.push(args[i]);i++}
       const id=findItemId(nm.join('_'));if(id===null){say('Unknown item: '+nm.join(' '));return}
       const cnt=args.slice(i).find(a=>/^\d+$/.test(a));const ench=parseEnch(args.slice(i).filter(isEnch));giveItems(id,cnt?clamp(+cnt,1,2304):1,ench);say('Gave '+(cnt||1)+' x '+ITEMS[id].label+(ench?' ('+Object.keys(ench).map(k=>enchName(k,ench[k])).join(', ')+')':''));return}
     case 'kit':case 'kits':{const kn=(args[0]||'').toLowerCase().replace(/s$/,'');const key=KITS[kn]?kn:Object.keys(KITS).find(k=>k.startsWith(kn)&&kn.length>=2);const k=key&&KITS[key];if(k)args[0]=key;if(!k){say('Kits: '+Object.keys(KITS).map(k=>k+' ('+KITS[k].label+')').join(' | '));return}for(const [id,n] of k.items)giveItems(id,n);say('Kit '+args[0]+': '+k.label);return}
     case 'build':case 'place':case 'structure':{if((args[0]||'').toLowerCase().startsWith('ench')){if(buildEnchantingRoom()){giveItems(264,100);giveItems(378,8);say('Plus 100 lapis and 8 books in your inventory')}}else if(!spawnStructureAt(args.join('_'),say))say('Usage: /build <structure>: '+Object.keys(SPAWN_STRUCT).map(k=>k.replace(/_/g,' ')).join(', ')+', or /build enchanting. It appears where you are looking.');return}
     case 'tp':{if(args.length&&!(args.length===1&&(args[0]==='spawn'||args[0]==='home'))&&!/^[-~\d.]/.test(args[0])){if(!tpNamed(args.join('_'),say))say('Unknown place. You can /tp to any block (diamonds, chest, lava...), any mob (hisser, villager, dragon...), any biome (desert, jungle...), any structure (village, stronghold, end portal, mineshaft, mansion, temple, igloo, hut, portal, monument, shipwreck, jungle temple, dungeon, outpost, fortress, end city, trial chamber, ancient city) or nether / the end / overworld');return}
+      if((args[0]==='spawn'||args[0]==='home')&&onPublicServer()&&!game.spawnTpGo){spawnTpRequest(args[0],say);return}
       if(args[0]==='spawn'||args[0]==='home'){const s=(args[0]==='home'&&p.spawn)||game.mySpawn||game.worldSpawn;if(world.dimKey!=='over'){goHome()}ensureChunks(s[0],s[2],2);const bedHere=args[0]==='home'&&p.spawn&&(world.getBlock(floor(s[0]),floor(s[1]),floor(s[2]))===157||world.getBlock(floor(s[0]),floor(s[1]),floor(s[2]))===62||world.getBlock(floor(s[0]),floor(s[1])-1,floor(s[2]))===62);const spot=(bedHere&&spotByBed(s))||safeSpotNear(s[0],s[2]);p.x=spot[0];p.y=spot[1];p.z=spot[2];p.vx=p.vy=p.vz=0;p.fallDist=0;if(args[0]==='home'&&p.spawn&&!bedHere)say('Your bed is gone, so this is the world spawn')}
       else{const c=args.map(a=>a.startsWith('~')?null:parseFloat(a));if(args.length<3||c.some((v,i)=>v!==null&&isNaN(v))){say('Usage: /tp x y z (or ~ to keep)');return}p.x=c[0]===null?p.x:c[0]+0.5;p.y=c[1]===null?p.y:c[1];p.z=c[2]===null?p.z:c[2]+0.5;ensureChunks(p.x,p.z,2);if(c[1]===null||!BLOCKS[world.getBlock(floor(p.x),floor(p.y)-1,floor(p.z))].solid)p.y=findGround(p.x,p.z)+0.1}
       p.vx=p.vy=p.vz=0;p.fallDist=0;if(p.riding)p.riding.dismount();say('Teleported to '+floor(p.x)+' '+floor(p.y)+' '+floor(p.z));return}
@@ -10343,7 +10392,7 @@ function runCommand(line){const p=player;const raw=line.trim().replace(/^\/+/,''
       say('- Ships on water: Patrol Boat (12 blocks, driver + twin machine gun, 14 blocks/s) and Destroyer (50 blocks, captain, two deck guns with explosive shells and an anti-air cannon that aims up to 85 degrees, 6 blocks/s). V changes seat, left click fires. /spawn patrol boat or /spawn destroyer near water, or craft their eggs from iron blocks, planks and diamonds.');
       say('- Extra war-only guns and anti-aircraft guns.');return}
     case 'modcapture':{modCaptureCmd(args,say);return}
-    case 'spawn':case 'summon':{if(guestSpawnCmd(args,say))return;if(enemyAirCmd(args,say))return;if(soldierCmd(args,say))return;if(/^(landmark|scene)s?$/i.test(args[0]||'')){nsCommand(args.slice(1),say);return}if(/portal/i.test(args.join('_'))){spawnNetherPortal(say,/sift/i.test(args.join('_'))?'sift':'nether');return}{const dn=(args[0]||'').toLowerCase().replace(/[\s-]+/g,'_');const dd=DISASTER_ALIAS[dn]||(DISASTER_NAMES.includes(dn)?dn:null);if(dd){startDisaster(dd,args[1],say);return}}const words=args.filter(a=>!/^\d+$/.test(a)),num=args.find(a=>/^\d+$/.test(a));const t=words.join('_');const type=t?mobTypeFromName(t):null;if(!type&&spawnStructureAt(t,say))return;if(!type){say('Mobs: '+MOB_TYPES.map(k=>mobLabel(k)).join(', '));say('Structures: '+Object.keys(SPAWN_STRUCT).map(k=>k.replace(/_/g,' ')).join(', ')+' (built where you are looking)');return}if(MOBDEF[type].ship){spawnShipCmd(type,say);return}const n=clamp(parseInt(num)||1,1,20);const d=eyeDir();for(let i=0;i<n;i++)entities.push(new Mob(type,p.x+d[0]*3+(Math.random()-0.5)*2,p.y+0.5,p.z+d[2]*3+(Math.random()-0.5)*2));say('Spawned '+n+' '+mobLabel(type));return}
+    case 'spawn':case 'summon':{if(cmd==='spawn'&&!args.length){if(onPublicServer())spawnTpRequest('spawn',say);else runCommand('tp spawn');return}if(guestSpawnCmd(args,say))return;if(enemyAirCmd(args,say))return;if(soldierCmd(args,say))return;if(/^(landmark|scene)s?$/i.test(args[0]||'')){nsCommand(args.slice(1),say);return}if(/portal/i.test(args.join('_'))){spawnNetherPortal(say,/sift/i.test(args.join('_'))?'sift':'nether');return}{const dn=(args[0]||'').toLowerCase().replace(/[\s-]+/g,'_');const dd=DISASTER_ALIAS[dn]||(DISASTER_NAMES.includes(dn)?dn:null);if(dd){startDisaster(dd,args[1],say);return}}const words=args.filter(a=>!/^\d+$/.test(a)),num=args.find(a=>/^\d+$/.test(a));const t=words.join('_');const type=t?mobTypeFromName(t):null;if(!type&&spawnStructureAt(t,say))return;if(!type){say('Mobs: '+MOB_TYPES.map(k=>mobLabel(k)).join(', '));say('Structures: '+Object.keys(SPAWN_STRUCT).map(k=>k.replace(/_/g,' ')).join(', ')+' (built where you are looking)');return}if(MOBDEF[type].ship){spawnShipCmd(type,say);return}const n=clamp(parseInt(num)||1,1,20);const d=eyeDir();for(let i=0;i<n;i++)entities.push(new Mob(type,p.x+d[0]*3+(Math.random()-0.5)*2,p.y+0.5,p.z+d[2]*3+(Math.random()-0.5)*2));say('Spawned '+n+' '+mobLabel(type));return}
     case 'hero':case 'avenger':case 'avengers':case 'villain':heroCmd(args,say);return;
     case 'landmark':case 'scene':nsCommand(args,say);return;
     case 'portal':spawnNetherPortal(say);return;
@@ -10385,7 +10434,7 @@ function loop(now){
     tickPlates(dt);squadTick(dt);tickModKinds(dt);ctfTick(dt);
     supplyTick(dt);
     howTick(dt);soldierWarTick(dt);wmpTick(dt);a10Tick(dt);
-    mortarTick(dt);siegeTick(dt);heroTick(dt);if(typeof tickCamp==='function')tickCamp(dt);tickNukeTimers(dt);tickFurnaces(dt);tickBrews(dt);tickSpawners(dt);tickTrials(dt);tickShriekers(dt);if(typeof beaconTick==='function')beaconTick();if(MP.active)mpTick(dt);
+    mortarTick(dt);siegeTick(dt);heroTick(dt);if(typeof tickCamp==='function')tickCamp(dt);tickNukeTimers(dt);timberTick(dt);spawnTpTick(dt);tickFurnaces(dt);tickBrews(dt);tickSpawners(dt);tickTrials(dt);tickShriekers(dt);if(typeof beaconTick==='function')beaconTick();if(MP.active)mpTick(dt);
     updateMusic(dt);
     if(player.sleeping>0&&player.sleeping>2.2)$('sleepfade').style.opacity=1;
   }

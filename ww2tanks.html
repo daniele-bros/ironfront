@@ -4672,7 +4672,7 @@ function render(){
   if(allies){for(const a of allies)if(a.hp>0){
     const _am=(a.size||30)*4+60;
     if(a.x<camX-_am||a.x>camX+viewW()+_am||a.y<camY-_am||a.y>camY+viewH()+_am)continue;
-    drawTankFull(ctx,a.x,a.y,a.angle,a.turretAngle,a.size,a.color,false,a.hp/a.maxHp,a.name,false,null,a.recoil||0,a.hitFlash||0);
+    drawTankFull(ctx,a.x,a.y,a.angle,a.turretAngle,a.size,a.color,false,a.hp/a.maxHp,a.name,false,a.id||null,a.recoil||0,a.hitFlash||0);
     ctx.save();ctx.translate(a.x,a.y);ctx.beginPath();ctx.arc(0,0,a.size+6,0,Math.PI*2);
     ctx.strokeStyle='rgba(46,204,113,.7)';ctx.lineWidth=2;ctx.setLineDash([5,4]);ctx.stroke();ctx.setLineDash([]);
     ctx.restore();
@@ -5664,6 +5664,480 @@ const TANK_PROFILES={
   tvp_t50:{hl:1.90,hw:1.00,tr:0.44,ty:0.37,bl:1.25,bw:0.110,muzzle:false,boxy:false,sk:false},
 };
 function getProfile(id){return TANK_PROFILES[id]||TANK_PROFILES.default;}
+// ════════════════════════════════════════════════════════════════════
+// REAL TOP-DOWN SILHOUETTES — every vehicle is drawn from its real overhead
+// plan: true hull length:width ratio, track width, turret position on the
+// hull, turret outline, gun length/calibre, muzzle brake, engine deck and
+// hatches. Data is in metres (TD_REAL, after the renderer); the renderer
+// scales it so tanks keep a game-friendly size (hull length grows with the
+// real length but compressed, so a Maus is bigger than a Pz I without being
+// 2.5x bigger). Hitboxes are untouched — they use the tank's `size`.
+// ════════════════════════════════════════════════════════════════════
+let _tdCache={}, _tdNameIdx=null;
+function _tdNorm(s){return (s||'').toLowerCase().replace(/[^a-z0-9]+/g,'');}
+// Enemy waves / ally squads share generic ids (e_pz4, e_td_cas…) or carry only a name.
+// Resolve the visual model from the display name so a "Hellcat" looks like a Hellcat.
+function _visId(id,name){
+  if(id&&(TD_REAL[id]||TD_ALIAS[id]))return id;
+  if(!_tdNameIdx){
+    _tdNameIdx={};
+    if(typeof TANK_DEFS!=='undefined')for(const t of TANK_DEFS){const n=_tdNorm(t.name);if(!_tdNameIdx[n])_tdNameIdx[n]=t.id;}
+    for(const k in TD_NAMES)_tdNameIdx[k]=TD_NAMES[k];
+  }
+  const n=_tdNorm(name);
+  return (n&&_tdNameIdx[n])||id||'';
+}
+const _TD_SHAPE_TO={cast:-.12,tiger:-.04,angular:-.06,dome:.02,hex:-.06,boxy:-.1,pz4:-.16,wedge:-.12,slab:-.14,arrow:-.12,merk:-.2,conic:-.12,round:-.04,osc:-.08,ot:-.05,kv2:0};
+function _tdSpec(id){
+  if(id in _tdCache)return _tdCache[id];
+  let key=id; for(let i=0;i<4&&TD_ALIAS[key];i++)key=TD_ALIAS[key];
+  const r=TD_REAL[key];
+  if(!r||id==='ratte'){_tdCache[id]=null;return null;}
+  const o={};
+  String(r[7]||'').split(/\s+/).forEach(tok=>{if(!tok)return;const i=tok.indexOf(':');if(i<0)o[tok]=1;else o[tok.slice(0,i)]=tok.slice(i+1);});
+  const S={L:r[0],W:r[1],tx:r[2],tl:r[3],tw:r[4],cal:r[5],lc:r[6]};
+  S.hl=0.78*Math.pow(S.L,0.62);            // visual hull length in `size` units
+  S.k=S.hl/S.L;                              // size-units per metre
+  S.nose=o.n||'slope';
+  S.g=o.g!==undefined?+o.g:(S.nose==='pike'?.24:S.nose==='wedge'?.2:S.nose==='round'?.1:S.nose==='flat'?.05:.15);
+  S.T=o.T!==undefined?+o.T:Math.min(.75,S.W*.17);
+  S.sp=!!o.sp; S.fe=!!o.fe; S.sk=!!o.sk; S.rv=!!o.rv; S.ot=!!o.ot; S.cm=!!o.cm;
+  S.wh=o.wh?+o.wh:0; S.eng=o.eng||'r'; S.dk=o.dk||'grille'; S.dh=o.dh||'2';
+  S.ts=o.ts||null; S.ty=o.ty?+o.ty:0; S.cu=o.cu||'l'; S.mb=o.mb?+o.mb:0;
+  S.twin=o.tw2?+o.tw2:0; S.gy=o.gy?+o.gy:0; S.gun=o.gun||'';
+  S.x2=o.x2?o.x2.split(';').map(q=>q.split(',').map(Number)):null;
+  S.hg=o.hg?o.hg.split(';').map(q=>q.split(',').map(Number)):null;
+  S.ext=o.x||'';                             // extras: spare tracks, fuel drums, logs …
+  S.to=o.to!==undefined?+o.to:null;
+  _tdCache[id]=S; return S;
+}
+// Shadow / rim-light / player-ring footprint for a real silhouette (same fields as TANK_PROFILES)
+function _tdProfile(S){return S._p||(S._p={hl:S.hl,hw:S.W*S.k/2/1.1});}
+// Vehicle class for the casemate / open-turret / wheel cases
+function _tdTurretShape(S,id){
+  if(S.ts)return S.ts;
+  if(S.ot)return 'ot';
+  return _turretShape(id,{boxy:false});
+}
+
+function _tdPath(c,pts){c.beginPath();c.moveTo(pts[0][0],pts[0][1]);for(let i=1;i<pts.length;i++)c.lineTo(pts[i][0],pts[i][1]);c.closePath();}
+
+// ── HULL: tracks/wheels, fenders, lower hull with real nose shape, superstructure, deck ──
+function _tdHull(c,S,size,col,isPlayer){
+  const k=S.k*size, L=S.L*k, hw=S.W*k/2, T=S.T*k, fr=L/2, re=-L/2;
+  const RIM=isPlayer?'rgba(90,170,225,.95)':'rgba(0,0,0,.85)';
+  const inner=S.wh?hw*.86:(S.sp?hw-T*.16:hw-T*.92);   // half-width of the armoured body
+  const low=S.wh?hw*.86:hw-T*.92;                      // half-width between the tracks
+  // ---- running gear ----
+  if(S.wh){
+    const n=S.wh, wr=Math.max(2.2,L*.085), ww=Math.max(1.6,hw*.22);
+    for(let side=-1;side<=1;side+=2)for(let i=0;i<n;i++){
+      const wx=n===1?0:(re+L*.17)+(L*.66)*i/(n-1);
+      c.fillStyle='#14140f';c.beginPath();c.roundRect(wx-wr,side*hw-ww*.5-side*ww*.18,wr*2,ww,ww*.4);c.fill();
+      c.fillStyle='rgba(120,120,100,.22)';c.fillRect(wx-wr*.8,side*hw-ww*.5-side*ww*.18+1,wr*1.6,.8);
+    }
+  } else {
+    for(let side=-1;side<=1;side+=2){
+      const y0=side>0?hw-T:-hw;
+      c.fillStyle='rgba(0,0,0,.30)';c.beginPath();c.roundRect(re-1,y0+1.2,L+2,T,T*.35);c.fill();
+      const trg=c.createLinearGradient(0,y0,0,y0+T);
+      trg.addColorStop(0,'#34342a');trg.addColorStop(.5,'#1a1a14');trg.addColorStop(1,'#0c0c09');
+      c.fillStyle=trg;c.beginPath();c.roundRect(re-1,y0,L+2,T,Math.min(T*.45,L*.04));c.fill();
+      const step=Math.max(2.2,S.T*k*.42);
+      for(let lx=re+.6,q=0;lx<fr-1;lx+=step,q++){c.fillStyle=q%2?'rgba(78,76,62,.6)':'rgba(8,8,6,.6)';c.fillRect(lx,y0+.7,step*.5,T-1.4);}
+      c.strokeStyle='rgba(0,0,0,.7)';c.lineWidth=.8;c.beginPath();c.roundRect(re-1,y0,L+2,T,Math.min(T*.45,L*.04));c.stroke();
+    }
+  }
+  // ---- fenders / track guards (flat steel plates over the tracks) ----
+  if(!S.wh&&!S.fe){
+    const fx0=re+L*.035, fx1=fr-L*(S.nose==='bt'?.11:.03);
+    c.fillStyle=dc(col,.13);
+    for(let side=-1;side<=1;side+=2){
+      const y0=side>0?low-.2:-(hw-T*.1), y1=side>0?hw-T*.1:-low+.2;
+      c.beginPath();c.rect(fx0,Math.min(y0,y1),fx1-fx0,Math.abs(y1-y0));c.fill();
+      c.strokeStyle='rgba(0,0,0,.45)';c.lineWidth=.7;c.stroke();
+      c.strokeStyle='rgba(255,255,255,.08)';c.lineWidth=.6;
+      for(let fx=fx0+L*.16;fx<fx1-2;fx+=L*.2){c.beginPath();c.moveTo(fx,Math.min(y0,y1)+.5);c.lineTo(fx,Math.max(y0,y1)-.5);c.stroke();}
+    }
+  }
+  // ---- lower hull (between the tracks) with the real nose shape ----
+  const g=S.g*L, n=S.nose;
+  let P;
+  if(n==='pike')      P=[[re,-low],[fr-g,-low],[fr,-low*.08],[fr,low*.08],[fr-g,low],[re,low]];
+  else if(n==='wedge')P=[[re,-low],[fr-g,-low],[fr,-low*.42],[fr,low*.42],[fr-g,low],[re,low]];
+  else if(n==='bt')   P=[[re,-low],[fr-L*.2,-low],[fr,-low*.5],[fr,low*.5],[fr-L*.2,low],[re,low]];
+  else if(n==='boat') P=[[re,-low],[fr-L*.22,-low],[fr-L*.04,-low*.62],[fr,-low*.25],[fr,low*.25],[fr-L*.04,low*.62],[fr-L*.22,low],[re,low]];
+  else if(n==='oval') P=(()=>{const q=[];for(let i=0;i<20;i++){const a=i/20*Math.PI*2;q.push([Math.cos(a)*fr,Math.sin(a)*hw*.97]);}return q;})();
+  else if(n==='round')P=null;
+  else                P=[[re,-low],[fr-L*.02,-low],[fr,-low*.9],[fr,low*.9],[fr-L*.02,low],[re,low]];
+  const body=()=>{
+    if(P)_tdPath(c,P);
+    else{const nw=S.sp?inner*.94:low;c.beginPath();c.moveTo(re,-low);c.lineTo(fr-g*1.8,-low);c.lineTo(fr-g*1.8,-nw);c.quadraticCurveTo(fr+g*.1,-nw,fr+g*.1,0);c.quadraticCurveTo(fr+g*.1,nw,fr-g*1.8,nw);c.lineTo(fr-g*1.8,low);c.lineTo(re,low);c.closePath();}
+  };
+  c.fillStyle=dc(col,.04);body();c.fill();
+  c.strokeStyle=RIM;c.lineWidth=1.6;c.stroke();
+  // glacis / sloped nose plate catches the light
+  c.save();body();c.clip();
+  c.fillStyle='rgba(255,255,255,.11)';c.fillRect(fr-g,-low,g+2,low*2);
+  c.strokeStyle='rgba(0,0,0,.28)';c.lineWidth=.8;c.beginPath();c.moveTo(fr-g,-low);c.lineTo(fr-g,low);c.stroke();
+  if(n==='pike'){c.fillStyle='rgba(0,0,0,.14)';c.beginPath();c.moveTo(fr-g,0);c.lineTo(fr,0);c.lineTo(fr-g,low);c.closePath();c.fill();
+    c.strokeStyle='rgba(0,0,0,.4)';c.beginPath();c.moveTo(fr-g*1.05,0);c.lineTo(fr,0);c.stroke();}
+  c.restore();
+  // ---- superstructure / upper hull (overhangs the tracks on sponson hulls) ----
+  const sfr=S.sp?fr-g:fr-g, sre=re+L*.015, sw=inner;
+  if(S.sp&&!S.wh){
+    const ch=Math.min(T*.6,L*.03);
+    const SP=[[sre,-sw],[sfr-ch,-sw],[sfr,-sw+ch],[sfr,sw-ch],[sfr-ch,sw],[sre,sw]];
+    const sg=c.createLinearGradient(0,-sw,0,sw);
+    sg.addColorStop(0,lc(col,.12));sg.addColorStop(.5,lc(col,.03));sg.addColorStop(1,dc(col,.08));
+    c.fillStyle=sg;_tdPath(c,SP);c.fill();c.strokeStyle=RIM;c.lineWidth=1.5;c.stroke();
+    c.strokeStyle='rgba(255,250,230,.16)';c.lineWidth=.8;c.stroke();
+  } else {
+    // deck gradient over the hull top
+    const sg=c.createLinearGradient(0,-low,0,low);
+    sg.addColorStop(0,lc(col,.12));sg.addColorStop(.5,lc(col,.03));sg.addColorStop(1,dc(col,.08));
+    c.save();body();c.clip();c.fillStyle=sg;c.fillRect(re,-low,fr-g-re,low*2);c.restore();
+    if(S.wh){c.strokeStyle=RIM;c.lineWidth=1.5;body();c.stroke();}
+  }
+  // camo blotches (seeded per colour, like before)
+  const h6=_hex6(col),cr=parseInt(h6.slice(1,3),16),cg=parseInt(h6.slice(3,5),16),cb=parseInt(h6.slice(5,7),16);
+  c.save();if(S.sp&&!S.wh){_tdPath(c,[[sre,-sw],[sfr,-sw],[sfr,sw],[sre,sw]]);}else body();c.clip();
+  c.fillStyle=`rgba(${Math.max(0,cr-30)},${Math.max(0,cg-26)},${Math.max(0,cb-20)},.22)`;
+  const cs=(cr*3+cg*7+cb*11)*.1;
+  [[.18,.35,.2,.3],[-.25,-.3,.18,.26],[.02,-.45,.14,.22],[-.36,.2,.14,.2]].forEach(([a,b,rx,ry])=>{c.beginPath();c.ellipse(a*L,b*sw*2,rx*L,ry*sw*1.6,cs,0,Math.PI*2);c.fill();});
+  c.restore();
+  // ---- engine deck ----
+  const efront=S.eng==='f'||S.eng==='fr';
+  const dw=(S.sp?sw:low)*.86, eL=L*(S.dk==='car'?.22:.28);
+  const ex0=S.eng==='m'?fr-g-eL-L*.1:efront?fr-g-eL-L*.02:re+L*.03, ex1=ex0+eL;
+  const ey0=S.eng==='fr'?0:-dw, ey1=dw;
+  _tdDeck(c,S,col,ex0,ex1,ey0,ey1,efront,L,k);
+  // ---- driver / crew hatches on the front deck ----
+  const hR=Math.max(1.3,.32*k), hx=(efront?re+L*.2:fr-g-.55*k);
+  const hy=low*.48, dh=S.dh;
+  const hatch=(x,y)=>{c.fillStyle=dc(col,.16);c.beginPath();c.arc(x,y,hR,0,Math.PI*2);c.fill();c.strokeStyle='rgba(0,0,0,.38)';c.lineWidth=.7;c.stroke();
+    c.fillStyle='rgba(255,255,255,.13)';c.beginPath();c.arc(x-hR*.3,y-hR*.3,hR*.4,0,Math.PI*2);c.fill();};
+  if(!S.cm||S.ot){
+    if(dh==='2'){hatch(hx,-hy);hatch(hx,hy);}
+    else if(dh==='l')hatch(hx,-hy);else if(dh==='r')hatch(hx,hy);else if(dh==='c')hatch(hx+(n==='pike'?g*.3:0),0);
+    else if(dh==='g'){ // hatch set into the glacis (T-34): rectangular driver hatch left of centre + bow MG ball
+      c.fillStyle=dc(col,.15);c.fillRect(fr-g*.85,-low*.42,g*.6,low*.42);c.strokeStyle='rgba(0,0,0,.4)';c.lineWidth=.7;c.strokeRect(fr-g*.85,-low*.42,g*.6,low*.42);
+      c.fillStyle=dc(col,.25);c.beginPath();c.arc(fr-g*.45,low*.45,hR*.75,0,Math.PI*2);c.fill();}
+  }
+  // ---- external stowage ----
+  _tdExtras(c,S,col,L,low,hw,T,k,fr,re,g);
+  // skirts (Schürzen / modern side skirts) along the outer edge
+  if(S.sk&&!S.wh){
+    c.fillStyle=dc(col,.2);
+    for(let side=-1;side<=1;side+=2){const y=side>0?hw-.2:-hw-1.6;c.fillRect(re+L*.1,y,L*.8,1.8);}
+    c.strokeStyle='rgba(0,0,0,.35)';c.lineWidth=.5;
+    for(let side=-1;side<=1;side+=2){const y=side>0?hw-.2:-hw-1.6;for(let px=re+L*.1;px<fr-L*.1;px+=L*.1){c.beginPath();c.moveTo(px,y);c.lineTo(px,y+1.8);c.stroke();}}
+  }
+  // hull-mounted guns (M3 Lee sponson 75, B1 bis 75, Churchill I howitzer) — fixed, point along the hull
+  if(S.hg)S.hg.forEach(([x,y,cal,lcal])=>{
+    const gx=x*k, gy=y*k, gl=Math.max(.6,cal*lcal/1000-.2)*k, bw=_tdBarrelW(cal,k);
+    c.fillStyle=dc(col,.2);c.beginPath();c.arc(gx,gy,bw*1.4,0,Math.PI*2);c.fill();c.strokeStyle='rgba(0,0,0,.4)';c.lineWidth=.6;c.stroke();
+    _tdBarrel(c,col,gx,gy,gl,bw,0);
+  });
+  // extra fixed sub-turrets (T-28, T-35, SMK, Char 2C …)
+  if(S.x2)S.x2.forEach(([x,y,d,gl,cal])=>{
+    const tx=x*k, ty=y*k, r=d*k/2;
+    c.fillStyle='rgba(0,0,0,.28)';c.beginPath();c.arc(tx+1.2,ty+1.5,r,0,Math.PI*2);c.fill();
+    const tg=c.createRadialGradient(tx-r*.3,ty-r*.3,r*.1,tx,ty,r);tg.addColorStop(0,lc(col,.2));tg.addColorStop(1,dc(col,.15));
+    c.fillStyle=tg;c.beginPath();c.arc(tx,ty,r,0,Math.PI*2);c.fill();c.strokeStyle='rgba(0,0,0,.55)';c.lineWidth=1;c.stroke();
+    if(gl>0)_tdBarrel(c,col,tx+r*.7,ty,gl*k,_tdBarrelW(cal||20,k),0);
+  });
+}
+
+function _tdDeck(c,S,col,x0,x1,y0,y1,front,L,k){
+  const w=x1-x0, h=y1-y0, cy=(y0+y1)/2, dk=S.dk;
+  const panel=(a,b,cc,d)=>{c.fillStyle=dc(col,.16);c.fillRect(a,b,cc,d);c.strokeStyle='rgba(0,0,0,.42)';c.lineWidth=.7;c.strokeRect(a,b,cc,d);};
+  const louv=(a,b,cc,d,vert)=>{panel(a,b,cc,d);c.strokeStyle='rgba(0,0,0,.4)';c.lineWidth=.6;const st=Math.max(1.4,.13*k);
+    if(vert){for(let x=a+st*.6;x<a+cc-.4;x+=st){c.beginPath();c.moveTo(x,b+.6);c.lineTo(x,b+d-.6);c.stroke();}}
+    else{for(let y=b+st*.6;y<b+d-.4;y+=st){c.beginPath();c.moveTo(a+.6,y);c.lineTo(a+cc-.6,y);c.stroke();}}};
+  const fan=(x,y,r)=>{c.fillStyle=dc(col,.2);c.beginPath();c.arc(x,y,r,0,Math.PI*2);c.fill();c.strokeStyle='rgba(0,0,0,.45)';c.lineWidth=.7;c.stroke();
+    c.strokeStyle='rgba(0,0,0,.3)';c.lineWidth=.5;for(let i=0;i<4;i++){const a=i*Math.PI/4;c.beginPath();c.moveTo(x-Math.cos(a)*r*.85,y-Math.sin(a)*r*.85);c.lineTo(x+Math.cos(a)*r*.85,y+Math.sin(a)*r*.85);c.stroke();}};
+  if(dk==='tiger'){                 // Tiger I/II, Maus: 4 round fan covers flanking a central engine hatch
+    const r=Math.min(w*.2,h*.14);
+    [x0+w*.3,x0+w*.72].forEach(fx=>{fan(fx,y0+h*.18,r);fan(fx,y1-h*.18,r);});
+    panel(x0+w*.12,cy-h*.17,w*.76,h*.34);
+    louv(x0+w*.05,y0+h*.33,w*.2,h*.1,true);louv(x0+w*.05,y1-h*.43,w*.2,h*.1,true);
+  } else if(dk==='panther'){        // Panther: 2 round fans + 2 square grilles each side of the engine hatch
+    const r=Math.min(w*.16,h*.12);
+    fan(x0+w*.3,y0+h*.14,r);fan(x0+w*.3,y1-h*.14,r);
+    louv(x0+w*.55,y0+h*.05,w*.32,h*.22,false);louv(x0+w*.55,y1-h*.27,w*.32,h*.22,false);
+    panel(x0+w*.18,cy-h*.14,w*.66,h*.28);
+  } else if(dk==='t34'){            // T-34 family: central louvred engine hatch, side louvres, round transmission hatch, two exhausts
+    louv(x0+w*.32,cy-h*.18,w*.6,h*.36,false);
+    louv(x0+w*.32,y0+h*.04,w*.6,h*.13,true);louv(x0+w*.32,y1-h*.17,w*.6,h*.13,true);
+    c.fillStyle=dc(col,.18);c.beginPath();c.arc(x0+w*.14,cy,Math.min(w*.13,h*.16),0,Math.PI*2);c.fill();c.strokeStyle='rgba(0,0,0,.45)';c.lineWidth=.7;c.stroke();
+    c.fillStyle='#141410';[y0+h*.2,y1-h*.2].forEach(yy=>{c.beginPath();c.arc(x0-.6,yy,Math.max(1,h*.05),0,Math.PI*2);c.fill();});
+  } else if(dk==='sherman'){        // Sherman: two big engine doors, grille strip at the very rear, fuel caps
+    panel(x0+w*.22,y0+h*.06,w*.72,h*.43);panel(x0+w*.22,cy+h*.01,w*.72,h*.43);
+    louv(x0+w*.02,y0+h*.06,w*.17,h*.88,true);
+    c.fillStyle='rgba(0,0,0,.4)';[[.85,.12],[.85,.88]].forEach(([a,b])=>{c.beginPath();c.arc(x0+w*a,y0+h*b,Math.max(.8,h*.035),0,Math.PI*2);c.fill();});
+  } else if(dk==='kv'){             // KV / IS: long engine deck with central louvred hatch and side grilles
+    louv(x0+w*.1,cy-h*.2,w*.8,h*.4,false);
+    louv(x0+w*.1,y0+h*.05,w*.8,h*.12,true);louv(x0+w*.1,y1-h*.17,w*.8,h*.12,true);
+  } else if(dk==='modern'){         // post-war: large flush grille panels across the rear, exhaust louvres on the side
+    louv(x0+w*.05,y0+h*.06,w*.42,h*.88,false);louv(x0+w*.52,y0+h*.06,w*.4,h*.88,false);
+    c.strokeStyle='rgba(0,0,0,.3)';c.lineWidth=.6;c.beginPath();c.moveTo(x0+w*.49,y0);c.lineTo(x0+w*.49,y1);c.stroke();
+  } else if(dk==='car'){            // wheeled car: engine cover with side louvres
+    louv(x0+w*.1,cy-h*.32,w*.8,h*.64,true);
+  } else if(dk==='none'){
+  } else {                          // generic WW2 engine deck: louvred grille plus inspection hatch
+    louv(x0+w*.06,y0+h*.08,w*.36,h*.84,false);
+    panel(x0+w*.5,cy-h*.3,w*.42,h*.6);
+  }
+}
+
+function _tdExtras(c,S,col,L,low,hw,T,k,fr,re,g){
+  const x=S.ext; if(!x)return;
+  // spare track links on the glacis / nose
+  if(x.indexOf('st')>=0){c.fillStyle='#1c1c16';const lw=Math.max(1.1,.17*k);
+    for(let i=0;i<5;i++){const yy=-low*.75+i*(low*1.5/4);c.fillRect(fr-g*.95,yy-lw*.5,g*.55,lw);}}
+  // spare track on the hull sides (T-34, KV)
+  if(x.indexOf('ss')>=0){c.fillStyle='#1e1e17';const lw=Math.max(1,.16*k);
+    for(let i=0;i<3;i++)[-1,1].forEach(s=>c.fillRect(re+L*(.35+i*.08),s*(low-lw*1.2)-lw*.5,lw*.9,lw*1.4));}
+  // external fuel drums at the rear (T-54/55/62, T-72, Type 59)
+  if(x.indexOf('fd')>=0){c.fillStyle=dc(col,.24);const r=Math.max(1.4,.29*k);[-1,1].forEach(s=>{c.beginPath();c.roundRect(re-r*.6,s*low*.45-r,r*1.6,r*2,r*.5);c.fill();c.strokeStyle='rgba(0,0,0,.45)';c.lineWidth=.6;c.stroke();});}
+  // fuel cells / stowage boxes along the right fender (T-54/55/62/72 have them on the right track guard)
+  if(x.indexOf('ft')>=0){c.fillStyle=dc(col,.2);const fy=hw-T*.85;for(let i=0;i<3;i++){c.fillRect(re+L*(.1+i*.14),fy,L*.12,T*.7);c.strokeStyle='rgba(0,0,0,.4)';c.lineWidth=.5;c.strokeRect(re+L*(.1+i*.14),fy,L*.12,T*.7);}}
+  // unditching log across the rear (T-34-85, KV, IS, T-54/55, T-72)
+  if(x.indexOf('lg')>=0){c.fillStyle='#4a3a22';c.fillRect(re-1.6,-low*.95,1.8,low*1.9);c.strokeStyle='rgba(0,0,0,.4)';c.lineWidth=.5;c.strokeRect(re-1.6,-low*.95,1.8,low*1.9);}
+  // jerrycans / stowage boxes on the rear deck (Sherman, Cromwell)
+  if(x.indexOf('jc')>=0){c.fillStyle=dc(col,.28);for(let i=0;i<4;i++)c.fillRect(re+1,-low*.7+i*low*.36,L*.035,low*.28);}
+  // Zimmerit/bolted appliqué armour panels on the hull sides (Sherman welded patches, Jumbo)
+  if(x.indexOf('ap')>=0){c.fillStyle='rgba(255,255,255,.08)';c.fillRect(-L*.05,-low*.95,L*.16,low*.22);c.fillRect(-L*.05,low*.73,L*.16,low*.22);}
+  // tail skid (Renault FT, Type 89) for trench crossing
+  if(x.indexOf('tk')>=0){c.strokeStyle='#1c1c16';c.lineWidth=Math.max(1,.12*k);c.beginPath();c.moveTo(re,-low*.7);c.lineTo(re-L*.18,-low*.45);c.lineTo(re-L*.18,low*.45);c.lineTo(re,low*.7);c.stroke();}
+  // exhaust mufflers on the rear plate (Tiger, Panther, Pz IV)
+  if(x.indexOf('ex')>=0){c.fillStyle='#16130f';[-1,1].forEach(s=>{c.beginPath();c.roundRect(re-2.4,s*low*.42-1.4,2.6,2.8,1);c.fill();});}
+  // tow cable / tool rack along the left side
+  if(x.indexOf('tc')>=0){c.strokeStyle='rgba(20,20,14,.6)';c.lineWidth=.9;c.beginPath();c.moveTo(re+L*.15,-low*.86);c.lineTo(fr-g-L*.05,-low*.86);c.stroke();}
+}
+
+function _tdBarrelW(cal,k){return Math.max(1.6,(0.11+cal*0.0014)*k*1.55);}
+// Tapered gun barrel along +x from (x,y): thicker breech end, thin chase, optional muzzle brake
+function _tdBarrel(c,col,x,y,len,bw,mb,twin){
+  const bg=c.createLinearGradient(0,y-bw*.6,0,y+bw*.6);
+  bg.addColorStop(0,lc(col,.14));bg.addColorStop(.45,dc(col,.04));bg.addColorStop(1,dc(col,.32));
+  c.fillStyle=bg;
+  c.beginPath();
+  c.moveTo(x,y-bw*.62);c.lineTo(x+len*.3,y-bw*.55);c.lineTo(x+len*.32,y-bw*.47);c.lineTo(x+len,y-bw*.43);
+  c.lineTo(x+len,y+bw*.43);c.lineTo(x+len*.32,y+bw*.47);c.lineTo(x+len*.3,y+bw*.55);c.lineTo(x,y+bw*.62);c.closePath();c.fill();
+  c.strokeStyle='rgba(0,0,0,.5)';c.lineWidth=.6;c.stroke();
+  c.fillStyle='rgba(255,255,255,.2)';c.fillRect(x+len*.05,y-bw*.36,len*.9,Math.max(.4,bw*.14));
+  if(mb){
+    const ml=Math.max(bw*1.6,len*.07), mw=bw*(mb===2?1.75:1.5);
+    c.fillStyle=dc(col,.3);c.beginPath();c.roundRect(x+len-ml,y-mw*.5,ml,mw,Math.min(1,mw*.15));c.fill();
+    c.strokeStyle='rgba(0,0,0,.55)';c.lineWidth=.6;c.stroke();
+    c.fillStyle='rgba(0,0,0,.45)';
+    if(mb===2){c.fillRect(x+len-ml*.82,y-mw*.5,ml*.18,mw);c.fillRect(x+len-ml*.4,y-mw*.5,ml*.18,mw);}
+    else c.fillRect(x+len-ml*.6,y-mw*.5,ml*.22,mw);
+  }
+  c.fillStyle='#090907';c.beginPath();c.ellipse(x+len-.2,y,Math.max(.4,bw*.16),bw*.3,0,0,Math.PI*2);c.fill();
+}
+
+// ── TURRET (origin = turret ring centre, +x = gun direction) ──
+function _tdTurret(c,S,size,col,id,isPlayer){
+  const k=S.k*size, rx=S.tl*k/2, ry=S.tw*k/2;
+  const ts=_tdTurretShape(S,id);
+  const to=(S.to!==null?S.to*S.tl:(_TD_SHAPE_TO[ts]||0)*S.tl)*k;
+  const ty=S.ty*k;
+  c.save();c.translate(to,ty);
+  // drop shadow so the turret reads as raised above the hull
+  c.fillStyle='rgba(0,0,0,.30)';c.beginPath();c.ellipse(1.6,2,rx*1.0,ry*.98,0,0,Math.PI*2);c.fill();
+  const tg=c.createRadialGradient(-rx*.15,-ry*.2,ry*.05,0,0,rx*1.15);
+  tg.addColorStop(0,lc(col,.24));tg.addColorStop(.55,col);tg.addColorStop(1,dc(col,.22));
+  c.fillStyle=tg;
+  const RIM=isPlayer?'rgba(90,170,225,.9)':'rgba(0,0,0,.62)';
+  const gloss=()=>{const g2=c.createLinearGradient(-rx*.3,-ry*.6,rx*.2,ry*.3);g2.addColorStop(0,'rgba(255,255,255,.22)');g2.addColorStop(.5,'rgba(255,255,255,.06)');g2.addColorStop(1,'rgba(0,0,0,.08)');c.fillStyle=g2;c.beginPath();c.ellipse(-rx*.08,-ry*.18,rx*.6,ry*.45,-.2,0,Math.PI*2);c.fill();};
+  let mx=rx*.86, mW=ry*.62, mL=Math.max(1.2,rx*.22), round=true;   // mantlet position / size
+  const P=pts=>{_tdPath(c,pts);c.fill();c.strokeStyle=RIM;c.lineWidth=1.3;c.stroke();};
+  switch(ts){
+    case 'boxy':   P([[-rx,-ry*.92],[rx*.7,-ry],[rx,-ry*.7],[rx,ry*.7],[rx*.7,ry],[-rx,ry*.92]]);gloss();mx=rx;round=false;mW=ry*.95;break;
+    case 'pz4':    P([[-rx*.5,-ry*.82],[rx*.55,-ry*.92],[rx,-ry*.55],[rx,ry*.55],[rx*.55,ry*.92],[-rx*.5,ry*.82]]);gloss();
+                   // rear stowage bin hanging off the turret back
+                   c.fillStyle=dc(col,.1);c.beginPath();c.roundRect(-rx,-ry*.7,rx*.52,ry*1.4,ry*.12);c.fill();c.strokeStyle=RIM;c.lineWidth=1;c.stroke();
+                   mx=rx;round=false;mW=ry*.62;break;
+    case 'hex':    P([[-rx*.9,-ry*.55],[-rx*.15,-ry],[rx*.62,-ry*.86],[rx,-ry*.32],[rx,ry*.32],[rx*.62,ry*.86],[-rx*.15,ry],[-rx*.9,ry*.55]]);gloss();mx=rx*.95;break;
+    case 'cast':   c.beginPath();c.moveTo(-rx*.5,-ry);c.lineTo(rx*.45,-ry*.92);c.quadraticCurveTo(rx,-ry*.6,rx,0);c.quadraticCurveTo(rx,ry*.6,rx*.45,ry*.92);c.lineTo(-rx*.5,ry);
+                   c.quadraticCurveTo(-rx*1.02,ry*.7,-rx*1.02,0);c.quadraticCurveTo(-rx*1.02,-ry*.7,-rx*.5,-ry);c.closePath();c.fill();c.strokeStyle=RIM;c.lineWidth=1.3;c.stroke();gloss();mx=rx*.92;break;
+    case 'conic':  c.beginPath();c.ellipse(rx*.15,0,rx*.78,ry,0,0,Math.PI*2);c.fill();c.strokeStyle=RIM;c.lineWidth=1.2;c.stroke();
+                   c.fillStyle=dc(col,.06);c.beginPath();c.roundRect(-rx,-ry*.55,rx*.6,ry*1.1,ry*.25);c.fill();c.strokeStyle=RIM;c.lineWidth=1;c.stroke();gloss();mx=rx*.9;mW=ry*.45;break;
+    case 'dome':   c.beginPath();c.ellipse(0,0,rx,ry,0,0,Math.PI*2);c.fill();c.strokeStyle=RIM;c.lineWidth=1.3;c.stroke();
+                   {const dg=c.createRadialGradient(-rx*.2,-ry*.25,ry*.08,0,0,rx);dg.addColorStop(0,'rgba(255,255,255,.26)');dg.addColorStop(.6,'rgba(255,255,255,.03)');dg.addColorStop(1,'rgba(0,0,0,.16)');c.fillStyle=dg;c.beginPath();c.ellipse(0,0,rx*.97,ry*.95,0,0,Math.PI*2);c.fill();}
+                   mx=rx*.9;mW=ry*.42;break;
+    case 'tiger':  c.beginPath();c.ellipse(-rx*.06,0,rx*1.0,ry,0,Math.PI*.3,Math.PI*1.7,false);c.closePath();c.fill();c.strokeStyle=RIM;c.lineWidth=1.3;c.stroke();gloss();
+                   mx=rx*.66;round=false;mW=ry*.72;break;
+    case 'angular':P([[-rx,-ry*.7],[-rx*.6,-ry],[rx*.55,-ry*.72],[rx,-ry*.32],[rx,ry*.32],[rx*.55,ry*.72],[-rx*.6,ry],[-rx,ry*.7]]);gloss();mx=rx*.98;mW=ry*.5;break;
+    case 'wedge':  P([[-rx,-ry*.85],[rx*.25,-ry],[rx,-ry*.3],[rx,ry*.3],[rx*.25,ry],[-rx,ry*.85]]);
+                   {const wg=c.createLinearGradient(0,-ry,0,0);wg.addColorStop(0,'rgba(255,255,255,.16)');wg.addColorStop(1,'rgba(255,255,255,0)');c.fillStyle=wg;c.fillRect(-rx,-ry*.9,rx*1.8,ry*.9);}
+                   mx=rx;round=false;mW=ry*.35;break;
+    case 'slab':   P([[-rx,-ry*.9],[rx*.72,-ry],[rx,-ry*.82],[rx,ry*.82],[rx*.72,ry],[-rx,ry*.9]]);
+                   c.strokeStyle='rgba(0,0,0,.2)';c.lineWidth=.7;c.beginPath();c.moveTo(-rx*.45,-ry*.9);c.lineTo(-rx*.45,ry*.9);c.stroke();
+                   mx=rx;round=false;mW=ry*.3;break;
+    case 'arrow':  P([[-rx,-ry*.9],[rx*.2,-ry],[rx*.62,-ry*.62],[rx,-ry*.2],[rx,ry*.2],[rx*.62,ry*.62],[rx*.2,ry],[-rx,ry*.9]]);
+                   c.strokeStyle='rgba(0,0,0,.24)';c.lineWidth=.7;c.beginPath();c.moveTo(rx*.2,-ry);c.lineTo(rx*.2,ry);c.stroke();
+                   mx=rx;round=false;mW=ry*.25;break;
+    case 'merk':   P([[-rx,-ry*.95],[-rx*.2,-ry],[rx*.5,-ry*.55],[rx,-ry*.18],[rx,ry*.18],[rx*.5,ry*.55],[-rx*.2,ry],[-rx,ry*.95]]);
+                   c.strokeStyle='rgba(0,0,0,.3)';c.lineWidth=.6;for(let i=1;i<4;i++){c.beginPath();c.moveTo(-rx+i*rx*.12,-ry*.9);c.lineTo(-rx+i*rx*.12,ry*.9);c.stroke();}
+                   mx=rx;round=false;mW=ry*.2;break;
+    case 'osc':    c.beginPath();c.roundRect(-rx,-ry*.85,rx*1.7,ry*1.7,ry*.4);c.fill();c.strokeStyle=RIM;c.lineWidth=1.2;c.stroke();
+                   c.fillStyle=lc(col,.08);c.beginPath();c.roundRect(-rx*.75,-ry*.6,rx*1.75,ry*1.2,ry*.16);c.fill();c.strokeStyle='rgba(0,0,0,.45)';c.lineWidth=1;c.stroke();mx=rx;round=false;mW=ry*.4;break;
+    case 'kv2':    P([[-rx,-ry],[rx,-ry],[rx,ry],[-rx,ry]]);gloss();c.strokeStyle='rgba(0,0,0,.2)';c.lineWidth=.7;c.beginPath();c.moveTo(-rx*.2,-ry);c.lineTo(-rx*.2,ry);c.stroke();mx=rx;round=false;mW=ry*.55;break;
+    case 'ot':     // open-topped turret: armoured walls, dark fighting compartment, gun breech inside
+                   c.beginPath();c.moveTo(-rx,-ry*.85);c.lineTo(rx*.45,-ry);c.lineTo(rx,-ry*.5);c.lineTo(rx,ry*.5);c.lineTo(rx*.45,ry);c.lineTo(-rx,ry*.85);c.closePath();c.fill();c.strokeStyle=RIM;c.lineWidth=1.2;c.stroke();
+                   c.fillStyle='rgba(8,8,6,.82)';c.beginPath();c.moveTo(-rx*.82,-ry*.66);c.lineTo(rx*.38,-ry*.78);c.lineTo(rx*.8,-ry*.38);c.lineTo(rx*.8,ry*.38);c.lineTo(rx*.38,ry*.78);c.lineTo(-rx*.82,ry*.66);c.closePath();c.fill();
+                   c.fillStyle=dc(col,.3);c.fillRect(-rx*.35,-ry*.14,rx*1.1,ry*.28);
+                   c.fillStyle='#3a3a30';c.beginPath();c.arc(-rx*.55,ry*.4,ry*.16,0,Math.PI*2);c.fill();c.beginPath();c.arc(-rx*.5,-ry*.38,ry*.14,0,Math.PI*2);c.fill();
+                   mx=rx;mW=ry*.5;break;
+    default:       c.beginPath();c.ellipse(0,0,rx,ry,0,0,Math.PI*2);c.fill();c.strokeStyle=RIM;c.lineWidth=1.1;c.stroke();gloss();mx=rx*.92;mW=ry*.48;
+  }
+  // commander's cupola / hatches
+  const cu=S.cu, cR=Math.max(1.5,Math.min(ry*.3,.42*k));
+  const cupola=(x,y,r)=>{c.fillStyle='rgba(0,0,0,.3)';c.beginPath();c.arc(x+.8,y+1,r,0,Math.PI*2);c.fill();
+    c.fillStyle=lc(col,.1);c.beginPath();c.arc(x,y,r,0,Math.PI*2);c.fill();c.strokeStyle='rgba(0,0,0,.55)';c.lineWidth=.9;c.stroke();
+    c.fillStyle=dc(col,.35);c.beginPath();c.arc(x,y,r*.55,0,Math.PI*2);c.fill();
+    c.fillStyle='rgba(255,255,255,.16)';c.beginPath();c.arc(x-r*.35,y-r*.35,r*.25,0,Math.PI*2);c.fill();};
+  const hatch=(x,y,r)=>{c.fillStyle=dc(col,.15);c.beginPath();c.arc(x,y,r,0,Math.PI*2);c.fill();c.strokeStyle='rgba(0,0,0,.4)';c.lineWidth=.7;c.stroke();};
+  if(ts!=='ot'){
+    if(cu==='l')cupola(-rx*.45,-ry*.45,cR);
+    else if(cu==='r')cupola(-rx*.45,ry*.45,cR);
+    else if(cu==='c')cupola(-rx*.55,0,cR);
+    else if(cu==='2'){hatch(-rx*.2,-ry*.42,cR*.9);hatch(-rx*.2,ry*.42,cR*.9);}           // T-34 '43 "Mickey Mouse" hatches
+    else if(cu==='lr'){cupola(-rx*.4,-ry*.42,cR);hatch(-rx*.4,ry*.42,cR*.85);}
+    else if(cu==='rl'){cupola(-rx*.4,ry*.42,cR);hatch(-rx*.4,-ry*.42,cR*.85);}
+    else if(cu==='h')hatch(-rx*.3,0,cR*1.1);                                              // single big hatch
+  }
+  // mantlet
+  c.fillStyle=dc(col,.16);
+  if(round){c.beginPath();c.ellipse(mx-mL*.3,0,mL,mW,0,0,Math.PI*2);c.fill();}
+  else{c.beginPath();c.roundRect(mx-mL,-mW,mL*1.3,mW*2,Math.min(mL*.4,mW*.3));c.fill();}
+  c.strokeStyle='rgba(0,0,0,.5)';c.lineWidth=.8;c.stroke();
+  // gun
+  const bw=_tdBarrelW(S.cal,k), gl=Math.max(.5,S.cal*S.lc/1000-0.35)*k;
+  if(S.twin){[-1,1].forEach(s=>_tdBarrel(c,col,mx,s*bw*S.twin,gl,bw*.8,S.mb));}
+  else _tdBarrel(c,col,mx,0,gl,bw,S.mb);
+  if(S.gun==='coax30')_tdBarrel(c,col,mx,ry*.3,gl*.7,_tdBarrelW(30,k)*.8,0);
+  if(S.gun==='coax75')_tdBarrel(c,col,mx,ry*.42,gl*.45,_tdBarrelW(75,k)*.8,0);   // Maus coaxial 75 mm
+  c.restore();
+}
+
+// ── CASEMATE (tank destroyers / assault guns / SPGs): fixed superstructure + gun along the hull ──
+function _tdCasemate(c,S,size,col,isPlayer){
+  const k=S.k*size, L=S.L*k, cl=S.tl*k, cw=S.tw*k/2, cx=S.tx*L, cf=cx+cl/2, cr=cx-cl/2;
+  const RIM=isPlayer?'rgba(90,170,225,.9)':'rgba(0,0,0,.65)';
+  const ch=Math.min(cl*.22,cw*.5);
+  const pts=[[cr,-cw],[cf-ch,-cw],[cf,-cw*.55],[cf,cw*.55],[cf-ch,cw],[cr,cw]];
+  c.fillStyle='rgba(0,0,0,.28)';c.save();c.translate(1.5,1.8);_tdPath(c,pts);c.fill();c.restore();
+  const sg=c.createLinearGradient(cr,0,cf,0);
+  sg.addColorStop(0,dc(col,.08));sg.addColorStop(.5,lc(col,.06));sg.addColorStop(1,lc(col,.14));
+  c.fillStyle=sg;_tdPath(c,pts);c.fill();c.strokeStyle=RIM;c.lineWidth=1.3;c.stroke();
+  // sloped front plate highlight
+  c.fillStyle='rgba(255,255,255,.12)';_tdPath(c,[[cf-ch,-cw],[cf,-cw*.55],[cf,cw*.55],[cf-ch,cw]]);c.fill();
+  const gy=S.gy*k;
+  if(S.ot){
+    // open fighting compartment — dark interior with the gun breech and crew
+    c.fillStyle='rgba(8,8,6,.82)';_tdPath(c,[[cr+1.4,-cw+1.4],[cf-ch-.6,-cw+1.4],[cf-1.6,-cw*.5],[cf-1.6,cw*.5],[cf-ch-.6,cw-1.4],[cr+1.4,cw-1.4]]);c.fill();
+    c.fillStyle=dc(col,.3);c.fillRect(cf-cl*.55,gy-cw*.18,cl*.5,cw*.36);
+    c.fillStyle='#3a3a30';[[.25,-.45],[.3,.5],[.55,-.5]].forEach(([a,b])=>{c.beginPath();c.arc(cr+cl*a,cw*b,Math.max(1,cw*.15),0,Math.PI*2);c.fill();});
+  } else {
+    c.strokeStyle='rgba(0,0,0,.2)';c.lineWidth=.7;c.beginPath();c.moveTo(cr+cl*.35,-cw*.92);c.lineTo(cr+cl*.35,cw*.92);c.stroke();
+    // commander's cupola + loader hatch on the roof
+    const cR=Math.max(1.4,Math.min(cw*.3,.4*k));
+    const cy=S.cu==='r'?cw*.5:-cw*.5;
+    c.fillStyle='rgba(0,0,0,.3)';c.beginPath();c.arc(cr+cl*.28+.8,cy+1,cR,0,Math.PI*2);c.fill();
+    c.fillStyle=lc(col,.08);c.beginPath();c.arc(cr+cl*.28,cy,cR,0,Math.PI*2);c.fill();c.strokeStyle='rgba(0,0,0,.5)';c.lineWidth=.8;c.stroke();
+    c.fillStyle=dc(col,.32);c.beginPath();c.arc(cr+cl*.28,cy,cR*.55,0,Math.PI*2);c.fill();
+    c.fillStyle=dc(col,.14);c.beginPath();c.roundRect(cr+cl*.18,-cy-cR*.8,cR*2,cR*1.6,.6);c.fill();c.strokeStyle='rgba(0,0,0,.35)';c.lineWidth=.6;c.stroke();
+  }
+  // gun mantlet (Saukopf / ball mount) + barrel
+  const bw=_tdBarrelW(S.cal,k), gl=Math.max(.5,S.cal*S.lc/1000-0.3)*k, mR=Math.max(bw*1.3,cw*.3);
+  c.fillStyle=dc(col,.14);c.beginPath();c.ellipse(cf-mR*.2,gy,mR*.7,mR,0,0,Math.PI*2);c.fill();c.strokeStyle='rgba(0,0,0,.5)';c.lineWidth=.8;c.stroke();
+  if(S.twin)[-1,1].forEach(s=>_tdBarrel(c,col,cf,gy+s*bw*S.twin,gl,bw*.8,S.mb));
+  else _tdBarrel(c,col,cf,gy,gl,bw,S.mb);
+}
+
+// Full vehicle in the hull frame (+x forward). tRel = turret angle relative to the hull.
+function _tdDraw(c,S,size,col,isPlayer,id,tRel,recoil){
+  if(S.rv){c.save();c.rotate(Math.PI);}
+  _tdHull(c,S,size,col,isPlayer);
+  if(S.rv)c.restore();
+  if(S.cm){c.save();c.translate(-recoil,0);_tdCasemate(c,S,size,col,isPlayer);c.restore();return;}
+  const k=S.k*size;
+  c.save();c.translate(S.tx*S.L*k,0);c.rotate(tRel);c.translate(-recoil,0);
+  _tdTurret(c,S,size,col,id,isPlayer);
+  c.restore();
+}
+
+// Real overhead dimensions. [hull length m, overall width m (incl. tracks/skirts), turret ring
+// position (fraction of hull length, + = forward of centre; casemate centre for TDs),
+// turret length m, turret width m (casemate length/width for TDs), gun calibre mm,
+// barrel length in calibres, options]. Options: n:nose (slope|pike|wedge|round|bt|boat|oval|flat)
+// g:glacis fraction · T:track width m · sp: superstructure over the tracks · fe: no fenders
+// sk: skirts · ts:turret outline · ty:turret side offset m · cu:cupola (l|r|c|2|lr|rl|h|n)
+// mb:muzzle brake 1|2 · cm: casemate · ot: open top · rv: gun faces over the engine deck
+// wh:axles (wheeled) · eng:f|fr|m engine position · dk:engine deck · dh:driver hatches
+// x2:fixed sub-turrets x,y,d,gunLen,cal;… · hg:hull guns x,y,cal,calibres;… · x:extras
+// (st spare tracks on glacis, ss on sides, fd rear fuel drums, ft fender fuel tanks, lg log,
+// jc jerrycans, ex exhausts, tc tow cable, tk tail skid). Figures are approximate.
+const TD_REAL={
+  // ── Germany ──
+  pz1:[4.02,2.06,.08,1.55,1.3,7.92,80,'n:flat ts:boxy ty:.3 tw2:1.6 cu:n dh:l T:.28'],
+  pz2:[4.81,2.28,.04,1.75,1.45,20,55,'n:round ts:boxy ty:-.12 cu:c dh:l T:.3'],
+  pz3:[5.56,2.95,.03,2.3,1.95,50,60,'ts:pz4 cu:c T:.4 g:.1 x:st,ex'],
+  pz4f1:[5.92,2.88,.03,2.45,1.9,75,24,'ts:pz4 cu:c T:.4 g:.1 x:st,ex'],
+  pz4:[5.89,2.88,.03,2.45,1.95,75,48,'ts:pz4 cu:c T:.4 g:.1 mb:2 sk x:st,ex'],
+  stug3:[5.4,2.95,.11,2.55,2.3,75,48,'cm gy:.18 mb:2 T:.4 g:.08 sk'],
+  panther:[6.87,3.27,-.01,2.9,2.35,75,70,'ts:angular sp g:.19 mb:2 T:.66 dk:panther cu:l x:ex sk'],
+  jpz4:[5.92,3.17,.06,3.2,2.6,75,48,'cm n:wedge g:.12 gy:.25 T:.4 sk'],
+  tiger:[6.32,3.56,0,2.8,2.75,88,56,'ts:tiger sp g:.1 mb:2 T:.725 dk:tiger cu:l x:ex'],
+  nashorn:[7.17,2.95,-.17,3.2,2.6,88,71,'cm ot mb:2 T:.4 g:.1'],
+  tiger2:[7.38,3.75,-.06,3.4,2.65,88,71,'ts:angular sp g:.18 mb:2 T:.8 dk:tiger cu:l x:ex to:-.16'],
+  jpz6:[7.62,3.77,-.06,4.1,3.3,128,55,'cm sp g:.18 T:.8 dk:tiger'],
+  maus:[9.03,3.67,-.12,4.0,3.2,128,55,'ts:boxy sp g:.14 T:1.1 dk:tiger gun:coax75 cu:n x:ex'],
+  leichttk:[4.21,2.38,-.15,1.8,1.6,37,45,'ts:boxy eng:f n:flat T:.3 fe dh:c cu:h'],
+  pz38t:[4.61,2.14,.05,1.75,1.5,37,47.8,'ts:boxy n:flat g:.1 T:.29 dh:r cu:c'],
+  hetzer:[4.87,2.63,.08,2.7,2.0,75,48,'cm n:wedge g:.2 gy:.38 T:.35 sp'],
+  marder3:[4.95,2.15,-.08,1.9,2.05,75,46,'cm ot mb:2 T:.29 g:.1'],
+  vk3001p:[6.1,3.14,.04,2.4,2.1,75,24,'ts:pz4 sp g:.1 T:.5 cu:c x:ex'],
+  vk3601h:[6.0,3.15,0,2.6,2.4,75,55,'ts:tiger sp g:.1 T:.52 cu:l dk:tiger'],
+  portige:[6.7,3.38,.05,2.8,2.75,88,56,'ts:tiger sp g:.1 T:.64 cu:l mb:2 eng:m'],
+  panther2:[7.17,3.43,-.02,2.8,2.0,88,71,'ts:angular sp g:.2 T:.66 dk:panther cu:l mb:2 x:ex'],
+  jpanther:[6.87,3.27,.08,3.6,2.9,88,71,'cm sp g:.2 T:.66 dk:panther gy:.1 mb:2 x:ex'],
+  jpanther2:[7.2,3.4,.06,3.8,3.0,128,55,'cm sp g:.2 T:.7 dk:panther gy:.1'],
+  ferdinand:[6.8,3.38,-.17,3.6,2.9,88,71,'cm sp g:.12 T:.64 eng:m mb:2 cu:n'],
+  e75:[7.27,3.88,-.04,3.6,2.9,105,52,'ts:angular sp g:.18 T:.8 dk:tiger cu:l mb:2'],
+  e50:[7.0,3.4,-.03,3.1,2.2,88,71,'ts:angular sp g:.2 T:.7 dk:panther cu:l mb:2'],
+  rhmborsig:[6.0,3.0,-.2,2.6,2.4,128,55,'ot sp g:.15 T:.5'],
+  e100:[8.73,4.48,-.06,4.2,3.6,150,40,'ts:boxy sp g:.14 T:1.0 dk:tiger cu:l'],
+  grille15:[7.6,3.3,-.18,3.0,2.8,150,40,'ot sp g:.18 T:.66 dk:panther mb:2'],
+  waffentrager:[8.7,4.48,-.2,4.0,3.4,150,40,'ot sp g:.14 T:1.0'],
+  jagdmaus:[9.0,3.67,-.08,5.0,3.4,128,55,'cm sp g:.14 T:1.1 dk:tiger'],
+  sturmtiger:[6.32,3.56,.14,3.2,3.0,380,5.4,'cm sp g:.08 T:.725 dk:tiger gy:-.2'],
+  vk7201:[9.2,4.0,-.12,4.2,3.3,150,40,'ts:boxy sp g:.16 T:1.0 dk:tiger cu:l'],
+  borsig_wt:[5.89,2.88,-.1,2.6,2.3,128,55,'ot T:.4 g:.1 x:ex'],
+  e25:[5.6,3.0,.05,2.9,2.4,75,70,'cm n:wedge sp g:.18 T:.5'],
+  luchs:[4.63,2.48,.02,1.9,1.7,20,55,'ts:boxy g:.15 T:.36 cu:n dh:l x:ex'],
+  lowe:[7.7,3.8,-.06,3.5,3.0,105,68,'ts:angular sp g:.18 T:.8 dk:tiger cu:l mb:2'],
+  brummbar:[5.93,2.88,.18,2.8,2.6,150,12,'cm g:.08 T:.4 sk x:ex'],
+  sturer:[9.3,3.2,-.2,3.6,2.6,128,61,'cm ot sp g:.12 T:.6'],
+  pz4_70:[6.0,3.17,.06,3.2,2.6,75,70,'cm n:wedge g:.12 gy:.25 T:.4 sk'],
+  mauschen:[8.3,3.6,-.1,3.6,3.0,128,55,'ts:boxy sp g:.14 T:1.0 dk:tiger cu:l'],
+  jgpze100:[10.0,4.48,-.06,5.2,3.8,170,47,'cm sp g:.15 T:1.0 dk:tiger mb:2'],
+  leo2a7:[7.7,3.75,-.04,5.0,3.5,120,55,'ts:arrow sp g:.13 T:.635 sk dk:modern cu:r dh:c'],
+  kf51:[8.0,3.6,-.03,4.6,3.3,130,51,'ts:slab sp g:.14 T:.6 sk dk:modern cu:r dh:c']
+};
+// Variants that share a real twin's silhouette
+// Variants that share a real twin's silhouette (other nations are added later)
+const TD_ALIAS={};
+// Display names used by enemy waves / ally squads that differ from the roster names
+const TD_NAMES={
+  pzi:'pz1',pzii:'pz2',pziii:'pz3',pzivf1:'pz4f1',pzivh:'pz4',pziv:'pz4',panther:'panther',maus:'maus',stugiii:'stug3',stug:'stug3',marder:'marder3',jagdpanzeriv:'jpz4',jagdpanzere100:'jgpze100',tigeri:'tiger',tigerii:'tiger2',jagdtiger:'jpz6',hetzer:'hetzer',nashorn:'nashorn',ferdinand:'ferdinand',jagdpantherii:'jpanther2'
+};
+
 // Normalise #abc shorthand to #aabbcc so the parsers below never yield NaN.
 function _hex6(h){
   if(typeof h!=='string'||h[0]!=='#')return '#808080';
@@ -5683,7 +6157,18 @@ function darkenColor(h,a){return dc(h,a);}
 
 // Minimal tank for the far-out drone view: hull, turret, barrel. Drawing 400
 // full sprites at 0.2x zoom is far too slow, and none of the detail is visible.
-function drawTankLOD(c,x,y,angle,tAngle,size,color){
+function drawTankLOD(c,x,y,angle,tAngle,size,color,S){
+  if(S){
+    // same cheap three-part sprite, but with the vehicle's real length:width and turret position
+    const k=S.k*size,L=S.L*k,W=S.W*k,tx=S.tx*L;
+    c.save();c.translate(x,y);c.rotate(angle);
+    c.fillStyle='rgba(0,0,0,.35)';c.fillRect(-L*.54,-W*.56,L*1.08,W*1.12);
+    c.fillStyle=typeof color==='string'?color:'#5a6a3a';c.fillRect(-L*.5,-W*.5,L,W);
+    c.translate(tx,0);c.rotate(tAngle-angle);
+    if(!S.cm){c.fillStyle='rgba(255,255,255,.14)';c.fillRect(-S.tl*k*.5,-S.tw*k*.5,S.tl*k,S.tw*k);}
+    c.fillStyle='rgba(0,0,0,.55)';c.fillRect(S.tl*k*.4,-size*0.07,Math.max(.5,S.cal*S.lc/1000-.35)*k,size*0.14);
+    c.restore();return;
+  }
   c.save();c.translate(x,y);
   c.fillStyle='rgba(0,0,0,.35)';
   c.save();c.rotate(angle);c.fillRect(-size*1.0,-size*0.62,size*2.0,size*1.24);c.restore();
@@ -5696,8 +6181,10 @@ function drawTankLOD(c,x,y,angle,tAngle,size,color){
   c.restore();
 }
 function drawTankFull(c,x,y,angle,tAngle,size,color,isPlayer,hpFrac,name,_sk,tankId,recoil,flash){
-  if(viewZoom<0.45&&!isPlayer){ drawTankLOD(c,x,y,angle,tAngle,size,color); return; }
-  const p=getProfile(tankId);
+  tankId=_visId(tankId,name);
+  const _S=_tdSpec(tankId);
+  if(viewZoom<0.45&&!isPlayer){ drawTankLOD(c,x,y,angle,tAngle,size,color,_S); return; }
+  const p=_S?_tdProfile(_S):getProfile(tankId);
   recoil=recoil||0; flash=flash||0;
   // Brighten the drab source colour so the tank reads as a bright, saturated object on the terrain.
   if(typeof color==='string'&&color[0]==='#') color=_lift(color,1.26);
@@ -5719,6 +6206,10 @@ function drawTankFull(c,x,y,angle,tAngle,size,color,isPlayer,hpFrac,name,_sk,tan
   c.beginPath();c.ellipse(0,0,size*p.hl*.56,size*p.hw*.62,0,0,Math.PI*2);c.fill();
   c.restore();
 
+  if(_S){
+    // real overhead silhouette: hull, tracks, turret at its true position on the hull
+    c.save();c.rotate(angle);_tdDraw(c,_S,size,color,isPlayer,tankId,tAngle-angle,recoil);c.restore();
+  } else {
   // hull + tracks (rotates with movement angle)
   c.save();c.rotate(angle);
   _hull(c,size,color,p,isPlayer,tankId);
@@ -5742,6 +6233,7 @@ function drawTankFull(c,x,y,angle,tAngle,size,color,isPlayer,hpFrac,name,_sk,tan
     c.save();c.rotate(tAngle);c.translate(-recoil,0);
     _turret(c,size,color,p,tankId);
     c.restore();
+  }
   }
 
   // ── directional rim/spec light: one global sun brightens the lit side, shades the far side ──
@@ -6444,6 +6936,18 @@ function drawTankPreview(cv,t){
   const c=cv.getContext('2d');if(!c)return;
   const W=cv.width||128,H=cv.height||80;
   c.clearRect(0,0,W,H);
+  const _S=_tdSpec(_visId(t.id,t.name));
+  if(_S){
+    // fit the whole vehicle (hull + gun) into the card, facing right like an overhead plan
+    const k1=_S.k, Lh=_S.L*k1, gunTip=_S.cm?(_S.tx*_S.L+_S.tl/2)*k1+Math.max(.5,_S.cal*_S.lc/1000-.3)*k1
+      :(_S.tx*_S.L+_S.tl*.5)*k1+Math.max(.5,_S.cal*_S.lc/1000-.35)*k1;
+    const front=Math.max(Lh/2,gunTip), back=Lh/2+(_S.rv?Math.max(0,gunTip-Lh/2):0), wid=_S.W*k1;
+    const size=Math.min((W-8)/(front+back),(H-6)/wid,26);
+    c.save();c.translate(W/2-(front-back)/2*size,H/2);
+    c.fillStyle='rgba(0,0,0,.2)';c.beginPath();c.ellipse(2,3,Lh*size*.55,wid*size*.55,0,0,Math.PI*2);c.fill();
+    _tdDraw(c,_S,size,t.color,false,t.id,0,0);
+    c.restore();return;
+  }
   const p=getProfile(t.id), size=t.id==='ratte'?16:22;
   c.save();c.translate(W/2,H/2);
   c.rotate(-Math.PI/2);
