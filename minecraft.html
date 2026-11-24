@@ -1354,6 +1354,16 @@ defTex('stalker_face',p=>{p.noise(225,222,210,5);p.rect(2,3,5,4,0,0,0);p.rect(9,
 defTex('cartoon_cat_face',p=>{p.noise(8,8,10,3);p.rect(1,2,5,5,255,255,255);p.rect(10,2,5,5,255,255,255);p.rect(3,4,2,2,0,0,0);p.rect(12,4,2,2,0,0,0);p.rect(0,9,16,5,255,255,255);for(let i=1;i<16;i+=2)p.rect(i,9,1,5,0,0,0);p.rect(0,11,16,1,0,0,0)});
 defTex('tuff',p=>{p.noise(108,112,102,12);p.speckle(24,82,88,78);p.speckle(10,135,138,128)});
 defTex('copper_block',p=>{p.noise(192,112,78,9);for(let i=0;i<16;i+=4){p.rect(0,i,16,1,214,138,98);p.rect(i,0,1,16,214,138,98)}p.speckle(6,120,170,150)});
+function copperTex(p,base,line,spk){p.noise(base[0],base[1],base[2],8);for(let i=0;i<16;i+=4){p.rect(0,i,16,1,line[0],line[1],line[2]);p.rect(i,0,1,16,line[0],line[1],line[2])}p.speckle(14,spk[0],spk[1],spk[2])}
+defTex('exposed_copper',p=>copperTex(p,[168,120,96],[190,142,114],[108,160,128]));
+defTex('weathered_copper',p=>copperTex(p,[106,146,112],[128,166,130],[176,120,90]));
+defTex('oxidized_copper',p=>copperTex(p,[78,160,132],[98,182,152],[60,130,108]));
+defTex('tuff_bricks',p=>{brickPattern(p,[78,82,74],[112,116,106]);p.speckle(10,90,94,86)});
+defTex('chiseled_tuff',p=>{p.noise(104,108,98,6);p.rect(0,0,16,2,84,88,80);p.rect(0,14,16,2,84,88,80);p.rect(2,4,12,8,92,96,88);p.rect(4,6,8,4,124,128,118);p.rect(6,7,4,2,84,88,80)});
+defTex('polished_tuff',p=>{p.noise(114,118,108,4);p.rect(0,0,16,1,96,100,92);p.rect(0,15,16,1,96,100,92);p.rect(0,0,1,16,96,100,92);p.rect(15,0,1,16,96,100,92)});
+defTex('copper_grate',p=>{p.fill(0,0,0,0);for(let y=0;y<16;y++)for(let x=0;x<16;x++)if(x%4===0||y%4===0||x===15||y===15)p.px(x,y,176+((x*7+y*3)%3)*10,108,80)});
+defTex('copper_bulb',p=>{p.noise(150,96,70,6);p.rect(0,0,16,2,190,120,86);p.rect(0,14,16,2,190,120,86);p.rect(0,0,2,16,190,120,86);p.rect(14,0,2,16,190,120,86);p.rect(3,3,10,10,255,214,140);p.rect(5,5,6,6,255,240,200)});
+defTex('decorated_pot',p=>{p.noise(156,88,62,6);p.rect(0,0,16,2,110,60,44);p.rect(0,14,16,2,110,60,44);p.rect(3,5,10,6,120,66,46);p.rect(5,7,6,2,170,100,70)});
 defTex('trial_spawner',p=>{p.noise(34,32,30,6);p.rect(1,1,14,14,52,50,48);p.rect(3,3,10,10,20,18,16);p.rect(5,5,6,6,240,120,20);p.rect(7,7,2,2,255,220,90);p.rect(0,7,16,2,70,68,64);p.rect(7,0,2,16,70,68,64)});
 defTex('vault',p=>{p.noise(44,46,50,6);p.rect(1,1,14,14,74,80,86);p.rect(3,3,10,10,50,54,60);p.rect(7,5,2,3,0,0,0);p.rect(6,8,4,3,0,0,0);p.rect(2,2,12,1,235,170,60);p.rect(2,13,12,1,235,170,60)});
 defTex('vault_used',p=>{p.noise(44,46,50,6);p.rect(1,1,14,14,64,66,70);p.rect(3,3,10,10,40,42,46);p.rect(7,5,2,3,25,25,28);p.rect(6,8,4,3,25,25,28)});
@@ -1510,6 +1520,16 @@ defBlock(87,'cobweb',{tex:'cobweb',model:'cross',solid:false,hard:4,tool:'shears
 defBlock(88,'nether_bricks',{tex:'nether_bricks',hard:2,tool:'pickaxe',needsTool:true,resist:6});
 defBlock(89,'rail',{tex:'rail',model:'rail',solid:false,hard:0.7,tool:'pickaxe',transparent:true});
 defBlock(90,'stone_pressure_plate',{tex:'smooth_stone',model:'plate',solid:false,hard:0.5,tool:'pickaxe',needsTool:true,transparent:true});
+defBlock(171,'tuff_bricks',{tex:'tuff_bricks',hard:1.5,tool:'pickaxe',needsTool:true,resist:6});
+defBlock(172,'chiseled_tuff',{tex:'chiseled_tuff',hard:1.5,tool:'pickaxe',needsTool:true,resist:6});
+defBlock(173,'polished_tuff',{tex:'polished_tuff',hard:1.5,tool:'pickaxe',needsTool:true,resist:6});
+defBlock(174,'exposed_copper',{tex:'exposed_copper',hard:3,tool:'pickaxe',needsTool:true,tier:1,resist:6});
+defBlock(175,'weathered_copper',{tex:'weathered_copper',hard:3,tool:'pickaxe',needsTool:true,tier:1,resist:6});
+defBlock(176,'oxidized_copper',{tex:'oxidized_copper',hard:3,tool:'pickaxe',needsTool:true,tier:1,resist:6});
+defBlock(177,'copper_grate',{label:'Waxed Copper Grate',tex:'copper_grate',hard:3,tool:'pickaxe',needsTool:true,tier:1,transparent:true,sound:'stone'});
+defBlock(178,'copper_bulb',{label:'Waxed Copper Bulb',tex:'copper_bulb',hard:3,tool:'pickaxe',needsTool:true,tier:1,light:15});
+defBlock(179,'decorated_pot',{label:'Decorated Pot',tex:'decorated_pot',model:'pot',hard:0.1,transparent:true,sound:'glass',drop:r=>{const t=r();return t<0.3?[[284,2+floor(r()*6)]]:t<0.45?[[266,1+floor(r()*2)]]:t<0.52?[[263,1]]:t<0.62?[[472,1+floor(r()*3)]]:t<0.66?[[470,1]]:[]}}); // smash it for a little loot
+defBlock(180,'tuff_brick_stairs',{tex:'tuff_bricks',model:'stairs',hard:1.5,tool:'pickaxe',needsTool:true,transparent:true});
 defBlock(111,'trial_spawner',{label:'Trial Spawner',tex:'trial_spawner',hard:50,tool:'pickaxe',needsTool:true,transparent:true,drop:()=>[],light:5,resist:3600000});
 defBlock(112,'vault',{tex:'vault',hard:50,tool:'pickaxe',needsTool:true,drop:()=>[],light:3,resist:3600000});
 defBlock(113,'vault_used',{label:'Vault (empty)',tex:'vault_used',hard:50,tool:'pickaxe',needsTool:true,drop:()=>[],resist:3600000});
@@ -2402,6 +2422,7 @@ function blockBoxes(id,meta,mode,x,y,z){
     case 'chest':return [[0.0625,0,0.0625,0.9375,0.875,0.9375]];
     case 'hopper':return [[0,0.625,0,1,1,1],[0.25,0,0.25,0.75,0.625,0.75]];
     case 'cactus':return mode==='c'?[[0.0625,0,0.0625,0.9375,1,0.9375]]:[[0.0625,0,0.0625,0.9375,1,0.9375]];
+    case 'pot':return [[0.125,0,0.125,0.875,1,0.875]];
     case 'snow':return [[0,0,0,1,0.125,1]];
     case 'rail':return mode==='c'?[]:[[0,0,0,1,0.0625,1]];
     case 'plate':return mode==='c'?[]:[[0.0625,0,0.0625,0.9375,0.0625,0.9375]];
@@ -2439,6 +2460,7 @@ function renderBoxes(id,meta,x,y,z){
       if(meta===0)out.push([0.375,0,0.375,0.625,0.25,0.625,six(F[0])]);else out.push(rotBoxT([0.375,0.25,0.75,0.625,0.5,1,six(F[0])],(meta-1)&3));return out}
     case 'chest':{const f=meta&3;const tiles=[F[0],F[0],F[2],F[2],d.front,F[0]];const ff=FACING_TO_FACE[f];const t2=F.slice();t2[ff]=d.front;t2[2]=F[2];t2[3]=F[2];return [[0.0625,0,0.0625,0.9375,0.875,0.9375,t2],rotBoxT([0.4375,0.4375,0.9375,0.5625,0.6875,1,all(TEX.white),0,[80,80,80]],f)]}
     case 'cactus':return [[0.0625,0,0.0625,0.9375,1,0.9375,F,0,null,true]];
+    case 'pot':return [[0.125,0,0.125,0.875,0.8125,0.875,F],[0.3125,0.8125,0.3125,0.6875,1,0.6875,F]];
     case 'snow':return [[0,0,0,1,0.125,1,F]];
     case 'rail':return [[0,0,0,1,0.0625,1,F]];
     case 'plate':return [[0.0625,0,0.0625,0.9375,(meta&1)?0.03:0.0625,0.9375,F]]; // pressed plates sit lower
@@ -5835,6 +5857,7 @@ function damageItem(st,n){if(player.mode==='creative')return;const ub=enchLevel(
 function flashDamage(){const f=$('dmgflash');f.style.background='rgba(255,0,0,.35)';setTimeout(()=>f.style.background='rgba(255,0,0,0)',150)}
 /* ===================== STRUCTURES ===================== */
 const LOOT={
+  trial_supply:[[284,4,12,10],[472,2,6,8],[302,2,6,8],[275,1,4,8],[260,1,4,6],[266,1,3,6],[263,1,1,2],[308,1,1,2],[470,1,1,2]],
   dungeon:[[379,1,1,6],[315,1,1,6],[272,1,3,10],[283,1,4,10],[285,1,4,10],[286,1,4,10],[271,1,4,10],[260,1,4,8],[257,1,4,8],[262,1,4,5],[263,1,1,3],[308,1,1,2],[6,1,2,5],[301,1,1,3],[282,1,3,8]],
   mineshaft:[[89,4,8,10],[32,1,16,10],[272,1,3,10],[260,1,5,8],[262,1,3,5],[265,4,9,5],[264,4,9,5],[263,1,2,3],[257,3,8,10],[270,2,4,6],[308,1,1,1]],
   temple:[[379,1,1,6],[315,1,1,8],[263,1,3,5],[260,1,5,15],[262,2,7,15],[266,1,3,15],[283,4,6,25],[287,1,3,25],[282,3,7,25],[308,1,1,10],[285,1,8,5]],
@@ -5965,20 +5988,17 @@ Object.assign(World.prototype,{
     for(let i=0;i<14;i++){const cx=x+floor((rng()-0.5)*2*(HW-3)),cz=z+floor((rng()-0.5)*2*(HL-3));if(this.getGen(cx,y,cz)===0)this.setGen(cx,y,cz,E,0,false)}
   },
   /* ---- trial chamber: a buried complex of tuff and copper with trial spawners and key-locked vaults ---- */
-  placeTrialChamber(x,z,rng,yAt){const y=yAt!==undefined?yAt:22+floor(rng()*10);const T=115,C=114,B=52,L=93;const key='tc:'+(x>>4)+','+(z>>4);this.populated.add(key);
-    const room=(cx,cz,hw,hl,h)=>{for(let dx=-hw;dx<=hw;dx++)for(let dz=-hl;dz<=hl;dz++)for(let dy=-1;dy<=h;dy++){const wall=abs(dx)===hw||abs(dz)===hl||dy===-1||dy===h;const edge=wall&&((abs(dx)===hw&&abs(dz)===hl)||(dy===-1&&(abs(dx)===hw||abs(dz)===hl))||(dy===h&&(abs(dx)===hw||abs(dz)===hl)));this.setGen(cx+dx,y+dy,cz+dz,wall?(edge?C:(rng()<0.25?B:T)):0,0,false)}
-      for(const [ox,oz] of [[-hw+1,-hl+1],[hw-1,-hl+1],[-hw+1,hl-1],[hw-1,hl-1]])this.setGen(cx+ox,y+h,cz+oz,L,0,false);
-      for(let dx=-hw+2;dx<=hw-2;dx+=3){this.setGen(cx+dx,y+2,cz-hl,L,0,false);this.setGen(cx+dx,y+2,cz+hl,L,0,false)}for(let dz=-hl+2;dz<=hl-2;dz+=3){this.setGen(cx-hw,y+2,cz+dz,L,0,false);this.setGen(cx+hw,y+2,cz+dz,L,0,false)}
-      for(let dx=-hw+2;dx<=hw-2;dx+=4)for(let dz=-hl+2;dz<=hl-2;dz+=4)this.setGen(cx+dx,y-1,cz+dz,L,0,false)};
-    const hall=(x0,z0,dx,dz,len)=>{const px=dz?1:0,pz=dx?1:0;for(let i=0;i<len;i++){const hx=x0+dx*i,hz=z0+dz*i;for(let sd=-1;sd<=1;sd++)for(let h=-1;h<=3;h++){const wall=abs(sd)===1&&false||h===-1||h===3;this.setGen(hx+px*sd,y+h,hz+pz*sd,h===-1||h===3?T:0,0,false)}for(let h=0;h<3;h++){this.setGen(hx+px*2,y+h,hz+pz*2,T,0,false);this.setGen(hx-px*2,y+h,hz-pz*2,T,0,false)}if(i%3===1)this.setGen(hx,y+3,hz,L,0,false)}};
-    room(x,z,7,7,6);for(const [dx,dz] of [[1,0],[-1,0],[0,1],[0,-1]]){hall(x+dx*8,z+dz*8,dx,dz,9);room(x+dx*21,z+dz*21,4,4,4)}
-    // the centre: an ominous vault on a copper pedestal flanked by two trial spawners; each side room has its own spawner and a normal vault
-    this.setGen(x,y,z,C,0,false);this.setGen(x,y+1,z,112,1,false);this.setGen(x-3,y,z,111,3,false);this.setGen(x+3,y,z,111,1,false);
-    for(const [dx,dz] of [[1,0],[-1,0],[0,1],[0,-1]]){const rx=x+dx*21,rz=z+dz*21;this.setGen(rx,y,rz,111,floor(rng()*4),false);this.setGen(rx+dx*3,y,rz+dz*3,112,0,false);if(rng()<0.5)this.setChest(rx-dz*3,y,rz+dx*3,0,'dungeon',rng,2+floor(rng()*3))}
-    // a 2x2 shaft up to daylight with a copper marker on top
-    const sx=x+5,sz=z+5;const top=this.surfaceY(sx,sz);for(let yy=y;yy<=top+1;yy++)for(let dx=0;dx<2;dx++)for(let dz=0;dz<2;dz++)this.setGen(sx+dx,yy,sz+dz,0,0,false);for(let yy=y;yy<=top;yy++){this.setGen(sx-1,yy,sz,38,3,false);this.setGen(sx-1,yy,sz+1,38,3,false)}
-    for(let dx=-1;dx<=2;dx++)for(let dz=-1;dz<=2;dz++){if(dx>=0&&dx<2&&dz>=0&&dz<2)continue;this.setGen(sx+dx,top+1,sz+dz,C,0,false)}
-  },
+  // world generation: the atrium's back door sits at (x, y, z), deep underground, with a ladder shaft up to the surface;
+  // pieces spill into neighbouring chunks through setGen's pending writes
+  placeTrialChamber(x,z,rng,yAt){const y=yAt!==undefined?yAt:14+floor(rng()*10),d0=floor(rng()*4);const key='tc:'+(x>>4)+','+(z>>4);this.populated.add(key);
+    const pieces=tcLayout(rng,x,y,z,d0,6);tcBuild(this,pieces,rng);const f=SH_F[d0];let gy=SEA;try{gy=this.surfaceY(x-f[0]*2,z-f[1]*2)}catch(e){}tcShaft(this,x,y,z,d0,Math.max(gy,y+16),y+13);return pieces},
+  // /spawn trial chamber: built deep below the aimed ground block (x, gy, z) with a ladder shaft down to the atrium, in one batch (see batchBegin)
+  spawnTrialChamber(x,gy,z,rng){const top=Math.max(12,Math.min(gy-16,40)),d0=floor(rng()*4);const pieces=tcLayout(rng,x,top,z,d0,6);
+    this.batchBegin(MP.active);const t0=performance.now();
+    try{tcBuild(this,pieces,rng);tcShaft(this,x,top,z,d0,gy,top+13)}
+    finally{const n=this.batchEnd();let x0=1e9,z0=1e9,x1=-1e9,z1=-1e9,y0=1e9,y1=-1e9;for(const q of pieces){x0=Math.min(x0,q.b[0]);z0=Math.min(z0,q.b[2]);x1=Math.max(x1,q.b[3]);z1=Math.max(z1,q.b[5]);y0=Math.min(y0,q.b[1]);y1=Math.max(y1,q.b[4])}
+      const c={};for(const q of pieces)c[q.k]=(c[q.k]|0)+1;this.lastBuildInfo={pieces:pieces.length,w:x1-x0+1,l:z1-z0+1,y0,y1,top,blocks:n,ms:Math.round(performance.now()-t0),count:c,box:[x0,z0,x1,z1],list:pieces}}
+    return pieces},
   /* ---- dungeon (monster room) ---- */
   placeDungeon(x,y,z,rng){
     const w=2+floor(rng()*2),l=2+floor(rng()*2);
@@ -6502,6 +6522,110 @@ function strongholdBuild(W,pieces,rng){
     if(pc.k!=='start'){const t=pc.k==='portal'||pc.k==='library'?'open':dtype();door(P.ex,P.ey,0,d,t)}
     else door(P.ex,P.ey,0,d,'open');
     for(const i of pc.links){const [side,o,hy]=P.exits[i];if(side==='f')door(o,hy,P.l-1,d,'open');else if(side==='r')door(P.w-1,hy,o,R,'open');else door(0,hy,o,L,'open')}}}
+/* ---- Trial chamber: a Minecraft-sized, piece-based copper and tuff complex (like Java Edition). An atrium with a breeze platform and a
+   balcony opens onto corridors, hubs, turns and stairs that lead down to trial chambers (pit or pillar rooms, each with trial spawners),
+   arenas, vault rooms and supply rooms. tcLayout() plans boxes (overlap checked, up to TC_MAX pieces within TC_R blocks, retried for size);
+   tcBuild() writes through world.setGen so world generation spills into neighbouring chunks and /spawn writes in one batch. ---- */
+const TC_MAX=60,TC_R=64;
+const TC_P={
+  atrium:  {w:23,h:15,l:23,ex:11,ey:1,exits:[['f',11,1],['l',11,1],['r',11,1]]},
+  corridor:{w:5,h:6,l:11,ex:2,ey:1,exits:[['f',2,1]],w8:30},
+  long:    {w:5,h:6,l:17,ex:2,ey:1,exits:[['f',2,1]],w8:14},
+  side:    {w:5,h:6,l:9,ex:2,ey:1,exits:[['f',2,1],['l',4,1],['r',4,1]],w8:10},
+  hub:     {w:11,h:8,l:11,ex:5,ey:1,exits:[['f',5,1],['l',5,1],['r',5,1]],w8:14,max:8},
+  left:    {w:5,h:6,l:5,ex:2,ey:1,exits:[['l',2,1]],w8:8},
+  right:   {w:5,h:6,l:5,ex:2,ey:1,exits:[['r',2,1]],w8:8},
+  stairs:  {w:5,h:11,l:9,ex:2,ey:7,exits:[['f',2,1]],w8:7,max:5},
+  chamber: {w:15,h:11,l:15,ex:7,ey:3,exits:[['f',7,3],['l',7,3],['r',7,3]],w8:24,max:14,minDepth:1},
+  arena:   {w:19,h:12,l:19,ex:9,ey:1,exits:[['f',9,1],['l',9,1],['r',9,1]],w8:6,max:3,minDepth:3},
+  vault:   {w:7,h:6,l:9,ex:3,ey:1,exits:[],w8:7,max:4,minDepth:2},
+  supply:  {w:9,h:6,l:9,ex:4,ey:1,exits:[],w8:8,max:4,minDepth:1}};
+function tcBox(k,ex,ey,ez,d){const P=TC_P[k],f=SH_F[d],r=[f[1],-f[0]];const ox=ex-r[0]*P.ex,oz=ez-r[1]*P.ex,oy=ey-P.ey;
+  const pts=[[0,0],[P.w-1,0],[0,P.l-1],[P.w-1,P.l-1]].map(([a,b])=>[ox+r[0]*a+f[0]*b,oz+r[1]*a+f[1]*b]);
+  return {k,d,ox,oy,oz,b:[Math.min(...pts.map(p=>p[0])),oy,Math.min(...pts.map(p=>p[1])),Math.max(...pts.map(p=>p[0])),oy+P.h-1,Math.max(...pts.map(p=>p[1]))]}}
+// plan a trial chamber whose atrium's back door opens at (x,y,z) heading d0; retried until it is big enough and has its rooms
+function tcLayout(rng,x,y,z,d0,minY){let best=null;
+  for(let attempt=0;attempt<20;attempt++){
+    const pieces=[],count={};const start=tcBox('atrium',x,y,z,d0);start.depth=0;start.links=[];pieces.push(start);const open=[];
+    const addExits=pc=>{const P=TC_P[pc.k],f=SH_F[pc.d],r=[f[1],-f[0]];for(let i=0;i<P.exits.length;i++){const [side,o,hy]=P.exits[i];let lx,lz,dd;
+      if(side==='f'){lx=o;lz=P.l;dd=pc.d}else if(side==='r'){lx=P.w;lz=o;dd=(pc.d+1)&3}else{lx=-1;lz=o;dd=(pc.d+3)&3}
+      open.push({pc,i,x:pc.ox+r[0]*lx+f[0]*lz,y:pc.oy+hy,z:pc.oz+r[1]*lx+f[1]*lz,d:dd})}};
+    addExits(start);
+    while(open.length&&pieces.length<TC_MAX){const e=open.splice(floor(rng()*open.length),1)[0];const depth=e.pc.depth+1;if(depth>40)continue;
+      const late=pieces.length>TC_MAX*0.75;
+      const cand=Object.keys(TC_P).filter(k=>k!=='atrium'&&!(TC_P[k].max&&(count[k]|0)>=TC_P[k].max)&&!(TC_P[k].minDepth&&depth<TC_P[k].minDepth)&&!(k===e.pc.k&&(k==='stairs'||k==='left'||k==='right'||k==='hub'))&&!(late&&(k==='hub'||k==='side')));
+      let placed=null;for(let tries=0;tries<5&&!placed;tries++){
+        let tot=0;for(const c of cand)tot+=TC_P[c].w8;let w=rng()*tot,k=cand[cand.length-1];for(const c of cand){w-=TC_P[c].w8;if(w<0){k=c;break}}
+        const pc=tcBox(k,e.x,e.y,e.z,e.d);const b=pc.b;
+        if(b[1]<minY||Math.max(abs(b[0]-x),abs(b[3]-x),abs(b[2]-z),abs(b[5]-z))>TC_R)continue;if(pieces.some(q=>shHit(q.b,b)))continue;placed=pc}
+      if(!placed)continue;placed.depth=depth;placed.links=[];placed.from=e;e.pc.links.push(e.i);pieces.push(placed);count[placed.k]=(count[placed.k]|0)+1;addExits(placed)}
+    let x0=1e9,z0=1e9,x1=-1e9,z1=-1e9;for(const q of pieces){x0=Math.min(x0,q.b[0]);z0=Math.min(z0,q.b[2]);x1=Math.max(x1,q.b[3]);z1=Math.max(z1,q.b[5])}
+    const span=Math.max(x1-x0,z1-z0)+1,rooms=(count.chamber|0)+(count.arena|0),good=rooms>=6&&count.vault&&count.supply;
+    const score=(good?1e4:0)+rooms*40+span+pieces.length;if(!best||score>best.score)best={pieces,score};
+    if(good&&span>=80&&pieces.length>=40)break}
+  return best.pieces}
+// write a planned trial chamber; W is the world (setGen writes), rng drives the decoration
+function tcBuild(W,pieces,rng){
+  const T=115,TB=171,CT=172,PT=173,GR=177,BU=178,POT=179,TS=180;
+  const wallM=()=>{const f=rng();return f<0.78?TB:f<0.92?T:CT};
+  const copper=()=>{const f=rng();return f<0.2?114:f<0.45?174:f<0.75?175:176}; // fresh, exposed, weathered, oxidized (all waxed: they never change)
+  for(const pc of pieces){const P=TC_P[pc.k],f=SH_F[pc.d],r=[f[1],-f[0]],d=pc.d;
+    const at=(lx,lz)=>[pc.ox+r[0]*lx+f[0]*lz,pc.oz+r[1]*lx+f[1]*lz];
+    const put=(lx,ly,lz,id,meta)=>{const p=at(lx,lz);W.setGen(p[0],pc.oy+ly,p[1],id,meta||0,false)};
+    const box=(x0,y0,z0,x1,y1,z1,id,meta)=>{for(let a=x0;a<=x1;a++)for(let b=y0;b<=y1;b++)for(let c=z0;c<=z1;c++)put(a,b,c,typeof id==='function'?id(a,b,c):id,meta)};
+    const W1=P.w-1,H1=P.h-1,L1=P.l-1;
+    const shell=()=>{for(let a=0;a<=W1;a++)for(let b=0;b<=H1;b++)for(let c=0;c<=L1;c++){const ex=a===0||a===W1,ez=c===0||c===L1,edge=ex||ez||b===0||b===H1;
+      let id=0;if(edge){if(b===0)id=(a+c)%4===0?CT:PT;else if(b===H1)id=TB;else if((ex&&ez)||((ex||ez)&&(b===1||b===H1-1)))id=copper();else id=wallM()}put(a,b,c,id)}};
+    const chest=(lx,ly,lz,table,n,face)=>{const p=at(lx,lz);W.setChest(p[0],pc.oy+ly,p[1],SH_FACING[face],table,rng,n)};
+    const pot=(lx,ly,lz)=>put(lx,ly,lz,POT,floor(rng()*4));
+    const L=(d+3)&3,R=(d+1)&3,BK=(d+2)&3;
+    const kind=()=>{const t=rng();return pc.depth>=4&&t<0.18?3:t<0.45?0:t<0.75?1:2}; // trial spawner: 0 melee, 1 ranged, 2 small mobs, 3 breeze (deeper rooms)
+    const door=(lx,ly,lz,along)=>{const sx=(along===d||along===BK)?1:0,sz=1-sx;for(let o=-1;o<=1;o++)for(let h=0;h<3;h++)put(lx+sx*o,ly+h,lz+sz*o,0);
+      for(const o of [-2,2])put(lx+sx*o,ly+3,lz+sz*o,copper());for(let o=-1;o<=1;o++)put(lx+sx*o,ly+3,lz+sz*o,CT)}; // a chiseled tuff lintel with copper ends
+    switch(pc.k){
+      case 'atrium':{shell();
+        for(let a=1;a<W1;a++)for(let c=1;c<L1;c++)if(a<=3||a>=19||c<=3||c>=19)put(a,7,c,TB); // the balcony ring
+        for(let i=3;i<=19;i++){put(3,8,i,GR);put(19,8,i,GR);put(i,8,3,GR);put(i,8,19,GR)} // with a copper grate railing
+        for(let h=1;h<=7;h++)put(1,h,1,38,SH_FACING[R]); // ladder up to the balcony
+        for(const [a,c] of [[5,5],[17,5],[5,17],[17,17]]){box(a-1,1,c-1,a+1,H1-1,c+1,(x,y)=>y%5===0?copper():CT);put(a,4,c-1,BU);put(a,4,c+1,BU);put(a-1,4,c,BU);put(a+1,4,c,BU)}
+        box(9,1,9,13,1,13,(a,b,c)=>a===9||a===13||c===9||c===13?copper():PT);put(11,2,11,111,rng()<0.6?3:kind()); // the breeze platform in the middle
+        for(let h=10;h<=13;h++)put(11,h,11,GR);put(11,9,11,BU);for(const [a,c] of [[10,11],[12,11],[11,10],[11,12]])put(a,10,c,copper());
+        for(let a=2;a<W1;a+=4)for(let c=2;c<L1;c+=4)put(a,H1,c,BU);
+        for(const [a,c] of [[2,2],[20,2],[2,20],[20,20],[8,8],[14,8],[8,14],[14,14]])if(rng()<0.7&&!(a===2&&c===2))pot(a,1,c);
+        for(const [a,c] of [[2,8],[20,14],[8,20],[14,20]])if(rng()<0.5)pot(a,8,c);
+        if(rng()<0.6)chest(20,8,2,'trial_supply',3+floor(rng()*3),BK);break}
+      case 'corridor':case 'long':case 'side':{shell();for(let c=2;c<L1;c+=4){put(2,H1,c,BU);put(1,H1,c,GR);put(3,H1,c,GR)}
+        for(let c=1;c<L1;c+=3)put(2,0,c,copper());if(pc.k!=='side'&&rng()<0.35)pot(rng()<0.5?1:3,1,1+floor(rng()*(L1-1)));break}
+      case 'left':case 'right':{shell();put(2,H1,2,BU);break}
+      case 'stairs':{shell();for(let i=0;i<6;i++){const ly=6-i,lz=1+i;for(let a=1;a<=3;a++){put(a,ly,lz,TS,SH_FACING[BK]);for(let b=1;b<ly;b++)put(a,b,lz,TB)}}put(2,H1,2,BU);put(2,H1,7,BU);break}
+      case 'hub':{shell();box(4,1,4,6,H1-1,4+2,(a,b)=>b===1||b===H1-1?copper():CT);put(5,3,4,BU);put(5,3,6,BU);put(4,3,5,BU);put(6,3,5,BU);
+        for(const [a,c] of [[1,1],[9,1],[1,9],[9,9]])if(rng()<0.6)pot(a,1,c);for(const [a,c] of [[2,2],[8,2],[2,8],[8,8]])put(a,H1,c,BU);break}
+      case 'chamber':{shell();const v=rng()<0.55?'pit':'pillars';
+        box(1,1,1,13,2,13,(a,b,c)=>a===1||a===13||c===1||c===13?(b===2?copper():TB):PT); // raised floor (doors open at its height)
+        if(v==='pit'){box(4,2,4,10,2,10,0);box(5,1,5,9,2,9,0);box(5,0,5,9,0,9,(a,b,c)=>(a+c)%2?CT:copper());put(7,1,7,111,kind());if(rng()<0.5)put(7,1,9,111,kind())} // a sunken pit with the spawner(s)
+        else{for(const [a,c] of [[4,4],[10,4],[4,10],[10,10]]){box(a,3,c,a,H1-1,c,CT);put(a,6,c,BU)}put(7,3,5,111,kind());put(7,3,9,111,kind())}
+        for(let a=1;a<=13;a++)for(const c of [1,13])if(a%3===1)put(a,8,c===1?0:14,GR);
+        for(const [a,c] of [[3,3],[11,3],[3,11],[11,11],[7,7]])put(a,H1,c,BU);
+        for(const [a,c] of [[2,2],[12,2],[2,12]])if(rng()<0.6)pot(a,3,c);
+        if(rng()<0.3)put(12,3,12,112,rng()<0.2?1:0);else if(rng()<0.4)chest(12,3,12,'trial_supply',2+floor(rng()*3),BK);else pot(12,3,12);break}
+      case 'arena':{shell();box(6,1,6,12,1,12,(a,b,c)=>a===6||a===12||c===6||c===12?copper():PT);put(9,2,6+1,111,kind());put(9,2,12-1,111,rng()<0.4?3:kind());
+        put(9,2,9,114);put(9,3,9,112,rng()<0.35?1:0); // a vault on a copper pedestal; sometimes an ominous one
+        for(const [a,c] of [[3,3],[15,3],[3,15],[15,15]]){box(a,1,c,a,H1-1,c,(x,y)=>y%4===0?copper():CT);put(a,5,c,BU)}
+        for(let a=3;a<=15;a+=4)for(let c=3;c<=15;c+=4)put(a,H1,c,BU);for(const [a,c] of [[1,1],[17,1],[1,17],[17,17],[1,5],[17,13]])if(rng()<0.6)pot(a,1,c);break}
+      case 'vault':{shell();put(2,1,7,112,rng()<0.35?1:0);put(4,1,7,112,0);put(3,1,7,copper());put(3,2,7,BU);put(3,H1,4,BU);pot(1,1,2);pot(5,1,2);if(rng()<0.5)pot(1,1,7);break}
+      case 'supply':{shell();chest(1,1,4,'trial_supply',3+floor(rng()*4),R);chest(7,1,4,'trial_supply',3+floor(rng()*4),L);
+        for(let a=1;a<=7;a++){put(a,1,7,GR);if(rng()<0.7)pot(a,2,7)}for(const [a,c] of [[1,1],[7,1],[1,6],[7,6]])if(rng()<0.6)pot(a,1,c);put(4,H1,4,BU);break}}
+    // doorways: the entrance (unless atrium, whose back door is opened by the shaft) and every exit that leads on
+    door(P.ex,P.ey,0,d);
+    for(const i of pc.links){const [side,o,hy]=P.exits[i];if(side==='f')door(o,hy,L1,d);else if(side==='r')door(W1,hy,o,R);else door(0,hy,o,L)}}}
+// an access shaft with a ladder from the ground (gy) down to the atrium's back door at (x, top, z), heading d0; wallTop: the atrium wall's top
+function tcShaft(W,x,top,z,d0,gy,wallTop){const f=SH_F[d0],r=[f[1],-f[0]],at=(lx,lz)=>[x+r[0]*lx+f[0]*lz,z+r[1]*lx+f[1]*lz];
+  for(let h=top-1;h<=gy+3;h++)for(let lx=-2;lx<=2;lx++)for(let lz=-4;lz<=0;lz++){const [bx,bz]=at(lx,lz),edge=abs(lx)===2||lz===-4||lz===0;
+    if(lz===0&&h<=wallTop)continue;
+    if(h===top-1)W.setGen(bx,h,bz,173,0,false);else if(h>gy+1){if(!edge)W.setGen(bx,h,bz,0,0,false)}
+    else if(edge)W.setGen(bx,h,bz,h===gy+1?(abs(lx)===2&&(lz===-4||lz===0)?114:171):(h%6===0?175:171),0,false);else W.setGen(bx,h,bz,0,0,false)}
+  for(let h=top;h<=gy+1;h++){const [bx,bz]=at(0,-3);W.setGen(bx,h,bz,38,SH_FACING[d0],false)}
+  {const [bx,bz]=at(1,-1);W.setGen(bx,top,bz,178,0,false)}}
 function strongholdNear(x,z){let best=null;const cx0=floor(x)>>4,cz0=floor(z)>>4;const rx0=Math.floor(cx0/40),rz0=Math.floor(cz0/40);
   for(let rx=rx0-2;rx<=rx0+2;rx++)for(let rz=rz0-2;rz<=rz0+2;rz++){const r=mulberry32(hashInt(rx,rz,115,world.seed));const ox=rx*40+floor(r()*40),oz=rz*40+floor(r()*40);const sx=ox*16+8,sz=oz*16+8;const d=(sx-x)**2+(sz-z)**2;if(!best||d<best.d)best={d,x:sx,z:sz}}
   return best}
@@ -9028,13 +9152,13 @@ const TP_STRUCT={
   monument:{size:16,salt:111,ok:m=>m.biome===BI.deep_ocean,alias:['ocean_monument'],note:'It is underwater below you'},
   shipwreck:{size:8,salt:112,ok:(m,r)=>(m.biome===BI.ocean||m.biome===BI.deep_ocean)&&r()<0.5,alias:['ship','wreck'],note:'It is underwater below you'},
   jungle_temple:{size:12,salt:113,ok:m=>m.biome===BI.jungle&&m.height>SEA+2,alias:['jungletemple']},
-  stronghold:{size:40,salt:115,ok:()=>true,inside:r=>({dx:2,y:20+floor(r()*8),yaw:-PI/2}),note:'You are in the main hall; the portal room is at the east end'},
-  end_portal:{size:40,salt:115,ok:()=>true,inside:r=>({dx:28,dz:2,y:20+floor(r()*8),yaw:-PI/2}),alias:['endportal','end','portal_room'],note:'The End portal frame is on the platform ahead: fill it with eyes of ender to open it'},
+  stronghold:{size:40,salt:115,ok:()=>true,inside:r=>{const y=30+floor(r()*10),f=SH_F[floor(r()*4)];return {dx:f[0],dz:f[1],y,yaw:Math.atan2(-f[0],-f[1])}},note:'You are at the top of the spiral stairs; the halls, libraries and the portal room are below'},
+  end_portal:{size:40,salt:115,ok:()=>true,inside:r=>{const y=30+floor(r()*10),pcs=strongholdLayout(r,0,y,0,floor(r()*4),6),pc=pcs.find(p=>p.k==='portal')||pcs[0],f=SH_F[pc.d],rv=[f[1],-f[0]];return {dx:pc.ox+rv[0]*5+f[0]*2,dz:pc.oz+rv[1]*5+f[1]*2,y:pc.oy+1,yaw:Math.atan2(-f[0],-f[1])}},alias:['endportal','end','portal_room'],note:'The End portal frame is on the platform ahead: fill it with eyes of ender to open it'},
   mineshaft:{size:9,salt:106,ok:(m,r)=>r()<0.55,inside:r=>({dx:0,y:18+floor(r()*24)}),alias:['mine','mine_shaft']},
   fortress:{size:14,salt:107,ok:()=>true,nether:true,inside:r=>({dx:3,y:53+floor(r()*20)}),alias:['nether_fortress'],note:'Ember spawner is just west of you'},
   bastion:{size:16,salt:140,ok:()=>true,nether:true,inside:r=>({dx:0,dz:7,y:40+floor(r()*20)+15+1}),alias:['bastion_remnant','piglin_bastion','brute'],note:'You are on the roof of the keep; the treasure pit is in the middle, guarded by Piglin Brutes'},
   ancient_city:{size:36,salt:118,ok:m=>m.height>SEA+4,inside:r=>({dx:0,y:12+floor(r()*6)}),alias:['ancient','ancientcity','deep_dark','deepdark'],note:'Sneak. Shriekers hear footsteps, and four shrieks wake the Dreadwarden'},
-  trial_chamber:{size:28,salt:117,ok:m=>m.height>SEA,inside:r=>({dx:-5,y:22+floor(r()*10)}),alias:['trial','trials','trial_chambers','chamber','chambers'],note:'Trial spawners wake when you get close; beat one for a Trial Key and open the vault'},
+  trial_chamber:{size:28,salt:117,ok:m=>m.height>SEA,inside:r=>{const y=14+floor(r()*10),f=SH_F[floor(r()*4)];return {dx:f[0]*3,dz:f[1]*3,y,yaw:Math.atan2(-f[0],-f[1])}},alias:['trial','trials','trial_chambers','chamber','chambers'],note:'You are in the atrium. Trial spawners wake when you get close; beat one for a Trial Key and open a vault'},
   end_city:{size:3,salt:116,end:true,radius:60,alias:['endcity','city','end_ship'],note:'You are on top of the city tower; the End ship with the elytra is moored beside it',
     locate:(cx,cz,r)=>{const x=cx*16+8,z=cz*16+8;if(sqrt(x*x+z*z)<170)return null;const c0=world.endIsland(x,z);if(!c0)return null;
       if(![[6,0],[-6,0],[0,6],[0,-6],[5,5],[-5,-5]].every(o=>{const s=world.endIsland(x+o[0],z+o[1]);return s&&abs(s[0]-c0[0])<=3}))return null;return {x,z}}},
@@ -10515,7 +10639,7 @@ const SPAWN_STRUCT={ // name -> [label, build(x,y,z,rng)] with (x,y,z) the aimed
   fortress:['Nether Fortress',(x,y,z,r)=>world.placeFortress(x,z,r,y+1)],
   bastion:['Bastion Remnant',(x,y,z,r)=>world.placeBastion(x,z,r,y+1)],
   ancient_city:['Ancient City',(x,y,z,r)=>world.placeAncientCity(x,z,r,y+1)],
-  trial_chamber:['Trial Chamber',(x,y,z,r)=>world.placeTrialChamber(x,z,r,y+1)],
+  trial_chamber:['Trial Chamber',(x,y,z,r)=>world.spawnTrialChamber(x,y,z,r)],
   end_city:['End City',(x,y,z,r)=>world.placeEndCity(x,y+1,z,r)],
   dungeon:['Dungeon',(x,y,z,r)=>world.placeDungeon(x,y+1,z,r)],
   base_house:['Base House',(x,y,z,r)=>buildBaseHouse(x,y,z)],
@@ -10546,7 +10670,7 @@ function buildStructureAt(key,x,y,z,say,p){ensureChunks(x,z,4);world.lastBuildIn
   try{SPAWN_STRUCT[key][1](x,y,z,rng)}catch(e){console.error('structure build failed',e)}finally{world.liveBuild=false;world.forceMobs=false;world.anywhere=false;world.flatY=undefined}
   // never leave the player buried inside the new build
   if(p){const bx=floor(p.x),bz=floor(p.z);const bad=yy=>{const b=world.getBlock(bx,yy,bz);return b!==0&&(BLOCKS[b].solid||b===8||b===9)};let fy=floor(p.y),n=0;if(bad(fy)||bad(fy+1)){while(n<80&&(bad(fy)||bad(fy+1)))fy++,n++;p.y=fy+0.1;p.vy=0;p.fallDist=0}}
-  const mobs=entities.length-before;if(p)playSound('place_stone',1,0.6);const bi=world.lastBuildInfo;say('Built '+(/^[AEIOU]/.test(SPAWN_STRUCT[key][0])?'an ':'a ')+SPAWN_STRUCT[key][0]+' where you were looking'+(mobs>0?' ('+mobs+' residents)':'')+(bi&&key==='stronghold'?': '+bi.pieces+' rooms and halls, '+bi.w+' x '+bi.l+' blocks, down the ladder shaft':''));if(key==='base_bunker')say('Somewhere inside is a secret room. Not every bookshelf is what it seems...');return true}
+  const mobs=entities.length-before;if(p)playSound('place_stone',1,0.6);const bi=world.lastBuildInfo;say('Built '+(/^[AEIOU]/.test(SPAWN_STRUCT[key][0])?'an ':'a ')+SPAWN_STRUCT[key][0]+' where you were looking'+(mobs>0?' ('+mobs+' residents)':'')+(bi&&key==='stronghold'?': '+bi.pieces+' rooms and halls, '+bi.w+' x '+bi.l+' blocks, down the ladder shaft':'')+(bi&&key==='trial_chamber'?': '+bi.pieces+' pieces ('+((bi.count.chamber|0)+(bi.count.arena|0))+' trial rooms, '+(bi.count.vault|0)+' vault rooms), '+bi.w+' x '+bi.l+' blocks, down the ladder shaft':''));if(key==='base_bunker')say('Somewhere inside is a secret room. Not every bookshelf is what it seems...');return true}
 // cheats are off on public servers, for guests and the host alike: items, kits, /build, teleports, time, game mode, disaster spawning, healing and xp (/spawn <mob|structure> is allowed with limits, see PUB_SPAWN)
 const PUBLIC_BLOCKED=new Set(['modcapture','give','kit','build','place','structure','tp','time','gamemode','gm','spawn','summon','portal','disaster','disasters','tornado','heal','xp','kill']);
 /* ---- guests spawning on a private server: the guest sends {t:'gspawn',k:'struct'|'landmark'|'mob'|'portal',name,x,y,z,g,yaw,n,f}; the host checks it and builds at the guest's spot, then answers {t:'gspawnr',k,ok,msg} ---- */
