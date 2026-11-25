@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0,viewport-fit=cover,user-scalable=no">
+<title>Iron Tunes – Free Music Maker in Your Browser | Iron Games</title>
+<meta name="description" content="Iron Tunes is a free browser music maker: tap the grid to lay down notes and drums, pick a sound, set the tempo, try the ready-made songs and save your own tunes. Every note you place is always in key, so it never sounds wrong. No download.">
+<meta name="robots" content="index,follow,max-snippet:-1,max-image-preview:large">
+<link rel="canonical" href="https://irongames.win/irontunes.html">
+<link rel="icon" href="favicon.svg" type="image/svg+xml"><link rel="manifest" href="site.webmanifest">
+<meta property="og:type" content="website"><meta property="og:site_name" content="Iron Games"><meta property="og:title" content="Iron Tunes – Music Maker | Iron Games"><meta property="og:description" content="Tap a grid to make music that is always in tune. Save your songs. Free in your browser."><meta property="og:url" content="https://irongames.win/irontunes.html"><meta name="twitter:card" content="summary">
+<script type="application/ld+json">{"@context":"https://schema.org","@graph":[{"@type":"VideoGame","name":"Iron Tunes","url":"https://irongames.win/irontunes.html","genre":["Creative","Music","Casual","Family"],"gamePlatform":"Web browser","applicationCategory":"Game","operatingSystem":"Any","isAccessibleForFree":true,"offers":{"@type":"Offer","price":"0","priceCurrency":"USD"},"author":{"@type":"Organization","name":"Daniele Bros","url":"https://irongames.win/"},"description":"A grid music maker: sixteen steps, eight always-in-key notes plus a drum row, four instruments, tempo control, example songs and saved tunes."},{"@type":"BreadcrumbList","itemListElement":[{"@type":"ListItem","position":1,"name":"Iron Games","item":"https://irongames.win/"},{"@type":"ListItem","position":2,"name":"Iron Tunes","item":"https://irongames.win/irontunes.html"}]}]}</script>
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link href="https://fonts.googleapis.com/css2?family=Oswald:wght@500;700&family=Share+Tech+Mono&display=swap" rel="stylesheet">
+<style>
+:root{--gold:#e8c84a;--cream:#f4f8ff;--dim:#8aa0c0;--panel:rgba(16,24,44,.94);--border:#3a5080;--accent:#7fd0ff;}
+*{box-sizing:border-box;margin:0;padding:0;}html,body{width:100%;height:100%;overflow:hidden;background:#0e1628;}
+body{font-family:'Share Tech Mono','Courier New',monospace;color:var(--cream);user-select:none;-webkit-user-select:none;}
+#wrap{position:absolute;inset:0;display:grid;grid-template-columns:1fr 280px;}#main{position:relative;overflow:hidden;display:flex;align-items:center;justify-content:center;background:radial-gradient(circle at 50% 20%,#1e2a50,#0e1628);}
+#grid{display:grid;grid-template-columns:repeat(16,var(--cs));gap:4px;padding:16px;}
+.cell{width:var(--cs);height:var(--cs);border-radius:5px;background:#1c2a4a;border:1px solid #2a3a60;cursor:pointer;}
+.cell.beat{background:#22325a;}.cell.on{background:var(--c);box-shadow:0 0 10px var(--c);border-color:#fff;}.cell.now{outline:2px solid rgba(255,255,255,.6);}
+.cell.drum{border-radius:50%;}
+#side{background:var(--panel);border-left:1px solid var(--border);display:flex;flex-direction:column;padding:12px;gap:7px;overflow-y:auto;}
+.back{position:absolute;top:10px;left:10px;z-index:30;background:rgba(16,24,44,.85);color:var(--dim);font-family:'Oswald',sans-serif;font-size:12px;letter-spacing:3px;padding:7px 12px;border:1px solid var(--border);text-decoration:none;border-radius:2px;}.back:hover{color:var(--gold);border-color:var(--gold);}
+h2.t{font-family:'Oswald',sans-serif;font-size:22px;letter-spacing:6px;color:var(--accent);}
+.btn{display:block;width:100%;background:#1e2e58;border:1px solid var(--border);color:var(--cream);font-family:'Oswald',sans-serif;font-size:12px;letter-spacing:2px;padding:7px 6px;cursor:pointer;text-align:center;border-radius:6px;}.btn:hover{border-color:var(--accent);color:var(--accent);}.btn.on{background:#2a6aa8;border-color:var(--accent);color:#fff;}
+.row{display:flex;gap:5px;flex-wrap:wrap;}.row .btn{flex:1;min-width:58px;}
+.lbl{font-size:10px;letter-spacing:2px;color:var(--dim);margin-top:4px;display:flex;justify-content:space-between;}
+input[type=range]{width:100%;}
+#panel{flex:1;min-height:60px;overflow-y:auto;font-size:12px;line-height:1.5;border:1px solid var(--border);padding:8px;background:rgba(0,0,0,.3);border-radius:6px;}
+#panel h4{font-family:'Oswald',sans-serif;letter-spacing:3px;color:var(--accent);font-size:13px;margin:4px 0 6px;}
+#overlay{position:absolute;inset:0;display:none;align-items:center;justify-content:center;background:rgba(0,0,0,.55);z-index:20;padding:16px;}#overlay.on{display:flex;}
+.modal{background:var(--panel);border:2px solid var(--accent);border-radius:10px;padding:18px 20px;max-width:520px;width:100%;max-height:100%;overflow:auto;}.modal h3{font-family:'Oswald',sans-serif;letter-spacing:5px;color:var(--accent);font-size:20px;margin-bottom:10px;}.modal p{font-size:13px;line-height:1.6;margin-bottom:10px;}
+.title h1{font-family:'Oswald',sans-serif;font-size:44px;letter-spacing:12px;color:var(--accent);text-align:center;text-shadow:0 0 24px rgba(127,208,255,.35);}.title .tag{font-size:12px;letter-spacing:4px;color:var(--dim);margin:6px 0 16px;text-align:center;}
+@media (max-width:760px){#wrap{grid-template-columns:1fr;grid-template-rows:58% 42%;}#side{border-left:none;border-top:1px solid var(--border);}.title h1{font-size:30px;letter-spacing:6px;}}
+</style></head>
+<body>
+<a class="back" href="/" title="Back to Iron Games">◀ IRON GAMES</a>
+<div id="wrap">
+  <div id="main"><div id="grid"></div><div id="overlay"></div></div>
+  <div id="side">
+    <h2 class="t">IRON TUNES</h2>
+    <div class="row"><button class="btn on" id="bPlay">▶ PLAY</button><button class="btn" id="bClear">CLEAR</button></div>
+    <div class="lbl"><span>TEMPO</span><span id="sBpm">120 BPM</span></div><input type="range" id="bpm" min="60" max="200" value="120">
+    <div class="lbl"><span>SOUND</span></div><div class="row" id="inst"></div>
+    <div class="lbl"><span>SONGS TO TRY</span></div><div class="row" id="songs"></div>
+    <div class="row"><button class="btn" id="bSave">SAVE TUNE</button><button class="btn" id="bLoad">MY TUNES</button><button class="btn" id="bRandom">RANDOM</button></div>
+    <div id="panel"></div>
+  </div>
+</div>
+<script>
+'use strict';
+const $=id=>document.getElementById(id);const STEPS=16,ROWS=9;
+const NOTES=[523.25,466.16,392,349.23,293.66,261.63,233.08,196]; // C5 Bb4 G4 F4 D4 C4 Bb3 G3: a pentatonic-ish scale, always sweet together
+const COLS=['#ff8fd0','#ff9a60','#ffd27a','#8ff0a0','#7fe0ff','#80a0ff','#c8a0ff','#ff6a9a','#ffffff'];
+const INST={bell:{n:'Bells',type:'sine',d:0.6},pluck:{n:'Harp',type:'triangle',d:0.35},organ:{n:'Organ',type:'square',d:0.25},bass:{n:'Synth',type:'sawtooth',d:0.3}};
+const SONGS={twinkle:{n:'Twinkle',p:['5..5.1..1.0..0.1','.............. ..','..........3..3..','3..3.4..4.......','................','................','................','................','8.8.8.8.8.8.8.8.']},lullaby:{n:'Lullaby',p:['................','..1.1...1.......','..........3.....','.4.......4......','5.......5.......','................','................','........6.......','8...8...8...8...']},march:{n:'March',p:['0.0.............','.......1.1......','........ ....3.3'.replace(' ',''),'4.......4.......','................','..5.5...........','...........6....','................','8.8.8.8.8.8.8.8.']},dance:{n:'Dance',p:['0...0...0...0...','..1...1...1...1.','.2.2.2.2.2.2.2.2','................','4.......4.......','................','....6.......6...','................','8.8.8.8.8.8.8.8.']}};
+let grid=[],inst='bell',bpm=120,playing=false,step=0,timer=null,tunes=[];
+try{const s=JSON.parse(localStorage.getItem('it_tunes')||'{}');tunes=s.tunes||[];if(s.grid)grid=s.grid;inst=s.inst||'bell';bpm=s.bpm||120}catch(e){}
+if(!grid.length)for(let r=0;r<ROWS;r++)grid.push(new Array(STEPS).fill(false));
+function save(){try{localStorage.setItem('it_tunes',JSON.stringify({grid,inst,bpm,tunes}))}catch(e){}}
+function build(){const g=$('grid');const main=$('main').getBoundingClientRect();const cs=Math.floor(Math.min((main.width-40)/STEPS-4,(main.height-40)/ROWS-4,44));g.style.setProperty('--cs',cs+'px');g.innerHTML='';for(let r=0;r<ROWS;r++)for(let s=0;s<STEPS;s++){const d=document.createElement('div');d.className='cell'+(s%4===0?' beat':'')+(r===ROWS-1?' drum':'')+(grid[r][s]?' on':'');d.style.setProperty('--c',COLS[r]);d.dataset.r=r;d.dataset.s=s;const tog=e=>{e.preventDefault();grid[r][s]=!grid[r][s];d.classList.toggle('on',grid[r][s]);if(grid[r][s])play(r);save()};d.addEventListener('mousedown',tog);d.addEventListener('touchstart',tog,{passive:false});g.appendChild(d)}}
+function refresh(){$('sBpm').textContent=bpm+' BPM';$('bpm').value=bpm;$('inst').innerHTML=Object.keys(INST).map(k=>'<button class="btn'+(inst===k?' on':'')+'" data-i="'+k+'">'+INST[k].n.toUpperCase()+'</button>').join('');for(const b of $('inst').children)b.onclick=()=>{inst=b.dataset.i;refresh();save()};$('songs').innerHTML=Object.keys(SONGS).map(k=>'<button class="btn" data-s="'+k+'">'+SONGS[k].n.toUpperCase()+'</button>').join('');for(const b of $('songs').children)b.onclick=()=>{loadPattern(SONGS[b.dataset.s].p);if(!playing)togglePlay()};$('bPlay').textContent=playing?'■ STOP':'▶ PLAY';
+  $('panel').innerHTML='<h4>HOW TO PLAY</h4><p>Each column is a beat and each row is a note, high at the top, low at the bottom; the bottom row is a drum. Tap squares to turn notes on and press PLAY. The eight notes always sound good together, so anything you make is a tune. Try the songs, change the sound and tempo, and save your favourites.</p>'}
+function loadPattern(p){for(let r=0;r<ROWS;r++)for(let s=0;s<STEPS;s++)grid[r][s]=!!(p[r]&&p[r][s]&&p[r][s]!=='.');build();save()}
+let AC=null;function ac(){if(!AC){try{AC=new (window.AudioContext||window.webkitAudioContext)()}catch(e){}}if(AC&&AC.state==='suspended')AC.resume();return AC}
+function play(r){const a=ac();if(!a)return;if(r===ROWS-1){const n=a.sampleRate*0.12;const buf=a.createBuffer(1,n,a.sampleRate);const ch=buf.getChannelData(0);for(let i=0;i<n;i++)ch[i]=(Math.random()*2-1)*(1-i/n)*(1-i/n);const src=a.createBufferSource();src.buffer=buf;const g=a.createGain();g.gain.value=0.18;src.connect(g);g.connect(a.destination);src.start();const o=a.createOscillator(),g2=a.createGain();o.frequency.setValueAtTime(150,a.currentTime);o.frequency.exponentialRampToValueAtTime(50,a.currentTime+0.12);g2.gain.value=0.25;g2.gain.exponentialRampToValueAtTime(0.0001,a.currentTime+0.15);o.connect(g2);g2.connect(a.destination);o.start();o.stop(a.currentTime+0.15);return}
+  const I=INST[inst];const o=a.createOscillator(),g=a.createGain();o.type=I.type;o.frequency.value=NOTES[r];g.gain.value=0.0001;g.gain.exponentialRampToValueAtTime(I.type==='sine'?0.25:0.12,a.currentTime+0.01);g.gain.exponentialRampToValueAtTime(0.0001,a.currentTime+I.d);o.connect(g);g.connect(a.destination);o.start();o.stop(a.currentTime+I.d+0.05)}
+function tick(){const cells=$('grid').children;for(const c of cells)c.classList.remove('now');for(let r=0;r<ROWS;r++){if(grid[r][step])play(r);cells[r*STEPS+step].classList.add('now')}step=(step+1)%STEPS}
+function togglePlay(){ac();playing=!playing;if(playing){step=0;tick();timer=setInterval(tick,60000/bpm/2)}else{clearInterval(timer);for(const c of $('grid').children)c.classList.remove('now')}refresh()}
+$('bPlay').onclick=togglePlay;$('bClear').onclick=()=>{for(const row of grid)row.fill(false);build();save()};$('bpm').oninput=e=>{bpm=+e.target.value;$('sBpm').textContent=bpm+' BPM';if(playing){clearInterval(timer);timer=setInterval(tick,60000/bpm/2)}save()};
+$('bRandom').onclick=()=>{for(let r=0;r<ROWS;r++)for(let s=0;s<STEPS;s++)grid[r][s]=r===ROWS-1?s%4===0||(s%8===6&&Math.random()<0.5):Math.random()<0.13;build();save();if(!playing)togglePlay()};
+$('bSave').onclick=()=>{const name=prompt('Name this tune:','Tune '+(tunes.length+1));if(name===null)return;tunes.push({name:(name||'Tune').slice(0,20),grid:JSON.parse(JSON.stringify(grid)),inst,bpm});save();alert('Saved!')};
+$('bLoad').onclick=()=>{let h='<h3>MY TUNES</h3>';if(!tunes.length)h+='<p>No saved tunes yet.</p>';tunes.forEach((t,i)=>{h+='<div class="row" style="margin-bottom:6px"><button class="btn" data-o="'+i+'">'+t.name.toUpperCase()+' · '+t.bpm+' BPM</button><button class="btn" data-d="'+i+'" style="flex:0 0 70px">DELETE</button></div>'});h+='<button class="btn" id="ok">CLOSE</button>';$('overlay').innerHTML='<div class="modal">'+h+'</div>';$('overlay').classList.add('on');$('ok').onclick=()=>$('overlay').classList.remove('on');for(const b of document.querySelectorAll('button[data-o]'))b.onclick=()=>{const t=tunes[+b.dataset.o];grid=JSON.parse(JSON.stringify(t.grid));inst=t.inst;bpm=t.bpm;build();refresh();save();$('overlay').classList.remove('on');if(!playing)togglePlay()};for(const b of document.querySelectorAll('button[data-d]'))b.onclick=()=>{tunes.splice(+b.dataset.d,1);save();$('bLoad').onclick()}};
+addEventListener('resize',build);
+$('overlay').innerHTML='<div class="modal title"><h1>IRON TUNES</h1><div class="tag">MAKE MUSIC WITH A TAP</div><p>A grid of sixteen beats and eight notes that always sound sweet together, plus a drum row. Tap to light up notes, press play, pick bells, harp, organ or synth and set the tempo. Try the built-in songs, press RANDOM for a surprise, and save the tunes you like.</p><button class="btn on" id="go">OPEN THE STUDIO</button></div>';$('overlay').classList.add('on');$('go').onclick=()=>{$('overlay').classList.remove('on');ac()};
+build();refresh();
+</script></body></html>

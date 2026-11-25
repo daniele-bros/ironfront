@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0,viewport-fit=cover,user-scalable=no">
+<title>Iron Garden – Free Cozy Gardening Game in Your Browser | Iron Games</title>
+<meta name="description" content="Iron Garden is a free browser gardening game: plant seeds, water them, chase off snails, harvest flowers and vegetables, sell the crop and grow your garden with sprinklers, scarecrows and new seeds. Saves in your browser. No download.">
+<meta name="robots" content="index,follow,max-snippet:-1,max-image-preview:large">
+<link rel="canonical" href="https://irongames.win/irongarden.html">
+<link rel="icon" href="favicon.svg" type="image/svg+xml">
+<link rel="manifest" href="site.webmanifest">
+<meta property="og:type" content="website"><meta property="og:site_name" content="Iron Games"><meta property="og:title" content="Iron Garden – Cozy Gardening Game | Iron Games"><meta property="og:description" content="Plant, water, harvest and grow a garden. Free in your browser, no download."><meta property="og:url" content="https://irongames.win/irongarden.html"><meta name="twitter:card" content="summary">
+<script type="application/ld+json">{"@context":"https://schema.org","@graph":[{"@type":"VideoGame","name":"Iron Garden","url":"https://irongames.win/irongarden.html","genre":["Casual","Simulation","Farming","Family"],"gamePlatform":"Web browser","applicationCategory":"Game","operatingSystem":"Any","isAccessibleForFree":true,"offers":{"@type":"Offer","price":"0","priceCurrency":"USD"},"author":{"@type":"Organization","name":"Daniele Bros","url":"https://irongames.win/"},"description":"A cozy gardening game: plant seeds in plots, water them, chase off snails, harvest flowers and vegetables, sell the crop and buy sprinklers, scarecrows, seeds and decorations."},{"@type":"BreadcrumbList","itemListElement":[{"@type":"ListItem","position":1,"name":"Iron Games","item":"https://irongames.win/"},{"@type":"ListItem","position":2,"name":"Iron Garden","item":"https://irongames.win/irongarden.html"}]}]}</script>
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link href="https://fonts.googleapis.com/css2?family=Oswald:wght@500;700&family=Share+Tech+Mono&display=swap" rel="stylesheet">
+<style>
+:root{--gold:#e8c84a;--cream:#f6fff0;--dim:#8ab080;--panel:rgba(20,44,24,.94);--border:#3e7a48;--accent:#8ff0a0;}
+*{box-sizing:border-box;margin:0;padding:0;}html,body{width:100%;height:100%;overflow:hidden;background:#14301a;}
+body{font-family:'Share Tech Mono','Courier New',monospace;color:var(--cream);user-select:none;-webkit-user-select:none;touch-action:none;}
+#wrap{position:absolute;inset:0;display:grid;grid-template-columns:1fr 300px;}#main{position:relative;overflow:hidden;}canvas#c{width:100%;height:100%;display:block;}
+#side{background:var(--panel);border-left:1px solid var(--border);display:flex;flex-direction:column;padding:12px;gap:7px;overflow-y:auto;}
+.back{position:absolute;top:10px;left:10px;z-index:30;background:rgba(20,44,24,.85);color:var(--dim);font-family:'Oswald',sans-serif;font-size:12px;letter-spacing:3px;padding:7px 12px;border:1px solid var(--border);text-decoration:none;border-radius:2px;}.back:hover{color:var(--gold);border-color:var(--gold);}
+h2.t{font-family:'Oswald',sans-serif;font-size:22px;letter-spacing:6px;color:var(--accent);}
+.stat{display:flex;justify-content:space-between;font-size:12px;letter-spacing:1px;padding:2px 0;border-bottom:1px dashed #2e5a34;}.stat b{color:var(--gold);}
+.btn{display:block;width:100%;background:#24502c;border:1px solid var(--border);color:var(--cream);font-family:'Oswald',sans-serif;font-size:12px;letter-spacing:2px;padding:7px 6px;cursor:pointer;text-align:center;border-radius:6px;}.btn:hover{border-color:var(--accent);color:var(--accent);}.btn.on{background:#3a8a48;border-color:var(--accent);color:#fff;}.btn:disabled{opacity:.4;cursor:default;}
+.row{display:flex;gap:5px;flex-wrap:wrap;}.row .btn{flex:1;min-width:60px;}
+.lbl{font-size:10px;letter-spacing:2px;color:var(--dim);margin-top:4px;}
+#panel{flex:1;min-height:90px;overflow-y:auto;font-size:12px;line-height:1.5;border:1px solid var(--border);padding:8px;background:rgba(0,0,0,.3);border-radius:6px;}
+#panel h4{font-family:'Oswald',sans-serif;letter-spacing:3px;color:var(--accent);font-size:13px;margin:4px 0 6px;}
+#panel .it{display:flex;justify-content:space-between;align-items:center;gap:6px;padding:4px 0;border-bottom:1px solid #2e5a34;}#panel .it small{color:var(--dim);display:block;}
+#panel .it button{background:#24502c;border:1px solid var(--border);color:var(--gold);font-family:'Oswald',sans-serif;font-size:11px;letter-spacing:2px;padding:5px 8px;cursor:pointer;border-radius:4px;white-space:nowrap;}#panel .it button:disabled{opacity:.35;cursor:default;}
+#log{max-height:70px;overflow-y:auto;font-size:11px;line-height:1.5;color:#cfe8c8;border-top:1px solid var(--border);padding-top:4px;}#log p.good{color:var(--accent);}
+#overlay{position:absolute;inset:0;display:none;align-items:center;justify-content:center;background:rgba(0,0,0,.55);z-index:20;padding:16px;}#overlay.on{display:flex;}
+.modal{background:var(--panel);border:2px solid var(--accent);border-radius:10px;padding:18px 20px;max-width:520px;width:100%;max-height:100%;overflow:auto;}.modal h3{font-family:'Oswald',sans-serif;letter-spacing:5px;color:var(--accent);font-size:20px;margin-bottom:10px;}.modal p{font-size:13px;line-height:1.6;margin-bottom:10px;}
+.title h1{font-family:'Oswald',sans-serif;font-size:44px;letter-spacing:12px;color:var(--accent);text-align:center;text-shadow:0 0 24px rgba(143,240,160,.35);}.title .tag{font-size:12px;letter-spacing:4px;color:var(--dim);margin:6px 0 16px;text-align:center;}
+@media (max-width:760px){#wrap{grid-template-columns:1fr;grid-template-rows:50% 50%;}#side{border-left:none;border-top:1px solid var(--border);}.title h1{font-size:30px;letter-spacing:6px;}}
+</style></head>
+<body>
+<a class="back" href="/" title="Back to Iron Games">◀ IRON GAMES</a>
+<div id="wrap">
+  <div id="main"><canvas id="c"></canvas><div id="overlay"></div></div>
+  <div id="side">
+    <h2 class="t">IRON GARDEN</h2>
+    <div class="stat"><span id="sDay">Day 1 · sunny</span><b id="sCoins">0 coins</b></div>
+    <div class="stat"><span id="sLvl">Gardener level 1</span><b id="sXp">0 xp</b></div>
+    <div class="lbl">TOOL</div>
+    <div class="row" id="tools"></div>
+    <div class="lbl">SEEDS</div>
+    <div class="row" id="seeds"></div>
+    <div class="row"><button class="btn" id="bShop">SHOP</button><button class="btn" id="bSleep">SLEEP TILL MORNING</button></div>
+    <div id="panel"></div>
+    <div id="log"></div>
+  </div>
+</div>
+<script>
+'use strict';
+const $=id=>document.getElementById(id);const clamp=(v,a,b)=>v<a?a:v>b?b:v;const rnd=(a,b)=>a+Math.random()*(b-a);const ri=(a,b)=>Math.floor(rnd(a,b+1));const pick=a=>a[Math.floor(Math.random()*a.length)];
+const SEEDS={sunflower:{n:'Sunflower',price:4,sell:12,grow:40,lvl:1,col:'#ffd040',kind:'flower'},tulip:{n:'Tulip',price:3,sell:9,grow:30,lvl:1,col:'#ff6a9a',kind:'flower'},carrot:{n:'Carrot',price:3,sell:8,grow:28,lvl:1,col:'#ff8a30',kind:'veg'},strawberry:{n:'Strawberry',price:6,sell:18,grow:55,lvl:2,col:'#e03050',kind:'veg'},rose:{n:'Rose',price:8,sell:26,grow:70,lvl:3,col:'#d02050',kind:'flower'},pumpkin:{n:'Pumpkin',price:10,sell:34,grow:90,lvl:4,col:'#ff9a30',kind:'veg'},lavender:{n:'Lavender',price:9,sell:30,grow:75,lvl:5,col:'#a070e0',kind:'flower'}};
+const SHOP=[{k:'can',n:'Bigger watering can',max:2,price:l=>40+40*l,d:'Each watering lasts longer'},{k:'sprinkler',n:'Sprinkler',max:1,price:()=>120,d:'Waters every plot each morning'},{k:'scarecrow',n:'Scarecrow',max:1,price:()=>90,d:'Snails come half as often'},{k:'plots',n:'More plots',max:2,price:l=>80+80*l,d:'Adds a row of plots'},{k:'fence',n:'White fence',max:1,price:()=>50,d:'A pretty border'},{k:'pond',n:'Lily pond',max:1,price:()=>140,d:'Frogs! And a happier garden'}];
+const COLS=6;let ROWS=2;
+let S=null,tool='water',seed='tulip',shopOpen=false,drops=[],last=0,sun=0;
+const xpFor=l=>60*l*l;
+function newState(){return {coins:30,xp:0,lvl:1,day:1,weather:'sunny',plots:[],up:{can:0,sprinkler:0,scarecrow:0,plots:0,fence:0,pond:0},seeds:{tulip:3,carrot:2,sunflower:1},t:Date.now()}}
+function ensurePlots(){ROWS=2+S.up.plots;while(S.plots.length<ROWS*COLS)S.plots.push({seed:null,g:0,water:0,snail:false})}
+function save(){try{S.t=Date.now();localStorage.setItem('ig_save',JSON.stringify(S))}catch(e){}}
+function load(){try{const s=JSON.parse(localStorage.getItem('ig_save'));if(s&&s.plots)return s}catch(e){}return null}
+function log(t,cls){const el=document.createElement('p');if(cls)el.className=cls;el.textContent=t;$('log').appendChild(el);while($('log').children.length>6)$('log').removeChild($('log').firstChild);$('log').scrollTop=$('log').scrollHeight}
+function show(html){return new Promise(res=>{$('overlay').innerHTML='<div class="modal">'+html+'</div>';$('overlay').classList.add('on');const b=$('ok');if(b)b.onclick=()=>{hide();res()}})}
+function hide(){$('overlay').classList.remove('on');$('overlay').innerHTML=''}
+function addXp(n){S.xp+=n;while(S.xp>=xpFor(S.lvl)){S.xp-=xpFor(S.lvl);S.lvl++;log('Gardener level '+S.lvl+'! New seeds are in the shop.','good')}}
+function refresh(){$('sDay').textContent='Day '+S.day+' · '+S.weather;$('sCoins').textContent=S.coins+' coins';$('sLvl').textContent='Gardener level '+S.lvl;$('sXp').textContent=S.xp+' / '+xpFor(S.lvl)+' xp';
+  $('tools').innerHTML=[['water','WATER'],['plant','PLANT'],['harvest','HARVEST'],['dig','DIG UP']].map(([k,l])=>'<button class="btn'+(tool===k?' on':'')+'" data-t="'+k+'">'+l+'</button>').join('');for(const b of $('tools').children)b.onclick=()=>{tool=b.dataset.t;refresh()};
+  $('seeds').innerHTML=Object.keys(SEEDS).filter(k=>S.seeds[k]>0||SEEDS[k].lvl<=S.lvl).map(k=>'<button class="btn'+(seed===k?' on':'')+'" data-s="'+k+'">'+SEEDS[k].n.toUpperCase()+' ×'+(S.seeds[k]||0)+'</button>').join('');for(const b of $('seeds').children)b.onclick=()=>{seed=b.dataset.s;tool='plant';refresh()};save()}
+function renderPanel(){const p=$('panel');if(shopOpen){let h='<h4>SEED SHOP</h4>';for(const k in SEEDS){const s=SEEDS[k];h+='<div class="it"><span>'+s.n+' seeds ×3<small>'+(s.lvl>S.lvl?'Level '+s.lvl+' · ':'')+'sells for '+s.sell+' · '+s.price*3+' coins</small></span><button data-a="seed:'+k+'" '+(s.lvl<=S.lvl&&S.coins>=s.price*3?'':'disabled')+'>BUY</button></div>'}h+='<h4>TOOLS AND DECOR</h4>';for(const u of SHOP){const l=S.up[u.k];h+='<div class="it"><span>'+u.n+(l>=u.max?' (max)':'')+'<small>'+u.d+(l<u.max?' · '+u.price(l)+' coins':'')+'</small></span><button data-a="up:'+u.k+'" '+(l<u.max&&S.coins>=u.price(l)?'':'disabled')+'>'+(l>=u.max?'OWNED':'BUY')+'</button></div>'}h+='<button class="btn" id="closeShop" style="margin-top:8px">BACK TO THE GARDEN</button>';p.innerHTML=h;$('closeShop').onclick=()=>{shopOpen=false;renderPanel()};for(const b of p.querySelectorAll('button[data-a]'))b.onclick=()=>buy(b.dataset.a);return}
+  p.innerHTML='<h4>HOW TO GARDEN</h4><p>Pick a tool, then click a plot. <b>Plant</b> puts the selected seed in an empty plot, <b>Water</b> keeps it growing (the blue bar under each plot is its water), <b>Harvest</b> picks a ripe plant for coins and experience, <b>Dig up</b> clears a plot. Snails slow plants down: click them with any tool to shoo them away. Rain waters everything for free. Sleep to start a new day.</p>'}
+function buy(a){const [t,k]=a.split(':');if(t==='seed'){const s=SEEDS[k];if(S.coins<s.price*3)return;S.coins-=s.price*3;S.seeds[k]=(S.seeds[k]||0)+3;log('Bought 3 '+s.n.toLowerCase()+' seeds.')}else{const u=SHOP.find(u=>u.k===k);const l=S.up[k];if(l>=u.max||S.coins<u.price(l))return;S.coins-=u.price(l);S.up[k]++;ensurePlots();log(u.n+' bought!','good')}refresh();renderPanel()}
+/* ---- plots ---- */
+function plotRect(i){const pw=Math.min(110,(W-80)/COLS),ph=pw*0.9;const ox=(W-pw*COLS)/2,oy=H*0.3;const x=i%COLS,y=Math.floor(i/COLS);return [ox+x*pw,oy+y*ph*1.15,pw-8,ph]}
+function clickPlot(i){const pl=S.plots[i];if(pl.snail){pl.snail=false;log('Shooed a snail away.');beep(500,0.08);return}
+  if(tool==='plant'){if(pl.seed){log('That plot is taken.');return}if(!(S.seeds[seed]>0)){log('No '+SEEDS[seed].n.toLowerCase()+' seeds left. Buy some in the shop.');return}S.seeds[seed]--;pl.seed=seed;pl.g=0;pl.water=40;log('Planted a '+SEEDS[seed].n.toLowerCase()+'.');beep(400,0.06)}
+  else if(tool==='water'){if(!pl.seed){log('Nothing to water there.');return}pl.water=clamp(pl.water+45+S.up.can*25,0,100);for(let k=0;k<8;k++){const r=plotRect(i);drops.push({x:r[0]+rnd(10,r[2]-10),y:r[1]-10,vy:rnd(40,120),t:0.6})}beep(700,0.05)}
+  else if(tool==='harvest'){if(!pl.seed||pl.g<100){log(pl.seed?'Not ripe yet.':'Nothing to harvest.');return}const s=SEEDS[pl.seed];S.coins+=s.sell;addXp(Math.round(s.sell*0.8));log('Harvested a '+s.n.toLowerCase()+' for '+s.sell+' coins!','good');pl.seed=null;pl.g=0;beep(900,0.12,'triangle')}
+  else if(tool==='dig'){if(!pl.seed)return;pl.seed=null;pl.g=0;log('Dug up the plot.');beep(200,0.1,'sawtooth')}
+  refresh()}
+function sleep(){S.day++;S.weather=Math.random()<0.3?'rainy':Math.random()<0.15?'cloudy':'sunny';let grown=0;for(const pl of S.plots){if(S.up.sprinkler)pl.water=100;if(S.weather==='rainy')pl.water=100;if(pl.seed&&pl.water>20){pl.g=clamp(pl.g+30,0,100);pl.water=clamp(pl.water-25,0,100);grown++}if(Math.random()<(S.up.scarecrow?0.06:0.14)&&pl.seed)pl.snail=true}
+  log('Day '+S.day+' dawns, '+S.weather+'. '+(grown?grown+' plants grew overnight.':'Water your plants so they grow while you sleep.'));refresh();renderPanel()}
+function tick(dt){for(const pl of S.plots){if(!pl.seed)continue;const s=SEEDS[pl.seed];let rate=100/s.grow;if(pl.water<=0)rate=0;if(pl.snail)rate*=0.3;if(S.weather==='rainy')rate*=1.2;pl.g=clamp(pl.g+rate*dt,0,100);pl.water=clamp(pl.water-dt*(S.weather==='rainy'?0:S.weather==='sunny'?1.6:0.9),0,100);if(S.weather==='rainy')pl.water=clamp(pl.water+dt*8,0,100)}
+  if(Math.random()<dt*(S.up.scarecrow?0.01:0.02)){const planted=S.plots.map((p,i)=>p.seed&&!p.snail?i:-1).filter(i=>i>=0);if(planted.length)S.plots[pick(planted)].snail=true}
+  for(const d of drops){d.y+=d.vy*dt;d.t-=dt}drops=drops.filter(d=>d.t>0)}
+/* ---- drawing ---- */
+const cv=$('c'),ctx=cv.getContext('2d');let W=800,H=450;
+function resize(){const r=cv.getBoundingClientRect();W=Math.max(300,Math.floor(r.width));H=Math.max(200,Math.floor(r.height));cv.width=W;cv.height=H}addEventListener('resize',resize);resize();
+function draw(){const t=performance.now()/1000;const rain=S&&S.weather==='rainy';const sky=ctx.createLinearGradient(0,0,0,H*0.3);sky.addColorStop(0,rain?'#8a98b0':S&&S.weather==='cloudy'?'#b8c4d0':'#7fc4ff');sky.addColorStop(1,rain?'#b0b8c8':'#d8f0ff');ctx.fillStyle=sky;ctx.fillRect(0,0,W,H*0.3);
+  if(!rain){ctx.fillStyle='#ffe070';ctx.beginPath();ctx.arc(W*0.85,H*0.1,26,0,7);ctx.fill()}ctx.fillStyle='rgba(255,255,255,0.85)';for(const [x,y] of [[0.15,0.08],[0.45,0.14],[0.65,0.06]]){ctx.beginPath();ctx.arc(W*x+(t*6)%40,H*y,16,0,7);ctx.arc(W*x+20+(t*6)%40,H*y-6,20,0,7);ctx.arc(W*x+42+(t*6)%40,H*y,14,0,7);ctx.fill()}
+  const g=ctx.createLinearGradient(0,H*0.3,0,H);g.addColorStop(0,'#6fbf4a');g.addColorStop(1,'#3f8a2e');ctx.fillStyle=g;ctx.fillRect(0,H*0.3,W,H);ctx.fillStyle='rgba(0,0,0,0.06)';for(let i=0;i<60;i++)ctx.fillRect((i*97)%W,H*0.3+(i*53)%(H*0.7),6,2);
+  if(!S)return;
+  if(S.up.fence){ctx.fillStyle='#fff';for(let x=10;x<W-10;x+=28){ctx.fillRect(x,H*0.24,6,30)}ctx.fillRect(10,H*0.27,W-20,4);ctx.fillRect(10,H*0.33,W-20,4)}
+  if(S.up.pond){ctx.fillStyle='#4aa8e0';ctx.beginPath();ctx.ellipse(W*0.12,H*0.88,70,26,0,0,7);ctx.fill();ctx.fillStyle='#40b060';for(const [dx,dy] of [[-20,-6],[18,4],[-2,10]]){ctx.beginPath();ctx.ellipse(W*0.12+dx,H*0.88+dy,12,7,0,0,7);ctx.fill()}ctx.fillStyle='#ff8fb8';ctx.beginPath();ctx.arc(W*0.12+18,H*0.88+1,4,0,7);ctx.fill();ctx.fillStyle='#50c060';ctx.beginPath();ctx.arc(W*0.12-20,H*0.88-10,6,0,7);ctx.fill();ctx.fillStyle='#fff';ctx.fillRect(W*0.12-24,H*0.88-14,3,3);ctx.fillRect(W*0.12-18,H*0.88-14,3,3)}
+  if(S.up.scarecrow){const sx=W*0.9,sy=H*0.62;ctx.fillStyle='#8a6a3a';ctx.fillRect(sx-3,sy-80,6,90);ctx.fillRect(sx-30,sy-60,60,5);ctx.fillStyle='#d0a060';ctx.fillRect(sx-16,sy-64,32,40);ctx.fillStyle='#ffe0a0';ctx.beginPath();ctx.arc(sx,sy-78,12,0,7);ctx.fill();ctx.fillStyle='#8a4a2a';ctx.fillRect(sx-16,sy-92,32,6);ctx.fillRect(sx-9,sy-102,18,12)}
+  if(S.up.sprinkler){ctx.fillStyle='#808898';ctx.fillRect(W/2-4,H*0.27,8,20);ctx.fillStyle='rgba(120,200,255,'+(0.3+0.2*Math.sin(t*6))+')';ctx.beginPath();ctx.arc(W/2,H*0.27,30+Math.sin(t*6)*6,Math.PI,0);ctx.fill()}
+  for(let i=0;i<ROWS*COLS;i++){const [x,y,w,h]=plotRect(i);const pl=S.plots[i];ctx.fillStyle='#6a4a2a';ctx.fillRect(x,y,w,h);ctx.fillStyle='#4e3418';ctx.fillRect(x,y+h-6,w,6);ctx.fillStyle='rgba(0,0,0,0.1)';for(let k=0;k<4;k++)ctx.fillRect(x+6,y+8+k*(h/5),w-12,2);
+    if(pl.seed){drawPlant(pl,x+w/2,y+h-8,w);}
+    ctx.fillStyle='#2a4a8a';ctx.fillRect(x,y+h+3,w,4);ctx.fillStyle='#5ab0ff';ctx.fillRect(x,y+h+3,w*pl.water/100,4);
+    if(pl.seed){ctx.fillStyle='#3a2a1a';ctx.fillRect(x,y+h+9,w,3);ctx.fillStyle=pl.g>=100?'#ffd040':'#8ff0a0';ctx.fillRect(x,y+h+9,w*pl.g/100,3)}
+    if(pl.snail){ctx.fillStyle='#c8a060';ctx.beginPath();ctx.arc(x+w-18,y+h-14,10,0,7);ctx.fill();ctx.fillStyle='#8a6a3a';ctx.beginPath();ctx.arc(x+w-18,y+h-14,5,0,7);ctx.fill();ctx.fillStyle='#b0b080';ctx.fillRect(x+w-32,y+h-10,18,8);ctx.fillRect(x+w-34,y+h-18,3,10);ctx.fillRect(x+w-28,y+h-18,3,10)}}
+  ctx.fillStyle='rgba(120,180,255,0.9)';for(const d of drops)ctx.fillRect(d.x,d.y,3,6);
+  if(rain){ctx.strokeStyle='rgba(200,220,255,0.5)';for(let i=0;i<80;i++){const x=(i*61)%W,y=(i*37+t*500)%H;ctx.beginPath();ctx.moveTo(x,y);ctx.lineTo(x-2,y+10);ctx.stroke()}}
+  ctx.fillStyle='rgba(20,44,24,0.55)';ctx.fillRect(0,0,W,26);ctx.fillStyle='#cfe8c8';ctx.font='bold 13px Oswald, sans-serif';ctx.textAlign='left';ctx.fillText(('TOOL: '+tool+(tool==='plant'?' · '+SEEDS[seed].n:'')+' · CLICK A PLOT').toUpperCase(),150,17)}
+function drawPlant(pl,x,y,w){const s=SEEDS[pl.seed];const f=pl.g/100;const hgt=(10+f*Math.min(60,w*0.7));ctx.fillStyle='#3a8a3a';ctx.fillRect(x-2,y-hgt,4,hgt);for(let k=0;k<2+Math.floor(f*3);k++){const ly=y-hgt*(0.3+k*0.22);const dir=k%2?1:-1;ctx.beginPath();ctx.ellipse(x+dir*8,ly,10,4,dir*0.5,0,7);ctx.fill()}
+  if(f<0.3){ctx.fillStyle='#8fd080';ctx.beginPath();ctx.arc(x,y-hgt,4,0,7);ctx.fill();return}
+  const r=6+f*10;ctx.fillStyle=f>=1?s.col:'#8fd080';
+  if(s.kind==='flower'){if(pl.seed==='tulip'){ctx.beginPath();ctx.moveTo(x-r,y-hgt);ctx.lineTo(x-r*0.7,y-hgt-r*1.6);ctx.lineTo(x,y-hgt-r*0.8);ctx.lineTo(x+r*0.7,y-hgt-r*1.6);ctx.lineTo(x+r,y-hgt);ctx.fill()}else if(pl.seed==='lavender'){for(let k=0;k<5;k++){ctx.beginPath();ctx.arc(x+(k%2?3:-3),y-hgt-k*5,4,0,7);ctx.fill()}}else{for(let k=0;k<8;k++){const a=k/8*Math.PI*2;ctx.beginPath();ctx.ellipse(x+Math.cos(a)*r*0.9,y-hgt+Math.sin(a)*r*0.9,r*0.55,r*0.35,a,0,7);ctx.fill()}ctx.fillStyle=pl.seed==='sunflower'?'#6a3a1a':'#ffe9a0';ctx.beginPath();ctx.arc(x,y-hgt,r*0.5,0,7);ctx.fill()}}
+  else{if(pl.seed==='carrot'){if(f>=1){ctx.fillStyle='#ff8a30';ctx.beginPath();ctx.moveTo(x-5,y);ctx.lineTo(x+5,y);ctx.lineTo(x,y+12);ctx.fill()}}else if(pl.seed==='pumpkin'){ctx.beginPath();ctx.ellipse(x+10,y-6,r*1.3,r,0,0,7);ctx.fill();ctx.fillStyle='rgba(0,0,0,0.12)';ctx.fillRect(x+9,y-6-r,2,r*2)}else{for(const [dx,dy] of [[-8,-10],[6,-14],[0,-4]]){ctx.beginPath();ctx.arc(x+dx,y-hgt*0.5+dy,5,0,7);ctx.fill()}}}}
+function frame(now){requestAnimationFrame(frame);const dt=Math.min(0.1,(now-last)/1000||0);last=now;if(S){tick(dt);if(Math.floor(now/700)!==Math.floor((now-dt*1000)/700))refresh()}draw()}
+cv.addEventListener('mousedown',e=>{const r=cv.getBoundingClientRect();tap((e.clientX-r.left)*W/r.width,(e.clientY-r.top)*H/r.height)});cv.addEventListener('touchstart',e=>{const t=e.touches[0];const r=cv.getBoundingClientRect();tap((t.clientX-r.left)*W/r.width,(t.clientY-r.top)*H/r.height);e.preventDefault()},{passive:false});
+function tap(x,y){if(!S)return;ac();for(let i=0;i<ROWS*COLS;i++){const [px,py,w,h]=plotRect(i);if(x>=px&&x<=px+w&&y>=py-40&&y<=py+h+12){clickPlot(i);return}}}
+$('bShop').onclick=()=>{shopOpen=!shopOpen;renderPanel()};$('bSleep').onclick=sleep;
+let AC=null;function ac(){if(!AC){try{AC=new (window.AudioContext||window.webkitAudioContext)()}catch(e){}}if(AC&&AC.state==='suspended')AC.resume();return AC}
+function beep(f,d,type){const a=ac();if(!a)return;const o=a.createOscillator(),g=a.createGain();o.type=type||'sine';o.frequency.value=f;g.gain.value=0.05;g.gain.exponentialRampToValueAtTime(0.0001,a.currentTime+d);o.connect(g);g.connect(a.destination);o.start();o.stop(a.currentTime+d)}
+function titleScreen(){const saved=load();$('overlay').innerHTML='<div class="modal title"><h1>IRON GARDEN</h1><div class="tag">PLANT · WATER · HARVEST</div><p>A little plot of earth and a packet of seeds. Plant flowers and vegetables, keep them watered, chase the snails off, harvest when they are ripe and sell the crop for more seeds, a sprinkler, a scarecrow and a lily pond. Rain waters everything for free.</p>'+(saved?'<button class="btn on" id="cont">CONTINUE — DAY '+saved.day+'</button>':'')+'<button class="btn" id="new" style="margin-top:6px">NEW GARDEN</button></div>';$('overlay').classList.add('on');
+  const begin=st=>{S=st;ensurePlots();hide();refresh();renderPanel();log(saved===st?'Welcome back to the garden.':'Welcome! Plant your first seeds and give them water.')};if(saved)$('cont').onclick=()=>begin(saved);$('new').onclick=()=>begin(newState())}
+titleScreen();requestAnimationFrame(frame);
+</script></body></html>

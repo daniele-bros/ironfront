@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0,viewport-fit=cover,user-scalable=no">
+<title>Iron Meadow – Free Butterfly Catching Game in Your Browser | Iron Games</title>
+<meta name="description" content="Iron Meadow is a free browser butterfly game: wander a sunny meadow with a net, catch twelve kinds of butterfly from common cabbage whites to the rare midnight emperor, fill your collection book, release them for coins and buy a bigger net. Saves in your browser. No download.">
+<meta name="robots" content="index,follow,max-snippet:-1,max-image-preview:large">
+<link rel="canonical" href="https://irongames.win/ironmeadow.html">
+<link rel="icon" href="favicon.svg" type="image/svg+xml"><link rel="manifest" href="site.webmanifest">
+<meta property="og:type" content="website"><meta property="og:site_name" content="Iron Games"><meta property="og:title" content="Iron Meadow – Butterfly Catching | Iron Games"><meta property="og:description" content="Catch twelve kinds of butterfly with your net and fill the collection book. Free in your browser, no download."><meta property="og:url" content="https://irongames.win/ironmeadow.html"><meta name="twitter:card" content="summary">
+<script type="application/ld+json">{"@context":"https://schema.org","@graph":[{"@type":"VideoGame","name":"Iron Meadow","url":"https://irongames.win/ironmeadow.html","genre":["Casual","Collecting","Nature","Family"],"gamePlatform":"Web browser","applicationCategory":"Game","operatingSystem":"Any","isAccessibleForFree":true,"offers":{"@type":"Offer","price":"0","priceCurrency":"USD"},"author":{"@type":"Organization","name":"Daniele Bros","url":"https://irongames.win/"},"description":"A relaxing butterfly catching game: swing a net at twelve species that appear by time of day, fill a collection book, release butterflies for coins and buy a bigger, faster net."},{"@type":"BreadcrumbList","itemListElement":[{"@type":"ListItem","position":1,"name":"Iron Games","item":"https://irongames.win/"},{"@type":"ListItem","position":2,"name":"Iron Meadow","item":"https://irongames.win/ironmeadow.html"}]}]}</script>
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link href="https://fonts.googleapis.com/css2?family=Oswald:wght@500;700&family=Share+Tech+Mono&display=swap" rel="stylesheet">
+<style>
+:root{--gold:#e8c84a;--cream:#fffef0;--dim:#a0b080;--panel:rgba(30,40,20,.94);--border:#5a7a3a;--accent:#d8f080;}
+*{box-sizing:border-box;margin:0;padding:0;}html,body{width:100%;height:100%;overflow:hidden;background:#1e2814;}
+body{font-family:'Share Tech Mono','Courier New',monospace;color:var(--cream);user-select:none;-webkit-user-select:none;touch-action:none;}
+#wrap{position:absolute;inset:0;display:grid;grid-template-columns:1fr 290px;}#main{position:relative;overflow:hidden;}canvas#c{width:100%;height:100%;display:block;cursor:none;}
+#side{background:var(--panel);border-left:1px solid var(--border);display:flex;flex-direction:column;padding:12px;gap:7px;overflow-y:auto;}
+.back{position:absolute;top:10px;left:10px;z-index:30;background:rgba(30,40,20,.85);color:var(--dim);font-family:'Oswald',sans-serif;font-size:12px;letter-spacing:3px;padding:7px 12px;border:1px solid var(--border);text-decoration:none;border-radius:2px;}.back:hover{color:var(--gold);border-color:var(--gold);}
+h2.t{font-family:'Oswald',sans-serif;font-size:22px;letter-spacing:6px;color:var(--accent);}
+.stat{display:flex;justify-content:space-between;font-size:12px;letter-spacing:1px;padding:2px 0;border-bottom:1px dashed #3e5a2a;}.stat b{color:var(--gold);}
+.btn{display:block;width:100%;background:#3a4e2a;border:1px solid var(--border);color:var(--cream);font-family:'Oswald',sans-serif;font-size:12px;letter-spacing:2px;padding:7px 6px;cursor:pointer;text-align:center;border-radius:6px;}.btn:hover{border-color:var(--accent);color:var(--accent);}.btn.on{background:#6a8a3a;border-color:var(--accent);color:#fff;}.btn:disabled{opacity:.4;cursor:default;}
+.row{display:flex;gap:5px;flex-wrap:wrap;}.row .btn{flex:1;min-width:58px;}
+#panel{flex:1;min-height:90px;overflow-y:auto;font-size:12px;line-height:1.5;border:1px solid var(--border);padding:8px;background:rgba(0,0,0,.3);border-radius:6px;}
+#panel h4{font-family:'Oswald',sans-serif;letter-spacing:3px;color:var(--accent);font-size:13px;margin:4px 0 6px;}
+#panel .it{display:flex;justify-content:space-between;align-items:center;gap:6px;padding:3px 0;border-bottom:1px solid #3e5a2a;}#panel .it small{color:var(--dim);display:block;}
+#panel .it button{background:#3a4e2a;border:1px solid var(--border);color:var(--gold);font-family:'Oswald',sans-serif;font-size:11px;letter-spacing:2px;padding:4px 8px;cursor:pointer;border-radius:4px;white-space:nowrap;}#panel .it button:disabled{opacity:.35;cursor:default;}
+.sw{display:inline-block;width:12px;height:12px;border-radius:50%;border:1px solid #fff;vertical-align:middle;margin-right:5px;}
+#overlay{position:absolute;inset:0;display:none;align-items:center;justify-content:center;background:rgba(0,0,0,.55);z-index:20;padding:16px;}#overlay.on{display:flex;}
+.modal{background:var(--panel);border:2px solid var(--accent);border-radius:10px;padding:18px 20px;max-width:520px;width:100%;max-height:100%;overflow:auto;}.modal h3{font-family:'Oswald',sans-serif;letter-spacing:5px;color:var(--accent);font-size:20px;margin-bottom:10px;}.modal p{font-size:13px;line-height:1.6;margin-bottom:10px;}
+.title h1{font-family:'Oswald',sans-serif;font-size:44px;letter-spacing:12px;color:var(--accent);text-align:center;text-shadow:0 0 24px rgba(216,240,128,.35);}.title .tag{font-size:12px;letter-spacing:4px;color:var(--dim);margin:6px 0 16px;text-align:center;}
+@media (max-width:760px){#wrap{grid-template-columns:1fr;grid-template-rows:56% 44%;}#side{border-left:none;border-top:1px solid var(--border);}.title h1{font-size:30px;letter-spacing:6px;}canvas#c{cursor:default;}}
+</style></head>
+<body>
+<a class="back" href="/" title="Back to Iron Games">◀ IRON GAMES</a>
+<div id="wrap">
+  <div id="main"><canvas id="c"></canvas><div id="overlay"></div></div>
+  <div id="side">
+    <h2 class="t">IRON MEADOW</h2>
+    <div class="stat"><span id="sTime">Morning</span><b id="sCoins">0 coins</b></div>
+    <div class="stat"><span>Collection</span><b id="sBook">0 / 12 species</b></div>
+    <div class="row"><button class="btn on" id="tBook">BOOK</button><button class="btn" id="tShop">NET SHOP</button></div>
+    <div id="panel"></div>
+  </div>
+</div>
+<script>
+'use strict';
+const $=id=>document.getElementById(id);const clamp=(v,a,b)=>v<a?a:v>b?b:v;const rnd=(a,b)=>a+Math.random()*(b-a);const pick=a=>a[Math.floor(Math.random()*a.length)];
+const SPECIES=[{k:'cabbage',n:'Cabbage White',col:'#f8f8f0',col2:'#d0d0c0',rar:1,time:['morning','day'],sp:60,v:2},{k:'brimstone',n:'Brimstone',col:'#f0f060',col2:'#d0d040',rar:1,time:['morning','day'],sp:70,v:3},{k:'tortoise',n:'Tortoiseshell',col:'#ff8a30',col2:'#3a2a1a',rar:2,time:['day'],sp:80,v:5},{k:'blue',n:'Common Blue',col:'#60a0ff',col2:'#304080',rar:2,time:['morning','day'],sp:95,v:5},{k:'peacock',n:'Peacock',col:'#c03040',col2:'#4060c0',rar:3,time:['day','evening'],sp:85,v:8},{k:'admiral',n:'Red Admiral',col:'#2a1a1a',col2:'#e03030',rar:3,time:['day','evening'],sp:110,v:8},{k:'swallow',n:'Swallowtail',col:'#f0e060',col2:'#2a2a2a',rar:4,time:['day'],sp:120,v:14},{k:'monarch',n:'Monarch',col:'#ff9a30',col2:'#2a1a1a',rar:4,time:['day','evening'],sp:100,v:14},{k:'morpho',n:'Blue Morpho',col:'#40c0ff',col2:'#1030a0',rar:5,time:['evening'],sp:130,v:22},{k:'glass',n:'Glasswing',col:'rgba(220,240,255,0.5)',col2:'#3a3a3a',rar:5,time:['morning'],sp:90,v:22},{k:'moon',n:'Luna Moth',col:'#b0f0c0',col2:'#60a080',rar:6,time:['night'],sp:70,v:35},{k:'emperor',n:'Midnight Emperor',col:'#4a2a8a',col2:'#ffd040',rar:7,time:['night'],sp:150,v:60}];
+const TIMES=['morning','day','evening','night'];
+const SHOP=[{k:'net',n:'Wider net',max:3,price:l=>40+50*l,d:'A bigger sweep'},{k:'quick',n:'Quick wrist',max:2,price:l=>60+60*l,d:'Swing again sooner'},{k:'boots',n:'Soft boots',max:1,price:()=>120,d:'Butterflies startle less'},{k:'lantern',n:'Lantern',max:1,price:()=>150,d:'Night butterflies come closer'}];
+let S=null,bugs=[],mx=400,my=300,swing=0,cd=0,last=0,tab='book',puffs=[],timeT=0;
+function newState(){return {coins:0,book:{},caught:0,up:{net:0,quick:0,boots:0,lantern:0},time:'morning'}}
+function save(){try{localStorage.setItem('imd_save',JSON.stringify(S))}catch(e){}}
+function load(){try{const s=JSON.parse(localStorage.getItem('imd_save'));if(s&&s.book)return s}catch(e){}return null}
+function refresh(){$('sTime').textContent=S.time.charAt(0).toUpperCase()+S.time.slice(1);$('sCoins').textContent=S.coins+' coins';$('sBook').textContent=Object.keys(S.book).length+' / '+SPECIES.length+' species';$('tBook').classList.toggle('on',tab==='book');$('tShop').classList.toggle('on',tab==='shop');save()}
+function renderPanel(){const p=$('panel');if(tab==='shop'){let h='<h4>NET SHOP</h4>';for(const u of SHOP){const l=S.up[u.k];h+='<div class="it"><span>'+u.n+(l>=u.max?' (max)':' '+l+'/'+u.max)+'<small>'+u.d+(l<u.max?' · '+u.price(l)+' coins':'')+'</small></span><button data-u="'+u.k+'" '+(l<u.max&&S.coins>=u.price(l)?'':'disabled')+'>'+(l>=u.max?'OWNED':'BUY')+'</button></div>'}h+='<p style="margin-top:6px;color:#a0b080">Move the net with the mouse or your finger and click or tap to swing. Catching a butterfly adds it to the book and sets it free again for coins. Different butterflies fly at different times of day.</p>';p.innerHTML=h;for(const b of p.querySelectorAll('button[data-u]'))b.onclick=()=>{const u=SHOP.find(x=>x.k===b.dataset.u);const l=S.up[u.k];if(l>=u.max||S.coins<u.price(l))return;S.coins-=u.price(l);S.up[u.k]++;refresh();renderPanel();beep(800,0.1)};return}
+  let h='<h4>COLLECTION BOOK</h4>';for(const sp of SPECIES){const c=S.book[sp.k];h+='<div class="it"><span><span class="sw" style="background:'+(c?sp.col:'#444')+'"></span>'+(c?sp.n:'???')+'<small>'+(c?'caught '+c+' · '+'★'.repeat(sp.rar)+' · flies in the '+sp.time.join(' and '):'★'.repeat(sp.rar)+' · not seen yet')+'</small></span></div>'}p.innerHTML=h}
+function spawn(){const pool=SPECIES.filter(sp=>sp.time.includes(S.time));const weights=pool.map(sp=>1/(sp.rar*sp.rar)*(S.up.lantern&&S.time==='night'?2:1));const tot=weights.reduce((a,b)=>a+b,0);let r=Math.random()*tot;let sp=pool[0];for(let i=0;i<pool.length;i++){r-=weights[i];if(r<=0){sp=pool[i];break}}const side=Math.random()<0.5?-1:1;bugs.push({sp,x:side<0?-30:W+30,y:rnd(60,H*0.7),vx:-side*sp.sp*rnd(0.6,1),vy:0,ph:rnd(0,6),t:0,scare:0})}
+function tick(dt){timeT+=dt;if(timeT>75){timeT=0;S.time=TIMES[(TIMES.indexOf(S.time)+1)%4];refresh();renderPanel()}
+  if(bugs.length<4+S.up.net&&Math.random()<dt*0.5)spawn();cd=Math.max(0,cd-dt);swing=Math.max(0,swing-dt);
+  for(const b of bugs){b.t+=dt;b.ph+=dt;const d=Math.hypot(mx-b.x,my-b.y);const scareR=S.up.boots?60:110;if(d<scareR&&b.scare<=0){b.scare=0.6;const away=Math.atan2(b.y-my,b.x-mx);b.vx=Math.cos(away)*b.sp.sp*1.6;b.vy=Math.sin(away)*b.sp.sp*1.2}b.scare=Math.max(0,b.scare-dt);
+    if(b.scare<=0){b.vx+=(Math.sign(b.vx||1)*b.sp.sp*0.8-b.vx)*dt;b.vy+=(Math.sin(b.ph*1.7)*40-b.vy)*dt*2}b.x+=b.vx*dt;b.y+=b.vy*dt;if(b.y<40){b.y=40;b.vy=Math.abs(b.vy)}if(b.y>H*0.78){b.y=H*0.78;b.vy=-Math.abs(b.vy)}}
+  bugs=bugs.filter(b=>b.t<40&&b.x>-80&&b.x<W+80);for(const p of puffs)p.t-=dt;puffs=puffs.filter(p=>p.t>0)}
+function swingNet(){if(!S||cd>0)return;ac();cd=S.up.quick?0.35:0.7;swing=0.25;const r=34+S.up.net*10;let got=null;for(const b of bugs){if(Math.hypot(b.x-mx,b.y-my)<r+10){got=b;break}}
+  if(got){bugs=bugs.filter(b=>b!==got);const sp=got.sp;const first=!S.book[sp.k];S.book[sp.k]=(S.book[sp.k]||0)+1;S.caught++;const coins=sp.v*(first?3:1);S.coins+=coins;puffs.push({x:got.x,y:got.y,t:1.4,text:(first?'NEW! ':'')+sp.n+' +'+coins});beep(first?1000:700,0.15,'triangle');if(first)show('<h3>'+sp.n.toUpperCase()+'</h3><p>'+'★'.repeat(sp.rar)+'☆'.repeat(7-sp.rar)+' · a new butterfly for your book! It flies in the '+sp.time.join(' and ')+'. You set it free and it leaves '+coins+' coins behind.</p><button class="btn on" id="ok">LOVELY</button>');refresh();renderPanel()}else beep(300,0.08,'sawtooth')}
+function show(html){$('overlay').innerHTML='<div class="modal">'+html+'</div>';$('overlay').classList.add('on');$('ok').onclick=()=>$('overlay').classList.remove('on')}
+const cv=$('c'),ctx=cv.getContext('2d');let W=800,H=450;
+function resize(){const r=cv.getBoundingClientRect();W=Math.max(300,Math.floor(r.width));H=Math.max(200,Math.floor(r.height));cv.width=W;cv.height=H}addEventListener('resize',resize);resize();
+function draw(){const t=performance.now()/1000;const tm=S?S.time:'day';const skies={morning:['#ffd8a0','#bfe0ff'],day:['#7fc4ff','#dff4ff'],evening:['#ff9a60','#8060c0'],night:['#0a0a30','#2a2a5a']}[tm];const g=ctx.createLinearGradient(0,0,0,H*0.6);g.addColorStop(0,skies[0]);g.addColorStop(1,skies[1]);ctx.fillStyle=g;ctx.fillRect(0,0,W,H);
+  if(tm==='night'){ctx.fillStyle='#fff';for(let i=0;i<70;i++)ctx.fillRect((i*197)%W,(i*131)%(H*0.5),2,2);ctx.fillStyle='#ffe9a0';ctx.beginPath();ctx.arc(W*0.8,H*0.15,30,0,7);ctx.fill()}else{ctx.fillStyle='#ffe070';ctx.beginPath();ctx.arc(W*(tm==='morning'?0.15:tm==='evening'?0.85:0.75),H*(tm==='day'?0.12:0.3),34,0,7);ctx.fill()}
+  const gr=ctx.createLinearGradient(0,H*0.55,0,H);gr.addColorStop(0,tm==='night'?'#2a4a2a':'#8fd060');gr.addColorStop(1,tm==='night'?'#142a14':'#4a9a3a');ctx.fillStyle=gr;ctx.fillRect(0,H*0.55,W,H);ctx.fillStyle=tm==='night'?'#1a3a1a':'#5aa040';for(let i=0;i<50;i++){const x=(i*97)%W,y=H*0.56+(i*53)%(H*0.44);ctx.fillRect(x,y-8,3,10)}
+  for(let i=0;i<24;i++){const x=(i*131+20)%W,y=H*0.6+(i*71)%(H*0.38);ctx.fillStyle=['#ff6a9a','#ffe070','#fff','#a070e0','#ff9a40'][i%5];for(let k=0;k<5;k++){const a=k/5*Math.PI*2;ctx.beginPath();ctx.arc(x+Math.cos(a)*5,y+Math.sin(a)*5,3.5,0,7);ctx.fill()}ctx.fillStyle='#ffd040';ctx.beginPath();ctx.arc(x,y,2.5,0,7);ctx.fill()}
+  for(const b of bugs)drawBug(b,t);
+  for(const p of puffs){ctx.fillStyle='rgba(255,255,255,'+Math.min(1,p.t)+')';ctx.font='bold 14px Oswald, sans-serif';ctx.textAlign='center';ctx.fillText(p.text.toUpperCase(),p.x,p.y-20-(1.4-p.t)*30)}
+  // net
+  if(S){const r=34+S.up.net*10;ctx.save();ctx.translate(mx,my);ctx.rotate(swing>0?-0.8+swing*3:0);ctx.strokeStyle='#8a6a3a';ctx.lineWidth=6;ctx.beginPath();ctx.moveTo(r*0.6,r*0.6);ctx.lineTo(r*2.2,r*2.2);ctx.stroke();ctx.strokeStyle='#e8e8f0';ctx.lineWidth=3;ctx.beginPath();ctx.arc(0,0,r,0,7);ctx.stroke();ctx.fillStyle='rgba(255,255,255,0.15)';ctx.fill();ctx.strokeStyle='rgba(255,255,255,0.35)';ctx.lineWidth=1;for(let i=-r;i<=r;i+=8){ctx.beginPath();ctx.moveTo(i,-Math.sqrt(r*r-i*i));ctx.lineTo(i,Math.sqrt(r*r-i*i));ctx.stroke()}ctx.restore()}
+  ctx.fillStyle='rgba(30,40,20,0.55)';ctx.fillRect(0,0,W,26);ctx.fillStyle='#e8f0c0';ctx.font='bold 13px Oswald, sans-serif';ctx.textAlign='left';ctx.fillText((S?S.time:'').toUpperCase()+' IN THE MEADOW · MOVE THE NET, CLICK OR TAP TO SWING',150,17)}
+function drawBug(b,t){const sp=b.sp;const flap=Math.sin(t*14+b.ph);ctx.save();ctx.translate(b.x,b.y);if(b.vx<0)ctx.scale(-1,1);const s=10+sp.rar*1.5;for(const side of [-1,1]){ctx.save();ctx.scale(1,side);ctx.transform(1,0,0,0.4+Math.abs(flap)*0.6,0,0);ctx.fillStyle=sp.col;ctx.beginPath();ctx.ellipse(-s*0.3,-s*0.6,s*0.9,s*0.7,-0.4,0,7);ctx.fill();ctx.beginPath();ctx.ellipse(s*0.1,-s*0.3,s*0.6,s*0.5,0.3,0,7);ctx.fill();ctx.fillStyle=sp.col2;ctx.beginPath();ctx.arc(-s*0.5,-s*0.8,s*0.22,0,7);ctx.fill();ctx.beginPath();ctx.arc(s*0.2,-s*0.4,s*0.14,0,7);ctx.fill();ctx.restore()}ctx.fillStyle='#2a2a2a';ctx.beginPath();ctx.ellipse(0,0,s*0.18,s*0.55,0,0,7);ctx.fill();ctx.strokeStyle='#2a2a2a';ctx.lineWidth=1;ctx.beginPath();ctx.moveTo(0,-s*0.5);ctx.lineTo(-s*0.3,-s*0.9);ctx.moveTo(0,-s*0.5);ctx.lineTo(s*0.3,-s*0.9);ctx.stroke();ctx.restore()}
+function frame(now){requestAnimationFrame(frame);const dt=Math.min(0.1,(now-last)/1000||0);last=now;if(S)tick(dt);draw()}
+const pos=e=>{const r=cv.getBoundingClientRect();const t=e.touches?e.touches[0]:e;return [(t.clientX-r.left)*W/r.width,(t.clientY-r.top)*H/r.height]};
+cv.addEventListener('mousemove',e=>{[mx,my]=pos(e)});cv.addEventListener('mousedown',e=>{[mx,my]=pos(e);swingNet()});
+cv.addEventListener('touchstart',e=>{[mx,my]=pos(e);swingNet();e.preventDefault()},{passive:false});cv.addEventListener('touchmove',e=>{[mx,my]=pos(e);e.preventDefault()},{passive:false});
+$('tBook').onclick=()=>{tab='book';refresh();renderPanel()};$('tShop').onclick=()=>{tab='shop';refresh();renderPanel()};
+let AC=null;function ac(){if(!AC){try{AC=new (window.AudioContext||window.webkitAudioContext)()}catch(e){}}if(AC&&AC.state==='suspended')AC.resume();return AC}
+function beep(f,d,type){const a=ac();if(!a)return;const o=a.createOscillator(),g=a.createGain();o.type=type||'sine';o.frequency.value=f;g.gain.value=0.05;g.gain.exponentialRampToValueAtTime(0.0001,a.currentTime+d);o.connect(g);g.connect(a.destination);o.start();o.stop(a.currentTime+d)}
+function titleScreen(){const saved=load();$('overlay').innerHTML='<div class="modal title"><h1>IRON MEADOW</h1><div class="tag">A SUMMER OF BUTTERFLIES</div><p>Wander a meadow with a net. Twelve kinds of butterfly flutter by at different times of day, from the common cabbage white to the rare midnight emperor that only flies at night. Catch one and it goes in your book, then flies free and leaves a few coins for a bigger net.</p>'+(saved?'<button class="btn on" id="cont">CONTINUE — '+Object.keys(saved.book).length+' SPECIES FOUND</button>':'')+'<button class="btn" id="new" style="margin-top:6px">NEW BOOK</button></div>';$('overlay').classList.add('on');
+  const begin=st=>{S=st;$('overlay').classList.remove('on');refresh();renderPanel();for(let i=0;i<3;i++)spawn()};if(saved)$('cont').onclick=()=>begin(saved);$('new').onclick=()=>begin(newState())}
+titleScreen();requestAnimationFrame(frame);
+</script></body></html>

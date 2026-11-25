@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0,viewport-fit=cover,user-scalable=no">
+<title>Iron Room – Free Room Decorator Game in Your Browser | Iron Games</title>
+<meta name="description" content="Iron Room is a free browser room design game: paint the walls and floor, drag in beds, sofas, lamps, plants, rugs, bookshelves, pictures and a sleepy cat, arrange everything just so, save your rooms and download them as pictures. No download.">
+<meta name="robots" content="index,follow,max-snippet:-1,max-image-preview:large">
+<link rel="canonical" href="https://irongames.win/ironroom.html">
+<link rel="icon" href="favicon.svg" type="image/svg+xml"><link rel="manifest" href="site.webmanifest">
+<meta property="og:type" content="website"><meta property="og:site_name" content="Iron Games"><meta property="og:title" content="Iron Room – Room Decorator | Iron Games"><meta property="og:description" content="Paint, furnish and decorate your dream room, then save or download it. Free in your browser, no download."><meta property="og:url" content="https://irongames.win/ironroom.html"><meta name="twitter:card" content="summary">
+<script type="application/ld+json">{"@context":"https://schema.org","@graph":[{"@type":"VideoGame","name":"Iron Room","url":"https://irongames.win/ironroom.html","genre":["Casual","Creative","Design","Family"],"gamePlatform":"Web browser","applicationCategory":"Game","operatingSystem":"Any","isAccessibleForFree":true,"offers":{"@type":"Offer","price":"0","priceCurrency":"USD"},"author":{"@type":"Organization","name":"Daniele Bros","url":"https://irongames.win/"},"description":"A room decorating game: choose wall and floor colours, drag furniture and decorations into the room, recolour and flip them, save rooms and download them as pictures."},{"@type":"BreadcrumbList","itemListElement":[{"@type":"ListItem","position":1,"name":"Iron Games","item":"https://irongames.win/"},{"@type":"ListItem","position":2,"name":"Iron Room","item":"https://irongames.win/ironroom.html"}]}]}</script>
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link href="https://fonts.googleapis.com/css2?family=Oswald:wght@500;700&family=Share+Tech+Mono&display=swap" rel="stylesheet">
+<style>
+:root{--gold:#e8c84a;--cream:#fff8f0;--dim:#b0a090;--panel:rgba(40,30,24,.94);--border:#7a6050;--accent:#ffc078;}
+*{box-sizing:border-box;margin:0;padding:0;}html,body{width:100%;height:100%;overflow:hidden;background:#261c16;}
+body{font-family:'Share Tech Mono','Courier New',monospace;color:var(--cream);user-select:none;-webkit-user-select:none;touch-action:none;}
+#wrap{position:absolute;inset:0;display:grid;grid-template-columns:1fr 320px;}#main{position:relative;overflow:hidden;}canvas#c{width:100%;height:100%;display:block;cursor:grab;}
+#side{background:var(--panel);border-left:1px solid var(--border);display:flex;flex-direction:column;padding:12px;gap:7px;overflow-y:auto;}
+.back{position:absolute;top:10px;left:10px;z-index:30;background:rgba(40,30,24,.85);color:var(--dim);font-family:'Oswald',sans-serif;font-size:12px;letter-spacing:3px;padding:7px 12px;border:1px solid var(--border);text-decoration:none;border-radius:2px;}.back:hover{color:var(--gold);border-color:var(--gold);}
+h2.t{font-family:'Oswald',sans-serif;font-size:22px;letter-spacing:6px;color:var(--accent);}
+.btn{display:block;width:100%;background:#4a3a2e;border:1px solid var(--border);color:var(--cream);font-family:'Oswald',sans-serif;font-size:12px;letter-spacing:2px;padding:7px 6px;cursor:pointer;text-align:center;border-radius:6px;}.btn:hover{border-color:var(--accent);color:var(--accent);}.btn.on{background:#8a6a3a;border-color:var(--accent);color:#fff;}.btn:disabled{opacity:.4;cursor:default;}
+.row{display:flex;gap:5px;flex-wrap:wrap;}.row .btn{flex:1;min-width:58px;}
+.lbl{font-size:10px;letter-spacing:2px;color:var(--dim);margin-top:4px;display:flex;justify-content:space-between;align-items:center;}
+.pal{display:flex;gap:4px;flex-wrap:wrap;}.pal i{width:18px;height:18px;border-radius:50%;border:1px solid #fff;cursor:pointer;display:inline-block;}
+#panel{flex:1;min-height:70px;overflow-y:auto;font-size:12px;line-height:1.5;border:1px solid var(--border);padding:8px;background:rgba(0,0,0,.3);border-radius:6px;}
+#panel h4{font-family:'Oswald',sans-serif;letter-spacing:3px;color:var(--accent);font-size:13px;margin:4px 0 6px;}
+#overlay{position:absolute;inset:0;display:none;align-items:center;justify-content:center;background:rgba(0,0,0,.55);z-index:20;padding:16px;}#overlay.on{display:flex;}
+.modal{background:var(--panel);border:2px solid var(--accent);border-radius:10px;padding:18px 20px;max-width:520px;width:100%;max-height:100%;overflow:auto;}.modal h3{font-family:'Oswald',sans-serif;letter-spacing:5px;color:var(--accent);font-size:20px;margin-bottom:10px;}.modal p{font-size:13px;line-height:1.6;margin-bottom:10px;}
+.title h1{font-family:'Oswald',sans-serif;font-size:44px;letter-spacing:12px;color:var(--accent);text-align:center;text-shadow:0 0 24px rgba(255,192,120,.35);}.title .tag{font-size:12px;letter-spacing:4px;color:var(--dim);margin:6px 0 16px;text-align:center;}
+@media (max-width:760px){#wrap{grid-template-columns:1fr;grid-template-rows:50% 50%;}#side{border-left:none;border-top:1px solid var(--border);}.title h1{font-size:30px;letter-spacing:6px;}}
+</style></head>
+<body>
+<a class="back" href="/" title="Back to Iron Games">◀ IRON GAMES</a>
+<div id="wrap">
+  <div id="main"><canvas id="c"></canvas><div id="overlay"></div></div>
+  <div id="side">
+    <h2 class="t">IRON ROOM</h2>
+    <div class="lbl"><span>WALLS</span></div><div class="pal" id="wallPal"></div>
+    <div class="lbl"><span>FLOOR</span></div><div class="pal" id="floorPal"></div>
+    <div class="lbl"><span>ADD FURNITURE (TAP TO PLACE)</span></div>
+    <div class="row" id="items"></div>
+    <div class="lbl"><span>SELECTED ITEM</span></div>
+    <div class="row"><button class="btn" id="bFlip">FLIP</button><button class="btn" id="bColor">RECOLOUR</button><button class="btn" id="bFront">BRING FRONT</button><button class="btn" id="bRemove">REMOVE</button></div>
+    <div class="row"><button class="btn" id="bSave">SAVE ROOM</button><button class="btn" id="bRooms">MY ROOMS</button><button class="btn" id="bDownload">DOWNLOAD</button><button class="btn" id="bClear">EMPTY</button></div>
+    <div id="panel"></div>
+  </div>
+</div>
+<script>
+'use strict';
+const $=id=>document.getElementById(id);const clamp=(v,a,b)=>v<a?a:v>b?b:v;const pick=a=>a[Math.floor(Math.random()*a.length)];
+const WALLS=['#ffe9d6','#ffd6e8','#d6ecff','#e4f7da','#f3e3ff','#fff6c8','#e8e8e8','#c8dcc0','#f0c8b8','#8fb0c8'];const FLOORS=['#c8925a','#a8743e','#e0c8a0','#8a6a4a','#d8d8d8','#c0b0d8','#b8d8c0','#f0d0c0'];
+const ITEMS={bed:{n:'Bed',w:150,h:80,col:'#ff9ac8'},sofa:{n:'Sofa',w:140,h:60,col:'#80b0ff'},table:{n:'Table',w:90,h:50,col:'#c89060'},chair:{n:'Chair',w:44,h:60,col:'#ffd27a'},lamp:{n:'Lamp',w:40,h:110,col:'#ffe9a0'},plant:{n:'Plant',w:50,h:90,col:'#50b060'},rug:{n:'Rug',w:160,h:70,col:'#e05070'},shelf:{n:'Bookshelf',w:80,h:130,col:'#a06a3a'},picture:{n:'Picture',w:70,h:56,col:'#c0a060'},window:{n:'Window',w:90,h:90,col:'#9ad3ff'},cat:{n:'Cat',w:50,h:36,col:'#808080'},teddy:{n:'Teddy',w:36,h:40,col:'#b07a4a'},desk:{n:'Desk',w:110,h:60,col:'#d0b090'},mirror:{n:'Mirror',w:50,h:90,col:'#d0e8ff'},fairy:{n:'Fairy lights',w:220,h:30,col:'#ffd27a'}};
+const WALL_ITEMS=['picture','window','fairy','mirror'];
+let R=null,sel=-1,drag=null,rooms=[];
+function newRoom(){return {wall:WALLS[0],floor:FLOORS[0],items:[]}}
+function save(){try{localStorage.setItem('iroom',JSON.stringify({R,rooms}))}catch(e){}}
+function load(){try{const s=JSON.parse(localStorage.getItem('iroom'));if(s&&s.R){rooms=s.rooms||[];return s.R}}catch(e){}return null}
+function controls(){$('wallPal').innerHTML=WALLS.map(c=>'<i style="background:'+c+(R.wall===c?';outline:2px solid #ffc078':'')+'" data-w="'+c+'"></i>').join('');for(const i of $('wallPal').children)i.onclick=()=>{R.wall=i.dataset.w;controls();save()};
+  $('floorPal').innerHTML=FLOORS.map(c=>'<i style="background:'+c+(R.floor===c?';outline:2px solid #ffc078':'')+'" data-f="'+c+'"></i>').join('');for(const i of $('floorPal').children)i.onclick=()=>{R.floor=i.dataset.f;controls();save()};
+  $('items').innerHTML=Object.keys(ITEMS).map(k=>'<button class="btn" data-k="'+k+'">'+ITEMS[k].n.toUpperCase()+'</button>').join('');for(const b of $('items').children)b.onclick=()=>addItem(b.dataset.k);
+  $('panel').innerHTML='<h4>HOW TO DECORATE</h4><p>Pick wall and floor colours, tap a piece of furniture to put it in the room, then drag it where you like. Tap an item to select it, then flip it, recolour it, bring it to the front or remove it. Pictures, windows, mirrors and fairy lights hang on the wall; everything else sits on the floor. Save your rooms and download them as pictures.</p>'}
+function addItem(k){const d=ITEMS[k];const wallItem=WALL_ITEMS.includes(k);R.items.push({k,x:W/2+Math.random()*80-40,y:wallItem?H*0.3:H*0.62+Math.random()*H*0.25,flip:1,col:d.col});sel=R.items.length-1;beep(500,0.05);save()}
+function hitTest(x,y){for(let i=R.items.length-1;i>=0;i--){const it=R.items[i];const d=ITEMS[it.k];if(Math.abs(x-it.x)<d.w/2&&y>it.y-d.h&&y<it.y+8)return i}return -1}
+const cv=$('c'),ctx=cv.getContext('2d');let W=800,H=450;
+function resize(){const r=cv.getBoundingClientRect();W=Math.max(300,Math.floor(r.width));H=Math.max(200,Math.floor(r.height));cv.width=W;cv.height=H}addEventListener('resize',resize);resize();
+function draw(){if(!R){ctx.fillStyle='#261c16';ctx.fillRect(0,0,W,H);return}const t=performance.now()/1000;ctx.fillStyle=R.wall;ctx.fillRect(0,0,W,H*0.55);ctx.fillStyle='rgba(0,0,0,0.06)';for(let i=0;i<W;i+=36)ctx.fillRect(i,0,1,H*0.55);
+  ctx.fillStyle=R.floor;ctx.fillRect(0,H*0.55,W,H);ctx.fillStyle='rgba(0,0,0,0.08)';for(let i=0;i<8;i++)ctx.fillRect(0,H*0.55+i*(H*0.45/8),W,2);ctx.fillStyle='rgba(255,255,255,0.3)';ctx.fillRect(0,H*0.55,W,6);ctx.fillStyle='rgba(0,0,0,0.12)';ctx.fillRect(0,H*0.55-6,W,6);
+  const order=R.items.map((it,i)=>i).sort((a,b)=>(R.items[a].y)-(R.items[b].y));for(const i of order){const it=R.items[i];drawItem(it,t,i===sel)}}
+function drawItem(it,t,selected){const d=ITEMS[it.k];ctx.save();ctx.translate(it.x,it.y);if(!WALL_ITEMS.includes(it.k)){ctx.fillStyle='rgba(0,0,0,0.18)';ctx.beginPath();ctx.ellipse(0,2,d.w/2,8,0,0,7);ctx.fill()}ctx.scale(it.flip,1);const c=it.col,w=d.w,h=d.h;ctx.fillStyle=c;
+  switch(it.k){case 'bed':ctx.fillStyle='#8a6a4a';ctx.fillRect(-w/2,-h,w,h);ctx.fillStyle=c;ctx.fillRect(-w/2+4,-h+14,w-8,h-24);ctx.fillStyle='#fff';ctx.fillRect(-w/2+10,-h+18,40,22);ctx.fillStyle=shade(c,0.85);ctx.fillRect(-w/2+4,-h+46,w-8,10);break;
+    case 'sofa':ctx.fillRect(-w/2,-h+16,w,h-16);ctx.fillStyle=shade(c,1.15);ctx.fillRect(-w/2+10,-h+20,w/2-14,h/2);ctx.fillRect(4,-h+20,w/2-14,h/2);ctx.fillStyle=shade(c,0.8);ctx.fillRect(-w/2,-h,12,h);ctx.fillRect(w/2-12,-h,12,h);break;
+    case 'table':ctx.fillRect(-w/2,-h,w,12);ctx.fillStyle=shade(c,0.7);ctx.fillRect(-w/2+6,-h+12,8,h-12);ctx.fillRect(w/2-14,-h+12,8,h-12);break;
+    case 'chair':ctx.fillRect(-w/2,-h,w,10);ctx.fillRect(-w/2,-h/2,w,10);ctx.fillStyle=shade(c,0.7);ctx.fillRect(-w/2,-h,6,h);ctx.fillRect(w/2-6,-h/2,6,h/2);ctx.fillRect(-w/2,-h/2,6,h/2);break;
+    case 'lamp':ctx.fillStyle='#6a5a4a';ctx.fillRect(-3,-h+30,6,h-30);ctx.fillRect(-14,-6,28,6);ctx.fillStyle=c;ctx.beginPath();ctx.moveTo(-20,-h+30);ctx.lineTo(20,-h+30);ctx.lineTo(12,-h);ctx.lineTo(-12,-h);ctx.fill();ctx.fillStyle='rgba(255,230,150,0.25)';ctx.beginPath();ctx.moveTo(-20,-h+30);ctx.lineTo(20,-h+30);ctx.lineTo(44,0);ctx.lineTo(-44,0);ctx.fill();break;
+    case 'plant':ctx.fillStyle='#c06040';ctx.fillRect(-16,-30,32,30);ctx.fillStyle=c;for(const [dx,dy,a] of [[0,-50,0],[-18,-62,-0.6],[18,-62,0.6],[-8,-80,-0.2],[10,-78,0.3]]){ctx.beginPath();ctx.ellipse(dx,dy,10,22,a,0,7);ctx.fill()}break;
+    case 'rug':ctx.beginPath();ctx.ellipse(0,-h/2,w/2,h/2,0,0,7);ctx.fill();ctx.fillStyle=shade(c,1.3);ctx.beginPath();ctx.ellipse(0,-h/2,w/2-18,h/2-10,0,0,7);ctx.fill();break;
+    case 'shelf':ctx.fillRect(-w/2,-h,w,h);ctx.fillStyle=shade(c,0.7);for(let k=1;k<4;k++)ctx.fillRect(-w/2+4,-h+k*(h/4),w-8,4);for(let k=0;k<3;k++)for(let b=0;b<5;b++){ctx.fillStyle=['#e05070','#60a0ff','#ffd040','#60c080','#a070e0'][(k+b)%5];ctx.fillRect(-w/2+8+b*14,-h+8+k*(h/4),10,h/4-10)}break;
+    case 'picture':ctx.fillRect(-w/2,-h,w,h);ctx.fillStyle='#f8f0e8';ctx.fillRect(-w/2+6,-h+6,w-12,h-12);ctx.fillStyle='#80c0ff';ctx.fillRect(-w/2+6,-h+6,w-12,(h-12)*0.6);ctx.fillStyle='#60b060';ctx.beginPath();ctx.moveTo(-w/2+6,-6);ctx.lineTo(-6,-h+20);ctx.lineTo(w/2-6,-6);ctx.fill();break;
+    case 'window':ctx.fillStyle='#fff';ctx.fillRect(-w/2,-h,w,h);ctx.fillStyle=c;ctx.fillRect(-w/2+6,-h+6,w-12,h-12);ctx.fillStyle='#fff';ctx.fillRect(-3,-h,6,h);ctx.fillRect(-w/2,-h/2-3,w,6);ctx.fillStyle='rgba(255,255,255,0.8)';ctx.beginPath();ctx.arc(-w/4,-h*0.7,10,0,7);ctx.arc(-w/4+12,-h*0.72,12,0,7);ctx.fill();break;
+    case 'cat':ctx.fillStyle=c;ctx.beginPath();ctx.ellipse(0,-14,24,13,0,0,7);ctx.fill();ctx.beginPath();ctx.arc(18,-22,11,0,7);ctx.fill();ctx.beginPath();ctx.moveTo(10,-30);ctx.lineTo(13,-40);ctx.lineTo(18,-31);ctx.moveTo(20,-31);ctx.lineTo(25,-40);ctx.lineTo(27,-30);ctx.fill();ctx.fillStyle='#2a1a1a';ctx.fillRect(14,-24,2,2);ctx.fillRect(21,-24,2,2);ctx.strokeStyle=c;ctx.lineWidth=5;ctx.beginPath();ctx.moveTo(-22,-12);ctx.quadraticCurveTo(-38,-26,-30,-38+Math.sin(t*2)*3);ctx.stroke();break;
+    case 'teddy':ctx.beginPath();ctx.arc(0,-14,14,0,7);ctx.fill();ctx.beginPath();ctx.arc(0,-34,11,0,7);ctx.fill();ctx.beginPath();ctx.arc(-9,-42,5,0,7);ctx.arc(9,-42,5,0,7);ctx.fill();ctx.fillStyle='#2a1a1a';ctx.fillRect(-4,-36,2,2);ctx.fillRect(2,-36,2,2);ctx.fillRect(-1,-32,2,2);break;
+    case 'desk':ctx.fillRect(-w/2,-h,w,10);ctx.fillStyle=shade(c,0.7);ctx.fillRect(-w/2+4,-h+10,30,h-10);ctx.fillRect(w/2-10,-h+10,6,h-10);ctx.fillStyle='#404050';ctx.fillRect(-10,-h-30,40,26);ctx.fillStyle='#9ad3ff';ctx.fillRect(-8,-h-28,36,20);break;
+    case 'mirror':ctx.fillStyle='#d0a040';ctx.beginPath();ctx.ellipse(0,-h/2,w/2,h/2,0,0,7);ctx.fill();ctx.fillStyle=c;ctx.beginPath();ctx.ellipse(0,-h/2,w/2-6,h/2-6,0,0,7);ctx.fill();ctx.fillStyle='rgba(255,255,255,0.6)';ctx.fillRect(-8,-h+14,5,h-28);break;
+    case 'fairy':ctx.strokeStyle='#8a7a5a';ctx.lineWidth=1.5;ctx.beginPath();for(let i=0;i<=10;i++){const x=-w/2+i*w/10,y=-h+Math.sin(i*0.9)*8;i?ctx.lineTo(x,y):ctx.moveTo(x,y)}ctx.stroke();for(let i=0;i<=10;i++){const x=-w/2+i*w/10,y=-h+Math.sin(i*0.9)*8+6;ctx.fillStyle=['#ffd27a','#ff8fd0','#8ff0a0','#7fe0ff'][i%4];ctx.globalAlpha=0.6+0.4*Math.sin(t*3+i);ctx.beginPath();ctx.arc(x,y,5,0,7);ctx.fill()}ctx.globalAlpha=1;break}
+  ctx.restore();if(selected){ctx.strokeStyle='#ffc078';ctx.lineWidth=2;ctx.setLineDash([6,4]);ctx.strokeRect(it.x-d.w/2-4,it.y-d.h-4,d.w+8,d.h+12);ctx.setLineDash([])}}
+function shade(hex,f){const n=parseInt(hex.slice(1),16);const r=Math.min(255,Math.round(((n>>16)&255)*f)),g=Math.min(255,Math.round(((n>>8)&255)*f)),b=Math.min(255,Math.round((n&255)*f));return 'rgb('+r+','+g+','+b+')'}
+const pos=e=>{const r=cv.getBoundingClientRect();const t=e.touches?e.touches[0]:e;return [(t.clientX-r.left)*W/r.width,(t.clientY-r.top)*H/r.height]};
+function down(x,y){if(!R)return;ac();const i=hitTest(x,y);sel=i;if(i>=0)drag={i,dx:x-R.items[i].x,dy:y-R.items[i].y}}
+function move(x,y){if(!drag)return;const it=R.items[drag.i];it.x=clamp(x-drag.dx,20,W-20);const wallItem=WALL_ITEMS.includes(it.k);it.y=wallItem?clamp(y-drag.dy,ITEMS[it.k].h+10,H*0.55-6):clamp(y-drag.dy,H*0.56+ITEMS[it.k].h*0.3,H-6)}
+function up(){if(drag){drag=null;save()}}
+cv.addEventListener('mousedown',e=>{const [x,y]=pos(e);down(x,y)});cv.addEventListener('mousemove',e=>{const [x,y]=pos(e);move(x,y)});addEventListener('mouseup',up);
+cv.addEventListener('touchstart',e=>{const [x,y]=pos(e);down(x,y);e.preventDefault()},{passive:false});cv.addEventListener('touchmove',e=>{const [x,y]=pos(e);move(x,y);e.preventDefault()},{passive:false});cv.addEventListener('touchend',up);
+$('bFlip').onclick=()=>{if(sel>=0){R.items[sel].flip*=-1;save()}};$('bColor').onclick=()=>{if(sel>=0){const it=R.items[sel];const pal=['#ff9ac8','#80b0ff','#ffd27a','#50b060','#e05070','#a070e0','#c89060','#f0f0f0','#404050','#80d0d0'];it.col=pal[(pal.indexOf(it.col)+1)%pal.length];save()}};$('bFront').onclick=()=>{if(sel>=0){const it=R.items.splice(sel,1)[0];it.y=Math.max(it.y,WALL_ITEMS.includes(it.k)?it.y:H*0.56+ITEMS[it.k].h*0.3);R.items.push(it);sel=R.items.length-1;save()}};$('bRemove').onclick=()=>{if(sel>=0){R.items.splice(sel,1);sel=-1;save()}};$('bClear').onclick=()=>{R.items=[];sel=-1;save()};
+$('bSave').onclick=()=>{const name=prompt('Name this room:','Room '+(rooms.length+1));if(name===null)return;rooms.push({name:(name||'Room').slice(0,20),room:JSON.parse(JSON.stringify(R))});save();show('<h3>SAVED</h3><p>'+(name||'Room')+' is in My Rooms.</p><button class="btn" id="ok">OK</button>')};
+$('bRooms').onclick=()=>{let h='<h3>MY ROOMS</h3>';if(!rooms.length)h+='<p>No saved rooms yet.</p>';rooms.forEach((r,i)=>{h+='<div class="row" style="margin-bottom:6px"><button class="btn" data-o="'+i+'">'+r.name.toUpperCase()+' · '+r.room.items.length+' ITEMS</button><button class="btn" data-d="'+i+'" style="flex:0 0 70px">DELETE</button></div>'});h+='<button class="btn" id="ok">CLOSE</button>';show(h);for(const b of document.querySelectorAll('button[data-o]'))b.onclick=()=>{R=JSON.parse(JSON.stringify(rooms[+b.dataset.o].room));sel=-1;controls();hide();save()};for(const b of document.querySelectorAll('button[data-d]'))b.onclick=()=>{rooms.splice(+b.dataset.d,1);save();$('bRooms').onclick()}};
+$('bDownload').onclick=()=>{const a=document.createElement('a');a.download='iron-room.png';a.href=cv.toDataURL('image/png');a.click()};
+function show(html){return new Promise(res=>{$('overlay').innerHTML='<div class="modal">'+html+'</div>';$('overlay').classList.add('on');const b=$('ok');if(b)b.onclick=()=>{hide();res()}})}function hide(){$('overlay').classList.remove('on');$('overlay').innerHTML=''}
+let AC=null;function ac(){if(!AC){try{AC=new (window.AudioContext||window.webkitAudioContext)()}catch(e){}}if(AC&&AC.state==='suspended')AC.resume();return AC}
+function beep(f,d,type){const a=ac();if(!a)return;const o=a.createOscillator(),g=a.createGain();o.type=type||'sine';o.frequency.value=f;g.gain.value=0.05;g.gain.exponentialRampToValueAtTime(0.0001,a.currentTime+d);o.connect(g);g.connect(a.destination);o.start();o.stop(a.currentTime+d)}
+function frame(){requestAnimationFrame(frame);draw()}
+function titleScreen(){const saved=load();$('overlay').innerHTML='<div class="modal title"><h1>IRON ROOM</h1><div class="tag">DESIGN YOUR DREAM ROOM</div><p>Paint the walls, choose a floor, then fill the room with a bed, a sofa, lamps, plants, rugs, a bookshelf, a window, fairy lights and a sleepy cat. Drag everything where you like, recolour it, save your rooms and download them as pictures.</p><button class="btn on" id="go">'+(saved?'OPEN MY ROOM':'START DECORATING')+'</button></div>';$('overlay').classList.add('on');$('go').onclick=()=>{R=saved||newRoom();if(!saved){addItem('bed');addItem('plant');addItem('window');R.items[0].x=W*0.3;R.items[1].x=W*0.75;R.items[2].x=W*0.6;sel=-1}hide();controls()}}
+titleScreen();requestAnimationFrame(frame);
+</script></body></html>
