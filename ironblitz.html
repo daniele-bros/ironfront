@@ -4,13 +4,13 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1.0,viewport-fit=cover,user-scalable=no">
 <title>Iron Blitz – Free 3D Tank Battles in Your Browser | Iron Games</title>
-<meta name="description" content="Iron Blitz is a free 3D tank game in your browser, in the style of World of Tanks Blitz: 7 vs 7 battles against bots with 40 tanks from ten nations, from the T-34 and Tiger to the IS-7, T29, Centurion, STB-1, 121, Strv 103B and 60TP. Real armour angles, penetration, ricochets, sniper zoom, base capture and three maps. No download, works on phones.">
+<meta name="description" content="Iron Blitz is a free 3D tank game in your browser, in the style of World of Tanks Blitz: 7 vs 7 battles against bots with 50 tanks from eleven nations, from the T-34 and Tiger to the IS-7, T29, Centurion, STB-1, 121, Strv 103B, 60TP and the NE line from Spark to Ryder. Real armour angles, penetration, ricochets, sniper zoom, base capture and three maps. No download, works on phones.">
 <meta name="robots" content="index,follow,max-snippet:-1,max-image-preview:large">
 <link rel="canonical" href="https://irongames.win/ironblitz.html">
 <link rel="icon" href="favicon.svg" type="image/svg+xml"><link rel="manifest" href="site.webmanifest">
-<meta property="og:type" content="website"><meta property="og:site_name" content="Iron Games"><meta property="og:title" content="Iron Blitz – 3D Tank Battles | Iron Games"><meta property="og:description" content="7 vs 7 tank battles in 3D with 40 tanks from ten nations: angle your armour, aim for weak spots, capture the base. Free browser game."><meta property="og:url" content="https://irongames.win/ironblitz.html">
-<meta name="twitter:card" content="summary"><meta name="twitter:title" content="Iron Blitz – 3D Tank Battles | Iron Games"><meta name="twitter:description" content="7 vs 7 tank battles in 3D with 40 tanks from ten nations. Free browser game.">
-<script type="application/ld+json">{"@context":"https://schema.org","@graph":[{"@type":"VideoGame","name":"Iron Blitz","url":"https://irongames.win/ironblitz.html","genre":["Action","Tank game","Shooter","Strategy"],"gamePlatform":"Web browser","applicationCategory":"Game","operatingSystem":"Any","isAccessibleForFree":true,"offers":{"@type":"Offer","price":"0","priceCurrency":"USD"},"author":{"@type":"Organization","name":"Daniele Bros","url":"https://irongames.win/"},"description":"A free 3D tank battle game in the style of World of Tanks Blitz with 40 tanks from ten nations, 7 vs 7 battles against bots, armour angles, penetration and base capture."}]}</script>
+<meta property="og:type" content="website"><meta property="og:site_name" content="Iron Games"><meta property="og:title" content="Iron Blitz – 3D Tank Battles | Iron Games"><meta property="og:description" content="7 vs 7 tank battles in 3D with 50 tanks from eleven nations: angle your armour, aim for weak spots, capture the base. Free browser game."><meta property="og:url" content="https://irongames.win/ironblitz.html">
+<meta name="twitter:card" content="summary"><meta name="twitter:title" content="Iron Blitz – 3D Tank Battles | Iron Games"><meta name="twitter:description" content="7 vs 7 tank battles in 3D with 50 tanks from eleven nations. Free browser game.">
+<script type="application/ld+json">{"@context":"https://schema.org","@graph":[{"@type":"VideoGame","name":"Iron Blitz","url":"https://irongames.win/ironblitz.html","genre":["Action","Tank game","Shooter","Strategy"],"gamePlatform":"Web browser","applicationCategory":"Game","operatingSystem":"Any","isAccessibleForFree":true,"offers":{"@type":"Offer","price":"0","priceCurrency":"USD"},"author":{"@type":"Organization","name":"Daniele Bros","url":"https://irongames.win/"},"description":"A free 3D tank battle game in the style of World of Tanks Blitz with 50 tanks from eleven nations, 7 vs 7 battles against bots, armour angles, penetration and base capture."}]}</script>
 <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link href="https://fonts.googleapis.com/css2?family=Oswald:wght@500;700&family=Share+Tech+Mono&display=swap" rel="stylesheet">
 <style>
 :root{--gold:#e8c84a;--cream:#f4ecc8;--dim:#9a9060;--panel:rgba(20,18,10,.9);--border:#5a5030;}
@@ -25,7 +25,16 @@ body{font-family:'Share Tech Mono','Courier New',monospace;color:var(--cream);us
 #garage h1{font-family:'Oswald',sans-serif;letter-spacing:6px;color:var(--gold);font-size:30px}#garage h2{font-family:'Oswald',sans-serif;letter-spacing:3px;font-size:13px;color:var(--dim);margin-bottom:10px}
 .nat{font-family:'Oswald',sans-serif;font-size:12px;letter-spacing:1px;background:transparent;color:var(--cream);border:1px solid var(--border);padding:4px 7px;margin:2px;cursor:pointer;border-radius:2px}.nat.on{background:var(--gold);color:#000}
 #tlist{margin-top:10px}.tk{padding:7px 9px;border:1px solid var(--border);margin:4px 0;cursor:pointer;font-size:13px;background:rgba(0,0,0,.25)}.tk:hover{border-color:var(--gold)}.tk.on{border-color:var(--gold);background:rgba(232,200,74,.18)}.tk b{color:var(--gold);display:inline-block;width:30px;font-family:'Oswald',sans-serif}.cl{color:var(--dim);font-size:11px;display:inline-block;width:26px}
-#stats h3{font-family:'Oswald',sans-serif;letter-spacing:2px;color:var(--gold);font-size:22px}#stats .sub{color:var(--dim);font-size:12px;margin-bottom:8px}
+#stats h3{font-family:'Oswald',sans-serif;letter-spacing:2px;color:var(--gold);font-size:22px}#stats .sub{color:var(--dim);font-size:12px;margin-bottom:8px}#stats .blurb{font-size:12px;color:var(--cream);line-height:1.45;margin:0 0 8px}
+.gunch{display:flex;gap:4px;margin:0 0 8px}.gunch button{flex:1;font-family:inherit;font-size:11px;padding:6px 4px;background:#141208;color:var(--cream);border:1px solid var(--border);cursor:pointer}.gunch button.on{border-color:var(--gold);color:var(--gold)}
+#nby{font-size:11px;color:var(--gold);min-height:0;letter-spacing:1px}#lockmsg{font-size:12px;color:#ffb03a;min-height:0;margin-top:4px}
+#treebtn{width:100%;margin:8px 0 2px;font-size:13px;letter-spacing:2px}
+.tk.lock{opacity:.5}.tree{display:flex;align-items:stretch;gap:0;overflow-x:auto;padding:6px 0 12px}
+.tnode{min-width:96px;max-width:124px;border:1px solid var(--border);padding:8px;cursor:pointer;background:rgba(0,0,0,.35);flex:0 0 auto;text-align:left}
+.tnode.on{border-color:var(--gold);background:rgba(232,200,74,.16)}.tnode.lock{opacity:.55}.tnode b{color:var(--gold);font-family:'Oswald',sans-serif}
+.tnode .rn{font-size:13px;margin:3px 0;color:var(--cream)}.tnode .rr{font-size:10px;color:var(--dim);line-height:1.35}
+.tarrow{align-self:center;color:var(--gold);padding:0 4px;flex:0 0 auto;font-family:'Oswald',sans-serif}
+#tree .panel{width:min(98vw,1240px);text-align:left}#treenote{font-size:12px;color:var(--dim);line-height:1.5;margin:6px 0 8px}
 #stats table{width:100%;border-collapse:collapse;font-size:12px}#stats td{padding:3px 2px;border-bottom:1px solid rgba(90,80,48,.4)}#stats td:last-child{text-align:right;color:var(--cream)}#stats td:first-child{color:var(--dim)}
 .btn{display:inline-block;font-family:'Oswald',sans-serif;letter-spacing:3px;font-size:15px;padding:10px 22px;margin:4px;border:1px solid var(--gold);color:var(--gold);background:transparent;cursor:pointer}.btn:hover{background:var(--gold);color:#000}.btn.big{font-size:22px;width:100%;margin:10px 0 4px;background:var(--gold);color:#000}
 select{background:#1a1810;color:var(--cream);border:1px solid var(--border);font-family:inherit;padding:5px;width:100%;margin-top:8px}
@@ -48,12 +57,13 @@ select{background:#1a1810;color:var(--cream);border:1px solid var(--border);font
 <div id="hud"><button id="leavebtn">☰ MENU</button></div>
 <div id="touch"><div id="lookpad"></div><div id="stick"><div id="knob"></div></div><div class="tb" id="zoombtn">ZOOM</div><div class="tb" id="firebtn">FIRE</div></div>
 <div class="scr" id="garage"><a class="back" href="index.html" style="pointer-events:auto">◀ IRON GAMES</a>
-  <div class="pn"><h1>IRON BLITZ</h1><h2>3D TANK BATTLES · 7 VS 7</h2><div id="nats"></div><div id="tlist"></div></div>
-  <div class="pn"><button class="btn big" id="battle" style="margin-top:0">BATTLE!</button><select id="mapsel" style="margin:0 0 10px"></select><div id="stats"></div><div id="rec"></div>
+  <div class="pn"><h1>IRON BLITZ</h1><h2>3D TANK BATTLES · 7 VS 7</h2><div id="nats"></div><div id="nby"></div><button class="btn" id="treebtn" type="button">TECH TREE</button><div id="tlist"></div></div>
+  <div class="pn"><button class="btn big" id="battle" style="margin-top:0">BATTLE!</button><select id="mapsel" style="margin:0 0 10px"></select><div id="stats"></div><div id="lockmsg"></div><div id="rec"></div>
   <p class="note">Drive with WASD or the arrow keys, aim with the mouse (click to lock it), left click or Space to fire, right click or Shift for the sniper scope, mouse wheel to zoom. On phones: left stick drives, drag the right side to aim, FIRE and ZOOM buttons. The reticle turns green where you can penetrate, yellow where it is close and red where you will bounce. Win by destroying every enemy or holding the enemy base circle until it is captured.</p>
   <p class="note">Tank stats are game approximations in the spirit of WoT Blitz, not historical figures. Matchmaking puts you with tanks one tier above or below yours.</p></div>
 </div>
 <div class="scr mid" id="results"><div class="panel"><div id="rtitle"></div><div id="rreason"></div><div id="rme"></div><div id="rtab"></div><div style="margin-top:14px"><button class="btn" id="again">BATTLE AGAIN</button><button class="btn" id="togar">GARAGE</button></div></div></div>
+<div class="scr mid" id="tree"><div class="panel" id="treep"></div></div>
 <div class="scr mid" id="pause"><div class="panel" style="width:min(92vw,380px)"><div id="rtitle2" style="font-family:Oswald,sans-serif;letter-spacing:6px;font-size:28px;color:var(--gold)">PAUSED</div><p class="note">Click the game to lock the mouse again.</p><button class="btn" id="resume">RESUME</button><button class="btn" id="leave">LEAVE BATTLE</button></div></div>
 <script src="analytics.js"></script>
 <script>
@@ -74,7 +84,8 @@ const NATIONS={
   cz:{n:'Czechoslovakia',flag:'🇨🇿',camo:[[.36,.4,.24],[.44,.34,.22],[.22,.24,.16]],pat:1},
   se:{n:'Sweden',flag:'🇸🇪',camo:[[.3,.36,.24],[.46,.38,.26],[.18,.2,.16]],pat:4},
   it:{n:'Italy',flag:'🇮🇹',camo:[[.72,.62,.42],[.36,.38,.22]],pat:3},
-  pl:{n:'Poland',flag:'🇵🇱',camo:[[.34,.38,.24],[.5,.42,.28],[.2,.22,.18]],pat:2}
+  pl:{n:'Poland',flag:'🇵🇱',camo:[[.34,.38,.24],[.5,.42,.28],[.2,.22,.18]],pat:2},
+  ne:{n:'NE',flag:'🛡️',camo:[[.46,.5,.4],[.24,.28,.22],[.72,.6,.32]],pat:5,by:'Designed by Ryan, age 11'}
 };
 const CLS={LT:'Light',MT:'Medium',HT:'Heavy',TD:'Tank destroyer'};
 const T=(id,n,nat,t,c,s,m)=>Object.assign({id,n,nat,t,c},s,{m});
@@ -128,10 +139,25 @@ const TANKS=[
  // ---- Poland ----
  T('7tp','7TP','pl',2,'LT',{hp:240,dmg:45,pen:50,rl:1.8,spd:37,ht:44,tt:44,ar:[17,17,10,15,15,15],hs:15,tsl:10,dep:-10,el:25,v:700,disp:.4,aim:1.6},{L:4.6,W:2.4,H:1.55,T:.27,g:.15,tp:.06,tl:1.6,tw:1.45,th:.7,ts:'boxy',cal:37,clb:45,cu:'n'}),
  T('50tp','50TP prototyp','pl',8,'HT',{hp:1800,dmg:320,pen:175,rl:9.0,spd:35,ht:28,tt:26,ar:[120,70,40,220,120,70],hs:50,tsl:25,dep:-7,el:18,v:850,disp:.38,aim:2.4},{L:7.0,W:3.3,H:1.85,T:.65,g:.2,tp:-.02,tl:3.0,tw:2.8,th:1.0,ts:'cast',cal:122,clb:46,mb:2,cu:'r',sp:1}),
- T('60tp','60TP Lewandowskiego','pl',10,'HT',{hp:2400,dmg:480,pen:260,rl:13.8,spd:35,ht:26,tt:24,ar:[200,100,50,300,170,90],hs:50,tsl:30,dep:-6,el:18,v:860,disp:.42,aim:3.0},{L:7.8,W:3.6,H:2.0,T:.75,g:.22,tp:-.05,tl:3.6,tw:3.2,th:1.1,ts:'angular',cal:130,clb:57,mb:2,cu:'r',sp:1})
+ T('60tp','60TP Lewandowskiego','pl',10,'HT',{hp:2400,dmg:480,pen:260,rl:13.8,spd:35,ht:26,tt:24,ar:[200,100,50,300,170,90],hs:50,tsl:30,dep:-6,el:18,v:860,disp:.42,aim:3.0},{L:7.8,W:3.6,H:2.0,T:.75,g:.22,tp:-.05,tl:3.6,tw:3.2,th:1.1,ts:'angular',cal:130,clb:57,mb:2,cu:'r',sp:1}),
+ // ---- NE (Ryan, age 11): one line, tier I to X. Optional gun fields are ignored by every other tank. ----
+ T('ne_spark','NE Spark','ne',1,'LT',{hp:210,dmg:28,pen:40,rl:.9,spd:66,ht:54,tt:52,ar:[14,10,8,16,12,10],hs:2,tsl:0,dep:-6,el:22,v:840,disp:.34,aim:1.4,vr:300,role:'Autocannon',note:'Fast boxy scout. Flat plates and a rapid-firing 37 mm autocannon.'},{L:4.15,W:2.02,H:1.3,T:.26,g:.05,tp:.08,tl:1.4,tw:1.28,th:.58,ts:'flatbox',cal:37,clb:60,cu:'c',hull:'box',fe:1}),
+ T('ne_bolt','NE Bolt','ne',2,'LT',{hp:290,dmg:80,pen:64,rl:2.7,spd:58,ht:48,tt:46,ar:[35,18,14,42,22,16],hs:48,tsl:20,dep:-8,el:22,v:790,disp:.35,aim:1.7,role:'Sloped front',note:'The line learns a sloped front. Nimble flanker with one punchy shot.'},{L:4.7,W:2.22,H:1.42,T:.3,g:.32,tp:.05,tl:1.85,tw:1.58,th:.72,ts:'sloped',cal:57,clb:52,mb:1,cu:'l'}),
+ T('ne_rampart','NE Rampart','ne',3,'MT',{hp:540,dmg:115,pen:92,rl:3.9,spd:36,ht:38,tt:36,ar:[60,40,28,72,42,30],hs:64,tsl:24,dep:-6,el:18,v:750,disp:.38,aim:2.0,ba:60,role:'Ricochet hull',note:'Thicker angled plates. Gives up speed so a square-on shot at the front still ricochets.'},{L:5.45,W:2.7,H:1.72,T:.44,g:.36,tp:.02,tl:2.15,tw:1.95,th:.88,ts:'block',cal:75,clb:42,mb:1,cu:'c',sk:1}),
+ T('ne_wedge','NE Wedge Mk. I','ne',4,'HT',{hp:860,dmg:160,pen:105,rl:5.3,spd:32,ht:30,tt:28,ar:[80,55,40,90,55,45],hs:24,tsl:8,dep:-6,el:18,v:770,disp:.4,aim:2.3,role:'Gun choice',note:'First true heavy. A boxy wedge hull, with a single 75 mm or a weak 2-shell burst.',guns:[
+   {name:'75 mm',dmg:160,pen:105,rl:5.3,v:770,disp:.4,aim:2.3,cal:75,clb:48,mb:1},
+   {name:'57 mm burst',dmg:72,pen:82,rl:5.6,intra:.42,burst:2,v:850,disp:.36,aim:2.0,cal:57,clb:60,mb:1}]},
+   {L:5.85,W:2.95,H:1.76,T:.52,g:.14,tp:-.02,tl:2.3,tw:2.15,th:.9,ts:'wedgeface',cal:75,clb:48,mb:1,cu:'c',hull:'wedge',sp:1}),
+ T('ne_bastion','NE Bastion','ne',5,'HT',{hp:1180,dmg:200,pen:132,rl:6.5,spd:30,ht:26,tt:26,ar:[95,90,50,180,100,70],hs:26,tsl:6,dep:-8,el:16,v:810,disp:.38,aim:2.3,up:{a:150,sl:54,y:.48},role:'Hull-down',note:'Thick upper plate and a boxy turret. Sidescrape the corners, or peek hull-down.'},{L:6.35,W:3.2,H:1.95,T:.6,g:.16,tp:-.02,tl:2.5,tw:2.45,th:1.05,ts:'block',cal:88,clb:52,mb:2,cu:'r',sp:1}),
+ T('ne_vanguard','NE Vanguard','ne',6,'HT',{hp:1450,dmg:200,pen:155,rl:17.5,intra:2.3,clip:3,spd:34,ht:28,tt:28,ar:[110,70,50,175,95,60],hs:36,tsl:12,dep:-8,el:18,v:870,disp:.36,aim:2.4,role:'3-shell autoloader',note:'Eight degrees of gun depression. Unlocks the 3-shell autoloader: a heavy burst, then a long reload.'},{L:6.65,W:3.28,H:1.8,T:.64,g:.2,tp:-.04,tl:3.15,tw:2.55,th:.95,ts:'bustle',cal:90,clb:54,mb:1,cu:'r',sp:1}),
+ T('ne_outrider','NE Outrider','ne',7,'HT',{hp:1680,dmg:220,pen:180,rl:18.5,intra:2.3,clip:3,spd:36,ht:30,tt:28,ar:[100,80,55,210,150,80],hs:28,tsl:16,dep:-7,el:18,v:900,disp:.36,aim:2.3,up:{a:110,sl:74,y:.5},cheek:240,cheeksl:16,role:'Auto-ricochet',note:'The upper plate is steep enough to auto-ricochet, and the turret cheeks are thick. Inspired by the Rebel Day.'},{L:6.9,W:3.42,H:1.52,T:.66,g:.42,tp:-.02,tl:2.9,tw:2.95,th:.8,ts:'cheek',cal:105,clb:52,bev:1,cu:'l',sk:1,sp:1}),
+ T('ne_striker','NE Striker','ne',8,'HT',{hp:1880,dmg:220,pen:212,rl:16,intra:2.15,clip:3,spd:34,ht:28,tt:26,ar:[140,65,50,240,130,75],hs:50,tsl:16,dep:-8,el:16,v:930,disp:.36,aim:2.4,cut:1,cuta:165,cutsl:58,role:'660 clip',note:'Angled corner cutouts hide the thin side plate when you angle. A 660-damage clip. Inspired by the Teeti.'},{L:7.15,W:3.5,H:1.78,T:.7,g:.22,tp:-.04,tl:3.2,tw:2.75,th:.98,ts:'notch',cal:120,clb:50,mb:2,cu:'r',hull:'cut',sp:1}),
+ T('ne_apex','NE Apex','ne',9,'HT',{hp:2150,dmg:240,pen:248,rl:14.8,intra:2.0,clip:3,spd:36,ht:30,tt:28,ar:[155,85,60,300,170,90],hs:52,tsl:22,dep:-7,el:18,v:980,disp:.34,aim:2.2,role:'Full DPM',note:'The autoloader is finally competitive on damage per minute, behind 300 mm of turret face. Inspired by the Celeno.'},{L:7.3,W:3.55,H:1.82,T:.72,g:.26,pk:1,tp:-.03,tl:3.3,tw:2.9,th:1.02,ts:'apex',cal:128,clb:52,mb:2,cu:'r',sp:1}),
+ T('ne_ryder','NE Ryder','ne',10,'HT',{hp:2550,dmg:300,pen:268,rl:15.5,dual:1,spd:46,ht:30,tt:26,ar:[160,110,70,360,190,100],hs:34,tsl:8,dep:-6,el:16,v:950,disp:.4,aim:2.6,up:{a:210,sl:66,y:.46},role:'Dual gun',note:'Mobile super-heavy. Turret forehead that does not break, a 350 mm-plus angled hull, and two barrels that fire together.'},{L:7.65,W:3.75,H:1.9,T:.8,g:.3,tp:-.05,tl:3.5,tw:3.2,th:1.08,ts:'forehead',cal:122,clb:48,mb:1,cu:'r',twin:1,hull:'wedge',sp:1})
 ];
+const LINE={ne:['ne_spark','ne_bolt','ne_rampart','ne_wedge','ne_bastion','ne_vanguard','ne_outrider','ne_striker','ne_apex','ne_ryder']};
 const TANK=Object.fromEntries(TANKS.map(t=>[t.id,t]));
-for(const t of TANKS){t.vr=t.c==='LT'?270:t.c==='MT'?250:t.c==='TD'?240:230}
+for(const t of TANKS){if(t.vr==null)t.vr=t.c==='LT'?270:t.c==='MT'?250:t.c==='TD'?240:230}
 const ROMAN=['','I','II','III','IV','V','VI','VII','VIII','IX','X'];
 const BOTNAMES=['Ace_Jack','Rommel99','Wittmann','Kolobanov','Fadin','Pool','Barkmann','Carius','Lafayette','Knispel','Tiger_Tom','Steel_Rain','Panzerfaust','IronSide','Kv_Kat','Molotov','Blitzkrieg','Hammer','Kraken','Viper','Sabaton','Ural','Tundra','Grizzly','Falcon','Raptor','Nomad','Ghost','Bishop','Moose','Badger','Odin','Thor','Kaiser','Bulldog','Sniper_Sam','Dozer','Rustbucket','Krupp','Skoda_Steve','Viking','Samurai','Dragon','Caesar','Husar','Orzel'];
 const MAPS=[
@@ -215,6 +241,7 @@ function camoFn(nat,seed){const N=NATIONS[nat],C=N.camo,s=seed||1;
       case 2:{const v=sin((z*.9+y*1.3+x*.25)+vnoise(x*.5,z*.5,s)*2.4);c=v>.4?C[1]:(C[2]&&v<-.75?C[2]:C[0]);break}
       case 3:{const n=fbm(x*.55+5,z*.55+y*.4,s,3);c=n>.62?C[1]:(C[2]&&abs(sin(z*.7+y*1.1+x*.3))<.07?C[2]:C[0]);break}
       case 4:{const a=floor((z*.866+y*.5)/1.1),b=floor((x*.9+z*.45-y*.3)/1.3);const h=hash2(a,b,s);c=h<.4?C[0]:h<.75?C[1]:C[2];break}
+      case 5:{const n=fbm(x*.35+2,z*.35,s,3);const stripe=abs(sin(z*.55+y*.8))<.16;c=stripe?C[2]:n>.55?C[1]:C[0];break}
       default:{c=C[0]}}
     const k=.92+.12*vnoise(x*2.1+y,z*2.1,s+7);return [c[0]*k,c[1]*k,c[2]*k]}}
 const TRACK=[.16,.16,.15],DARK=[.12,.12,.11],STEEL=[.3,.3,.28];
@@ -235,10 +262,20 @@ function buildTank(t){const m=t.m,L=m.L,W=m.W,H=m.H,Tw=m.T,camo=camoFn(t.nat,t.i
   hb.hexa([[-wi,.38,L/2-.4],[wi,.38,L/2-.4],[wi,.38,L/2-.55],[-wi,.38,L/2-.55],[-wi,trH*.95,L/2],[wi,trH*.95,L/2],[wi,trH*.95,L/2-.3],[-wi,trH*.95,L/2-.3]],camo);
   // upper hull in two halves so a pike nose can fold back
   const wu=m.sp||m.churchill?W/2-.04:wi,yb=trH*.95,gl=m.g*L,pk=m.pk?.6:0;
-  for(const s of [-1,1]){const xo=s*wu,xi=0;const top=s*(wu-.1);
+  if(m.hull==='box'){// flat vertical plates, no glacis slope
+    hb.box(-wu*.98,yb,-L/2+.12,wu*.98,H,L/2-.06,camo)}
+  else if(m.hull==='wedge'){// narrow nose, wide tail: the wedge
+    const nose=L/2-.02,tail=-L/2+.14;
+    hb.hexa([[-wu*.2,yb,nose],[wu*.2,yb,nose],[wu*.98,yb,tail],[-wu*.98,yb,tail],[-wu*.05,H,nose-gl-.15],[wu*.05,H,nose-gl-.15],[wu*.88,H,tail+.1],[-wu*.88,H,tail+.1]],camo)}
+  else if(m.hull==='cut'){// front corners cut away and replaced by angled plates
+    const nose=L/2-.04,tail=-L/2+.14,cf=L*.18;
+    hb.hexa([[-wu*.58,yb,nose],[wu*.58,yb,nose],[wu*.98,yb,tail],[-wu*.98,yb,tail],[-wu*.46,H,nose-gl*.65],[wu*.46,H,nose-gl*.65],[wu*.88,H,tail+.1],[-wu*.88,H,tail+.1]],camo);
+    hb.quad([-wu*.58,yb,nose],[-wu*.98,yb,nose-cf],[-wu*.86,H,nose-cf-gl*.25],[-wu*.46,H,nose-gl*.65],camo,[0,H*.7,0]);
+    hb.quad([wu*.58,yb,nose],[wu*.46,H,nose-gl*.65],[wu*.86,H,nose-cf-gl*.25],[wu*.98,yb,nose-cf],camo,[0,H*.7,0])}
+  else{for(const s of [-1,1]){const xo=s*wu,xi=0;const top=s*(wu-.1);
     const P=[[xi,yb,L/2],[xo,yb,L/2-pk],[xo,yb,-L/2+.1],[xi,yb,-L/2+.1],[xi,H,L/2-gl],[top,H,L/2-gl-pk*.4],[top,H,-L/2+.22],[xi,H,-L/2+.22]];
     if(s<0){[P[0],P[1]]=[P[1],P[0]];[P[2],P[3]]=[P[3],P[2]];[P[4],P[5]]=[P[5],P[4]];[P[6],P[7]]=[P[7],P[6]]}
-    hb.hexa(P,camo)}
+    hb.hexa(P,camo)}}
   // engine deck grilles, driver hatch, exhausts, headlights
   const dz=-L/2+.35;hb.box(-wu*.55,H,dz,wu*.55,H+.05,dz+L*.24,dark);hb.box(-wu*.5,H,dz+L*.26,wu*.5,H+.04,dz+L*.3,dark);
   hb.cylY(wu*.45,L/2-gl-.35,H-.02,H+.08,.28,.26,8,camo);
@@ -260,6 +297,15 @@ function buildTank(t){const m=t.m,L=m.L,W=m.W,H=m.H,Tw=m.T,camo=camoFn(t.nat,t.i
     case 'dome':{const rx=tw/2,f=tl*.5,b=tl*.5;tb.lathe(0,0,[[0,rx,f,b],[th*.35,rx*.93,f*.9,b*.92],[th*.72,rx*.72,f*.62,b*.75],[th,rx*.36,f*.25,b*.42]],18,camo);gz=f*.8;gy=th*.4;break}
     case 'osc':{tb.cylY(0,0,0,th*.35,tw*.44,tw*.42,16,camo);tb.hexa([[-tw*.3,th*.3,tl*.45],[tw*.3,th*.3,tl*.45],[tw*.47,th*.3,-tl*.55],[-tw*.47,th*.3,-tl*.55],[-tw*.22,th,tl*.2],[tw*.22,th,tl*.2],[tw*.4,th,-tl*.52],[-tw*.4,th,-tl*.52]],camo);gy=th*.62;gz=tl*.42;break}
     case 'conic':tb.cylY(0,0,0,th,tw*.48,tw*.34,10,camo);tb.box(-tw*.2,th*.2,-tw*.6,tw*.2,th*.7,-tw*.35,camo);gz=tw*.45;break;
+    case 'flatbox':tb.box(-tw/2,0,-tl/2,tw/2,th,tl/2,camo);gz=tl*.48;gy=th*.46;break;
+    case 'sloped':tb.hexa([[-tw*.4,0,tl*.42],[tw*.4,0,tl*.42],[tw/2,0,-tl/2],[-tw/2,0,-tl/2],[-tw*.26,th,tl*.02],[tw*.26,th,tl*.02],[tw*.4,th,-tl/2+.06],[-tw*.4,th,-tl/2+.06]],camo);gz=tl*.4;gy=th*.55;break;
+    case 'wedgeface':tb.hexa([[-tw*.08,0,tl*.62],[tw*.08,0,tl*.62],[tw/2,0,-tl*.42],[-tw/2,0,-tl*.42],[-tw*.04,th,tl*.18],[tw*.04,th,tl*.18],[tw*.38,th,-tl*.4],[-tw*.38,th,-tl*.4]],camo);gz=tl*.55;gy=th*.42;break;
+    case 'block':tb.box(-tw/2,0,-tl/2,tw/2,th*.9,tl/2,camo,null,tw*.03,tl*.03);tb.box(-tw*.46,th*.88,-tl*.15,tw*.46,th,tl*.4,camo);gz=tl*.48;gy=th*.5;break;
+    case 'bustle':tb.hexa([[-tw*.34,0,tl*.42],[tw*.34,0,tl*.42],[tw*.48,0,-tl*.12],[-tw*.48,0,-tl*.12],[-tw*.26,th,tl*.26],[tw*.26,th,tl*.26],[tw*.4,th,-tl*.1],[-tw*.4,th,-tl*.1]],camo);tb.box(-tw*.32,th*.12,-tl*.72,tw*.32,th*.78,-tl*.08,camo);gz=tl*.42;gy=th*.48;break;
+    case 'cheek':{const rx=tw/2,f=tl*.48,b=tl*.5;tb.lathe(0,0,[[0,rx*.88,f,b],[th*.4,rx*.82,f*.82,b*.9],[th*.75,rx*.58,f*.48,b*.7],[th,rx*.28,f*.18,b*.38]],16,camo);tb.box(-tw*.52,th*.06,0,-tw*.02,th*.64,tl*.42,camo);tb.box(tw*.02,th*.06,0,tw*.52,th*.64,tl*.42,camo);gz=f*.82;gy=th*.42;break}
+    case 'notch':tb.box(-tw*.46,0,-tl*.05,tw*.46,th,tl*.48,camo,null,.04,.03);tb.box(-tw*.28,0,-tl*.58,tw*.28,th*.82,-tl*.02,camo);tb.box(-tw*.52,th*.12,tl*.12,-tw*.16,th*.7,tl*.5,camo);tb.box(tw*.16,th*.12,tl*.12,tw*.52,th*.7,tl*.5,camo);gz=tl*.48;gy=th*.48;break;
+    case 'apex':{const rx=tw/2,f=tl*.5,b=tl*.55;tb.lathe(0,0,[[0,rx,f,b],[th*.5,rx*.94,f*.88,b],[th*.82,rx*.68,f*.52,b*.78],[th,rx*.38,f*.22,b*.48]],16,camo);tb.box(-tw*.36,th*.12,-.02,tw*.36,th*.8,tl*.55,camo);gz=tl*.52;gy=th*.46;break}
+    case 'forehead':tb.box(-tw*.5,0,-tl*.48,tw*.5,th*.86,tl*.12,camo,null,.05,.03);tb.box(-tw*.44,th*.04,tl*.08,tw*.44,th*.98,tl*.58,camo);tb.box(-tw*.2,th*.86,-tl*.15,tw*.2,th,tl*.12,camo);gz=tl*.55;gy=th*.5;break;
     case 'none':break;
   }
   if(m.cu&&m.cu!=='n'&&!m.cm){const cx=m.cu==='l'?-tw*.24:m.cu==='r'?tw*.24:0;const cy=m.ts==='dome'?th*.78:m.ts==='cast'?th*.9:th;const cz=m.ts==='tiger'?-tl*.2:-tl*.12;
@@ -268,15 +314,23 @@ function buildTank(t){const m=t.m,L=m.L,W=m.W,H=m.H,Tw=m.T,camo=camoFn(t.nat,t.i
   // gun: local origin at the trunnion, +z along the barrel
   const gb=new MB();gb.sub=1;const cal=m.cal/1000,glen=cal*m.clb,r=max(.045,cal*.62);
   const mw=clamp(cal*3.2,.32,.75),mh=clamp(cal*2.4,.26,.55);
-  if(!m.cm)gb.box(-mw,-mh,-.25,mw,mh,.22,camo,null,.04,.02);
-  gb.cylZ(0,0,.15,glen,r*1.12,r*.92,10,camo);
-  if(m.mb)gb.cylZ(0,0,glen-.06,glen+cal*(m.mb===2?3.2:2.2),r*1.9,r*1.9,10,DARK);
-  if(m.bev)gb.cylZ(0,0,glen*.58,glen*.58+.55,r*1.6,r*1.6,10,camo);
-  gb.cylZ(0,0,glen+(m.mb?cal*(m.mb===2?3.2:2.2):0)-.02,glen+(m.mb?cal*(m.mb===2?3.2:2.2):0)+.01,r*.55,r*.55,8,[.04,.04,.04]);
+  const twin=m.twin?max(.16,cal*2.6):0;
+  if(!m.cm)gb.box(-mw-twin,-mh,-.25,mw+twin,mh,.22,camo,null,.04,.02);
+  for(const ox of (twin?[-twin,twin]:[0])){const br=twin?r*.9:r*1.12,trr=twin?r*.72:r*.92;
+    gb.cylZ(ox,0,.15,glen,br,trr,10,camo);
+    if(m.mb)gb.cylZ(ox,0,glen-.06,glen+cal*(m.mb===2?3.2:2.2),r*(twin?1.45:1.9),r*(twin?1.45:1.9),10,DARK);
+    if(m.bev)gb.cylZ(ox,0,glen*.58,glen*.58+.55,r*(twin?1.3:1.6),r*(twin?1.3:1.6),10,camo);
+    gb.cylZ(ox,0,glen+(m.mb?cal*(m.mb===2?3.2:2.2):0)-.02,glen+(m.mb?cal*(m.mb===2?3.2:2.2):0)+.01,r*.55,r*.55,8,[.04,.04,.04])}
   const tz=m.tp*L;
-  const info={L,W,H,trH,tz,ty:H,gp:m.cm?[0,H+.15,.6]:[0,gy,gz],glen:glen+(m.mb?cal*3:0),tl,tw,th:m.cm?.4:th,cm:!!m.cm};
+  const info={L,W,H,trH,tz,ty:H,gp:m.cm?[0,H+.15,.6]:[0,gy,gz],glen:glen+(m.mb?cal*3:0),tl,tw,th:m.cm?.4:th,cm:!!m.cm,twin};
   return {hull:upload(hb),turret:upload(tb),gun:upload(gb),info,tris:(hb.a.length+tb.a.length+gb.a.length)/27}}
-const MODELS={};function model(id){return MODELS[id]||(MODELS[id]=buildTank(TANK[id]))}
+const MODELS={};
+function gunIdx(id){const t=TANK[id];if(!t||!t.guns)return 0;const i=save.gun&&save.gun[id];return clamp(i||0,0,t.guns.length-1)}
+function applyGunIndex(t,gi){if(!t||!t.guns)return t;const g=t.guns[clamp(gi|0,0,t.guns.length-1)];const o=Object.assign({},t);
+  o.dmg=g.dmg;o.pen=g.pen;o.rl=g.rl;o.v=g.v;o.disp=g.disp;o.aim=g.aim;o.burst=g.burst||0;o.intra=g.intra||0;o.clip=g.clip||0;o.dual=g.dual||0;
+  o.m=Object.assign({},t.m,{cal:g.cal||t.m.cal,clb:g.clb||t.m.clb,mb:g.mb!=null?g.mb:t.m.mb});o.gunName=g.name;return o}
+function specOf(t){return t?applyGunIndex(t,gunIdx(t.id)):t}
+function model(id,gi){if(gi==null)gi=gunIdx(id);const k=id+'@'+gi;return MODELS[k]||(MODELS[k]=buildTank(applyGunIndex(TANK[id],gi)))}
 /* ===== world: heightfield terrain, obstacles, bases ===== */
 const WS=400,GN=128,GC=WS*2/GN;// half-size m, grid cells, cell size
 const W={map:null,h:null,mesh:null,stat:null,obs:[],rocks:[],bushes:[],trees:[],bases:[[0,-330],[0,330]],baseR:30};
@@ -345,7 +399,7 @@ const GRAV=9.81;
 const save=(()=>{try{return Object.assign({sel:'tiger',map:'random',battles:0,wins:0,dmg:0,kills:0,sens:1},JSON.parse(localStorage.getItem('iblitz_v1')||'{}'))}catch(e){return {sel:'tiger',map:'random',battles:0,wins:0,dmg:0,kills:0,sens:1}}})();
 function saveNow(){try{localStorage.setItem('iblitz_v1',JSON.stringify(save))}catch(e){}}
 /* ---- tanks ---- */
-function makeTank(id,team,name,isPlayer){const s=TANK[id],md=model(id);return {id,s,md,i:md.info,team,name,isPlayer:!!isPlayer,x:0,z:0,y:0,yaw:0,ty:0,gp:0,vel:0,hp:s.hp,maxhp:s.hp,alive:true,rl:1+random()*2,bloom:3,
+function makeTank(id,team,name,isPlayer){const gi=isPlayer?gunIdx(id):0;const s=applyGunIndex(TANK[id],gi),md=model(id,gi);return {id,s,md,i:md.info,team,name,isPlayer:!!isPlayer,x:0,z:0,y:0,yaw:0,ty:0,gp:0,vel:0,hp:s.hp,maxhp:s.hp,alive:true,rl:1+random()*2,rlMax:s.rl,mag:s.clip||0,burstLeft:0,bloom:3,
   M:ID,Mt:ID,Mg:ID,thr:0,str:0,aim:null,seen:[0,0],fired:-99,dmg:0,kills:0,hits:0,rec:0,flash:0,ai:isPlayer?null:{t:0,stuck:0,rev:0,wp:0,lane:0,target:null,react:0,off:[0,0,0],holdYaw:null},lastHitBy:null,spotN:0,yawRate:0,turnRate:0}}
 function tankRadius(t){return (t.i.L+t.i.W)*.27}
 function updateMatrices(t){const L=t.i.L,W=t.i.W,f0=[sin(t.yaw),0,cos(t.yaw)],r0=[-cos(t.yaw),0,sin(t.yaw)];
@@ -359,8 +413,9 @@ function rayBox(o,d,mn,mx,tmax){let t0=0,t1=tmax,ax=-1,sg=0;for(let k=0;k<3;k++)
   if(ax<0)return null;const n=[0,0,0];n[ax]=sg;return {t:t0,n}}
 // hull and turret boxes of a tank: returns nearest {t,part,n(local),M}
 function rayTank(t,o,d,tmax){let best=null;const i=t.i;
-  {const lo=toLocal(t.M,o),ld=dirLocal(t.M,d);const h=rayBox(lo,ld,[-i.W/2,.2,-i.L/2],[i.W/2,i.H,i.L/2],tmax);if(h)best={t:h.t,part:'hull',n:h.n,ld}}
-  if(!i.cm||true){const lo=toLocal(t.Mt,o),ld=dirLocal(t.Mt,d);const h=rayBox(lo,ld,[-i.tw/2,0,-i.tl/2-.25],[i.tw/2,max(i.th,.35),i.tl/2],tmax);if(h&&(!best||h.t<best.t))best={t:h.t,part:'turret',n:h.n,ld}}
+  const pack=(h,part,lo,ld)=>{const p=[lo[0]+ld[0]*h.t,lo[1]+ld[1]*h.t,lo[2]+ld[2]*h.t];return {t:h.t,part,n:h.n,ld,lx:p[0],ly:p[1],lz:p[2]}};
+  {const lo=toLocal(t.M,o),ld=dirLocal(t.M,d);const h=rayBox(lo,ld,[-i.W/2,.2,-i.L/2],[i.W/2,i.H,i.L/2],tmax);if(h)best=pack(h,'hull',lo,ld)}
+  if(!i.cm||true){const lo=toLocal(t.Mt,o),ld=dirLocal(t.Mt,d);const h=rayBox(lo,ld,[-i.tw/2,0,-i.tl/2-.25],[i.tw/2,max(i.th,.35),i.tl/2],tmax);if(h&&(!best||h.t<best.t))best=pack(h,'turret',lo,ld)}
   return best}
 function rayObs(o,d,tmax){let best=null;
   for(const b of W.obs){const c=cos(b.yaw),s=sin(b.yaw);const px=o[0]-b.x,pz=o[2]-b.z;const lo=[-c*px+s*pz,o[1]-b.y,s*px+c*pz],ld=[-c*d[0]+s*d[2],d[1],s*d[0]+c*d[2]];
@@ -372,11 +427,14 @@ function raycast(o,d,tmax,skip){let best={t:tmax,kind:'none'};const g=rayGround(
   for(const t of G.tanks){if(t===skip)continue;if(!t.alive&&t!==skip&&false)continue;const h=rayTank(t,o,d,best.t);if(h)best={t:h.t,kind:'tank',tank:t,hit:h}}return best}
 function los(a,b){const d=vsub(b,a),L=vlen(d);const n=vmul(d,1/L);if(rayObs(a,n,L))return false;for(let s=4;s<L-4;s+=6){const p=vadd(a,vmul(n,s));if(groundH(p[0],p[2])>p[1]-.2)return false}return true}
 /* ---- armour ---- */
-function armourAt(t,h,dirW){const s=t.s,ld=h.ld;const n=h.n;let a,sl=0,face;
-  if(h.part==='hull'){if(n[2]>0){a=s.ar[0];sl=s.hs;face='front'}else if(n[2]<0){a=s.ar[2];face='rear'}else if(n[1]>0){a=round1(s.ar[1]*.45);face='roof'}else{a=s.ar[1];face='side'}}
-  else{if(n[2]>0){a=s.ar[3];sl=s.tsl;face='turret front'}else if(n[2]<0){a=s.ar[5];face='turret rear'}else if(n[1]>0){a=round1(s.ar[4]*.4);face='turret roof'}else{a=s.ar[4];face='turret side';sl=t.i.cm?0:(t.s.m.ts==='dome'||t.s.m.ts==='cast'?25:0)}}
+function armourAt(t,h,dirW){const s=t.s,ld=h.ld;const n=h.n;let a,sl=0,face;const i=t.i;
+  if(h.part==='hull'){if(n[2]>0){a=s.ar[0];sl=s.hs;face='front';if(s.up&&h.ly!=null&&i&&h.ly>i.H*(s.up.y==null?.52:s.up.y)){a=s.up.a;sl=s.up.sl;face='upper plate'}}
+    else if(n[2]<0){a=s.ar[2];face='rear'}else if(n[1]>0){a=round1(s.ar[1]*.45);face='roof'}
+    else{a=s.ar[1];face='side';if(s.cut&&h.lz!=null&&i&&h.lz>i.L*.08){a=s.cuta||a;sl=s.cutsl||50;face='corner cutout'}}}
+  else{if(n[2]>0){a=s.ar[3];sl=s.tsl;face='turret front'}else if(n[2]<0){a=s.ar[5];face='turret rear'}else if(n[1]>0){a=round1(s.ar[4]*.4);face='turret roof'}
+    else{a=s.ar[4];face='turret side';sl=i&&i.cm?0:(t.s.m.ts==='dome'||t.s.m.ts==='cast'?25:0);if(s.cheek&&h.lz!=null&&h.lz>-(i?i.tl:1)*.05){a=s.cheek;sl=s.cheeksl||15;face='turret cheek'}}}
   let nn=n.slice();if(sl&&(n[2]!==0)){const r=sl*PI/180;nn=[0,sin(r),cos(r)*n[2]]}else if(sl&&n[0]!==0){const r=sl*PI/180;nn=[cos(r)*n[0],sin(r),0]}
-  const dl=vnorm(ld);let c=-vdot(dl,nn);c=clamp(c,.02,1);const ang=Math.acos(c)*180/PI;return {a,ang,eff:a/max(cos(max(0,ang-5)*PI/180),.05),face}}
+  const dl=vnorm(ld);let c=-vdot(dl,nn);c=clamp(c,.02,1);const ang=Math.acos(c)*180/PI;return {a,ang,eff:a/max(cos(max(0,ang-5)*PI/180),.05),face,ba:s.ba==null?70:s.ba}}
 function round1(v){return Math.round(v)}
 /* ---- ballistics ---- */
 function ballisticPitch(v,dx,dy){const g=GRAV,v2=v*v,disc=v2*v2-g*(g*dx*dx+2*dy*v2);if(disc<0)return PI/4;return Math.atan((v2-sqrt(disc))/(g*dx))}
@@ -386,12 +444,20 @@ function aimTank(t,pt,dt){const s=t.s;const dx=pt[0]-t.x,dz=pt[2]-t.z;const yawW
   const tf=m4dir(t.Mt,[0,0,1]);const tilt=Math.asin(clamp(tf[1],-1,1));const want=clamp(th-tilt,s.dep*PI/180,s.el*PI/180);const gs=35*PI/180*dt;t.gp+=clamp(want-t.gp,-gs,gs);return yawW}
 function gunDir(t){return vnorm(m4dir(t.Mg,[0,0,1]))}
 function muzzle(t){return m4apply(t.Mg,[0,0,t.i.glen])}
-function fire(t){if(!t.alive||t.rl>0)return false;const s=t.s;const o=muzzle(t);let d=gunDir(t);
+function shootShell(t,ox){const s=t.s;const o=m4apply(t.Mg,[ox||0,0,t.i.glen]);let d=gunDir(t);
+  if(ox){const side=vnorm(m4dir(t.Mg,[ox>0?1:-1,0,0]));d=vnorm(vadd(d,vmul(side,.012)))}
   const sig=s.disp/100*t.bloom*.5,a=random()*2*PI,r=sig*sqrt(random());const rt=vnorm(vcross(d,[0,1,0])),up=vcross(rt,d);d=vnorm(vadd(d,vadd(vmul(rt,cos(a)*r),vmul(up,sin(a)*r))));
-  G.shells.push({p:o,v:vmul(d,s.v),o:t,life:3,pen:s.pen,dmg:s.dmg,he:!!s.he,cal:s.m.cal,prev:o});t.rl=s.rl;t.bloom=min(t.bloom+3.2,6);t.fired=G.now;t.rec=.45;
+  G.shells.push({p:o,v:vmul(d,s.v),o:t,life:3,pen:s.pen,dmg:s.dmg,he:!!s.he,cal:s.m.cal,prev:o});
   for(let k=0;k<14;k++)part(vadd(o,vmul(d,random()*2)),vadd(vmul(d,6+random()*10),[(random()-.5)*3,random()*2,(random()-.5)*3]),.5+random()*.4,1.4+random()*2,[1,.75,.35,.9],0);
   for(let k=0;k<10;k++)part(vadd(o,vmul(d,1+random()*2)),[(random()-.5)*3,1+random()*2,(random()-.5)*3],1.5+random(),3+random()*3,[.7,.7,.68,.45],-.5);
-  sound('shot',t,s.m.cal);if(t===G.player)G.shake=.25+s.m.cal/600;return true}
+  sound('shot',t,s.m.cal);if(t===G.player)G.shake=.25+s.m.cal/600}
+function armGun(t,wait){t.rl=wait;t.rlMax=wait;t.bloom=min(t.bloom+(t.s.dual?4.4:3.2),6);t.fired=G.now;t.rec=.45}
+function fire(t){if(!t.alive||t.rl>0||t.burstLeft>0)return false;const s=t.s;
+  if(s.dual){const ox=t.i.twin||.18;shootShell(t,-ox);shootShell(t,ox);armGun(t,s.rl)}
+  else if(s.burst>1){shootShell(t,0);t.burstLeft=s.burst-1;armGun(t,s.intra||.35)}
+  else if(s.clip>1){if(t.mag<=0)t.mag=s.clip;shootShell(t,0);t.mag--;armGun(t,t.mag>0?(s.intra||2):s.rl)}
+  else{shootShell(t,0);armGun(t,s.rl)}
+  return true}
 function part(p,v,life,size,col,grav){if(G.parts.length>1400)return;G.parts.push({p:p.slice(),v,life,max:life,size,col,g:grav===undefined?-2:grav})}
 function boom(p,big,col){for(let k=0;k<(big?40:12);k++)part(p,[(random()-.5)*(big?14:6),random()*(big?12:5),(random()-.5)*(big?14:6)],.5+random()*(big?1.5:.6),(big?3:1.2)+random()*(big?4:2),col||[1,.6,.25,.95],-6);
   for(let k=0;k<(big?20:6);k++)part(vadd(p,[(random()-.5)*2,random(),(random()-.5)*2]),[(random()-.5)*2,1+random()*3,(random()-.5)*2],2+random()*3,(big?5:2)+random()*4,[.3,.28,.26,.6],-.3)}
@@ -399,7 +465,7 @@ function num(p,txt,col,big){G.nums.push({p:p.slice(),txt,col,t:0,big})}
 function feed(a,b){G.feed.unshift({a,b,t:G.now});if(G.feed.length>6)G.feed.pop()}
 function msg(t,col){G.msgs.push({t,col,at:G.now})}
 function hitTank(sh,t,h,pt){const a=armourAt(t,h,sh.v);const src=sh.o;let dmg=0,res;const vr=.75+random()*.5;
-  const ric=!sh.he&&a.ang>70&&sh.cal<a.a*3;if(ric)res='ricochet';else if(sh.pen*vr>=a.eff){res='pen';dmg=Math.round(sh.dmg*(.8+random()*.4))}
+  const ric=!sh.he&&a.ang>(a.ba==null?70:a.ba)&&sh.cal<a.a*3;if(ric)res='ricochet';else if(sh.pen*vr>=a.eff){res='pen';dmg=Math.round(sh.dmg*(.8+random()*.4))}
   else if(sh.he){dmg=Math.round(max(0,sh.dmg*.5-a.a*1.3));res=dmg>0?'he':'nopen'}else res='nopen';
   if(res==='ricochet'){for(let k=0;k<8;k++)part(pt,[(random()-.5)*10,random()*6,(random()-.5)*10],.3,.8,[1,.95,.6,1],-8)}else boom(pt,sh.he,res==='pen'?[1,.55,.2,1]:[1,.9,.6,1]);
   sound(res==='pen'||res==='he'?'pen':'ric',t);
@@ -481,8 +547,8 @@ function startBattle(mapId){const me=TANK[save.sel]||TANKS[0];const pool=pickPoo
   const ally=[me],enemy=[];for(let i=0;i<6;i++)ally.push(pick());for(const a of ally){const same=pool.filter(p=>p.t===a.t&&p.c===a.c);const same2=pool.filter(p=>p.t===a.t);const c=same.length&&random()<.6?same:same2.length?same2:pool;enemy.push(c[floor(random()*c.length)])}
   ally.forEach((s,k)=>{const t=makeTank(s.id,0,k===0?'You':names.pop(),k===0);G.tanks.push(t)});enemy.forEach(s=>G.tanks.push(makeTank(s.id,1,names.pop(),false)));
   for(const team of [0,1]){const list=G.tanks.filter(t=>t.team===team);const b=W.bases[team],dir=team===0?1:-1;list.forEach((t,k)=>{t.x=b[0]+(k-3)*17+(random()-.5)*4;t.z=b[1]+dir*(30+(k%2)*14);t.yaw=team===0?0:PI;if(t.ai){t.ai.lane=k%3;if(t.s.c==='HT'&&random()<.5)t.ai.lane=1}collide(t);updateMatrices(t)})}
-  G.player=G.tanks[0];cam.yaw=0;cam.pitch=-.12;cam.dist=14;cam.sniper=0;G.mapName=M.n;G.state='battle';buildMinimap();showScreen(null);hud.style.display='block';G.countdown=3;sound('start')}
-function endBattle(win,reason){if(G.result)return;G.result={win,reason};const p=G.player;save.battles++;if(win===1)save.wins++;save.dmg+=p.dmg;save.kills+=p.kills;saveNow();setTimeout(showResults,1600)}
+  G.player=G.tanks[0];cam.yaw=0;cam.pitch=-.12;cam.dist=14;cam.sniper=0;G.mapName=M.n;G.state='battle';G.paused=false;buildMinimap();showScreen(null);hud.style.display='block';G.countdown=3;sound('start')}
+function endBattle(win,reason){if(G.result)return;G.result={win,reason};const p=G.player;save.battles++;if(win===1)save.wins++;save.dmg+=p.dmg;save.kills+=p.kills;G.unlockName=null;if((G.time>=15||p.dmg>0)&&p.id){const nxt=grantNext(p.id);if(nxt)G.unlockName=TANK[nxt].n}saveNow();setTimeout(showResults,1600)}
 function capture(dt){G.capping=[[],[]];for(let i=0;i<2;i++){const b=W.bases[i];const att=G.tanks.filter(t=>t.alive&&t.team!==i&&hypot(t.x-b[0],t.z-b[1])<W.baseR),def=G.tanks.filter(t=>t.alive&&t.team===i&&hypot(t.x-b[0],t.z-b[1])<W.baseR);
     G.capping[i]=att;if(att.length&&!def.length)G.cap[i]=min(100,G.cap[i]+dt*3.2*min(att.length,3));else if(!att.length)G.cap[i]=max(0,G.cap[i]-dt*12);
     if(G.cap[i]>=100)endBattle(i===1?1:0,i===1?'Enemy base captured':'Your base was captured')}}
@@ -490,6 +556,8 @@ function stepBattle(dt){G.now+=dt;if(G.countdown>0){G.countdown-=dt;for(const t 
   if(!G.result)G.time+=dt;const p=G.player;
   if(p.alive&&!G.result){playerControl(dt)}else{p.thr=0;p.str=0}
   for(const t of G.tanks){t.rl=max(0,t.rl-dt);t.rec=max(0,t.rec-dt*1.6);t.flash=max(0,t.flash-dt);
+    if(t.alive&&t.burstLeft>0&&t.rl<=0){shootShell(t,0);t.burstLeft--;armGun(t,t.burstLeft>0?(t.s.intra||.35):t.s.rl)}
+    if(t.alive&&t.s.clip>1&&t.mag<=0&&t.rl<=0)t.mag=t.s.clip;
     if(!t.alive){t.vel*=.9;if(random()<dt*3)part([t.x+(random()-.5)*2,t.y+t.i.H+1,t.z+(random()-.5)*2],[(random()-.5),2+random()*2,(random()-.5)],3+random()*2,4+random()*3,[.18,.17,.16,.5],-.4);updateMatrices(t);continue}
     if(t.ai&&!G.result)aiThink(t,dt);else if(t.ai){t.thr=0;t.str=0}
     if(t.s.tt===0&&t.isPlayer&&t.aim&&t.str===0&&abs(t.thr)<.1){const d=angDiff(t.yaw,atan2(t.aim[0]-t.x,t.aim[2]-t.z));t.str=abs(d)>.004?clamp(d*6,-1,1):0}
@@ -549,7 +617,7 @@ function proj(p){const m=cam.VP;const x=m[0]*p[0]+m[4]*p[1]+m[8]*p[2]+m[12],y=m[
 const hud=document.getElementById('hud');
 function txt(s,x,y,c,sz,al,bold){ctx.font=(bold?'700 ':'')+(sz||13)+'px Oswald,Arial,sans-serif';ctx.textAlign=al||'center';ctx.lineWidth=3;ctx.strokeStyle='rgba(0,0,0,.75)';ctx.strokeText(s,x,y);ctx.fillStyle=c||'#fff';ctx.fillText(s,x,y)}
 function bar(x,y,w,h,f,c){ctx.fillStyle='rgba(0,0,0,.55)';ctx.fillRect(x-1,y-1,w+2,h+2);ctx.fillStyle=c;ctx.fillRect(x,y,w*clamp(f,0,1),h)}
-function predict(r){if(!r||r.kind!=='tank'||!r.tank.alive||r.tank.team===0)return null;const a=armourAt(r.tank,r.hit,cam.dir);const p=G.player.s.pen;if(!G.player.s.he&&a.ang>70&&G.player.s.m.cal<a.a*3)return ['#ff4a3a',a];return [p>=a.eff*1.15?'#4cff5a':p>=a.eff*.85?'#ffd84a':'#ff4a3a',a]}
+function predict(r){if(!r||r.kind!=='tank'||!r.tank.alive||r.tank.team===0)return null;const a=armourAt(r.tank,r.hit,cam.dir);const p=G.player.s.pen;if(!G.player.s.he&&a.ang>(a.ba==null?70:a.ba)&&G.player.s.m.cal<a.a*3)return ['#ff4a3a',a];return [p>=a.eff*1.15?'#4cff5a':p>=a.eff*.85?'#ffd84a':'#ff4a3a',a]}
 function drawHUD(){ctx.setTransform(DPR,0,0,DPR,0,0);ctx.clearRect(0,0,VW,VH);if(G.state!=='battle')return;const p=G.player;
   // labels over tanks
   for(const t of G.tanks){if(t===p||!t.alive)continue;if(t.team===1&&!spotted(t,0))continue;const d=hypot(t.x-cam.eye[0],t.z-cam.eye[2]);if(d>600)continue;const s=proj([t.x,t.y+t.i.H+t.i.th+2.2,t.z]);if(!s)continue;
@@ -560,7 +628,7 @@ function drawHUD(){ctx.setTransform(DPR,0,0,DPR,0,0);ctx.clearRect(0,0,VW,VH);if
   if(p.alive&&!G.result){// gun marker: where the gun really points, sized by the current dispersion
     const g=cam.gunPt&&proj(cam.gunPt);const pr=predict(cam.aimHit);const col=pr?pr[0]:'#ffffff';
     if(g){const sig=p.s.disp/100*p.bloom*.5;const rad=clamp(sig/Math.tan(cam.fov/2)*VH/2,6,VH*.4);ctx.strokeStyle=col;ctx.lineWidth=1.6;ctx.beginPath();ctx.arc(g[0],g[1],rad,0,PI*2);ctx.stroke();
-      const f=1-p.rl/p.s.rl;ctx.strokeStyle=f>=1?'#4cff5a':'#ffb03a';ctx.lineWidth=3;ctx.beginPath();ctx.arc(g[0],g[1],rad+6,-PI/2,-PI/2+PI*2*f);ctx.stroke();
+      const f=1-p.rl/(p.rlMax||p.s.rl);ctx.strokeStyle=f>=1?'#4cff5a':'#ffb03a';ctx.lineWidth=3;ctx.beginPath();ctx.arc(g[0],g[1],rad+6,-PI/2,-PI/2+PI*2*f);ctx.stroke();
       if(p.rl>0)txt(p.rl.toFixed(1)+'s',g[0]+rad+12,g[1]+4,'#ffb03a',12,'left')}
     ctx.fillStyle=col;ctx.fillRect(cx-1,cy-1,3,3);ctx.strokeStyle='rgba(255,255,255,.6)';ctx.lineWidth=1;ctx.beginPath();ctx.moveTo(cx-10,cy);ctx.lineTo(cx-4,cy);ctx.moveTo(cx+4,cy);ctx.lineTo(cx+10,cy);ctx.stroke();
     if(pr&&cam.aimHit)txt(Math.round(pr[1].eff)+' mm',cx,cy+34,pr[0],12)}
@@ -577,7 +645,8 @@ function drawHUD(){ctx.setTransform(DPR,0,0,DPR,0,0);ctx.clearRect(0,0,VW,VH);if
   // own panel
   const px=14,py=isTouch?74:VH-86;ctx.fillStyle='rgba(10,12,8,.7)';ctx.fillRect(px-6,py-20,250,74);txt(p.s.n+'  '+ROMAN[p.s.t],px,py-4,'#ffd24a',15,'left',true);
   bar(px,py+4,230,12,p.hp/p.maxhp,p.hp/p.maxhp>.5?'#57d957':p.hp/p.maxhp>.25?'#ffc23a':'#e84a3a');txt(p.hp+' / '+p.maxhp,px+115,py+14,'#fff',11);
-  txt((p.rl>0?'Reloading '+p.rl.toFixed(1)+' s':'Loaded')+'   '+Math.round(abs(p.vel)*3.6)+' km/h   dmg '+p.dmg,px,py+40,'#ddd',12,'left');
+  const gtxt=p.s.dual?'Dual gun':p.s.clip>1?('Clip '+p.mag+'/'+p.s.clip):p.s.burst>1?('Burst '+(p.s.burst-p.burstLeft)+'/'+p.s.burst):'';
+  txt((p.rl>0?'Reloading '+p.rl.toFixed(1)+' s':'Loaded')+(gtxt?'   '+gtxt:'')+'   '+Math.round(abs(p.vel)*3.6)+' km/h   dmg '+p.dmg,px,py+40,'#ddd',12,'left');
   drawMinimap();
   if(G.countdown>0)txt('Battle starts in '+Math.ceil(G.countdown),cx,cy-80,'#ffd24a',34,'center',true);
   if(!p.alive&&!G.result)txt('Your tank was destroyed. Your team fights on.',cx,cy-90,'#ff8a7a',20,'center',true);
@@ -594,32 +663,59 @@ function drawMinimap(){const sz=isTouch?130:180,x0=VW-sz-12,y0=isTouch?12+60:VH-
 /* ===== garage ===== */
 let garMesh=null;function garageGround(){if(garMesh)return garMesh;const mb=new MB();mb.cylY(0,0,-.3,0,11,11,40,[.32,.3,.26]);mb.cylY(0,0,-.32,-.02,11.6,11.6,40,[.55,.48,.3]);
   for(let i=0;i<14;i++){const a=i/14*2*PI;mb.box(cos(a)*30-2,-.3,sin(a)*30-2,cos(a)*30+2,3+((i*7)%6),sin(a)*30+2,[.28,.27,.24])}garMesh=upload(mb);return garMesh}
-let garAng=0;function renderGarage(dt){garAng+=dt*.25;const t=TANK[save.sel]||TANKS[0];const md=model(t.id);gl.clearColor(.1,.11,.09,1);gl.clear(gl.COLOR_BUFFER_BIT|gl.DEPTH_BUFFER_BIT);
+let garAng=0;function renderGarage(dt){garAng+=dt*.25;const t=specOf(TANK[save.sel]||TANKS[0]);const md=model(t.id);gl.clearColor(.1,.11,.09,1);gl.clear(gl.COLOR_BUFFER_BIT|gl.DEPTH_BUFFER_BIT);
   const L=md.info.L;const dist=L*1.45+5;const narrow=VW<760;const eye=[sin(garAng)*dist,L*.42+1.6,cos(garAng)*dist];const tgt=[0,1.3,0];
   const Pm=m4persp(.8,VW/VH,.3,300);let Vm=m4look(eye,tgt,[0,1,0]);
   const sh=[1,0,0,0,0,1,0,0,0,0,1,0,0,narrow?.42:.1,0,1];/* nudge the tank into the gap between the panels */cam.VP=m4mul(sh,m4mul(Pm,Vm));
   cam.fov=.8;begin3D(cam.VP,eye,[.1,.11,.09],400);drawMesh(garageGround(),ID);const M=m4yp(0,0,[0,0,0]);const tr=m4mul(M,m4yp(sin(garAng*1.7)*.5,0,[0,md.info.ty,md.info.tz]));
-  drawMesh(md.hull,M);drawMesh(md.turret,tr);drawMesh(md.gun,m4mul(tr,m4yp(0,.05,md.info.gp)));ctx.setTransform(DPR,0,0,DPR,0,0);ctx.clearRect(0,0,VW,VH)}
+  drawMesh(md.hull,M);drawMesh(md.turret,tr);drawMesh(md.gun,m4mul(tr,m4yp(0,.05,md.info.gp)));clearOverlay()}
 const $=id=>document.getElementById(id);let garNat=(TANK[save.sel]||TANKS[0]).nat;
-function showScreen(id){for(const s of ['garage','results','pause'])$(s).style.display=s===id?'flex':'none';$('touch').style.display=G.state==='battle'&&!id&&isTouch?'block':'none'}
+function showScreen(id){for(const s of ['garage','results','pause','tree'])$(s).style.display=s===id?'flex':'none';$('touch').style.display=G.state==='battle'&&!id&&isTouch?'block':'none'}
+function neUnlocked(id){const i=LINE.ne.indexOf(id);if(i<0)return true;if(i===0)return true;return !!(save.res&&save.res[id])}
+function grantNext(id){const i=LINE.ne.indexOf(id);if(i<0||i>=LINE.ne.length-1)return null;const nxt=LINE.ne[i+1];save.res=save.res||{};if(save.res[nxt])return null;save.res[nxt]=1;return nxt}
+function researchAll(){save.res=save.res||{};for(const id of LINE.ne)save.res[id]=1;saveNow()}
+let lockNote='';
+function dpmOf(t){if(t.clip>1)return Math.round(t.dmg*t.clip*60/((t.clip-1)*(t.intra||2)+t.rl));if(t.burst>1)return Math.round(t.dmg*t.burst*60/((t.burst-1)*(t.intra||.35)+t.rl));if(t.dual)return Math.round(t.dmg*2*60/t.rl);return Math.round(t.dmg*60/t.rl)}
+function dmgText(t){if(t.dual)return t.dmg+' × 2';if(t.clip>1)return t.dmg+' × '+t.clip+' clip';if(t.burst>1)return t.dmg+' × '+t.burst+' burst';return ''+t.dmg+(t.he?' (HE)':'')}
+function reloadText(t){if(t.clip>1)return t.intra+' s between · '+t.rl+' s to refill';if(t.burst>1)return t.intra+' s between · '+t.rl+' s after the burst';if(t.dual)return t.rl+' s, both barrels';return t.rl+' s'}
+function gunKind(t){if(t.dual)return 'Dual gun';if(t.clip>1)return 'Autoloader';if(t.burst>1)return 'Burst';if(t.rl<1.3)return 'Autocannon';return 'Single shot'}
+function pickTank(id){if(!neUnlocked(id)){const i=LINE.ne.indexOf(id);const prev=i>0?TANK[LINE.ne[i-1]]:null;lockNote=prev?`Finish a battle in the ${prev.n} to research the ${TANK[id].n}.`:'Locked.';return false}lockNote='';save.sel=id;saveNow();return true}
 function garageUI(){const nb=$('nats');nb.innerHTML='';for(const k in NATIONS){const b=document.createElement('button');b.className='nat'+(k===garNat?' on':'');b.textContent=NATIONS[k].flag+' '+NATIONS[k].n;b.onclick=()=>{garNat=k;garageUI()};nb.appendChild(b)}
-  const tl=$('tlist');tl.innerHTML='';for(const t of TANKS.filter(t=>t.nat===garNat).sort((a,b)=>a.t-b.t)){const d=document.createElement('div');d.className='tk'+(t.id===save.sel?' on':'');d.innerHTML=`<b>${ROMAN[t.t]}</b> <span class="cl">${t.c}</span> ${t.n}`;d.onclick=()=>{save.sel=t.id;saveNow();garageUI()};tl.appendChild(d)}
-  const t=TANK[save.sel]||TANKS[0];const a=t.ar;const dpm=Math.round(t.dmg*60/t.rl);
-  $('stats').innerHTML=`<h3>${t.n}</h3><div class="sub">${NATIONS[t.nat].flag} ${NATIONS[t.nat].n} · Tier ${ROMAN[t.t]} ${CLS[t.c]}</div><table>
-  <tr><td>Hit points</td><td>${t.hp}</td></tr><tr><td>Damage</td><td>${t.dmg}${t.he?' (HE)':''}</td></tr><tr><td>Penetration</td><td>${t.pen} mm</td></tr><tr><td>Reload</td><td>${t.rl} s</td></tr><tr><td>Damage per minute</td><td>${dpm}</td></tr>
-  <tr><td>Gun</td><td>${t.m.cal} mm L/${t.m.clb}</td></tr><tr><td>Shell velocity</td><td>${t.v} m/s</td></tr><tr><td>Accuracy at 100 m</td><td>${t.disp} m</td></tr><tr><td>Aim time</td><td>${t.aim} s</td></tr>
+  $('nby').textContent=NATIONS[garNat].by||'';
+  const tl=$('tlist');tl.innerHTML='';for(const raw of TANKS.filter(t=>t.nat===garNat).sort((a,b)=>a.t-b.t)){const d=document.createElement('div');const lock=!neUnlocked(raw.id);d.className='tk'+(raw.id===save.sel?' on':'')+(lock?' lock':'');d.innerHTML=`<b>${ROMAN[raw.t]}</b> <span class="cl">${raw.c}</span> ${raw.n}${lock?' 🔒':''}`;d.onclick=()=>{if(pickTank(raw.id))garageUI();else garageUI()};tl.appendChild(d)}
+  const base=TANK[save.sel]||TANKS[0];const t=specOf(base);const a=t.ar;const dpm=dpmOf(t);
+  let guns='';if(base.guns){guns='<div class="gunch">'+base.guns.map((g,i)=>`<button type="button" class="${i===gunIdx(base.id)?'on':''}" data-g="${i}">${g.name}</button>`).join('')+'</div>'}
+  const rows=[`<tr><td>Gun type</td><td>${gunKind(t)}</td></tr>`,t.up?`<tr><td>Upper plate</td><td>${t.up.a} mm @ ${t.up.sl}°</td></tr>`:'',t.cheek?`<tr><td>Turret cheeks</td><td>${t.cheek} mm</td></tr>`:'',t.ba!=null?`<tr><td>Ricochets from</td><td>${t.ba}°</td></tr>`:'',t.cut?`<tr><td>Corner cutout</td><td>${t.cuta} mm @ ${t.cutsl}°</td></tr>`:''].join('');
+  $('stats').innerHTML=`<h3>${t.n}</h3><div class="sub">${NATIONS[t.nat].flag} ${NATIONS[t.nat].n} · Tier ${ROMAN[t.t]} ${CLS[t.c]}${t.role?' · '+t.role:''}</div>${t.note?`<div class="blurb">${t.note}</div>`:''}${guns}<table>
+  <tr><td>Hit points</td><td>${t.hp}</td></tr><tr><td>Damage</td><td>${dmgText(t)}</td></tr><tr><td>Penetration</td><td>${t.pen} mm</td></tr><tr><td>Reload</td><td>${reloadText(t)}</td></tr><tr><td>Damage per minute</td><td>${dpm}</td></tr>
+  <tr><td>Gun</td><td>${t.m.cal} mm L/${t.m.clb}</td></tr>${rows}<tr><td>Shell velocity</td><td>${t.v} m/s</td></tr><tr><td>Accuracy at 100 m</td><td>${t.disp} m</td></tr><tr><td>Aim time</td><td>${t.aim} s</td></tr>
   <tr><td>Top speed</td><td>${t.spd} km/h</td></tr><tr><td>Hull traverse</td><td>${t.ht}°/s</td></tr><tr><td>Turret traverse</td><td>${t.tt?t.tt+'°/s':'fixed gun'}</td></tr><tr><td>Gun depression / elevation</td><td>${t.dep}° / +${t.el}°</td></tr>
   <tr><td>Hull armour</td><td>${a[0]} / ${a[1]} / ${a[2]}</td></tr><tr><td>Turret armour</td><td>${t.m.cm?'—':a[3]+' / '+a[4]+' / '+a[5]}</td></tr><tr><td>View range</td><td>${t.vr} m</td></tr></table>`;
+  if(base.guns)$('stats').querySelectorAll('.gunch button').forEach(b=>b.onclick=()=>{save.gun=save.gun||{};save.gun[base.id]=+b.dataset.g;saveNow();garageUI()});
+  $('lockmsg').textContent=lockNote;
   $('rec').textContent=`Battles ${save.battles} · Victories ${save.wins}${save.battles?' ('+Math.round(save.wins/save.battles*100)+'%)':''} · Damage ${save.dmg} · Kills ${save.kills}`;
   const ms=$('mapsel');if(!ms.options.length){ms.add(new Option('Random map','random'));for(const m of MAPS)ms.add(new Option(m.n,m.id))}ms.value=save.map}
-function toGarage(){G.state='garage';hud.style.display='none';if(document.pointerLockElement)document.exitPointerLock();garageUI();showScreen('garage')}
+function clearOverlay(){ctx.setTransform(1,0,0,1,0,0);ctx.globalAlpha=1;ctx.clearRect(0,0,ov.width,ov.height)}
+function toGarage(){G.state='garage';G.paused=false;hud.style.display='none';if(document.pointerLockElement)document.exitPointerLock();clearOverlay();garageUI();showScreen('garage')}
 function showResults(){if(document.pointerLockElement)document.exitPointerLock();G.state='results';const r=G.result;$('rtitle').textContent=r.win===1?'VICTORY':r.win===0?'DEFEAT':'DRAW';$('rtitle').style.color=r.win===1?'#ffd24a':r.win===0?'#ff6a5a':'#ddd';
-  $('rreason').textContent=r.reason+' · '+G.mapName+' · '+floor(G.time/60)+':'+String(floor(G.time%60)).padStart(2,'0');const p=G.player;$('rme').textContent=`Your ${p.s.n}: ${p.dmg} damage, ${p.kills} kill${p.kills===1?'':'s'}, ${p.hits} penetrating hit${p.hits===1?'':'s'}${p.alive?', survived':''}`;
+  $('rreason').textContent=r.reason+' · '+G.mapName+' · '+floor(G.time/60)+':'+String(floor(G.time%60)).padStart(2,'0');const p=G.player;$('rme').textContent=`Your ${p.s.n}: ${p.dmg} damage, ${p.kills} kill${p.kills===1?'':'s'}, ${p.hits} penetrating hit${p.hits===1?'':'s'}${p.alive?', survived':''}${G.unlockName?' · Researched the '+G.unlockName:''}`;
   const row=t=>`<tr class="${t.alive?'':'dead'}${t===p?' me':''}"><td>${t.name}</td><td>${ROMAN[t.s.t]} ${t.s.n}</td><td>${t.dmg}</td><td>${t.kills}</td></tr>`;const srt=a=>a.sort((x,y)=>y.dmg-x.dmg);
   $('rtab').innerHTML=`<div><h4 style="color:#7dff7a">Your team</h4><table><tr><th>Player</th><th>Tank</th><th>Dmg</th><th>Kills</th></tr>${srt(G.tanks.filter(t=>t.team===0)).map(row).join('')}</table></div><div><h4 style="color:#ff6a5a">Enemy team</h4><table><tr><th>Player</th><th>Tank</th><th>Dmg</th><th>Kills</th></tr>${srt(G.tanks.filter(t=>t.team===1)).map(row).join('')}</table></div>`;
   showScreen('results');hud.style.display='none'}
 function togglePause(force){if(G.state!=='battle')return;G.paused=force===true?true:!G.paused;showScreen(G.paused?'pause':null)}
-$('battle').onclick=()=>{save.map=$('mapsel').value;saveNow();audioInit();startBattle(save.map)};$('again').onclick=()=>{audioInit();startBattle(save.map)};$('togar').onclick=toGarage;
+function openTree(){const nat=garNat,N=NATIONS[nat];
+  const ids=LINE[nat]||TANKS.filter(t=>t.nat===nat).sort((a,b)=>a.t-b.t||a.n.localeCompare(b.n)).map(t=>t.id);
+  const note=nat==='ne'?'Ten-tank line designed by Ryan, age 11. NE Spark is free. Finish a battle in a tank — 15 seconds, or any damage — to research the next one. Climbing the line unlocks a sloped front, ricochet armour, a choice of single shot or a weak burst, hull-down plating, an 8° 3-shell autoloader, an auto-ricochet upper plate, corner cutouts with a 660-damage clip, a fully competitive autoloader, then a dual-gun super-heavy.':'This nation’s tanks, low tier to high. Pick one for battle.';
+  let html=`<h2 style="font-family:Oswald,sans-serif;letter-spacing:3px;color:var(--gold);font-size:26px">${N.flag} ${N.n} TECH TREE</h2><p id="treenote">${lockNote||note}</p><div class="tree" id="treerow">`;
+  ids.forEach((id,i)=>{const t=TANK[id];const lock=!neUnlocked(id);if(i)html+=`<div class="tarrow">→</div>`;
+    html+=`<div class="tnode${id===save.sel?' on':''}${lock?' lock':''}" data-id="${id}"><b>${ROMAN[t.t]} ${t.c}</b><div class="rn">${t.n}</div><div class="rr">${t.role||CLS[t.c]}</div>${lock?'<div class="rr">locked</div>':''}</div>`});
+  html+=`</div><div style="margin-top:8px"><button class="btn" id="treex" type="button">GARAGE</button></div>`;
+  $('treep').innerHTML=html;
+  $('treep').querySelectorAll('.tnode').forEach(n=>n.onclick=()=>{const id=n.dataset.id;if(!pickTank(id)){openTree();return}garNat=TANK[id].nat;openTree()});
+  $('treex').onclick=()=>{lockNote='';garageUI();showScreen('garage')};
+  showScreen('tree')}
+$('battle').onclick=()=>{if(!neUnlocked(save.sel)){pickTank(save.sel);garageUI();return}save.map=$('mapsel').value;saveNow();audioInit();startBattle(save.map)};$('again').onclick=()=>{if(!neUnlocked(save.sel)){toGarage();return}audioInit();startBattle(save.map)};$('togar').onclick=toGarage;
+$('treebtn').onclick=openTree;
 $('resume').onclick=()=>{G.paused=false;showScreen(null);if(!isTouch&&cv.requestPointerLock)try{cv.requestPointerLock()}catch(_){}};$('leave').onclick=()=>{G.paused=false;if(!G.result)endBattle(0,'You left the battle');else showResults()};
 $('leavebtn').onclick=()=>togglePause(true);
 /* ===== audio ===== */
@@ -633,7 +729,7 @@ let last=performance.now();function frame(now){const dt=min(.05,(now-last)/1000)
   try{if(G.state==='battle'||G.state==='results'){if(G.state==='battle'&&!G.paused)stepBattle(dt);else if(G.state==='results')stepBattle(dt);renderBattle()}else renderGarage(dt)}catch(e){console.error(e);}
   requestAnimationFrame(frame)}
 garageUI();showScreen('garage');requestAnimationFrame(frame);
-window.IB={G,W,cam,TANKS,TANK,startBattle,fire,save,keys,model,toGarage,stepBattle,renderBattle,armourAt,spotted};
+window.IB={G,W,cam,TANKS,TANK,NATIONS,LINE,startBattle,fire,save,keys,model,toGarage,stepBattle,renderBattle,armourAt,spotted,neUnlocked,grantNext,researchAll,specOf,gunIdx,openTree,garageUI,pickTank};
 })();
 </script>
 </body>
